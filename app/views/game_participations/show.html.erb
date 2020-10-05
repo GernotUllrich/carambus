@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Game:</strong>
+  <%= link_to(@game_participation.game.gname, game_path(@game_participation.game)) if @game_participation.game.present? %>
+</p>
+
+<p>
+  <strong>Player:</strong>
+  <%= link_to("#{@game_participation.player.lastname}, #{@game_participation.player.firstname}", player_path(@game_participation.player)) if @game_participation.player.present? %>
+</p>
+
+<p>
+  <strong>Role:</strong>
+  <%= @game_participation.role %>
+</p>
+
+<%= link_to 'Edit', edit_game_participation_path(@game_participation) %> |
+<%= link_to 'Back', game_participations_path %>

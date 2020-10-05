@@ -1,0 +1,30 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Player:</strong>
+  <%= @seeding.player_id %>
+  <%= link_to("#{@seeding.player.lastname}, #{@seeding.player.firstname}", player_path(@seeding.player)) if @seeding.player.present? %>
+</p>
+
+<p>
+  <strong>Tournament:</strong>
+  <%= link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) if @seeding.tournament.present? %>
+</p>
+
+<p>
+  <strong>Status:</strong>
+  <%= @seeding.status %>
+</p>
+
+<p>
+  <strong>Position:</strong>
+  <%= @seeding.position %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @seeding.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_seeding_path(@seeding) %> |
+<%= link_to 'Back', seedings_path %>

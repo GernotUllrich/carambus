@@ -1,0 +1,2 @@
+module SeedingsHelper
+end

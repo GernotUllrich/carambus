@@ -1,0 +1,59 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#disciplines').DataTable({
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [
+                      [0, "desc"]
+                  ],
+                  "aoColumns": [
+                      null,
+                      null,
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#disciplines').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+<p id="notice"><%= notice %></p>
+
+<h1>Disciplines</h1>
+
+<table id="disciplines" data-source="<%= disciplines_url(format: 'json') %>" width="100%" style="margin: 0px; width: 50%;">
+  <thead>
+  <tr>
+    <%- Discipline::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
+    <th width="90px"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Discipline', new_discipline_path %>

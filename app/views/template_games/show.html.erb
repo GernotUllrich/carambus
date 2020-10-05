@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @template_game.name %>
+</p>
+
+<p>
+  <strong>Template:</strong>
+  <%= @template_game.template_id %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @template_game.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_template_game_path(@template_game) %> |
+<%= link_to 'Back', template_games_path %>

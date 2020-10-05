@@ -1,0 +1,39 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Game:</strong>
+  <%= @inning.game_id %>
+</p>
+
+<p>
+  <strong>Sequence number:</strong>
+  <%= @inning.sequence_number %>
+</p>
+
+<p>
+  <strong>Player a count:</strong>
+  <%= @inning.player_a_count %>
+</p>
+
+<p>
+  <strong>Player b count:</strong>
+  <%= @inning.player_b_count %>
+</p>
+
+<p>
+  <strong>Player c count:</strong>
+  <%= @inning.player_c_count %>
+</p>
+
+<p>
+  <strong>Player d count:</strong>
+  <%= @inning.player_d_count %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @inning.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_inning_path(@inning) %> |
+<%= link_to 'Back', innings_path %>

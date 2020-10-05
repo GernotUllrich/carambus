@@ -1,0 +1,77 @@
+<style>
+  th, td {
+      padding: 3px;
+  }
+</style>
+<h1><%= @player.firstname %> <%= @player.lastname %></h1>
+
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Billard Area:</strong>
+  <%= link_to @player.ba_id, "https://#{@player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{@player.club.ba_id}/#{@player.ba_id}" %>
+</p>
+
+<p>
+  <strong>Club:</strong>
+  <%= link_to @player.club.shortname, club_path(@player.club) %>
+</p>
+
+<p>
+  <strong>Lastname:</strong>
+  <%= @player.lastname %>
+</p>
+
+<p>
+  <strong>Firstname:</strong>
+  <%= @player.firstname %>
+</p>
+
+<p>
+  <strong>Title:</strong>
+  <%= @player.title %>
+</p>
+
+<%= link_to 'Edit', edit_player_path(@player) %> |
+<%= link_to 'Back', players_path %>
+
+<h2>Seedings</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Season</th>
+    <th>Region</th>
+<!--    <th>Discipline</th>-->
+    <th>Tournament</th>
+    <th>Results</th>
+  </tr>
+  </thead>
+  <tbody>
+  <%- @player.seedings.joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc" ).each do |seeding| %>
+  <tr>
+    <td><%= link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
+    <td><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>
+<!--    <td><%#= link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
+    <td><%= link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<h2>Seasons</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Season</th>
+    <th>Club</th>
+  </tr>
+  </thead>
+  <tbody>
+  <%- SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: {id: @player.id}).order("season_participations.season_id desc" ).uniq.each do |season_participation| %>
+    <tr>
+      <td><%= link_to season_participation.season.name, season_path(season_participation.season) %></td>
+      <td><%= link_to season_participation.club.shortname, club_path(season_participation.club) %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

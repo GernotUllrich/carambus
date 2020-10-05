@@ -1,0 +1,103 @@
+<style>
+    th, td {
+        padding: 3px;
+    }
+</style>
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>BA_ID:</strong>
+  <%= @tournament.ba_id %>
+</p>
+
+<p>
+  <strong>Title:</strong>
+  <%= @tournament.title %>
+</p>
+
+<p>
+  <strong>Discipline:</strong>
+  <%= @tournament.discipline_id %>
+</p>
+
+<p>
+  <strong>Modus:</strong>
+  <%= @tournament.modus %>
+</p>
+
+<p>
+  <strong>Age restriction:</strong>
+  <%= @tournament.age_restriction %>
+</p>
+
+<p>
+  <strong>Date:</strong>
+  <%= @tournament.date %>
+</p>
+
+<p>
+  <strong>Accredation end:</strong>
+  <%= @tournament.accredation_end %>
+</p>
+
+<p>
+  <strong>Location:</strong>
+  <%= @tournament.location %>
+</p>
+
+<p>
+  <strong>Hosting club:</strong>
+  <%= @tournament.hosting_club_id %>
+</p>
+
+<%= link_to 'Edit', edit_tournament_path(@tournament) %> |
+<%= link_to 'Back', tournaments_path %>
+
+
+<h2>Rankings</h2>
+<%- lists = @tournament.seedings.map { |s| s.remarks["result"].keys }.inject([]) { |a, memo| memo |= a; memo } %>
+<%- lists.each do |list| %>
+  <h3><%= list %></h3>
+  <table>
+    <thead>
+    <tr>
+      <%- @tournament.seedings.select { |seeding| seeding.remarks["result"][list].present? }.first.remarks["result"][list].keys.each do |k| %>
+        <%- next if k == "Rank" %>
+        <th><%= k %></th>
+      <%- end %>
+    </tr>
+    </thead>
+    <tbody>
+    <%- @tournament.seedings.select { |seeding| seeding.remarks["result"][list].present? }.sort_by { |seeding| seeding.remarks["result"][list]["#"].to_i }.each do |seeding| %>
+      <tr>
+        <%- seeding.remarks["result"][list].each do |k, v| %>
+          <%- next if k == "Rank" %>
+          <td><%= v %></td>
+        <%- end %>
+      </tr>
+    <%- end %>
+    </tbody>
+  </table>
+<% end %>
+
+
+<h2>Games</h2>
+<table>
+  <thead>
+  <tr>
+    <%- @tournament.games.first.remarks.keys.each do |k| %>
+      <th><%= k %></th>
+    <%- end %>
+  </tr>
+  </thead>
+  <tbody>
+  <%- @tournament.games.each do |game| %>
+    <tr>
+      <%- game.remarks.each do |k, v| %>
+        <td><%= v %></td>
+      <%- end %>
+    </tr>
+  <%- end %>
+  </tbody>
+</table>
+<%- games = @tournament.games.order(seqno: :asc) %>

@@ -1,0 +1,66 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#game_participations').DataTable({
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 20,
+
+                  "aaSorting": [
+                      [0, "desc"]
+                  ],
+                  "aoColumns": [
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#game_participations').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Game Participations</h1>
+
+<table id="game_participations" data-source="<%= game_participations_url(format: 'json') %>" width="100%" style="margin: 0px; width: 100%;" data-turbolinks="false">
+  <thead>
+  <tr>
+    <%- GameParticipation::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
+    <th width="90px"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+<br>
+
+<%= link_to 'New Game participation', new_game_participation_path %>

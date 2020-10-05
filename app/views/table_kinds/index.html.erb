@@ -1,0 +1,31 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Table Kinds</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Short</th>
+      <th>Measures</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @table_kinds.each do |table_kind| %>
+      <tr>
+        <td><%= table_kind.name %></td>
+        <td><%= table_kind.short %></td>
+        <td><%= table_kind.measures %></td>
+        <td><%= link_to 'Show', table_kind %></td>
+        <td><%= link_to 'Edit', edit_table_kind_path(table_kind) %></td>
+        <td><%= link_to 'Destroy', table_kind, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Table kind', new_table_kind_path %>

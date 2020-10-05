@@ -1,0 +1,45 @@
+<%= form_for(@inning) do |f| %>
+  <% if @inning.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@inning.errors.count, "error") %> prohibited this inning from being saved:</h2>
+
+      <ul>
+      <% @inning.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :game_id %><br>
+    <%= f.number_field :game_id %>
+  </div>
+  <div class="field">
+    <%= f.label :sequence_number %><br>
+    <%= f.number_field :sequence_number %>
+  </div>
+  <div class="field">
+    <%= f.label :player_a_count %><br>
+    <%= f.text_field :player_a_count %>
+  </div>
+  <div class="field">
+    <%= f.label :player_b_count %><br>
+    <%= f.text_field :player_b_count %>
+  </div>
+  <div class="field">
+    <%= f.label :player_c_count %><br>
+    <%= f.text_field :player_c_count %>
+  </div>
+  <div class="field">
+    <%= f.label :player_d_count %><br>
+    <%= f.text_field :player_d_count %>
+  </div>
+  <div class="field">
+    <%= f.label :remarks %><br>
+    <%= f.text_area :remarks %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

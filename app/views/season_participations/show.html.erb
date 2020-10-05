@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Player:</strong>
+  <%= @season_participation.player_id %>
+</p>
+
+<p>
+  <strong>Season:</strong>
+  <%= @season_participation.season_id %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @season_participation.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_season_participation_path(@season_participation) %> |
+<%= link_to 'Back', season_participations_path %>

@@ -1,0 +1,2 @@
+module TemplateGamesHelper
+end

@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @table_kind.name %>
+</p>
+
+<p>
+  <strong>Short:</strong>
+  <%= @table_kind.short %>
+</p>
+
+<p>
+  <strong>Measures:</strong>
+  <%= @table_kind.measures %>
+</p>
+
+<%= link_to 'Edit', edit_table_kind_path(@table_kind) %> |
+<%= link_to 'Back', table_kinds_path %>

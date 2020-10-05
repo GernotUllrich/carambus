@@ -1,0 +1,60 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#season_participations').DataTable({
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [
+                      [0, "desc"]
+                  ],
+                  "aoColumns": [
+                      null,
+                      null,
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#season_participations').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Season Participations</h1>
+
+<table id="season_participations" data-source="<%= season_participations_url(format: 'json') %>" width="100%" style="margin: 0px;">
+  <thead>
+  <tr>
+    <th>Lastname</th>
+    <th>Firstname</th>
+    <th>Club</th>
+    <th>Season</th>
+    <th width="90px"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Season participation', new_season_participation_path %>

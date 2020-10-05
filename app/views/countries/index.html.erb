@@ -1,0 +1,57 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#countries').DataTable({
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [[1, 'asc']],
+                  "aoColumns": [
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#countries').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Countries</h1>
+<h3>=> <%= link_to "Regions", regions_path %></h3>
+
+<table id="countries" data-source="<%= countries_url(format: 'json') %>" width="100%" style="margin: 0px;">
+  <thead>
+  <tr>
+    <%- Country::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
+    <th width="90px"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Country', new_country_path %>

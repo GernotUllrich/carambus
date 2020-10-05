@@ -1,0 +1,62 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#regions').DataTable({
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "order": [[1, "asc"]],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [
+                      [0, "asc"]
+                  ],
+                  "aoColumns": [
+                      {"bSortable": false},
+                      null,
+                      null,
+                      null,
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false}
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#regions').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Regions</h1>
+
+<table id="regions" data-source="<%= regions_url(format: 'json') %>" width="100%" style="margin: 0px;">
+  <thead>
+  <tr>
+    <%- Region::COLUMN_NAMES.keys.each do |column_name| %>
+      <th><%= column_name %></th>
+    <%- end %>
+    <th width="90px"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Region', new_region_path %>

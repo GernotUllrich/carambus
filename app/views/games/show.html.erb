@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Template game:</strong>
+  <%= @game.template_game_id %>
+</p>
+
+<p>
+  <strong>Tournament:</strong>
+  <%= link_to(@game.tournament.title, tournament_path(@game.tournament)) if @game.tournament.present? %>
+</p>
+
+<p>
+  <strong>Roles:</strong>
+  <%= @game.roles %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @game.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_game_path(@game) %> |
+<%= link_to 'Back', games_path %>
