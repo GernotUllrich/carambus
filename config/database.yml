@@ -28,4 +28,6 @@ test:
 
 production:
   <<: *default
+  username: www_data
+  password: eNyf6NWQkSAG8iLE
   database: carambus_production

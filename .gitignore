@@ -16,5 +16,6 @@
 !/log/.keep
 /tmp
 /doc
-*.sql
-*.gz
+/.idea
+/*.sql
+/*.gz
