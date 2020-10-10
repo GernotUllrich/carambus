@@ -19,3 +19,4 @@
 /.idea
 /*.sql
 /*.gz
+/config/secrets.yml

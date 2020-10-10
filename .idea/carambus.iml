@@ -45,6 +45,8 @@
     <orderEntry type="library" scope="PROVIDED" name="byebug (v11.1.3, rbenv: 2.4.4) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="capistrano (v3.6.1, rbenv: 2.4.4) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="capistrano-harrow (v0.5.3, rbenv: 2.4.4) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="capistrano-rbenv (v2.2.0@1fdb93, rbenv: 2.4.4) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="capistrano-secrets-yml (v1.0.0, rbenv: 2.4.4) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="coffee-rails (v4.1.1, rbenv: 2.4.4) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="coffee-script (v2.4.1, rbenv: 2.4.4) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="coffee-script-source (v1.12.2, rbenv: 2.4.4) [gem]" level="application" />
