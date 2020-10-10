@@ -61,7 +61,13 @@ GEM
     capistrano-bundler (1.6.0)
       capistrano (~> 3.1)
     capistrano-harrow (0.5.3)
+    capistrano-rails (1.5.0)
+      capistrano (~> 3.1)
+      capistrano-bundler (~> 1.1)
     capistrano-secrets-yml (1.0.0)
+      capistrano (>= 3.1)
+      sshkit (>= 1.2.0)
+    capistrano-unicorn-nginx (4.1.0)
       capistrano (>= 3.1)
       sshkit (>= 1.2.0)
     coffee-rails (4.1.1)
@@ -224,8 +230,10 @@ DEPENDENCIES
   byebug
   capistrano
   capistrano-bundler
+  capistrano-rails
   capistrano-rbenv!
   capistrano-secrets-yml
+  capistrano-unicorn-nginx
   coffee-rails (~> 4.1.0)
   daemons
   jbuilder (~> 2.0)
