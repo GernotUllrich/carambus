@@ -8,6 +8,7 @@ class GameParticipation < ActiveRecord::Base
       "#" => "games.seqno",
       "Game" => "games.gname",
       "Tournament" => "tournaments.title",
+      "Discipline" => "disciplines.name",
       "Date" => "tournaments.date",
       "Player" => "players.lastname||', '||players.firstname",
       "Club" => "clubs.shortname",

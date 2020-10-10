@@ -7,6 +7,22 @@ class Tournament < ActiveRecord::Base
 
   serialize :remarks, Hash
 
+  NAME_DISCIPLINE_MAPPINGS = {
+      "9-Ball" => "9-Ball",
+      "8-Ball" => "8-Ball",
+      "14.1" => "14.1 endlos",
+      "47/2" => "Cadre 47/2",
+      "71/2" => "Cadre 71/2",
+      "35/2" => "Cadre 35/2",
+      "52/2" => "Cadre 52/2",
+      "Kl.*I.*Freie" => "Freie Partie groß",
+      "Freie.*Kl.*I" => "Freie Partie groß",
+      "Einband.*Kl.*I" => "Einband groß",
+      ".*Kl.*I.*Einband" => "Einband groß",
+      "Einband" => "Einband klein",
+      "Freie Partie" => "Freie Partie klein",
+  }
+
   COLUMN_NAMES = { #TODO FILTERS
       "BA_ID" => "tournaments.ba_id",
       "Title" => "tournaments.title",
@@ -14,7 +30,7 @@ class Tournament < ActiveRecord::Base
       "Discipline" => "disciplines.name",
       "Region" => "regions.name",
       "Season" => "seasons.name",
-      "Status" => "tournaments.state",
+      "Status" => "tournaments.plan_or_show",
       "SingleOrLeague" => "tournaments.single_or_league",
   }
 

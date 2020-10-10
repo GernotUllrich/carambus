@@ -16,8 +16,8 @@
     <%= f.text_field :name %>
   </div>
   <div class="field">
-    <%= f.label :table_size %><br>
-    <%= f.text_field :table_size %>
+    <%= f.label :table_kind %><br>
+    <%= f.select :table_kind_id, options_for_select(["select", nil] + TableKind.all.map{|tk| [tk.name, tk.id]}) %>
   </div>
   <div class="actions">
     <%= f.submit %>

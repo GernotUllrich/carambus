@@ -16,8 +16,8 @@
     <%= f.text_field :title %>
   </div>
   <div class="field">
-    <%= f.label :discipline_id %><br>
-    <%= f.number_field :discipline_id %>
+    <%= f.label "Discipline" %><br>
+    <%= f.select :discipline_id, options_for_select(Discipline.order(:name).map{|discipline| [discipline.name, discipline.id]}, @tournament.discipline_id) %>
   </div>
   <div class="field">
     <%= f.label :modus %><br>

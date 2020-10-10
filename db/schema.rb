@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20201003234322) do
+ActiveRecord::Schema.define(version: 20201007212324) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,17 +46,14 @@ ActiveRecord::Schema.define(version: 20201003234322) do
 
   create_table "disciplines", force: :cascade do |t|
     t.string   "name"
-    t.string   "table_size"
     t.datetime "created_at",          null: false
     t.datetime "updated_at",          null: false
     t.integer  "super_discipline_id"
     t.integer  "table_kind_id"
-    t.string   "short_name"
     t.text     "data"
   end
 
   add_index "disciplines", ["name", "table_kind_id"], name: "index_disciplines_on_foreign_keys", unique: true, using: :btree
-  add_index "disciplines", ["short_name"], name: "index_disciplines_on_shortname", unique: true, using: :btree
 
   create_table "game_participations", force: :cascade do |t|
     t.integer  "game_id"
@@ -112,6 +109,13 @@ ActiveRecord::Schema.define(version: 20201003234322) do
 
   add_index "locations", ["club_id"], name: "index_locations_on_foreign_keys", using: :btree
 
+  create_table "player_classes", force: :cascade do |t|
+    t.integer  "discipline_id"
+    t.string   "shortname"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+  end
+
   create_table "player_count_templates", force: :cascade do |t|
     t.string   "name"
     t.integer  "tournament_template_id"
@@ -122,6 +126,40 @@ ActiveRecord::Schema.define(version: 20201003234322) do
   end
 
   add_index "player_count_templates", ["tournament_template_id", "players", "template_id"], name: "index_player_count_templates_on_foreign_keys", unique: true, using: :btree
+
+  create_table "player_rankings", force: :cascade do |t|
+    t.integer  "player_id"
+    t.integer  "region_id"
+    t.integer  "season_id"
+    t.string   "org_level"
+    t.integer  "discipline_id"
+    t.string   "status"
+    t.integer  "points"
+    t.integer  "innings"
+    t.float    "gd"
+    t.integer  "hs"
+    t.float    "bed"
+    t.float    "btg"
+    t.integer  "player_class_id"
+    t.integer  "p_player_class_id"
+    t.integer  "pp_player_class_id"
+    t.float    "p_gd"
+    t.float    "pp_gd"
+    t.integer  "tournament_player_class_id"
+    t.integer  "rank"
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+    t.text     "remarks"
+    t.integer  "g"
+    t.integer  "v"
+    t.float    "quote"
+    t.integer  "sp_g"
+    t.integer  "sp_v"
+    t.float    "sp_quote"
+    t.integer  "balls"
+    t.integer  "sets"
+    t.text     "t_ids"
+  end
 
   create_table "player_tournament_participations", force: :cascade do |t|
     t.integer  "player_id"
@@ -241,10 +279,11 @@ ActiveRecord::Schema.define(version: 20201003234322) do
     t.integer  "season_id"
     t.integer  "region_id"
     t.datetime "end_date"
-    t.string   "state"
+    t.string   "plan_or_show"
     t.string   "single_or_league"
     t.string   "shortname",        default: "", null: false
     t.text     "remarks"
+    t.string   "mgmt_status",      default: "", null: false
   end
 
   add_index "tournaments", ["ba_id"], name: "index_tournaments_on_ba_id", unique: true, using: :btree

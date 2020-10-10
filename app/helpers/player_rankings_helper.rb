@@ -1,0 +1,2 @@
+module PlayerRankingsHelper
+end

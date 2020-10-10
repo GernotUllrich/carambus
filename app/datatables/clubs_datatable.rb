@@ -24,7 +24,7 @@ class ClubsDatatable
           (club.logo.present? ? ("<img src=\"<%= club.logo %>\"") : ""),
           (link_to club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}"),
           (link_to club.region.name, @view.region_path(club.region) if club.region.present?),
-          club.name,
+          link_to(club.name,@view.club_path(club)),
           club.shortname,
           club.homepage == "http://" ? "" : (link_to club.homepage, club.homepage),
           club.status,

@@ -3,6 +3,7 @@ class Player < ActiveRecord::Base
   has_many :game_participations
   has_many :seedings
   has_many :season_participations
+  has_many :player_rankings
   REFLECTION_KEYS = ["club", "game_participations", "seedings", "season_participations"]
 
   def fullname

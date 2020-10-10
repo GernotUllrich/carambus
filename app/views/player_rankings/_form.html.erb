@@ -1,0 +1,97 @@
+<%= form_for(@player_ranking) do |f| %>
+  <% if @player_ranking.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@player_ranking.errors.count, "error") %> prohibited this player_ranking from being saved:</h2>
+
+      <ul>
+      <% @player_ranking.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :player_id %><br>
+    <%= f.number_field :player_id %>
+  </div>
+  <div class="field">
+    <%= f.label :region_id %><br>
+    <%= f.number_field :region_id %>
+  </div>
+  <div class="field">
+    <%= f.label :club_id %><br>
+    <%= f.number_field :club_id %>
+  </div>
+  <div class="field">
+    <%= f.label :season_id %><br>
+    <%= f.number_field :season_id %>
+  </div>
+  <div class="field">
+    <%= f.label :org_level %><br>
+    <%= f.text_field :org_level %>
+  </div>
+  <div class="field">
+    <%= f.label :discipline_id %><br>
+    <%= f.number_field :discipline_id %>
+  </div>
+  <div class="field">
+    <%= f.label :status %><br>
+    <%= f.text_field :status %>
+  </div>
+  <div class="field">
+    <%= f.label :points %><br>
+    <%= f.number_field :points %>
+  </div>
+  <div class="field">
+    <%= f.label :innings %><br>
+    <%= f.number_field :innings %>
+  </div>
+  <div class="field">
+    <%= f.label :gd %><br>
+    <%= f.text_field :gd %>
+  </div>
+  <div class="field">
+    <%= f.label :hs %><br>
+    <%= f.number_field :hs %>
+  </div>
+  <div class="field">
+    <%= f.label :bed %><br>
+    <%= f.text_field :bed %>
+  </div>
+  <div class="field">
+    <%= f.label :btg %><br>
+    <%= f.text_field :btg %>
+  </div>
+  <div class="field">
+    <%= f.label :player_class_id %><br>
+    <%= f.number_field :player_class_id %>
+  </div>
+  <div class="field">
+    <%= f.label :p_player_class_id %><br>
+    <%= f.number_field :p_player_class_id %>
+  </div>
+  <div class="field">
+    <%= f.label :pp_player_class_id %><br>
+    <%= f.number_field :pp_player_class_id %>
+  </div>
+  <div class="field">
+    <%= f.label :p_gd %><br>
+    <%= f.text_field :p_gd %>
+  </div>
+  <div class="field">
+    <%= f.label :pp_gd %><br>
+    <%= f.text_field :pp_gd %>
+  </div>
+  <div class="field">
+    <%= f.label :tournament_player_class_id %><br>
+    <%= f.number_field :tournament_player_class_id %>
+  </div>
+  <div class="field">
+    <%= f.label :rank %><br>
+    <%= f.number_field :rank %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

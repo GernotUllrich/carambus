@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#seasons').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'Seasons'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'Seasons'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'Seasons'
+                  }, {
+                      extend: 'print',
+                      title: 'Seasons'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [

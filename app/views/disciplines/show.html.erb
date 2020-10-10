@@ -1,4 +1,4 @@
-<h1><%= @discipline.name %> / <%= @discipline.table_size %></h1>
+<h1><%= @discipline.name %> / <%= @discipline.table_kind.andand.name %></h1>
 <p id="notice"><%= notice %></p>
 
 <p>
@@ -7,8 +7,8 @@
 </p>
 
 <p>
-  <strong>Table size:</strong>
-  <%= @discipline.table_size %>
+  <strong>Table Kind:</strong>
+  <%= link_to(@discipline.table_kind.andand.name, table_kind_path(@discipline.table_kind)) if @discipline.table_kind.present? %>
 </p>
 
 <%= link_to 'Edit', edit_discipline_path(@discipline) %> |

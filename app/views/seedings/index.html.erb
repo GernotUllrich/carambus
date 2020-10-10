@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#seedings').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'Seedings'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'Seedings'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'Seedings'
+                  }, {
+                      extend: 'print',
+                      title: 'Seedings'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [
@@ -14,6 +31,7 @@
                       [0, "asc"]
                   ],
                   "aoColumns": [
+                      null,
                       null,
                       null,
                       null,

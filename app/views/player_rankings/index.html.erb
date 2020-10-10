@@ -1,0 +1,114 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      jQuery.fn.dataTableExt.oSort['NumericOrBlank-asc'] = function (x, y) {
+          var retVal;
+          if (y = parseFloat($.trim(y).replace(/,/g, ''))) {
+              x = (x = parseFloat($.trim(x).replace(/,/g, ''))) ? x : 0;
+              if (x == y) retVal = 0;
+              else retVal = (x > y) ? 1 : -1;
+          } else {
+              retVal = -1;
+          }
+          return retVal;
+      }
+      jQuery.fn.dataTableExt.oSort['NumericOrBlank-desc'] = function (y, x) {
+          var retVal;
+          x = (x = parseFloat($.trim(x).replace(/,/g, ''))) ? x : 0;
+          y = (y = parseFloat($.trim(y).replace(/,/g, ''))) ? y : 0;
+          if (x == y) retVal = 0;
+          else retVal = (x > y) ? 1 : -1;
+          return retVal;
+      }
+      $(document).ready(function () {
+          $('#player_rankings').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'PlayerRankings'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'PlayerRankings'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'PlayerRankings'
+                  }, {
+                      extend: 'print',
+                      title: 'PlayerRankings'
+                  }
+              ],
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [[0, 'asc']],
+                  "aoColumns": [
+                      null,
+                      null,
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"sType": "NumericOrBlank"},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"sType": "NumericOrBlank"},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      {"sType": "NumericOrBlank"},
+                      {"bSortable": false},
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#player_rankings').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    th, td {
+        padding-left: 5px;
+    }
+</style>
+
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Player Rankings</h1>
+
+<table id="player_rankings" data-source="<%= player_rankings_url(format: 'json') %>" width="100%" style="margin: 0px;">
+  <thead>
+  <tr>
+    <%- PlayerRanking::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
+    <!--    <th width="90px"></th>-->
+  </tr>
+  </thead>
+
+  <tbody>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Player ranking', new_player_ranking_path %>

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :player_classes
+  resources :player_rankings
   resources :player_tournament_participations
   resources :locations
   resources :seasons

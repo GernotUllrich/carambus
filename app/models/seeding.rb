@@ -8,6 +8,7 @@ class Seeding < ActiveRecord::Base
   COLUMN_NAMES = {
       "Player" => "players.lastname||', '||players.firstname",
       "Tournament" => "tournaments.title",
+      "Discipline" => "disciplines.name",
       "Date" => "tournaments.date",
       "Season" => "seasons.name",
       "Status" => "seeding.status",

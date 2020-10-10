@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#regions').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'Regions'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'Regions'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'Regions'
+                  }, {
+                      extend: 'print',
+                      title: 'Regions'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [

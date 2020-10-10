@@ -4,7 +4,11 @@ class TableKindsController < ApplicationController
   # GET /table_kinds
   # GET /table_kinds.json
   def index
-    @table_kinds = TableKind.all
+    @table_kinds = TableKind.page(params[:page]).per(24)
+    respond_to do |format|
+      format.html
+      format.json { render json: TableKindsDatatable.new(view_context, nil) }
+    end
   end
 
   # GET /table_kinds/1

@@ -22,7 +22,8 @@ class SeedingsDatatable
     seedings.map do |seeding|
       [
           link_to(seeding.player.fullname, @view.player_path(seeding.player)),
-          link_to(seeding.tournament.title, @view.tournament_path(seeding.tournament)) + " (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.state}/#{seeding.tournament.ba_id}")})".html_safe,
+          link_to(seeding.tournament.title, @view.tournament_path(seeding.tournament)) + " (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.plan_or_show}/#{seeding.tournament.ba_id}")})".html_safe,
+          link_to(seeding.tournament.discipline.name, @view.discipline_path(seeding.tournament.discipline)),
           seeding.tournament.date.to_date,
           (link_to("#{seeding.tournament.season.name}", @view.season_path(seeding.tournament.season))),
           seeding.status,

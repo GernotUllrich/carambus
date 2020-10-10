@@ -15,5 +15,12 @@
 //= require jquery_ujs
 //= require twitter/bootstrap
 //= require dataTables/jquery.dataTables
+//= require dataTables.buttons.min
+//= require buttons.flash.min
+//= require jszip.min
+//= require pdfmake.min
+//= require vfs_fonts
+//= require buttons.html5.min
+//= require buttons.print.min
 //= require_tree .
 

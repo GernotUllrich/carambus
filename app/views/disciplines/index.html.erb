@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#disciplines').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'Disciplines'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'Disciplines'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'Disciplines'
+                  }, {
+                      extend: 'print',
+                      title: 'Disciplines'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [
@@ -14,7 +31,6 @@
                       [0, "desc"]
                   ],
                   "aoColumns": [
-                      null,
                       null,
                       null,
                       null,
@@ -39,7 +55,7 @@
 
 <h1>Disciplines</h1>
 
-<table id="disciplines" data-source="<%= disciplines_url(format: 'json') %>" width="100%" style="margin: 0px; width: 50%;">
+<table id="disciplines" data-source="<%= disciplines_url(format: 'json') %>" width="100%" style="margin: 0px; width: 100%;">
   <thead>
   <tr>
     <%- Discipline::COLUMN_NAMES.keys.each do |column_name| %>

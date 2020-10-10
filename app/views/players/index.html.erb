@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#players').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'Players'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'Players'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'Players'
+                  }, {
+                      extend: 'print',
+                      title: 'Players'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [
@@ -34,6 +51,10 @@
     body {
         margin: 0;
         padding: 0;
+    }
+
+    th, td {
+        padding-left: 5px;
     }
 </style>
 

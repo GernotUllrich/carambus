@@ -73,6 +73,6 @@ class DisciplinesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def discipline_params
-      params.require(:discipline).permit(:name, :shortname, :table_kind_id, :super_discipline_id)
+      params.require(:discipline).permit(:name, :table_kind_id, :super_discipline_id)
     end
 end

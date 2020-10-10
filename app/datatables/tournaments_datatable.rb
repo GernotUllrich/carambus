@@ -21,13 +21,13 @@ class TournamentsDatatable
   def data
     tournaments.includes(:region, :season, :discipline).map do |tournament|
       [
-          link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.state}/#{tournament.ba_id}"),
+          link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}"),
           link_to(tournament.title, @view.tournament_path(tournament)),
           tournament.shortname,
           (link_to(tournament.discipline.name, @view.discipline_path(tournament.discipline)) if tournament.discipline.present?),
           link_to(tournament.region.name, @view.region_path(tournament.region)),
           link_to(tournament.season.name, @view.season_path(tournament.season)),
-          tournament.state,
+          tournament.plan_or_show,
           tournament.single_or_league,
           "#{(link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), tournament) + " " +
               (link_to image_tag("bearbeiten.gif", :width => 26, :height => 22, :border => 0), @view.edit_tournament_path(tournament)) + " " +
@@ -43,7 +43,7 @@ class TournamentsDatatable
   def fetch_tournaments
     tournaments = Tournament.order(order).joins(:region, :season, :discipline)
     if params[:sSearch].present?
-      tournaments = apply_filters(tournaments, Tournament::COLUMN_NAMES, "(tournaments.ba_id = :isearch) or (tournaments.title ilike :search) or (tournaments.shortname ilike :search) or (regions.name ilike :search) or (seasons.name ilike :search) or (tournaments.state ilike :search) or (tournaments.single_or_league ilike :search)")
+      tournaments = apply_filters(tournaments, Tournament::COLUMN_NAMES, "(tournaments.ba_id = :isearch) or (tournaments.title ilike :search) or (tournaments.shortname ilike :search) or (regions.name ilike :search) or (seasons.name ilike :search) or (tournaments.plan_or_show ilike :search) or (tournaments.single_or_league ilike :search)")
     end
     tournaments = tournaments.page(page).per(per_page)
     tournaments

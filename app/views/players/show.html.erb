@@ -53,6 +53,7 @@
     <td><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>
 <!--    <td><%#= link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
     <td><%= link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
+    <td><%= link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
   </tr>
   <% end %>
   </tbody>

@@ -4,10 +4,15 @@
     }
 </style>
 <p id="notice"><%= notice %></p>
-
+<h1><%= @tournament.title %> - <%= @tournament.region.shortname %> - <%= @tournament.season.name %></h1>
 <p>
   <strong>BA_ID:</strong>
-  <%= @tournament.ba_id %>
+  <%= link_to(@tournament.ba_id, "https://#{@tournament.region.shortname.downcase}.billardarea.de/cms_#{@tournament.single_or_league}/#{@tournament.plan_or_show}/#{@tournament.ba_id}") %>
+</p>
+
+<p>
+  <strong>Region:</strong>
+  <%= link_to(@tournament.region.name, region_path(@tournament.region)) %>
 </p>
 
 <p>
@@ -17,7 +22,7 @@
 
 <p>
   <strong>Discipline:</strong>
-  <%= @tournament.discipline_id %>
+  <%= link_to(@tournament.discipline.name, discipline_path(@tournament.discipline_id)) %>
 </p>
 
 <p>
@@ -53,22 +58,21 @@
 <%= link_to 'Edit', edit_tournament_path(@tournament) %> |
 <%= link_to 'Back', tournaments_path %>
 
-
 <h2>Rankings</h2>
-<%- lists = @tournament.seedings.map { |s| s.remarks["result"].keys }.inject([]) { |a, memo| memo |= a; memo } %>
+<%- lists = @tournament.seedings.map { |s| s.remarks["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
 <%- lists.each do |list| %>
   <h3><%= list %></h3>
   <table>
     <thead>
     <tr>
-      <%- @tournament.seedings.select { |seeding| seeding.remarks["result"][list].present? }.first.remarks["result"][list].keys.each do |k| %>
+      <%- @tournament.seedings.select { |seeding| seeding.remarks["result"].andand[list].present? }.first.remarks["result"][list].keys.each do |k| %>
         <%- next if k == "Rank" %>
         <th><%= k %></th>
       <%- end %>
     </tr>
     </thead>
     <tbody>
-    <%- @tournament.seedings.select { |seeding| seeding.remarks["result"][list].present? }.sort_by { |seeding| seeding.remarks["result"][list]["#"].to_i }.each do |seeding| %>
+    <%- @tournament.seedings.select { |seeding| seeding.remarks["result"].andand[list].present? }.sort_by { |seeding| seeding.remarks["result"][list]["#"].to_i }.each do |seeding| %>
       <tr>
         <%- seeding.remarks["result"][list].each do |k, v| %>
           <%- next if k == "Rank" %>
@@ -80,8 +84,8 @@
   </table>
 <% end %>
 
-
 <h2>Games</h2>
+<%- if @tournament.games.present? %>
 <table>
   <thead>
   <tr>
@@ -100,4 +104,5 @@
   <%- end %>
   </tbody>
 </table>
+  <% end %>
 <%- games = @tournament.games.order(seqno: :asc) %>

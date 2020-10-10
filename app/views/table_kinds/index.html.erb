@@ -1,28 +1,72 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#table_kinds').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'TableKinds'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'TableKinds'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'TableKinds'
+                  }, {
+                      extend: 'print',
+                      title: 'TableKinds'
+                  }
+              ],
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [
+                      [0, "desc"]
+                  ],
+                  "aoColumns": [
+                      null,
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#table_kinds').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
 <p id="notice"><%= notice %></p>
 
 <h1>Listing Table Kinds</h1>
 
-<table>
+<table id="table_kinds" data-source="<%= table_kinds_url(format: 'json') %>" width="100%" style="margin: 0px; width: 50%;">
   <thead>
-    <tr>
-      <th>Name</th>
-      <th>Short</th>
-      <th>Measures</th>
-      <th colspan="3"></th>
-    </tr>
+  <tr>
+    <%- TableKind::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
+    <th width="90px"></th>
+  </tr>
   </thead>
 
   <tbody>
-    <% @table_kinds.each do |table_kind| %>
-      <tr>
-        <td><%= table_kind.name %></td>
-        <td><%= table_kind.short %></td>
-        <td><%= table_kind.measures %></td>
-        <td><%= link_to 'Show', table_kind %></td>
-        <td><%= link_to 'Edit', edit_table_kind_path(table_kind) %></td>
-        <td><%= link_to 'Destroy', table_kind, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
   </tbody>
 </table>
 

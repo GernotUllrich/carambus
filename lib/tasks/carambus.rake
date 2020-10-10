@@ -5,6 +5,9 @@ require 'net/http'
 
 include ApplicationHelper
 
+DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
+DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
+
 namespace :carambus do
 
   desc "scrape regions"
@@ -139,55 +142,24 @@ namespace :carambus do
   desc "Init Disciplines"
   task :init_disciplines => :environment do
 
-    TABLE_KINDS = ["Pool", "Snooker", "Small Table", "Match Table", "Large Table"]
+    TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
 
-    TABLE_TYPES = {
-        "gross" => ["Freie Partie", "Cadre 47/2", "Cadre 47/1", "Cadre 71/2", "Einband", "Dreiband"],
-        "match" => ["Freie Partie", "Cadre 38/2", "Cadre 38/1", "Cadre 57/2", "Einband", "Dreiband"],
-        "klein" => ["Freie Partie", "Cadre 35/2", "Cadre 35/1", "Cadre 52/2", "Einband", "Dreiband"],
-    }
 
-    # first migration only
-    # TABLE_TYPES.each do |k,v|
-    #   v.each do |dd|
-    #     d = Discipline.find_by_name(dd, k) || Discipline.create(name: dd, table_size: k)
-    #   end
-    # end
+    TABLE_KIND_DISCIPLINE_NAMES = {
+        "Pin Billards" => [],
+        "Biathlon" => [],
+        "5-Pin Billards" => [],
+        "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
+        "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
+        "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
+        "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"]}
 
-    TABLE_KINDS.each do |table_name|
-      TableKind.find_by_name(table_name) || TableKind.create!(name: table_name)
-    end
-
-    Discipline::MAJOR_DISCIPLINES.each do |discipline_name, value|
-      d = Discipline.find_by_name(discipline_name) || Discipline.create(name: discipline_name)
-    end
-
-    Discipline.all.each do |discipline|
-      case discipline.table_size
-      when "klein"
-        unless discipline.name =~ /kleiner Tisch$/
-          discipline.short_name = discipline.name + " - klein"
-          discipline.name = discipline.name + " - kleiner Tisch"
-          discipline.table_kind_id = TableKind.find_by_name("Small Table").andand.id
-          discipline.super_discipline_id = Discipline.find_by_name("Carambol Small Table").andand.id
-          discipline.save
-        end
-      when "gross"
-        unless discipline.name =~ /grosser Tisch$/
-          discipline.short_name = discipline.name + " - gross"
-          discipline.name = discipline.name + " - grosser Tisch"
-          discipline.table_kind_id = TableKind.find_by_name("Large Table").andand.id
-          discipline.super_discipline_id = Discipline.find_by_name("Carambol Large Table").andand.id
-          discipline.save
-        end
-      when "match"
-        unless discipline.name =~ /Match Tisch$/
-          discipline.short_name = discipline.name + " - match"
-          discipline.name = discipline.name + " - Match Tisch"
-          discipline.table_kind_id = TableKind.find_by_name("Large Table").andand.id
-          discipline.super_discipline_id = Discipline.find_by_name("Carambol Match Table").andand.id
-          discipline.save
-        end
+    TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
+      tk = TableKind.find_by_name(tk_name) ||
+          TableKind.create(name: tk_name)
+      v.each do |dis_name|
+        dis = Discipline.find_by_name_and_table_kind_id(dis_name, tk.id) ||
+            Discipline.create(name: dis_name, table_kind_id: tk.id)
       end
     end
   end
@@ -217,10 +189,20 @@ namespace :carambus do
     end
   end
 
+  desc "fix tournament discipline by name"
+  task :fix_tournament_discipline_by_name => :environment do
+    unknown_discipline = Discipline.find_by_name("-")
+    Tournament.where(discipline_id: unknown_discipline.id).all.each do |tournament|
+      Tournament::NAME_DISCIPLINE_MAPPINGS.each do |k, v|
+        if tournament.title =~ /#{k}/
+          tournament.update_attributes(discipline_id: Discipline.find_by_name(v).id)
+        end
+      end
+    end
+  end
+
   desc "Scrape Tournaments"
   task :scrape_tournaments => :environment do
-    DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
-    DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Large Table", "Carambol Small Table", "Biathlon"]
 
     Season.order(name: :desc).each do |season|
       Region.all.each do |region|
@@ -247,7 +229,7 @@ namespace :carambus do
               plan_or_show = m[2] rescue nil
               if ba_id.present?
                 tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
-                tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, state: plan_or_show, single_or_league: single_or_league)
+                tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league)
               else
                 ba_id
               end
@@ -261,7 +243,10 @@ namespace :carambus do
     end
   end
 
+  desc "Init PlayerClass"
+  task :init_player_classes => :environment do
 
+  end
   desc "Scrape Tournament Details"
   task :scrape_tournaments_details => :environment do
     logger = Logger.new("#{Rails.root}/log/scrape.log")
@@ -273,7 +258,7 @@ namespace :carambus do
             #where(ba_id: 13933).#TODO TEST
             where(region_id: region.id).all.each do |tournament|
           on = on || tournament.ba_id == 12421
-          scrape_single_tournament(tournament, logger) if on
+          scrape_single_tournament(tournament, logger: logger) if on
         end
       end
     end
@@ -288,32 +273,82 @@ namespace :carambus do
     end
   end
 
-  desc "fix disciplines"
-  task :fix_disciplines => :environment do
-
-    discipline_mappings = {
-        "Freie Partie - grosser Tisch" => "Freie Partie gross",
-        "Cadre 47/2 - grosser Tisch" => "Cadre 47/2 gross",
-        "Cadre 47/1 - grosser Tisch" => "Cadre 47/1 gross",
-        "Cadre 71/2 - grosser Tisch" => "Cadre 71/2 gross",
-        "Einband - grosser Tisch" => "Einband gross",
-        "Dreiband - grosser Tisch" => "Dreiband gross",
-        "Freie Partie - kleiner Tisch" => "Freie Partie klein",
-        "Cadre 35/2 - kleiner Tisch" => "Cadre 35/2 klein",
-        "Cadre 35/1 - kleiner Tisch" => "Cadre 35/1 klein",
-        "Cadre 52/2 - kleiner Tisch" => "Cadre 52/2 klein",
-        "Einband - kleiner Tisch" => "Einband klein",
-        "Dreiband - kleiner Tisch" => "Dreiband klein",
-        "Petit/Grand Prix - kleiner Tisch" => "Petit/Grand Prix klein",
-        "Nordcup - kleiner Tisch" => "Nordcup klein",
-        "Cadre 47/2 - kleiner Tisch" => "Cadre 47/2 gross",
-        "Cadre 71/2 - kleiner Tisch" => "Cadre 71/2 gross",
-    }
-    discipline_mappings.each do |alt, neu|
-      discipline_alt_id = Discipline.find_by_name(alt)
-      discipline_neu_id = Discipline.find_by_name(neu)
-      Tournament.where(discipline_id: discipline_alt_id).update_all(discipline_id: discipline_neu_id)
+  desc "test scrape single tournament"
+  task :single_scrape_tournaments_details => :environment do
+    #ba_ids = Array(ENV["BA_ID"].presence || [4465])
+    ba_ids = Tournament.where(discipline_id: Discipline.find_by_name("Pool").id).map(&:ba_id).sort
+    Tournament.where(ba_id: ba_ids).all.each do |t|
+      scrape_single_tournament(t, game_details: false)
     end
+  end
+
+  desc "update tournaments"
+  task :update_tournaments => :environment do
+
+    logger = Logger.new("#{Rails.root}/log/scrape.log")
+
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      Region.all.each do |region|
+        region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
+        uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, mgmt_status: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
+        #next unless region.shortname == "NBV"
+        url = "https://#{region.shortname.downcase}.billardarea.de"
+        uri = URI(url + '/cms_single')
+        Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"
+        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+        doc = Nokogiri::HTML(res.body)
+        tabs = doc.css("#tabs a")
+        tabs.each_with_index do |tab, ix|
+          tab_text = tab.text.strip
+          if DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = DISCIPLINE_NAMES[DE_DISCIPLINE_NAMES.index(tab_text)]
+            discipline_name = discipline_name.presence || "-"
+            discipline = Discipline.find_by_name(discipline_name) || Discipline.create(name: discipline_name)
+            tables = doc.css("#tabs-#{ix + 1} table")
+            tables.each_with_index do |table, table_no|
+              lines = table.css("tr")
+              lines.map do |line|
+                tournament_managed = false
+                name = nil
+                url = nil
+                cols = line.css("td")
+                cols.each do |col|
+                  if col.css("a").present?
+                    field = col.css("a").first
+                    name = field.text.strip
+                    url = field.attribute("href").value
+                    Rails.logger.info "----#{name} #{url}"
+                  elsif col.text.strip == "X"
+                    tournament_managed = true
+                  end
+                end
+                next unless name.present? && url.present?
+                m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
+                ba_id = m[3] rescue nil
+                single_or_league = m[1] rescue nil
+                plan_or_show = m[2] rescue nil
+                if !region_ba_ids.include?(ba_id.to_i) || (uncompleted_region_ba_ids.include?(ba_id.to_i) && table_no == 0)
+                  if ba_id.present?
+                    tournament = Tournament.find_by_ba_id(ba_id)
+                    if tournament.present? && tournament.discipline.blank?
+                      tournament.update_attributes(discipline: discipline)
+                    end
+                    tournament ||=
+                        Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
+                    tournament.update_attributes(plan_or_show: plan_or_show, single_or_league: single_or_league, mgmt_status: tournament_managed ? "X" : "")
+                    scrape_single_tournament(tournament, logger: logger)
+                  else
+                    ba_id
+                  end
+                end
+              end
+            end
+
+          end
+        end
+      end
+    end
+
   end
 
   desc "fix game participations"
@@ -327,9 +362,104 @@ namespace :carambus do
     end
     #Game.fix_participation(Game[42855])
   end
+
+  desc "update ranking tables"
+  task :update_ranking_tables => :environment do
+    # for all seasons - starting with earliest
+    season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2].name
+    #Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
+    Season.order(ba_id: :asc).each do |season|
+      # for all regions
+      # TEST
+      #next unless season.name == "2018/2019"
+      Region.all.each do |region|
+        # for all disciplines
+        # TEST
+        #next unless region.shortname == "NBV"
+        Discipline.all.each do |discipline|
+          # for all relevant tournaments
+          # TEST
+          next unless discipline.root.name == "Carambol"
+          players = {}
+          Tournament.where(season: season, region: region, discipline: discipline).each do |tournament|
+            # for all participants
+            sum_keys = %w{Sp.G Sp.V G V Bälle Aufn Punkte Frames Partiepunkte Satzpunkte Kegel}
+            max_keys = %w{Sp.Quote Quote GD HB HS HGD BED}
+            ignore_keys = %w{# Name Verein Rank}
+            computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
+            tournament.seedings.includes(:player).each do |seeding|
+              player_record = players[seeding.player.id]
+              gl = seeding.remarks["result"]["Gesamtrangliste"] rescue {}
+              unless player_record.present?
+                players[seeding.player.id] = {}
+                if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
+                  xxx
+                end
+                ((max_keys | sum_keys) & gl.keys).each do |k|
+                  players[seeding.player.id][k] = 0
+                end
+                players[seeding.player.id]["t_ids"] = []
+              end
+              players[seeding.player.id]["t_ids"] << tournament.id
+              (sum_keys & gl.keys).each do |k|
+                players[seeding.player.id][k] = (players[seeding.player.id][k] || 0) + gl[k].to_i
+              end
+              (max_keys & gl.keys).each do |k|
+                v = gl[k]
+                if v =~ /%/
+                  vf = (v.gsub(/\s*%/, "").gsub(",", ".")).to_f
+                  pf = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vf, pf].max
+                elsif v =~ /,/
+                  vf = (v.gsub(",", ".")).to_f
+                  pf = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vf, pf].max
+                else
+                  vi = v.to_i
+                  pi = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vi, pi].max
+                end
+              end
+            end
+          end
+          players.keys.select do |player_id|
+            values = players[player_id]
+            values["Bälle"].to_f > 0 && values["Aufn"].to_f > 0
+          end.
+              sort_by do |player_id|
+            values = players[player_id]
+            100.0 * values["Bälle"] / values["Aufn"]
+          end.reverse.
+              each_with_index do |player_id, ix|
+            args = {
+                player_id: player_id,
+                region_id: region.id,
+                season_id: season.id,
+                discipline_id: discipline.id
+            }
+            values = players[player_id]
+            player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
+            remarks = player_ranking.remarks
+            remarks["result"] = values
+            attributes = {}
+            values.keys.each do |k|
+              mapped_k = PlayerRanking::KEY_MAPPINGS[k]
+              attributes[mapped_k] = values[k]
+            end
+            attributes[:remarks] = remarks
+            attributes[:rank] = ix + 1
+            player_ranking.update_attributes(attributes)
+          end
+        end
+      end
+    end
+
+  end
 end
 
-def scrape_single_tournament(tournament, logger)
+def scrape_single_tournament(tournament, opts = {})
+  logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
+  game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
   season = tournament.season
   region = tournament.region
   url = "https://#{region.shortname.downcase}.billardarea.de"
@@ -361,8 +491,7 @@ def scrape_single_tournament(tournament, logger)
         date_begin, time_begin = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?.*/).to_a[1..-1]
         tournament.accredation_end = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
       when "Disziplin"
-        specified_discipline = tournament.discipline unless (tournament.discipline.present? && tournament.discipline.name =~ /Carambol (Large|Small) Table/)
-        discipline = specified_discipline || Discipline.find_by_name(value) || Discipline.find_by_short_name(value)
+        discipline = Discipline.find_by_name(value)
         if discipline.blank? && value.present?
           discipline = Discipline.create(name: value)
         end
@@ -371,187 +500,190 @@ def scrape_single_tournament(tournament, logger)
         tournament.update_attribute(mappings[label], value)
       end
     end
-    # Setzliste
-    seedings_prev = tournament.seedings
-    tournament.seedings = []
-    table = doc.css("#tabs-3 .matchday_table")[0]
-    if table.present?
-      player = nil
-      states = %w{FG NG ENA UNA DIS}
-      state_ix = 0
-      seeding = nil
-      table.css("td").each do |td|
-        if td.css("div").present?
-          lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
-          club = Club.where(region: region).where("name ilike ?", club_str).first ||
-              Club.where(region: region).where("shortname ilike ?", club_str).first
-          club
-          if club.present?
-            season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: {id: season.id}, players: {firstname: firstname, lastname: lastname})
-            if season_participations.count == 1
-              season_participation = season_participations.first
-              player = season_participation.player
-              if season_participation.club_id == club.id
-                seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                    Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                state_ix = 0
+    tournament.save!
+    if game_details
+      # Setzliste
+      seedings_prev = tournament.seedings
+      tournament.seedings = []
+      table = doc.css("#tabs-3 .matchday_table")[0]
+      if table.present?
+        player = nil
+        states = %w{FG NG ENA UNA DIS}
+        state_ix = 0
+        seeding = nil
+        table.css("td").each do |td|
+          if td.css("div").present?
+            lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
+            club = Club.where(region: region).where("name ilike ?", club_str).first ||
+                Club.where(region: region).where("shortname ilike ?", club_str).first
+            club
+            if club.present?
+              season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: {id: season.id}, players: {firstname: firstname, lastname: lastname})
+              if season_participations.count == 1
+                season_participation = season_participations.first
+                player = season_participation.player
+                if season_participation.club_id == club.id
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
+                  state_ix = 0
+                else
+                  real_club = season_participations.first.club
+                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
+                  logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
+                  sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
+                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
+                  state_ix = 0
+                end
+              elsif season_participations.count == 0
+                players = Player.where(firstname: firstname, lastname: lastname)
+                if players.count == 0
+                  logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
+                  logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
+                  player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
+                  player_fixed.update_attributes(ba_id: 999000000 + player_fixed.id)
+                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+                  state_ix = 0
+                elsif players.count == 1
+                  player_fixed = players.first
+                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
+                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                  logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+                  state_ix = 0
+                elsif players.count > 1
+                  logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
+                  logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
+                  player_fixed = players.first
+                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+                  state_ix = 0
+                end
               else
-                real_club = season_participations.first.club
-                logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
-                logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-                sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
-                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
-                seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                    Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                state_ix = 0
-              end
-            elsif season_participations.count == 0
-              players = Player.where(firstname: firstname, lastname: lastname)
-              if players.count == 0
-                logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-                logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
-                player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-                player_fixed.update_attributes(ba_id: 999000000 + player_fixed.id)
-                SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                    SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                    Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                state_ix = 0
-              elsif players.count == 1
-                player_fixed = players.first
-                logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-                SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                    SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-                seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                    Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                state_ix = 0
-              elsif players.count > 1
-                logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
-                logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
-                player_fixed = players.first
-                SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                    SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                    Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                state_ix = 0
+                #(ambiguous clubs)
+                if season_participations.map(&:club_id).uniq.include?(club.id)
+                  season_participation = season_participations.where(club_id: club.id).first
+                  player = season_participation.player
+                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
+                  state_ix = 0
+                else
+                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
+                  fixed_season_participation = season_participations.last
+                  fixed_club = fixed_season_participation.club
+                  fixed_player = fixed_season_participation.player
+                  logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
+                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
+                      SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
+                  seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
+                      Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
+                  state_ix = 0
+                end
               end
             else
-              #(ambiguous clubs)
-              if season_participations.map(&:club_id).uniq.include?(club.id)
-                season_participation = season_participations.where(club_id: club.id).first
-                player = season_participation.player
-                seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                    Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                state_ix = 0
-              else
-                logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
-                fixed_season_participation = season_participations.last
-                fixed_club = fixed_season_participation.club
-                fixed_player = fixed_season_participation.player
-                logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
-                SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
-                    SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-                seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
-                    Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
-                state_ix = 0
-              end
+              logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
+              fixed_club = region.clubs.create(name: club_str, shortname: club_str)
+              fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
+              fixed_club.update_attributes(ba_id: 999000000 + fixed_club.id)
+              fixed_player.update_attributes(ba_id: 999000000 + fixed_player.id)
+              SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
+
+              logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
+              logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
+              seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
+                  Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
+              state_ix = 0
             end
           else
-            logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
-            fixed_club = region.clubs.create(name: club_str, shortname: club_str)
-            fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
-            fixed_club.update_attributes(ba_id: 999000000 + fixed_club.id)
-            fixed_player.update_attributes(ba_id: 999000000 + fixed_player.id)
-            SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-
-            logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
-            logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
-            seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
-                Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
-            state_ix = 0
-          end
-        else
-          if td.text.strip =~ /X/
-            if seeding.present?
-              seeding.update_attribute(:status, states[state_ix])
-            else
-              logger.info "[scrape_tournaments] Fatal 501 - seeding nil???"
-              Kernel.exit(501)
+            if td.text.strip =~ /X/
+              if seeding.present?
+                seeding.update_attribute(:status, states[state_ix])
+              else
+                logger.info "[scrape_tournaments] Fatal 501 - seeding nil???"
+                Kernel.exit(501)
+              end
             end
+            state_ix += 1
           end
-          state_ix += 1
         end
+      else
+        table
       end
-    else
-      table
-    end
 
-    no_show_ups = seedings_prev - tournament.seedings
-    no_show_ups.each do |seeding|
-      seeding.status = "UNA"
-    end
-
-    # Results
-    tournament.games = []
-    table = doc.css("#tabs-2 .matchday_table")[0]
-    keys = table.css("tr th div").map(&:text).map { |s| s.split("\n").first }
-    table.css("tr").each do |row|
-      game = nil
-      remarks = {}
-      row.css("td").each_with_index do |f, ix|
-        remarks[keys[ix]] = f.text.strip
-        if keys[ix] == "#"
-          seqno = f.text.strip.to_i
-          game = Game.find_by_seqno_and_tournament_id(seqno, tournament.id) || Game.new(tournament_id: tournament.id, seqno: seqno)
-        end
+      no_show_ups = seedings_prev - tournament.seedings
+      no_show_ups.each do |seeding|
+        seeding.status = "UNA"
       end
-      if game.andand.seqno.present?
-        game.gname = remarks["Gr."]
-        game.remarks = remarks
-        game.save!
-        Game.fix_participation(game)
-      end
-    end
 
-    # Rankings
-    groups = doc.css("#tabs-1 fieldset legend").map(&:text).map { |s| s.split("\n").first }
-    seedings_hash = tournament.seedings.includes(:player).inject({}) do |memo, seeding|
-      memo["#{seeding.player.lastname}, #{seeding.player.firstname}"] = seeding
-      memo
-    end
-    result = {}
-    group_results = {}
-    doc.css("#tabs-1 fieldset table").each_with_index do |table, ix|
-      group = groups[ix]
-      keys = table.css("tr th").map(&:text).map { |s| s.split("\n").first }
+      # Results
+      tournament.games = []
+      table = doc.css("#tabs-2 .matchday_table")[0]
+      keys = table.css("tr th div").map(&:text).map { |s| s.split("\n").first }
       table.css("tr").each do |row|
-        result_row = {}
+        game = nil
+        remarks = {}
         row.css("td").each_with_index do |f, ix|
-          result_row[keys[ix]] = f.text.strip
+          remarks[keys[ix]] = f.text.strip
+          if keys[ix] == "#"
+            seqno = f.text.strip.to_i
+            game = Game.find_by_seqno_and_tournament_id(seqno, tournament.id) || Game.new(tournament_id: tournament.id, seqno: seqno)
+          end
         end
-        if result_row.present?
-          group_results[group] ||= {}
-          group_results[group][result_row["Name"]] = result_row
-          result[result_row["Name"]] ||= {}
-          result[result_row["Name"]][group] = result_row
+        if game.andand.seqno.present?
+          game.gname = remarks["Gr."]
+          game.remarks = remarks
+          game.save!
+          Game.fix_participation(game)
         end
       end
-    end
-    group_results_ranked = {}
-    groups.each do |group|
-      group_results_ranked[group] = Hash[group_results[group].to_a.sort_by { |a| -(a[1]["Punkte"].to_i * 10000.0 + a[1]["GD"].to_f) }]
-      group_results_ranked[group].keys.each_with_index do |name, ix|
-        group_results_ranked[group][name]["Rank"] = ix + 1
-        result[name][group] = group_results_ranked[group][name]
+
+      # Rankings
+      groups = doc.css("#tabs-1 fieldset legend").map(&:text).map { |s| s.split("\n").first }
+      seedings_hash = tournament.seedings.includes(:player).inject({}) do |memo, seeding|
+        memo["#{seeding.player.lastname}, #{seeding.player.firstname}"] = seeding
+        memo
       end
-    end
-    seedings_hash.each do |name, seeding|
-      remarks = seeding.remarks || {}
-      remarks["result"] = result[name]
-      seeding.remarks_will_change!
-      seeding.remarks = remarks
-      seeding.save!
+      result = {}
+      group_results = {}
+      doc.css("#tabs-1 fieldset table").each_with_index do |table, ix|
+        group = groups[ix]
+        keys = table.css("tr th").map(&:text).map { |s| s.split("\n").first }
+        table.css("tr").each do |row|
+          result_row = {}
+          row.css("td").each_with_index do |f, ix|
+            result_row[keys[ix]] = f.text.strip
+          end
+          if result_row.present?
+            group_results[group] ||= {}
+            group_results[group][result_row["Name"]] = result_row
+            result[result_row["Name"]] ||= {}
+            result[result_row["Name"]][group] = result_row
+          end
+        end
+      end
+      group_results_ranked = {}
+      groups.each do |group|
+        group_results_ranked[group] = Hash[group_results[group].to_a.sort_by { |a| -(a[1]["Punkte"].to_i * 10000.0 + a[1]["GD"].to_f) }]
+        group_results_ranked[group].keys.each_with_index do |name, ix|
+          group_results_ranked[group][name]["Rank"] = ix + 1
+          result[name][group] = group_results_ranked[group][name]
+        end
+      end
+      seedings_hash.each do |name, seeding|
+        remarks = seeding.remarks || {}
+        remarks["result"] = result[name]
+        seeding.remarks_will_change!
+        seeding.remarks = remarks
+        seeding.save!
+      end
     end
   else
     table

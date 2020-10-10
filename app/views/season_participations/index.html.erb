@@ -2,6 +2,23 @@
   <script>
       $(document).ready(function () {
           $('#season_participations').DataTable({
+                  "stateSave": true,
+              dom: 'Bfrtip',
+              buttons: [
+                  'copy', {
+                      extend: 'csvHtml5',
+                      title: 'SeasonParticipations'
+                  }, {
+                      extend: 'excelHtml5',
+                      title: 'SeasonParticipations'
+                  }, {
+                      extend: 'pdfHtml5',
+                      title: 'SeasonParticipations'
+                  }, {
+                      extend: 'print',
+                      title: 'SeasonParticipations'
+                  }
+              ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [
@@ -43,10 +60,10 @@
 <table id="season_participations" data-source="<%= season_participations_url(format: 'json') %>" width="100%" style="margin: 0px;">
   <thead>
   <tr>
-    <th>Lastname</th>
-    <th>Firstname</th>
-    <th>Club</th>
-    <th>Season</th>
+    <%- SeasonParticipation::COLUMN_NAMES.keys.each do |column_name| %>
+      <!--      TODO FILTERS-->
+      <th><%= column_name %></th>
+    <%- end %>
     <th width="90px"></th>
   </tr>
   </thead>

@@ -24,6 +24,7 @@ class GameParticipationsDatatable
           link_to(game_participation.game.seqno, @view.game_path(game_participation.game)),
           link_to(game_participation.game.gname, @view.game_path(game_participation.game)),
           link_to(game_participation.game.tournament.title, @view.tournament_path(game_participation.game.tournament)),
+          link_to(game_participation.game.tournament.discipline.name, @view.discipline_path(game_participation.game.tournament.discipline)),
           game_participation.game.tournament.date.to_date,
           link_to("#{game_participation.player.lastname}, #{game_participation.player.firstname}", @view.player_path(game_participation.player)),
           link_to(game_participation.player.club.shortname, @view.club_path(game_participation.player.club)),
@@ -45,7 +46,7 @@ class GameParticipationsDatatable
   end
 
   def fetch_game_participations
-    game_participations = GameParticipation.joins(:player => {:season_participations => [:club, :season]}).joins(:game => :tournament).where("seasons.id = tournaments.season_id").order(order)
+    game_participations = GameParticipation.joins(:player => {:season_participations => [:club, :season]}).joins(:game => {tournament: :discipline}).where("seasons.id = tournaments.season_id").order(order)
     if params[:sSearch].present?
       game_participations = apply_filters(game_participations, GameParticipation::COLUMN_NAMES, "(players.lastname||', '||players.firstname ilike :search)")
     end

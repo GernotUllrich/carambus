@@ -1,4 +1,5 @@
 class SeasonParticipationsDatatable
+  include FiltersHelper
   delegate :params, :h, :link_to, :image_tag, :mail_to, :number_to_currency, to: :@view
 
   def initialize(view, season_participations)
@@ -20,10 +21,10 @@ class SeasonParticipationsDatatable
   def data
     season_participations.map do |season_participation|
       [
-          season_participation.player.lastname,
-          season_participation.player.firstname,
-          season_participation.player.club.shortname,
           season_participation.season.name,
+          link_to("#{season_participation.player.lastname}, #{season_participation.player.firstname}", @view.player_path(season_participation.player)),
+          season_participation.player.club.shortname,
+          season_participation.player.club.region.shortname,
           "#{(link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), season_participation) + " " +
               (link_to image_tag("bearbeiten.gif", :width => 26, :height => 22, :border => 0), @view.edit_season_participation_path(season_participation)) + " " +
               (link_to image_tag("loeschen.gif", :width => 26, :height => 22, :border => 0), season_participation, method: :delete, data: {confirm: 'Are you sure?'})}"
@@ -36,9 +37,9 @@ class SeasonParticipationsDatatable
   end
 
   def fetch_season_participations
-    season_participations = SeasonParticipation.order(order).joins(player: :club).joins(:season)
+    season_participations = SeasonParticipation.order(order).joins(player: {club: :region}).joins(:season)
     if params[:sSearch].present?
-      season_participations = season_participations.where("(players.lastname ilike :search) or (players.firstname ilike :search) or (clubs.shortname ilike :search) or (seasons.name ilike :search)", search: "%#{params[:sSearch]}%")
+      season_participations = apply_filters(season_participations, SeasonParticipation::COLUMN_NAMES, "(players.lastname||', '||players.firstname ilike :search) or (clubs.shortname ilike :search) or (seasons.name ilike :search) or (regions.shortname ilike :search)")
     end
     season_participations = season_participations.page(page).per(per_page)
     season_participations
@@ -63,7 +64,7 @@ class SeasonParticipationsDatatable
   end
 
   def sort_column(i)
-    columns = %w{players.lastname players.firstname clubs.shortname seasons.name}
+    columns = SeasonParticipation::COLUMN_NAMES.values
     columns[params[:"iSortCol_#{i}"].to_i] if params[:"iSortCol_#{i}"].present?
   end
 

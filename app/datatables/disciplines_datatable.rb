@@ -22,8 +22,7 @@ class DisciplinesDatatable
     disciplines.map do |discipline|
       [
 
-          discipline.name,
-          discipline.table_size,
+          link_to(discipline.name, @view.discipline_path(discipline)),
           (link_to(discipline.super_discipline.name, @view.discipline_path(discipline.super_discipline)) if discipline.super_discipline.present?),
           (link_to(discipline.table_kind.name, @view.table_kind_path(discipline.table_kind)) if discipline.table_kind.present?),
           "#{(link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), discipline) + " " +
