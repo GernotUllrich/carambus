@@ -14,6 +14,7 @@
 //= require jquery-ui
 //= require jquery_ujs
 //= require twitter/bootstrap
+//= require turbolinks
 //= require dataTables/jquery.dataTables
 //= require dataTables.buttons.min
 //= require buttons.flash.min
