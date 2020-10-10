@@ -42,6 +42,7 @@ gem "kaminari"
 gem 'twitter-bootstrap-rails'
 gem 'jquery-datatables-rails'
 gem 'jquery-ui-rails'
+gem 'stalker'
 
 group :production do
   # Use unicorn as the app server
