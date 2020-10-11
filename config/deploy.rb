@@ -9,7 +9,7 @@ set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
 
 # Default deploy_to directory is /var/www/my_app_name
 # set :deploy_to, '/var/www/my_app_name'
-set :deploy_to, '/var/www/web1.carombus.de/web/'
+set :deploy_to, '/var/www/web2.carombus.de/web/'
 
 # Default value for :scm is :git
 # set :scm, :git
@@ -111,8 +111,8 @@ namespace :deploy do
       # Your restart mechanism here, for example:
       # execute :touch, release_path.join('tmp/restart.txt')
       if fetch(:stage).to_s == 'production'
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web1.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb stop"
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web1.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb start"
+        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web2.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb stop"
+        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web2.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb start"
       end
     end
     # on roles(:web), in: :sequence, wait: 5 do
