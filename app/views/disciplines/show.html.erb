@@ -1,9 +1,31 @@
 <h1><%= @discipline.name %> / <%= @discipline.table_kind.andand.name %></h1>
-<p id="notice"><%= notice %></p>
 
 <p>
   <strong>Name:</strong>
   <%= @discipline.name %>
+</p>
+
+<p>
+  <strong>is a:</strong>
+  <%= link_to(@discipline.super_discipline.name, discipline_path(@discipline.super_discipline.root)) if @discipline.super_discipline.present? %>
+</p>
+
+<p>
+  <%- sup = (@discipline.super_discipline || @discipline.root) %>
+  <strong>other <%= sup.name %>:</strong>
+<ul>
+  <%- sup.sub_disciplines.order(name: :asc).all.each do |sub| %>
+    <li>
+      <%= link_to(sub.name, discipline_path(sub)) %>
+
+    </li>
+  <% end %>
+</ul>
+</p>
+
+<p>
+  <strong>Root Discipline:</strong>
+  <%= link_to(@discipline.root.name, discipline_path(@discipline.root)) %>
 </p>
 
 <p>

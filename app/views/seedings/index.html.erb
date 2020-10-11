@@ -61,8 +61,6 @@
     }
 </style>
 
-<p id="notice"><%= notice %></p>
-
 <h1>Listing Seedings</h1>
 
 <table id="seedings" data-source="<%= seedings_url(format: 'json') %>" width="100%" style="margin: 0px;">
@@ -71,7 +69,7 @@
     <%- Seeding::COLUMN_NAMES.keys.each do |column_name| %>
       <th><%= column_name %></th>
     <%- end %>
-    <th width="90px"></th>
+    <th width="100px"></th>
   </tr>
   </thead>
 

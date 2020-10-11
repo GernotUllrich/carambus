@@ -50,8 +50,11 @@
         margin: 0;
         padding: 0;
     }
+
+    th, td {
+        padding-left: 5px;
+    }
 </style>
-<p id="notice"><%= notice %></p>
 
 <h1>Disciplines</h1>
 
@@ -62,7 +65,7 @@
       <!--      TODO FILTERS-->
       <th><%= column_name %></th>
     <%- end %>
-    <th width="90px"></th>
+    <th width="100px"></th>
   </tr>
   </thead>
 

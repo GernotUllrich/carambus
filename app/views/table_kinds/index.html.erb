@@ -50,9 +50,11 @@
         margin: 0;
         padding: 0;
     }
-</style>
-<p id="notice"><%= notice %></p>
 
+    th, td {
+        padding-left: 5px;
+    }
+</style>
 <h1>Listing Table Kinds</h1>
 
 <table id="table_kinds" data-source="<%= table_kinds_url(format: 'json') %>" width="100%" style="margin: 0px; width: 50%;">
@@ -62,7 +64,7 @@
       <!--      TODO FILTERS-->
       <th><%= column_name %></th>
     <%- end %>
-    <th width="90px"></th>
+    <th width="100px"></th>
   </tr>
   </thead>
 

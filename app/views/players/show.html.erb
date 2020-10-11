@@ -5,8 +5,6 @@
 </style>
 <h1><%= @player.firstname %> <%= @player.lastname %></h1>
 
-<p id="notice"><%= notice %></p>
-
 <p>
   <strong>Billard Area:</strong>
   <%= link_to @player.ba_id, "https://#{@player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{@player.club.ba_id}/#{@player.ba_id}" %>

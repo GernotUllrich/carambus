@@ -90,8 +90,6 @@
     }
 </style>
 
-<p id="notice"><%= notice %></p>
-
 <h1>Listing Player Rankings</h1>
 
 <table id="player_rankings" data-source="<%= player_rankings_url(format: 'json') %>" width="100%" style="margin: 0px;">
@@ -101,7 +99,7 @@
       <!--      TODO FILTERS-->
       <th><%= column_name %></th>
     <%- end %>
-    <!--    <th width="90px"></th>-->
+    <!--    <th width="100px"></th>-->
   </tr>
   </thead>
 
