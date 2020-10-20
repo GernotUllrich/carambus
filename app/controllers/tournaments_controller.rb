@@ -1,5 +1,5 @@
 class TournamentsController < ApplicationController
-  before_action :set_tournament, only: [:show, :edit, :update, :destroy]
+  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
 
   # GET /tournaments
   # GET /tournaments.json
@@ -14,6 +14,78 @@ class TournamentsController < ApplicationController
   # GET /tournaments/1
   # GET /tournaments/1.json
   def show
+  end
+
+  def reset
+    if !@tournament.tournament_started
+      @tournament.reset_tournament_monitor!
+    else
+      flash[:alert] = "Cannot reset running or finished tournament"
+    end
+    redirect_to tournament_path(@tournament)
+  end
+
+  def order_by_ranking
+    hash = {}
+    @tournament.seedings.each do |seeding|
+      hash[seeding] = seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999
+    end
+    sorted = hash.to_a.sort_by do |a|
+      a[1]
+    end
+    sorted.each_with_index do |a, ix|
+      seeding, rank = a
+      seeding.update_attributes(position: ix + 1)
+    end
+
+    @tournament.finish_seeding!
+    redirect_to tournament_path(@tournament)
+    return
+  end
+
+  def finalize_modus
+    @proposed_discipline_tournament_plan = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
+        where(discipline_tournament_plans: {
+            players: @tournament.seedings.all.count,
+            player_class: @tournament.player_class,
+            discipline_id: @tournament.discipline_id
+        }).first
+    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups)
+    @alternatives_same_discipline = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
+        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.id}).
+        where(discipline_tournament_plans: {
+            players: @tournament.seedings.all.count,
+            discipline_id: @tournament.discipline_id
+        }).uniq
+    @alternatives_other_disciplines = ::TournamentPlan.
+        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.id] + [@alternatives_same_discipline.map(&:id)]}).
+        where(players: @tournament.seedings.all.count).uniq
+
+  end
+
+  def select_modus
+    @tournament.update_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
+    @tournament.finish_mode_selection!
+    redirect_to tournament_monitor_tournament_path(@tournament)
+  end
+
+  def tournament_monitor
+  end
+
+  def switch_players
+    @game = Game[params[:game_id]]
+    if @game.present?
+      roles = @game.game_participations.map(&:role).reverse
+      @game.game_participations.each_with_index do |gp, ix|
+        gp.update_attributes(role: roles[ix])
+      end
+    end
+    redirect_to tournament_monitor_tournament_path(@tournament)
+  end
+
+  def start
+    @tournament.start_tournament!
+    redirect_to tournament_monitor_tournament_path(@tournament)
   end
 
   # GET /tournaments/new
@@ -66,13 +138,14 @@ class TournamentsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_tournament
-      @tournament = Tournament.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def tournament_params
-      params.require(:tournament).permit(:title, :reagion_id, :discipline_id, :season_id, :shortname, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :hosting_tournament_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_tournament
+    @tournament = Tournament.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def tournament_params
+    params.require(:tournament).permit(:title, :reagion_id, :discipline_id, :season_id, :shortname, :discipline_id, :modus, :age_restriction, :date, :player_class, :tournament_plan_id, :accredation_end, :location, :hosting_tournament_id)
+  end
 end

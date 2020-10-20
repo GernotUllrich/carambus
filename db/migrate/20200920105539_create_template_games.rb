@@ -1,8 +1,8 @@
-class CreateTemplateGames < ActiveRecord::Migration
+class CreateTournamentPlanGames < ActiveRecord::Migration
   def change
-    create_table :template_games do |t|
+    create_table :tournament_plan_games do |t|
       t.string :name
-      t.integer :template_id
+      t.integer :tournament_plan_id
       t.text :remarks
 
       t.timestamps null: false

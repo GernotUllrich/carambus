@@ -1,0 +1,60 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    hr {
+        border: 2px solid black;
+        border-collapse: collapse;
+    }
+</style>
+<%= render :partial => "show", locals: {subtitle: "Tournament Monitor"} %>
+<% if @tournament.tournament_monitor.present? %>
+  <div class="row">
+    <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
+      <strong>Tournament:</strong>
+      <%= @tournament.tournament_monitor.state %>
+    </div>
+    <% @tournament.tournament_monitor.table_monitors.each do |tabmon| %>
+      <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
+        <strong><%= "#{tabmon.name.capitalize}" %>:</strong>
+        <%= tabmon.state %><br/>
+        playing <%= tabmon.game.gname %><br/>
+        <strong><%= tabmon.game.game_participations.where(role: "playera").first.player.lastname %></strong><br/>
+        <strong><%= tabmon.game.game_participations.where(role: "playerb").first.player.lastname %></strong><br/>
+        <%= button_to "Switch Players", switch_players_tournament_path(@tournament, game_id: tabmon.game.id) %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <%= button_to "Start Tournament", start_tournament_path(@tournament) %>
+<% end %>
+<% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
+<div class="row">
+  <div class="col-sm-4">
+    <%= render partial: "groups", locals: {tournament_plan: @tournament.tournament_plan, groups: @groups} %>
+  </div>
+  <div class="col-sm-8">
+    <%= render partial: "current_games", locals: {tournament_monitor: @tournament.tournament_monitor} %>
+  </div>
+</div>
+<hr/>
+<div class="row">
+  <%= render partial: "group_stage_results", locals: {tournament_monitor: @tournament.tournament_monitor} %>
+</div>
+<div class="row">
+
+  <div class="col-sm-6">
+    <%= render partial: "ranking_group_phase", locals: {tournament_plan: @tournament.tournament_plan, groups: @groups} %>
+  </div>
+</div>

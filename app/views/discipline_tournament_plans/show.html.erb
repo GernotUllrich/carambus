@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Discipline:</strong>
+  <%= @discipline_tournament_plan.discipline_id %>
+</p>
+
+<p>
+  <strong>TournamentPlan:</strong>
+  <%= @discipline_tournament_plan.tournament_plan_id %>
+</p>
+
+<p>
+  <strong>Points:</strong>
+  <%= @discipline_tournament_plan.points %>
+</p>
+
+<p>
+  <strong>Innings:</strong>
+  <%= @discipline_tournament_plan.innings %>
+</p>
+
+<p>
+  <strong>Players:</strong>
+  <%= @discipline_tournament_plan.players %>
+</p>
+
+<%= link_to 'Edit', edit_discipline_tournament_plan_path(@discipline_tournament_plan) %> |
+<%= link_to 'Back', discipline_tournament_plans_path %>

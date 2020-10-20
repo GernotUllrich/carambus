@@ -3,22 +3,22 @@
       $(document).ready(function () {
           $('#clubs').DataTable({
                   "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Clubs'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Clubs'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Clubs'
-                  }, {
-                      extend: 'print',
-                      title: 'Clubs'
-                  }
-              ],
+                  dom: 'Bfrtip',
+                  buttons: [
+                      'copy', {
+                          extend: 'csvHtml5',
+                          title: 'Clubs'
+                      }, {
+                          extend: 'excelHtml5',
+                          title: 'Clubs'
+                      }, {
+                          extend: 'pdfHtml5',
+                          title: 'Clubs'
+                      }, {
+                          extend: 'print',
+                          title: 'Clubs'
+                      }
+                  ],
                   "sPaginationType": "full_numbers",
                   "bJQueryUI": true,
                   "aLengthMenu": [

@@ -5,10 +5,9 @@ class AddIndexesOnForeignKeys < ActiveRecord::Migration
     add_index :disciplines, [:name, :table_kind_id], name:"index_disciplines_on_foreign_keys", unique: true
     add_index :disciplines, [:short_name], name:"index_disciplines_on_shortname", unique: true
     add_index :game_participations, [:game_id, :player_id, :role], name:"index_game_participations_on_foreign_keys", unique: true
-    add_index :games, [:template_game_id, :tournament_id], name:"index_games_on_foreign_keys", unique: true
+    add_index :games, [:tournament_plan_game_id, :tournament_id], name:"index_games_on_foreign_keys", unique: true
     add_index :innings, [:game_id, :sequence_number], name:"index_innings_on_foreign_keys", unique: true
     add_index :locations, [:club_id], name:"index_locations_on_foreign_keys"
-    add_index :player_count_templates, [:tournament_template_id, :players, :template_id], name:"index_player_count_templates_on_foreign_keys", unique: true
     add_index :players, [:ba_id], name:"index_players_on_ba_id", unique: true
     add_index :players, [:club_id], name:"index_players_on_club_id"
     add_index :regions, [:shortname], name:"index_regions_on_shortname", unique: true

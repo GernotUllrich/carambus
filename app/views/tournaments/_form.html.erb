@@ -20,6 +20,10 @@
     <%= f.select :discipline_id, options_for_select(Discipline.order(:name).map{|discipline| [discipline.name, discipline.id]}, @tournament.discipline_id) %>
   </div>
   <div class="field">
+  <%= f.label "Player Class" %><br>
+  <%= f.select :player_class, options_for_select(%w{I II III 1 2 3 4 5 6 7}, @tournament.player_class) %>
+  </div>
+  <div class="field">
     <%= f.label :modus %><br>
     <%= f.text_field :modus %>
   </div>

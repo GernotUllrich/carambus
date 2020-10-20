@@ -1,11 +1,39 @@
 class Tournament < ActiveRecord::Base
+
+  include AASM
+
   belongs_to :discipline
   belongs_to :region
   belongs_to :season
-  has_many :seedings
+  belongs_to :tournament_plan
+  has_many :seedings, -> { order(position: :asc) }
   has_many :games, dependent: :destroy
+  has_one :tournament_monitor
 
   serialize :remarks, Hash
+
+  aasm column: "state", skip_validation_on_save: true do
+    state :new_tournament, initial: true, :after_enter => [:reset_tournament]
+    state :accreditation_finished
+    state :tournament_seeding_finished
+    state :tournament_mode_defined
+    state :tournament_started, :after_enter => [:initialize_tournament_monitor]
+    state :tournament_finished
+    state :results_published
+    state :closed
+    event :finish_seeding do
+      transitions from: [:new_tournament, :accreditation_finished, :tournament_seeding_finished], to: :tournament_seeding_finished
+    end
+    event :finish_mode_selection do
+      transitions from: [:tournament_seeding_finished, :tournament_mode_defined], to: :tournament_mode_defined
+    end
+    event :start_tournament! do
+      transitions from: [:tournament_mode_defined, :tournament_started], to: :tournament_started
+    end
+    event :reset_tournament_monitor do
+      transitions to: :new_tournament, guard: :tournament_not_yet_started
+    end
+  end
 
   NAME_DISCIPLINE_MAPPINGS = {
       "9-Ball" => "9-Ball",
@@ -23,16 +51,50 @@ class Tournament < ActiveRecord::Base
       "Freie Partie" => "Freie Partie klein",
   }
 
-  COLUMN_NAMES = { #TODO FILTERS
-      "BA_ID" => "tournaments.ba_id",
-      "Title" => "tournaments.title",
-      "Shortname" => "tournaments.shortname",
-      "Discipline" => "disciplines.name",
-      "Region" => "regions.name",
-      "Season" => "seasons.name",
-      "Status" => "tournaments.plan_or_show",
-      "SingleOrLeague" => "tournaments.single_or_league",
+  COLUMN_NAMES = {#TODO FILTERS
+                  "BA_ID" => "tournaments.ba_id",
+                  "BA State" => "tournaments.ba_state",
+                  "Title" => "tournaments.title",
+                  "Shortname" => "tournaments.shortname",
+                  "Discipline" => "disciplines.name",
+                  "Region" => "regions.name",
+                  "Season" => "seasons.name",
+                  "Status" => "tournaments.plan_or_show",
+                  "SingleOrLeague" => "tournaments.single_or_league",
   }
+
+  def initialize_tournament_monitor
+    TournamentMonitor.transaction do
+      begin
+        TournamentMonitor.find_or_create_by!(tournament_id: self.id)
+        reload
+        tournament_monitor.start_playing_groups!
+      rescue Exception => e
+        reset_tournament
+        Rails.logger.error("Some problem occurred when creating TournamentMonitor - Tournament resetted")
+      end
+    end
+
+  end
+
+  def reset_tournament
+    # called from state machine only
+    # use direct only for testing purposes
+
+    tournament_monitor.andand.destroy
+    seedings.update_all(position: nil)
+    games.destroy_all
+    update_attributes(tournament_plan_id: nil, state: "new_tournament")
+    reload
+  end
+
+  def tournament_not_yet_started
+    !tournament_started
+  end
+
+  def tournament_started
+    games.present?
+  end
 
   def date_str
     if date.present?

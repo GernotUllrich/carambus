@@ -22,6 +22,7 @@ class TournamentsDatatable
     tournaments.includes(:region, :season, :discipline).map do |tournament|
       [
           link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}"),
+          tournament.ba_state,
           link_to(tournament.title, @view.tournament_path(tournament)),
           tournament.shortname,
           (link_to(tournament.discipline.name, @view.discipline_path(tournament.discipline)) if tournament.discipline.present?),

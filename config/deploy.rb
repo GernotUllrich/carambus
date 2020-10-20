@@ -35,13 +35,13 @@ append :linked_dirs, '.bundle'
 
 set :rbenv_type, :local
 set :rbenv_ruby, '2.4.4'
-set :maintenance_template_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
+set :maintenance_tournament_plan_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
 set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w{rake gem bundle ruby rails}
 
 # path to customized templates (see below for details)
 # default value: "config/deploy/templates"
-set :templates_path, "config/deploy/templates"
+set :tournament_plans_path, "config/deploy/templates"
 
 # server name for nginx, default value: "localhost <application>.local"
 # set this to your site name as it is visible from outside

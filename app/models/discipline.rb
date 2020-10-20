@@ -1,11 +1,12 @@
 class Discipline < ActiveRecord::Base
-  has_many :tournament_templates
+  has_many :discipline_tournament_plans
   belongs_to :table_kind
   belongs_to :super_discipline, foreign_key: :super_discipline_id, :class_name => "Discipline"
   has_many :sub_disciplines, foreign_key: :super_discipline_id, :class_name => "Discipline"
   has_many :tournaments
   has_many :player_classes
   has_many :player_rankings
+  has_many :seeding_plays, class_name: "Seeding", :foreign_key => :playing_discipline_id
 
   MAJOR_DISCIPLINES = {
       "Pool" => {"table_kind" => ["Pool"]},

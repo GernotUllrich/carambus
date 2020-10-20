@@ -1,0 +1,28 @@
+<div class="row">
+  <div class="col-lg-12">
+    <h3>Current Games</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>Table</th>
+        <th>Player</th>
+        <th>Balls</th>
+        <th>Inning</th>
+        <th>HS</th>
+        <th>GD</th>
+        <th>Hist</th>
+      </tr>
+      </thead>
+      <tbody>
+      <%- @tournament.tournament_monitor.table_monitors.each do |tm| %>
+        <%- tm.game.game_participations.each_with_index do |gp, ix| %>
+        <tr>
+          <td><%= tm.name.capitalize if ix==0 %></td>
+          <td><%= gp.player.lastname %><%= " *" if tm.data["result"].andand["active_player"] == gp.role %></td>
+        </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -3,62 +3,44 @@
         padding: 3px;
     }
 </style>
-<h1><%= @tournament.title %> - <%= @tournament.region.shortname %> - <%= @tournament.season.name %></h1>
-<p>
-  <strong>BA_ID:</strong>
-  <%= link_to(@tournament.ba_id, "https://#{@tournament.region.shortname.downcase}.billardarea.de/cms_#{@tournament.single_or_league}/#{@tournament.plan_or_show}/#{@tournament.ba_id}") %>
-</p>
-
-<p>
-  <strong>Region:</strong>
-  <%= link_to(@tournament.region.name, region_path(@tournament.region)) %>
-</p>
-
-<p>
-  <strong>Title:</strong>
-  <%= @tournament.title %>
-</p>
-
-<p>
-  <strong>Discipline:</strong>
-  <%= link_to(@tournament.discipline.name, discipline_path(@tournament.discipline_id)) %>
-</p>
-
-<p>
-  <strong>Modus:</strong>
-  <%= @tournament.modus %>
-</p>
-
-<p>
-  <strong>Age restriction:</strong>
-  <%= @tournament.age_restriction %>
-</p>
-
-<p>
-  <strong>Date:</strong>
-  <%= @tournament.date %>
-</p>
-
-<p>
-  <strong>Accredation end:</strong>
-  <%= @tournament.accredation_end %>
-</p>
-
-<p>
-  <strong>Location:</strong>
-  <%= @tournament.location %>
-</p>
-
-<p>
-  <strong>Hosting club:</strong>
-  <%= @tournament.hosting_club_id %>
-</p>
-
-<%= link_to 'Edit', edit_tournament_path(@tournament) %> |
-<%= link_to 'Back', tournaments_path %>
-
+<%= render :partial => "show", locals: {subtitle: "", show_edit_back: true} %>
+<%= button_to "Order By Ranking", order_by_ranking_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
+<%= button_to "Finalize Tournament Modus", finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
+<%= button_to "Mangage Tournament Group Phase", tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", disabled: %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>
+<h2>Registrations</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Position</th>
+    <th colspan=2>Reorder</th>
+    <th>Name</th>
+    <th>Club</th>
+    <th><%= "Rank<br/>#{@tournament.discipline.name}<br/>Season #{@tournament.season.previous.name}".html_safe %></th>
+    <% if @tournament.handicap_tournier? %>
+      <th>Balls Goal</th>
+      <th>Discipline</th>
+    <% end %>
+  </tr>
+  <tbody>
+  <% @tournament.seedings.joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
+    <% club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.club %>
+    <tr>
+      <td><%= seeding.position %></td>
+      <td><%= link_to image_tag("up-icon.png"), up_seeding_path(seeding), method: :post %></td>
+      <td><%= link_to image_tag("down-icon.png"), down_seeding_path(seeding), method: :post %></td>
+      <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
+      <td><%= link_to("#{club.shortname}", club_path(club)) %></td>
+      <td><%= seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999 %></td>
+      <% if @tournament.handicap_tournier? %>
+        <td><%= seeding.balls_goal %></td>
+        <td><%= seeding.playing_discipline.shortname %></td>
+      <% end %>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
 <h2>Rankings</h2>
-<%- lists = @tournament.seedings.map { |s| s.remarks["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
+<%- lists = @tournament.seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.remarks["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
 <%- lists.each do |list| %>
   <h3><%= list %></h3>
   <table>
@@ -85,23 +67,30 @@
 
 <h2>Games</h2>
 <%- if @tournament.games.present? %>
-<table>
-  <thead>
-  <tr>
-    <%- @tournament.games.first.remarks.keys.each do |k| %>
-      <th><%= k %></th>
-    <%- end %>
-  </tr>
-  </thead>
-  <tbody>
-  <%- @tournament.games.each do |game| %>
+  <table>
+    <thead>
     <tr>
-      <%- game.remarks.each do |k, v| %>
-        <td><%= v %></td>
+      <%- @tournament.games.first.remarks.keys.each do |k| %>
+        <th><%= k %></th>
       <%- end %>
     </tr>
-  <%- end %>
-  </tbody>
-</table>
-  <% end %>
+    </thead>
+    <tbody>
+    <%- @tournament.games.each do |game| %>
+      <tr>
+        <% skip = false %>
+        <%- game.remarks.each do |k, v| %>
+          <% skip = true if %w{Heim Gast}.include?(k) && v.blank? %>
+          <% unless skip %>
+            <td><%= v %></td>
+          <% end %>
+        <%- end %>
+      </tr>
+    <%- end %>
+    </tbody>
+  </table>
+<% end %>
 <%- games = @tournament.games.order(seqno: :asc) %>
+<% if !@tournament.tournament_started %>
+  <%= button_to "Reset Tournament Monitor", reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
+<% end %>

@@ -26,7 +26,7 @@ class SeedingsDatatable
           link_to(seeding.tournament.discipline.name, @view.discipline_path(seeding.tournament.discipline)),
           seeding.tournament.date.to_date,
           (link_to("#{seeding.tournament.season.name}", @view.season_path(seeding.tournament.season))),
-          seeding.status,
+          seeding.ba_state,
           seeding.position,
           link_to(Seeding.result_display(seeding), @view.seeding_path(seeding)),
           "#{(link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), seeding) + " " +

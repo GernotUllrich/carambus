@@ -19,7 +19,9 @@ class GameParticipationsDatatable
   private
 
   def data
-    game_participations.map do |game_participation|
+    game_participations.includes(:player => {:season_participations => :club}).includes(:game => {tournament: [:discipline, :season]}).map do |game_participation|
+      season = game_participation.game.tournament.season
+      club = game_participation.player.season_participations.where(season_id: season.id).first.andand.club
       [
           link_to(game_participation.game.seqno, @view.game_path(game_participation.game)),
           link_to(game_participation.game.gname, @view.game_path(game_participation.game)),
@@ -27,7 +29,7 @@ class GameParticipationsDatatable
           link_to(game_participation.game.tournament.discipline.name, @view.discipline_path(game_participation.game.tournament.discipline)),
           game_participation.game.tournament.date.to_date,
           link_to("#{game_participation.player.lastname}, #{game_participation.player.firstname}", @view.player_path(game_participation.player)),
-          link_to(game_participation.player.club.shortname, @view.club_path(game_participation.player.club)),
+          (link_to(club.shortname, @view.club_path(club)) if club.present?),
           game_participation.role,
           game_participation.points,
           game_participation.result,

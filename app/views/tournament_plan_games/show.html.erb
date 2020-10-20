@@ -1,0 +1,17 @@
+<p>
+  <strong>Name:</strong>
+  <%= @tournament_plan_game.name %>
+</p>
+
+<p>
+  <strong>TournamentPlan:</strong>
+  <%= @tournament_plan_game.tournament_plan_id %>
+</p>
+
+<p>
+  <strong>Remarks:</strong>
+  <%= @tournament_plan_game.remarks %>
+</p>
+
+<%= link_to 'Edit', edit_tournament_plan_game_path(@tournament_plan_game) %> |
+<%= link_to 'Back', tournament_plan_games_path %>

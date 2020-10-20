@@ -1,5 +1,5 @@
 class SeedingsController < ApplicationController
-  before_action :set_seeding, only: [:show, :edit, :update, :destroy]
+  before_action :set_seeding, only: [:show, :edit, :update, :destroy, :up, :down]
 
   # GET /seedings
   # GET /seedings.json
@@ -9,6 +9,16 @@ class SeedingsController < ApplicationController
       format.html
       format.json { render json: SeedingsDatatable.new(view_context, nil) }
     end
+  end
+
+  def up
+    @seeding.move_higher
+    redirect_to :back
+  end
+
+  def down
+    @seeding.move_lower
+    redirect_to :back
   end
 
   # GET /seedings/1

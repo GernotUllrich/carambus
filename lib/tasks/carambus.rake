@@ -164,31 +164,6 @@ namespace :carambus do
     end
   end
 
-  desc "Init TournamentTemplates"
-  task :init_tournament_templates => :environment do
-    # c&p from file NBV%20STO%20BT%20Karambolage%2023-06-2019.pdf
-    STR = "Freie Partie Kl. 1 250 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. 2 200 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. 3 150 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. 4 150 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. 5 100 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. 6 80 20 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nFreie Partie Kl. 7 40 20 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nCadre 35/2 Kl. 1 200 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 35/2 Kl. 2 100 20 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nCadre 52/2 Kl. 1 150 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 52/2 Kl. 2 80 20 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nEinband Kl. 1 100 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nEinband Kl. 2 50 25 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nDreiband Kl. 1 30 25 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nDreiband Kl. 2 20 25 T0 T1 T2 T3 T4 T7 T12 T15 T16 T18 T21 T24\nFreie Partie Kl. I 300 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. II 200 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nFreie Partie Kl. III 100 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 47/2 Kl. I 200 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 47/2 Kl. II 150 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 71/2 Kl. I 150 15 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nCadre 71/2 Kl. II 40 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nEinband Kl. I 100 20 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nEinband Kl. II 75 25 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T21 T23\nDreiband Kl. I 40 50 T0 T1 T2 T3 T5 T8 T11 T14 T17 T19 T22 T23\nDreiband Kl. II 25 40 T0 T1 T2 T3 T4 T6 T9 T13 T17 T19 T22 T23\nDreiband Kl. III 20 40 T0 T1 T2 T3 T4 T6 T9 T13 T16 T18 T22 T23\nPetit/Grand Prix 0 0 T0 T0 T0 T3 T4 T7 T12 T15 T16 T18 T21 T24\nNordcup 0 0 T0 T0 T0 T3 T4 T6 T9 T13 T16 T18 T21 T23"
-    dis = STR.split("\n").map { |d| m = d.match(/(.*) (\d+) (\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+) (T\d+)\s*/); m[1..-1] }
-
-    dis.each do |l|
-      d = TournamentTemplate.find_by_name(l[0]) || TournamentTemplate.new(name: l[0])
-      d.update_attributes(points: l[1].to_i, innings: l[2].to_i)
-      (1..12).each do |iplayers|
-        tn = l[iplayers + 2]
-        t = Template.find_by_name(tn) || Template.new(name: tn)
-        t.update_attributes(players: iplayers)
-        dt = PlayerCountTemplate.find_by_tournament_template_id_and_players(d.id, iplayers) || PlayerCountTemplate.new(tournament_template_id: d.id, players: iplayers)
-        dt.update_attributes(template_id: t.id)
-      end
-    end
-    TournamentTemplate.includes(:discipline).each do |t|
-      dis = t.name.gsub(/ Kl\. .*/, "")
-      size = (t.name =~ /I$/) ? "gross" : "klein"
-      discipline = Discipline.find_by_name_and_table_size(dis, size) || Discipline.create(name: dis, table_size: size)
-      t.update_attributes(discipline_id: discipline.id)
-    end
-  end
-
   desc "fix tournament discipline by name"
   task :fix_tournament_discipline_by_name => :environment do
     unknown_discipline = Discipline.find_by_name("-")
@@ -230,6 +205,7 @@ namespace :carambus do
               if ba_id.present?
                 tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
                 tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league)
+                tournament.update_columns(last_ba_sync_date: Time.now)
               else
                 ba_id
               end
@@ -258,7 +234,10 @@ namespace :carambus do
             #where(ba_id: 13933).#TODO TEST
             where(region_id: region.id).all.each do |tournament|
           on = on || tournament.ba_id == 12421
-          scrape_single_tournament(tournament, logger: logger) if on
+          if on
+            scrape_single_tournament(tournament, logger: logger)
+            tournament.update_columns(last_ba_sync_date: Time.now)
+          end
         end
       end
     end
@@ -276,9 +255,11 @@ namespace :carambus do
   desc "test scrape single tournament"
   task :single_scrape_tournaments_details => :environment do
     #ba_ids = Array(ENV["BA_ID"].presence || [4465])
-    ba_ids = Tournament.where(discipline_id: Discipline.find_by_name("Pool").id).map(&:ba_id).sort
+    #ba_ids = Tournament.where(discipline_id: Discipline.find_by_name("Pool").id).map(&:ba_id).sort
+    ba_ids = [6040]
     Tournament.where(ba_id: ba_ids).all.each do |t|
-      scrape_single_tournament(t, game_details: false)
+      scrape_single_tournament(t, game_details: true)
+      t.update_columns(last_ba_sync_date: Time.now)
     end
   end
 
@@ -287,10 +268,15 @@ namespace :carambus do
 
     logger = Logger.new("#{Rails.root}/log/scrape.log")
 
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      Region.all.each do |region|
+    #Season.order(ba_id: :desc).limit(2).each do |season|
+    Season.order(ba_id: :desc).each do |season|
+      #next unless season.name == "2013/2014"
+      Region.all .each do |region|
+        #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
-        uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, mgmt_status: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
+        #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
+        uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").map(&:ba_id)
+        #uncompleted_region_ba_ids = region.tournaments.where(ba_id: 6040, ba_state: "").map(&:ba_id)
         #next unless region.shortname == "NBV"
         url = "https://#{region.shortname.downcase}.billardarea.de"
         uri = URI(url + '/cms_single')
@@ -308,7 +294,7 @@ namespace :carambus do
             tables.each_with_index do |table, table_no|
               lines = table.css("tr")
               lines.map do |line|
-                tournament_managed = false
+                tournament_ba_closed = false
                 name = nil
                 url = nil
                 cols = line.css("td")
@@ -319,7 +305,7 @@ namespace :carambus do
                     url = field.attribute("href").value
                     Rails.logger.info "----#{name} #{url}"
                   elsif col.text.strip == "X"
-                    tournament_managed = true
+                    tournament_ba_closed = true
                   end
                 end
                 next unless name.present? && url.present?
@@ -335,8 +321,9 @@ namespace :carambus do
                     end
                     tournament ||=
                         Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
-                    tournament.update_attributes(plan_or_show: plan_or_show, single_or_league: single_or_league, mgmt_status: tournament_managed ? "X" : "")
+                    tournament.update_attributes(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
                     scrape_single_tournament(tournament, logger: logger)
+                    tournament.update_columns(last_ba_sync_date: Time.now)
                   else
                     ba_id
                   end
@@ -605,7 +592,7 @@ def scrape_single_tournament(tournament, opts = {})
           else
             if td.text.strip =~ /X/
               if seeding.present?
-                seeding.update_attribute(:status, states[state_ix])
+                seeding.update_attribute(:ba_state, states[state_ix])
               else
                 logger.info "[scrape_tournaments] Fatal 501 - seeding nil???"
                 Kernel.exit(501)
@@ -622,7 +609,7 @@ def scrape_single_tournament(tournament, opts = {})
       no_show_ups.each do |seeding|
         seeding.status = "UNA"
       end
-
+      tournament.reload
       # Results
       tournament.games = []
       table = doc.css("#tabs-2 .matchday_table")[0]

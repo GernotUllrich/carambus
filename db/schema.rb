@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20201011172004) do
+ActiveRecord::Schema.define(version: 20201020084809) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -43,6 +43,17 @@ ActiveRecord::Schema.define(version: 20201011172004) do
   end
 
   add_index "countries", ["code"], name: "index_countries_on_code", unique: true, using: :btree
+
+  create_table "discipline_tournament_plans", force: :cascade do |t|
+    t.integer  "discipline_id"
+    t.integer  "tournament_plan_id"
+    t.integer  "points"
+    t.integer  "innings"
+    t.integer  "players"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
+    t.string   "player_class"
+  end
 
   create_table "disciplines", force: :cascade do |t|
     t.string   "name"
@@ -81,6 +92,11 @@ ActiveRecord::Schema.define(version: 20201011172004) do
     t.datetime "updated_at",       null: false
     t.integer  "seqno"
     t.string   "gname"
+    t.integer  "group_no"
+    t.integer  "table_no"
+    t.integer  "round_no"
+    t.datetime "started_at"
+    t.datetime "ended_at"
   end
 
   add_index "games", ["template_game_id", "tournament_id"], name: "index_games_on_foreign_keys", unique: true, using: :btree
@@ -115,17 +131,6 @@ ActiveRecord::Schema.define(version: 20201011172004) do
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
   end
-
-  create_table "player_count_templates", force: :cascade do |t|
-    t.string   "name"
-    t.integer  "tournament_template_id"
-    t.integer  "players"
-    t.integer  "template_id"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
-  end
-
-  add_index "player_count_templates", ["tournament_template_id", "players", "template_id"], name: "index_player_count_templates_on_foreign_keys", unique: true, using: :btree
 
   create_table "player_rankings", force: :cascade do |t|
     t.integer  "player_id"
@@ -221,11 +226,14 @@ ActiveRecord::Schema.define(version: 20201011172004) do
   create_table "seedings", force: :cascade do |t|
     t.integer  "player_id"
     t.integer  "tournament_id"
-    t.string   "status"
+    t.string   "ba_state"
     t.integer  "position"
     t.text     "remarks"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",                                   null: false
+    t.datetime "updated_at",                                   null: false
+    t.string   "state",                 default: "registered", null: false
+    t.integer  "balls_goal"
+    t.integer  "playing_discipline_id"
   end
 
   add_index "seedings", ["player_id", "tournament_id"], name: "index_seedings_on_foreign_keys", unique: true, using: :btree
@@ -238,52 +246,85 @@ ActiveRecord::Schema.define(version: 20201011172004) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "template_games", force: :cascade do |t|
-    t.string   "name"
-    t.integer  "template_id"
-    t.text     "remarks"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
+  create_table "table_monitors", force: :cascade do |t|
+    t.integer "tournament_monitor_id"
+    t.string  "state"
+    t.string  "name"
+    t.integer "game_id"
+    t.integer "next_game_id"
+    t.text    "data"
+    t.integer "ipaddress"
   end
 
-  create_table "templates", force: :cascade do |t|
-    t.string   "name"
-    t.string   "rulesystem"
-    t.integer  "players"
-    t.integer  "tables"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "tournament_templates", force: :cascade do |t|
-    t.string   "name"
-    t.integer  "discipline_id"
-    t.integer  "points"
-    t.integer  "innings"
+  create_table "tournament_monitors", force: :cascade do |t|
+    t.integer  "tournament_id"
+    t.text     "data"
+    t.string   "state"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
   end
 
+  create_table "tournament_plan_games", force: :cascade do |t|
+    t.string   "name"
+    t.integer  "tournament_plan_id"
+    t.text     "remarks"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
+  end
+
+  create_table "tournament_plans", force: :cascade do |t|
+    t.string   "name"
+    t.text     "rulesystem"
+    t.integer  "players"
+    t.integer  "tables"
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
+    t.text     "more_description"
+    t.text     "even_more_description"
+    t.text     "data_round1"
+    t.text     "data_round2"
+    t.text     "data_round3"
+    t.text     "data_round8"
+    t.text     "data_round9"
+    t.text     "data_round10"
+    t.text     "data_round11"
+    t.string   "executor_class"
+    t.text     "executor_params"
+    t.text     "data_round4"
+    t.text     "data_round5"
+    t.text     "data_round6"
+    t.integer  "ngroups",               default: 2, null: false
+    t.text     "data_round7"
+    t.integer  "nrepeats",              default: 1, null: false
+  end
+
   create_table "tournaments", force: :cascade do |t|
     t.string   "title"
-    t.integer  "discipline_id",                 null: false
+    t.integer  "discipline_id",                                 null: false
     t.string   "modus"
     t.string   "age_restriction"
     t.datetime "date"
     t.datetime "accredation_end"
     t.text     "location"
     t.integer  "hosting_club_id"
-    t.datetime "created_at",                    null: false
-    t.datetime "updated_at",                    null: false
+    t.datetime "created_at",                                    null: false
+    t.datetime "updated_at",                                    null: false
     t.integer  "ba_id"
     t.integer  "season_id"
     t.integer  "region_id"
     t.datetime "end_date"
     t.string   "plan_or_show"
     t.string   "single_or_league"
-    t.string   "shortname",        default: "", null: false
+    t.string   "shortname",          default: "",               null: false
     t.text     "remarks"
-    t.string   "mgmt_status",      default: "", null: false
+    t.string   "ba_state",           default: "",               null: false
+    t.string   "state",              default: "new_tournament", null: false
+    t.datetime "last_ba_sync_date"
+    t.string   "player_class"
+    t.integer  "tournament_plan_id"
+    t.integer  "innings_goal"
+    t.integer  "balls_goal"
+    t.boolean  "handicap_tournier"
   end
 
   add_index "tournaments", ["ba_id"], name: "index_tournaments_on_ba_id", unique: true, using: :btree

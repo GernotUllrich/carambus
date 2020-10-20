@@ -15,7 +15,5 @@ GameParticipation
 Inning
 
 Discipline
-TournamentTemplate
-PlayerCountTemplate
-Template
-TemplateGame
+TournamentPlan
+TournamentPlanGame

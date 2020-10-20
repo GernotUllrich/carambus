@@ -1,0 +1,108 @@
+<style>
+    textarea {
+        width: 100%;
+        height: 80px;
+    }
+</style>
+<%= form_for(@tournament_plan) do |f| %>
+  <% if @tournament_plan.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@tournament_plan.errors.count, "error") %> prohibited this tournament_plan from being saved:</h2>
+
+      <ul>
+      <% @tournament_plan.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :rulesystem %><br>
+    <%= f.text_area :rulesystem %>
+  </div>
+  <div class="field">
+    <%= f.label :more_description %><br>
+    <%= f.text_area :more_description %>
+  </div>
+  <div class="field">
+    <%= f.label :even_more_description %><br>
+    <%= f.text_area :even_more_description %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round1 %><br>
+    <%= f.text_area :data_round1 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round2 %><br>
+    <%= f.text_area :data_round2 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round3 %><br>
+    <%= f.text_area :data_round3 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round4 %><br>
+    <%= f.text_area :data_round4 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round5 %><br>
+    <%= f.text_area :data_round5 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round6 %><br>
+    <%= f.text_area :data_round6 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round7 %><br>
+    <%= f.text_area :data_round7 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round8 %><br>
+    <%= f.text_area :data_round8 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round9 %><br>
+    <%= f.text_area :data_round9 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round10 %><br>
+    <%= f.text_area :data_round10 %>
+  </div>
+  <div class="field">
+    <%= f.label :data_round11 %><br>
+    <%= f.text_area :data_round11 %>
+  </div>
+  <div class="field">
+    <%= f.label :executor_class %><br>
+    <%= f.text_field :executor_class %>
+  </div>
+  <div class="field">
+    <%= f.label :executor_params %><br>
+    <%= f.text_area :executor_params %>
+  </div>
+  <div class="field">
+    <%= f.label :players %><br>
+    <%= f.number_field :players %>
+  </div>
+  <div class="field">
+    <%= f.label :ngroups %><br>
+    <%= f.number_field :ngroups %>
+  </div>
+  <div class="field">
+    <%= f.label :tables %><br>
+    <%= f.number_field :tables %>
+  </div>
+  <div class="field">
+    <%= f.label :nrepeats %><br>
+    <%= f.number_field :nrepeats %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

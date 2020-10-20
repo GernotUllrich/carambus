@@ -1,0 +1,66 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+    hr {
+        border: 2px solid black;
+        border-collapse: collapse;
+    }
+</style>
+<%= render :partial => "show", locals: {subtitle: "Finalize Modus"} %>
+
+<div class="row">
+  <div class="col-sm-3" style="margin-bottom: 10px; margin-left: 10px">
+    <strong>Teilnehmer: </strong>
+    <%= @tournament.seedings.all.count %>
+  </div>
+</div>
+<hr/>
+<div class="row">
+  <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+    <strong>Proposed Modus:</strong>
+    <%= @proposed_discipline_tournament_plan.name %><br/><br/>
+    <%= @proposed_discipline_tournament_plan.rulesystem %><br/>
+    <%= @proposed_discipline_tournament_plan.more_description %>
+    <%= button_to "Proceed with #{@proposed_discipline_tournament_plan.name}", select_modus_tournament_path(@tournament, tournament_plan_id: @proposed_discipline_tournament_plan.id), method: :post, class: "btn btn-flat btn-primary" %>
+    <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @groups} %>
+  </div>
+</div>
+<hr/>
+<div class="row">
+  <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+    <strong>Alternatives same discipline:</strong>
+    <%- @alternatives_same_discipline.each do |alternative| %>
+      <%= alternative.name %><br/><br/>
+      <%= alternative.rulesystem %><br/>
+      <%= alternative.more_description %>
+      <%= button_to "Proceed with #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
+      <%- @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+      <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
+    <% end %>
+  </div>
+</div>
+<hr/>
+<div class="row">
+  <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+    <strong>Alternatives other disciplines:</strong>
+    <%- @alternatives_other_disciplines.each do |alternative| %>
+      <%= alternative.name %><br/><br/>
+      <%= alternative.rulesystem %><br/>
+      <%= alternative.more_description %>
+      <%= button_to "Proceed with #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
+      <%- @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+      <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_other_groups} %>
+    <% end %>
+  </div>
+</div>

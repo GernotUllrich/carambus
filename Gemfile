@@ -46,6 +46,11 @@ gem 'jquery-datatables-rails'
 gem 'jquery-ui-rails'
 gem 'stalker'
 gem 'daemons'
+gem 'therubyracer'
+gem 'acts_as_list'
+
+gem 'thor', '0.19.4'
+gem 'aasm'
 
 group :production do
   # Use unicorn as the app server

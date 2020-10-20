@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>State:</strong>
+  <%= @table_monitor.state %>
+</p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @table_monitor.name %>
+</p>
+
+<p>
+  <strong>Game:</strong>
+  <%= @table_monitor.game_id %>
+</p>
+
+<p>
+  <strong>Next game:</strong>
+  <%= @table_monitor.next_game_id %>
+</p>
+
+<p>
+  <strong>Data:</strong>
+  <%= @table_monitor.data %>
+</p>
+
+<%= link_to 'Edit', edit_table_monitor_path(@table_monitor) %> |
+<%= link_to 'Back', table_monitors_path %>

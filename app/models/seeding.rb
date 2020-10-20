@@ -1,7 +1,15 @@
 class Seeding < ActiveRecord::Base
+  include AASM
+  aasm column: "state", skip_validation_on_save: true do
+    state :registered, initial: true, :after_enter => [:reset_tournament]
+    state :seeded
+    state :participated
+    state :no_show
+  end
   belongs_to :player
   belongs_to :tournament
-  ["player", "tournament"]
+  belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id
+  acts_as_list scope: :tournament
 
   serialize :remarks, Hash
 
@@ -41,5 +49,7 @@ class Seeding < ActiveRecord::Base
     end
     ret.join("\n").html_safe
   end
+
+
 
 end

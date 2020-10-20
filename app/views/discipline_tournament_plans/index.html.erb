@@ -1,0 +1,79 @@
+<%- content_for :javascript_code do -%>
+  <script>
+      $(document).ready(function () {
+          $('#discipline_tournament_plans').DataTable({
+                  "stateSave": true,
+                  dom: 'Bfrtip',
+                  buttons: [
+                      'copy', {
+                          extend: 'csvHtml5',
+                          title: 'DisciplineTournamentPlans'
+                      }, {
+                          extend: 'excelHtml5',
+                          title: 'DisciplineTournamentPlans'
+                      }, {
+                          extend: 'print',
+                          title: 'DisciplineTournamentPlans'
+                      }
+                  ],
+                  "sPaginationType": "full_numbers",
+                  "bJQueryUI": true,
+                  "aLengthMenu": [
+                      [10, 50],
+                      [10, 50]
+                  ],
+                  "iDisplayLength": 50,
+
+                  "aaSorting": [[1, 'asc']],
+                  "aoColumns": [
+                      null,
+                      null,
+                      {"bSortable": false},
+                      {"bSortable": false},
+                      null,
+                      null,
+                      {"bSortable": false},
+                  ],
+                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
+                  bProcessing: true,
+                  bServerSide: true,
+                  sAjaxSource: $('#discipline_tournament_plans').data('source')
+              }
+          );
+      });
+  </script>
+<%- end -%>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    th, td {
+        padding-left: 5px;
+    }
+</style>
+
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Discipline TournamentPlans</h1>
+
+<table id="discipline_tournament_plans" data-source="<%= discipline_tournament_plans_url(format: 'json') %>" width="100%" style="margin: 0px;">
+  <thead>
+    <tr>
+      <%- DisciplineTournamentPlan::COLUMN_NAMES.keys.each do |column_name| %>
+        <!--      TODO FILTERS-->
+        <th><%= column_name %></th>
+      <%- end %>
+      <th width="100px"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Discipline tournament_plan', new_discipline_tournament_plan_path %>

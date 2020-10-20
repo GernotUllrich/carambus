@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :table_monitors
+  resources :tournament_monitors
+  resources :discipline_tournament_plans
   devise_for :users
   resources :users
   resources :player_classes
@@ -8,16 +11,29 @@ Rails.application.routes.draw do
   resources :seasons
   resources :table_kinds
   resources :disciplines
-  resources :tournament_templates
-  resources :player_count_templates
-  resources :tournaments
-  resources :template_games
+  resources :tournaments do
+    member do
+      post :order_by_ranking
+      post :select_modus
+      post :start
+      post :reset
+      get :finalize_modus
+      get :tournament_monitor
+      post :switch_players
+    end
+  end
+  resources :tournament_plan_games
   resources :season_participations
   resources :game_participations
   resources :games
-  resources :templates
+  resources :tournament_plans
   resources :innings
-  resources :seedings
+  resources :seedings do
+    member do
+      post :down
+      post :up
+    end
+  end
   resources :players
   resources :clubs
   resources :regions

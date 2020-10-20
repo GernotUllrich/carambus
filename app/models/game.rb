@@ -1,6 +1,8 @@
 class Game < ActiveRecord::Base
   belongs_to :tournament
   has_many :game_participations
+  has_one :table_monitor
+
   serialize :remarks, Hash
 
   COLUMN_NAMES = {

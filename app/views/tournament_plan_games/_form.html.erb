@@ -1,0 +1,29 @@
+<%= form_for(@tournament_plan_game) do |f| %>
+  <% if @tournament_plan_game.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@tournament_plan_game.errors.count, "error") %> prohibited this tournament_plan_game from being saved:</h2>
+
+      <ul>
+      <% @tournament_plan_game.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :tournament_plan_id %><br>
+    <%= f.number_field :tournament_plan_id %>
+  </div>
+  <div class="field">
+    <%= f.label :remarks %><br>
+    <%= f.text_area :remarks %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

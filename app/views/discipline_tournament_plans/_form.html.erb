@@ -1,0 +1,37 @@
+<%= form_for(@discipline_tournament_plan) do |f| %>
+  <% if @discipline_tournament_plan.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@discipline_tournament_plan.errors.count, "error") %> prohibited this discipline_tournament_plan from being saved:</h2>
+
+      <ul>
+      <% @discipline_tournament_plan.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :discipline_id %><br>
+    <%= f.number_field :discipline_id %>
+  </div>
+  <div class="field">
+    <%= f.label :tournament_plan_id %><br>
+    <%= f.number_field :tournament_plan_id %>
+  </div>
+  <div class="field">
+    <%= f.label :points %><br>
+    <%= f.number_field :points %>
+  </div>
+  <div class="field">
+    <%= f.label :innings %><br>
+    <%= f.number_field :innings %>
+  </div>
+  <div class="field">
+    <%= f.label :players %><br>
+    <%= f.number_field :players %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
