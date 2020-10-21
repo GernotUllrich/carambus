@@ -1,74 +1,74 @@
 <% show_edit_back = false if local_assigns[:show_edit_back].nil? %>
-<h1><%= "#{@tournament.title} - #{@tournament.region.shortname} - #{@tournament.season.name}" %></h1>
+<h1><%= "#{tournament.title} - #{tournament.region.shortname} - #{tournament.season.name}" %></h1>
 <h3><%= subtitle %></h3>
 <div class="row" , style="margin-bottom: 10px; margin-left: 10px">
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
     <strong>Ba Id:</strong>
-    <%= link_to(@tournament.ba_id, "https://#{@tournament.region.shortname.downcase}.billardarea.de/cms_#{@tournament.single_or_league}/#{@tournament.plan_or_show}/#{@tournament.ba_id}") %>
+    <%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %>
   </div>
 
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
     <strong>BA State:</strong>
-    <%= @tournament.ba_state %>
+    <%= tournament.ba_state %>
   </div>
 
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
     <strong>State:</strong>
-    <%= @tournament.state %>
+    <%= tournament.state %>
   </div>
 
-  <% if @tournament.tournament_mode_defined? %>
+  <% if tournament.tournament_mode_defined? %>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Final Tournament Mode:</strong>
-      <%= "#{@tournament.tournament_plan.name}: #{@tournament.tournament_plan.rulesystem}" %>
+      <%= "#{link_to(tournament.tournament_plan.name, tournament_plan_path(tournament.tournament_plan))}: #{tournament.tournament_plan.rulesystem}".html_safe %>
     </div>
   <% else %>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
 
       <strong>Region:</strong>
-      <%= link_to(@tournament.region.name, region_path(@tournament.region)) %>
+      <%= link_to(tournament.region.name, region_path(tournament.region)) %>
     </div>
 
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Title:</strong>
-      <%= @tournament.title %>
+      <%= tournament.title %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Discipline:</strong>
-      <%= link_to(@tournament.discipline.name, discipline_path(@tournament.discipline_id)) %>
+      <%= link_to(tournament.discipline.name, discipline_path(tournament.discipline_id)) %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Player Class:</strong>
-      <%= @tournament.player_class %>
+      <%= tournament.player_class %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Modus:</strong>
-      <%= @tournament.modus %>
+      <%= tournament.modus %>
     </div>
 
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Age restriction:</strong>
-      <%= @tournament.age_restriction %>
+      <%= tournament.age_restriction %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Date:</strong>
-      <%= @tournament.date %>
+      <%= tournament.date %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Accredation end:</strong>
-      <%= @tournament.accredation_end %>
+      <%= tournament.accredation_end %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Location:</strong>
-      <%= @tournament.location %>
+      <%= tournament.location %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Hosting club:</strong>
-      <%= @tournament.hosting_club_id %>
+      <%= tournament.hosting_club_id %>
     </div>
   <% end %>
 </div>
 <% if show_edit_back %>
-  <%= link_to 'Edit', edit_tournament_path(@tournament) %> |
+  <%= link_to 'Edit', edit_tournament_path(tournament) %> |
   <%= link_to 'Back', tournaments_path %>
 <% end %>

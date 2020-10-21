@@ -1,0 +1,80 @@
+<style>
+    td.last-line {
+        border-bottom-width: 2px;
+    }
+
+    td.playerb {
+        background-color: #fffcad;
+    }
+
+    td.noborder, th.noborder {
+        border-style: none;
+    }
+</style>
+<div class="row">
+  <div class="col-lg-12">
+    <h3>Current Games</h3>
+    <table>
+      <thead>
+      <tr>
+        <th rowspan="2">Table</th>
+        <th rowspan="2">Player</th>
+        <th rowspan="2">Balls</th>
+        <th rowspan="2">Inning</th>
+        <th rowspan="2">HS</th>
+        <th rowspan="2">GD</th>
+        <th class="noborder"/>
+        <th colspan=5>Current Inning</th>
+      </tr>
+      <tr>
+        <th/>
+        <th>Balls</th>
+        <th colspan=4>inputs</th>
+      </tr>
+      </thead>
+      <tbody>
+      <%- @tournament_monitor.andand.table_monitors.andand.each do |tm| %>
+        <% if tm.game.present? %>
+          <%- tm.game.game_participations.order(:role).each_with_index do |gp, ix| %>
+            <%- active_player = (tm.data["result"].andand["active_player"].andand["role"] == gp.role) %>
+            <tr>
+              <% if ix == 0 %>
+                <td rowspan=2 class="last-line "><%= tm.name.capitalize %><br/><%= tm.game.gname %></td>
+              <% end %>
+              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>><%= gp.player.lastname %><%= " *" if active_player %></td>
+              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>><%= gp.result %></td>
+              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>><%= gp.innings %></td>
+              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>><%= gp.hs %></td>
+              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>><%= gp.gd %></td>
+              <td></td>
+              <%- if !active_player %>
+                <td><%= active_player ? tm.data["current_inning"].andand["active_player"].andand["balls"] : "" %></td>
+                <td>
+                  <%= form_tag(add_balls_tournament_monitor_path(@tournament_monitor)) do %>
+                    <%= text_field_tag(:add_balls, "", size: 4) %>
+                  <%- end %>
+                </td>
+                <td>
+                  <%= button_to [:add_one, @tournament_monitor] do %>
+                    <strong style="font-size: 1.5em"><span class="glyphicon glyphicon-plus" aria-hidden="true">1</span></strong>
+                  <% end %>
+                </td>
+                <td>
+                  <%= button_to "undo", [:undo, @tournament_monitor] %>
+                  <%= button_to "redo", [:redo, @tournament_monitor] %>
+                </td>
+                <td>
+                  <%= button_to [:next, @tournament_monitor] do %>
+                    <strong>next</strong>
+                  <% end %>
+                </td>
+              <% else %>
+              <% end %>
+            </tr>
+          <% end %>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

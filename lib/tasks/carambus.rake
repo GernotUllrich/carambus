@@ -268,14 +268,14 @@ namespace :carambus do
 
     logger = Logger.new("#{Rails.root}/log/scrape.log")
 
-    #Season.order(ba_id: :desc).limit(2).each do |season|
-    Season.order(ba_id: :desc).each do |season|
+    Season.order(ba_id: :desc).limit(2).each do |season|
+    #Season.order(ba_id: :desc).each do |season|
       #next unless season.name == "2013/2014"
       Region.all .each do |region|
         #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
-        uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").map(&:ba_id)
+        uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: 6040, ba_state: "").map(&:ba_id)
         #next unless region.shortname == "NBV"
         url = "https://#{region.shortname.downcase}.billardarea.de"
@@ -445,6 +445,7 @@ namespace :carambus do
 end
 
 def scrape_single_tournament(tournament, opts = {})
+  tournament.reset_tournament
   logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
   game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
   season = tournament.season

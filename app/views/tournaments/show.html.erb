@@ -3,7 +3,7 @@
         padding: 3px;
     }
 </style>
-<%= render :partial => "show", locals: {subtitle: "", show_edit_back: true} %>
+<%= render :partial => "show", locals: {tournament: @tournament, subtitle: "", show_edit_back: true} %>
 <%= button_to "Order By Ranking", order_by_ranking_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
 <%= button_to "Finalize Tournament Modus", finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
 <%= button_to "Mangage Tournament Group Phase", tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", disabled: %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>

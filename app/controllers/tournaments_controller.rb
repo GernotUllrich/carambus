@@ -39,6 +39,7 @@ class TournamentsController < ApplicationController
     end
 
     @tournament.finish_seeding!
+    @tournament.reload
     redirect_to tournament_path(@tournament)
     return
   end
@@ -66,26 +67,23 @@ class TournamentsController < ApplicationController
   def select_modus
     @tournament.update_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
     @tournament.finish_mode_selection!
+    @tournament.reload
+
     redirect_to tournament_monitor_tournament_path(@tournament)
   end
 
   def tournament_monitor
-  end
-
-  def switch_players
-    @game = Game[params[:game_id]]
-    if @game.present?
-      roles = @game.game_participations.map(&:role).reverse
-      @game.game_participations.each_with_index do |gp, ix|
-        gp.update_attributes(role: roles[ix])
-      end
+    if @tournament.tournament_monitor.present?
+      redirect_to tournament_monitor_path(@tournament.tournament_monitor)
     end
-    redirect_to tournament_monitor_tournament_path(@tournament)
   end
 
   def start
+    @tournament.initialize_tournament_monitor
+    @tournament.reload
     @tournament.start_tournament!
-    redirect_to tournament_monitor_tournament_path(@tournament)
+    @tournament.reload
+    redirect_to tournament_monitor_path(@tournament.tournament_monitor)
   end
 
   # GET /tournaments/new

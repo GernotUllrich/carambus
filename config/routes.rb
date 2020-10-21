@@ -1,6 +1,15 @@
 Rails.application.routes.draw do
   resources :table_monitors
-  resources :tournament_monitors
+  resources :tournament_monitors do
+    member do
+      post :switch_players
+      post :add_balls
+      post :add_one
+      post :next
+      post :undo
+      post :redo
+    end
+  end
   resources :discipline_tournament_plans
   devise_for :users
   resources :users
@@ -19,7 +28,6 @@ Rails.application.routes.draw do
       post :reset
       get :finalize_modus
       get :tournament_monitor
-      post :switch_players
     end
   end
   resources :tournament_plan_games

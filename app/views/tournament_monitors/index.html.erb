@@ -1,6 +1,6 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Listing Tournament Executions</h1>
+<h1>Listing Tournament Monitors</h1>
 
 <table>
   <thead>
@@ -29,3 +29,32 @@
 <br>
 
 <%= link_to 'New Tournament execution', new_tournament_monitor_path %>
+
+<h2>TournamentMonitor::Versions</h2>
+<p>This table is displaying TournamentMonitor::Version which is its own versions table. Only last 10.</p>
+<table cellpadding=10 border=1>
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Event Name</th>
+    <th>whodunnit</th>
+    <th>When</th>
+    <th>Object (after Changes)</th>
+    <th>Object Changes</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% if PaperTrail::Version.all.any? %>
+    <% PaperTrail::Version.all.last(200).reverse.each do |version| %>
+      <tr>
+        <td><%= version.id %></td>
+        <td><%= version.event %></td>
+        <td><%= User.find(version.whodunnit).email %></td>
+        <td><%= version.created_at %></td>
+        <td><pre><%= version.item_type %><br/><%= version.object %></pre></td>
+        <td><pre><%= JSON.pretty_generate(version.changeset) %></pre></td>
+      </tr>
+    <% end %>
+  <% end %>
+  </tbody>
+</table>

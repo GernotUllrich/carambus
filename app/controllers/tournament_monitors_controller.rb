@@ -1,5 +1,16 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :set_tournament_monitor, only: [:show, :edit, :update, :destroy]
+  before_action :set_tournament_monitor, only: [:show, :edit, :switch_players, :update, :destroy]
+
+def switch_players
+    @game = Game[params[:game_id]]
+    if @game.present?
+      roles = @game.game_participations.map(&:role).reverse
+      @game.game_participations.each_with_index do |gp, ix|
+        gp.update_attributes(role: roles[ix])
+      end
+    end
+    redirect_to tournament_monitor_path(@tournament_monitor)
+  end
 
   # GET /tournament_monitors
   # GET /tournament_monitors.json

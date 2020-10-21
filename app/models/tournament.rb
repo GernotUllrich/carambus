@@ -1,6 +1,7 @@
 class Tournament < ActiveRecord::Base
 
   include AASM
+  has_paper_trail
 
   belongs_to :discipline
   belongs_to :region
@@ -17,10 +18,12 @@ class Tournament < ActiveRecord::Base
     state :accreditation_finished
     state :tournament_seeding_finished
     state :tournament_mode_defined
-    state :tournament_started, :after_enter => [:initialize_tournament_monitor]
+    state :tournament_started_waiting_for_monitors
+    state :tournament_started
     state :tournament_finished
     state :results_published
     state :closed
+    before_all_events :before_all_events
     event :finish_seeding do
       transitions from: [:new_tournament, :accreditation_finished, :tournament_seeding_finished], to: :tournament_seeding_finished
     end
@@ -28,11 +31,18 @@ class Tournament < ActiveRecord::Base
       transitions from: [:tournament_seeding_finished, :tournament_mode_defined], to: :tournament_mode_defined
     end
     event :start_tournament! do
-      transitions from: [:tournament_mode_defined, :tournament_started], to: :tournament_started
+      transitions from: [:tournament_started, :tournament_mode_defined, :tournament_started_waiting_for_monitors], to: :tournament_started_waiting_for_monitors
+    end
+    event :signal_tournament_monitors_ready do
+      transitions from: [:tournament_started, :tournament_mode_defined, :tournament_started_waiting_for_monitors], to: :tournament_started
     end
     event :reset_tournament_monitor do
       transitions to: :new_tournament, guard: :tournament_not_yet_started
     end
+  end
+
+  def self.logger
+    @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
   end
 
   NAME_DISCIPLINE_MAPPINGS = {
@@ -64,20 +74,24 @@ class Tournament < ActiveRecord::Base
   }
 
   def initialize_tournament_monitor
+    logger.info "[initialize_tournament_monitor]..."
     TournamentMonitor.transaction do
       begin
         TournamentMonitor.find_or_create_by!(tournament_id: self.id)
         reload
-        tournament_monitor.start_playing_groups!
       rescue Exception => e
+        logger.info "[initialize_tournament_monitor] Exception #{e}:\n#{e.backtrace.join("\n")}"
         reset_tournament
         Rails.logger.error("Some problem occurred when creating TournamentMonitor - Tournament resetted")
       end
+
+      logger.info "state:#{state}...[initialize_tournament_monitor]"
     end
 
   end
 
   def reset_tournament
+    logger.info "[reset_tournament]..."
     # called from state machine only
     # use direct only for testing purposes
 
@@ -86,6 +100,7 @@ class Tournament < ActiveRecord::Base
     games.destroy_all
     update_attributes(tournament_plan_id: nil, state: "new_tournament")
     reload
+    logger.info "state:#{state}...[reset_tournament]"
   end
 
   def tournament_not_yet_started
@@ -100,5 +115,11 @@ class Tournament < ActiveRecord::Base
     if date.present?
       "#{date.to_s(:db)}#{" - #{(end_date.to_date.to_s(:db))}" if end_date.present?}"
     end
+  end
+
+  private
+
+  def before_all_events
+    Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
   end
 end

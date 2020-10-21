@@ -2,6 +2,7 @@ class TableMonitor < ActiveRecord::Base
   include AASM
   belongs_to :tournament_monitor
   belongs_to :game
+  has_paper_trail
 
   serialize :data, Hash
 
@@ -12,7 +13,7 @@ class TableMonitor < ActiveRecord::Base
     state :game_finished
     state :game_result_reported
     event :start_new_game do
-      transitions from: [:new_table_monitor, :ready], to: :ready
+      transitions from: [:ready], to: :playing_game, :after_enter => :initialize_game
     end
     event :result_accepted do
       transitions from: [:game_result_reported], to: :ready
@@ -25,6 +26,18 @@ class TableMonitor < ActiveRecord::Base
   def assign_game(game)
     update_attributes(game_id: game.id)
     start_new_game!
+  end
+
+  def initialize_game
+    merge_data! ({
+        "result" => {
+            "current_inning" => {
+                "active_player" => "playera",
+                "balls" => 0
+            }
+        }
+    })
+    data
   end
 
   # table_monitor stores data based on playera..playerd
