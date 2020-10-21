@@ -16,7 +16,7 @@
 !/log/.keep
 /tmp
 /doc
-/.idea
+/.idea/*
 /*.sql
 /*.gz
 config/secrets.yml

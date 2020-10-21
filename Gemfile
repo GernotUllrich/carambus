@@ -48,6 +48,7 @@ gem 'stalker'
 gem 'daemons'
 gem 'therubyracer'
 gem 'acts_as_list'
+gem 'paper_trail'
 
 gem 'thor', '0.19.4'
 gem 'aasm'
