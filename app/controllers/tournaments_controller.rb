@@ -1,5 +1,5 @@
 class TournamentsController < ApplicationController
-  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
+  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :edit_games, :reload_from_ba, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
 
   # GET /tournaments
   # GET /tournaments.json
@@ -16,8 +16,14 @@ class TournamentsController < ApplicationController
   def show
   end
 
+  def edit_games
+    @edit_games_modus = true
+  end
+
   def reset
-    if !@tournament.tournament_started
+    if params[:force_reset].present?
+      @tournament.forced_reset_tournament_monitor!
+    elsif !@tournament.tournament_started
       @tournament.reset_tournament_monitor!
     else
       flash[:alert] = "Cannot reset running or finished tournament"
@@ -42,6 +48,11 @@ class TournamentsController < ApplicationController
     @tournament.reload
     redirect_to tournament_path(@tournament)
     return
+  end
+
+  def reload_from_ba
+    @tournament.scrape_single_tournament(game_details: true)
+    redirect_back(fallback_location: tournament_path(@tournament))
   end
 
   def finalize_modus

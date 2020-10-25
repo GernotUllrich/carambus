@@ -269,9 +269,9 @@ namespace :carambus do
     logger = Logger.new("#{Rails.root}/log/scrape.log")
 
     Season.order(ba_id: :desc).limit(2).each do |season|
-    #Season.order(ba_id: :desc).each do |season|
+      #Season.order(ba_id: :desc).each do |season|
       #next unless season.name == "2013/2014"
-      Region.all .each do |region|
+      Region.all.each do |region|
         #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
@@ -344,7 +344,7 @@ namespace :carambus do
     #   Game.fix_participation(game)
     # end
     Game.all.each do |game|
-      gname = game.remarks["Gr."]
+      gname = game.data["Gr."]
       game.update_attributes(gname: gname) if gname.present?
     end
     #Game.fix_participation(Game[42855])
@@ -376,7 +376,7 @@ namespace :carambus do
             computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
             tournament.seedings.includes(:player).each do |seeding|
               player_record = players[seeding.player.id]
-              gl = seeding.remarks["result"]["Gesamtrangliste"] rescue {}
+              gl = seeding.data["result"]["Gesamtrangliste"] rescue {}
               unless player_record.present?
                 players[seeding.player.id] = {}
                 if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
@@ -426,14 +426,14 @@ namespace :carambus do
             }
             values = players[player_id]
             player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
-            remarks = player_ranking.remarks
-            remarks["result"] = values
+            data = player_ranking.data
+            data["result"] = values
             attributes = {}
             values.keys.each do |k|
               mapped_k = PlayerRanking::KEY_MAPPINGS[k]
               attributes[mapped_k] = values[k]
             end
-            attributes[:remarks] = remarks
+            attributes[:data] = data
             attributes[:rank] = ix + 1
             player_ranking.update_attributes(attributes)
           end
@@ -445,237 +445,6 @@ namespace :carambus do
 end
 
 def scrape_single_tournament(tournament, opts = {})
-  tournament.reset_tournament
-  logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
-  game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
-  season = tournament.season
-  region = tournament.region
-  url = "https://#{region.shortname.downcase}.billardarea.de"
-  if tournament.single_or_league == "single"
-    url_tournament = "/cms_#{tournament.single_or_league}/show/#{tournament.ba_id}"
-    Rails.logger.info "reading #{url + url_tournament} - tournament \"#{tournament.title}\" season #{season.name}"
-    uri = URI(url + url_tournament)
-    res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-    doc = Nokogiri::HTML(res.body)
-    doc.css(".element").each do |element|
-      label = element.css("label").text.strip
-      value = Array(element.css(".field")).map(&:text).map(&:strip).join("\n")
-      mappings = {
-          "Meisterschaft" => :title,
-          "Datum" => :data, # 13.05.2021	(09:00 Uhr) - 14.05.2021
-          "Meldeschluss" => :accredation_end, # 27.10.2020 (23:59 Uhr)
-          "Kurzbezeichnung" => :shortname,
-          "Disziplin" => :discipline,
-          "Spielmodus" => :modus,
-          "Altersklasse" => :age_restriction,
-          "Spiellokal" => :location,
-      }
-      case label
-      when "Datum"
-        date_begin, time_begin, date_end = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?(?:\s+\-\s+(\d+\.\d+\.\d+))?.*/).to_a[1..-1]
-        tournament.date = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
-        tournament.end_date = DateTime.parse(date_end) if date_end.present?
-      when "Meldeschluss"
-        date_begin, time_begin = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?.*/).to_a[1..-1]
-        tournament.accredation_end = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
-      when "Disziplin"
-        discipline = Discipline.find_by_name(value)
-        if discipline.blank? && value.present?
-          discipline = Discipline.create(name: value)
-        end
-        tournament.discipline_id = discipline.andand.id || Discipline.find_by_name("-").id
-      else
-        tournament.update_attribute(mappings[label], value)
-      end
-    end
-    tournament.save!
-    if game_details
-      # Setzliste
-      seedings_prev = tournament.seedings
-      tournament.seedings = []
-      table = doc.css("#tabs-3 .matchday_table")[0]
-      if table.present?
-        player = nil
-        states = %w{FG NG ENA UNA DIS}
-        state_ix = 0
-        seeding = nil
-        table.css("td").each do |td|
-          if td.css("div").present?
-            lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
-            club = Club.where(region: region).where("name ilike ?", club_str).first ||
-                Club.where(region: region).where("shortname ilike ?", club_str).first
-            club
-            if club.present?
-              season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: {id: season.id}, players: {firstname: firstname, lastname: lastname})
-              if season_participations.count == 1
-                season_participation = season_participations.first
-                player = season_participation.player
-                if season_participation.club_id == club.id
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                  state_ix = 0
-                else
-                  real_club = season_participations.first.club
-                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
-                  logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-                  sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
-                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                  state_ix = 0
-                end
-              elsif season_participations.count == 0
-                players = Player.where(firstname: firstname, lastname: lastname)
-                if players.count == 0
-                  logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-                  logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
-                  player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-                  player_fixed.update_attributes(ba_id: 999000000 + player_fixed.id)
-                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                  state_ix = 0
-                elsif players.count == 1
-                  player_fixed = players.first
-                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                  logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                  state_ix = 0
-                elsif players.count > 1
-                  logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
-                  logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
-                  player_fixed = players.first
-                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                      Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
-                  state_ix = 0
-                end
-              else
-                #(ambiguous clubs)
-                if season_participations.map(&:club_id).uniq.include?(club.id)
-                  season_participation = season_participations.where(club_id: club.id).first
-                  player = season_participation.player
-                  seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-                      Seeding.create(player_id: player.id, tournament_id: tournament.id)
-                  state_ix = 0
-                else
-                  logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
-                  fixed_season_participation = season_participations.last
-                  fixed_club = fixed_season_participation.club
-                  fixed_player = fixed_season_participation.player
-                  logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
-                  SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
-                      SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-                  seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
-                      Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
-                  state_ix = 0
-                end
-              end
-            else
-              logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
-              fixed_club = region.clubs.create(name: club_str, shortname: club_str)
-              fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
-              fixed_club.update_attributes(ba_id: 999000000 + fixed_club.id)
-              fixed_player.update_attributes(ba_id: 999000000 + fixed_player.id)
-              SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-
-              logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
-              logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
-              seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, tournament.id) ||
-                  Seeding.create(player_id: fixed_player.id, tournament_id: tournament.id)
-              state_ix = 0
-            end
-          else
-            if td.text.strip =~ /X/
-              if seeding.present?
-                seeding.update_attribute(:ba_state, states[state_ix])
-              else
-                logger.info "[scrape_tournaments] Fatal 501 - seeding nil???"
-                Kernel.exit(501)
-              end
-            end
-            state_ix += 1
-          end
-        end
-      else
-        table
-      end
-
-      no_show_ups = seedings_prev - tournament.seedings
-      no_show_ups.each do |seeding|
-        seeding.status = "UNA"
-      end
-      tournament.reload
-      # Results
-      tournament.games = []
-      table = doc.css("#tabs-2 .matchday_table")[0]
-      keys = table.css("tr th div").map(&:text).map { |s| s.split("\n").first }
-      table.css("tr").each do |row|
-        game = nil
-        remarks = {}
-        row.css("td").each_with_index do |f, ix|
-          remarks[keys[ix]] = f.text.strip
-          if keys[ix] == "#"
-            seqno = f.text.strip.to_i
-            game = Game.find_by_seqno_and_tournament_id(seqno, tournament.id) || Game.new(tournament_id: tournament.id, seqno: seqno)
-          end
-        end
-        if game.andand.seqno.present?
-          game.gname = remarks["Gr."]
-          game.remarks = remarks
-          game.save!
-          Game.fix_participation(game)
-        end
-      end
-
-      # Rankings
-      groups = doc.css("#tabs-1 fieldset legend").map(&:text).map { |s| s.split("\n").first }
-      seedings_hash = tournament.seedings.includes(:player).inject({}) do |memo, seeding|
-        memo["#{seeding.player.lastname}, #{seeding.player.firstname}"] = seeding
-        memo
-      end
-      result = {}
-      group_results = {}
-      doc.css("#tabs-1 fieldset table").each_with_index do |table, ix|
-        group = groups[ix]
-        keys = table.css("tr th").map(&:text).map { |s| s.split("\n").first }
-        table.css("tr").each do |row|
-          result_row = {}
-          row.css("td").each_with_index do |f, ix|
-            result_row[keys[ix]] = f.text.strip
-          end
-          if result_row.present?
-            group_results[group] ||= {}
-            group_results[group][result_row["Name"]] = result_row
-            result[result_row["Name"]] ||= {}
-            result[result_row["Name"]][group] = result_row
-          end
-        end
-      end
-      group_results_ranked = {}
-      groups.each do |group|
-        group_results_ranked[group] = Hash[group_results[group].to_a.sort_by { |a| -(a[1]["Punkte"].to_i * 10000.0 + a[1]["GD"].to_f) }]
-        group_results_ranked[group].keys.each_with_index do |name, ix|
-          group_results_ranked[group][name]["Rank"] = ix + 1
-          result[name][group] = group_results_ranked[group][name]
-        end
-      end
-      seedings_hash.each do |name, seeding|
-        remarks = seeding.remarks || {}
-        remarks["result"] = result[name]
-        seeding.remarks_will_change!
-        seeding.remarks = remarks
-        seeding.save!
-      end
-    end
-  else
-    table
-  end
-
+  tournament.scrape_single_tournament(opts = {})
 end
 

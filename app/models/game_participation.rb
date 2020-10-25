@@ -1,8 +1,9 @@
 class GameParticipation < ActiveRecord::Base
   belongs_to :player
   belongs_to :game
+  has_paper_trail
 
-  serialize :remarks, Hash
+  serialize :data, Hash
 
   COLUMN_NAMES = {
       "#" => "games.seqno",
@@ -19,4 +20,13 @@ class GameParticipation < ActiveRecord::Base
       "GD" => "game_participations.gd",
       "HS" => "game_participations.hs",
   }
+
+  def deep_merge_data!(hash)
+    h = data.dup
+    h.deep_merge!(hash)
+    self.data_will_change!
+    self.data = JSON.parse(h.to_json)
+    save!
+  end
+
 end

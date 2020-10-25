@@ -74,7 +74,7 @@
 <%= link_to 'Back', clubs_path %>
 
 <h2>Players</h2>
-<%- Season.joins(:season_participations => :club).where(clubs: {id: @club.id}).uniq.order(name: :desc).each do |season| %>
+<% Season.joins(:season_participations => :club).where(clubs: {id: @club.id}).uniq.order(name: :desc).each do |season| %>
  <h3>Season <%= season.name %></h3>
   <table>
     <thead>
@@ -99,4 +99,4 @@
     <% end %>
     </tbody>
   </table>
-<%- end %>
+<% end %>

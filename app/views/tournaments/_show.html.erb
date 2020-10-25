@@ -31,7 +31,7 @@
 
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Title:</strong>
-      <%= tournament.title %>
+      <%= link_to(tournament.title, tournament_path(tournament)) %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
       <strong>Discipline:</strong>
@@ -71,4 +71,5 @@
 <% if show_edit_back %>
   <%= link_to 'Edit', edit_tournament_path(tournament) %> |
   <%= link_to 'Back', tournaments_path %>
+  <%= link_to 'Reload From Billard Area', reload_from_ba_tournament_path(tournament), method: :post %>
 <% end %>

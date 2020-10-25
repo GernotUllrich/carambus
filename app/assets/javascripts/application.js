@@ -11,10 +11,11 @@
 // about supported directives.
 //
 //= require jquery
+//= require popper
+//= require bootstrap
 //= require jquery-ui
 //= require jquery_ujs
 //= require turbolinks
-//= require bootstrap
 //= require dataTables/jquery.dataTables
 //= require dataTables.buttons.min
 //= require buttons.flash.min
@@ -22,5 +23,4 @@
 //= require vfs_fonts
 //= require buttons.html5.min
 //= require buttons.print.min
-//= require_tree .
 

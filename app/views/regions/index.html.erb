@@ -1,4 +1,4 @@
-<%- content_for :javascript_code do -%>
+<% content_for :javascript_code do %>
   <script>
       $(document).ready(function () {
           $('#regions').DataTable({
@@ -48,7 +48,7 @@
           );
       });
   </script>
-<%- end -%>
+<% end %>
 <style>
     body {
         margin: 0;
@@ -65,9 +65,9 @@
 <table id="regions" data-source="<%= regions_url(format: 'json') %>" width="100%" style="margin: 0px;">
   <thead>
   <tr>
-    <%- Region::COLUMN_NAMES.keys.each do |column_name| %>
+    <% Region::COLUMN_NAMES.keys.each do |column_name| %>
       <th><%= column_name %></th>
-    <%- end %>
+    <% end %>
     <th width="100px"></th>
   </tr>
   </thead>

@@ -1,5 +1,44 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy]
+  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :add_one, :add_ten, :redo, :undo, :next_step]
+
+  def set_balls
+    unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
+      flash.now[:alert] = @msg
+      flash.keep[:alert]
+    end
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
+
+  def add_one
+    unless @table_monitor.add_n_balls_to_current_players_inning(1)
+      flash.now[:alert] = @msg
+      flash.keep[:alert]
+    end
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
+
+  def add_ten
+    unless @table_monitor.add_n_balls_to_current_players_inning(10)
+      flash.now[:alert] = @msg
+      flash.keep[:alert]
+    end
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
+
+  def redo
+
+  end
+
+  def undo
+
+  end
+
+  def next_step
+    unless @table_monitor.terminate_current_inning
+      flash[:alert] = @table_monitor.msg
+    end
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
 
   # GET /table_monitors
   # GET /table_monitors.json
@@ -62,13 +101,14 @@ class TableMonitorsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_table_monitor
-      @table_monitor = TableMonitor.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def table_monitor_params
-      params.require(:table_monitor).permit(:state, :name, :game_id, :next_game_id, :data)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_table_monitor
+    @table_monitor = TableMonitor.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def table_monitor_params
+    params.require(:table_monitor).permit(:state, :name, :game_id, :next_game_id, :data)
+  end
 end

@@ -13,7 +13,7 @@ gem 'sass-rails'
 gem 'uglifier'
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails'
-
+gem "slim-rails"
 
 
 gem 'devise'
@@ -41,7 +41,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 gem "andand"
 gem "kaminari"
 #gem 'will_paginate'
-gem 'bootstrap', '~> 4.0.0'
+gem 'bootstrap', '~> 5.0.0.alpha1'
 gem 'jquery-datatables-rails'
 gem 'jquery-ui-rails'
 gem 'stalker'
@@ -52,6 +52,7 @@ gem 'paper_trail'
 
 gem 'thor'
 gem 'aasm'
+gem 'i15r', '~> 0.5.1'
 
 group :production do
   # Use unicorn as the app server

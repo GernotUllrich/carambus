@@ -83,6 +83,6 @@ class SeedingsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def seeding_params
-      params.require(:seeding).permit(:player_id, :tournament_id, :status, :position, :remarks)
+      params.require(:seeding).permit(:player_id, :tournament_id, :status, :position, :data)
     end
 end

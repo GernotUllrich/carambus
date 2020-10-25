@@ -26,7 +26,7 @@
       <strong>Tournament:</strong>
       <%= @tournament_monitor.state %>
     </div>
-    <% @tournament_monitor.table_monitors.each do |tabmon| %>
+    <% @tournament_monitor.table_monitors.order(:name).each do |tabmon| %>
       <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
         <strong><%= "#{tabmon.name.capitalize}" %>:</strong>
         <%= tabmon.state %><br/>
@@ -53,41 +53,10 @@
 </div>
 <hr/>
 <div class="row">
-  <%= render partial: "group_stage_results", locals: {tournament_monitor: @tournament_monitor} %>
-</div>
-<div class="row">
-
-  <div class="col-sm-6">
-    <%= render partial: "ranking_group_phase", locals: {tournament_plan: @tournament_plan, groups: @groups} %>
+  <div class="col-sm-8">
+    <%= render partial: "game_results", locals: {tournament_monitor: @tournament_monitor} %>
+  </div>
+  <div class="col-sm-4">
+    <%= render partial: "rankings", locals: {tournament_monitor: @tournament_monitor} %>
   </div>
 </div>
-
-<h2>TournamentMonitor::Versions</h2>
-<p>This table is displaying Post::Version which is its own versions table. Only last 10.</p>
-<table cellpadding=10 border=1>
-  <thead>
-  <tr>
-    <th>ID</th>
-    <th>Event Name</th>
-    <th>whodunnit</th>
-    <th>When</th>
-    <th>Object (after Changes)</th>
-    <th>Object Changes</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% if @tournament_monitor.versions.any? %>
-    <% @tournament_monitor.versions.last(10).reverse.each do |version| %>
-      <tr>
-        <td><%= version.id %></td>
-        <td><%= version.event %></td>
-        <td><%= User.find(version.whodunnit).email %></td>
-        <td><%= version.created_at %></td>
-        <td><pre><%= version.object %></pre></td>
-        <td><pre><%= JSON.pretty_generate(version.changeset) %></pre></td>
-      </tr>
-    <% end %>
-  <% end %>
-  </tbody>
-
-</table>

@@ -58,7 +58,7 @@
   </thead>
 
   <tbody>
-  <%- Tournament.where(season_id: Season.last.id, region_id: @region.id).order("tournaments.date asc").each do |tournament| %>
+  <% Tournament.where(season_id: Season.last.id, region_id: @region.id).order("tournaments.date asc").each do |tournament| %>
     <tr>
       <td><%= link_to(tournament.ba_id, tournament_path(tournament)) %></td>
       <td><%= tournament.date_str %></td>

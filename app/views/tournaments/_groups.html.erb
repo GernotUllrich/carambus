@@ -4,15 +4,15 @@
     <table>
       <thead>
       <tr>
-        <%- (1..tournament_plan.ngroups).each do |n| %>
+        <% (1..tournament_plan.ngroups).each do |n| %>
           <th>Gruppe <%= n %></th>
         <% end %>
       </tr>
       </thead>
       <tbody>
-      <%- (1..(tournament_plan.players.to_f / tournament_plan.ngroups).ceil).each do |row_no| %>
+      <% (1..(tournament_plan.players.to_f / tournament_plan.ngroups).ceil).each do |row_no| %>
         <tr>
-          <%- (1..tournament_plan.ngroups).each do |n| %>
+          <% (1..tournament_plan.ngroups).each do |n| %>
             <td><%= groups["group#{n}"][row_no - 1].andand.fullname %></td>
           <% end %>
         </tr>

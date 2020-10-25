@@ -11,10 +11,10 @@
 </p>
 
 <p>
-  <%- sup = (@discipline.super_discipline || @discipline.root) %>
+  <% sup = (@discipline.super_discipline || @discipline.root) %>
   <strong>other <%= sup.name %>:</strong>
 <ul>
-  <%- sup.sub_disciplines.order(name: :asc).all.each do |sub| %>
+  <% sup.sub_disciplines.order(name: :asc).all.each do |sub| %>
     <li>
       <%= link_to(sub.name, discipline_path(sub)) %>
 

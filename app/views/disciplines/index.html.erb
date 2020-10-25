@@ -1,4 +1,4 @@
-<%- content_for :javascript_code do -%>
+<% content_for :javascript_code do %>
   <script>
       $(document).ready(function () {
           $('#disciplines').DataTable({
@@ -44,7 +44,7 @@
           );
       });
   </script>
-<%- end -%>
+<% end %>
 <style>
     body {
         margin: 0;
@@ -61,10 +61,10 @@
 <table id="disciplines" data-source="<%= disciplines_url(format: 'json') %>" width="100%" style="margin: 0px; width: 100%;">
   <thead>
   <tr>
-    <%- Discipline::COLUMN_NAMES.keys.each do |column_name| %>
+    <% Discipline::COLUMN_NAMES.keys.each do |column_name| %>
       <!--      TODO FILTERS-->
       <th><%= column_name %></th>
-    <%- end %>
+    <% end %>
     <th width="100px"></th>
   </tr>
   </thead>

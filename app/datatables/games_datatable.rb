@@ -23,7 +23,7 @@ class GamesDatatable
       [
           link_to(game.tournament.date.to_date, @view.tournament_path(game.tournament)),
           link_to(game.tournament.title, @view.tournament_path(game.tournament)),
-          link_to(game.remarks.inspect, @view.game_participations_path(sSearch: @sSearch)),
+          link_to(game.data.inspect, @view.game_participations_path(sSearch: @sSearch)),
           "#{(link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), game) + " " +
               (link_to image_tag("bearbeiten.gif", :width => 26, :height => 22, :border => 0), @view.edit_game_path(game)) + " " +
               (link_to image_tag("loeschen.gif", :width => 26, :height => 22, :border => 0), game, method: :delete, data: {confirm: 'Are you sure?'})}"
@@ -39,7 +39,7 @@ class GamesDatatable
     @sSearch = params[:sSearch]
     games = Game.includes(:tournament).order(order)
     if params[:sSearch].present?
-      games = apply_filters(games, Game::COLUMN_NAMES, "(tournaments.title ilike :search) or (games.remarks ilike :search)")
+      games = apply_filters(games, Game::COLUMN_NAMES, "(tournaments.title ilike :search) or (games.data ilike :search)")
     end
     games = games.page(page).per(per_page)
     games

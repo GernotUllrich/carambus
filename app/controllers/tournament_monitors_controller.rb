@@ -1,5 +1,5 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :set_tournament_monitor, only: [:show, :edit, :switch_players, :update, :destroy]
+  before_action :set_tournament_monitor, only: [:show, :edit, :update_games, :switch_players, :update, :destroy]
 
 def switch_players
     @game = Game[params[:game_id]]
@@ -30,6 +30,27 @@ def switch_players
 
   # GET /tournament_monitors/1/edit
   def edit
+  end
+
+  def update_games
+    params["game_id"].each_with_index do |game_id,ix|
+      game = @tournament_monitor.tournament.games.includes(:table_monitor).find(game_id)
+      if game.present?
+        table_monitor = game.table_monitor
+        table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i
+        table_monitor.data["playerb"]["result"] = params["resultb"][ix].to_i
+        table_monitor.data["playera"]["innings"] = params["inningsa"][ix].to_i
+        table_monitor.data["playerb"]["innings"] = params["inningsb"][ix].to_i
+        table_monitor.data["playera"]["hs"] = params["hsa"][ix].to_i
+        table_monitor.data["playerb"]["hs"] = params["hsb"][ix].to_i
+        table_monitor.data["playera"]["gd"] = sprintf("%.2f", table_monitor.data["playera"]["result"].to_f / table_monitor.data["playera"]["innings"])
+        table_monitor.data["playerb"]["gd"] = sprintf("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
+        table_monitor.data_will_change!
+        table_monitor.save
+        table_monitor.evaluate_result
+      end
+    end
+    redirect_back(fallback_location: tournament_monitor_path(@tournament_monitor))
   end
 
   # POST /tournament_monitors

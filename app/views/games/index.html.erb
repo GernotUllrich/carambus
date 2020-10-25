@@ -1,4 +1,4 @@
-<%- content_for :javascript_code do -%>
+<% content_for :javascript_code do %>
   <script>
       $(document).ready(function () {
           $('#games').DataTable({
@@ -44,7 +44,7 @@
           );
       });
   </script>
-<%- end -%>
+<% end %>
 <style>
     body {
         margin: 0;
@@ -63,10 +63,10 @@
     <th colspan=<%= Game::COLUMN_NAMES.keys.count %>><%= link_to "Listing Game Participations", game_participations_path(isearch: params[:iSearch]) %></th>
   </tr>
   <tr>
-    <%- Game::COLUMN_NAMES.keys.each do |column_name| %>
+    <% Game::COLUMN_NAMES.keys.each do |column_name| %>
       <!--      TODO FILTERS-->
       <th><%= column_name %></th>
-    <%- end %>
+    <% end %>
     <th width="100px"></th>
   </tr>
   </thead>

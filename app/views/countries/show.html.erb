@@ -9,7 +9,7 @@
         background-color: #dddddd;
     }
 </style>
-<%- content_for :javascript_code do -%>
+<% content_for :javascript_code do %>
   <script>
       $(document).ready(function () {
           $('#regions').DataTable({
@@ -59,7 +59,7 @@
           );
       });
   </script>
-<%- end -%>
+<% end %>
 <style>
     body {
         margin: 0;
@@ -96,7 +96,7 @@
   </thead>
   <tbody>
 
-  <%- @country.regions.order("regions.shortname asc").each do |region| %>
+  <% @country.regions.order("regions.shortname asc").each do |region| %>
     <tr>
       <td><%= link_to(region.shortname, "https://#{region.shortname.downcase}.billardarea.de") %></td>
       <td><%= link_to(region.name, region_path(region)) %></td>

@@ -73,6 +73,6 @@ class SeasonParticipationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def season_participation_params
-      params.require(:season_participation).permit(:player_id, :season_id, :remarks)
+      params.require(:season_participation).permit(:player_id, :season_id, :data)
     end
 end

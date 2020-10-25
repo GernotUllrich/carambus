@@ -1,0 +1,22 @@
+- content_for :javascript_code do
+  script
+    |  $(document).ready(function () { $('#disciplines').DataTable({ "stateSave": true, dom: 'Bfrtip', buttons: [ 'copy', { extend: 'csvHtml5', title: 'Disciplines' }, { extend: 'excelHtml5', title: 'Disciplines' }, { extend: 'pdfHtml5', title: 'Disciplines' }, { extend: 'print', title: 'Disciplines' } ], "sPaginationType": "full_numbers", "bJQueryUI": true, "aLengthMenu": [ [10, 50], [10, 50] ], "iDisplayLength": 50, "aaSorting": [ [0, "desc"] ], "aoColumns": [ null, null, null, {"bSortable": false}, ], oSearch: {"sSearch": "<ruby code="= params[:sSearch].andand.html_safe"></ruby>"}, bProcessing: true, bServerSide: true, sAjaxSource: $('#disciplines').data('source') } ); }); 
+  - - end
+  style
+    |  body { margin: 0; padding: 0; } th, td { padding-left: 5px; } 
+  h1
+    | Disciplines
+  |  <table id="disciplines" data-source="
+  = disciplines_url(format: 'json')
+  | " width="100%" style="margin: 0px; width: 100%;"> 
+  thead
+    tr
+      - Discipline::COLUMN_NAMES.keys.each do |column_name|
+        th
+          = column_name
+        - - end
+        th[width="100px"]
+  tbody
+
+  br
+  = link_to 'New Discipline', new_discipline_path

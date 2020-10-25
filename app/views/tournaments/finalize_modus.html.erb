@@ -40,12 +40,12 @@
 <div class="row">
   <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
     <strong>Alternatives same discipline:</strong>
-    <%- @alternatives_same_discipline.each do |alternative| %>
+    <% @alternatives_same_discipline.each do |alternative| %>
       <%= alternative.name %><br/><br/>
       <%= alternative.rulesystem %><br/>
       <%= alternative.more_description %>
       <%= button_to "Proceed with #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
-      <%- @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+      <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
       <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
     <% end %>
   </div>
@@ -54,12 +54,12 @@
 <div class="row">
   <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
     <strong>Alternatives other disciplines:</strong>
-    <%- @alternatives_other_disciplines.each do |alternative| %>
+    <% @alternatives_other_disciplines.each do |alternative| %>
       <%= alternative.name %><br/><br/>
       <%= alternative.rulesystem %><br/>
       <%= alternative.more_description %>
       <%= button_to "Proceed with #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
-      <%- @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+      <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
       <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_other_groups} %>
     <% end %>
   </div>

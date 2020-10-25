@@ -1,0 +1,21 @@
+doctype html
+html
+  head
+    title
+      | Carambus
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true
+    = javascript_include_tag 'application', 'data-turbolinks-track' => true
+    link[rel="stylesheet" type="text/css" href="//cdn.onlinewebfonts.com/svg_info/l/40104/634/icon.css"]
+    = csrf_meta_tags
+  body
+    = link_to "Home", "/"
+    - if (strip_tags(notice).present? rescue nil)
+      .container.alert.alert-success.alert-dismissable*{style: "margin-top: 0; z-index: 999;"}
+        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "right:0;"} &times;
+        = notice.to_s.html_safe
+    - if (strip_tags(alert).present? rescue nil)
+      .container.alert.alert-danger.alert-dismissable*{style: "margin-top: 0; z-index: 999;"}
+        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "right:0;"} &times;
+        = alert.to_s.html_safe
+    = yield
+    = yield :javascript_code

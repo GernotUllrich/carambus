@@ -11,7 +11,7 @@ class Seeding < ActiveRecord::Base
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id
   acts_as_list scope: :tournament
 
-  serialize :remarks, Hash
+  serialize :data, Hash
 
   COLUMN_NAMES = {
       "Player" => "players.lastname||', '||players.firstname",
@@ -21,12 +21,12 @@ class Seeding < ActiveRecord::Base
       "Season" => "seasons.name",
       "Status" => "seeding.status",
       "Position" => "seeding.position",
-      "Remarks" => "seeding.remarks",
+      "Remarks" => "seeding.data",
   }
 
   def self.result_display(seeding)
     ret = []
-    result = seeding.remarks.andand["result"]
+    result = seeding.data.andand["result"]
     if result.present?
       ret << "<table>"
       lists = result.keys
