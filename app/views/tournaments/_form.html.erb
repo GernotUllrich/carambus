@@ -1,10 +1,10 @@
-<%= form_for(@tournament_monitor.tournament) do |f| %>
-  <% if @tournament_monitor.tournament.errors.any? %>
+<%= form_for(@tournament) do |f| %>
+  <% if @tournament.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(@tournament_monitor.tournament.errors.count, "error") %> prohibited this tournament from being saved:</h2>
+      <h2><%= pluralize(@tournament.errors.count, "error") %> prohibited this tournament from being saved:</h2>
 
       <ul>
-      <% @tournament_monitor.tournament.errors.full_messages.each do |message| %>
+      <% @tournament.errors.full_messages.each do |message| %>
         <li><%= message %></li>
       <% end %>
       </ul>
