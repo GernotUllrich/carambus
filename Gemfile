@@ -50,9 +50,12 @@ gem 'therubyracer'
 gem 'acts_as_list'
 gem 'paper_trail'
 
+gem 'i18n'
+gem 'i18n-tasks', '~> 0.9.21'
 gem 'thor'
 gem 'aasm'
 gem 'i15r', '~> 0.5.1'
+gem 'missing_t', '~> 0.3.1'
 
 group :production do
   # Use unicorn as the app server
