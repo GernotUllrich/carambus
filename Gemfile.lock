@@ -282,6 +282,7 @@ DEPENDENCIES
   daemons
   devise
   i15r (~> 0.5.1)
+  i18n
   jbuilder (~> 2.7)
   jquery-datatables-rails
   jquery-rails

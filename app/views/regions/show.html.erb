@@ -40,7 +40,7 @@
   <%= link_to @region.country.andand.code, country_path(@region.country) %>
 </p>
 
-<%= link_to 'Edit', edit_region_path(@region) %> |
+<%= link_to "Edit", edit_region_path(@region) %> |
 <%= link_to 'Back', regions_path %>
 <h3>Tournaments Season <%= Season.last.name %></h3>
 <table>

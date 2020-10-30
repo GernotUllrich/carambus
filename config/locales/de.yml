@@ -1,0 +1,189 @@
+de:
+  hello: "Hallo Welt"
+  table_monitors:
+    display_name: "Tisch %{t_no}"
+  tournament_monitors:
+    index:
+      listing_tournament_monitors: Liste der Tourier-Monitore
+      tournament: Tournier
+      data: Data
+      state: Status
+      show: Zeigen
+      edit: Ändern
+      destroy: Löschen
+      new_tournament_execution: "Neuer Tournier Monitor"
+      tournamentmonitorversions: TournamentMonitor::Versions
+      this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10: This
+        table is displaying TournamentMonitor::Version which is its own versions table.
+        Only last 10.
+      id: ID
+      event_name: Event Name
+      whodunnit: whodunnit
+      when: When
+      object_after_changes: Object (after Changes)
+      object_changes: Object Changes
+      object_diffs: Object Diffs
+    game_results:
+      game: Spiel
+      playera: PlayerA
+      playerb: PlayerB
+      points: Punkte
+      balls: Bälle
+      innings: Aufnahmen
+      gd: GD
+      hs: HS
+    rankings:
+      tournament_results: Tournierergebnisse
+      group_rankings: Gruppenergebnisse
+      group_results_in_total: Summen
+      finals_rankings: Endrundenergebnisse
+      finals_results_in_total: Summen
+    edit:
+      editing_tournament_execution: Ändern des Tournier-Monitore
+      show: Zeigen
+      back: Zurück
+    show:
+      tournament: 'Tournier:'
+      playing: 'spielt '
+      switch_players: 'Spieler tauschen'
+      start_tournament: Start des Tourniers
+    form:
+      prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor
+        from being saved:"
+    new:
+      new_tournament_execution: Neuer Tournier-Monitor
+      back: zurück
+    current_games:
+      table: Tisch
+      player: Spieler
+      balls: Bälle
+      of: von
+      inning: Aufnahmen
+      hs: HS
+      gd: GD
+      current_inning: Aktuelle Aufnahme
+      inputs: Eingaben
+      undo: Undo
+      redo: redo
+      next: Weiter
+      game_finished: Spiel beendet
+      current_games_round: 'Aktuelle Spiele - Runde %{round}'
+  game:
+    display_group_game_name: "Gruppe %{group_no}<br />Spiel %{playera}-%{playerb}"
+    display_group_game_name_rp: "Gruppe %{group_no}<br />Spiel %{playera}-%{playerb}/%{rp}"
+    display_group_game_name_short: "Gruppe %{group_no}"
+    display_hf_game_name: "Halbfinale %{game_no}"
+    display_hf_game_group: "Halbfinale"
+    display_qf_game_name: "Viertelfinale %{game_no}"
+    display_qf_game_group: "Viertelfinale"
+    display_af_game_name: "Achtelfinale %{game_no}"
+    display_af_game_group: "Achtelfinale"
+    display_fin_game_name: "Finale"
+    display_place_game_name: 'Platz %{n1}-%{n2}'
+  activerecord:
+    attributes:
+      tournament:
+        position: Position
+        reorder: Reihenfolge
+        name: Name
+        club: Club
+        balls_goal: Bälle Ziel
+        discipline: Disziplin
+        rankings: Ranglisten
+        games: Spiele
+        ba_id: Ba-Id
+        ba_state: BA-Status
+        state: Status
+        region: Region
+        title: Titel
+        player_class: Spielerklasse
+        modus: Modus
+        age_restriction: Zugangsbeschränkungen
+        date: Datum
+        accredation_end: Akkreditierungsende
+        location: Spielort
+        hosting_club: Gastgeber
+  tournaments:
+    index:
+      listing_tournaments: Liste der Tourniere
+      new_tournament: "Neues Tournier"
+    groups:
+      groups: Gruppen
+    edit:
+      editing_tournament: Editiere Tournier
+      show: "Zeigen"
+      back: "Zurück"
+    show:
+      registrations: Registrierungen
+      position: Position
+      reorder: Reihenfolge
+      name: Name
+      club: Club
+      balls_goal: Bälle Ziel
+      discipline: 'Disziplin:'
+      rankings: Ranglisten
+      games: Spiele
+      ba_id: 'Ba Id:'
+      ba_state: 'BA Status:'
+      state: 'Status:'
+      final_tournament_mode: 'Abschliessender Tournament Modus:'
+      region: 'Region:'
+      title: 'Titel:'
+      player_class: 'Spielerklasse:'
+      modus: 'Modus:'
+      age_restriction: 'Zugangsbeschränkungen:'
+      date: 'Datum:'
+      accredation_end: 'Akkreditierungsende:'
+      location: 'Spielort:'
+      hosting_club: 'Gastgeber:'
+      edit: "Aktualisieren"
+      back: "Zurück"
+      reload_from_billard_area: "'Neuladen von der Billard Area"
+      order_by_ranking: 'Ordne nach Rangliste'
+      finalize_tournament_modus: 'Tournier Modus festlegen'
+      mangage_tournament_group_phase: 'Verwaltung der Tournierspiele'
+      reset_tournament_monitor: 'Zurücksetzen des Tournier-Monitors'
+      debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'
+    finalize_modus:
+      teilnehmer: 'Teilnehmer: '
+      proposed_modus: 'Vorgeschlagener Modus:'
+      alternatives_same_discipline: 'Alternativen mit der gleichen Disziplin:'
+      alternatives_other_disciplines: 'Alternativen von anderen Disziplinen:'
+      continue_with: Weiter mit
+      final_modus_selection: Finale Modus Selection
+    form:
+      prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Tournieres unmöglich gemacht:"
+      discipline: 'Disziplin'
+      player_class: 'Spielerklasse'
+    new:
+      new_tournament: Neues Tournier
+      back: "Zurück"
+    tournament_monitor:
+      start_tournament: 'Starte den Tournier-Monitor'
+  home:
+    index:
+      organisation: Organisation
+      country: 'Länder'
+      region: 'Regionalverbände'
+      club: 'Clubs'
+      tourniere: Tourniere
+      seeding: 'Setzlisten'
+      tournament: 'Tourniere'
+      spieler: Spieler
+      season: 'Seasons'
+      seasonparticipation: 'Clubzugehörigkeiten'
+      player: 'Spieler'
+      partien: Partien
+      game: 'Spiel'
+      gameparticipation: 'Spielpartner'
+      inning: 'Aufnahmen'
+      disziplinen: Disziplinen
+      discipline: 'Disziplin'
+      table_kind: 'Tischtypen'
+      player_rankings: 'Ranglisten'
+      tournierplanung: Tournierplanung
+      disciplinetournamentplan: 'Disziplin/Tournierpläne'
+      tournamentplan: 'Tournierpläne'
+      tournierabwicklung: Tournierabwicklung
+      tournamentmonitor: 'Tounier-Monitore'
+      tablemonitor: 'Table-Monitore'

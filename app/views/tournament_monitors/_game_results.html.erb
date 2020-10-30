@@ -2,26 +2,26 @@
   <table>
     <thead>
     <tr>
-      <th>Game</th>
+      <th><%= I18n.t("tournament_monitors.game_results.game", :default => "Game") %></th>
       <th>#</th>
-      <th>PlayerA</th>
-      <th>PlayerB</th>
-      <th colspan=2>Points</th>
-      <th colspan=2>Balls</th>
-      <th colspan=2>Innings</th>
-      <th colspan=2>GD</th>
-      <th colspan=2>HS</th>
+      <th><%= I18n.t("tournament_monitors.game_results.playera", :default => "PlayerA") %></th>
+      <th><%= I18n.t("tournament_monitors.game_results.playerb", :default => "PlayerB") %></th>
+      <th colspan=2><%= I18n.t("tournament_monitors.game_results.points", :default => "Points") %></th>
+      <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls", :default => "Balls") %></th>
+      <th colspan=2><%= I18n.t("tournament_monitors.game_results.innings", :default => "Innings") %></th>
+      <th colspan=2><%= I18n.t("tournament_monitors.game_results.gd", :default => "GD") %></th>
+      <th colspan=2><%= I18n.t("tournament_monitors.game_results.hs", :default => "HS") %></th>
     </tr>
     </thead>
     <tbody>
     <% @edit_games_modus = true %>
     <%= form_tag update_games_tournament_monitor_path(@tournament_monitor), id: "update_games", method: :post do %>
-      <% @tournament_monitor.tournament.games.to_a.sort_by { |game| game.seqno.present? ? game.seqno : game.gname }.each do |game| %>
+      <% @tournament_monitor.tournament.games.to_a.sort_by { |game| game.gname }.each do |game| %>
         <% playing_game = game.table_monitor.andand.playing_game? %>
         <tr>
           <% gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player %>
           <% gpb = game.game_participations.where(role: "playerb").first; playerb = gpb.andand.player %>
-          <td><%= game.gname %></td>
+          <td><%= game.display_gname %></td>
           <td><%= game.seqno %></td>
           <td><%= playera.andand.fullname %></td>
           <td><%= playerb.andand.fullname %></td>

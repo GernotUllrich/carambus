@@ -13,12 +13,12 @@ class SeedingsController < ApplicationController
 
   def up
     @seeding.move_higher
-    redirect_to :back
+    redirect_back(fallback_location: tournament_path(@seeding.tournament))
   end
 
   def down
     @seeding.move_lower
-    redirect_to :back
+    redirect_back(fallback_location: tournament_path(@seeding.tournament))
   end
 
   # GET /seedings/1

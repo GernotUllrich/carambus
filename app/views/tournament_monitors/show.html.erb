@@ -10,6 +10,10 @@
         border-collapse: collapse;
     }
 
+    .space-above {
+        margin-top: 15px;
+    }
+
     th, td {
         padding: 8px;
     }
@@ -23,40 +27,41 @@
 <% if @tournament_monitor.present? %>
   <div class="row">
     <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Tournament:</strong>
+      <strong><%= I18n.t("tournament_monitors.show.tournament", :default => "Tournament:") %></strong>
       <%= @tournament_monitor.state %>
     </div>
     <% @tournament_monitor.table_monitors.order(:name).each do |tabmon| %>
       <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
-        <strong><%= "#{tabmon.name.capitalize}" %>:</strong>
+        <strong><%= "#{tabmon.display_name}" %>:</strong>
         <%= tabmon.state %><br/>
         <% if tabmon.game.present? %>
-          playing <%= tabmon.game.andand.gname %><br/>
+          <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
+          <br/>
           <strong><%= tabmon.game.game_participations.where(role: "playera").first.player.lastname %></strong><br/>
           <strong><%= tabmon.game.game_participations.where(role: "playerb").first.player.lastname %></strong><br/>
-          <%= button_to "Switch Players", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id) %>
+          <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id) %>
         <% end %>
       </div>
     <% end %>
   </div>
 <% else %>
-  <%= button_to "Start Tournament", start_tournament_path(@tournament_monitor.tournament) %>
+  <%= button_to I18n.t("tournament_monitors.show.start_tournament", :default => "Start Tournament"), start_tournament_path(@tournament_monitor.tournament), class: "btn btn-flat btn-primary" %>
 <% end %>
 <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
-<div class="row">
-  <div class="col-sm-2">
+<div class="row space-above">
+  <div class="col-sm-2 space-above">
     <%= render partial: "tournaments/groups", locals: {tournament_plan: @tournament_monitor.tournament.tournament_plan, groups: @groups} %>
   </div>
-  <div class="col-sm-10">
+  <div class="col-sm-10 space-above">
     <%= render partial: "current_games", locals: {tournament_monitor: @tournament_monitor} %>
   </div>
 </div>
 <hr/>
-<div class="row">
-  <div class="col-sm-8">
+<div class="row space-above">
+  <div class="col-sm-8 space-above">
     <%= render partial: "game_results", locals: {tournament_monitor: @tournament_monitor} %>
   </div>
-  <div class="col-sm-4">
+  <div class="col-sm-4 space-above">
     <%= render partial: "rankings", locals: {tournament_monitor: @tournament_monitor} %>
   </div>
 </div>

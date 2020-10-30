@@ -1,11 +1,42 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :add_one, :add_ten, :redo, :undo, :next_step]
+  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :up, :down, :add_one, :add_ten, :redo, :undo, :next_step]
 
   def set_balls
     unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
       flash.now[:alert] = @msg
       flash.keep[:alert]
     end
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
+
+  def up
+    t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
+    switch_to = @table_monitor.tournament_monitor.table_monitors.map{|tm| tm.name.match(/table(\d+)/).andand[1].to_i}.sort
+    ix = switch_to.index(t_no)
+    ix2 = ix + switch_to.length
+    switch_to = switch_to + switch_to
+    new_t_no = switch_to[ix-1]
+    tm1 = @table_monitor
+    tm2 = TableMonitor.find_by_name("table#{new_t_no}")
+    game1 = tm1.game
+    game2 = tm2.game
+    tm1.assign_game(game2)
+    tm2.assign_game(game1)
+    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
+  end
+
+  def down
+    t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
+    switch_to = @table_monitor.tournament_monitor.table_monitors.map{|tm| tm.name.match(/table(\d+)/).andand[1].to_i}.sort
+    ix = switch_to.index(t_no)
+    switch_to = switch_to + switch_to
+    new_t_no = switch_to[ix+1]
+    tm1 = @table_monitor
+    tm2 = TableMonitor.find_by_name("table#{new_t_no}")
+    game1 = tm1.game
+    game2 = tm2.game
+    tm1.assign_game(game2)
+    tm2.assign_game(game1)
     redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
   end
 

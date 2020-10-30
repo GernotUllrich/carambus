@@ -1,4 +1,7 @@
 class TableMonitor < ActiveRecord::Base
+
+  cattr_accessor :allow_change_tables
+
   include AASM
   belongs_to :tournament_monitor
   belongs_to :game
@@ -14,7 +17,7 @@ class TableMonitor < ActiveRecord::Base
     state :game_result_reported
     state :ready_for_new_game #previous game result still displayed here - and probably next players
     event :start_new_game do
-      transitions from: [:ready, :ready_for_new_game, :game_result_reported, :game_finished], to: :playing_game, :after_enter => [:initialize_game]
+      transitions from: [:ready, :ready_for_new_game, :playing_game, :game_result_reported, :game_finished], to: :playing_game, :after_enter => [:initialize_game]
     end
     event :result_accepted do
       transitions from: [:game_result_reported, :ready_for_new_game], to: :ready_for_new_game
@@ -39,6 +42,7 @@ class TableMonitor < ActiveRecord::Base
   end
 
   def assign_game(game)
+    self.allow_change_tables = tournament_monitor.allow_change_tables
     update_attributes(game_id: game.id)
     initialize_game
     start_new_game!
@@ -86,6 +90,11 @@ class TableMonitor < ActiveRecord::Base
         }
     })
     data
+  end
+
+  def display_name
+    t_no = name.match(/table(\d+)/).andand[1]
+    I18n.t("table_monitors.display_name", t_no: t_no)
   end
 
   def seeding_from(role)
@@ -235,6 +244,7 @@ class TableMonitor < ActiveRecord::Base
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
+    self.data_will_change!
     self.data = JSON.parse(h.to_json)
     save!
   end

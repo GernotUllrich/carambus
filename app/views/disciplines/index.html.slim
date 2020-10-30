@@ -1,7 +1,6 @@
 - content_for :javascript_code do
   script
-    |  $(document).ready(function () { $('#disciplines').DataTable({ "stateSave": true, dom: 'Bfrtip', buttons: [ 'copy', { extend: 'csvHtml5', title: 'Disciplines' }, { extend: 'excelHtml5', title: 'Disciplines' }, { extend: 'pdfHtml5', title: 'Disciplines' }, { extend: 'print', title: 'Disciplines' } ], "sPaginationType": "full_numbers", "bJQueryUI": true, "aLengthMenu": [ [10, 50], [10, 50] ], "iDisplayLength": 50, "aaSorting": [ [0, "desc"] ], "aoColumns": [ null, null, null, {"bSortable": false}, ], oSearch: {"sSearch": "<ruby code="= params[:sSearch].andand.html_safe"></ruby>"}, bProcessing: true, bServerSide: true, sAjaxSource: $('#disciplines').data('source') } ); }); 
-  - - end
+    |  $(document).ready(function () { $('#disciplines').DataTable({ "stateSave": true, dom: 'Bfrtip', buttons: [ 'copy', { extend: 'csvHtml5', title: 'Disciplines' }, { extend: 'excelHtml5', title: 'Disciplines' }, { extend: 'pdfHtml5', title: 'Disciplines' }, { extend: 'print', title: 'Disciplines' } ], "sPaginationType": "full_numbers", "bJQueryUI": true, "aLengthMenu": [ [10, 50], [10, 50] ], "iDisplayLength": 50, "aaSorting": [ [0, "desc"] ], "aoColumns": [ null, null, null, {"bSortable": false}, ], oSearch: {"sSearch": "<ruby code="= params[:sSearch].andand.html_safe"></ruby>"}, bProcessing: true, bServerSide: true, sAjaxSource: $('#disciplines').data('source') } ); });
   style
     |  body { margin: 0; padding: 0; } th, td { padding-left: 5px; } 
   h1

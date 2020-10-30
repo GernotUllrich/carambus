@@ -21,7 +21,7 @@
 <%= render :partial => "show", locals: {tournament: @tournament, subtitle: "Tournament Monitor"} %>
 <% if @tournament.tournament_monitor.present? %>
 <% else %>
-  <%= button_to "Start Tournament", start_tournament_path(@tournament) %>
+  <%= button_to I18n.t("tournaments.tournament_monitor.start_tournament"), start_tournament_path(@tournament), class: "btn btn-flat btn-primary" %>
 <% end %>
 <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
 <div class="row">
@@ -29,4 +29,3 @@
     <%= render partial: "groups", locals: {tournament_plan: @tournament.tournament_plan, groups: @groups} %>
   </div>
 </div>
-

@@ -1,6 +1,6 @@
-<h1>Editing Tournament Execution</h1>
+<h1><%= I18n.t("tournament_monitors.edit.editing_tournament_execution", :default => "Editing Tournament Execution") %></h1>
 
 <%= render 'form' %>
 
-<%= link_to 'Show', @tournament_monitor %> |
-<%= link_to 'Back', tournament_monitors_path %>
+<%= link_to I18n.t("tournament_monitors.edit.show", :default => 'Show'), @tournament_monitor %> |
+<%= link_to I18n.t("tournament_monitors.edit.back", :default => 'Back'), tournament_monitors_path %>

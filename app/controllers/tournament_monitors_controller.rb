@@ -47,6 +47,8 @@ def switch_players
         table_monitor.data["playerb"]["gd"] = sprintf("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
         table_monitor.data_will_change!
         table_monitor.save
+        game.update_attributes(ended_at: Time.now)
+        @tournament_monitor.update_game_participations(table_monitor)
         table_monitor.evaluate_result
       end
     end

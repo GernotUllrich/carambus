@@ -1,4 +1,5 @@
 class Game < ActiveRecord::Base
+
   belongs_to :tournament
   has_many :game_participations, :dependent => :destroy
   has_one :table_monitor, :dependent => :nullify
@@ -18,6 +19,36 @@ class Game < ActiveRecord::Base
     self.data_will_change!
     self.data = JSON.parse(h.to_json)
     save!
+  end
+
+  def self.display_ranking_key(ranking_key)
+    if m = ranking_key.match(/group(\d+):(\d+)-(\d+)(?:\/(\d+))/)
+    "#{I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4])}".html_safe
+    elsif m = ranking_key.match(/group(\d+):(\d+)-(\d+)/)
+      "#{I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3])}".html_safe
+    elsif m = ranking_key.match(/group(\d+)/i)
+      "#{I18n.t("game.display_group_game_name_short", group_no: m[1].to_str.gsub("/", ""))}".html_safe
+    elsif m = ranking_key.match(/hf(\/?\d+)/)
+      "#{I18n.t("game.display_hf_game_name", game_no: m[1].to_str.gsub("/", ""))}"
+    elsif m = ranking_key.match(/hf/)
+      "#{I18n.t("game.display_hf_game_group")}"
+    elsif m = ranking_key.match(/qf(\/?\d+)/)
+      "#{I18n.t("game.display_qf_game_name", {game_no: m[1]})}"
+    elsif m = ranking_key.match(/qf/)
+      "#{I18n.t("game.display_qf_game_group")}"
+    elsif m = ranking_key.match(/af(\/?\d+)/)
+      "#{I18n.t("game.display_af_game_name", {game_no: m[1].to_str.gsub("/", "")})}"
+    elsif m = ranking_key.match(/af/)
+      "#{I18n.t("game.display_af_game_group")}"
+    elsif m = ranking_key.match(/fin/)
+      "#{I18n.t("game.display_fin_game_name")}"
+    elsif m = ranking_key.match(/p<(\d+)(?:\.\.|-)(\d+)>/)
+      "#{I18n.t("game.display_place_game_name", n1: m[1].to_str.gsub("/", ""), n2: m[2].to_str.gsub("/", ""))}"
+    end
+  end
+
+  def display_gname
+    Game.display_ranking_key(gname)
   end
 
   def self.fix_participation(game)

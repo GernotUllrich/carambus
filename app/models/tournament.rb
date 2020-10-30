@@ -45,6 +45,13 @@ class Tournament < ActiveRecord::Base
     event :forced_reset_tournament_monitor do
       transitions to: :new_tournament
     end
+    event :finish_tournament do
+      transitions from: :tournament_started, to: :tournament_finished
+    end
+
+    event :have_results_published do
+      transitions from: :tournament_finished, to: :results_published
+    end
   end
 
   def self.logger

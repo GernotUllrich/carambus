@@ -53,6 +53,7 @@ gem 'paper_trail'
 gem 'thor'
 gem 'aasm'
 gem 'i15r', '~> 0.5.1'
+gem 'i18n'
 
 group :production do
   # Use unicorn as the app server

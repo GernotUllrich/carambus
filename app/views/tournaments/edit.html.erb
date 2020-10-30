@@ -1,6 +1,6 @@
-<h1>Editing Tournament</h1>
+<h1><%= I18n.t("tournaments.edit.editing_tournament") %></h1>
 
 <%= render 'form' %>
 
-<%= link_to 'Show', @tournament %> |
-<%= link_to 'Back', tournaments_path %>
+<%= link_to I18n.t("tournaments.edit.show"), @tournament %> |
+<%= link_to I18n.t("tournaments.edit.back"), tournaments_path %>

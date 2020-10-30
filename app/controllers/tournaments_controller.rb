@@ -62,17 +62,16 @@ class TournamentsController < ApplicationController
             player_class: @tournament.player_class,
             discipline_id: @tournament.discipline_id
         }).first
-    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups)
+    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups) if @proposed_discipline_tournament_plan.present?
     @alternatives_same_discipline = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
-        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.id}).
+        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.andand.id}).
         where(discipline_tournament_plans: {
             players: @tournament.seedings.all.count,
             discipline_id: @tournament.discipline_id
         }).uniq
     @alternatives_other_disciplines = ::TournamentPlan.
-        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.id] + [@alternatives_same_discipline.map(&:id)]}).
+        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id)}).
         where(players: @tournament.seedings.all.count).uniq
-
   end
 
   def select_modus
