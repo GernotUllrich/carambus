@@ -24,6 +24,7 @@ Bundler.require(*Rails.groups)
 
 module Carambus
   class Application < Rails::Application
+    #config.api_only = true
     config.assets.enabled = true if config.assets.respond_to?(:enabled)
     if Rails::VERSION::MAJOR > 4
       # Rails 4 precompiles application.css|js by default, but future version of Rails do not.

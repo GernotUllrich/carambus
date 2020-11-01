@@ -14,6 +14,9 @@ class GamesController < ApplicationController
   # GET /games/1
   # GET /games/1.json
   def show
+    @no_home = true
+    @player_a = @game.game_participations.where(role: "playera").first.player
+    @player_b = @game.game_participations.where(role: "playerb").first.player
   end
 
   # GET /games/new
