@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/capistrano/rbenv.git
+  remote: https://github.com/capistrano/rbenv.git
   revision: 1fdb93a6dd4a4ab3fb786c995055cf6949daf7a4
   specs:
     capistrano-rbenv (2.2.0)
@@ -60,10 +60,6 @@ GEM
     arel (9.0.0)
     autoprefixer-rails (10.0.1.0)
       execjs
-    babel-source (5.8.35)
-    babel-transpiler (0.7.0)
-      babel-source (>= 4.0, < 6)
-      execjs (~> 2.0)
     bcrypt (3.1.16)
     beanstalk-client (1.1.1)
     bindex (0.8.1)
@@ -97,7 +93,6 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.7)
-    connection_pool (2.2.3)
     crass (1.0.6)
     daemons (1.3.1)
     devise (4.7.3)
@@ -106,6 +101,7 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    dnssd (3.0.1)
     erubi (1.9.0)
     execjs (2.7.0)
     ffi (1.13.1)
@@ -142,7 +138,6 @@ GEM
       kaminari-core (= 1.2.1)
     kaminari-core (1.2.1)
     kgio (2.11.3)
-    libv8 (3.16.14.19)
     loofah (2.7.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -197,13 +192,6 @@ GEM
     raindrops (0.19.1)
     rake (13.0.1)
     rdoc (4.3.0)
-    react-rails (2.6.1)
-      babel-transpiler (>= 0.7.0)
-      connection_pool
-      execjs
-      railties (>= 3.2)
-      tilt
-    ref (2.0.0)
     request_store (1.5.0)
       rack (>= 1.4)
     responders (3.0.1)
@@ -244,9 +232,6 @@ GEM
       beanstalk-client
       json_pure
     temple (0.8.2)
-    therubyracer (0.12.3)
-      libv8 (~> 3.16.14.15)
-      ref
     thor (1.0.1)
     thread_safe (0.3.6)
     tilt (2.0.10)
@@ -292,6 +277,7 @@ DEPENDENCIES
   coffee-rails
   daemons
   devise
+  dnssd
   i15r (~> 0.5.1)
   i18n
   jbuilder (~> 2.7)
@@ -302,13 +288,11 @@ DEPENDENCIES
   paper_trail
   pg (= 0.19.0)
   rails (~> 5)
-  react-rails
   sass-rails
   sdoc (~> 0.4.0)
   slim-rails
   spring
   stalker
-  therubyracer
   thor
   turbolinks (~> 5)
   uglifier
@@ -317,4 +301,4 @@ DEPENDENCIES
   web-console
 
 BUNDLED WITH
-   2.0.1
+   2.1.4

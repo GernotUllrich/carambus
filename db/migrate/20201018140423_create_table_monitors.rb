@@ -1,4 +1,4 @@
-class CreateTableMonitors < ActiveRecord::Migration
+class CreateTableMonitors < ActiveRecord::Migration[4.2]
   def change
     create_table :table_monitors do |t|
       t.integer :tournament_monitor_id
@@ -8,6 +8,7 @@ class CreateTableMonitors < ActiveRecord::Migration
       t.integer :next_game_id
       t.text :data
       t.integer :ipaddress
+      t.timestamps null: false
     end
   end
 end

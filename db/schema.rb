@@ -241,8 +241,8 @@ ActiveRecord::Schema.define(version: 2020_10_22_142500) do
     t.integer "next_game_id"
     t.text "data"
     t.integer "ipaddress"
-    t.integer "innings_goal"
-    t.integer "balls_goal"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "tournament_monitors", id: :serial, force: :cascade do |t|
