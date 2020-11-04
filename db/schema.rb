@@ -11,7 +11,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(version: 20201021105027) do
+=======
+ActiveRecord::Schema.define(version: 2020_10_22_142500) do
+>>>>>>> rails5
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -61,6 +65,7 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.string   "player_class"
   end
 
+<<<<<<< HEAD
   create_table "disciplines", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at",          null: false
@@ -76,6 +81,29 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.integer  "game_id"
     t.integer  "player_id"
     t.string   "role"
+=======
+  create_table "game_participations", id: :serial, force: :cascade do |t|
+    t.integer "game_id"
+    t.integer "player_id"
+    t.string "role"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "data"
+    t.integer "points"
+    t.integer "result"
+    t.integer "innings"
+    t.float "gd"
+    t.integer "hs"
+    t.string "gname"
+    t.index ["game_id", "player_id", "role"], name: "index_game_participations_on_foreign_keys", unique: true
+  end
+
+  create_table "games", id: :serial, force: :cascade do |t|
+    t.integer "template_game_id"
+    t.integer "tournament_id"
+    t.text "roles"
+    t.text "data"
+>>>>>>> rails5
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text     "remarks"
@@ -105,6 +133,7 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.datetime "ended_at"
   end
 
+<<<<<<< HEAD
   add_index "games", ["template_game_id", "tournament_id"], name: "index_games_on_foreign_keys", unique: true, using: :btree
 
   create_table "innings", force: :cascade do |t|
@@ -117,6 +146,19 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.text     "remarks"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
+=======
+  create_table "innings", id: :serial, force: :cascade do |t|
+    t.integer "game_id"
+    t.integer "sequence_number"
+    t.string "player_a_count"
+    t.string "player_b_count"
+    t.string "player_c_count"
+    t.string "player_d_count"
+    t.text "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "sequence_number"], name: "index_innings_on_foreign_keys", unique: true
+>>>>>>> rails5
   end
 
   add_index "innings", ["game_id", "sequence_number"], name: "index_innings_on_foreign_keys", unique: true, using: :btree
@@ -204,6 +246,7 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   add_index "regions", ["country_id"], name: "index_regions_on_country_id", using: :btree
   add_index "regions", ["shortname"], name: "index_regions_on_shortname", unique: true, using: :btree
 
@@ -211,6 +254,12 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.integer  "player_id"
     t.integer  "season_id"
     t.text     "remarks"
+=======
+  create_table "season_participations", id: :serial, force: :cascade do |t|
+    t.integer "player_id"
+    t.integer "season_id"
+    t.text "data"
+>>>>>>> rails5
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "club_id"
@@ -226,6 +275,7 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   add_index "seasons", ["ba_id"], name: "index_seasons_on_ba_id", unique: true, using: :btree
   add_index "seasons", ["name"], name: "index_seasons_on_name", unique: true, using: :btree
 
@@ -240,6 +290,20 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.string   "state",                 default: "registered", null: false
     t.integer  "balls_goal"
     t.integer  "playing_discipline_id"
+=======
+  create_table "seedings", id: :serial, force: :cascade do |t|
+    t.integer "player_id"
+    t.integer "tournament_id"
+    t.string "ba_state"
+    t.integer "position"
+    t.text "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "state", default: "registered", null: false
+    t.integer "balls_goal"
+    t.integer "playing_discipline_id"
+    t.index ["player_id", "tournament_id"], name: "index_seedings_on_foreign_keys", unique: true
+>>>>>>> rails5
   end
 
   add_index "seedings", ["player_id", "tournament_id"], name: "index_seedings_on_foreign_keys", unique: true, using: :btree
@@ -260,8 +324,11 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.integer "next_game_id"
     t.text    "data"
     t.integer "ipaddress"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
+<<<<<<< HEAD
   create_table "tournament_monitors", force: :cascade do |t|
     t.integer  "tournament_id"
     t.text     "data"
@@ -276,6 +343,24 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.text     "remarks"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
+=======
+  create_table "tournament_monitors", id: :serial, force: :cascade do |t|
+    t.integer "tournament_id"
+    t.text "data"
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "innings_goal"
+    t.integer "balls_goal"
+  end
+
+  create_table "tournament_plan_games", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.integer "tournament_plan_id"
+    t.text "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+>>>>>>> rails5
   end
 
   create_table "tournament_plans", force: :cascade do |t|
@@ -319,12 +404,21 @@ ActiveRecord::Schema.define(version: 20201021105027) do
     t.integer  "season_id"
     t.integer  "region_id"
     t.datetime "end_date"
+<<<<<<< HEAD
     t.string   "plan_or_show"
     t.string   "single_or_league"
     t.string   "shortname",          default: "",               null: false
     t.text     "remarks"
     t.string   "ba_state",           default: "",               null: false
     t.string   "state",              default: "new_tournament", null: false
+=======
+    t.string "plan_or_show"
+    t.string "single_or_league"
+    t.string "shortname", default: "", null: false
+    t.text "data"
+    t.string "ba_state", default: "", null: false
+    t.string "state", default: "new_tournament", null: false
+>>>>>>> rails5
     t.datetime "last_ba_sync_date"
     t.string   "player_class"
     t.integer  "tournament_plan_id"

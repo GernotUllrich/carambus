@@ -3,72 +3,73 @@
 <h3><%= subtitle %></h3>
 <div class="row" , style="margin-bottom: 10px; margin-left: 10px">
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-    <strong>Ba Id:</strong>
+    <strong><%= I18n.t("tournaments.show.ba_id") %></strong>
     <%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %>
   </div>
 
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-    <strong>BA State:</strong>
+    <strong><%= I18n.t("tournaments.show.ba_state") %></strong>
     <%= tournament.ba_state %>
   </div>
 
   <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-    <strong>State:</strong>
+    <strong><%= I18n.t("tournaments.show.state") %></strong>
     <%= tournament.state %>
   </div>
 
   <% if tournament.tournament_mode_defined? %>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Final Tournament Mode:</strong>
+      <strong><%= I18n.t("tournaments.show.final_tournament_mode") %></strong>
       <%= "#{link_to(tournament.tournament_plan.name, tournament_plan_path(tournament.tournament_plan))}: #{tournament.tournament_plan.rulesystem}".html_safe %>
     </div>
   <% else %>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
 
-      <strong>Region:</strong>
+      <strong><%= I18n.t("tournaments.show.region") %></strong>
       <%= link_to(tournament.region.name, region_path(tournament.region)) %>
     </div>
 
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Title:</strong>
-      <%= tournament.title %>
+      <strong><%= I18n.t("tournaments.show.title") %></strong>
+      <%= link_to(tournament.title, tournament_path(tournament)) %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Discipline:</strong>
+      <strong><%= I18n.t("tournaments.show.discipline") %></strong>
       <%= link_to(tournament.discipline.name, discipline_path(tournament.discipline_id)) %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Player Class:</strong>
+      <strong><%= I18n.t("tournaments.show.player_class") %></strong>
       <%= tournament.player_class %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Modus:</strong>
+      <strong><%= I18n.t("tournaments.show.modus") %></strong>
       <%= tournament.modus %>
     </div>
 
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Age restriction:</strong>
+      <strong><%= I18n.t("tournaments.show.age_restriction") %></strong>
       <%= tournament.age_restriction %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Date:</strong>
+      <strong><%= I18n.t("tournaments.show.date") %></strong>
       <%= tournament.date %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Accredation end:</strong>
+      <strong><%= I18n.t("tournaments.show.accredation_end") %></strong>
       <%= tournament.accredation_end %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Location:</strong>
+      <strong><%= I18n.t("tournaments.show.location") %></strong>
       <%= tournament.location %>
     </div>
     <div class="col-sm-3" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong>Hosting club:</strong>
+      <strong><%= I18n.t("tournaments.show.hosting_club") %></strong>
       <%= tournament.hosting_club_id %>
     </div>
   <% end %>
 </div>
 <% if show_edit_back %>
-  <%= link_to 'Edit', edit_tournament_path(tournament) %> |
-  <%= link_to 'Back', tournaments_path %>
+  <%= link_to I18n.t("tournaments.show.edit"), edit_tournament_path(tournament) %> |
+  <%= link_to I18n.t("tournaments.show.back"), tournaments_path %>
+  <%= link_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(tournament), method: :post %>
 <% end %>

@@ -3,22 +3,33 @@
         padding: 3px;
     }
 </style>
-<%= render :partial => "show", locals: {tournament: @tournament, subtitle: "", show_edit_back: true} %>
-<%= button_to "Order By Ranking", order_by_ranking_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
-<%= button_to "Finalize Tournament Modus", finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
-<%= button_to "Mangage Tournament Group Phase", tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", disabled: %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>
-<h2>Registrations</h2>
+<div style="clear:both;">
+  <%= render :partial => "show", locals: {tournament: @tournament, subtitle: "", show_edit_back: true} %>
+</div>
+<div style="float:left;">
+  <%= button_to I18n.t("tournaments.show.order_by_ranking"), order_by_ranking_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
+
+</div><span style="float:left;;margin-top:10px">--->&nbsp;</span>
+<div style="float:left;">
+  <%= button_to I18n.t("tournaments.show.finalize_tournament_modus"), finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;", disabled: !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
+
+</div>
+</div><span style="float:left;;margin-top:10px">--->&nbsp;</span>
+<div >
+  <%= button_to I18n.t("tournaments.show.mangage_tournament_group_phase"), tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary", disabled: %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>
+</div>
+<h2><%= I18n.t("tournaments.show.registrations") %></h2>
 <table>
   <thead>
   <tr>
-    <th>Position</th>
-    <th colspan=2>Reorder</th>
-    <th>Name</th>
-    <th>Club</th>
+    <th><%= I18n.t("tournaments.show.position") %></th>
+    <th colspan=2><%= I18n.t("tournaments.show.reorder") %></th>
+    <th><%= I18n.t("tournaments.show.name") %></th>
+    <th><%= I18n.t("tournaments.show.club") %></th>
     <th><%= "Rank<br/>#{@tournament.discipline.name}<br/>Season #{@tournament.season.previous.name}".html_safe %></th>
     <% if @tournament.handicap_tournier? %>
-      <th>Balls Goal</th>
-      <th>Discipline</th>
+      <th><%= I18n.t("tournaments.show.balls_goal") %></th>
+      <th><%= I18n.t("tournaments.show.discipline") %></th>
     <% end %>
   </tr>
   <tbody>
@@ -33,64 +44,67 @@
       <td><%= seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999 %></td>
       <% if @tournament.handicap_tournier? %>
         <td><%= seeding.balls_goal %></td>
-        <td><%= seeding.playing_discipline.shortname %></td>
+        <td><%= seeding.playing_discipline.andand.shortname %></td>
       <% end %>
     </tr>
   <% end %>
   </tbody>
 </table>
-<h2>Rankings</h2>
-<%- lists = @tournament.seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.remarks["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
-<%- lists.each do |list| %>
+<h2><%= I18n.t("tournaments.show.rankings") %></h2>
+<% lists = @tournament.seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
+<% lists.each do |list| %>
   <h3><%= list %></h3>
   <table>
     <thead>
     <tr>
-      <%- @tournament.seedings.select { |seeding| seeding.remarks["result"].andand[list].present? }.first.remarks["result"][list].keys.each do |k| %>
-        <%- next if k == "Rank" %>
+      <% @tournament.seedings.select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
+        <% next if k == "Rank" %>
         <th><%= k %></th>
-      <%- end %>
+      <% end %>
     </tr>
     </thead>
     <tbody>
-    <%- @tournament.seedings.select { |seeding| seeding.remarks["result"].andand[list].present? }.sort_by { |seeding| seeding.remarks["result"][list]["#"].to_i }.each do |seeding| %>
+    <% @tournament.seedings.select { |seeding| seeding.data["result"].andand[list].present? }.sort_by { |seeding| seeding.data["result"][list]["#"].to_i }.each do |seeding| %>
       <tr>
-        <%- seeding.remarks["result"][list].each do |k, v| %>
-          <%- next if k == "Rank" %>
+        <% seeding.data["result"][list].each do |k, v| %>
+          <% next if k == "Rank" %>
           <td><%= v %></td>
-        <%- end %>
+        <% end %>
       </tr>
-    <%- end %>
+    <% end %>
     </tbody>
   </table>
 <% end %>
 
-<h2>Games</h2>
-<%- if @tournament.games.present? %>
+<h2><%= I18n.t("tournaments.show.games") %></h2>
+<% if @tournament.games.present? %>
   <table>
     <thead>
     <tr>
-      <%- @tournament.games.first.remarks.keys.each do |k| %>
+      <% @tournament.games.first.data.keys.each do |k| %>
         <th><%= k %></th>
-      <%- end %>
+      <% end %>
     </tr>
     </thead>
     <tbody>
-    <%- @tournament.games.each do |game| %>
+    <% @tournament.games.each do |game| %>
       <tr>
         <% skip = false %>
-        <%- game.remarks.each do |k, v| %>
+        <% game.data.each do |k, v| %>
           <% skip = true if %w{Heim Gast}.include?(k) && v.blank? %>
           <% unless skip %>
             <td><%= v %></td>
           <% end %>
-        <%- end %>
+        <% end %>
       </tr>
-    <%- end %>
+    <% end %>
     </tbody>
   </table>
 <% end %>
-<%- games = @tournament.games.order(seqno: :asc) %>
+<% games = @tournament.games.order(seqno: :asc) %>
 <% if !@tournament.tournament_started %>
-  <%= button_to "Reset Tournament Monitor", reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
+  <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
+<% end %>
+<% if current_user.email.downcase == "gernot.ullrich@gmx.de" %>
+  <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
 <% end %>

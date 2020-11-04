@@ -8,7 +8,7 @@ class PlayerRanking < ActiveRecord::Base
   belongs_to :pp_player_class, foreign_key: :pp_player_class_id, class_name: "PlayerClass"
   belongs_to :tournament_player_class, foreign_key: :tournament_player_class_id, class_name: "PlayerClass"
 
-  serialize :remarks, Hash
+  serialize :data, Hash
   serialize :t_ids, Array
 
   KEY_MAPPINGS = {

@@ -1,5 +1,5 @@
 class TournamentsController < ApplicationController
-  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
+  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :edit_games, :reload_from_ba, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
 
   # GET /tournaments
   # GET /tournaments.json
@@ -16,8 +16,14 @@ class TournamentsController < ApplicationController
   def show
   end
 
+  def edit_games
+    @edit_games_modus = true
+  end
+
   def reset
-    if !@tournament.tournament_started
+    if params[:force_reset].present?
+      @tournament.forced_reset_tournament_monitor!
+    elsif !@tournament.tournament_started
       @tournament.reset_tournament_monitor!
     else
       flash[:alert] = "Cannot reset running or finished tournament"
@@ -44,6 +50,11 @@ class TournamentsController < ApplicationController
     return
   end
 
+  def reload_from_ba
+    @tournament.scrape_single_tournament(game_details: true)
+    redirect_back(fallback_location: tournament_path(@tournament))
+  end
+
   def finalize_modus
     @proposed_discipline_tournament_plan = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
         where(discipline_tournament_plans: {
@@ -51,17 +62,16 @@ class TournamentsController < ApplicationController
             player_class: @tournament.player_class,
             discipline_id: @tournament.discipline_id
         }).first
-    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups)
+    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups) if @proposed_discipline_tournament_plan.present?
     @alternatives_same_discipline = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
-        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.id}).
+        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.andand.id}).
         where(discipline_tournament_plans: {
             players: @tournament.seedings.all.count,
             discipline_id: @tournament.discipline_id
         }).uniq
     @alternatives_other_disciplines = ::TournamentPlan.
-        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.id] + [@alternatives_same_discipline.map(&:id)]}).
+        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id)}).
         where(players: @tournament.seedings.all.count).uniq
-
   end
 
   def select_modus

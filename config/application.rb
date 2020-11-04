@@ -2,8 +2,8 @@ require File.expand_path('../boot', __FILE__)
 
 require "rails"
 # Pick the frameworks you want:
-require "active_model/railtie"
-require "active_job/railtie"
+#require "active_model/railtie"
+#require "active_job/railtie"
 require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
@@ -11,12 +11,32 @@ require "action_view/railtie"
 require "sprockets/railtie"
 # require "rails/test_unit/railtie"
 
+require 'autoprefixer-rails'
+require 'slim-rails'
+require 'uglifier'
+
+require 'bootstrap'
+require 'jquery-rails'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 module Carambus
   class Application < Rails::Application
+    #config.api_only = true
+    config.assets.enabled = true if config.assets.respond_to?(:enabled)
+    if Rails::VERSION::MAJOR > 4
+      # Rails 4 precompiles application.css|js by default, but future version of Rails do not.
+      config.assets.precompile += %w( application.css application.js )
+    end
+    config.to_prepare do
+      if ENV['VERBOSE']
+        STDERR.puts "Loaded Rails #{Rails::VERSION::STRING}, Sprockets #{Sprockets::VERSION}",
+                    "Asset paths: #{Rails.application.config.assets.paths}"
+      end
+    end
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -30,6 +50,5 @@ module Carambus
     # config.i18n.default_locale = :de
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
-    config.active_record.raise_in_transactional_callbacks = true
   end
 end

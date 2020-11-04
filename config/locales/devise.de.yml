@@ -1,0 +1,83 @@
+---
+de:
+  devise:
+    confirmations:
+      confirmed: Vielen Dank für Deine Registrierung. Bitte melde Dich jetzt an.
+      confirmed_and_signed_in: Vielen Dank für Deine Registrierung. Du bist jetzt
+        angemeldet. Starte die App URL Tester bitte neu.
+      send_instructions: Du erhältst in wenigen Minuten eine E-Mail, mit der Du
+        Deine Registrierung bestätigen kannst.
+      send_paranoid_instructions: Falls Deine E-Mail-Adresse in unserer Datenbank existiert
+        erhälst Du in wenigen Minuten eine E-Mail mit der Du Deine Registrierung
+        bestätigen kannst.
+    failure:
+      already_authenticated: Du bist bereits angemeldet.
+      inactive: Dein Account ist nicht aktiv.
+      invalid: Ungültige Anmeldedaten.
+      invalid_token: Der Anmelde-Token ist ungültig.
+      last_attempt: Du hast noch einen letzten Versuch, bevor Dein Account gesperrt
+        wird.
+      locked: Dein Account ist gesperrt.
+      not_found_in_database: E-Mail-Adresse oder Passwort ungültig.
+      timeout: Deine Sitzung ist abgelaufen, bitte melde Dich erneut an.
+      unauthenticated: Du musst dich anmelden oder registrieren, bevor Du fortfahren
+        kannst.
+      unconfirmed: Du musst Deinen Account bestätigen, bevor Du fortfahren kannst.
+    mailer:
+      confirmation_instructions:
+        subject: "[URL Tester] Anleitung zur Bestätigung Deiner Registrierung"
+      reset_password_instructions:
+        subject: Anleitung um Dein Passwort zurückzusetzen
+      unlock_instructions:
+        subject: Anleitung um Deinen Account freizuschalten
+    omniauth_callbacks:
+      failure: Du kontest nicht mit Deinem %{kind}-Account angemeldet werden, weil
+        '%{reason}'.
+      success: Du hast Dich erfolgreich mit Deinem %{kind}-Account angemeldet.
+    passwords:
+      no_token: Du kannst diese Seite nur von dem Link aus einer E-Mail zum Passwort-Zurücksetzen
+        aufrufen. Wenn Du einen solchen Link aufgerufen hast, stelle bitte
+        sicher, dass Du die vollständige Adresse aufrufen.
+      send_instructions: Wir haben Dir an die von Dir angegebene E-Mail-Adresse eine E-Mail mit einem Link zum Zurücksetzen Deines Passworts gesendet.  Überprüfe Deinen Posteingang und lese die Anleitung. Überprüfe gegebenenfalls auch den Spamordner und den Papierkorb.  Wenn Du innerhalb der nächsten 24 Stunden keine E-Mail erhalten hast, wende Dich an unser Support-Team mithilfe des Feedback Buttons links oder per E-Mail an support@iptvit.co .
+      send_paranoid_instructions: Falls Deine E-Mail-Adresse in unserer Datenbank existiert
+        erhälst Du in wenigen Minuten eine E-Mail mit der Anleitung, wie Du Dein
+        Passwort zurücksetzen kannst.
+      updated: Dein Passwort wurde geändert. Du bist jetzt angemeldet.
+      updated_not_active: Dein Passwort wurde geändert.
+    registrations:
+      destroyed: Dein Account wurde gelöscht.
+      signed_up: Du hast Dich erfolgreich registriert.
+      signed_up_but_inactive: Du hast Dich erfolgreich registriert. Wir konnten
+        Dich noch nicht anmelden, da Dein Account inaktiv ist.
+      signed_up_but_locked: Du hast Dich erfolgreich registriert. Wir konnten Dich
+        noch nicht anmelden, da Dein Account gesperrt ist.
+      signed_up_but_unconfirmed: Du hast dich erfolgreich registriert. Wir konnten
+        Dich noch nicht anmelden, da Dein Account noch nicht bestätigt ist. Du erhälst
+        in Kürze eine E-Mail mit der Anleitung, wie Du Deinen Account freischalten
+        kannst.
+      update_needs_confirmation: Deine Daten wurden aktualisiert, aber Du musst Deine
+        neue E-Mail-Adresse bestätigen. Du erhälst in wenigen Minuten eine E-Mail,
+        mit der Du die Änderung Deiner E-Mail-Adresse abschliessen kannst.
+      updated: Deine Daten wurden aktualisiert.
+    sessions:
+      already_signed_out: Di bist bereits abgemeldet.
+      signed_in: Erfolgreich angemeldet.
+      signed_out: Erfolgreich abgemeldet.
+    unlocks:
+      send_instructions: Du erhälst in wenigen Minuten eine E-Mail mit der Anleitung,
+        wie Du Deinen Account entsperren kannst.
+      send_paranoid_instructions: Falls Deine E-Mail-Adresse in unserer Datenbank existiert
+        erhälst Du  in wenigen Minuten eine E-Mail mit der Anleitung, wie Du Deinen
+        Account entsperren kannst.
+      unlocked: Dein Account wurde entsperrt. Du bist jetzt angemeldet.
+  errors:
+    messages:
+      already_confirmed: wurde bereits bestätigt
+      confirmation_period_expired: muss innerhalb %{period} bestätigt werden, bitte
+        fordere einen neuen Link an
+      expired: ist abgelaufen, bitte neu anfordern
+      not_found: nicht gefunden
+      not_locked: ist nicht gesperrt
+      not_saved:
+        one: 'Konnte %{resource} nicht speichern: ein Fehler.'
+        other: 'Konnte %{resource} nicht speichern: %{count} Fehler.'

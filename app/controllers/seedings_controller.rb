@@ -13,12 +13,12 @@ class SeedingsController < ApplicationController
 
   def up
     @seeding.move_higher
-    redirect_to :back
+    redirect_back(fallback_location: tournament_path(@seeding.tournament))
   end
 
   def down
     @seeding.move_lower
-    redirect_to :back
+    redirect_back(fallback_location: tournament_path(@seeding.tournament))
   end
 
   # GET /seedings/1
@@ -83,6 +83,6 @@ class SeedingsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def seeding_params
-      params.require(:seeding).permit(:player_id, :tournament_id, :status, :position, :remarks)
+      params.require(:seeding).permit(:player_id, :tournament_id, :status, :position, :data)
     end
 end

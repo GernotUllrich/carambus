@@ -1,5 +1,5 @@
 # config valid only for current version of Capistrano
-lock '3.6.1'
+lock '3.14.1'
 
 set :application, 'carambus'
 set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
@@ -9,7 +9,7 @@ set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
 
 # Default deploy_to directory is /var/www/my_app_name
 # set :deploy_to, '/var/www/my_app_name'
-set :deploy_to, '/var/www/web2.carombus.de/web/'
+set :deploy_to, '/var/www/carambus'
 
 # Default value for :scm is :git
 # set :scm, :git
@@ -34,7 +34,7 @@ append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'public/syst
 append :linked_dirs, '.bundle'
 
 set :rbenv_type, :local
-set :rbenv_ruby, '2.4.4'
+set :rbenv_ruby, '2.6.3'
 set :maintenance_tournament_plan_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
 set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w{rake gem bundle ruby rails}
@@ -111,8 +111,8 @@ namespace :deploy do
       # Your restart mechanism here, for example:
       # execute :touch, release_path.join('tmp/restart.txt')
       if fetch(:stage).to_s == 'production'
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web2.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb stop"
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://web2.carombus.de:11300 RAILS_ENV=production ~www-data/.rbenv/shims/bundle exec #{current_path}/script/worker.rb start"
+        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://localhost:11300 RAILS_ENV=production bundle exec #{current_path}/script/worker.rb stop"
+        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://localhost:11300 RAILS_ENV=production bundle exec #{current_path}/script/worker.rb start"
       end
     end
     # on roles(:web), in: :sequence, wait: 5 do

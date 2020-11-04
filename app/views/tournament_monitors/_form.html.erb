@@ -1,7 +1,7 @@
 <%= form_for(@tournament_monitor) do |f| %>
   <% if @tournament_monitor.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(@tournament_monitor.errors.count, "error") %> prohibited this tournament_monitor from being saved:</h2>
+      <h2><%= pluralize(@tournament_monitor.errors.count, "error") %><%= I18n.t("tournament_monitors.form.prohibited_this_tournament_monitor_from_being_saved", :default => " prohibited this tournament_monitor from being saved:") %></h2>
 
       <ul>
       <% @tournament_monitor.errors.full_messages.each do |message| %>

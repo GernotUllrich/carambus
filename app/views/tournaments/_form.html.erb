@@ -1,10 +1,10 @@
-<%= form_for(@tournament_monitor.tournament) do |f| %>
-  <% if @tournament_monitor.tournament.errors.any? %>
+<%= form_for(@tournament) do |f| %>
+  <% if @tournament.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(@tournament_monitor.tournament.errors.count, "error") %> prohibited this tournament from being saved:</h2>
+      <h2><%= pluralize(@tournament.errors.count, "error") %><%= I18n.t("tournaments.form.prohibited_this_tournament_from_being_saved") %></h2>
 
       <ul>
-      <% @tournament_monitor.tournament.errors.full_messages.each do |message| %>
+      <% @tournament.errors.full_messages.each do |message| %>
         <li><%= message %></li>
       <% end %>
       </ul>
@@ -16,11 +16,11 @@
     <%= f.text_field :title %>
   </div>
   <div class="field">
-    <%= f.label "Discipline" %><br>
+    <%= f.label I18n.t("tournaments.form.discipline") %><br>
     <%= f.select :discipline_id, options_for_select(Discipline.order(:name).map{|discipline| [discipline.name, discipline.id]}, @tournament.discipline_id) %>
   </div>
   <div class="field">
-  <%= f.label "Player Class" %><br>
+  <%= f.label :player_class %><br>
   <%= f.select :player_class, options_for_select(%w{I II III 1 2 3 4 5 6 7}, @tournament.player_class) %>
   </div>
   <div class="field">

@@ -1,0 +1,55 @@
+<% content_for :javascript_code do %>
+  <script>
+      $(document).ready(function () {
+          $("input").keypress(function (event) {
+              if (event.which == 13) {
+                  event.preventDefault();
+                  $("#update_games").submit();
+              }
+          });
+      });
+  </script>
+<% end %>
+<div class="row">
+  <% if @tournament_monitor.data["rankings"].present? %>
+    <% @tournament_monitor.data["rankings"].keys.each do |ranking_key| %>
+      <% if ranking_key == "total" %>
+        <% if @tournament_monitor.data["rankings"]["total"].present? %>
+          <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.tournament_results", :default => "Tournament Results") %></h2>
+          <%= ranking_table(@tournament_monitor.data["rankings"]["total"], order: [:gd]) %>
+        <% end %>
+      <% elsif ranking_key == "groups" %>
+        <% if @tournament_monitor.data["rankings"]["groups"]["total"].present? %>
+          <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.group_rankings", :default => "Group Rankings") %></h2>
+          <% @tournament_monitor.data["rankings"]["groups"].keys.each do |ranking_key2| %>
+            <% if ranking_key2 == "total" %>
+              <h3 class="space-above"><%= I18n.t("tournament_monitors.rankings.group_results_in_total", :default => "Group Results in Total") %></h3>
+              <%= ranking_table(@tournament_monitor.data["rankings"]["groups"]["total"], order: [:points, :gd]) %>
+            <% else %>
+              <% if @tournament_monitor.data["rankings"]["groups"][ranking_key2].present? %>
+                <h3 class="space-above"><%= Game.display_ranking_key(ranking_key2) %></h3>
+                <%= ranking_table(@tournament_monitor.data["rankings"]["groups"][ranking_key2], order: [:points, :gd]) %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% elsif ranking_key == "endgames" %>
+        <% if @tournament_monitor.data["rankings"]["endgames"]["total"].present? %>
+          <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.finals_rankings", :default => "Finals Rankings") %></h2>
+          <% @tournament_monitor.data["rankings"]["endgames"].keys.each do |ranking_key2| %>
+            <% if ranking_key2 == "total" %>
+              <h3 class="space-above"><%= I18n.t("tournament_monitors.rankings.finals_results_in_total", :default => "Finals Results in Total") %></h3>
+              <%= ranking_table(@tournament_monitor.data["rankings"]["endgames"]["total"], order: [:points, :gd]) %>
+            <% elsif ranking_key2 == "groups" %>
+            <% else %>
+              <% if @tournament_monitor.data["rankings"]["endgames"][ranking_key2].present? %>
+                <h3 class="space-above"><%= Game.display_ranking_key(ranking_key2) %></h3>
+                <%= ranking_table(@tournament_monitor.data["rankings"]["endgames"][ranking_key2], order: [:points, :gd]) %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
