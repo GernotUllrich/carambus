@@ -48,10 +48,7 @@ gem 'daemons'
 #gem 'therubyracer'
 gem 'acts_as_list'
 gem 'paper_trail'
-<<<<<<< HEAD
-=======
 gem 'dnssd'
->>>>>>> rails5
 
 gem 'thor'
 gem 'aasm'
