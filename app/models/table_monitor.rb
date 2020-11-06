@@ -61,7 +61,6 @@ class TableMonitor < ActiveRecord::Base
                     tournament_monitor.andand.balls_goal ||
                     tournament_monitor.andand.tournament.andand.balls_goal || 80,
             "innings_goal" =>
-                self.balls_goal ||
                     tournament_monitor.andand.innings_goal ||
                     tournament_monitor.andand.tournament.andand.innings_goal ||
                     20
@@ -73,12 +72,10 @@ class TableMonitor < ActiveRecord::Base
             "gd" => 0.0,
             "balls_goal" =>
                 data["result"].andand["playerb"].andand["balls_goal"] ||
-                    self.balls_goal ||
                     tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playerb").balls_goal.presence ||
                     tournament_monitor.andand.balls_goal ||
                     tournament_monitor.andand.tournament.andand.balls_goal || 80,
             "innings_goal" =>
-                self.balls_goal ||
                     tournament_monitor.andand.innings_goal ||
                     tournament_monitor.andand.tournament.andand.innings_goal ||
                     20
