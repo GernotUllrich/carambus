@@ -57,7 +57,6 @@ class TableMonitor < ActiveRecord::Base
             "gd" => 0.0,
             "balls_goal" =>
                 data["result"].andand["playera"].andand["balls_goal"] ||
-                    self.balls_goal ||
                     tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playera").balls_goal.presence ||
                     tournament_monitor.andand.balls_goal ||
                     tournament_monitor.andand.tournament.andand.balls_goal || 80,
