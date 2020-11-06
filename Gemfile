@@ -14,7 +14,6 @@ gem 'uglifier'
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails'
 gem "slim-rails"
-gem 'acts_as_singleton'
 
 
 gem 'devise'
