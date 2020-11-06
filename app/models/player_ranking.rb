@@ -61,6 +61,6 @@ class PlayerRanking < ActiveRecord::Base
       # "Pp gd" => "player_rankings.pp_gd",
       # "Org level" => "player_rankings.org_level",
       # "Status" => "player_rankings.status",
-      "Tourniere" => "player_rankings.t_ids",
+      "Turniere" => "player_rankings.t_ids",
   }
 end

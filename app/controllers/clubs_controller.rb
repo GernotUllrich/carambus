@@ -1,5 +1,5 @@
 class ClubsController < ApplicationController
-  before_action :set_club, only: [:show, :edit, :update, :destroy]
+  before_action :set_club, only: [:show, :edit, :update, :destroy, :get_club_details]
 
   # GET /clubs
   # GET /clubs.json
@@ -14,6 +14,10 @@ class ClubsController < ApplicationController
   # GET /clubs/1
   # GET /clubs/1.json
   def show
+  end
+
+  def get_club_details
+    render partial: 'club_details', locals: {club: @club}, layout: nil
   end
 
   # GET /clubs/new

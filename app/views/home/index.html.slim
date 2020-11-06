@@ -1,0 +1,78 @@
+style
+  | .card {width: 250px; float: left; height: 150px; margin-right: 20px;}
+  | .card-deck {flex-direction: row}
+h1
+  = I18n.t("home.index.carambus_tournament_management", :default => "Carambus Tournament Management")
+.container
+  .card-deck
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.configure", :default => "Configure")
+      .card-body
+        = link_to t("home.index.club_settings"), club_settings_settings_path
+        br
+        = link_to I18n.t('home.index.tournament_settings'), tournament_settings_settings_path
+
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.organisation", :default => "Organisation")
+      .card-body
+        = link_to I18n.t("home.index.country", :default => "Country"), countries_path
+        br
+        = link_to I18n.t("home.index.region", :default => "Region"), regions_path
+        br
+        = link_to I18n.t("home.index.club", :default => "Club"), clubs_path
+
+    .w-100.d-none.d-sm-block.d-md-none
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.tourniere", :default => "Turniere")
+      .card-body
+        = link_to I18n.t("home.index.seeding", :default => "Seeding"), seedings_path
+        br
+        = link_to I18n.t("home.index.tournament", :default => "Tournament"), tournaments_path
+        br
+        = link_to I18n.t("home.index.club", :default => "Club"), clubs_path
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.spieler", :default => "Spieler")
+      .card-body
+        = link_to I18n.t("home.index.season", :default => "Season"), seasons_path
+        br
+        = link_to I18n.t("home.index.seasonparticipation", :default => "SeasonParticipation"), season_participations_path
+        br
+        = link_to I18n.t("home.index.player", :default => "Player"), players_path
+    .w-100.d-none.d-sm-block.d-md-none
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.partien", :default => "Partien")
+      .card-body
+        = link_to I18n.t("home.index.game", :default => "Game"), games_path
+        br
+        = link_to I18n.t("home.index.gameparticipation", :default => "GameParticipation"), game_participations_path
+        br
+        = link_to I18n.t("home.index.inning", :default => "Inning"), innings_path
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.disziplinen", :default => "Disziplinen")
+      .card-body
+        = link_to I18n.t("home.index.discipline", :default => "Discipline"), disciplines_path
+        br
+        = link_to I18n.t("home.index.table_kind", :default => "Table Kind"), table_kinds_path
+        br
+        = link_to I18n.t("home.index.player_rankings", :default => "Player Rankings"), player_rankings_path
+    .w-100.d-none.d-sm-block.d-md-none
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.tournierplanung", :default => "Turnierplanung")
+      .card-body
+        = link_to I18n.t("home.index.disciplinetournamentplan", :default => "DisciplineTournamentPlan"), discipline_tournament_plans_path
+        br
+        = link_to I18n.t("home.index.tournamentplan", :default => "TournamentPlan"), tournament_plans_path
+    .card.mb-4.shadow-sm
+      .card-header
+        = I18n.t("home.index.tournierabwicklung", :default => "Turnierabwicklung")
+      .card-body
+        = link_to I18n.t("home.index.tournamentmonitor", :default => "TournamentMonitor"), tournament_monitors_path
+        br
+        = link_to I18n.t("home.index.tablemonitor", :default => "TableMonitor"), table_monitors_path

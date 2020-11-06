@@ -3,6 +3,7 @@ class Region < ActiveRecord::Base
   has_many :clubs
   has_many :tournaments
   has_many :player_rankings
+  has_one :setting
 
   COLUMN_NAMES = {
       "Logo" => "",

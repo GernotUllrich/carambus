@@ -13,6 +13,16 @@ Rails.application.routes.draw do
         post :down
       end
     end
+    resources :settings do
+      collection do
+        get :club_settings
+        post :update_club_settings
+        get :tournament_settings
+        post :update_tournament_settings
+        post :manage_tournament
+      end
+    end
+
     resources :tournament_monitors do
       member do
         post :switch_players
@@ -53,8 +63,16 @@ Rails.application.routes.draw do
       end
     end
     resources :players
-    resources :clubs
-    resources :regions
+    resources :clubs do
+      member do
+        get :get_club_details
+      end
+    end
+    resources :regions do
+      member do
+        get :get_club_selector
+      end
+    end
     resources :countries
     # The priority is based upon order of creation: first created -> highest priority.
     # See how all your routes lay out with "rake routes".

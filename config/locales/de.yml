@@ -1,17 +1,19 @@
 de:
+  ca:
+    update: Aktualisieren
   hello: "Hallo Welt"
   table_monitors:
     display_name: "Tisch %{t_no}"
   tournament_monitors:
     index:
       listing_tournament_monitors: Liste der Tourier-Monitore
-      tournament: Tournier
+      tournament: Turnier
       data: Data
       state: Status
       show: Zeigen
       edit: Ändern
       destroy: Löschen
-      new_tournament_execution: "Neuer Tournier Monitor"
+      new_tournament_execution: "Neuer Turnier Monitor"
       tournamentmonitorversions: TournamentMonitor::Versions
       this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10: This
         table is displaying TournamentMonitor::Version which is its own versions table.
@@ -33,25 +35,25 @@ de:
       gd: GD
       hs: HS
     rankings:
-      tournament_results: Tournierergebnisse
+      tournament_results: Turnierergebnisse
       group_rankings: Gruppenergebnisse
       group_results_in_total: Summen
       finals_rankings: Endrundenergebnisse
       finals_results_in_total: Summen
     edit:
-      editing_tournament_execution: Ändern des Tournier-Monitore
+      editing_tournament_execution: Ändern des Turnier-Monitore
       show: Zeigen
       back: Zurück
     show:
-      tournament: 'Tournier:'
+      tournament: 'Turnier:'
       playing: 'spielt '
       switch_players: 'Spieler tauschen'
-      start_tournament: Start des Tourniers
+      start_tournament: Start des Turniers
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor
         from being saved:"
     new:
-      new_tournament_execution: Neuer Tournier-Monitor
+      new_tournament_execution: Neuer Turnier-Monitor
       back: zurück
     current_games:
       table: Tisch
@@ -105,12 +107,12 @@ de:
         hosting_club: Gastgeber
   tournaments:
     index:
-      listing_tournaments: Liste der Tourniere
-      new_tournament: "Neues Tournier"
+      listing_tournaments: Liste der Turniere
+      new_tournament: "Neues Turnier"
     groups:
       groups: Gruppen
     edit:
-      editing_tournament: Editiere Tournier
+      editing_tournament: Editiere Turnier
       show: "Zeigen"
       back: "Zurück"
     show:
@@ -138,11 +140,11 @@ de:
       hosting_club: 'Gastgeber:'
       edit: "Aktualisieren"
       back: "Zurück"
-      reload_from_billard_area: "'Neuladen von der Billard Area"
+      reload_from_billard_area: "Neuladen von der Billard Area"
       order_by_ranking: 'Ordne nach Rangliste'
-      finalize_tournament_modus: 'Tournier Modus festlegen'
-      mangage_tournament_group_phase: 'Verwaltung der Tournierspiele'
-      reset_tournament_monitor: 'Zurücksetzen des Tournier-Monitors'
+      finalize_tournament_modus: 'Turnier Modus festlegen'
+      mangage_tournament_group_phase: 'Verwaltung der Turnierspiele'
+      reset_tournament_monitor: 'Zurücksetzen des Turnier-Monitors'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'
     finalize_modus:
       teilnehmer: 'Teilnehmer: '
@@ -152,23 +154,23 @@ de:
       continue_with: Weiter mit
       final_modus_selection: Finale Modus Selection
     form:
-      prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Tournieres unmöglich gemacht:"
+      prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Turnieres unmöglich gemacht:"
       discipline: 'Disziplin'
       player_class: 'Spielerklasse'
     new:
-      new_tournament: Neues Tournier
+      new_tournament: Neues Turnier
       back: "Zurück"
     tournament_monitor:
-      start_tournament: 'Starte den Tournier-Monitor'
+      start_tournament: 'Starte den Turnier-Monitor'
   home:
     index:
       organisation: Organisation
       country: 'Länder'
       region: 'Regionalverbände'
       club: 'Clubs'
-      tourniere: Tourniere
+      tourniere: Turniere
       seeding: 'Setzlisten'
-      tournament: 'Tourniere'
+      tournament: 'Turniere'
       spieler: Spieler
       season: 'Seasons'
       seasonparticipation: 'Clubzugehörigkeiten'
@@ -181,9 +183,20 @@ de:
       discipline: 'Disziplin'
       table_kind: 'Tischtypen'
       player_rankings: 'Ranglisten'
-      tournierplanung: Tournierplanung
-      disciplinetournamentplan: 'Disziplin/Tournierpläne'
-      tournamentplan: 'Tournierpläne'
-      tournierabwicklung: Tournierabwicklung
+      tournierplanung: Turnierplanung
+      disciplinetournamentplan: 'Disziplin/Turnierpläne'
+      tournamentplan: 'Turnierpläne'
+      tournierabwicklung: Turnierabwicklung
       tournamentmonitor: 'Tounier-Monitore'
       tablemonitor: 'Table-Monitore'
+      configure: "Einstellungen"
+      club_settings: "Club-Einstellungen"
+      tournament_settings: "Turnier-Einstellungen"
+      carambus_tournament_management: "Carambus Turnierverwaltung"
+      select_regional_organization: "Auswahl des Regionalverbandes"
+      select_your_club: "Auswahl des Clubs"
+      your_tables: "Verfügbare Turniertische"
+      small_carambol_tables: "Kleine Carambol Tische"
+      large_carambol_tables: "Große Carambol Tische"
+      pool_tables: "Pool Tische"
+      snooker_tables: "Snooker Tische"

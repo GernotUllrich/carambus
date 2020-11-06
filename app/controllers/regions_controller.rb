@@ -1,5 +1,5 @@
 class RegionsController < ApplicationController
-  before_action :set_region, only: [:show, :edit, :update, :destroy]
+  before_action :set_region, only: [:show, :edit, :update, :destroy, :get_club_selector]
 
   # GET /regions
   # GET /regions.json
@@ -14,6 +14,11 @@ class RegionsController < ApplicationController
   # GET /regions/1
   # GET /regions/1.json
   def show
+  end
+
+  def get_club_selector
+    @clubs = Club.joins(:region).where(regions: {id: params[:id]}).order("clubs.shortname")
+    render partial: 'club_selector', layout: nil
   end
 
   # GET /regions/new

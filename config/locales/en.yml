@@ -1,4 +1,6 @@
 en:
+  ca:
+    update: Update
   hello: "Hello world"
   table_monitors:
     display_name: "Table %{t_no}"
@@ -145,7 +147,7 @@ en:
       country: 'Country'
       region: 'Region'
       club: 'Club'
-      tourniere: Tourniere
+      tourniere: Turniere
       seeding: 'Seeding'
       tournament: 'Tournament'
       spieler: Spieler
@@ -160,9 +162,20 @@ en:
       discipline: 'Discipline'
       table_kind: 'Table Kind'
       player_rankings: 'Player Rankings'
-      tournierplanung: Tournierplanung
+      tournierplanung: Turnierplanung
       disciplinetournamentplan: 'DisciplineTournamentPlan'
       tournamentplan: 'TournamentPlan'
-      tournierabwicklung: Tournierabwicklung
+      tournierabwicklung: Turnierabwicklung
       tournamentmonitor: 'TournamentMonitor'
       tablemonitor: 'TableMonitor'
+      configure: "Configure"
+      club_settings: "Club Settings"
+      tournament_settings: "Tournament Settings"
+      carambus_tournament_management: "Carambus Tournament Management"
+      select_regional_organization: "Select Regional Organization"
+      select_your_club: "Select Your Club"
+      your_tables: "Available Tournament Tables"
+      small_carambol_tables: "Small Carambol Tables"
+      large_carambol_tables: "Large Carambol Tables"
+      pool_tables: "Pool Tables"
+      snooker_tables: "Snooker Tables"

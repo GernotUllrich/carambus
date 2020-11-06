@@ -13,6 +13,7 @@ class Tournament < ActiveRecord::Base
   has_many :seedings, -> { order(position: :asc) }
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
+  has_one :setting
 
   serialize :data, Hash
 
