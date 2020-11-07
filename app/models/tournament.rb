@@ -1,5 +1,6 @@
 require 'open-uri'
 require 'net/http'
+require 'dnssd'
 
 class Tournament < ActiveRecord::Base
 
@@ -91,6 +92,9 @@ class Tournament < ActiveRecord::Base
     logger.info "[initialize_tournament_monitor]..."
     TournamentMonitor.transaction do
       begin
+        http = TCPServer.new nil, 8082
+        DNSSD.announce http, 'carambus server'
+        Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
         TournamentMonitor.find_or_create_by!(tournament_id: self.id)
         reload
       rescue Exception => e
