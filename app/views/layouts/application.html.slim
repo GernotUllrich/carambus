@@ -11,11 +11,11 @@ html
     = link_to "Home", "/" unless @no_home
     - if (strip_tags(notice).present? rescue nil)
       .container.alert.alert-success.alert-dismissable*{style: "margin-top: 0; z-index: 999;"}
-        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "right:0;"} &times;
+        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "float:right; border: none;"} &times;
         = notice.to_s.html_safe
     - if (strip_tags(alert).present? rescue nil)
       .container.alert.alert-danger.alert-dismissable*{style: "margin-top: 0; z-index: 999;"}
-        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "right:0;"} &times;
+        button.close*{"aria-hidden" => "true", "data-dismiss" => "alert", type: "button", style: "float:right; border: none;"} &times;
         = alert.to_s.html_safe
     .container*{style: "margin-right: 020px; height:100%; width:100%; max-width:2000px; "}
       = yield
