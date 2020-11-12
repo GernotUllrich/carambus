@@ -42,7 +42,11 @@ Rails.application.routes.draw do
     resources :player_classes
     resources :player_rankings
     resources :player_tournament_participations
-    resources :locations
+    resources :locations do
+      member do
+        post :add_tables_to
+      end
+    end
     resources :seasons
     resources :table_kinds
     resources :disciplines

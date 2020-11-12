@@ -1,5 +1,5 @@
 class LocationsController < ApplicationController
-  before_action :set_location, only: [:show, :edit, :update, :destroy]
+  before_action :set_location, only: [:show, :edit, :update, :destroy, :add_tables_to]
 
   # GET /locations
   # GET /locations.json
@@ -19,6 +19,16 @@ class LocationsController < ApplicationController
 
   # GET /locations/1/edit
   def edit
+  end
+
+  def add_tables_to
+    table_kind = TableKind.find(params[:table_kind_id])
+    next_name = (@location.tables.order(:name).last.andand.name || "Table 0").succ
+    (1..params[:number].to_i).each do |i|
+      @location.tables.create(name: next_name, table_kind: table_kind)
+      next_name = next_name.succ
+    end
+    redirect_back(fallback_location: club_path(@location.club))
   end
 
   # POST /locations
@@ -41,7 +51,7 @@ class LocationsController < ApplicationController
   # PATCH/PUT /locations/1.json
   def update
     respond_to do |format|
-      if @location.update(location_params.merge(data: (JSON.parse(params[:location][:data]) rescue {})))
+      if @location.update(location_params)
         format.html { redirect_to @location, notice: 'Location was successfully updated.' }
         format.json { render :show, status: :ok, location: @location }
       else
@@ -69,6 +79,6 @@ class LocationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def location_params
-      params.require(:location).permit(:club_id, :name, :address, :data)
+      params.require(:location).permit(:club_id, :name, :address, :data).merge(data: (JSON.parse(params[:location][:data]) rescue {}))
     end
 end

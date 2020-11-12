@@ -35,9 +35,10 @@ class Club < ActiveRecord::Base
     club_homepage = doc_detail.css("\#tabs-1 a:nth-child(1)").text.strip
     club_players = doc_detail.css("\#clubs_table a").map { |d| d.attribute("href").value.match(/.*\/(\d+)$/).andand[1].to_i }
 
-    club_email = doc_detail.css("\#tabs-1").children[1].children[9].text.strip.gsub(/.*;< (.*) >.*/, '\1').gsub(/[\t\r\n]/, "").gsub("Email", "").reverse
-    club_priceinfo = doc_detail.css("pre").text.strip
-    club_status = doc_detail.css(".right fieldset:nth-child(1) .element").text.strip
+    club_email = doc_detail.css("\#tabs-1").children[1].children[9].andand.text.andand.strip.andand.gsub(/.*;< (.*) >.*/, '\1').andand.gsub(/[\t\r\n]/, "").andand.gsub("Email", "").andand.reverse
+    club_priceinfo = doc_detail.css("pre").inner_html
+    club_address = doc_detail.css(".left fieldset:nth-child(3) .element").inner_html
+    club_status = doc_detail.css(".right fieldset:nth-child(1) .element").children
     club_founded = doc_detail.css(".right fieldset:nth-child(2) .element").text.strip
     club_dbu_entry = doc_detail.css(".right fieldset~ fieldset+ fieldset .element").text.strip
     update_attributes(
@@ -45,6 +46,7 @@ class Club < ActiveRecord::Base
         shortname: club_shortname,
         homepage: club_homepage,
         email: club_email,
+        address: club_address,
         priceinfo: club_priceinfo,
         status: club_status,
         founded: club_founded,
