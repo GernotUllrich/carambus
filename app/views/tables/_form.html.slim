@@ -1,0 +1,21 @@
+= form_for @table do |f|
+  - if @table.errors.any?
+    #error_explanation
+      h2 = "#{pluralize(@table.errors.count, "error")} prohibited this table from being saved:"
+      ul
+        - @table.errors.full_messages.each do |message|
+          li = message
+
+  .field
+    = f.label :location_id
+    = f.text_field :location_id
+  .field
+    = f.label :table_kind_id
+    = f.select :table_kind_id, options_for_select(TableKind.order(:name).map{|table_kind| [table_kind.name, table_kind.id]}, @table.table_kind_id)
+  .field
+    = f.label :name
+    = f.text_field :name
+  .field
+    = f.label :data
+    = f.text_area :data
+  .actions = f.submit

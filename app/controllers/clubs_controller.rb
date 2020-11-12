@@ -1,5 +1,5 @@
 class ClubsController < ApplicationController
-  before_action :set_club, only: [:show, :edit, :update, :destroy, :get_club_details]
+  before_action :set_club, only: [:show, :edit, :update, :destroy, :get_club_details, :reload_from_ba, :reload_from_ba_with_player_details]
 
   # GET /clubs
   # GET /clubs.json
@@ -18,6 +18,16 @@ class ClubsController < ApplicationController
 
   def get_club_details
     render partial: 'club_details', locals: {club: @club}, layout: nil
+  end
+
+  def reload_from_ba
+    @club.scrape_single_club(player_details: false)
+    redirect_to club_path(@club)
+  end
+
+  def reload_from_ba_with_player_details
+    @club.scrape_single_club(player_details: true)
+    redirect_to club_path(@club)
   end
 
   # GET /clubs/new

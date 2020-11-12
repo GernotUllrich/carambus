@@ -52,6 +52,7 @@ namespace :carambus do
       Region.all.each do |region|
         #if region.shortname.downcase == 'nbv'
         #if ["BVNRW"].include?(region.shortname)
+        Club.scrape_single_club(player_details: true)
         url = "https://#{region.shortname.downcase}.billardarea.de"
         Rails.logger.info "reading #{url + '/cms_clubs'} - region clubs"
         html = open(url + '/cms_clubs')
@@ -59,63 +60,11 @@ namespace :carambus do
         doc = Nokogiri::HTML(html)
         club_details = doc.css("td:nth-child(2) a").map { |d| d.attribute("href").value }
         club_details.each do |club_detail|
-          detail_url = url + club_detail
-
-          force_update = false
-          Rails.logger.info "reading #{detail_url} - club details"
-          detail_uri = URI(detail_url)
-          res = Net::HTTP.post_form(detail_uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-          doc_detail = Nokogiri::HTML(res.body)
-          club_logo = doc_detail.css("\#tabs-1 img").text.strip
           club_ba_id = club_detail.match(/.*\/(\d+)$/).andand[1].to_i
-          club_name = doc_detail.css(".left fieldset:nth-child(1) .element").text.strip
-          club_shortname = doc_detail.css(".left fieldset:nth-child(2) .element").text.strip
-          club_homepage = doc_detail.css("\#tabs-1 a:nth-child(1)").text.strip
-          club_players = doc_detail.css("\#clubs_table a").map { |d| d.attribute("href").value.match(/.*\/(\d+)$/).andand[1].to_i }
-
-          tab1 = doc_detail.css("\#tabs-1")
-          club_email = doc_detail.css("\#tabs-1").children[1].children[9].text.strip.gsub(/.*;< (.*) >.*/, '\1').gsub(/[\t\r\n]/, "").gsub("Email", "").reverse
-          club_priceinfo = doc_detail.css("pre").text.strip
-          club_status = doc_detail.css(".right fieldset:nth-child(1) .element").text.strip
-          club_founded = doc_detail.css(".right fieldset:nth-child(2) .element").text.strip
-          club_dbu_entry = doc_detail.css(".right fieldset~ fieldset+ fieldset .element").text.strip
-          club = Club.find_by_ba_id(club_ba_id) || Club.new(ba_id: club_ba_id)
-          club.update_attributes(
-              name: club_name,
-              shortname: club_shortname,
-              homepage: club_homepage,
-              email: club_email,
-              priceinfo: club_priceinfo,
-              status: club_status,
-              founded: club_founded,
-              dbu_entry: club_dbu_entry,
-              region: region,
-              logo: club_logo
-          )
-          club_players.each do |id|
-            player = Player.find_by_ba_id(id)
-            skip_details = player.present? && !force_update
-            player ||= Player.new()
-            player.update_attributes(ba_id: id, club_id: club.id)
-            sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, club.id) ||
-                SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: club.id)
-            unless skip_details
-              url = "https://#{region.shortname.downcase}.billardarea.de"
-              player_details_url = "#{url}/cms_clubs/playerdetails/#{club.ba_id}/#{player.ba_id}"
-              Rails.logger.info "reading #{player_details_url} - player details of player [#{player.ba_id}] on club #{club.shortname} [#{club.ba_id}]"
-              html_player_detail = open(player_details_url)
-              doc_player_detail = Nokogiri::HTML(html_player_detail)
-              player_ba_id = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) legend+ .element .field").text.strip.to_i
-              if player_ba_id == player.ba_id
-                player_title = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(3) .field").text.strip
-                player_lastname, player_firstname = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(4) .field").text.strip.split(", ")
-                player.update_attributes(title: player_title, lastname: player_lastname, firstname: player_firstname)
-              end
-            end
-          end
+          club = Club.find_by_ba_id(club_ba_id) || Club.new(ba_id: club_ba_id, region_id: region.id)
+          club.scrape_single_club(player_details: true, season: season, force_update: false)
         end
       end
-      #end
     end
     #fix title
     Player.where("title ~ 'Herr.'").update_all(title: 'Herr')

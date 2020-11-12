@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_05_182233) do
+ActiveRecord::Schema.define(version: 2020_11_10_190757) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -121,6 +121,7 @@ ActiveRecord::Schema.define(version: 2020_11_05_182233) do
     t.text "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "name"
     t.index ["club_id"], name: "index_locations_on_foreign_keys"
   end
 
@@ -262,6 +263,15 @@ ActiveRecord::Schema.define(version: 2020_11_05_182233) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "tables", force: :cascade do |t|
+    t.integer "location_id"
+    t.integer "table_kind_id"
+    t.string "name"
+    t.text "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "tournament_monitors", id: :serial, force: :cascade do |t|
     t.integer "tournament_id"
     t.text "data"
@@ -289,21 +299,19 @@ ActiveRecord::Schema.define(version: 2020_11_05_182233) do
     t.datetime "updated_at", null: false
     t.text "more_description"
     t.text "even_more_description"
-    t.text "data_round1"
-    t.text "data_round2"
-    t.text "data_round3"
-    t.text "data_round8"
-    t.text "data_round9"
-    t.text "data_round10"
-    t.text "data_round11"
     t.string "executor_class"
     t.text "executor_params"
-    t.text "data_round4"
-    t.text "data_round5"
-    t.text "data_round6"
     t.integer "ngroups", default: 2, null: false
-    t.text "data_round7"
     t.integer "nrepeats", default: 1, null: false
+  end
+
+  create_table "tournament_tables", force: :cascade do |t|
+    t.integer "tournament_id"
+    t.integer "table_id"
+    t.integer "table_no"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["table_no", "tournament_id", "table_id"], name: "index_tournament_tables", unique: true
   end
 
   create_table "tournaments", id: :serial, force: :cascade do |t|

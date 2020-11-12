@@ -76,6 +76,7 @@
     <orderEntry type="library" scope="PROVIDED" name="jquery-ui-rails (v6.0.1, rbenv: 2.6.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="json (v1.8.6, rbenv: 2.6.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="json_pure (v2.3.1, rbenv: 2.6.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="jwt (v2.2.2, rbenv: 2.6.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="kaminari (v1.2.1, rbenv: 2.6.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="kaminari-actionview (v1.2.1, rbenv: 2.6.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="kaminari-activerecord (v1.2.1, rbenv: 2.6.3) [gem]" level="application" />

@@ -4,13 +4,20 @@
 </p>
 
 <p>
+  <strong>Name:</strong>
+  <%= @location.name %>
+</p>
+
+<p>
   <strong>Address:</strong>
-  <%= @location.address %>
+  <%= @location.address.gsub("\n", "<br />").html_safe %>
 </p>
 
 <p>
   <strong>Data:</strong>
-  <%= @location.data %>
+<pre>
+  <%= JSON.pretty_generate(@location.data).gsub("\n", "<br />").html_safe %>
+  </pre>
 </p>
 
 <%= link_to 'Edit', edit_location_path(@location) %> |

@@ -14,7 +14,7 @@ class LocationsController < ApplicationController
 
   # GET /locations/new
   def new
-    @location = Location.new
+    @location = Location.new(club_id: params[:club_id])
   end
 
   # GET /locations/1/edit
@@ -41,7 +41,7 @@ class LocationsController < ApplicationController
   # PATCH/PUT /locations/1.json
   def update
     respond_to do |format|
-      if @location.update(location_params)
+      if @location.update(location_params.merge(data: (JSON.parse(params[:location][:data]) rescue {})))
         format.html { redirect_to @location, notice: 'Location was successfully updated.' }
         format.json { render :show, status: :ok, location: @location }
       else
@@ -69,6 +69,6 @@ class LocationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def location_params
-      params.require(:location).permit(:club_id, :address, :data)
+      params.require(:location).permit(:club_id, :name, :address, :data)
     end
 end

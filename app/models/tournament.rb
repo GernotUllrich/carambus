@@ -15,6 +15,7 @@ class Tournament < ActiveRecord::Base
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
   has_one :setting
+  has_many :tournament_tables
 
   serialize :data, Hash
 

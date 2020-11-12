@@ -17,7 +17,7 @@
   </div>
   <div class="field">
     <%= f.label :region_id %><br>
-    <%= f.select :region_id, options_for_select(Region.order(:name).map{|region| [region.name, region.id]}) %>
+    <%= f.select :region_id, options_for_select(Region.order(:name).map{|region| [region.name, region.id]}, @club.region_id) %>
   </div>
   <div class="field">
     <%= f.label :name %><br>

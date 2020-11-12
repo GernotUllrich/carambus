@@ -1,0 +1,27 @@
+h1 Listing tables
+
+table
+  thead
+    tr
+      th Location
+      th Table kind
+      th Name
+      th Data
+      th
+      th
+      th
+
+  tbody
+    - @tables.each do |table|
+      tr
+        td = link_to table.location.name, location_path(table.location)
+        td = table.table_kind_id
+        td = table.name
+        td = table.data
+        td = link_to 'Show', table
+        td = link_to 'Edit', edit_table_path(table)
+        td = link_to 'Destroy', table, data: { confirm: 'Are you sure?' }, method: :delete
+
+br
+
+= link_to 'New Table', new_table_path

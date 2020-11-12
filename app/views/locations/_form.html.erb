@@ -1,19 +1,35 @@
+<style>
+  textarea {width:100%;}
+</style>
 <%= form_for(@location) do |f| %>
   <% if @location.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@location.errors.count, "error") %> prohibited this location from being saved:</h2>
 
       <ul>
-      <% @location.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
+        <% @location.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
       </ul>
     </div>
   <% end %>
 
+  <%- if @location.club_id.present? %>
+    <%- club = Club[@location.club_id] %>
+    <div class="field">
+      <%= f.label :club_id %><br>
+      <%= f.hidden_field :club_id %>
+      <%= link_to club.shortname, club_path(club) %>
+    </div>
+  <% else %>
+    <div class="field">
+      <%= f.label :club_id %><br>
+      <%= f.number_field :club_id %>
+    </div>
+  <% end %>
   <div class="field">
-    <%= f.label :club_id %><br>
-    <%= f.number_field :club_id %>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
   </div>
   <div class="field">
     <%= f.label :address %><br>
@@ -21,7 +37,7 @@
   </div>
   <div class="field">
     <%= f.label :data %><br>
-    <%= f.text_area :data %>
+    <%= f.text_area :data, value: JSON.pretty_generate(@location.data || {}).html_safe %>
   </div>
   <div class="actions">
     <%= f.submit %>

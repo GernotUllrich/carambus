@@ -1,5 +1,12 @@
 Rails.application.routes.draw do
 
+  resources :tournament_tables
+  resources :tables
+  scope :api, defaults: {format: :json} do
+    scope :v1 do
+      resources :games
+    end
+  end
   scope "(:locale)", locale: /en|de/ do
     resources :table_monitors do
       member do
@@ -66,6 +73,8 @@ Rails.application.routes.draw do
     resources :clubs do
       member do
         get :get_club_details
+        post :reload_from_ba
+        post :reload_from_ba_with_player_details
       end
     end
     resources :regions do

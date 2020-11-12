@@ -125,6 +125,7 @@ GEM
       railties (>= 3.2.16)
     json (1.8.6)
     json_pure (2.3.1)
+    jwt (2.2.2)
     kaminari (1.2.1)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.1)
@@ -266,6 +267,7 @@ DEPENDENCIES
   aasm
   acts_as_list
   andand
+  bcrypt
   bootstrap (~> 5.0.0.alpha1)
   byebug
   capistrano
@@ -284,6 +286,7 @@ DEPENDENCIES
   jquery-datatables-rails
   jquery-rails
   jquery-ui-rails
+  jwt
   kaminari
   paper_trail
   pg (= 0.19.0)

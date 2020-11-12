@@ -72,8 +72,7 @@ class TournamentPlansController < ApplicationController
   def tournament_plan_params
     params.require(:tournament_plan).permit(
         :name, :rulesystem, :players, :ngroups, :tables, :more_description,
-        :even_more_description, :data_round1, :data_round2, :data_round3, :data_round8,
-        :data_round9, :data_round10, :data_round11, :executor_class, :executor_params,
-        :data_round4, :data_round5, :data_round6, :data_round7, :nrepeats)
+        :even_more_description, :executor_class, :executor_params,
+        :nrepeats)
   end
 end
