@@ -1,11 +1,15 @@
 class Api::V1::SessionController < ApiController
   def login
     user = User.find_by :email=>params[:email]
-    if user && user.authenticate(params[:password])
+    if user && user.valid_password?(params[:password])
       payload = {user_id: user.id}
       token = encode_token(payload)
-      user_json = user.to_json(:include => [
-          :orders=>{:include=> :dishes}])
+      user_hash = JSON.parse(user.to_json)
+      ### TODO TEST
+      tournament = Tournament[716]
+      tournament.to_json(:include => { :region => [ :include => :clubs]})
+      ###
+      user_json = user_hash.merge(tournament: JSON.parse(tournament.to_json))
       render json: {
           user: user_json,
           jwt: token}

@@ -1,6 +1,10 @@
 class ApiController < ActionController::API
   def encode_token(payload)
-    JWT.encode(payload, 'secret')
+    JWT.encode(payload, Rails.application.credentials.carambus)
+  end
+
+  def auth_header_token
+    request.headers['Authorization'].split(' ')[1]
   end
 
   def session_user
@@ -14,7 +18,7 @@ class ApiController < ActionController::API
   def decoded_token
     if auth_header_token
       begin
-        JWT.decode(auth_header_token, 'secret',true, algorithm: 'HS256')
+        JWT.decode(auth_header_token, Rails.application.credentials.carambus,true, algorithm: 'HS256')
       rescue JWT::DecodeError
         []
       end
