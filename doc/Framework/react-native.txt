@@ -1,0 +1,6 @@
+Debugging:
+    React Native Console
+    https://plugins.jetbrains.com/plugin/9564-react-native-console/versions
+
+Landscape
+    https://github.com/yamill/react-native-orientation

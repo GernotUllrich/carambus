@@ -1,0 +1,1 @@
+rails g scaffold_controller Game template_game_id:integer tournament_id:integer roles:text data:text created_at:datetime updated_at:datetime seqno:integer gname:string group_no:integer table_no:integer round_no:integer started_at:datetime ended_at:datetime --quiet

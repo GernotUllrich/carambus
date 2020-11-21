@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Title</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Helvetica Neue", "Arial", sans-serif;
+            font-size: 1.3em;
+        }
+
+        .col-container {
+            display: table;
+            width: 100%;
+            height: 100%;
+        }
+
+        .col {
+            display: table-cell;
+        }
+
+        .left-width, .right-width {
+            width: 40%;
+        }
+
+        .main-content {
+            height: 85%;
+            background: yellow;
+        }
+
+        .admin-area {
+            height: 15%;
+            background: yellow;
+        }
+
+
+        .header {
+            height: 10%;
+
+            position: relative;
+            text-align: center;
+            overflow-y: scroll;
+        }
+
+
+        .header p {
+            margin: 5px;
+            left: 10%;
+        }
+    </style>
+
+</head>
+<body>
+<div class="main-content">
+    <div class="col-container">
+        <div class="col left-width" style="background:orange">
+            <div class="header">
+                <strong><p>Gernot</p></strong>
+            </div>
+        </div>
+
+        <div class="col" style="background:yellow">
+            <h2>Column 2</h2>
+            <p>Hello World!</p>
+            <p>Hello World!</p>
+            <p>Hello World!</p>
+            <p>Hello World!</p>
+        </div>
+
+        <div class="col right-width" style="background:orange">
+            <div class="header">
+                <strong><p>Lothar</p></strong>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="admin-area">ad
+
+</div>
+
+</body>
+</html>
