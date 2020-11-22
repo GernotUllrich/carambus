@@ -83,3 +83,5 @@ group :development do
   gem 'capistrano-secrets-yml'
 end
 
+gem 'webpacker', git: 'https://github.com/rails/webpacker.git'
+
