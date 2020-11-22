@@ -9,10 +9,7 @@ require("@rails/activestorage").start()
 require("channels")
 require('bootstrap/dist/js/bootstrap.bundle.min') // importando bootstrap bundle direto
 require('datatables.net-bs4')                     // importanto data-tables
-require('bootstrap-growl-ifightcrime')            // importanto bootstrap-growl-notifications
-
-import $ from 'jquery';
-global.$ = jQuery;
+require('bootstrap-growl-ifightcrime')            // importanto bootstrap-growl-notificationswe
 
 
 // Uncomment to copy all static images under ../images to the output folder and reference
