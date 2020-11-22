@@ -20,7 +20,7 @@
 
 <p>
   <strong>Player:</strong>
-  <%= @user.player_id %>
+  <%= link_to @user.player.andand.fullname, player_path(@user.player) %>
 </p>
 
 <%= link_to 'Edit', edit_user_path(@user) %> |

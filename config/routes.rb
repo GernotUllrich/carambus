@@ -73,7 +73,11 @@ Rails.application.routes.draw do
         post :up
       end
     end
-    resources :players
+    resources :players do
+      member do
+        post :create_admin
+      end
+    end
     resources :clubs do
       member do
         get :get_club_details

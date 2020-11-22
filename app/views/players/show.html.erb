@@ -1,7 +1,7 @@
 <style>
-  th, td {
-      padding: 3px;
-  }
+    th, td {
+        padding: 3px;
+    }
 </style>
 <h1><%= @player.firstname %> <%= @player.lastname %></h1>
 
@@ -9,6 +9,15 @@
   <strong>Billard Area:</strong>
   <%= link_to @player.ba_id, "https://#{@player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{@player.club.ba_id}/#{@player.ba_id}" %>
 </p>
+
+<% if @player.admin_user.present? %>
+  <p>
+    <strong>Admin User:</strong>
+    <%= link_to @player.admin_user.display_name, user_path(@player.admin_user) %>
+  </p>
+<% else %>
+  <%= button_to "Create Admin User", create_admin_player_path(@player) %>
+<% end %>
 
 <p>
   <strong>Club:</strong>
@@ -39,20 +48,20 @@
   <tr>
     <th>Season</th>
     <th>Region</th>
-<!--    <th>Discipline</th>-->
+    <!--    <th>Discipline</th>-->
     <th>Tournament</th>
     <th>Results</th>
   </tr>
   </thead>
   <tbody>
-  <% @player.seedings.joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc" ).each do |seeding| %>
-  <tr>
-    <td><%= link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
-    <td><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>
-<!--    <td><%#= link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
-    <td><%= link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
-    <td><%= link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
-  </tr>
+  <% @player.seedings.joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc").each do |seeding| %>
+    <tr>
+      <td><%= link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
+      <td><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>
+      <!--    <td><%#= link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
+      <td><%= link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
+      <td><%= link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
+    </tr>
   <% end %>
   </tbody>
 </table>
@@ -66,7 +75,7 @@
   </tr>
   </thead>
   <tbody>
-  <% SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: {id: @player.id}).order("season_participations.season_id desc" ).uniq.each do |season_participation| %>
+  <% SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: {id: @player.id}).order("season_participations.season_id desc").uniq.each do |season_participation| %>
     <tr>
       <td><%= link_to season_participation.season.name, season_path(season_participation.season) %></td>
       <td><%= link_to season_participation.club.shortname, club_path(season_participation.club) %></td>

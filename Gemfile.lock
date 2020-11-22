@@ -76,7 +76,7 @@ GEM
     bcrypt (3.1.16)
     beanstalk-client (1.1.1)
     bindex (0.8.1)
-    bootstrap (5.0.0.alpha2)
+    bootstrap (5.0.0.alpha3)
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 1.14.3, < 2)
       sassc-rails (>= 2.0.0)
@@ -284,7 +284,7 @@ DEPENDENCIES
   acts_as_list
   andand
   bcrypt
-  bootstrap (~> 5.0.0.alpha1)
+  bootstrap (~> 5.0.0.alpha3)
   byebug
   capistrano
   capistrano-bundler

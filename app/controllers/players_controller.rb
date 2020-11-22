@@ -1,5 +1,5 @@
 class PlayersController < ApplicationController
-  before_action :set_player, only: [:show, :edit, :update, :destroy]
+  before_action :set_player, only: [:show, :edit, :update, :destroy, :create_admin]
 
   # GET /players
   # GET /players.json
@@ -10,6 +10,18 @@ class PlayersController < ApplicationController
       #format.json { render json: PlayersDatatable.new(view_context, @players) }
       format.json { render json: PlayersDatatable.new(view_context, nil) }
     end
+  end
+
+  def create_admin
+    @user = @player.admin_user
+    unless @user.present?
+      begin
+        @user = User.create(player_id: @player.id, password: rand.to_s[2..-1], email: "p#{@player.ba_id}@example.com", username: @player.ba_id.to_s)
+      rescue Exception => e
+        flash[:alert] = e.full_messages
+      end
+    end
+    redirect_back(fallback_location: player_path(@player))
   end
 
   # GET /players/1
@@ -67,13 +79,14 @@ class PlayersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_player
-      @player = Player.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def player_params
-      params.require(:player).permit(:ba_id, :club_id, :lastname, :firstname, :title)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_player
+    @player = Player.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def player_params
+    params.require(:player).permit(:ba_id, :club_id, :lastname, :firstname, :title)
+  end
 end

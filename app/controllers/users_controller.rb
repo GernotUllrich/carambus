@@ -69,6 +69,13 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).permit(:email, :username, :firstname, :lastname, :player_id)
+      attrs = params.require(:user).permit(:email, :player_ba_id, :username, :firstname, :lastname, :player_id)
+      if attrs["player_ba_id"].present?
+        @player = Player.find_by_ba_id(attrs["player_ba_id"])
+        if @player.present?
+          attrs = attrs.reject{|k,v| k.to_s == "player_ba_id"}.merge(player_id: @player.id)
+        end
+      end
+      attrs
     end
 end

@@ -19,6 +19,7 @@ gem "slim-rails"
 gem 'devise'
 
 
+gem 'bootstrap', '~> 5.0.0.alpha3'
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
 # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
@@ -43,7 +44,6 @@ gem 'jwt'
 gem "andand"
 gem "kaminari"
 #gem 'will_paginate'
-gem 'bootstrap', '~> 5.0.0.alpha1'
 gem 'jquery-datatables-rails'
 gem 'jquery-ui-rails'
 gem 'stalker'
