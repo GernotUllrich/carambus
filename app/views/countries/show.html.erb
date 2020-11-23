@@ -9,10 +9,10 @@
         background-color: #dddddd;
     }
 </style>
-<% content_for :javascript_code do %>
+<% content_for :javascript_in_head do %>
   <script>
       $(document).ready(function () {
-          $('#regions').DataTable({
+          $('#regions').dataTable({
                   "stateSave": true,
                   dom: 'Bfrtip',
               dom: 'Bfrtip',

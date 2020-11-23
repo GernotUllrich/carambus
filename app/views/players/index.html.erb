@@ -1,7 +1,7 @@
-<% content_for :javascript_code do %>
+<% content_for :javascript_in_head do %>
   <script>
-      $(document).ready(function () {
-          $('#players').DataTable({
+    $(document).ready(function () {
+          $('#players').dataTable({
                   "stateSave": true,
               dom: 'Bfrtip',
               buttons: [

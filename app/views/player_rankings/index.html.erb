@@ -1,4 +1,4 @@
-<% content_for :javascript_code do %>
+<% content_for :javascript_in_head do %>
   <script>
       jQuery.fn.dataTableExt.oSort['NumericOrBlank-asc'] = function (x, y) {
           var retVal;
@@ -20,7 +20,7 @@
           return retVal;
       }
       $(document).ready(function () {
-          $('#player_rankings').DataTable({
+          $('#player_rankings').dataTable({
                   "stateSave": true,
               dom: 'Bfrtip',
               buttons: [

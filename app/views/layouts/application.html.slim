@@ -3,10 +3,13 @@ html
   head
     title
       | Carambus
-    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true
-    = javascript_include_tag 'application', 'data-turbolinks-track' => true
-    link[rel="stylesheet" type="text/css" href="//cdn.onlinewebfonts.com/svg_info/l/40104/634/icon.css"]
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload'
     = csrf_meta_tags
+    = csp_meta_tag
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload'
+    = javascript_pack_tag 'application', 'data-turbolinks-track': 'reload'
+    link[rel="stylesheet" type="text/css" href="//cdn.onlinewebfonts.com/svg_info/l/40104/634/icon.css"]
+    = yield :javascript_in_head
   body
     = link_to "Home", "/" unless @no_home
     - if (strip_tags(notice).present? rescue nil)

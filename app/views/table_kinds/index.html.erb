@@ -1,7 +1,7 @@
-<% content_for :javascript_code do %>
+<% content_for :javascript_in_head do %>
   <script>
       $(document).ready(function () {
-          $('#table_kinds').DataTable({
+          $('#table_kinds').dataTable({
                   "stateSave": true,
               dom: 'Bfrtip',
               buttons: [

@@ -1,14 +1,18 @@
 source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
+ruby '2.7.2'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-#gem 'rails', '4.2.8'
-gem 'rails', '~> 6'
+gem 'rails', '~> 6.0.3', '>= 6.0.3.4'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
 gem 'pg', '0.19.0'
 # Use SCSS for stylesheets
-gem 'sass-rails'
+gem 'sass-rails', '>= 6'
+# Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker
+gem 'webpacker', '~> 4.0'
+
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
 # Use CoffeeScript for .coffee assets and views
@@ -18,12 +22,17 @@ gem "slim-rails"
 
 gem 'devise'
 
+# Reduces boot times through caching; required in config/boot.rb
+gem 'bootsnap', '>= 1.4.2', require: false
+
 
 gem 'bootstrap', '~> 5.0.0.alpha3'
 # Use jquery as the JavaScript library
-gem 'jquery-rails'
-# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+##gem 'jquery-rails'
+## load torbolink via webpack
+# # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
 gem 'turbolinks', '~> 5'
+
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.7'
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -82,6 +91,4 @@ group :development do
   gem 'capistrano-rbenv', github: "capistrano/rbenv"
   gem 'capistrano-secrets-yml'
 end
-
-gem 'webpacker', git: 'https://github.com/rails/webpacker.git'
 
