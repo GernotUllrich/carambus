@@ -20,7 +20,8 @@ class PlayersDatatable
   def data
     players.map do |player|
       [
-          "#{(link_to player.ba_id, @view.player_path(player))}",
+
+          "#{(link_to_if player.andand.club.present?, player.ba_id, "https://#{region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{player.club.ba_id}/#{player.ba_id}")}",
           (link_to player.club.shortname, @view.club_path(player.club) if player.andand.club.present?),
           player.lastname,
           player.firstname,
