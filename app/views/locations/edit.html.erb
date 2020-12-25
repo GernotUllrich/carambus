@@ -1,6 +1,12 @@
-<h1>Editing Location</h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Location</h1>
+      <%= link_to 'Cancel', @location, class: "btn btn-link" %>
+    </div>
 
-<%= render 'form' %>
-
-<%= link_to 'Show', @location %> |
-<%= link_to 'Back', locations_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <%= render 'form', location: @location %>
+    </div>
+  </div>
+</div>

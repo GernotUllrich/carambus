@@ -1,8 +1,34 @@
-class Club < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: clubs
+#
+#  id         :bigint           not null, primary key
+#  address    :text
+#  dbu_entry  :string
+#  email      :string
+#  founded    :string
+#  homepage   :string
+#  logo       :string
+#  name       :string
+#  priceinfo  :text
+#  shortname  :string
+#  status     :string
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  ba_id      :integer
+#  region_id  :integer
+#
+# Indexes
+#
+#  index_clubs_on_ba_id         (ba_id) UNIQUE
+#  index_clubs_on_foreign_keys  (ba_id) UNIQUE
+#
+class Club < ApplicationRecord
   belongs_to :region
   has_many :players
   has_many :season_participations
-  has_many :locations
+  has_many :tournament_locations, as: :organizer, class_name: "Location"
+  has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
   has_one :club
   REFLECTION_KEYS = ["region", "players", "season_participations"]
   COLUMN_NAMES = {#TODO FILTERS

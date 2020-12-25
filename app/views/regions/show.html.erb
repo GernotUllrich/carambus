@@ -1,112 +1,112 @@
-<style>
-    td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
-    th, tr:nth-child(even) {
-        background-color: #dddddd;
-    }
-</style>
-<h1><%= image_tag @region.logo if @region.logo.present? %><%= @region.name %></h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to t('home.index.region'), regions_path %> > <%= @region.display_shortname %></h1>
+      <%= link_to('Edit', edit_region_path(@region), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Name:</strong>
-  <%= @region.name %>
-</p>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <div class="mb-4">
+        <h5><%= t('region.name') %></h5>
+        <div class="flex">
+          <%= image_tag @region.logo if @region.logo.present? %>&nbsp;
+          <%= @region.name %>
+        </div>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.shortname') %></h5>
+        <%= @region.shortname %>
+        (-> <%= link_to("Billard Area", "https://#{@region.shortname.downcase}.billardarea.de") %>)
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.email') %></h5>
+        <%= mail_to @region.email %>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.address') %></h5>
+        <%= @region.address.split("\n").select { |s| s.present? }.join(", ") %>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.country_id') %></h5>
+        <%= link_to @region.country.andand.code, country_path(@region.country) %>
+      </div>
+    </div>
+  </div>
+  <h3 class="mt-6 mb-4"><%= t('tournaments_season') %> <%= Season.last.name %></h3>
+  <div class="bg-white dark:bg-black rounded shadow table-responsive">
+    <table class="table">
+      <thead>
+      <tr>
+        <th><%= t('tournament.ba_id') %></th>
+        <th><%= t('tournament.date') %></th>
+        <th><%= t('tournament.title') %></th>
+        <th><%= t('tournament.shortname') %></th>
+        <th><%= t('tournament.discipline_id') %></th>
+        <th><%= t('tournament.region_id') %></th>
+        <th><%= t('tournament.season_id') %></th>
+        <th><%= t('tournament.single_or_league') %></th>
+      </tr>
+      </thead>
 
-<p>
-  <strong>Shortname:</strong>
-  <%= link_to(@region.shortname, "https://#{@region.shortname.downcase}.billardarea.de") %>
-</p>
+      <tbody>
+      <% @tournaments.each do |tournament| %>
+        <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+          <td><%= link_to(tournament.ba_id, "https://nbv.billardarea.de/cms_#{tournament.single_or_league}/show/#{tournament.ba_id}") %></td>
+          <td><%= tournament.date_str %></td>
+          <td><%= link_to(tournament.title, tournament_path(tournament)) %></td>
+          <td><%= link_to(tournament.shortname, tournament_path(tournament)) if tournament.shortname.present? %></td>
+          <td><%= link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present? %></td>
+          <td><%= link_to(tournament.region.shortname, region_path(tournament.region)) if tournament.region.present? %></td>
+          <td><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>
+          <td><%= tournament.single_or_league %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
 
-<p>
-  <strong>Logo:</strong>
-  <%= @region.logo %>
-</p>
-
-<p>
-  <strong>Email:</strong>
-  <%= mail_to @region.email %>
-</p>
-
-<p>
-  <strong>Address:</strong>
-  <%= @region.address.split("\n").select{|s| s.present?}.join(", ") %>
-</p>
-
-<p>
-  <strong>Country:</strong>
-  <%= link_to @region.country.andand.code, country_path(@region.country) %>
-</p>
-
-<%= link_to "Edit", edit_region_path(@region) %> |
-<%= link_to 'Back', regions_path %>
-<h3>Tournaments Season <%= Season.last.name %></h3>
-<table>
-  <thead>
-  <tr>
-    <th>BaId</th>
-    <th>Date</th>
-    <th>Title</th>
-    <th>Shortname</th>
-    <th>Discipline</th>
-    <th>Region</th>
-    <th>Season</th>
-    <th>SingleOrLeague</th>
-  </tr>
-  </thead>
-
-  <tbody>
-  <% Tournament.where(season_id: Season.last.id, region_id: @region.id).order("tournaments.date asc").each do |tournament| %>
-    <tr>
-      <td><%= link_to(tournament.ba_id, tournament_path(tournament)) %></td>
-      <td><%= tournament.date_str %></td>
-      <td><%= link_to(tournament.title, tournament_path(tournament)) %></td>
-      <td><%= link_to(tournament.shortname, tournament_path(tournament)) if tournament.shortname.present? %></td>
-      <td><%= link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present? %></td>
-      <td><%= link_to(tournament.region.shortname, region_path(tournament.region)) if tournament.region.present? %></td>
-      <td><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>
-      <td><%= tournament.single_or_league %></td>
-    </tr>
+  <% if @t_pagy.pages > 1 %>
+    <div class="text-center my-6">
+      <%== pagy_nav(@t_pagy) %>
+    </div>
   <% end %>
-  </tbody>
-</table>
 
-<h3>Clubs</h3>
-<table>
-  <thead>
-  <tr>
-    <th>BaId</th>
-    <th>Region</th>
-    <th>Name</th>
-    <th>Shortname</th>
-    <th>Address</th>
-    <th>Homepage</th>
-    <th>Email</th>
-    <th>Logo</th>
-    <th>Status</th>
-    <th>Founded</th>
-    <th>Dbu entry</th>
-  </tr>
-  </thead>
+  <h3>Clubs</h3>
+  <div class="bg-white dark:bg-black rounded shadow table-responsive">
+    <table>
+      <thead>
+      <tr>
+        <th><%= t('club.ba_id') %></th>
+        <th><%= t('club.region_id') %></th>
+        <th><%= t('club.name') %></th>
+        <th><%= t('club.shortname') %></th>
+        <th><%= t('club.address') %></th>
+        <th><%= t('club.homepage') %></th>
+        <th><%= t('club.email') %></th>
+        <th><%= t('club.logo') %></th>
+        <th><%= t('club.status') %></th>
+        <th><%= t('club.founded') %></th>
+        <th><%= t('club.dbu_entry') %></th>
+      </tr>
+      </thead>
 
-  <tbody>
-  <% @region.clubs.order(:name).each do |club| %>
-    <tr>
-      <td><%= link_to club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}" %></td>
-      <td><%= link_to club.region.name, region_path(club.region) if club.region.present? %></td>
-      <td><%= link_to club.name, club_path(club) %></td>
-      <td><%= club.shortname %></td>
-      <td><%= club.address %></td>
-      <td><%= link_to club.homepage, club.homepage %></td>
-      <td><%= club.email %></td>
-      <td><%= club.logo %></td>
-      <td><%= club.status %></td>
-      <td><%= club.founded %></td>
-      <td><%= club.dbu_entry %></td>
-    </tr>
-  <% end %>
-  </tbody>
-</table>
-
+      <tbody>
+      <% @region.clubs.where('ba_id < 999000000').order(:name).each do |club| %>
+        <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+          <td><%= link_to club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}" %></td>
+          <td><%= link_to club.region.name, region_path(club.region) if club.region.present? %></td>
+          <td><%= link_to club.name, club_path(club) %></td>
+          <td><%= club.shortname %></td>
+          <td><%= club.address.html_safe %></td>
+          <td><%= link_to club.homepage, club.homepage %></td>
+          <td><%= club.email %></td>
+          <td><%= club.logo %></td>
+          <td><%= club.status %></td>
+          <td><%= club.founded %></td>
+          <td><%= club.dbu_entry %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

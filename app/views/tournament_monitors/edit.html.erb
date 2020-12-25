@@ -1,6 +1,12 @@
-<h1><%= I18n.t("tournament_monitors.edit.editing_tournament_execution", :default => "Editing Tournament Execution") %></h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Tournament Monitor</h1>
+      <%= link_to 'Cancel', @tournament_monitor, class: "btn btn-link" %>
+    </div>
 
-<%= render 'form' %>
-
-<%= link_to I18n.t("tournament_monitors.edit.show", :default => 'Show'), @tournament_monitor %> |
-<%= link_to I18n.t("tournament_monitors.edit.back", :default => 'Back'), tournament_monitors_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <%= render 'form', tournament_monitor: @tournament_monitor %>
+    </div>
+  </div>
+</div>

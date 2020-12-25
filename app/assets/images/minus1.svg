@@ -1,0 +1,20 @@
+<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="22" width="22" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <path id="svg_1" d="m15,11c-1.33333,0 -2.66667,0 -4,0l4,0zm-5,9a10,10 0 1 1 0,-20a10,10 0 0 1 0,20zm0,-2a8,8 0 1 0 0,-16a8,8 0 0 0 0,16z"/>
+  <path transform="rotate(6 10.79161548614501,7.1705555915832635) " stroke="null" d="m6.79165,7.67054c0.61538,0 0.61538,0 1.23076,0c0,0 0.89772,0.03847 1.23076,-0.12549c0.2355,-0.11593 0.61538,-0.25097 1.23076,-0.37646c0,0 0.61538,-0.12549 1.23076,-0.25097c0.61538,-0.12549 0.61538,-0.12549 1.23076,-0.12549c0,0 0,-0.12549 0,-0.12549c0.61538,0 0.61538,0 0.61538,0c0.61538,0 0.61538,0 0.61538,0c0.61538,0 0.61538,0 0.61538,0c0,0.12549 0,0.37646 0,0.50194c0,0.12549 0,0.25097 0,0.25097l0,0l0,0.12549" id="svg_6" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="none"/>
+  <line stroke="null" stroke-linecap="null" stroke-linejoin="null" id="svg_8" y2="7.02863" x2="12.5416" y1="8.02862" x1="6.04165" fill-opacity="null" stroke-opacity="null" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_11" y2="3.77865" x2="10.04162" y1="9.77861" x1="4.54167" stroke-opacity="null" stroke-width="null" stroke="null" fill="none"/>
+  <line transform="rotate(15.713918685913086 14.291587829589847,7.903620243072508) " stroke="null" stroke-linecap="null" stroke-linejoin="null" id="svg_12" y2="9.52861" x2="16.04157" y1="6.27863" x1="12.5416" stroke-opacity="null" stroke-width="null" fill="none"/>
+  <path d="m3.79167,9.7786c0,0 0,0 0.25,-0.25c0,0 0.32322,-0.07322 0.5,-0.25c0.17678,-0.17677 0.07322,-0.07322 0.25,-0.25c0.17678,-0.17677 0.07322,-0.32322 0.25,-0.5c0.17678,-0.17677 0.25,-0.25 0.25,-0.25c0,0 0.25,-0.25 0.25,-0.25c0,0 -0.17677,-0.07322 0,-0.25c0.17677,-0.17677 0.25,-0.25 0.25,-0.25c0.25,0 0.25,-0.25 0.25,-0.25c0.25,-0.25 0.25,-0.25 0.25,-0.25c0,-0.25 0,-0.25 0,0c0,0 -0.25,0 -0.5,0.25c-0.25,0.25 -0.26903,0.40433 -0.5,0.5c-0.32664,0.1353 -0.25,0.25 -0.5,0.5c0,0 0,0 0,0c0,0 -0.25,0 -0.25,0.25c0,0 -0.07322,-0.17677 -0.25,0c-0.17678,0.17677 -0.25,0.25 -0.25,0.5c0,0 0,0 0,0l0,0l0,0" id="svg_13" stroke-opacity="null" stroke-width="null" stroke="null" fill="none"/>
+  <line stroke="null" stroke-linecap="null" stroke-linejoin="null" id="svg_15" y2="6.02864" x2="14.54159" y1="11.52859" x1="5.54166" stroke-opacity="null" stroke-width="null" fill="none"/>
+  <line stroke="null" stroke-linecap="null" stroke-linejoin="null" id="svg_16" y2="11.52859" x2="20.54154" y1="7.52862" x1="8.04164" stroke-opacity="null" stroke-width="null" fill="none"/>
+  <line stroke="null" stroke-linecap="null" stroke-linejoin="null" id="svg_20" y2="9.77861" x2="9.04163" y1="9.52861" x1="4.79166" fill-opacity="null" stroke-opacity="null" stroke-width="null" fill="none"/>
+  <text font-weight="bold" stroke="null" transform="matrix(0.39137282967567444,0,0,0.3929833471775055,4.127252998761833,9.12421906273812) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_26" y="8.2563" x="4.87533" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">-1</text>
+ </g>
+</svg>

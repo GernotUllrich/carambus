@@ -1,11 +1,42 @@
-class Game < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: games
+#
+#  id            :bigint           not null, primary key
+#  data          :text
+#  ended_at      :datetime
+#  gname         :string
+#  group_no      :integer
+#  roles         :text
+#  round_no      :integer
+#  seqno         :integer
+#  started_at    :datetime
+#  table_no      :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  tournament_id :integer
+#
+class Game < ApplicationRecord
 
   belongs_to :tournament
   has_many :game_participations, :dependent => :destroy
   has_one :table_monitor, :dependent => :nullify
+  has_many :innings, -> { order("sequence_number") }, :dependent => :destroy
 
   has_paper_trail
   serialize :data, Hash
+
+  before_create :log
+
+  def log
+    Tournament.logger.info "NEW Game attributes = #{attributes.inspect}"
+  end
+
+  before_save do
+    if seqno_changed?
+      Tournament.logger.info "Game[#{id}] - #{gname} ##{seqno}"
+    end
+  end
 
   COLUMN_NAMES = {
       "Date" => "tournaments.date",
@@ -23,7 +54,7 @@ class Game < ActiveRecord::Base
 
   def self.display_ranking_key(ranking_key)
     if m = ranking_key.match(/group(\d+):(\d+)-(\d+)(?:\/(\d+))/)
-    "#{I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4])}".html_safe
+      "#{I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4])}".html_safe
     elsif m = ranking_key.match(/group(\d+):(\d+)-(\d+)/)
       "#{I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3])}".html_safe
     elsif m = ranking_key.match(/group(\d+)/i)

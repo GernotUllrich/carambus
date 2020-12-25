@@ -1,0 +1,72 @@
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :title, 'Title', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :discipline_id, 'Discipline', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :modus, 'Modus', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :age_restriction, 'Age restriction', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :date, 'Date', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :accredation_end, 'Accredation end', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location, 'Location', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :ba_id, 'Ba', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :season_id, 'Season', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :region_id, 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :end_date, 'End date', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :plan_or_show, 'Plan or show', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :single_or_league, 'Single or league', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :shortname, 'Shortname', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :ba_state, 'Ba state', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :last_ba_sync_date, 'Last ba sync date', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :player_class, 'Player class', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :tournament_plan_id, 'Tournament plan', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :innings_goal, 'Innings goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :handicap_tournier, 'Handicap tournier', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @tournaments.each do |tournament| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+        <td class="p-3"><%= link_to(tournament.title, tournament_path(tournament)) %></td>
+        <td class="p-3"><%= (link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present?) %></td>
+        <td class="p-3"><%= tournament.modus %></td>
+        <td class="p-3"><%= tournament.age_restriction %></td>
+        <td class="p-3"><%= tournament.date %></td>
+        <td class="p-3"><%= tournament.accredation_end %></td>
+        <td class="p-3"><%= tournament.location %></td>
+        <td class="p-3"><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %></td>
+        <td class="p-3"><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>
+        <td class="p-3"><%= link_to(tournament.region.name, region_path(tournament.region)) %></td>
+        <td class="p-3"><%= tournament.end_date %></td>
+        <td class="p-3"><%= tournament.plan_or_show %></td>
+        <td class="p-3"><%= tournament.single_or_league %></td>
+        <td class="p-3"><%= tournament.shortname %></td>
+        <td class="p-3"><%= tournament.data %></td>
+        <td class="p-3"><%= tournament.ba_state %></td>
+        <td class="p-3"><%= tournament.state %></td>
+        <td class="p-3"><%= tournament.last_ba_sync_date %></td>
+        <td class="p-3"><%= tournament.player_class %></td>
+        <td class="p-3"><%= tournament.tournament_plan_id %></td>
+        <td class="p-3"><%= tournament.innings_goal %></td>
+        <td class="p-3"><%= tournament.balls_goal %></td>
+        <td class="p-3"><%= tournament.handicap_tournier %></td>
+
+        <td>
+          <%= link_to t('view'), tournament, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

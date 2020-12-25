@@ -1,31 +1,29 @@
 class PlayersController < ApplicationController
-  before_action :set_player, only: [:show, :edit, :update, :destroy, :create_admin]
+  include FiltersHelper
+  before_action :set_player, only: [:show, :edit, :update, :destroy]
 
   # GET /players
-  # GET /players.json
   def index
-    @players = Player.page(params[:page]).per(24)
+    @players = Player.joins(:club => :region).sort_by_params(params[:sort], sort_direction)
+    if params[:sSearch].present?
+      @players = apply_filters(@players, Player::COLUMN_NAMES, "(players.firstname ilike :search) or (players.lastname ilike :search) or (regions.shortname ilike :search) or (clubs.shortname ilike :search)")
+    end
+    @pagy, @players = pagy(@players)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @players.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @players.load
     respond_to do |format|
-      format.html
-      #format.json { render json: PlayersDatatable.new(view_context, @players) }
-      format.json { render json: PlayersDatatable.new(view_context, nil) }
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
     end
-  end
-
-  def create_admin
-    @user = @player.admin_user
-    unless @user.present?
-      begin
-        @user = User.create(player_id: @player.id, password: rand.to_s[2..-1], email: "p#{@player.ba_id}@example.com", username: @player.ba_id.to_s)
-      rescue Exception => e
-        flash[:alert] = e.full_messages
-      end
-    end
-    redirect_back(fallback_location: player_path(@player))
   end
 
   # GET /players/1
-  # GET /players/1.json
   def show
   end
 
@@ -39,43 +37,29 @@ class PlayersController < ApplicationController
   end
 
   # POST /players
-  # POST /players.json
   def create
     @player = Player.new(player_params)
 
-    respond_to do |format|
-      if @player.save
-        format.html { redirect_to @player, notice: 'Player was successfully created.' }
-        format.json { render :show, status: :created, location: @player }
-      else
-        format.html { render :new }
-        format.json { render json: @player.errors, status: :unprocessable_entity }
-      end
+    if @player.save
+      redirect_to @player, notice: "Player was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /players/1
-  # PATCH/PUT /players/1.json
   def update
-    respond_to do |format|
-      if @player.update(player_params)
-        format.html { redirect_to @player, notice: 'Player was successfully updated.' }
-        format.json { render :show, status: :ok, location: @player }
-      else
-        format.html { render :edit }
-        format.json { render json: @player.errors, status: :unprocessable_entity }
-      end
+    if @player.update(player_params)
+      redirect_to @player, notice: "Player was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /players/1
-  # DELETE /players/1.json
   def destroy
     @player.destroy
-    respond_to do |format|
-      format.html { redirect_to players_url, notice: 'Player was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to players_url, notice: "Player was successfully destroyed."
   end
 
   private
@@ -85,7 +69,7 @@ class PlayersController < ApplicationController
     @player = Player.find(params[:id])
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Only allow a trusted parameter "white list" through.
   def player_params
     params.require(:player).permit(:ba_id, :club_id, :lastname, :firstname, :title)
   end

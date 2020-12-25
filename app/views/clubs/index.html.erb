@@ -1,84 +1,43 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#clubs').DataTable({
-                  "stateSave": true,
-                  dom: 'Bfrtip',
-                  buttons: [
-                      'copy', {
-                          extend: 'csvHtml5',
-                          title: 'Clubs'
-                      }, {
-                          extend: 'excelHtml5',
-                          title: 'Clubs'
-                      }, {
-                          extend: 'pdfHtml5',
-                          title: 'Clubs'
-                      }, {
-                          extend: 'print',
-                          title: 'Clubs'
-                      }
-                  ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<script>
+  function searchClubs(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/clubs?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+        var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
+      }
+    })
+  }
+</script>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3"><%= t('club.index.clubs') %></h1>
 
-                  "aaSorting": [[1, 'asc']],
-                  "aoColumns": [
-                      {"bSortable": false},
-                      null,
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#clubs').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<h1>Listing Clubs</h1>
-
-<table id="clubs" data-source="<%= clubs_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <th/>
-
-    <% Club::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @clubs.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex-row">
+          <input oninput="searchClubs(this, true)" value="<%= params[:sSearch] %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+        </div>
+      </div>
+      <%= link_to( 'New Club', new_club_path, class: "btn btn-primary") if current_user.andand.admin? %>
     <% end %>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Club', new_club_path %>
+  <% if @clubs.any? %>
+    <div id="table_wrapper">
+      <%= render partial: 'clubs_table' %>
+    </div>
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Club</p>
+        <%= link_to( 'New Club', new_club_path, class: "btn btn-primary") if current_user.andand.admin? %>
+      </div>
+    </div>
+  <% end %>
+</div>

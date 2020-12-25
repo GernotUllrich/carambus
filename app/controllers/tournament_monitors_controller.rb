@@ -1,7 +1,7 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :set_tournament_monitor, only: [:show, :edit, :update_games, :switch_players, :update, :destroy]
+  before_action :set_tournament_monitor, only: [:show, :edit, :update, :destroy, :update_games, :switch_players]
 
-def switch_players
+  def switch_players
     @game = Game[params[:game_id]]
     if @game.present?
       roles = @game.game_participations.map(&:role).reverse
@@ -10,26 +10,6 @@ def switch_players
       end
     end
     redirect_to tournament_monitor_path(@tournament_monitor)
-  end
-
-  # GET /tournament_monitors
-  # GET /tournament_monitors.json
-  def index
-    @tournament_monitors = TournamentMonitor.all
-  end
-
-  # GET /tournament_monitors/1
-  # GET /tournament_monitors/1.json
-  def show
-  end
-
-  # GET /tournament_monitors/new
-  def new
-    @tournament_monitor = TournamentMonitor.new
-  end
-
-  # GET /tournament_monitors/1/edit
-  def edit
   end
 
   def update_games
@@ -55,54 +35,63 @@ def switch_players
     redirect_back(fallback_location: tournament_monitor_path(@tournament_monitor))
   end
 
+  # GET /tournament_monitors
+  def index
+    @pagy, @tournament_monitors = pagy(TournamentMonitor.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @tournament_monitors.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @tournament_monitors.load
+  end
+
+  # GET /tournament_monitors/1
+  def show
+  end
+
+  # GET /tournament_monitors/new
+  def new
+    @tournament_monitor = TournamentMonitor.new
+  end
+
+  # GET /tournament_monitors/1/edit
+  def edit
+  end
+
   # POST /tournament_monitors
-  # POST /tournament_monitors.json
   def create
     @tournament_monitor = TournamentMonitor.new(tournament_monitor_params)
 
-    respond_to do |format|
-      if @tournament_monitor.save
-        format.html { redirect_to @tournament_monitor, notice: 'Tournament execution was successfully created.' }
-        format.json { render :show, status: :created, location: @tournament_monitor }
-      else
-        format.html { render :new }
-        format.json { render json: @tournament_monitor.errors, status: :unprocessable_entity }
-      end
+    if @tournament_monitor.save
+      redirect_to @tournament_monitor, notice: "Tournament monitor was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /tournament_monitors/1
-  # PATCH/PUT /tournament_monitors/1.json
   def update
-    respond_to do |format|
-      if @tournament_monitor.update(tournament_monitor_params)
-        format.html { redirect_to @tournament_monitor, notice: 'Tournament execution was successfully updated.' }
-        format.json { render :show, status: :ok, location: @tournament_monitor }
-      else
-        format.html { render :edit }
-        format.json { render json: @tournament_monitor.errors, status: :unprocessable_entity }
-      end
+    if @tournament_monitor.update(tournament_monitor_params)
+      redirect_to @tournament_monitor, notice: "Tournament monitor was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /tournament_monitors/1
-  # DELETE /tournament_monitors/1.json
   def destroy
     @tournament_monitor.destroy
-    respond_to do |format|
-      format.html { redirect_to tournament_monitors_url, notice: 'Tournament execution was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to tournament_monitors_url, notice: "Tournament monitor was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_tournament_monitor
-      @tournament_monitor = TournamentMonitor.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def tournament_monitor_params
-      params.require(:tournament_monitor).permit(:tournament_id, :data, :state)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_tournament_monitor
+    @tournament_monitor = TournamentMonitor.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def tournament_monitor_params
+    params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :balls_goal)
+  end
 end

@@ -1,0 +1,44 @@
+# == Schema Information
+#
+# Table name: games
+#
+#  id            :bigint           not null, primary key
+#  data          :text
+#  ended_at      :datetime
+#  gname         :string
+#  group_no      :integer
+#  roles         :text
+#  round_no      :integer
+#  seqno         :integer
+#  started_at    :datetime
+#  table_no      :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  tournament_id :integer
+#
+
+one:
+  template_game_id: 1
+  tournament_id: 1
+  roles: MyText
+  data: MyText
+  seqno: 1
+  gname: MyString
+  group_no: 1
+  table_no: 1
+  round_no: 1
+  started_at: 2020-11-20 00:42:06
+  ended_at: 2020-11-20 00:42:06
+
+two:
+  template_game_id: 1
+  tournament_id: 1
+  roles: MyText
+  data: MyText
+  seqno: 1
+  gname: MyString
+  group_no: 1
+  table_no: 1
+  round_no: 1
+  started_at: 2020-11-20 00:42:06
+  ended_at: 2020-11-20 00:42:06

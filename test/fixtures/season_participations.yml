@@ -1,0 +1,28 @@
+# == Schema Information
+#
+# Table name: season_participations
+#
+#  id         :bigint           not null, primary key
+#  data       :text
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  club_id    :integer
+#  player_id  :integer
+#  season_id  :integer
+#
+# Indexes
+#
+#  index_season_participations_on_foreign_keys  (player_id,club_id,season_id) UNIQUE
+#
+
+one:
+  player_id: 1
+  season_id: 1
+  data: MyText
+  club_id: 1
+
+two:
+  player_id: 1
+  season_id: 1
+  data: MyText
+  club_id: 1

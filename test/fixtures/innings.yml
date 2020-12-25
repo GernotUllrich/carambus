@@ -1,0 +1,38 @@
+# == Schema Information
+#
+# Table name: innings
+#
+#  id              :bigint           not null, primary key
+#  data            :text
+#  player_a_count  :string
+#  player_b_count  :string
+#  player_c_count  :string
+#  player_d_count  :string
+#  sequence_number :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  game_id         :integer
+#
+# Indexes
+#
+#  index_innings_on_foreign_keys                 (game_id,sequence_number) UNIQUE
+#  index_innings_on_game_id_and_sequence_number  (game_id,sequence_number) UNIQUE
+#
+
+one:
+  game_id: 1
+  sequence_number: 1
+  player_a_count: MyString
+  player_b_count: MyString
+  player_c_count: MyString
+  player_d_count: MyString
+  date: MyText
+
+two:
+  game_id: 1
+  sequence_number: 1
+  player_a_count: MyString
+  player_b_count: MyString
+  player_c_count: MyString
+  player_d_count: MyString
+  date: MyText

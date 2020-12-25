@@ -1,5 +1,5 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :up, :down, :add_one, :add_ten, :redo, :undo, :next_step]
+  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :up, :down, :add_one, :add_ten, :undo, :next_step]
 
   def set_balls
     unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
@@ -9,77 +9,19 @@ class TableMonitorsController < ApplicationController
     redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
   end
 
-  def up
-    t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
-    switch_to = @table_monitor.tournament_monitor.table_monitors.map{|tm| tm.name.match(/table(\d+)/).andand[1].to_i}.sort
-    ix = switch_to.index(t_no)
-    ix2 = ix + switch_to.length
-    switch_to = switch_to + switch_to
-    new_t_no = switch_to[ix-1]
-    tm1 = @table_monitor
-    tm2 = TableMonitor.find_by_name("table#{new_t_no}")
-    game1 = tm1.game
-    game2 = tm2.game
-    tm1.assign_game(game2)
-    tm2.assign_game(game1)
-    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
-  end
-
-  def down
-    t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
-    switch_to = @table_monitor.tournament_monitor.table_monitors.map{|tm| tm.name.match(/table(\d+)/).andand[1].to_i}.sort
-    ix = switch_to.index(t_no)
-    switch_to = switch_to + switch_to
-    new_t_no = switch_to[ix+1]
-    tm1 = @table_monitor
-    tm2 = TableMonitor.find_by_name("table#{new_t_no}")
-    game1 = tm1.game
-    game2 = tm2.game
-    tm1.assign_game(game2)
-    tm2.assign_game(game1)
-    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
-  end
-
-  def add_one
-    unless @table_monitor.add_n_balls_to_current_players_inning(1)
-      flash.now[:alert] = @msg
-      flash.keep[:alert]
-    end
-    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
-  end
-
-  def add_ten
-    unless @table_monitor.add_n_balls_to_current_players_inning(10)
-      flash.now[:alert] = @msg
-      flash.keep[:alert]
-    end
-    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
-  end
-
-  def redo
-
-  end
-
-  def undo
-
-  end
-
-  def next_step
-    unless @table_monitor.terminate_current_inning
-      flash[:alert] = @table_monitor.msg
-    end
-    redirect_back(fallback_location: tournament_monitor_path(@table_monitor.tournament_monitor))
-  end
-
   # GET /table_monitors
-  # GET /table_monitors.json
   def index
-    @table_monitors = TableMonitor.all
+    @pagy, @table_monitors = pagy(TableMonitor.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @table_monitors.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @table_monitors.load
   end
 
   # GET /table_monitors/1
-  # GET /table_monitors/1.json
   def show
+    @navbar = false
+    @footer = false
   end
 
   # GET /table_monitors/new
@@ -92,43 +34,29 @@ class TableMonitorsController < ApplicationController
   end
 
   # POST /table_monitors
-  # POST /table_monitors.json
   def create
     @table_monitor = TableMonitor.new(table_monitor_params)
 
-    respond_to do |format|
-      if @table_monitor.save
-        format.html { redirect_to @table_monitor, notice: 'Table monitor was successfully created.' }
-        format.json { render :show, status: :created, location: @table_monitor }
-      else
-        format.html { render :new }
-        format.json { render json: @table_monitor.errors, status: :unprocessable_entity }
-      end
+    if @table_monitor.save
+      redirect_to @table_monitor, notice: "Table monitor was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /table_monitors/1
-  # PATCH/PUT /table_monitors/1.json
   def update
-    respond_to do |format|
-      if @table_monitor.update(table_monitor_params)
-        format.html { redirect_to @table_monitor, notice: 'Table monitor was successfully updated.' }
-        format.json { render :show, status: :ok, location: @table_monitor }
-      else
-        format.html { render :edit }
-        format.json { render json: @table_monitor.errors, status: :unprocessable_entity }
-      end
+    if @table_monitor.update(table_monitor_params)
+      redirect_to @table_monitor, notice: "Table monitor was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /table_monitors/1
-  # DELETE /table_monitors/1.json
   def destroy
     @table_monitor.destroy
-    respond_to do |format|
-      format.html { redirect_to table_monitors_url, notice: 'Table monitor was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to table_monitors_url, notice: "Table monitor was successfully destroyed."
   end
 
   private
@@ -138,8 +66,8 @@ class TableMonitorsController < ApplicationController
     @table_monitor = TableMonitor.find(params[:id])
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Only allow a trusted parameter "white list" through.
   def table_monitor_params
-    params.require(:table_monitor).permit(:state, :name, :game_id, :next_game_id, :data)
+    params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data, :ip_address)
   end
 end

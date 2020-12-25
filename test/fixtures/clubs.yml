@@ -1,0 +1,53 @@
+# == Schema Information
+#
+# Table name: clubs
+#
+#  id         :bigint           not null, primary key
+#  address    :text
+#  dbu_entry  :string
+#  email      :string
+#  founded    :string
+#  homepage   :string
+#  logo       :string
+#  name       :string
+#  priceinfo  :text
+#  shortname  :string
+#  status     :string
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  ba_id      :integer
+#  region_id  :integer
+#
+# Indexes
+#
+#  index_clubs_on_ba_id         (ba_id) UNIQUE
+#  index_clubs_on_foreign_keys  (ba_id) UNIQUE
+#
+
+one:
+  ba_id: 1
+  region_id: 1
+  name: MyString
+  shortname: MyString
+  address: MyText
+  homepage: MyString
+  email: MyString
+  priceinfo: MyText
+  logo: MyString
+  status: MyString
+  founded: MyString
+  dbu_entry: MyString
+
+two:
+  ba_id: 1
+  region_id: 1
+  name: MyString
+  shortname: MyString
+  address: MyText
+  homepage: MyString
+  email: MyString
+  priceinfo: MyText
+  logo: MyString
+  status: MyString
+  founded: MyString
+  dbu_entry: MyString

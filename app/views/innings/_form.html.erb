@@ -1,45 +1,46 @@
-<%= form_for(@inning) do |f| %>
-  <% if @inning.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@inning.errors.count, "error") %> prohibited this inning from being saved:</h2>
+<%= form_with(model: inning) do |form| %>
+  <%= render "shared/error_messages", resource: form.object %>
 
-      <ul>
-      <% @inning.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <div class="form-group">
+    <%= form.label :game_id %>
+    <%= form.number_field :game_id, class: "form-control" %>
+  </div>
 
-  <div class="field">
-    <%= f.label :game_id %><br>
-    <%= f.number_field :game_id %>
+  <div class="form-group">
+    <%= form.label :sequence_number %>
+    <%= form.number_field :sequence_number, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :sequence_number %><br>
-    <%= f.number_field :sequence_number %>
+
+  <div class="form-group">
+    <%= form.label :player_a_count %>
+    <%= form.text_field :player_a_count, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :player_a_count %><br>
-    <%= f.text_field :player_a_count %>
+
+  <div class="form-group">
+    <%= form.label :player_b_count %>
+    <%= form.text_field :player_b_count, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :player_b_count %><br>
-    <%= f.text_field :player_b_count %>
+
+  <div class="form-group">
+    <%= form.label :player_c_count %>
+    <%= form.text_field :player_c_count, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :player_c_count %><br>
-    <%= f.text_field :player_c_count %>
+
+  <div class="form-group">
+    <%= form.label :player_d_count %>
+    <%= form.text_field :player_d_count, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :player_d_count %><br>
-    <%= f.text_field :player_d_count %>
+
+  <div class="form-group">
+    <%= form.label :date %>
+    <%= form.text_area :date, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :data %><br>
-    <%= f.text_area :data %>
-  </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
   </div>
 <% end %>

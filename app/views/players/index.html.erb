@@ -1,93 +1,52 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#players').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Players'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Players'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Players'
-                  }, {
-                      extend: 'print',
-                      title: 'Players'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<script>
+  function searchPlayers(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/players?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+        var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
+      }
+    })
+  }
+</script>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3"><%= t('player.index.players') %></h1>
 
-                  "aaSorting": [
-                      [0, "desc"]
-                  ],
-                  "aoColumns": [
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#players').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
+    <% if @players.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex-row">
+          <input oninput="searchPlayers(this, true)" value="<%= params[:sSearch] %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+        </div>
+      </div>
+      <%= link_to('New Player', new_player_path, class: "btn btn-primary") if current_user.andand.admin?  %>
+    <% end %>
+  </div>
 
-    th, td {
-        padding-left: 5px;
-    }
-</style>
+  <% if @players.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <div id="table_wrapper">
+        <%= render partial: 'players_table' %>
+      </div>
+    </div>
 
-<h1>Listing Players</h1>
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
 
-<table id="players" data-source="<%= players_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <th>Player ID</th>
-    <th>Club</th>
-    <th>Lastname</th>
-    <th>Firstname</th>
-    <th>Title</th>
-    <th width="100px"></th>
-  </tr>
-  </thead>
-
-  <tbody>
-  <%# @players.includes(:club).each do |player| %>
-  <!--      <tr>-->
-  <!--        <td><%#= link_to player.ba_id, player_path(player) %></td>-->
-  <!--        <td><%#= link_to player.club.shortname, club_path(player.club) if player.andand.club.present? %></td>-->
-  <!--        <td><%#= player.lastname %></td>-->
-  <!--        <td><%#= player.firstname %></td>-->
-  <!--        <td><%#= player.title %></td>-->
-  <!--        <td><%#= link_to 'Show', player %></td>-->
-  <!--        <td><%#= link_to 'Edit', edit_player_path(player) %></td>-->
-  <!--        <td><%#= link_to 'Destroy', player, method: :delete, data: { confirm: 'Are you sure?' } %></td>-->
-  <!--      </tr>-->
-  <%# end %>
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Player', new_player_path %>
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Player</p>
+        <%= link_to 'New Player', new_player_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

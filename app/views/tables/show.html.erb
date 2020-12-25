@@ -1,0 +1,31 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Tables', tables_path %> > Table #<%= @table.id %></h1>
+      <%= link_to( 'Edit', edit_table_path(@table), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
+
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Location</h5>
+        <%= @table.location_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Table kind</h5>
+        <%= @table.table_kind_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @table.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @table.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Ip address</h5>
+        <%= @table.ip_address %>
+      </div>
+          </div>
+  </div>
+</div>

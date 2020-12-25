@@ -1,67 +1,94 @@
-<p id="notice"><%= notice %></p>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
+<%#= render :partial => "tournaments/show", locals: {tournament: @tournament_monitor.tournament, subtitle: "Tournament Monitor"} %>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <h2 class="text-center"><%= t("tournaments.tournament_monitor") %></h2>
+    <h3 class="text-center"><%= link_to @tournament_monitor.tournament.title, tournament_path(@tournament_monitor.tournament) %></h3>
+    <div class="max-w-3xl mx-auto">
 
-    table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-    }
-
-    .space-above {
-        margin-top: 15px;
-    }
-
-    th, td {
-        padding: 8px;
-    }
-
-    hr {
-        border: 2px solid black;
-        border-collapse: collapse;
-    }
-</style>
-<%= render :partial => "tournaments/show", locals: {tournament: @tournament_monitor.tournament, subtitle: "Tournament Monitor"} %>
-<% if @tournament_monitor.present? %>
-  <div class="row">
-    <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
-      <strong><%= I18n.t("tournament_monitors.show.tournament", :default => "Tournament:") %></strong>
-      <%= @tournament_monitor.state %>
+      <%- if @tournament_monitor.andand.tournament.andand.tournament_plan.present? %>
+        <div class="flex space-x-10 p-4 bg-white dark:bg-black">
+          <div class="flex-1 flex-col">
+            <h4><%= I18n.t("tournament_monitors.show.tournament_phase", :default => "Tournament:") %></h4>
+            <%= @tournament_monitor.state.gsub("_", " ") %>
+          </div>
+          <% @tournament_monitor.table_monitors.order(:name).each do |tabmon| %>
+            <div class="flex-1 flex-col">
+              <h4><%= "#{tabmon.display_name}" %>:</h4>
+              <%= tabmon.state.gsub("_", " ") %><br/>
+              <% if tabmon.game.present? %>
+                <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
+                <br/>
+                <strong class="flex 1 text-black dark:text-white"><%= tabmon.game.game_participations.where(role: "playera").first.player.lastname %></strong>
+                <strong class="flex 1 text-yellow-200"><%= tabmon.game.game_participations.where(role: "playerb").first.player.lastname %></strong>
+                <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class:"btn btn-primary" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%= button_to I18n.t("tournament_monitors.show.start_tournament", :default => "Start Tournament"), start_tournament_path(@tournament_monitor.tournament), class: "btn btn-flat btn-primary" %>
+      <% end %>
     </div>
-    <% @tournament_monitor.table_monitors.order(:name).each do |tabmon| %>
-      <div class="col-sm-2" , style="margin-bottom: 10px; margin-left: 10px">
-        <strong><%= "#{tabmon.display_name}" %>:</strong>
-        <%= tabmon.state %><br/>
-        <% if tabmon.game.present? %>
-          <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
-          <br/>
-          <strong><%= tabmon.game.game_participations.where(role: "playera").first.player.lastname %></strong><br/>
-          <strong><%= tabmon.game.game_participations.where(role: "playerb").first.player.lastname %></strong><br/>
-          <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id) %>
-        <% end %>
+  </div>
+</div>
+<%- if @tournament_monitor.tournament.tournament_plan.present?  && @tournament_monitor.data.present? %>
+  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
+  <div class="px-3 lg:px-0">
+    <div class="container mx-auto my-8 px-4">
+      <div class="max-w-3xl mx-auto">
+        <%= render partial: "tournaments/groups", locals: { tournament_plan: @tournament_monitor.tournament.tournament_plan, groups: @groups } %>
       </div>
-    <% end %>
+      <div id="tournament_monitor_current_games_<%= @tournament_monitor.id %>" class="col-sm-10 space-above">
+        <%= render partial: "current_games", locals: { tournament_monitor: @tournament_monitor } %>
+      </div>
+    </div>
   </div>
-<% else %>
-  <%= button_to I18n.t("tournament_monitors.show.start_tournament", :default => "Start Tournament"), start_tournament_path(@tournament_monitor.tournament), class: "btn btn-flat btn-primary" %>
-<% end %>
-<% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
-<div class="row space-above">
-  <div class="col-sm-2 space-above">
-    <%= render partial: "tournaments/groups", locals: {tournament_plan: @tournament_monitor.tournament.tournament_plan, groups: @groups} %>
+  <hr/>
+  <%- tmons = @tournament_monitor.table_monitors.order(:name).to_a %>
+  <div class="flex flex-col bg-green-700 h-screen">
+    <div class="flex flex-1 mb-4 flex-row">
+      <div class="flex flex-1 mr-4 bg-yellow-50">
+        <%- if tmons[0].present? && tmons[0].data.present? %>
+          <div id="table_monitor_<%= tmons[0].id %>" class="table_monitor flex-1">
+            <%= render partial: "table_monitors/show", locals: { table_monitor: tmons[0], full_screen: false } %>
+          </div>
+        <%- end %>
+      </div>
+      <div class="flex flex-1 bg-yellow-10">
+        <%- if tmons[1].present? && tmons[1].data.present? %>
+          <div id="table_monitor_<%= tmons[1].id %>" class="table_monitor flex-1">
+            <%= render partial: "table_monitors/show", locals: { table_monitor: tmons[1], full_screen: false } %>
+          </div>
+        <%- end %>
+      </div>
+    </div>
+    <div class="flex flex-1 flex-row">
+      <div class="flex flex-1 mr-4 bg-yellow-50">
+        <%- if tmons[2].present? && tmons[2].data.present? %>
+          <div id="table_monitor_<%= tmons[2].id %>" class="table_monitor flex-1">
+            <%= render partial: "table_monitors/show", locals: { table_monitor: tmons[2], full_screen: false } %>
+          </div>
+        <%- end %>
+      </div>
+      <div class="flex flex-1 bg-yellow-10">
+        <%- if tmons[3].present? && tmons[3].data.present? %>
+          <div id="table_monitor_<%= tmons[3].id %>" class="table_monitor flex-1">
+            <%= render partial: "table_monitors/show", locals: { table_monitor: tmons[3], full_screen: false } %>
+          </div>
+        <%- end %>
+      </div>
+    </div>
   </div>
-  <div class="col-sm-10 space-above">
-    <%= render partial: "current_games", locals: {tournament_monitor: @tournament_monitor} %>
+  <hr/>
+  <div class="px-3 lg:px-0">
+    <div class="container max-w-4xl mx-auto my-8 px-4">
+      <div id="tournament_monitor_game_results_<%= @tournament_monitor.id %>" class="max-w-4xl mx-auto">
+        <%= render partial: "game_results", locals: { tournament_monitor: @tournament_monitor } %>
+      </div>
+      <div id="tournament_monitor_rankings_<%= @tournament_monitor.id %>" class="col-sm-4 space-above">
+        <%= render partial: "rankings", locals: { tournament_monitor: @tournament_monitor } %>
+      </div>
+    </div>
   </div>
-</div>
-<hr/>
-<div class="row space-above">
-  <div class="col-sm-8 space-above">
-    <%= render partial: "game_results", locals: {tournament_monitor: @tournament_monitor} %>
-  </div>
-  <div class="col-sm-4 space-above">
-    <%= render partial: "rankings", locals: {tournament_monitor: @tournament_monitor} %>
-  </div>
-</div>
+<%- end %>
+

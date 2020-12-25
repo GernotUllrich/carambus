@@ -1,87 +1,67 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#game_participations').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'GameParticipations'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'GameParticipations'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'GameParticipations'
-                  }, {
-                      extend: 'print',
-                      title: 'GameParticipations'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 20,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Game Participations</h1>
 
-                  "aaSorting": [
-                      [0, "desc"]
-                  ],
-                  "aoColumns": [
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#game_participations').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<h1>Listing Game Participations</h1>
-
-<table id="game_participations" data-source="<%= game_participations_url(format: 'json') %>" width="100%" style="margin: 0px; width: 100%;" data-turbolinks="false">
-  <thead>
-  <tr>
-    <% GameParticipation::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @game_participations.any? %>
+      <%= link_to 'New Game Participation', new_game_participation_path, class: "btn btn-primary" %>
     <% end %>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
-<br>
+  <% if @game_participations.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :game_id, 'Game', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :player_id, 'Player', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :role, 'Role', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :points, 'Points', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :result, 'Result', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :innings, 'Innings', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gd, 'Gd', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :hs, 'Hs', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gname, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<%= link_to 'New Game participation', new_game_participation_path %>
+        <tbody>
+        <% @game_participations.each do |game_participation| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= game_participation.game_id %></td>
+                      <td class="p-3"><%= game_participation.player_id %></td>
+                      <td class="p-3"><%= game_participation.role %></td>
+                      <td class="p-3"><%= game_participation.data %></td>
+                      <td class="p-3"><%= game_participation.points %></td>
+                      <td class="p-3"><%= game_participation.result %></td>
+                      <td class="p-3"><%= game_participation.innings %></td>
+                      <td class="p-3"><%= game_participation.gd %></td>
+                      <td class="p-3"><%= game_participation.hs %></td>
+                      <td class="p-3"><%= game_participation.gname %></td>
+
+            <td>
+              <%= link_to t('view'), game_participation, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Game Participation</p>
+        <%= link_to 'New Game Participation', new_game_participation_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

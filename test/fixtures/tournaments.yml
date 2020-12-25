@@ -1,0 +1,94 @@
+# == Schema Information
+#
+# Table name: tournaments
+#
+#  id                             :bigint           not null, primary key
+#  accredation_end                :datetime
+#  age_restriction                :string
+#  ba_state                       :string
+#  balls_goal                     :integer
+#  data                           :text
+#  date                           :datetime
+#  end_date                       :datetime
+#  handicap_tournier              :boolean
+#  innings_goal                   :integer
+#  last_ba_sync_date              :datetime
+#  location                       :text
+#  modus                          :string
+#  organizer_type                 :string
+#  plan_or_show                   :string
+#  player_class                   :string
+#  shortname                      :string
+#  single_or_league               :string
+#  state                          :string
+#  time_out_stoke_preparation_sec :integer          default(45)
+#  time_out_warm_up_first_min     :integer          default(5)
+#  time_out_warm_up_follow_up_min :integer          default(3)
+#  title                          :string
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  ba_id                          :integer
+#  discipline_id                  :integer
+#  location_id                    :integer
+#  organizer_id                   :integer
+#  region_id                      :integer
+#  season_id                      :integer
+#  tournament_plan_id             :integer
+#
+# Indexes
+#
+#  index_tournaments_on_ba_id         (ba_id) UNIQUE
+#  index_tournaments_on_foreign_keys  (title,season_id,region_id)
+#
+
+one:
+  title: MyString
+  discipline_id: 1
+  modus: MyString
+  age_restriction: MyString
+  date: 2020-11-20 01:14:31
+  accredation_end: 2020-11-20 01:14:31
+  location: MyText
+  hosting_club_id: 1
+  ba_id: 1
+  season_id: 1
+  region_id: 1
+  end_date: 2020-11-20 01:14:31
+  plan_or_show: MyString
+  single_or_league: MyString
+  shortname: MyString
+  data: MyText
+  ba_state: MyString
+  state: MyString
+  last_ba_sync_date: 2020-11-20 01:14:31
+  player_class: MyString
+  tournament_plan_id: 1
+  innings_goal: 1
+  balls_goal: 1
+  handicap_tournier: false
+
+two:
+  title: MyString
+  discipline_id: 1
+  modus: MyString
+  age_restriction: MyString
+  date: 2020-11-20 01:14:31
+  accredation_end: 2020-11-20 01:14:31
+  location: MyText
+  hosting_club_id: 1
+  ba_id: 1
+  season_id: 1
+  region_id: 1
+  end_date: 2020-11-20 01:14:31
+  plan_or_show: MyString
+  single_or_league: MyString
+  shortname: MyString
+  data: MyText
+  ba_state: MyString
+  state: MyString
+  last_ba_sync_date: 2020-11-20 01:14:31
+  player_class: MyString
+  tournament_plan_id: 1
+  innings_goal: 1
+  balls_goal: 1
+  handicap_tournier: false

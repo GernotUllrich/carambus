@@ -1,76 +1,54 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#countries').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Countries'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Countries'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Countries'
-                  }, {
-                      extend: 'print',
-                      title: 'Countries'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3"><%= t('country.index.countries') %></h1>
 
-                  "aaSorting": [[1, 'asc']],
-                  "aoColumns": [
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#countries').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<h1>Listing Countries</h1>
-<h3>=> <%= link_to "Regions", regions_path %></h3>
-
-<table id="countries" data-source="<%= countries_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <% Country::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @countries.any? %>
+      <%= link_to 'New Country', new_country_path, class: "btn btn-primary"  if current_user.andand.admin? %>
     <% end %>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
+  <% if @countries.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+        <tr>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @countries, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @countries, :code, 'Code', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+        </tr>
+        </thead>
 
-<br>
+        <tbody>
+        <% @countries.each do |country| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+            <td class="p-3"><%= country.name %></td>
+            <td class="p-3"><%= country.code %></td>
 
-<%= link_to 'New Country', new_country_path %>
+            <td>
+              <%= link_to t('view'), country, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Country</p>
+        <%= link_to 'New Country', new_country_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+  <div class="mt-6">
+    -> <%= link_to t('home.index.region'), regions_path %>
+  </div>
+</div>

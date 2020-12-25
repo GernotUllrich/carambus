@@ -1,17 +1,23 @@
-<p>
-  <strong>Name:</strong>
-  <%= @tournament_plan_game.name %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Tournament Plan Games', tournament_plan_games_path %> > Tournament Plan Game #<%= @tournament_plan_game.id %></h1>
+      <%= link_to( 'Edit', edit_tournament_plan_game_path(@tournament_plan_game), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>TournamentPlan:</strong>
-  <%= @tournament_plan_game.tournament_plan_id %>
-</p>
-
-<p>
-  <strong>Remarks:</strong>
-  <%= @tournament_plan_game.data %>
-</p>
-
-<%= link_to 'Edit', edit_tournament_plan_game_path(@tournament_plan_game) %> |
-<%= link_to 'Back', tournament_plan_games_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @tournament_plan_game.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament plan</h5>
+        <%= @tournament_plan_game.tournament_plan_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @tournament_plan_game.data %>
+      </div>
+          </div>
+  </div>
+</div>

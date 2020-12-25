@@ -1,0 +1,40 @@
+<%- table_monitor = local_assigns[:table_monitor] %>
+<%= content_tag "div" do %>
+  <div id="table_monitor_modal_<%= table_monitor.id %>" class="modal-content-30">
+    <div class="flex flex-col h-screen space-y-4">
+      <div class="flex bg-gray-800 h-1/6 text-6vw w-full p-8 items-center justify-center" id="number_field_<%= table_monitor.id %>">0</div>
+      <div class="flex flex-row h-1/6 space-x-4">
+        <%- (1..3).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->NumberPadReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-gray-800 text-3vw" do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row h-1/6 space-x-4">
+        <%- (4..6).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->NumberPadReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-gray-800 text-3vw" do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row h-1/6 space-x-4">
+        <%- (7..9).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->NumberPadReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-gray-800 text-3vw" do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row h-1/6 space-x-4">
+        <%= content_tag "span", data: { reflex: "click->NumberPadReflex#nnn_0", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-gray-800 text-3vw" do %>
+          0
+        <%- end %>
+        <%= content_tag "span", data: { reflex: "click->NumberPadReflex#nnn_c", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-gray-600 text-3vw" do %>
+          C
+        <%- end %>
+        <%= content_tag "span", data: { reflex: "click@window->NumberPadReflex#nnn_enter click->NumberPadReflex#nnn_enter", id: table_monitor.id }, class: "flex rounded-full w-1/3 justify-center items-center p-2 bg-yellow-700 text-2vw" do %>
+          Enter
+        <%- end %>
+      </div>
+    </div>
+  </div>
+<%- end %>

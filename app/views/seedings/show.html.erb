@@ -1,28 +1,43 @@
-<p>
-  <strong>Player:</strong>
-  <%= @seeding.player_id %>
-  <%= link_to("#{@seeding.player.lastname}, #{@seeding.player.firstname}", player_path(@seeding.player)) if @seeding.player.present? %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Seedings', seedings_path %> > Seeding #<%= @seeding.id %></h1>
+      <%= link_to( 'Edit', edit_seeding_path(@seeding), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Tournament:</strong>
-  <%= link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) if @seeding.tournament.present? %>
-</p>
-
-<p>
-  <strong>Ba Status:</strong>
-  <%= @seeding.ba_state %>
-</p>
-
-<p>
-  <strong>Position:</strong>
-  <%= @seeding.position %>
-</p>
-
-<p>
-  <strong>Remarks:</strong>
-  <%= @seeding.data %>
-</p>
-
-<%= link_to 'Edit', edit_seeding_path(@seeding) %> |
-<%= link_to 'Back', seedings_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Player</h5>
+        <%= link_to(@seeding.player.fullname, player_path(@seeding.player)) %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament</h5>
+        <%= link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) + " (BA #{link_to(@seeding.tournament.ba_id, "https://#{@seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{@seeding.tournament.single_or_league}/#{@seeding.tournament.plan_or_show}/#{@seeding.tournament.ba_id}")})".html_safe %>
+      </div>
+            <div class="mb-4">
+        <h5>Ba state</h5>
+        <%= @seeding.ba_state %>
+      </div>
+            <div class="mb-4">
+        <h5>Position</h5>
+        <%= @seeding.position %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= Seeding.result_display(@seeding) %>
+      </div>
+            <div class="mb-4">
+        <h5>State</h5>
+        <%= @seeding.state %>
+      </div>
+            <div class="mb-4">
+        <h5>Balls goal</h5>
+        <%= @seeding.balls_goal %>
+      </div>
+            <div class="mb-4">
+        <h5>Playing discipline</h5>
+        <%= @seeding.playing_discipline_id %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -4,7 +4,7 @@ de:
     confirmations:
       confirmed: Vielen Dank für Deine Registrierung. Bitte melde Dich jetzt an.
       confirmed_and_signed_in: Vielen Dank für Deine Registrierung. Du bist jetzt
-        angemeldet. Starte die App URL Tester bitte neu.
+        angemeldet.
       send_instructions: Du erhältst in wenigen Minuten eine E-Mail, mit der Du
         Deine Registrierung bestätigen kannst.
       send_paranoid_instructions: Falls Deine E-Mail-Adresse in unserer Datenbank existiert

@@ -1,0 +1,57 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Tables</h1>
+
+    <% if @tables.any? %>
+      <%= link_to 'New Table', new_table_path, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @tables.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :location_id, 'Location', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :table_kind_id, 'Table kind', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :ip_address, 'Ip address', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @tables.each do |table| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= table.location_id %></td>
+                      <td class="p-3"><%= table.table_kind_id %></td>
+                      <td class="p-3"><%= table.name %></td>
+                      <td class="p-3"><%= table.data %></td>
+                      <td class="p-3"><%= table.ip_address %></td>
+
+            <td>
+              <%= link_to t('view'), table, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Table</p>
+        <%= link_to 'New Table', new_table_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

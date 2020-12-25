@@ -1,17 +1,27 @@
-<p>
-  <strong>Player:</strong>
-  <%= @season_participation.player_id %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Season Participations', season_participations_path %> > Season Participation #<%= @season_participation.id %></h1>
+      <%= link_to( 'Edit', edit_season_participation_path(@season_participation), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Season:</strong>
-  <%= @season_participation.season_id %>
-</p>
-
-<p>
-  <strong>Remarks:</strong>
-  <%= @season_participation.data %>
-</p>
-
-<%= link_to 'Edit', edit_season_participation_path(@season_participation) %> |
-<%= link_to 'Back', season_participations_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Player</h5>
+        <%= @season_participation.player_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Season</h5>
+        <%= @season_participation.season_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @season_participation.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Club</h5>
+        <%= @season_participation.club_id %>
+      </div>
+          </div>
+  </div>
+</div>

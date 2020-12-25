@@ -1,27 +1,51 @@
-<h1>Listing Player Classes</h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Player Classes</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Discipline</th>
-      <th>Shortname</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @player_classes.each do |player_class| %>
-      <tr>
-        <td><%= player_class.discipline_id %></td>
-        <td><%= player_class.shortname %></td>
-        <td><%= link_to 'Show', player_class %></td>
-        <td><%= link_to 'Edit', edit_player_class_path(player_class) %></td>
-        <td><%= link_to 'Destroy', player_class, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+    <% if @player_classes.any? %>
+      <%= link_to 'New Player Class', new_player_class_path, class: "btn btn-primary" %>
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<br>
+  <% if @player_classes.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @player_classes, :discipline_id, 'Discipline', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @player_classes, :shortname, 'Shortname', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<%= link_to 'New Player class', new_player_class_path %>
+        <tbody>
+        <% @player_classes.each do |player_class| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= player_class.discipline_id %></td>
+                      <td class="p-3"><%= player_class.shortname %></td>
+
+            <td>
+              <%= link_to t('view'), player_class, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Player Class</p>
+        <%= link_to 'New Player Class', new_player_class_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,4 +1,23 @@
-class Setting < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: settings
+#
+#  id            :bigint           not null, primary key
+#  data          :text
+#  state         :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  club_id       :integer
+#  region_id     :integer
+#  tournament_id :integer
+#
+# Foreign Keys
+#
+#  fk_rails_...  (club_id => clubs.id)
+#  fk_rails_...  (region_id => regions.id)
+#  fk_rails_...  (tournament_id => tournaments.id)
+#
+class Setting < ApplicationRecord
   #acts_as_singleton
   serialize :data, Hash
   attr_reader :key
@@ -59,17 +78,17 @@ class Setting < ActiveRecord::Base
       inst = Setting.instance
       type, val = inst.read_attribute(:data)[k.to_s].to_a.flatten
       return case type
-            when "Integer"
-              val.to_i
-            when "Float"
-              val.to_f
+             when "Integer"
+               val.to_i
+             when "Float"
+               val.to_f
              when "Hash"
                JSON.parse(val)
              when "Array"
                JSON.parse(val)
-            else
-              val
-            end
+             else
+               val
+             end
     rescue
       return nil
     end

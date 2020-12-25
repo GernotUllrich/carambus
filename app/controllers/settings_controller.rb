@@ -1,18 +1,22 @@
 class SettingsController < ApplicationController
+  before_action :set_setting, only: [:show, :edit, :update, :destroy]
 
   # GET /settings
-  # GET /settings.json
   def index
-    @setting = Setting.instance
-    @edit_mode = false
-    render :show
+    @pagy, @settings = pagy(Setting.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @settings.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @settings.load
   end
 
   # GET /settings/1
-  # GET /settings/1.json
   def show
-    @setting = Setting.instance
-    @edit_mode = false
+  end
+
+  # GET /settings/new
+  def new
+    @setting = Setting.new
   end
 
   # GET /settings/1/edit
@@ -45,7 +49,7 @@ class SettingsController < ApplicationController
 
   def update_tournament_settings
     @setting = Setting.instance
-  end
+    end
 
   def manage_tournament
     @setting = Setting.instance
@@ -69,7 +73,7 @@ class SettingsController < ApplicationController
       if @setting.write_attribute(:data, hash)
         format.html { redirect_to @setting, notice: 'Home page setting was successfully updated.' }
         format.json { render :show, status: :ok, location: @setting }
-      else
+    else
         format.html { render :edit }
         format.json { render json: @setting.errors, status: :unprocessable_entity }
       end

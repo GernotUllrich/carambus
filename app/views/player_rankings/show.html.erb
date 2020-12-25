@@ -1,102 +1,123 @@
-<p>
-  <strong>Player:</strong>
-  <%= @player_ranking.player_id %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Player Rankings', player_rankings_path %> > Player Ranking #<%= @player_ranking.id %></h1>
+      <%= link_to( 'Edit', edit_player_ranking_path(@player_ranking), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Region:</strong>
-  <%= @player_ranking.region_id %>
-</p>
-
-<p>
-  <strong>Club:</strong>
-  <%= @player_ranking.club_id %>
-</p>
-
-<p>
-  <strong>Season:</strong>
-  <%= @player_ranking.season_id %>
-</p>
-
-<p>
-  <strong>Org level:</strong>
-  <%= @player_ranking.org_level %>
-</p>
-
-<p>
-  <strong>Discipline:</strong>
-  <%= @player_ranking.discipline_id %>
-</p>
-
-<p>
-  <strong>Status:</strong>
-  <%= @player_ranking.status %>
-</p>
-
-<p>
-  <strong>Points:</strong>
-  <%= @player_ranking.points %>
-</p>
-
-<p>
-  <strong>Innings:</strong>
-  <%= @player_ranking.innings %>
-</p>
-
-<p>
-  <strong>Gd:</strong>
-  <%= @player_ranking.gd %>
-</p>
-
-<p>
-  <strong>Hs:</strong>
-  <%= @player_ranking.hs %>
-</p>
-
-<p>
-  <strong>Bed:</strong>
-  <%= @player_ranking.bed %>
-</p>
-
-<p>
-  <strong>Btg:</strong>
-  <%= @player_ranking.btg %>
-</p>
-
-<p>
-  <strong>Player class:</strong>
-  <%= @player_ranking.player_class_id %>
-</p>
-
-<p>
-  <strong>P player class:</strong>
-  <%= @player_ranking.p_player_class_id %>
-</p>
-
-<p>
-  <strong>Pp player class:</strong>
-  <%= @player_ranking.pp_player_class_id %>
-</p>
-
-<p>
-  <strong>P gd:</strong>
-  <%= @player_ranking.p_gd %>
-</p>
-
-<p>
-  <strong>Pp gd:</strong>
-  <%= @player_ranking.pp_gd %>
-</p>
-
-<p>
-  <strong>Tournament player class:</strong>
-  <%= @player_ranking.tournament_player_class_id %>
-</p>
-
-<p>
-  <strong>Rank:</strong>
-  <%= @player_ranking.rank %>
-</p>
-
-<%= link_to 'Edit', edit_player_ranking_path(@player_ranking) %> |
-<%= link_to 'Back', player_rankings_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Player</h5>
+        <%= @player_ranking.player_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Region</h5>
+        <%= @player_ranking.region_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Season</h5>
+        <%= @player_ranking.season_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Org level</h5>
+        <%= @player_ranking.org_level %>
+      </div>
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @player_ranking.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Status</h5>
+        <%= @player_ranking.status %>
+      </div>
+            <div class="mb-4">
+        <h5>Points</h5>
+        <%= @player_ranking.points %>
+      </div>
+            <div class="mb-4">
+        <h5>Gd</h5>
+        <%= @player_ranking.gd %>
+      </div>
+            <div class="mb-4">
+        <h5>Hs</h5>
+        <%= @player_ranking.hs %>
+      </div>
+            <div class="mb-4">
+        <h5>Bed</h5>
+        <%= @player_ranking.bed %>
+      </div>
+            <div class="mb-4">
+        <h5>Btg</h5>
+        <%= @player_ranking.btg %>
+      </div>
+            <div class="mb-4">
+        <h5>Player class</h5>
+        <%= @player_ranking.player_class_id %>
+      </div>
+            <div class="mb-4">
+        <h5>P player class</h5>
+        <%= @player_ranking.p_player_class_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Pp player class</h5>
+        <%= @player_ranking.pp_player_class_id %>
+      </div>
+            <div class="mb-4">
+        <h5>P gd</h5>
+        <%= @player_ranking.p_gd %>
+      </div>
+            <div class="mb-4">
+        <h5>Pp gd</h5>
+        <%= @player_ranking.pp_gd %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament player class</h5>
+        <%= @player_ranking.tournament_player_class_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Rank</h5>
+        <%= @player_ranking.rank %>
+      </div>
+            <div class="mb-4">
+        <h5>Remarks</h5>
+        <%= @player_ranking.remarks %>
+      </div>
+            <div class="mb-4">
+        <h5>G</h5>
+        <%= @player_ranking.g %>
+      </div>
+            <div class="mb-4">
+        <h5>V</h5>
+        <%= @player_ranking.v %>
+      </div>
+            <div class="mb-4">
+        <h5>Quote</h5>
+        <%= @player_ranking.quote %>
+      </div>
+            <div class="mb-4">
+        <h5>Sp g</h5>
+        <%= @player_ranking.sp_g %>
+      </div>
+            <div class="mb-4">
+        <h5>Sp v</h5>
+        <%= @player_ranking.sp_v %>
+      </div>
+            <div class="mb-4">
+        <h5>Sp quote</h5>
+        <%= @player_ranking.sp_quote %>
+      </div>
+            <div class="mb-4">
+        <h5>Balls</h5>
+        <%= @player_ranking.balls %>
+      </div>
+            <div class="mb-4">
+        <h5>Sets</h5>
+        <%= @player_ranking.sets %>
+      </div>
+            <div class="mb-4">
+        <h5>T ids</h5>
+        <%= @player_ranking.t_ids %>
+      </div>
+          </div>
+  </div>
+</div>

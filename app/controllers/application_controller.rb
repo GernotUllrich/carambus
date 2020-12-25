@@ -1,18 +1,26 @@
 class ApplicationController < ActionController::Base
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
-  before_action :authenticate_user!
   protect_from_forgery with: :exception
+
+  include SetCurrentRequestDetails
+  include SetLocale
+  include Jumpstart::Controller
+  include Accounts::SubscriptionStatus
+  include Users::NavbarNotifications
+  include Users::TimeZone
+  include Pagy::Backend
+  include CurrentHelper
+  include Sortable
+
   before_action :configure_permitted_parameters, if: :devise_controller?
-  before_action :set_paper_trail_whodunnit
-  before_action :set_locale
+  before_action :masquerade_user!
 
-  before_action :set_current_admin
-
-  def set_locale
-    I18n.locale = params[:locale] || I18n.default_locale
-    ip = request.env['REMOTE_ADDR']
+  before_action do
+    @navbar = true
+    @footer = true
   end
+
+  before_action :set_paper_trail_whodunnit
+  around_action :switch_locale
 
   def default_url_options
     { locale: I18n.locale }
@@ -22,19 +30,37 @@ class ApplicationController < ActionController::Base
     #  set @current_user from session data here
     TournamentMonitor.current_admin = @current_user
   end
-
   protected
 
-  # TODO what's following?
+
+  def switch_locale(&action)
+    locale = params[:locale] || I18n.default_locale
+    I18n.with_locale(locale, &action)
+  end
+  # To add extra fields to Devise registration, add the attribute names to `extra_keys`
   def configure_permitted_parameters
-    added_attrs = [:username, :email, :password, :password_confirmation, :remember_me]
-    devise_parameter_sanitizer.permit :sign_up, keys: added_attrs
-    devise_parameter_sanitizer.permit :account_update, keys: added_attrs
+    extra_keys = [:avatar, :name, :time_zone, :preferred_language]
+    signup_keys = extra_keys + [:terms_of_service, :invite, owned_accounts_attributes: [:name]]
+    devise_parameter_sanitizer.permit(:sign_up, keys: signup_keys)
+    devise_parameter_sanitizer.permit(:account_update, keys: extra_keys)
+    devise_parameter_sanitizer.permit(:accept_invitation, keys: extra_keys)
   end
 
-  private
+  def after_sign_in_path_for(resource_or_scope)
+    stored_location_for(resource_or_scope) || super
+  end
 
-  def after_sign_in_path_for(resource)
-    stored_location_for(resource) || tournament_monitors_path
+  # Helper method for verifying authentication in a before_action, but redirecting to sign up instead of login
+  def authenticate_user_with_sign_up!
+    unless user_signed_in?
+      store_location_for(:user, request.fullpath)
+      redirect_to new_user_registration_path, alert: t("create_an_account_first")
+    end
+  end
+
+  def require_current_account_admin
+    unless current_account_admin?
+      redirect_to root_path, alert: t("must_be_an_admin")
+    end
   end
 end

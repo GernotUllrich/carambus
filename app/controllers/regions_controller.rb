@@ -1,24 +1,33 @@
 class RegionsController < ApplicationController
-  before_action :set_region, only: [:show, :edit, :update, :destroy, :get_club_selector]
+  include FiltersHelper
+  protect_from_forgery except: :search
+  before_action :set_region, only: [:show, :edit, :update, :destroy]
 
   # GET /regions
-  # GET /regions.json
   def index
-    @regions = Region.all
+    @regions = Region.includes(:country).sort_by_params(params[:sort], sort_direction)
+    if params[:sSearch].present?
+      @regions = apply_filters(@regions, Region::COLUMN_NAMES, "(regions.name ilike :search) or (regions.shortname ilike :search) or (regions.email ilike :search)")
+    end
+    @pagy, @regions = pagy(@regions)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @regions.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @regions.load
     respond_to do |format|
-      format.html
-      format.json { render json: RegionsDatatable.new(view_context, nil) }
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
     end
   end
 
   # GET /regions/1
-  # GET /regions/1.json
   def show
-  end
-
-  def get_club_selector
-    @clubs = Club.joins(:region).where(regions: {id: params[:id]}).order("clubs.shortname")
-    render partial: 'club_selector', layout: nil
+    @t_pagy, @tournaments = pagy(Tournament.where(season_id: Season.last.id, region_id: @region.id).order("tournaments.date asc"))
+    @tournaments.load
   end
 
   # GET /regions/new
@@ -31,53 +40,40 @@ class RegionsController < ApplicationController
   end
 
   # POST /regions
-  # POST /regions.json
   def create
     @region = Region.new(region_params)
 
-    respond_to do |format|
-      if @region.save
-        format.html { redirect_to @region, notice: 'Region was successfully created.' }
-        format.json { render :show, status: :created, location: @region }
-      else
-        format.html { render :new }
-        format.json { render json: @region.errors, status: :unprocessable_entity }
-      end
+    if @region.save
+      redirect_to @region, notice: "Region was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /regions/1
-  # PATCH/PUT /regions/1.json
   def update
-    respond_to do |format|
-      if @region.update(region_params)
-        format.html { redirect_to @region, notice: 'Region was successfully updated.' }
-        format.json { render :show, status: :ok, location: @region }
-      else
-        format.html { render :edit }
-        format.json { render json: @region.errors, status: :unprocessable_entity }
-      end
+    if @region.update(region_params)
+      redirect_to @region, notice: "Region was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /regions/1
-  # DELETE /regions/1.json
   def destroy
     @region.destroy
-    respond_to do |format|
-      format.html { redirect_to regions_url, notice: 'Region was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to regions_url, notice: "Region was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_region
-      @region = Region.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def region_params
-      params.require(:region).permit(:name, :shortname, :logo, :email, :address, :country_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_region
+    @region = Region.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def region_params
+    params.require(:region).permit(:name, :shortname, :logo, :email, :address, :country_id)
+  end
 end

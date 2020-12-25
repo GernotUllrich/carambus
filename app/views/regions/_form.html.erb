@@ -1,41 +1,41 @@
-<%= form_for(@region) do |f| %>
-  <% if @region.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@region.errors.count, "error") %> prohibited this region from being saved:</h2>
+<%= form_with(model: region) do |form| %>
+  <%= render "shared/error_messages", resource: form.object %>
 
-      <ul>
-      <% @region.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
+  <div class="form-group">
+    <%= form.label :shortname %>
+    <%= form.text_field :shortname, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :shortname %><br>
-    <%= f.text_field :shortname %>
+
+  <div class="form-group">
+    <%= form.label :logo %>
+    <%= form.text_field :logo, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :logo %><br>
-    <%= f.text_field :logo %>
+
+  <div class="form-group">
+    <%= form.label :email %>
+    <%= form.text_field :email, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :email %><br>
-    <%= f.text_field :email %>
+
+  <div class="form-group">
+    <%= form.label :address %>
+    <%= form.text_area :address, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :address %><br>
-    <%= f.text_area :address %>
+
+  <div class="form-group">
+    <%= form.label :country_id %>
+    <%= form.number_field :country_id, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :country_id %><br>
-    <%= f.select :country_id, options_for_select([["Deutschland", 1]]) %>
-  </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
   </div>
 <% end %>

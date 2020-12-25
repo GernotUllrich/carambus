@@ -1,73 +1,53 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#seasons').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Seasons'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Seasons'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Seasons'
-                  }, {
-                      extend: 'print',
-                      title: 'Seasons'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Seasons</h1>
 
-                  "aaSorting": [[1, 'asc']],
-                  "aoColumns": [
-                      null,
-                      null,
-                      {"bSortable": false}
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#seasons').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
+    <% if @seasons.any? %>
+      <%= link_to 'New Season', new_season_path, class: "btn btn-primary" if current_user.andand.admin? %>
+    <% end %>
+  </div>
 
-    th, td {
-        padding-left: 5px;
-    }
-</style>
+  <% if @seasons.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @seasons, :ba_id, 'Ba', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @seasons, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @seasons, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<h1>Listing Seasons</h1>
+        <tbody>
+        <% @seasons.each do |season| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= season.ba_id %></td>
+                      <td class="p-3"><%= season.name %></td>
+                      <td class="p-3"><%= season.data %></td>
 
-<table id="seasons" data-source="<%= seasons_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <th>Ba</th>
-    <th>Name</th>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+            <td>
+              <%= link_to t('view'), season, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
 
-  <tbody>
-  </tbody>
-</table>
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
 
-<br>
-
-<%= link_to 'New Season', new_season_path %>
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Season</p>
+        <%= link_to 'New Season', new_season_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,1 +1,0 @@
-json.partial! "discipline_tournament_plans/discipline_tournament_plan", discipline_tournament_plan: @discipline_tournament_plan

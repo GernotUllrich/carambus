@@ -1,29 +1,53 @@
-<h1>Listing TournamentPlan Games</h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Tournament Plan Games</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>TournamentPlan</th>
-      <th>Remarks</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @tournament_plan_games.each do |tournament_plan_game| %>
-      <tr>
-        <td><%= tournament_plan_game.name %></td>
-        <td><%= tournament_plan_game.tournament_plan_id %></td>
-        <td><%= tournament_plan_game.data %></td>
-        <td><%= link_to image_tag("ansehen.gif", :width => 26, :height => 22, :border => 0), tournament_plan_game %></td>
-        <td><%= link_to image_tag("bearbeiten.gif", :width => 26, :height => 22, :border => 0), edit_tournament_plan_game_path(tournament_plan_game) %></td>
-        <td><%= link_to image_tag("loeschen.gif", :width => 26, :height => 22, :border => 0), tournament_plan_game, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+    <% if @tournament_plan_games.any? %>
+      <%= link_to 'New Tournament Plan Game', new_tournament_plan_game_path, class: "btn btn-primary" %>
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<br>
+  <% if @tournament_plan_games.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plan_games, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plan_games, :tournament_plan_id, 'Tournament plan', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plan_games, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<%= link_to 'New TournamentPlan game', new_tournament_plan_game_path %>
+        <tbody>
+        <% @tournament_plan_games.each do |tournament_plan_game| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= tournament_plan_game.name %></td>
+                      <td class="p-3"><%= tournament_plan_game.tournament_plan_id %></td>
+                      <td class="p-3"><%= tournament_plan_game.data %></td>
+
+            <td>
+              <%= link_to t('view'), tournament_plan_game, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Tournament Plan Game</p>
+        <%= link_to 'New Tournament Plan Game', new_tournament_plan_game_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,6 +1,12 @@
-<h1><%= I18n.t("tournaments.edit.editing_tournament") %></h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Tournament</h1>
+      <%= link_to 'Cancel', @tournament, class: "btn btn-link" %>
+    </div>
 
-<%= render 'form' %>
-
-<%= link_to I18n.t("tournaments.edit.show"), @tournament %> |
-<%= link_to I18n.t("tournaments.edit.back"), tournaments_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <%= render 'form', tournament: @tournament %>
+    </div>
+  </div>
+</div>

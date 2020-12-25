@@ -1,77 +1,53 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#table_kinds').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'TableKinds'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'TableKinds'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'TableKinds'
-                  }, {
-                      extend: 'print',
-                      title: 'TableKinds'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Table Kinds</h1>
 
-                  "aaSorting": [
-                      [0, "desc"]
-                  ],
-                  "aoColumns": [
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#table_kinds').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-<h1>Listing Table Kinds</h1>
-
-<table id="table_kinds" data-source="<%= table_kinds_url(format: 'json') %>" width="100%" style="margin: 0px; width: 50%;">
-  <thead>
-  <tr>
-    <% TableKind::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @table_kinds.any? %>
+      <%= link_to 'New Table Kind', new_table_kind_path, class: "btn btn-primary" %>
     <% end %>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
+  <% if @table_kinds.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_kinds, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_kinds, :short, 'Short', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_kinds, :measures, 'Measures', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<br>
+        <tbody>
+        <% @table_kinds.each do |table_kind| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= table_kind.name %></td>
+                      <td class="p-3"><%= table_kind.short %></td>
+                      <td class="p-3"><%= table_kind.measures %></td>
 
-<%= link_to 'New Table kind', new_table_kind_path %>
+            <td>
+              <%= link_to t('view'), table_kind, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Table Kind</p>
+        <%= link_to 'New Table Kind', new_table_kind_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

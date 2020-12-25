@@ -1,13 +1,26 @@
 class SeedingsController < ApplicationController
+  include FiltersHelper
   before_action :set_seeding, only: [:show, :edit, :update, :destroy, :up, :down]
 
   # GET /seedings
-  # GET /seedings.json
+  # GET /seedings
   def index
-    @seedings = Seeding.page(params[:page]).per(24)
+    @seedings = Seeding.joins(:player, :tournament => :season).sort_by_params(params[:sort], sort_direction)
+    if params[:sSearch].present?
+      @seedings = apply_filters(@seedings, Seeding::COLUMN_NAMES, "(tournaments.title ilike :search) or (players.lastname||', '||players.firstname ilike :search) or (seasons.name ilike :search) or (seedings.state ilike :search)")
+    end
+    @pagy, @seedings = pagy(@seedings)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @seedings.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @seedings.load
     respond_to do |format|
-      format.html
-      format.json { render json: SeedingsDatatable.new(view_context, nil) }
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
     end
   end
 
@@ -22,7 +35,6 @@ class SeedingsController < ApplicationController
   end
 
   # GET /seedings/1
-  # GET /seedings/1.json
   def show
   end
 
@@ -36,53 +48,40 @@ class SeedingsController < ApplicationController
   end
 
   # POST /seedings
-  # POST /seedings.json
   def create
     @seeding = Seeding.new(seeding_params)
 
-    respond_to do |format|
-      if @seeding.save
-        format.html { redirect_to @seeding, notice: 'Seeding was successfully created.' }
-        format.json { render :show, status: :created, location: @seeding }
-      else
-        format.html { render :new }
-        format.json { render json: @seeding.errors, status: :unprocessable_entity }
-      end
+    if @seeding.save
+      redirect_to @seeding, notice: "Seeding was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /seedings/1
-  # PATCH/PUT /seedings/1.json
   def update
-    respond_to do |format|
-      if @seeding.update(seeding_params)
-        format.html { redirect_to @seeding, notice: 'Seeding was successfully updated.' }
-        format.json { render :show, status: :ok, location: @seeding }
-      else
-        format.html { render :edit }
-        format.json { render json: @seeding.errors, status: :unprocessable_entity }
-      end
+    if @seeding.update(seeding_params)
+      redirect_to @seeding, notice: "Seeding was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /seedings/1
-  # DELETE /seedings/1.json
   def destroy
     @seeding.destroy
-    respond_to do |format|
-      format.html { redirect_to seedings_url, notice: 'Seeding was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to seedings_url, notice: "Seeding was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_seeding
-      @seeding = Seeding.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def seeding_params
-      params.require(:seeding).permit(:player_id, :tournament_id, :status, :position, :data)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_seeding
+    @seeding = Seeding.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def seeding_params
+    params.require(:seeding).permit(:player_id, :tournament_id, :ba_state, :position, :data, :state, :balls_goal, :playing_discipline_id)
+  end
 end

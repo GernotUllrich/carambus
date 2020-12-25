@@ -1,6 +1,12 @@
-<h1>Editing Player Class</h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Player Class</h1>
+      <%= link_to 'Cancel', @player_class, class: "btn btn-link" %>
+    </div>
 
-<%= render 'form' %>
-
-<%= link_to 'Show', @player_class %> |
-<%= link_to 'Back', player_classes_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <%= render 'form', player_class: @player_class %>
+    </div>
+  </div>
+</div>

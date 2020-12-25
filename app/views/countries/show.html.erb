@@ -1,109 +1,19 @@
-<style>
-    td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to t('country.index.countries'), countries_path %> > <%= @country.name %></h1>
+      <%= link_to( 'Edit', edit_country_path(@country), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-    th, tr:nth-child(even) {
-        background-color: #dddddd;
-    }
-</style>
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#regions').DataTable({
-                  "stateSave": true,
-                  dom: 'Bfrtip',
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Regions'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Regions'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Regions'
-                  }, {
-                      extend: 'print',
-                      title: 'Regions'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
-
-                  "aaSorting": [
-                      [0, "asc"]
-                  ],
-                  "aoColumns": [
-                      {"bSortable": false},
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false}
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#regions').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<p>
-  <strong>Name:</strong>
-  <%= @country.name %>
-</p>
-
-<p>
-  <strong>Code:</strong>
-  <%= @country.code %>
-</p>
-
-<%= link_to 'Edit', edit_country_path(@country) %> |
-<%= link_to 'Back', countries_path %>
-
-<h2>Regions</h2>
-<table id="regions" data-source="<%= regions_url(format: 'json', country_id: @country.id) %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Shortname</th>
-    <th>email</th>
-    <th>Address</th>
-  </tr>
-  </thead>
-  <tbody>
-
-  <% @country.regions.order("regions.shortname asc").each do |region| %>
-    <tr>
-      <td><%= link_to(region.shortname, "https://#{region.shortname.downcase}.billardarea.de") %></td>
-      <td><%= link_to(region.name, region_path(region)) %></td>
-      <td><%= mail_to region.email %></td>
-      <td><%= region.address.gsub("\n", "<br/>").html_safe %></td>
-    </tr>
-  <% end %>
-  </tbody>
-</table>
-
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @country.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Code</h5>
+        <%= @country.code %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -1,37 +1,36 @@
-<h1><%= @discipline.name %> / <%= @discipline.table_kind.andand.name %></h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Disciplines', disciplines_path %> > Discipline #<%= @discipline.id %></h1>
+      <%= link_to('Edit', edit_discipline_path(@discipline), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Name:</strong>
-  <%= @discipline.name %>
-</p>
-
-<p>
-  <strong>is a:</strong>
-  <%= link_to(@discipline.super_discipline.name, discipline_path(@discipline.super_discipline.root)) if @discipline.super_discipline.present? %>
-</p>
-
-<p>
-  <% sup = (@discipline.super_discipline || @discipline.root) %>
-  <strong>other <%= sup.name %>:</strong>
-<ul>
-  <% sup.sub_disciplines.order(name: :asc).all.each do |sub| %>
-    <li>
-      <%= link_to(sub.name, discipline_path(sub)) %>
-
-    </li>
-  <% end %>
-</ul>
-</p>
-
-<p>
-  <strong>Root Discipline:</strong>
-  <%= link_to(@discipline.root.name, discipline_path(@discipline.root)) %>
-</p>
-
-<p>
-  <strong>Table Kind:</strong>
-  <%= link_to(@discipline.table_kind.andand.name, table_kind_path(@discipline.table_kind)) if @discipline.table_kind.present? %>
-</p>
-
-<%= link_to 'Edit', edit_discipline_path(@discipline) %> |
-<%= link_to 'Back', disciplines_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @discipline.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Super discipline</h5>
+        <%= link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Sub disciplines</h5>
+        <ul >
+          <%- @discipline.sub_disciplines.order(:name).each do |sub| %>
+            <li><%= link_to sub.name, discipline_path(sub) %></li>
+          <%- end %>
+        </ul>
+        <%= link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Table kind</h5>
+        <%= link_to @discipline.table_kind.name, table_kind_path(@discipline.table_kind) if @discipline.table_kind.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Data</h5>
+        <%= @discipline.data %>
+      </div>
+    </div>
+  </div>
+</div>

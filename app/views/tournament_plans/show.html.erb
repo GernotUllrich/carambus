@@ -1,44 +1,54 @@
-<div class="field">
-  <%= label_tag :name %>:
-  <%= @tournament_plan.name %>
-</div>
-<div class="field">
-  <%= label_tag :rulesystem %>:
-  <%= @tournament_plan.rulesystem %>
-</div>
-<div class="field">
-  <%= label_tag :more_description %>:
-  <%= @tournament_plan.more_description %>
-</div>
-<div class="field">
-  <%= label_tag :even_more_description %>:
-  <%= @tournament_plan.even_more_description %>
-</div>
-<div class="field">
-  <%= label_tag :executor_class %>:
-  <%= @tournament_plan.executor_class %>
-</div>
-<div class="field">
-  <%= label_tag :executor_params %>:
-  <%= @tournament_plan.executor_params %>
-</div>
-<div class="field">
-  <%= label_tag :players %>:
-  <%= @tournament_plan.players %>
-</div>
-<div class="field">
-  <%= label_tag :ngroups %>:
-  <%= @tournament_plan.ngroups %>
-</div>
-<div class="field">
-  <%= label_tag :tables %>:
-  <%= @tournament_plan.tables %>
-</div>
-<div class="field">
-  <%= label_tag :nrepeats %>:
-  <%= @tournament_plan.nrepeats %>
-</div>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Tournament Plans', tournament_plans_path %> > Tournament Plan
+        #<%= @tournament_plan.id %></h1>
+      <%= link_to('Edit', edit_tournament_plan_path(@tournament_plan), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-
-<%= link_to 'Edit', edit_tournament_plan_path(@tournament_plan) %> |
-<%= link_to 'Back', tournament_plans_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @tournament_plan.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Rulesystem</h5>
+        <%= @tournament_plan.rulesystem %>
+      </div>
+      <div class="mb-4">
+        <h5>Players</h5>
+        <%= @tournament_plan.players %>
+      </div>
+      <div class="mb-4">
+        <h5>Tables</h5>
+        <%= @tournament_plan.tables %>
+      </div>
+      <div class="mb-4">
+        <h5>More description</h5>
+        <%= @tournament_plan.more_description %>
+      </div>
+      <div class="mb-4">
+        <h5>Even more description</h5>
+        <%= @tournament_plan.even_more_description %>
+      </div>
+      <div class="mb-4">
+        <h5>Executor class</h5>
+        <%= @tournament_plan.executor_class %>
+      </div>
+      <div class="mb-4">
+        <h5>Executor params</h5>
+        <pre>
+        <%= JSON.pretty_generate(JSON.parse(@tournament_plan.executor_params)) %>
+        </pre>
+      </div>
+      <div class="mb-4">
+        <h5>Ngroups</h5>
+        <%= @tournament_plan.ngroups %>
+      </div>
+      <div class="mb-4">
+        <h5>Nrepeats</h5>
+        <%= @tournament_plan.nrepeats %>
+      </div>
+    </div>
+  </div>
+</div>

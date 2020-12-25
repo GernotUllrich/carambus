@@ -1,79 +1,59 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#discipline_tournament_plans').DataTable({
-                  "stateSave": true,
-                  dom: 'Bfrtip',
-                  buttons: [
-                      'copy', {
-                          extend: 'csvHtml5',
-                          title: 'DisciplineTournamentPlans'
-                      }, {
-                          extend: 'excelHtml5',
-                          title: 'DisciplineTournamentPlans'
-                      }, {
-                          extend: 'print',
-                          title: 'DisciplineTournamentPlans'
-                      }
-                  ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Discipline Tournament Plans</h1>
 
-                  "aaSorting": [[1, 'asc']],
-                  "aoColumns": [
-                      null,
-                      null,
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#discipline_tournament_plans').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
+    <% if @discipline_tournament_plans.any? %>
+      <%= link_to 'New Discipline Tournament Plan', new_discipline_tournament_plan_path, class: "btn btn-primary" %>
+    <% end %>
+  </div>
 
-    th, td {
-        padding-left: 5px;
-    }
-</style>
+  <% if @discipline_tournament_plans.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :discipline_id, 'Discipline', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :tournament_plan_id, 'Tournament plan', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :points, 'Points', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :innings, 'Innings', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :players, 'Players', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_tournament_plans, :player_class, 'Player class', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<p id="notice"><%= notice %></p>
+        <tbody>
+        <% @discipline_tournament_plans.each do |discipline_tournament_plan| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= link_to discipline_tournament_plan.discipline.name, discipline_path(discipline_tournament_plan.discipline) %></td>
+                      <td class="p-3"><%= link_to discipline_tournament_plan.tournament_plan.name, tournament_plan_path(discipline_tournament_plan.tournament_plan) if discipline_tournament_plan.tournament_plan.present? %></td>
+                      <td class="p-3"><%= discipline_tournament_plan.points %></td>
+                      <td class="p-3"><%= discipline_tournament_plan.innings %></td>
+                      <td class="p-3"><%= discipline_tournament_plan.players %></td>
+                      <td class="p-3"><%= discipline_tournament_plan.player_class %></td>
 
-<h1>Listing Discipline TournamentPlans</h1>
+            <td>
+              <%= link_to t('view'), discipline_tournament_plan, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
 
-<table id="discipline_tournament_plans" data-source="<%= discipline_tournament_plans_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-    <tr>
-      <% DisciplineTournamentPlan::COLUMN_NAMES.keys.each do |column_name| %>
-        <!--      TODO FILTERS-->
-        <th><%= column_name %></th>
-      <% end %>
-      <th width="100px"></th>
-    </tr>
-  </thead>
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
 
-  <tbody>
-
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Discipline tournament_plan', new_discipline_tournament_plan_path %>
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Discipline Tournament Plan</p>
+        <%= link_to 'New Discipline Tournament Plan', new_discipline_tournament_plan_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

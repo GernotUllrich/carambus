@@ -8,5 +8,11 @@ namespace :adhoc do
     Setting.key_delete(:admin_email)
 
   end
+
+  task :test_rankings => :environment do
+    tournament = Tournament[11637]
+    tm = tournament.tournament_monitor
+    tm.update_ranking
+  end
 end
 

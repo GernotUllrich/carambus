@@ -2,13 +2,15 @@ class TournamentPlansController < ApplicationController
   before_action :set_tournament_plan, only: [:show, :edit, :update, :destroy]
 
   # GET /tournament_plans
-  # GET /tournament_plans.json
   def index
-    @tournament_plans = TournamentPlan.all
+    @pagy, @tournament_plans = pagy(TournamentPlan.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @tournament_plans.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @tournament_plans.load
   end
 
   # GET /tournament_plans/1
-  # GET /tournament_plans/1.json
   def show
   end
 
@@ -22,43 +24,29 @@ class TournamentPlansController < ApplicationController
   end
 
   # POST /tournament_plans
-  # POST /tournament_plans.json
   def create
     @tournament_plan = TournamentPlan.new(tournament_plan_params)
 
-    respond_to do |format|
-      if @tournament_plan.save
-        format.html { redirect_to @tournament_plan, notice: 'TournamentPlan was successfully created.' }
-        format.json { render :show, status: :created, location: @tournament_plan }
-      else
-        format.html { render :new }
-        format.json { render json: @tournament_plan.errors, status: :unprocessable_entity }
-      end
+    if @tournament_plan.save
+      redirect_to @tournament_plan, notice: "Tournament plan was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /tournament_plans/1
-  # PATCH/PUT /tournament_plans/1.json
   def update
-    respond_to do |format|
-      if @tournament_plan.update(tournament_plan_params)
-        format.html { redirect_to @tournament_plan, notice: 'TournamentPlan was successfully updated.' }
-        format.json { render :show, status: :ok, location: @tournament_plan }
-      else
-        format.html { render :edit }
-        format.json { render json: @tournament_plan.errors, status: :unprocessable_entity }
-      end
+    if @tournament_plan.update(tournament_plan_params)
+      redirect_to @tournament_plan, notice: "Tournament plan was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /tournament_plans/1
-  # DELETE /tournament_plans/1.json
   def destroy
     @tournament_plan.destroy
-    respond_to do |format|
-      format.html { redirect_to tournament_plans_url, notice: 'TournamentPlan was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to tournament_plans_url, notice: "Tournament plan was successfully destroyed."
   end
 
   private
@@ -68,11 +56,8 @@ class TournamentPlansController < ApplicationController
     @tournament_plan = TournamentPlan.find(params[:id])
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Only allow a trusted parameter "white list" through.
   def tournament_plan_params
-    params.require(:tournament_plan).permit(
-        :name, :rulesystem, :players, :ngroups, :tables, :more_description,
-        :even_more_description, :executor_class, :executor_params,
-        :nrepeats)
+    params.require(:tournament_plan).permit(:name, :rulesystem, :players, :tables, :more_description, :even_more_description, :executor_class, :executor_params, :ngroups, :nrepeats)
   end
 end

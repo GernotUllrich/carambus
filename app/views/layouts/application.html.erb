@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="h-full antialiased">
+  <head>
+    <title>
+      <% if content_for?(:title) %>
+        <%= yield :title %> |
+      <% end %>
+      <%= Jumpstart.config.application_name %>
+    </title>
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <%# All assets are defined in Webpacker app/javascripts now %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+
+    <%# Be sure to add your own custom favicons %>
+    <%= render "shared/favicons" %>
+    <%= render "shared/payments_dependencies" %>
+
+    <%# Replace this with your FontAwesome Pro Kit code %>
+    <script src="https://kit.fontawesome.com/0e5ab6a736.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <%#<link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet"> %>
+
+    <%= yield :head %>
+  </head>
+
+  <body class="h-full font-sans antialiased font-normal leading-normal bg-gray-100 dark:text-gray-200 dark:bg-gray-800 dark:bg-black">
+    <div class="main">
+      <%= render partial: "shared/flash" %>
+      <%= render partial: "shared/navbar" if @navbar%>
+
+      <div class="px-3 lg:px-0">
+        <%= yield %>
+        <%= yield :javascript_code %>
+      </div>
+    </div>
+
+    <%= render partial: "shared/footer" if @footer %>
+  </body>
+</html>

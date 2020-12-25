@@ -1,0 +1,97 @@
+# == Schema Information
+#
+# Table name: player_rankings
+#
+#  id                         :bigint           not null, primary key
+#  balls                      :integer
+#  bed                        :float
+#  btg                        :float
+#  g                          :integer
+#  gd                         :float
+#  hs                         :integer
+#  innings                    :integer
+#  org_level                  :string
+#  p_gd                       :float
+#  points                     :integer
+#  pp_gd                      :float
+#  quote                      :float
+#  rank                       :integer
+#  remarks                    :text
+#  sets                       :integer
+#  sp_g                       :integer
+#  sp_quote                   :float
+#  sp_v                       :integer
+#  status                     :string
+#  t_ids                      :text
+#  v                          :integer
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  discipline_id              :integer
+#  p_player_class_id          :integer
+#  player_class_id            :integer
+#  player_id                  :integer
+#  pp_player_class_id         :integer
+#  region_id                  :integer
+#  season_id                  :integer
+#  tournament_player_class_id :integer
+#
+
+one:
+  player_id: 1
+  region_id: 1
+  season_id: 1
+  org_level: MyString
+  discipline_id: 1
+  status: MyString
+  points: 1
+  gd: 1.5
+  hs: 1
+  bed: 1.5
+  btg: 1.5
+  player_class_id: 1
+  p_player_class_id: 1
+  pp_player_class_id: 1
+  p_gd: 1.5
+  pp_gd: 1.5
+  tournament_player_class_id: 1
+  rank: 1
+  remarks: MyText
+  g: 1
+  v: 1
+  quote: 1.5
+  sp_g: 1
+  sp_v: 1
+  sp_quote: 1.5
+  balls: 1
+  sets: 1
+  t_ids: MyText
+
+two:
+  player_id: 1
+  region_id: 1
+  season_id: 1
+  org_level: MyString
+  discipline_id: 1
+  status: MyString
+  points: 1
+  gd: 1.5
+  hs: 1
+  bed: 1.5
+  btg: 1.5
+  player_class_id: 1
+  p_player_class_id: 1
+  pp_player_class_id: 1
+  p_gd: 1.5
+  pp_gd: 1.5
+  tournament_player_class_id: 1
+  rank: 1
+  remarks: MyText
+  g: 1
+  v: 1
+  quote: 1.5
+  sp_g: 1
+  sp_v: 1
+  sp_quote: 1.5
+  balls: 1
+  sets: 1
+  t_ids: MyText

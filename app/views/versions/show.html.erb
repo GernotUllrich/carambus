@@ -1,0 +1,35 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Versions', versions_path %> > Version #<%= @version.id %></h1>
+      <%= link_to( 'Edit', edit_version_path(@version), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
+
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Item type</h5>
+        <%= @version.item_type %>
+      </div>
+            <div class="mb-4">
+        <h5>Item</h5>
+        <%= @version.item_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Event</h5>
+        <%= @version.event %>
+      </div>
+            <div class="mb-4">
+        <h5>Whodunnit</h5>
+        <%= @version.whodunnit %>
+      </div>
+            <div class="mb-4">
+        <h5>Object</h5>
+        <%= @version.object %>
+      </div>
+            <div class="mb-4">
+        <h5>Object changes</h5>
+        <%= @version.object_changes %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -1,37 +1,51 @@
-<%= form_for(@seeding) do |f| %>
-  <% if @seeding.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@seeding.errors.count, "error") %> prohibited this seeding from being saved:</h2>
+<%= form_with(model: seeding) do |form| %>
+  <%= render "shared/error_messages", resource: form.object %>
 
-      <ul>
-      <% @seeding.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <div class="form-group">
+    <%= form.label :player_id %>
+    <%= form.number_field :player_id, class: "form-control" %>
+  </div>
 
-  <div class="field">
-    <%= f.label :player_id %><br>
-    <%= f.number_field :player_id %>
+  <div class="form-group">
+    <%= form.label :tournament_id %>
+    <%= form.number_field :tournament_id, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :tournament_id %><br>
-    <%= f.number_field :tournament_id %>
+
+  <div class="form-group">
+    <%= form.label :ba_state %>
+    <%= form.text_field :ba_state, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :ba_state %><br>
-    <%= f.text_field :ba_state %>
+
+  <div class="form-group">
+    <%= form.label :position %>
+    <%= form.number_field :position, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :position %><br>
-    <%= f.number_field :position %>
+
+  <div class="form-group">
+    <%= form.label :data %>
+    <%= form.text_area :data, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :data %><br>
-    <%= f.text_area :data %>
+
+  <div class="form-group">
+    <%= form.label :state %>
+    <%= form.text_field :state, class: "form-control" %>
   </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="form-group">
+    <%= form.label :balls_goal %>
+    <%= form.number_field :balls_goal, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :playing_discipline_id %>
+    <%= form.number_field :playing_discipline_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
   </div>
 <% end %>

@@ -1,31 +1,55 @@
-<h1>Listing Locations</h1>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Locations</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Club</th>
-      <th>Name</th>
-      <th>Address</th>
-      <th>Data</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @locations.each do |location| %>
-      <tr>
-        <td><%= link_to location.club_id, location_path(location) %></td>
-        <td><%= location.name %></td>
-        <td><%= location.address.gsub("\n", "<br />").html_safe %></td>
-        <td><%= location.data %></td>
-        <td><%= link_to 'Show', location %></td>
-        <td><%= link_to 'Edit', edit_location_path(location) %></td>
-        <td><%= link_to 'Destroy', location, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+    <% if @locations.any? %>
+      <%= link_to 'New Location', new_location_path, class: "btn btn-primary" %>
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<br>
+  <% if @locations.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id, 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<%= link_to 'New Location', new_location_path %>
+        <tbody>
+        <% @locations.each do |location| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= location.club_id %></td>
+                      <td class="p-3"><%= location.address %></td>
+                      <td class="p-3"><%= location.data %></td>
+                      <td class="p-3"><%= location.name %></td>
+
+            <td>
+              <%= link_to t('view'), location, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Location</p>
+        <%= link_to 'New Location', new_location_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

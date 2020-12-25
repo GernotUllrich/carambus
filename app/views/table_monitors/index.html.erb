@@ -1,35 +1,61 @@
-<p id="notice"><%= notice %></p>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Table Monitors</h1>
 
-<h1>Listing Table Monitors</h1>
-
-<table>
-  <thead>
-    <tr>
-      <th>State</th>
-      <th>Name</th>
-      <th>Game</th>
-      <th>Next game</th>
-      <th>Data</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @table_monitors.each do |table_monitor| %>
-      <tr>
-        <td><%= table_monitor.state %></td>
-        <td><%= table_monitor.name %></td>
-        <td><%= table_monitor.game_id %></td>
-        <td><%= table_monitor.next_game_id %></td>
-        <td><%= table_monitor.data %></td>
-        <td><%= link_to 'Show', table_monitor %></td>
-        <td><%= link_to 'Edit', edit_table_monitor_path(table_monitor) %></td>
-        <td><%= link_to 'Destroy', table_monitor, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+    <% if @table_monitors.any? %>
+      <%= link_to 'New Table Monitor', new_table_monitor_path, class: "btn btn-primary" %>
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<br>
+  <% if @table_monitors.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :tournament_monitor_id, 'Tournament monitor', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :game_id, 'Game', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :next_game_id, 'Next game', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :ip_address, 'Ip address', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<%= link_to 'New Table monitor', new_table_monitor_path %>
+        <tbody>
+        <% @table_monitors.each do |table_monitor| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= table_monitor.tournament_monitor_id %></td>
+                      <td class="p-3"><%= table_monitor.state %></td>
+                      <td class="p-3"><%= table_monitor.name %></td>
+                      <td class="p-3"><%= table_monitor.game_id %></td>
+                      <td class="p-3"><%= table_monitor.next_game_id %></td>
+                      <td class="p-3"><%= table_monitor.data %></td>
+                      <td class="p-3"><%= table_monitor.ip_address %></td>
+
+            <td>
+              <%= link_to t('view'), table_monitor, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Table Monitor</p>
+        <%= link_to 'New Table Monitor', new_table_monitor_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

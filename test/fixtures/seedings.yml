@@ -1,0 +1,41 @@
+# == Schema Information
+#
+# Table name: seedings
+#
+#  id                    :bigint           not null, primary key
+#  ba_state              :string
+#  balls_goal            :integer
+#  data                  :text
+#  position              :integer
+#  rank                  :integer
+#  state                 :string
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  player_id             :integer
+#  playing_discipline_id :integer
+#  tournament_id         :integer
+#
+# Indexes
+#
+#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
+#
+
+one:
+  player_id: 1
+  tournament_id: 1
+  ba_state: MyString
+  position: 1
+  data: MyText
+  state: MyString
+  balls_goal: 1
+  playing_discipline_id: 1
+
+two:
+  player_id: 1
+  tournament_id: 1
+  ba_state: MyString
+  position: 1
+  data: MyText
+  state: MyString
+  balls_goal: 1
+  playing_discipline_id: 1

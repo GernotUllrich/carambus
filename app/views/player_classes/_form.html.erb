@@ -1,25 +1,21 @@
-<%= form_for(@player_class) do |f| %>
-  <% if @player_class.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@player_class.errors.count, "error") %> prohibited this player_class from being saved:</h2>
+<%= form_with(model: player_class) do |form| %>
+  <%= render "shared/error_messages", resource: form.object %>
 
-      <ul>
-      <% @player_class.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.number_field :discipline_id, class: "form-control" %>
+  </div>
 
-  <div class="field">
-    <%= f.label :discipline_id %><br>
-    <%= f.number_field :discipline_id %>
+  <div class="form-group">
+    <%= form.label :shortname %>
+    <%= form.text_field :shortname, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :shortname %><br>
-    <%= f.text_field :shortname %>
-  </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
   </div>
 <% end %>

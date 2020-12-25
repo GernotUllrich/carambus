@@ -1,109 +1,124 @@
 <style>
-    td.last-line {
-        border-bottom-width: 2px;
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
     }
 
-    td.playerb {
-        background-color: #fffcad;
+    .space-above {
+        margin-top: 15px;
     }
 
-    td.noborder, th.noborder {
-        border-style: none;
+    th, td {
+        padding: 8px;
     }
 </style>
-<div class="row">
-  <div class="col-lg-12">
-    <h3><%= I18n.t("tournament_monitors.current_games.current_games_round", round: @tournament_monitor.current_round) %> <i class="i_expand"></i></h3>
-    <table>
-      <thead>
-      <tr>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.table", :default => "Table") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.player", :default => "Player") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.balls", :default => "Balls") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.of", :default => "of") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.inning", :default => "Inning") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.of", :default => "of") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.hs", :default => "HS") %></th>
-        <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.gd", :default => "GD") %></th>
-        <th class="noborder"/>
-        <th colspan=5><%= I18n.t("tournament_monitors.current_games.current_inning", :default => "Current Inning") %></th>
-      </tr>
-      <tr>
-        <th/>
-        <th><%= I18n.t("tournament_monitors.current_games.balls", :default => "Balls") %></th>
-        <th colspan=4><%= I18n.t("tournament_monitors.current_games.inputs", :default => "inputs") %></th>
-      </tr>
-      </thead>
-      <tbody>
-      <% @tournament_monitor.andand.table_monitors.andand.order(:name).andand.each do |tm| %>
-        <% if tm.game.present? %>
-          <% tm.allow_change_tables = true %>
-          <% tm.game.game_participations.order(:role).each_with_index do |gp, ix| %>
-            <% active_player = (tm.playing_game? && tm.data["current_inning"].andand["active_player"] == gp.role) %>
-            <tr>
-              <% if ix == 0 %>
-                <td rowspan=<%= tm.allow_change_tables ? 1 : 2 %> class="last-line"><%= tm.display_name %><br/><strong><%= tm.game.display_gname %></strong></td>
-              <% else %>
-                <% if tm.allow_change_tables %>
-                  <td><%= link_to image_tag("up-icon.png"), up_table_monitor_path(tm), method: :post %>&nbsp;
-                    <%= link_to image_tag("down-icon.png"), down_table_monitor_path(tm), method: :post %></td>
-                <% end %>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <h3><%= I18n.t("tournament_monitors.current_games.current_games_round", round: tournament_monitor.current_round) %>
+        <i class="i_expand"></i></h3>
+      <div class="flex space-x-20 p-4 bg-white dark:bg-black">
+        <table class="bg-white dark:bg-black table-auto">
+          <thead>
+          <tr>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.table", :default => "Table") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.player", :default => "Player") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.balls", :default => "Balls") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.of", :default => "of") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.inning", :default => "Inning") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.of", :default => "of") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.hs", :default => "HS") %></th>
+            <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.gd", :default => "GD") %></th>
+            <th class="noborder"/>
+            <th colspan=5><%= I18n.t("tournament_monitors.current_games.current_inning", :default => "Current Inning") %></th>
+          </tr>
+          <tr>
+            <th/>
+            <th><%= I18n.t("tournament_monitors.current_games.balls", :default => "Balls") %></th>
+            <th colspan=4><%= I18n.t("tournament_monitors.current_games.inputs", :default => "inputs") %></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% tournament_monitor.andand.table_monitors.andand.order(:name).andand.each do |tm| %>
+            <% if tm.game.present? %>
+              <% tm.allow_change_tables = true %>
+              <% tm.game.game_participations.order(:role).each_with_index do |gp, ix| %>
+                <% active_player = (tm.playing_game? && tm.data["current_inning"].andand["active_player"] == gp.role) %>
+                <tr>
+                  <% if ix == 0 %>
+                    <td rowspan=<%= tm.allow_change_tables ? 1 : 2 %> class="last-line"><%= link_to(tm.display_name, table_monitor_path(tm)) %>
+                      <br/><strong><%= tm.game.display_gname %></strong></td>
+                  <% else %>
+                    <% if tm.allow_change_tables %>
+                      <td>
+                        <div class="flex flex-row space-x-2">
+                          <%= content_tag "div", class: "min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Exchange table left", data: { reflex: "click->TableMonitorReflex#up", id: tm.id } do %>
+                            <%= image_tag("up-icon.png") %>
+                          <%- end %>
+                          <%= content_tag "div", class: "min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Exchange table right", data: { reflex: "click->TableMonitorReflex#down", id: tm.id } do %>
+                            <%= image_tag("down-icon.png") %>
+                          <%- end %>
+                        </div>
+                    <% end %>
+                  <% end %>
+                  <td style="font-size:1.2em"<%= " class=\"last-line #{"bg-yellow-200 dark:text-yellow-200 dark:bg-black" if gp.role == "playerb"} #{gp.role}\"".html_safe if ix == 1 %>>
+                    <strong><%= gp.player.lastname %><%= " *" if active_player %></strong>
+                  </td>
+                  <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <strong><%= tm.data[gp.role].andand["result"] %></strong>
+                  </td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <%= tm.data[gp.role].andand["balls_goal"] %>
+                  </td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <strong><%= tm.data[gp.role].andand["innings"] %></strong></td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <%= tm.data[gp.role].andand["innings_goal"] %>
+                  </td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <%= tm.data[gp.role].andand["hs"] %></td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <%= tm.data[gp.role].andand["gd"] %></td>
+                  <td></td>
+                  <% if tm.playing_game? %>
+                    <% if active_player %>
+                      <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %> style="font-size:1.2em">
+                        <strong><%= active_player ? Array(tm.data[gp.role].andand["innings_redo_list"])[-1].to_i : "" %></strong>
+                      </td>
+                      <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                        <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 mt-5 rounded-full font-bold leading-none text-2vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning" do %>
+                          <%= number_field_tag(:set_balls, nil, data: { reflex: "change->TableMonitorReflex#set_balls", id: tm.id }, placeholder: "nnn", class:"w-16 border-gray-400 border-2 rounded-md") %>
+                        <%- end %><br/>
+                      </td>
+                      <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                        <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#minus_one", id: tm.id } do %>
+                          -1
+                        <%- end %><br/>
+                        <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#add_one", id: tm.id } do %>
+                          +1
+                        <%- end %>
+                      </td>
+                      <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                        <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: tm.id } do %><%= render_svg "icons/104-undo2", styles: "svg-red fill-current icon-xl text-gray-400 inline-block" %>
+                        <%- end %><br/>
+                      </td>
+                      <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                        <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Inning closed - next player", data: { reflex: "click->TableMonitorReflex#next_step", id: tm.id } do %>
+                          next
+                        <%- end %>
+                      </td>
+                    <% end %>
+                  <% else %>
+                    <td colspan=6><%= TableMonitor::STATE_DISPLAY_NAMES[tm.state] %></td>
+                  <% end %>
+                </tr>
               <% end %>
-              <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <strong><%= gp.player.lastname %><%= " *" if active_player %></strong>
-              </td>
-              <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <strong><%= tm.data[gp.role].andand["result"] %></strong>
-              </td>
-              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <%= tm.data[gp.role].andand["balls_goal"] %>
-              </td>
-              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <strong><%= gp.innings %></strong></td>
-              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <%= tm.data[gp.role].andand["innings_goal"] %>
-              </td>
-              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <%= gp.hs %></td>
-              <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                <%= gp.gd %></td>
-              <td></td>
-              <% if tm.playing_game? %>
-                <% if active_player %>
-                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %> style="font-size:1.2em">
-                    <strong><%= active_player ? tm.data["current_inning"].andand["balls"] : "" %></strong></td>
-                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= form_tag(set_balls_table_monitor_path(tm)) do %>
-                      <%= text_field_tag(:add_balls, "", size: 4) %>
-                    <% end %>
-                  </td>
-                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= button_to [:add_one, tm] do %>
-                      <strong style="font-size: 1.2em">+1</strong>
-                    <% end %><br/>
-                    <%= button_to [:add_ten, tm] do %>
-                      <strong style="font-size: 1.2em">+10</strong>
-                    <% end %>
-                  </td>
-                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= button_to I18n.t("tournament_monitors.current_games.undo", :default => "undo"), [:undo, tm] %>
-                    <%= button_to I18n.t("tournament_monitors.current_games.redo", :default => "redo"), [:redo, tm] %>
-                  </td>
-                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= button_to [:next_step, tm] do %>
-                      <strong><%= I18n.t("tournament_monitors.current_games.next", :default => "next") %></strong>
-                    <% end %>
-                  </td>
-                <% end %>
-              <% else %>
-                <td colspan=6><%= I18n.t("tournament_monitors.current_games.game_finished", :default => "Game Finished") %></td>
-              <% end %>
-            </tr>
+            <% else %>
+            <% end %>
           <% end %>
-        <% else %>
-        <% end %>
-      <% end %>
-      </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>

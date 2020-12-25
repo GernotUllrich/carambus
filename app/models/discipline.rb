@@ -1,4 +1,21 @@
-class Discipline < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: disciplines
+#
+#  id                  :bigint           not null, primary key
+#  data                :text
+#  name                :string
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  super_discipline_id :integer
+#  table_kind_id       :integer
+#
+# Indexes
+#
+#  index_disciplines_on_foreign_keys            (name,table_kind_id) UNIQUE
+#  index_disciplines_on_name_and_table_kind_id  (name,table_kind_id) UNIQUE
+#
+class Discipline < ApplicationRecord
   has_many :discipline_tournament_plans
   belongs_to :table_kind
   belongs_to :super_discipline, foreign_key: :super_discipline_id, :class_name => "Discipline"

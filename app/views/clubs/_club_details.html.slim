@@ -1,8 +1,0 @@
-- if club.present?
-  p
-    = link_to club.name, club_path(club)
-    br
-    = club.address.andand.gsub("\n", "<br />").andand.html_safe
-    br
-    = mail_to club.email
-

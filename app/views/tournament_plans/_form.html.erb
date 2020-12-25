@@ -1,64 +1,61 @@
-<style>
-    textarea {
-        width: 100%;
-        height: 80px;
-    }
-</style>
-<%= form_for(@tournament_plan) do |f| %>
-  <% if @tournament_plan.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@tournament_plan.errors.count, "error") %> prohibited this tournament_plan from being saved:</h2>
+<%= form_with(model: tournament_plan) do |form| %>
+  <%= render "shared/error_messages", resource: form.object %>
 
-      <ul>
-      <% @tournament_plan.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
-  </div>
-  <div class="field">
-    <%= f.label :rulesystem %><br>
-    <%= f.text_area :rulesystem %>
-  </div>
-  <div class="field">
-    <%= f.label :more_description %><br>
-    <%= f.text_area :more_description %>
-  </div>
-  <div class="field">
-    <%= f.label :even_more_description %><br>
-    <%= f.text_area :even_more_description %>
-  </div>
-  <div class="field">
-    <%= f.label :executor_class %><br>
-    <%= f.text_field :executor_class %>
-  </div>
-  <div class="field">
-    <%= f.label :executor_params %><br>
-    <%= f.text_area :executor_params %>
-  </div>
-  <div class="field">
-    <%= f.label :players %><br>
-    <%= f.number_field :players %>
-  </div>
-  <div class="field">
-    <%= f.label :ngroups %><br>
-    <%= f.number_field :ngroups %>
-  </div>
-  <div class="field">
-    <%= f.label :tables %><br>
-    <%= f.number_field :tables %>
-  </div>
-  <div class="field">
-    <%= f.label :nrepeats %><br>
-    <%= f.number_field :nrepeats %>
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
   </div>
 
-  <div class="actions">
-    <%= f.submit %>
+  <div class="form-group">
+    <%= form.label :rulesystem %>
+    <%= form.text_area :rulesystem, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :players %>
+    <%= form.number_field :players, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tables %>
+    <%= form.number_field :tables, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :more_description %>
+    <%= form.text_area :more_description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :even_more_description %>
+    <%= form.text_area :even_more_description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :executor_class %>
+    <%= form.text_field :executor_class, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :executor_params %>
+    <%= form.text_area :executor_params, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ngroups %>
+    <%= form.number_field :ngroups, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :nrepeats %>
+    <%= form.number_field :nrepeats, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
   </div>
 <% end %>

@@ -11,18 +11,31 @@
 /db/*.sqlite3
 /db/*.sqlite3-journal
 
-/public/assets
-
 # Ignore all logfiles and tempfiles.
 /log/*
+/tmp/*
 !/log/.keep
-/tmp
-/doc
-.idea
-/*.sql
-/*.gz
-config/secrets.yml
+!/tmp/.keep
 
+# Ignore uploaded files in development
+/storage/*
+!/storage/.keep
+
+/node_modules
+/yarn-error.log
+
+/public/assets
+.byebug_history
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+/public/packs
+/public/packs-test
+/node_modules
+yarn-debug.log*
+.yarn-integrity
+
+.DS_Store
 /public/packs
 /public/packs-test
 /node_modules
@@ -30,3 +43,8 @@ config/secrets.yml
 yarn-debug.log*
 .yarn-integrity
 
+/config/credentials/development.key
+/config/credentials/production.key
+/.idea
+
+/config/credentials/staging.key

@@ -1,17 +1,23 @@
-<p>
-  <strong>Name:</strong>
-  <%= @table_kind.name %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Table Kinds', table_kinds_path %> > Table Kind #<%= @table_kind.id %></h1>
+      <%= link_to( 'Edit', edit_table_kind_path(@table_kind), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Short:</strong>
-  <%= @table_kind.short %>
-</p>
-
-<p>
-  <strong>Measures:</strong>
-  <%= @table_kind.measures %>
-</p>
-
-<%= link_to 'Edit', edit_table_kind_path(@table_kind) %> |
-<%= link_to 'Back', table_kinds_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @table_kind.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Short</h5>
+        <%= @table_kind.short %>
+      </div>
+            <div class="mb-4">
+        <h5>Measures</h5>
+        <%= @table_kind.measures %>
+      </div>
+          </div>
+  </div>
+</div>

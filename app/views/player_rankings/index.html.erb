@@ -1,112 +1,43 @@
-<% content_for :javascript_code do %>
-  <script>
-      jQuery.fn.dataTableExt.oSort['NumericOrBlank-asc'] = function (x, y) {
-          var retVal;
-          if (y = parseFloat($.trim(y).replace(/,/g, ''))) {
-              x = (x = parseFloat($.trim(x).replace(/,/g, ''))) ? x : 0;
-              if (x == y) retVal = 0;
-              else retVal = (x > y) ? 1 : -1;
-          } else {
-              retVal = -1;
-          }
-          return retVal;
+<script>
+  function searchPlayerRankings(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/player_rankings?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+        var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
       }
-      jQuery.fn.dataTableExt.oSort['NumericOrBlank-desc'] = function (y, x) {
-          var retVal;
-          x = (x = parseFloat($.trim(x).replace(/,/g, ''))) ? x : 0;
-          y = (y = parseFloat($.trim(y).replace(/,/g, ''))) ? y : 0;
-          if (x == y) retVal = 0;
-          else retVal = (x > y) ? 1 : -1;
-          return retVal;
-      }
-      $(document).ready(function () {
-          $('#player_rankings').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'PlayerRankings'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'PlayerRankings'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'PlayerRankings'
-                  }, {
-                      extend: 'print',
-                      title: 'PlayerRankings'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+    })
+  }
+</script>
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Player Rankings</h1>
 
-                  "aaSorting": [[0, 'asc']],
-                  "aoColumns": [
-                      null,
-                      null,
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"sType": "NumericOrBlank"},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"sType": "NumericOrBlank"},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                      {"sType": "NumericOrBlank"},
-                      {"bSortable": false},
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#player_rankings').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<h1>Listing Player Rankings</h1>
-
-<table id="player_rankings" data-source="<%= player_rankings_url(format: 'json') %>" width="100%" style="margin: 0px;">
-  <thead>
-  <tr>
-    <% PlayerRanking::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @player_rankings.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex-row">
+          <input oninput="searchPlayerRankings(this, true)" value="<%= params[:sSearch] %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+        </div>
+      </div>
+      <%= link_to('New Player Ranking', new_player_ranking_path, class: "btn btn-primary") if current_user.andand.admin? %>
     <% end %>
-    <!--    <th width="100px"></th>-->
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Player ranking', new_player_ranking_path %>
+  <% if @player_rankings.any? %>
+    <div id="table_wrapper">
+      <%= render partial: 'player_rankings_table' %>
+    </div>
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Player Ranking</p>
+        <%= link_to 'New Player Ranking', new_player_ranking_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

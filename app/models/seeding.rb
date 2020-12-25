@@ -1,14 +1,36 @@
-class Seeding < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: seedings
+#
+#  id                    :bigint           not null, primary key
+#  ba_state              :string
+#  balls_goal            :integer
+#  data                  :text
+#  position              :integer
+#  rank                  :integer
+#  state                 :string
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  player_id             :integer
+#  playing_discipline_id :integer
+#  tournament_id         :integer
+#
+# Indexes
+#
+#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
+#
+class Seeding < ApplicationRecord
   include AASM
   aasm column: "state", skip_validation_on_save: true do
-    state :registered, initial: true, :after_enter => [:reset_tournament]
+    state :registered, initial: true
     state :seeded
     state :participated
     state :no_show
   end
-  belongs_to :player
-  belongs_to :tournament
-  belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id
+  belongs_to :player, optional: true
+  belongs_to :tournament, optional: true
+  belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
+
   acts_as_list scope: :tournament
 
   serialize :data, Hash
@@ -49,7 +71,5 @@ class Seeding < ActiveRecord::Base
     end
     ret.join("\n").html_safe
   end
-
-
 
 end

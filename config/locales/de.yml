@@ -26,7 +26,7 @@ de:
       object_changes: Object Changes
       object_diffs: Object Diffs
     game_results:
-      game: Spiel
+      game: Partie
       playera: PlayerA
       playerb: PlayerB
       points: Punkte
@@ -45,7 +45,7 @@ de:
       show: Zeigen
       back: Zurück
     show:
-      tournament: 'Turnier:'
+      tournament_phase: 'Turnier Phase:'
       playing: 'spielt '
       switch_players: 'Spieler tauschen'
       start_tournament: Start des Turniers
@@ -66,13 +66,35 @@ de:
       current_inning: Aktuelle Aufnahme
       inputs: Eingaben
       undo: Undo
-      redo: redo
       next: Weiter
-      game_finished: Spiel beendet
+      game_finished: Partie beendet
       current_games_round: 'Aktuelle Spiele - Runde %{round}'
+  country:
+    index:
+      countries: Länder
+    id: id
+    name: Name
+    code: ISO Code
   game:
-    display_group_game_name: "Gruppe %{group_no}<br />Spiel %{playera}-%{playerb}"
-    display_group_game_name_rp: "Gruppe %{group_no}<br />Spiel %{playera}-%{playerb}/%{rp}"
+    index:
+      game: Partie
+      games: Partien
+    id: id
+    template_game_id: template game id
+    tournament_id: tournament id
+    roles: roles
+    data: data
+    seqno: seqno
+    gname: gname
+    group_no: group no
+    table_no: table no
+    round_no: round no
+    started_at: started at
+    ended_at: ended at
+    created_at: created at
+    updated_at: updated at
+    display_group_game_name: "Gruppe %{group_no}<br />Partie %{playera}-%{playerb}"
+    display_group_game_name_rp: "Gruppe %{group_no}<br />Partie %{playera}-%{playerb}/%{rp}"
     display_group_game_name_short: "Gruppe %{group_no}"
     display_hf_game_name: "Halbfinale %{game_no}"
     display_hf_game_group: "Halbfinale"
@@ -82,8 +104,409 @@ de:
     display_af_game_group: "Achtelfinale"
     display_fin_game_name: "Finale"
     display_place_game_name: 'Platz %{n1}-%{n2}'
+  club:
+    index:
+      club: Club
+      clubs: Clubs
+    id: id
+    ba_id: Link zur Billard Area
+    region_id: Regionalverband
+    name: Name
+    shortname: Kurzname
+    address: Adresse
+    homepage: Homepage
+    email: eMail
+    priceinfo: Mitgliedsbeiträge
+    logo: Logo
+    status: Status
+    founded: Gegründet
+    dbu_entry: DBU Eintritt
+  plan:
+    index:
+      plan: Plan
+      plans: Pläne
+    id: id
+    name: Name
+    amount: Betrag
+    interval: Interval
+    details: Details
+    trial_period_days: Probezeit in Tagen
+    features: Leistungen
+  account:
+    index:
+      account: Account
+      accounts: Accounts
+    id: id
+    name: Name
+    owner_id: Benutzerkennung
+    personal: persönlich
+    processor: Prozessor
+    processor_id: Prozessor ID
+    trial_ends_at: Probezeitende
+    card_type: Kartenart
+    card_last4: Kartenendziffern
+    card_exp_month: Kartenablaufdatunm
+    card_exp_year: Kartenablaufjahr
+    extra_billing_info: Zusatzinfos
+    domain: Domain
+    subdomain: Dubdomain
+    plan: Plan
+    quantity: Anzahl
+    card_token: Karten Token
+  account_user:
+    id: id
+    account_id: account id
+    user_id: user id
+    roles: roles
+    created_at: created at
+    updated_at: updated at
+  announcement:
+    id: id
+    kind: kind
+    title: title
+    published_at: published at
+    created_at: created at
+    updated_at: updated at
+  api_token:
+    id: id
+    user_id: user id
+    token: token
+    name: name
+    metadata: metadata
+    transient: transient
+    last_used_at: last used at
+    expires_at: expires at
+    created_at: created at
+    updated_at: updated at
+  notification:
+    id: id
+    account_id: account id
+    recipient_type: recipient type
+    recipient_id: recipient id
+    type: type
+    params: params
+    read_at: read at
+    created_at: created at
+    updated_at: updated at
+    interacted_at: interacted at
+  account_invitation:
+    id: id
+    account_id: account id
+    invited_by_id: invited by id
+    token: token
+    name: name
+    email: email
+    roles: roles
+    created_at: created at
+    updated_at: updated at
+  discipline_tournament_plan:
+    index:
+      discipline_tournament_plan: Disziplin/Turnierplan
+      discipline_tournament_plans: Disziplin/Turnierpläne
+    id: id
+    discipline_id: Disziplin
+    tournament_plan_id: Turnierplan
+    points: Bälle
+    innings: Aufnahmen
+    players: Spielerzahl
+    player_class: Spielerklasse
+  discipline:
+    index:
+      discipline: Disziplin
+      disciplines: Disziplinen
+    id: id
+    name: Name
+    super_discipline_id: Übergeordnete Disziplin
+    table_kind_id: Tischart
+    data: Daten
+  game_participation:
+    index:
+      game_participation:  Partiepartner
+      game_participations: Partiepartner
+    id: id
+    game_id: Partie
+    player_id: Spieler
+    role: Rolle
+    data: Daten
+    points: Bälle
+    result: Ergebnis
+    innings: Aufnahmen
+    gd: GD
+    hs: HS
+    gname: Spielbezeichnung
+  region:
+    index:
+      region: Regionalverband
+      regions: Regionalverbände
+    id: ID
+    name: Name
+    shortname: Kurzname
+    logo: Logo
+    email: eMail
+    address: Adresse
+    country_id: Länder Code
+  player_class:
+    index:
+      player_class: Spielerklasse
+      player_classes: Spielerklassen
+    id: id
+    discipline_id: Disziplin
+    shortname: Kurnamez
+  location:
+    index:
+      location: Spiellokal
+      locations: Spiellokale
+    id: ID
+    club_id: Club
+    address: Adresse
+    data: Daten
+    name: Name
+    organizer_type: Region/Club
+    organizer_id: Organisierung
+  season_participation:
+    index:
+      season_participation: SaisonSpieler
+      season_participations: SaisonSpieler
+    id: id
+    player_id: Spieler
+    season_id: Saison
+    data: Daten
+    club_id: Club
+  season:
+    index:
+      season: Saison
+      seasons: Saisons
+    id: id
+    ba_id: BA ID
+    name: Name
+    data: Daten
+  inning:
+    index:
+      inning: Aufnahme
+      innings: Aufnahmen
+    id: id
+    game_id: Partie
+    sequence_number: Lfd. Nr.
+    player_a_count: Spieler A Zähler
+    player_b_count: Spieler B Zähler
+    player_c_count: Spieler C Zähler
+    player_d_count: Spieler D Zähler
+    data: Daten
+  table_monitor:
+    index:
+      table_monitor: Tischmonitor
+      table_monitors: Tischmonitore
+    id: id
+    tournament_monitor_id: Turniermonitor
+    state: Status
+    name: Name
+    game_id: Partie
+    next_game_id: Nächste Partie
+    data: Daten
+    ip_address: IP-Adresse
+    active_timer: Aktiver Zähler
+    timer_start_at: Timerstart
+    timer_finish_at: Timerende
+    timer_halt_at: Timer angehalten
+    table_id: Tisch
+    nnn: nnn
+  seeding:
+    index:
+      seeding: Turnierteilnahme
+      seedings: Turnierteilnahmen
+    id: id
+    player_id: Spieler
+    tournament_id: Turnier
+    ba_state: BA Status
+    position: Listenposition
+    data: Daten
+    state: Status
+    balls_goal: Bälle Ziel
+    playing_discipline_id: Disziplin
+    rank: Ranglistenplatz
+  version:
+    index:
+      version: Version
+      versions: Versionen
+    id: id
+    item_type: Item Typ
+    item_id: Item ID
+    event: Ereignis
+    whodunnit: "wer war's"
+    object: Object
+    object_changes: Object Änderungen
+  player_ranking:
+    index:
+      player_ranking: Ranglistenplatz
+      player_rankings: Ranglistenplätze
+    id: id
+    player_id: Spieler
+    region_id: Regionalverband
+    season_id: Saison
+    org_level: Organisationsebene
+    discipline_id: Disziplin
+    innings: Aufnahmen
+    status: Status
+    points: Bälle
+    gd: GD
+    hs: HS
+    bed: BED
+    btg: BTG
+    player_class_id: player class id
+    p_player_class_id: p player class id
+    pp_player_class_id: pp player class id
+    p_gd: p gd
+    pp_gd: pp gd
+    tournament_player_class_id: tournament player class id
+    rank: rank
+    remarks: remarks
+    g: g
+    v: v
+    quote: quote
+    sp_g: sp g
+    sp_v: sp v
+    sp_quote: sp quote
+    balls: balls
+    sets: sets
+    t_ids: t ids
+  setting:
+    id: id
+    data: data
+    state: state
+    region_id: region id
+    club_id: club id
+    tournament_id: tournament id
+    created_at: created at
+    updated_at: updated at
+  table_kind:
+    id: id
+    name: name
+    short: short
+    measures: measures
+    created_at: created at
+    updated_at: updated at
+  table:
+    id: id
+    location_id: location id
+    table_kind_id: table kind id
+    name: name
+    data: data
+    ip_address: ip address
+    created_at: created at
+    updated_at: updated at
+  tournament_monitor:
+    id: id
+    tournament_id: tournament id
+    data: data
+    state: state
+    innings_goal: innings goal
+    balls_goal: balls goal
+    created_at: created at
+    updated_at: updated at
+  tournament_plan:
+    id: id
+    name: name
+    rulesystem: rulesystem
+    players: players
+    tables: tables
+    more_description: more description
+    even_more_description: even more description
+    executor_class: executor class
+    executor_params: executor params
+    ngroups: ngroups
+    nrepeats: nrepeats
+    created_at: created at
+    updated_at: updated at
+  tournament_plan_game:
+    id: id
+    name: name
+    tournament_plan_id: tournament plan id
+    data: data
+    created_at: created at
+    updated_at: updated at
+  player:
+    index:
+      player: Spieler
+      players: Spieler
+    id: ID
+    ba_id: Link zur Billard Area
+    club_id: Club
+    lastname: Nachname
+    firstname: Vorname
+    title: Titel
+  user:
+    id: id
+    email: email
+    encrypted_password: encrypted password
+    reset_password_token: reset password token
+    reset_password_sent_at: reset password sent at
+    remember_created_at: remember created at
+    confirmation_token: confirmation token
+    confirmed_at: confirmed at
+    confirmation_sent_at: confirmation sent at
+    unconfirmed_email: unconfirmed email
+    first_name: first name
+    last_name: last name
+    time_zone: time zone
+    accepted_terms_at: accepted terms at
+    accepted_privacy_at: accepted privacy at
+    announcements_read_at: announcements read at
+    admin: admin
+    created_at: created at
+    updated_at: updated at
+    invitation_token: invitation token
+    invitation_created_at: invitation created at
+    invitation_sent_at: invitation sent at
+    invitation_accepted_at: invitation accepted at
+    invitation_limit: invitation limit
+    invited_by_type: invited by type
+    invited_by_id: invited by id
+    invitations_count: invitations count
+    preferred_language: preferred language
+    username: username
+    firstname: firstname
+    lastname: lastname
+    player_id: player id
+    sign_in_count: sign in count
+    current_sign_in_at: current sign in at
+    last_sign_in_at: last sign in at
+    current_sign_in_ip: current sign in ip
+    last_sign_in_ip: last sign in ip
+    terms_of_service: terms of service
+  tournament:
+    id: ID
+    title: Titel
+    discipline_id: Disziplin
+    modus: Modus
+    age_restriction: Zugangsbeschränkung
+    date: Datum
+    accredation_end: Akkreditierungsende
+    location: Lokation
+    ba_id: BA ID
+    season_id: Saison
+    region_id: Regionalverband
+    end_date: Ende Datum
+    plan_or_show: plan or show
+    single_or_league: Einzel oder Mannschaft
+    shortname: Kurzname
+    data: Daten
+    ba_state: BA Status
+    state: Status
+    last_ba_sync_date: Letzter Abgleich mit der BA
+    player_class: Spielerklasse
+    tournament_plan_id: Tournier Plan
+    innings_goal: Aufnahmeziel
+    balls_goal: Bälleziel
+    handicap_tournier: Handicap Tournier
+    time_out_stoke_preparation_sec: Time-out Stossvorbereitung (sek)
+    time_out_warm_up_first_min: Time-Out Einspielzeit neuer Tisch
+    time_out_warm_up_follow_up_min: Time-Out Einspielzeit selber Tisch
+    organizer_id: Organisiert durch
+    organizer_type: Region/Club
+    location_id: Lokation
   activerecord:
     attributes:
+      club:
       tournament:
         position: Position
         reorder: Reihenfolge
@@ -96,15 +519,18 @@ de:
         ba_id: Ba-Id
         ba_state: BA-Status
         state: Status
-        region: Region
+        region: Regionalverband
         title: Titel
+        season: Saison
         player_class: Spielerklasse
         modus: Modus
-        age_restriction: Zugangsbeschränkungen
+        age_restriction: Zugangs-beschränkungen
         date: Datum
-        accredation_end: Akkreditierungsende
+        accredation_end: Akkreditierungs-ende
         location: Spielort
         hosting_club: Gastgeber
+        innings_goal: Aufnahme-begrenzung
+        handicap_tournier: Handicap-Turnier
   tournaments:
     index:
       listing_tournaments: Liste der Turniere
@@ -122,14 +548,15 @@ de:
       name: Name
       club: Club
       balls_goal: Bälle Ziel
+      innings_goal: Aufnahme-begrenzung
       discipline: 'Disziplin:'
       rankings: Ranglisten
       games: Spiele
       ba_id: 'Ba Id:'
       ba_state: 'BA Status:'
       state: 'Status:'
-      final_tournament_mode: 'Abschliessender Tournament Modus:'
-      region: 'Region:'
+      final_tournament_mode: 'Abschliessender Turnier Modus:'
+      region: 'Regionalverband:'
       title: 'Titel:'
       player_class: 'Spielerklasse:'
       modus: 'Modus:'
@@ -140,19 +567,20 @@ de:
       hosting_club: 'Gastgeber:'
       edit: "Aktualisieren"
       back: "Zurück"
-      reload_from_billard_area: "Neuladen von der Billard Area"
+      syncing_with_billard_area: 'Fast alle Turnierdaten müssen über die <a href="http://billard_area">Billard-Area</a> eingegeben werden. Hier gibt es nur die Möglichkeit ergänzende Informationen hinzuzufügen, soweit sie für die Tournierabwicklung erforderlich sind (Tischzuordnungen, Locations etc). Der Abgleich mit den Daten der Billard-Area erfogt über den Link'
+      reload_from_billard_area: "Datenabgleich mit der Billard Area"
       order_by_ranking: 'Ordne nach Rangliste'
       finalize_tournament_modus: 'Turnier Modus festlegen'
       mangage_tournament_group_phase: 'Verwaltung der Turnierspiele'
       reset_tournament_monitor: 'Zurücksetzen des Turnier-Monitors'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'
     finalize_modus:
-      teilnehmer: 'Teilnehmer: '
+      teilnehmer: 'Auswahl des Modus für %{count} Teilnehmer'
       proposed_modus: 'Vorgeschlagener Modus:'
       alternatives_same_discipline: 'Alternativen mit der gleichen Disziplin:'
       alternatives_other_disciplines: 'Alternativen von anderen Disziplinen:'
       continue_with: Weiter mit
-      final_modus_selection: Finale Modus Selection
+      final_modus_selection: Abschliessende Auswahl des Austragungsmodus
     form:
       prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Turnieres unmöglich gemacht:"
       discipline: 'Disziplin'
@@ -160,23 +588,25 @@ de:
     new:
       new_tournament: Neues Turnier
       back: "Zurück"
-    tournament_monitor:
-      start_tournament: 'Starte den Turnier-Monitor'
+    tournament_monitor: Turnier-Monitor
+    start_tournament: 'Starte den Turnier-Monitor'
   home:
     index:
       organisation: Organisation
       country: 'Länder'
-      region: 'Regionalverbände'
+      region: 'Regionalverband'
       club: 'Clubs'
-      tourniere: Turniere
+      tournaments: Turniere
       seeding: 'Setzlisten'
-      tournament: 'Turniere'
+      tournament: 'Turnier'
+      results: 'Ergebnisse'
+      training: 'Training'
       spieler: Spieler
-      season: 'Seasons'
+      season: 'Saison'
       seasonparticipation: 'Clubzugehörigkeiten'
       player: 'Spieler'
       partien: Partien
-      game: 'Spiel'
+      game: 'Partie'
       gameparticipation: 'Spielpartner'
       inning: 'Aufnahmen'
       disziplinen: Disziplinen
@@ -200,3 +630,78 @@ de:
       large_carambol_tables: "Große Carambol Tische"
       pool_tables: "Pool Tische"
       snooker_tables: "Snooker Tische"
+
+  static:
+    no_plans: "Noch sind keine Bestellungen konfiguriert."
+    pricing:
+      heading: "Preise"
+      subhead: "Einfache, unkomplizierte Preisstruktur"
+      monthly: "Monatlich"
+      yearly: "Jährlich"
+      get_started: "Auf geht's"
+
+    about:
+      title: "Über mich"
+      content: |
+        <p>Kompromisslose Automatisierung des Billard Spielbetriebs von der Tournierplanung über die Datenerfassung bis hin zur Übertragung der Spielergebnisse. Das ist das Ziel des Carambus Projektes.</p>
+        <p>Eigentlich ist mein Beratungsgewerbe Ullrich-IT-Consulting bereits Geschichte, da ich mich schon seit längerem Im Ruhestand befinde.
+        Aber anlässlich des bevorstehenden Jubiläums meines Vereins <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> kam mir die Idee
+        endlich einmal etwas Substantielles beizusteuern.</p>
+        <p>Und wer mich kennt, der weiss, dass ich während meines gesamten Berufslebens - zuletzt als Visionär bei Sun Microsystems - bestebt war neueste Technologien
+        einzusetzen.</p>
+        <p>Vor 12 Jahren kam ich das erste Mal mit der Entwicklungsumgebung Ruby/Rails in Berührung. Seit dem schätze ich den enormen Fortschritt
+        in der Entwicklungsgeschwindigkeit. Die grosse Frage war nun, ob sich dieses Projekt, welches an vielen Stellen
+        Realzeit-Anforderungen an die beteiligten Anzeige- und Erfassungssystem stellt, sinnvoll mit RoR realisieren lässt.<p>
+        <p>Dem Projekt ging also zunächst eine ca 4-wöchige Evaluierung möglicher Entwicklungsumgebungen voraus - insbesondere React, React Native und Angular.
+        Leider führte das jeweils zu sehr aufwendigen Bruchstellen zwischen serverseitiger Datenbankorientierte Logik und den JavaScriptbasierten Endgeräten.
+        Also verschiedene Betriebssysteme, Sprachen und Frameworks. Keine gute Idee.
+        Glücklicherweise
+        kam ich über <a href=\"http://gorails.com\">GoRails</a> zu einer idealen Lösung - Stimulus Reflex und Cable Ready!  Carambus ist ein serverbasierte Weblösung mit Single Page Feeling!</p>
+
+    privacy:
+      title: "Datenschutzrichtlinien"
+    terms:
+      title: "AGB"
+
+  shared:
+    footer:
+      about: "Über uns"
+      privacy: "Datenschutzrichtlinien"
+      terms: "AGB"
+    account_navbar:
+      profile: "Profil"
+      password: "Password"
+      connected_accounts: "Verbundene Accounts"
+      billing: "Rechnungen"
+      accounts: "Accounts"
+      api_tokens: "API"
+    flash:
+      confirm_payment: "Betätige Die letzte Zahlung"
+    navbar:
+      signed_in_as_html: "Angemeldet als <strong>%{user}</strong>"
+      profile: "Profil"
+      password: "Password"
+      connected_accounts: "Verbundene Accounts"
+      billing: "Rechnungen"
+      api_tokens: "API"
+      accounts: "Accounts"
+      admin: "Admin"
+      dashboard: "Dashboard"
+      sign_out: "Abmelden"
+      log_in: "Anmelden"
+      sign_up: "Registrieren"
+    right_nav:
+      pricing: "Preise"
+      announcements: "Was gibt's neues"
+  announcements:
+    index:
+      title: "Neuigkeiten"
+      empty_placeholder: "Hier kommen bald neue Nachrichten!"
+  actions: Aktionen
+  view: Ansehen
+  table_assignments_incomplete: "Tischzuordnung unvollständig"
+  table_assignments_heterogen: "Tischzuordnung zu verschiedenen Locations"
+  table_assignments_inconsistent: "Tischzuordnung mehrdeutig"
+  select_game_mode: "Wähle den Spielmodus"
+  tournaments_season: "Turniere in der Saison"
+  add_tables: Tische hinzufügen

@@ -1,37 +1,39 @@
-<p>
-  <strong>Game:</strong>
-  <%= @inning.game_id %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Innings', innings_path %> > Inning #<%= @inning.id %></h1>
+      <%= link_to( 'Edit', edit_inning_path(@inning), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Sequence number:</strong>
-  <%= @inning.sequence_number %>
-</p>
-
-<p>
-  <strong>Player a count:</strong>
-  <%= @inning.player_a_count %>
-</p>
-
-<p>
-  <strong>Player b count:</strong>
-  <%= @inning.player_b_count %>
-</p>
-
-<p>
-  <strong>Player c count:</strong>
-  <%= @inning.player_c_count %>
-</p>
-
-<p>
-  <strong>Player d count:</strong>
-  <%= @inning.player_d_count %>
-</p>
-
-<p>
-  <strong>Remarks:</strong>
-  <%= @inning.data %>
-</p>
-
-<%= link_to 'Edit', edit_inning_path(@inning) %> |
-<%= link_to 'Back', innings_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Game</h5>
+        <%= @inning.game_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Sequence number</h5>
+        <%= @inning.sequence_number %>
+      </div>
+            <div class="mb-4">
+        <h5>Player a count</h5>
+        <%= @inning.player_a_count %>
+      </div>
+            <div class="mb-4">
+        <h5>Player b count</h5>
+        <%= @inning.player_b_count %>
+      </div>
+            <div class="mb-4">
+        <h5>Player c count</h5>
+        <%= @inning.player_c_count %>
+      </div>
+            <div class="mb-4">
+        <h5>Player d count</h5>
+        <%= @inning.player_d_count %>
+      </div>
+            <div class="mb-4">
+        <h5>Date</h5>
+        <%= @inning.date %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -1,78 +1,55 @@
-<% content_for :javascript_code do %>
-  <script>
-      $(document).ready(function () {
-          $('#disciplines').DataTable({
-                  "stateSave": true,
-              dom: 'Bfrtip',
-              buttons: [
-                  'copy', {
-                      extend: 'csvHtml5',
-                      title: 'Disciplines'
-                  }, {
-                      extend: 'excelHtml5',
-                      title: 'Disciplines'
-                  }, {
-                      extend: 'pdfHtml5',
-                      title: 'Disciplines'
-                  }, {
-                      extend: 'print',
-                      title: 'Disciplines'
-                  }
-              ],
-                  "sPaginationType": "full_numbers",
-                  "bJQueryUI": true,
-                  "aLengthMenu": [
-                      [10, 50],
-                      [10, 50]
-                  ],
-                  "iDisplayLength": 50,
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Disciplines</h1>
 
-                  "aaSorting": [
-                      [0, "desc"]
-                  ],
-                  "aoColumns": [
-                      null,
-                      null,
-                      null,
-                      {"bSortable": false},
-                  ],
-                  oSearch: {"sSearch": "<%= params[:sSearch].andand.html_safe %>"},
-                  bProcessing: true,
-                  bServerSide: true,
-                  sAjaxSource: $('#disciplines').data('source')
-              }
-          );
-      });
-  </script>
-<% end %>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    th, td {
-        padding-left: 5px;
-    }
-</style>
-
-<h1>Disciplines</h1>
-
-<table id="disciplines" data-source="<%= disciplines_url(format: 'json') %>" width="100%" style="margin: 0px; width: 100%;">
-  <thead>
-  <tr>
-    <% Discipline::COLUMN_NAMES.keys.each do |column_name| %>
-      <!--      TODO FILTERS-->
-      <th><%= column_name %></th>
+    <% if @disciplines.any? %>
+      <%= link_to 'New Discipline', new_discipline_path, class: "btn btn-primary" %>
     <% end %>
-    <th width="100px"></th>
-  </tr>
-  </thead>
+  </div>
 
-  <tbody>
-  </tbody>
-</table>
+  <% if @disciplines.any? %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :super_discipline_id, 'Super discipline', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :table_kind_id, 'Table kind', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
 
-<br>
+        <tbody>
+        <% @disciplines.each do |discipline| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= discipline.name %></td>
+                      <td class="p-3"><%= link_to( discipline.super_discipline.name, discipline_path(discipline.super_discipline)) if discipline.super_discipline.present? %></td>
+                      <td class="p-3"><%= link_to( discipline.table_kind.name, table_kind_path(discipline.table_kind )) if discipline.table_kind.present? %></td>
+                      <td class="p-3"><%= discipline.data %></td>
 
-<%= link_to 'New Discipline', new_discipline_path %>
+            <td>
+              <%= link_to t('view'), discipline, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Discipline</p>
+        <%= link_to 'New Discipline', new_discipline_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

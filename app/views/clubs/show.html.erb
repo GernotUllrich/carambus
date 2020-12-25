@@ -1,0 +1,127 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Clubs', clubs_path %> > <%= @club.name %></h1>
+      <%= link_to('Edit', edit_club_path(@club), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
+
+    <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.ba_id') %></h5><%= link_to @club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}" %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5><%= t('club.region_id') %></h5><%= link_to @club.region.name, region_path(@club.region) if @club.region.present? %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.name') %></h5><%= link_to(@club.name, club_path(@club)) %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.shortname') %></h5><%= @club.shortname %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5>A<%= t('club.address') %></h5><%= @club.address.html_safe %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5><%= t('club.homepage') %></h5><%= link_to_if @club.homepage.present?, @club.homepage, @club.homepage %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.email') %></h5><%= mail_to @club.email %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5><%= t('club.priceinfo') %></h5><%= @club.priceinfo.gsub(/\n+/, "<br />").html_safe %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.logo') %></h5><%= @club.logo %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.status') %></h5><%= @club.status %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.founded') %></h5><%= @club.founded %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-6xl justify-center mx-auto">
+      <h2 class="space-above"><%= t('location.index.locations') %></h2>
+      <div class="flex space-x-20 p-4 bg-white dark:bg-black">
+        <table class="w-full">
+          <thead>
+          <tr>
+            <th><%= t('location.id') %></th>
+            <th><%= t('location.name') %></th>
+            <th><%= t('location.address') %></th>
+            <th><%= t('location.data') %></th>
+            <th></th>
+            <%- TableKind.all.each do |table_kind| %>
+              <%- tables_of_kind = Table.joins(:table_kind).joins(location: :club).
+                where(locations: { club_id: @club.id }).where(table_kind_id: table_kind.id).uniq %>
+              <%- if tables_of_kind.count > 0 %>
+                <th><%= table_kind.name %></th>
+              <%- end %>
+            <% end %>
+            <th>Add Tables</th>
+          </tr>
+          </thead>
+          <tbody>
+          <%- @club.tournament_locations.each do |location| %>
+            <tr>
+              <td><%= link_to location.id.to_s, location_path(location) %></td>
+              <td><%= link_to location.name, location_path(location) %></td>
+              <td><%= location.address.gsub("\n", "<br/>").html_safe %></td>
+              <td>
+                <pre><%= JSON.pretty_generate(location.data).gsub("\n", "<br />").html_safe %></pre>
+              </td>
+              <td><%= link_to image_tag("icons/edit-pencil.svg", :width => 26, :height => 22, :border => 0),
+                              edit_location_path(location) %></td>
+              <%- TableKind.all.each do |table_kind| %>
+                <%- tables_of_kind = location.tables.where(table_kind_id: table_kind.id) %>
+                <%- if tables_of_kind.count > 0 %>
+                  <td>
+                    <%- tables_of_kind.order(:name).each do |table| %>
+                      <%= "#{link_to(table.name, table_path(table))}<br />".html_safe %>
+                    <% end %>
+                  </td>
+                <%- end %>
+              <%- end %>
+              <td>
+                <%= form_tag add_tables_to_location_path(location) do %>
+                  <%= select_tag :table_kind_id, options_for_select(TableKind.order(:name).all.map { |tk| [tk.name, tk.id] },
+                                                                    TableKind.find_by_name("Small Billard").id), class:"border-2" %>
+                  <br>
+                  <%= number_field_tag :number, value = 1, class:"border-2", style: "width: 50px" %>
+                  <%= submit_tag "Add" %>
+                <%- end %>
+              </td>
+            </tr>
+          <%- end %>
+          </tbody>
+        </table>
+        <hr>
+      </div>
+      <%= link_to "New Location", new_location_path(club_id: @club.id) %>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-xl justify-center mx-auto">
+      <h2 class="space-above"><%= t('player.index.players') %>></h2>
+      <%- Season.joins(:season_participations => :club).where(clubs: { id: @club.id }).order(name: :desc).uniq.each do |season| %>
+        <h3><%= t('home.index.season') %>> <%= season.name %></h3>
+        <div class="flex space-x-20 p-4 justify-center bg-white dark:bg-black">
+          <table class="w-full">
+            <thead>
+            <tr>
+              <th><%= t('season_participation.player_id') %></th>
+              <th><%= t('season_participation.club_id') %></th>
+              <th><%= t('player.firstname') %></th>
+              <th><%= t('player.lastname') %></th>
+              <th><%= t('player.title') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <%- Player.joins(:season_participations => :club).joins(:season_participations => :season).where("seasons.id = ?", season.id).where("clubs.id = ?", @club.id).order(lastname: :asc, firstname: :asc).uniq.each do |player| %>
+              <tr>
+                <td><%= link_to player.ba_id, player_path(player) %></td>
+                <td><%= link_to @club.shortname, club_path(@club) %></td>
+                <td><%= player.firstname %></td>
+                <td><%= player.lastname %></td>
+                <td><%= player.title %></td>
+              </tr>
+            <%- end %>
+            </tbody>
+          </table>
+        </div>
+      <%- end %>
+    </div>
+  </div>
+</div>
+

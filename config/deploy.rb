@@ -2,10 +2,11 @@
 lock '3.14.1'
 
 set :application, 'carambus'
-set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
+set :repo_url, 'git@gitlab.com:GernotUllrich/carambus.git'
 
 # Default branch is :master
-# ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+#ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+set :branch, 'carambus'
 
 # Default deploy_to directory is /var/www/my_app_name
 # set :deploy_to, '/var/www/my_app_name'
@@ -26,15 +27,15 @@ set :deploy_to, '/var/www/carambus'
 
 # Default value for :linked_files is []
 # append :linked_files, 'config/database.yml', 'config/secrets.yml'
-append :linked_files,'config/database.yml', 'config/secrets.yml'
+append :linked_files,'config/database.yml', 'config/credentials/production.key'
 
 # Default value for linked_dirs is []
-append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'public/system'
+append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'public/system', 'node_modules', 'public/packs', 'public/assets'
 
 append :linked_dirs, '.bundle'
 
 set :rbenv_type, :local
-set :rbenv_ruby, '2.6.3'
+set :rbenv_ruby, '2.7.2'
 set :maintenance_tournament_plan_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
 set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w{rake gem bundle ruby rails}
@@ -46,7 +47,7 @@ set :tournament_plans_path, "config/deploy/templates"
 # server name for nginx, default value: "localhost <application>.local"
 # set this to your site name as it is visible from outside
 # this will allow 1 nginx to serve several sites with different `server_name`
-set :nginx_server_name, "iptvit.co"
+#set :nginx_server_name, "iptvit.co"
 
 # path, where nginx pid file will be stored (used in logrotate recipe)
 # default value: `"/run/nginx.pid"`
@@ -107,17 +108,6 @@ namespace :deploy do
 
   desc 'Restart application'
   task :restart do
-    on roles(:app), in: :sequence, wait: 5 do
-      # Your restart mechanism here, for example:
-      # execute :touch, release_path.join('tmp/restart.txt')
-      if fetch(:stage).to_s == 'production'
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://localhost:11300 RAILS_ENV=production bundle exec #{current_path}/script/worker.rb stop"
-        execute "cd #{current_path} && BEANSTALK_URL=beanstalk://localhost:11300 RAILS_ENV=production bundle exec #{current_path}/script/worker.rb start"
-      end
-    end
-    # on roles(:web), in: :sequence, wait: 5 do
-    #   sudo "service #{fetch(:unicorn_service_name_web)} reload"
-    # end
   end
 
   after :publishing, :restart

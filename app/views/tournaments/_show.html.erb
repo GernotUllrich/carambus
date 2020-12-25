@@ -1,0 +1,45 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex-col justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to t('home.index.tournaments'), tournaments_path %> &gt; <%= tournament.title %>
+        - <%= tournament.region.shortname %> - <%= tournament.season.name %></h1>
+      <h3><%= subtitle %></h3>
+      <%= link_to('Edit', edit_tournament_path(tournament), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
+    <%- unless local_assigns[:drop_details].present? %>
+      <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.title') %></h5><%= tournament.title %></div>
+        <div class="w-3/12 mb-4 <%= "border-4 border-red-500" if tournament.discipline.blank? %> m-w-full pr-8">
+          <h5><%= t('tournaments.show.discipline') %></h5><%= (link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present?) %>
+        </div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.modus') %></h5><%= tournament.modus %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.age_restriction') %></h5><%= tournament.age_restriction %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.date') %></h5><%= tournament.date %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= tournament.accredation_end %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.location') %></h5><%= "#{link_to tournament.tournament_location.andand.name, location_path(tournament.tournament_location) if tournament.tournament_location.present?}<br>#{tournament.tournament_location.andand.address.andand.gsub("\n", "<br>")}".andand.html_safe %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.ba_id') %></h5><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.season') %></h5><%= link_to(tournament.season.name, season_path(tournament.season)) %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.region') %></h5><%= link_to(tournament.region.name, region_path(tournament.region)) %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.end_date') %></h5><%= tournament.end_date %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.plan_or_show') %></h5><%= tournament.plan_or_show %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.single_or_league') %></h5><%= tournament.single_or_league %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.shortname') %></h5><%= tournament.shortname %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.data') %></h5><%= tournament.data %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.ba_state') %></h5><%= tournament.ba_state %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.state') %></h5><%= tournament.state.split("_").join(" ") %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.last_ba_sync_date') %></h5><%= tournament.last_ba_sync_date %></div>
+        <div class="w-3/12 <%= "border-4 border-red-500" if tournament.player_class.blank? %> mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.player_class') %></h5><%= tournament.player_class %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= I18n.t("tournaments.show.final_tournament_mode") %></h5>
+          <%- if tournament.tournament_plan.present? %>
+            <%= link_to(tournament.tournament_plan.name, tournament_plan_path(tournament.tournament_plan)) %>
+            : <%= tournament.tournament_plan.rulesystem %>
+          <%- end %>
+        </div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.innings_goal') %></h5><%= tournament.innings_goal %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.balls_goal') %></h5><%= tournament.balls_goal %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.handicap_tournier') %></h5><%= tournament.handicap_tournier %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= "Verantwortlich:" %></h5><%= (link_to tournament.organizer.andand.name, tournament.organizer.is_a?(Region) ? regions_path(tournament.organizer) : clubs_path(tournament.organizer)) if tournament.organizer.present? %></div>
+      </div>
+      </div>
+    <%- end %>
+    </div>

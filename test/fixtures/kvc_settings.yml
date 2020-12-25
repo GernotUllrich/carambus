@@ -1,0 +1,18 @@
+# == Schema Information
+#
+# Table name: kvc_settings
+#
+#  id         :bigint           not null, primary key
+#  key        :string
+#  value      :text
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+one:
+  key: MyString
+  value: MyText
+
+two:
+  key: MyString
+  value: MyText

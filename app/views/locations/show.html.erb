@@ -1,24 +1,27 @@
-<p>
-  <strong>Club:</strong>
-  <%= link_to @location.club.shortname, club_path(@location.club) if @location.club.present? %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Locations', locations_path %> > Location #<%= @location.id %></h1>
+      <%= link_to( 'Edit', edit_location_path(@location), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Name:</strong>
-  <%= @location.name %>
-</p>
-
-<p>
-  <strong>Address:</strong>
-  <%= @location.address.gsub("\n", "<br />").html_safe %>
-</p>
-
-<p>
-  <strong>Data:</strong>
-<pre>
-  <%= JSON.pretty_generate(@location.data).gsub("\n", "<br />").html_safe %>
-  </pre>
-</p>
-
-<%= link_to 'Edit', edit_location_path(@location) %> |
-<%= link_to 'Back to Club', club_path(@location.club) %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Organizer</h5>
+        <%= link_to "#{@location.organizer_type}: #{@location.organizer.name}", @location.organizer_type == "Club" ? club_path(@location.organizer) : region_path(@location.organizer) %>
+      </div>
+            <div class="mb-4">
+        <h5>Address</h5>
+        <%= @location.address.gsub("\n", "<br>").html_safe %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @location.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @location.name %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+# == Schema Information
+#
+# Table name: discipline_tournament_plans
+#
+#  id                 :bigint           not null, primary key
+#  innings            :integer
+#  player_class       :string
+#  players            :integer
+#  points             :integer
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  discipline_id      :integer
+#  tournament_plan_id :integer
+#
+
+one:
+  discipline_id: 1
+  tournament_plan_id: 1
+  points: 1
+  innings: 1
+  players: 1
+  player_class: MyString
+
+two:
+  discipline_id: 1
+  tournament_plan_id: 1
+  points: 1
+  innings: 1
+  players: 1
+  player_class: MyString

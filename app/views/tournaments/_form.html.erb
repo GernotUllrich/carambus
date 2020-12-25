@@ -1,53 +1,59 @@
-<%= form_for(@tournament) do |f| %>
-  <% if @tournament.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@tournament.errors.count, "error") %><%= I18n.t("tournaments.form.prohibited_this_tournament_from_being_saved") %></h2>
+<p class="text-red-500">
+  <%= t('tournaments.show.syncing_with_billard_area').html_safe %>
+</p>
+<p> <%= link_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "" %></p>
+<br>
+<%= form_with(model: tournament) do |form| %>
 
-      <ul>
-      <% @tournament.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
+  <%- loc_ids = Array(tournament.andand.region.andand.tournament_locations.andand.map(&:id)) +
+    Array(tournament.andand.region.andand.clubs.andand.map(&:tournament_locations).andand.flatten.andand.map(&:id))
+  %>
+  <div class="form-group">
+    <%= form.label :location %>
+    <%= form.select :location_id,
+                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, tournament.tournament_location.andand.id),
+                    {:prompt => true}, class: "form-control border rounded border-gray-500" %>
+  </div>
+
+  <%- if tournament.andand.region.present? %>
+    <%- @organizers = [tournament.region] + tournament.region.clubs.where("ba_id < 900000").order(:name).all %>
+
+    <div class="form-group">
+      <%= form.label :organizer %>
+      <%= form.collection_select :organizer_gid, @organizers, :to_global_id, :name, {:selected => tournament.organizer.andand.to_global_id, :prompt => true},  class: "form-control border rounded border-gray-500" %>
     </div>
-  <% end %>
+  <%- end %>
 
-  <div class="field">
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+  <%- if tournament.andand.discipline.present? %>
+    <%- @disciplines = Discipline.all.order(:name).all %>
+
+    <div class="form-group">
+      <%= form.label :discipline_id %>
+      <%= form.collection_select :discipline_gid, @disciplines, :id, :name, {:selected => tournament.discipline_id, :prompt => true},  class: "form-control border rounded border-gray-500" %>
+    </div>
+  <%- end %>
+
+  <div class="form-group">
+    <%= form.label :player_class %>
+    <%= form.select :player_class, options_for_select(["I", "II", "III", "1", "2", "3", "4", "5", "6", "7"], tournament.player_class),{:selected => tournament.player_class, :prompt => true}, class: "form-control border rounded border-gray-500" %>
   </div>
-  <div class="field">
-    <%= f.label I18n.t("tournaments.form.discipline") %><br>
-    <%= f.select :discipline_id, options_for_select(Discipline.order(:name).map{|discipline| [discipline.name, discipline.id]}, @tournament.discipline_id) %>
+
+  <div class="form-group">
+    <%= form.label :innings_goal %>
+    <%= form.number_field :innings_goal, class: "form-control" %>
   </div>
-  <div class="field">
-  <%= f.label :player_class %><br>
-  <%= f.select :player_class, options_for_select(%w{I II III 1 2 3 4 5 6 7}, @tournament.player_class) %>
+
+  <div class="form-group">
+    <%= form.label :balls_goal %>
+    <%= form.number_field :balls_goal, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :modus %><br>
-    <%= f.text_field :modus %>
+
+  <div class="form-group">
+    <%= form.label :handicap_tournier %>
+    <%= form.check_box :handicap_tournier, class: "form-control" %>
   </div>
-  <div class="field">
-    <%= f.label :age_restriction %><br>
-    <%= f.text_field :age_restriction %>
-  </div>
-  <div class="field">
-    <%= f.label :date %><br>
-    <%= f.datetime_select :date %>
-  </div>
-  <div class="field">
-    <%= f.label :accredation_end %><br>
-    <%= f.datetime_select :accredation_end %>
-  </div>
-  <div class="field">
-    <%= f.label :location %><br>
-    <%= f.text_area :location %>
-  </div>
-  <div class="field">
-    <%= f.label :hosting_club_id %><br>
-    <%= f.number_field :hosting_club_id %>
-  </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
   </div>
 <% end %>

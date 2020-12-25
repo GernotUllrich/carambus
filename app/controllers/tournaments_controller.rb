@@ -1,18 +1,29 @@
 class TournamentsController < ApplicationController
+  include FiltersHelper
   before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking, :edit_games, :reload_from_ba, :switch_players, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start]
 
   # GET /tournaments
-  # GET /tournaments.json
   def index
-    @tournaments = Tournament.page(params[:page]).per(24)
+    @tournaments = Tournament.joins(:region, :season, :discipline).sort_by_params(params[:sort], sort_direction)
+    if params[:sSearch].present?
+      @tournaments = apply_filters(@tournaments, Tournament::COLUMN_NAMES, "(tournaments.ba_id = :isearch) or (tournaments.title ilike :search) or (tournaments.shortname ilike :search) or (regions.name ilike :search) or (seasons.name ilike :search) or (tournaments.plan_or_show ilike :search) or (tournaments.single_or_league ilike :search)")
+    end
+    @pagy, @tournaments = pagy(@tournaments)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @tournaments.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @tournaments.load
     respond_to do |format|
-      format.html
-      format.json { render json: TournamentsDatatable.new(view_context, nil) }
+      format.html {
+        if params[:table_only].present?
+          params.reject! { |k, v| k.to_s == "table_only" }
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
     end
   end
 
   # GET /tournaments/1
-  # GET /tournaments/1.json
   def show
   end
 
@@ -57,28 +68,33 @@ class TournamentsController < ApplicationController
 
   def finalize_modus
     @proposed_discipline_tournament_plan = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
-        where(discipline_tournament_plans: {
-            players: @tournament.seedings.all.count,
-            player_class: @tournament.player_class,
-            discipline_id: @tournament.discipline_id
-        }).first
+      where(discipline_tournament_plans: {
+        players: @tournament.seedings.all.count,
+        player_class: @tournament.player_class,
+        discipline_id: @tournament.discipline_id
+      }).first
     @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups) if @proposed_discipline_tournament_plan.present?
     @alternatives_same_discipline = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
-        where.not(tournament_plans: {id: @proposed_discipline_tournament_plan.andand.id}).
-        where(discipline_tournament_plans: {
-            players: @tournament.seedings.all.count,
-            discipline_id: @tournament.discipline_id
-        }).uniq
+      where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id }).
+      where(discipline_tournament_plans: {
+        players: @tournament.seedings.all.count,
+        discipline_id: @tournament.discipline_id
+      }).uniq
     @alternatives_other_disciplines = ::TournamentPlan.
-        where.not(tournament_plans: {id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id)}).
-        where(players: @tournament.seedings.all.count).uniq
+      where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) }).
+      where(players: @tournament.seedings.all.count).uniq
   end
 
   def select_modus
-    @tournament.update_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
-    @tournament.finish_mode_selection!
-    @tournament.reload
-
+    begin
+      @tournament.update_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
+      @tournament.finish_mode_selection!
+      @tournament.reload
+    rescue Exception => e
+      flash[:alert] = e.message
+      redirect_back(fallback_location: tournament_path(@tournament))
+      return
+    end
     redirect_to tournament_monitor_tournament_path(@tournament)
   end
 
@@ -89,11 +105,20 @@ class TournamentsController < ApplicationController
   end
 
   def start
-    @tournament.initialize_tournament_monitor
-    @tournament.reload
-    @tournament.start_tournament!
-    @tournament.reload
-    redirect_to tournament_monitor_path(@tournament.tournament_monitor)
+    data_ = @tournament.data
+    data_[:table_ids] = params[:table_id]
+    @tournament.update_attributes(data: data_)
+    if @tournament.valid?
+      @tournament.initialize_tournament_monitor
+      @tournament.reload
+      @tournament.start_tournament!
+      @tournament.reload
+      @tournament.tournament_monitor.update_attributes(current_admin: current_user)
+      redirect_to tournament_monitor_path(@tournament.tournament_monitor)
+    else
+      flash[:alert] = @tournament.errors.full_messages
+      redirect_back(fallback_location: tournament_path(@tournament))
+    end
   end
 
   # GET /tournaments/new
@@ -103,46 +128,37 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments/1/edit
   def edit
+
   end
 
   # POST /tournaments
-  # POST /tournaments.json
   def create
-    @tournament = Tournament.new(tournament_params)
+    @tournament = Tournament.new(tournament_params.merge(organizer: @organizer))
 
-    respond_to do |format|
-      if @tournament.save
-        format.html { redirect_to @tournament, notice: 'Tournament was successfully created.' }
-        format.json { render :show, status: :created, location: @tournament }
-      else
-        format.html { render :new }
-        format.json { render json: @tournament.errors, status: :unprocessable_entity }
-      end
+    if @tournament.save
+      redirect_to @tournament, notice: "Tournament was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /tournaments/1
-  # PATCH/PUT /tournaments/1.json
   def update
-    respond_to do |format|
-      if @tournament.update(tournament_params)
-        format.html { redirect_to @tournament, notice: 'Tournament was successfully updated.' }
-        format.json { render :show, status: :ok, location: @tournament }
+    begin
+      if @tournament.update(tournament_params.merge(organizer: @organizer))
+        redirect_to @tournament, notice: "Tournament was successfully updated."
       else
-        format.html { render :edit }
-        format.json { render json: @tournament.errors, status: :unprocessable_entity }
+        render :edit
       end
+    rescue Exception => e
+      Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
     end
   end
 
   # DELETE /tournaments/1
-  # DELETE /tournaments/1.json
   def destroy
     @tournament.destroy
-    respond_to do |format|
-      format.html { redirect_to tournaments_url, notice: 'Tournament was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to tournaments_url, notice: "Tournament was successfully destroyed."
   end
 
   private
@@ -150,10 +166,15 @@ class TournamentsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_tournament
     @tournament = Tournament.find(params[:id])
+    if params[:tournament].andand[:organizer_gid].present?
+      organizer_gid = params[:tournament].delete(:organizer_gid)
+      @organizer = GlobalID::Locator.locate(organizer_gid)
+      params[:organizer] = @organizer if organizer_gid.present?
+    end
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Only allow a trusted parameter "white list" through.
   def tournament_params
-    params.require(:tournament).permit(:title, :reagion_id, :discipline_id, :season_id, :shortname, :discipline_id, :modus, :age_restriction, :date, :player_class, :tournament_plan_id, :accredation_end, :location, :hosting_tournament_id)
+    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :balls_goal, :handicap_tournier)
   end
 end

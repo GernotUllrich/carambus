@@ -1,0 +1,14 @@
+--- !ruby/object:Jumpstart::Configuration
+application_name: Carambus
+business_name: Ullrich-IT-Consulting
+domain: example.com
+support_email: gernot.ullrich@gmx.de
+default_from_email: Jumpstart <support@example.com>
+business_address: |-
+  Sandstückenweg 15
+  22869 Schenefeld
+background_job_processor: async
+email_provider: ''
+personal_accounts: true
+livereload: false
+register_with_account: false

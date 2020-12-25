@@ -1,0 +1,31 @@
+# == Schema Information
+#
+# Table name: tournament_monitors
+#
+#  id            :bigint           not null, primary key
+#  balls_goal    :integer
+#  data          :text
+#  innings_goal  :integer
+#  state         :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  tournament_id :integer
+#
+# Foreign Keys
+#
+#  fk_rails_...  (tournament_id => tournaments.id)
+#
+
+one:
+  tournament_id: 1
+  date: MyText
+  state: MyString
+  innings_goal: 1
+  balls_goal: 1
+
+two:
+  tournament_id: 1
+  date: MyText
+  state: MyString
+  innings_goal: 1
+  balls_goal: 1

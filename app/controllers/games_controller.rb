@@ -1,53 +1,63 @@
 class GamesController < ApplicationController
-  before_action :set_game, only: [:show, :update, :destroy]
+  before_action :set_game, only: [:show, :edit, :update, :destroy]
 
   # GET /games
-  # GET /games.json
   def index
-    @games = Game.all
+    @pagy, @games = pagy(Game.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @games.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @games.load
   end
 
   # GET /games/1
-  # GET /games/1.json
   def show
   end
 
+  # GET /games/new
+  def new
+    @game = Game.new
+  end
+
+  # GET /games/1/edit
+  def edit
+  end
+
   # POST /games
-  # POST /games.json
   def create
     @game = Game.new(game_params)
 
     if @game.save
-      render :show, status: :created, location: @game
+      redirect_to @game, notice: "Game was successfully created."
     else
-      render json: @game.errors, status: :unprocessable_entity
+      render :new
     end
   end
 
   # PATCH/PUT /games/1
-  # PATCH/PUT /games/1.json
   def update
     if @game.update(game_params)
-      render :show, status: :ok, location: @game
+      redirect_to @game, notice: "Game was successfully updated."
     else
-      render json: @game.errors, status: :unprocessable_entity
+      render :edit
     end
   end
 
   # DELETE /games/1
-  # DELETE /games/1.json
   def destroy
     @game.destroy
+    redirect_to games_url, notice: "Game was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_game
-      @game = Game.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def game_params
-      params.require(:game).permit(:template_game_id, :tournament_id, :roles, :data, :created_at, :updated_at, :seqno, :gname, :group_no, :table_no, :round_no, :started_at, :ended_at)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_game
+    @game = Game.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def game_params
+    params.require(:game).permit(:tournament_id, :roles, :data, :seqno, :gname, :group_no, :table_no, :round_no, :started_at, :ended_at)
+  end
 end

@@ -1,25 +1,81 @@
 require 'open-uri'
 require 'net/http'
-require 'dnssd'
+#require 'dnssd'
 
-class Tournament < ActiveRecord::Base
+# == Schema Information
+#
+# Table name: tournaments
+#
+#  id                             :bigint           not null, primary key
+#  accredation_end                :datetime
+#  age_restriction                :string
+#  ba_state                       :string
+#  balls_goal                     :integer
+#  data                           :text
+#  date                           :datetime
+#  end_date                       :datetime
+#  handicap_tournier              :boolean
+#  innings_goal                   :integer
+#  last_ba_sync_date              :datetime
+#  location                       :text
+#  modus                          :string
+#  organizer_type                 :string
+#  plan_or_show                   :string
+#  player_class                   :string
+#  shortname                      :string
+#  single_or_league               :string
+#  state                          :string
+#  time_out_stoke_preparation_sec :integer          default(45)
+#  time_out_warm_up_first_min     :integer          default(5)
+#  time_out_warm_up_follow_up_min :integer          default(3)
+#  title                          :string
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  ba_id                          :integer
+#  discipline_id                  :integer
+#  location_id                    :integer
+#  organizer_id                   :integer
+#  region_id                      :integer
+#  season_id                      :integer
+#  tournament_plan_id             :integer
+#
+# Indexes
+#
+#  index_tournaments_on_ba_id         (ba_id) UNIQUE
+#  index_tournaments_on_foreign_keys  (title,season_id,region_id)
+#
+class Tournament < ApplicationRecord
 
   include AASM
   has_paper_trail
 
-  belongs_to :discipline
+  belongs_to :discipline, optional: true
   belongs_to :region
   belongs_to :season
-  belongs_to :tournament_plan
+  belongs_to :tournament_plan, optional: true
   has_many :seedings, -> { order(position: :asc) }
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
   has_one :setting
   has_many :tournament_tables
+  belongs_to :organizer, polymorphic: true
+  belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
 
   serialize :data, Hash
 
-  aasm column: "state", skip_validation_on_save: true do
+  validates_each :data do |record, attr, value|
+    table_ids = Array(record.send(attr)[:table_ids])
+    if table_ids.present?
+      incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i
+      heterogen = Table.where(id: table_ids).all.map(&:location_id).uniq.length > 1
+      inconsistent = table_ids != table_ids.uniq
+      record.errors.add(attr, I18n.t('table_assignments_incomplete')) if incomplete
+      record.errors.add(attr, I18n.t('table_assignments_heterogen')) if heterogen
+      record.errors.add(attr, I18n.t('table_assignments_inconsistent')) if inconsistent
+    end
+  end
+
+  aasm column: 'state', skip_validation_on_save: true do
     state :new_tournament, initial: true, :after_enter => [:reset_tournament]
     state :accreditation_finished
     state :tournament_seeding_finished
@@ -57,58 +113,65 @@ class Tournament < ActiveRecord::Base
     end
   end
 
+  before_save do
+    if organizer.blank?
+      self.organizer = self.region
+    end
+  end
+
   def self.logger
     @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
   end
 
   NAME_DISCIPLINE_MAPPINGS = {
-      "9-Ball" => "9-Ball",
-      "8-Ball" => "8-Ball",
-      "14.1" => "14.1 endlos",
-      "47/2" => "Cadre 47/2",
-      "71/2" => "Cadre 71/2",
-      "35/2" => "Cadre 35/2",
-      "52/2" => "Cadre 52/2",
-      "Kl.*I.*Freie" => "Freie Partie groß",
-      "Freie.*Kl.*I" => "Freie Partie groß",
-      "Einband.*Kl.*I" => "Einband groß",
-      ".*Kl.*I.*Einband" => "Einband groß",
-      "Einband" => "Einband klein",
-      "Freie Partie" => "Freie Partie klein",
+    "9-Ball" => "9-Ball",
+    "8-Ball" => "8-Ball",
+    "14.1" => "14.1 endlos",
+    "47/2" => "Cadre 47/2",
+    "71/2" => "Cadre 71/2",
+    "35/2" => "Cadre 35/2",
+    "52/2" => "Cadre 52/2",
+    "Kl.*I.*Freie" => "Freie Partie groß",
+    "Freie.*Kl.*I" => "Freie Partie groß",
+    "Einband.*Kl.*I" => "Einband groß",
+    ".*Kl.*I.*Einband" => "Einband groß",
+    "Einband" => "Einband klein",
+    "Freie Partie" => "Freie Partie klein",
   }
 
-  COLUMN_NAMES = {#TODO FILTERS
-                  "BA_ID" => "tournaments.ba_id",
-                  "BA State" => "tournaments.ba_state",
-                  "Title" => "tournaments.title",
-                  "Shortname" => "tournaments.shortname",
-                  "Discipline" => "disciplines.name",
-                  "Region" => "regions.name",
-                  "Season" => "seasons.name",
-                  "Status" => "tournaments.plan_or_show",
-                  "SingleOrLeague" => "tournaments.single_or_league",
+  COLUMN_NAMES = { #TODO FILTERS
+                   "BA_ID" => "tournaments.ba_id",
+                   "BA State" => "tournaments.ba_state",
+                   "Title" => "tournaments.title",
+                   "Shortname" => "tournaments.shortname",
+                   "Discipline" => "disciplines.name",
+                   "Region" => "regions.name",
+                   "Season" => "seasons.name",
+                   "Status" => "tournaments.plan_or_show",
+                   "SingleOrLeague" => "tournaments.single_or_league",
   }
 
   def initialize_tournament_monitor
     logger.info "[initialize_tournament_monitor]..."
     TournamentMonitor.transaction do
-      begin
-        # http = TCPServer.new nil, 80
-        # DNSSD.announce http, 'carambus server'
-        # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
-        TournamentMonitor.find_or_create_by!(tournament_id: self.id)
-        reload
-      rescue Exception => e
-        logger.info "[initialize_tournament_monitor] Exception #{e}:\n#{e.backtrace.join("\n")}"
-        reset_tournament
-        Rails.logger.error("Some problem occurred when creating TournamentMonitor - Tournament resetted")
-      end
-
+      # http = TCPServer.new nil, 80
+      # DNSSD.announce http, 'carambus server'
+      # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
+      games = []
+      tm = tournament_monitor || create_tournament_monitor()
+      # tm = TournamentMonitor.find_or_create_by!(
+      #     tournament_id: self.id
+      # )
+      # reload
       logger.info "state:#{state}...[initialize_tournament_monitor]"
+    rescue Exception => e
+      logger.info "...[initialize_tournament_monitor] Exception #{e}:\n#{e.backtrace.join("\n")}"
+      reset_tournament
+      Rails.logger.error("Some problem occurred when creating TournamentMonitor - Tournament resetted")
+
     end
 
   end
-
 
   def scrape_single_tournament(opts = {})
     self.reset_tournament
@@ -127,14 +190,14 @@ class Tournament < ActiveRecord::Base
         label = element.css("label").text.strip
         value = Array(element.css(".field")).map(&:text).map(&:strip).join("\n")
         mappings = {
-            "Meisterschaft" => :title,
-            "Datum" => :data, # 13.05.2021	(09:00 Uhr) - 14.05.2021
-            "Meldeschluss" => :accredation_end, # 27.10.2020 (23:59 Uhr)
-            "Kurzbezeichnung" => :shortname,
-            "Disziplin" => :discipline,
-            "Spielmodus" => :modus,
-            "Altersklasse" => :age_restriction,
-            "Spiellokal" => :location,
+          "Meisterschaft" => :title,
+          "Datum" => :data, # 13.05.2021	(09:00 Uhr) - 14.05.2021
+          "Meldeschluss" => :accredation_end, # 27.10.2020 (23:59 Uhr)
+          "Kurzbezeichnung" => :shortname,
+          "Disziplin" => :discipline,
+          "Spielmodus" => :modus,
+          "Altersklasse" => :age_restriction,
+          "Spiellokal" => :location,
         }
         case label
         when "Datum"
@@ -154,6 +217,7 @@ class Tournament < ActiveRecord::Base
           self.update_attribute(mappings[label], value)
         end
       end
+      self.data = {}
       self.save!
       if game_details
         # Setzliste
@@ -169,25 +233,25 @@ class Tournament < ActiveRecord::Base
             if td.css("div").present?
               lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
               club = Club.where(region: region).where("name ilike ?", club_str).first ||
-                  Club.where(region: region).where("shortname ilike ?", club_str).first
+                Club.where(region: region).where("shortname ilike ?", club_str).first
               club
               if club.present?
-                season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: {id: season.id}, players: {firstname: firstname, lastname: lastname})
+                season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname })
                 if season_participations.count == 1
                   season_participation = season_participations.first
                   player = season_participation.player
                   if season_participation.club_id == club.id
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-                        Seeding.create(player_id: player.id, tournament_id: self.id)
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
                     state_ix = 0
                   else
                     real_club = season_participations.first.club
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
                     logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
                     sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
-                        SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
+                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-                        Seeding.create(player_id: player.id, tournament_id: self.id)
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
                     state_ix = 0
                   end
                 elsif season_participations.count == 0
@@ -198,27 +262,27 @@ class Tournament < ActiveRecord::Base
                     player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
                     player_fixed.update_attributes(ba_id: 999000000 + player_fixed.id)
                     SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                        SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-                        Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
                     state_ix = 0
                   elsif players.count == 1
                     player_fixed = players.first
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
                     SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                        SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
                     logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
                     seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-                        Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
                     state_ix = 0
                   elsif players.count > 1
                     logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
                     logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
                     player_fixed = players.first
                     SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-                        SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-                        Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
                     state_ix = 0
                   end
                 else
@@ -227,7 +291,7 @@ class Tournament < ActiveRecord::Base
                     season_participation = season_participations.where(club_id: club.id).first
                     player = season_participation.player
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-                        Seeding.create(player_id: player.id, tournament_id: self.id)
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
                     state_ix = 0
                   else
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
@@ -236,9 +300,9 @@ class Tournament < ActiveRecord::Base
                     fixed_player = fixed_season_participation.player
                     logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
                     SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
-                        SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
+                      SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
-                        Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
+                      Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
                     state_ix = 0
                   end
                 end
@@ -253,7 +317,7 @@ class Tournament < ActiveRecord::Base
                 logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
                 logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
                 seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
-                    Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
+                  Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
                 state_ix = 0
               end
             else
@@ -279,6 +343,7 @@ class Tournament < ActiveRecord::Base
         self.reload
         # Results
         self.games = []
+        self.reload
         table = doc.css("#tabs-2 .matchday_table")[0]
         keys = table.css("tr th div").map(&:text).map { |s| s.split("\n").first }
         table.css("tr").each do |row|
@@ -353,8 +418,10 @@ class Tournament < ActiveRecord::Base
     tournament_monitor.andand.destroy
     seedings.update_all(position: nil, data: nil)
     games.destroy_all
-    update_attributes(tournament_plan_id: nil, state: "new_tournament")
-    reload
+    unless new_record?
+      update_columns(tournament_plan_id: nil, state: "new_tournament")
+      reload
+    end
     logger.info "state:#{state}...[reset_tournament]"
   end
 

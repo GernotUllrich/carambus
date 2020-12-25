@@ -1,0 +1,42 @@
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :player_id, 'Player', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :tournament_id, 'Tournament', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :ba_state, 'Ba state', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :position, 'Position', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :playing_discipline_id, 'Playing discipline', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @seedings.each do |seeding| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+        <td class="p-3"><%= link_to(seeding.player.fullname, player_path(seeding.player)) %></td>
+        <td class="p-3"><%= link_to(seeding.tournament.title, tournament_path(seeding.tournament)) + " (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.plan_or_show}/#{seeding.tournament.ba_id}")})".html_safe %></td>
+        <td class="p-3"><%= seeding.ba_state %></td>
+        <td class="p-3"><%= seeding.position %></td>
+        <td class="p-3"><%= Seeding.result_display(seeding) %></td>
+        <td class="p-3"><%= seeding.state %></td>
+        <td class="p-3"><%= seeding.balls_goal %></td>
+        <td class="p-3"><%= link_to(seeding.tournament.discipline.name, discipline_path(seeding.tournament.discipline)) %></td>
+
+        <td>
+          <%= link_to t('view'), seeding, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

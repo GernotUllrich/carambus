@@ -1,18 +1,29 @@
 class PlayerRankingsController < ApplicationController
+  include FiltersHelper
   before_action :set_player_ranking, only: [:show, :edit, :update, :destroy]
 
   # GET /player_rankings
-  # GET /player_rankings.json
   def index
-    @player_rankings = PlayerRanking.page(params[:page]).per(24)
+    @player_rankings = PlayerRanking.joins(:discipline, :player, :region, :season).sort_by_params(params[:sort], sort_direction)
+    if params[:sSearch].present?
+      @player_rankings = apply_filters(@player_rankings, PlayerRanking::COLUMN_NAMES, "(regions.shortname ilike :search) or (disciplines.name ilike :search) or (players.lastname||', '||players.firstname ilike :search)")
+    end
+    @pagy, @player_rankings = pagy(@player_rankings)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @player_rankings.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @player_rankings.load
     respond_to do |format|
-      format.html
-      format.json { render json: PlayerRankingsDatatable.new(view_context, nil) }
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
     end
   end
 
   # GET /player_rankings/1
-  # GET /player_rankings/1.json
   def show
   end
 
@@ -26,53 +37,40 @@ class PlayerRankingsController < ApplicationController
   end
 
   # POST /player_rankings
-  # POST /player_rankings.json
   def create
     @player_ranking = PlayerRanking.new(player_ranking_params)
 
-    respond_to do |format|
-      if @player_ranking.save
-        format.html { redirect_to @player_ranking, notice: 'Player ranking was successfully created.' }
-        format.json { render :show, status: :created, location: @player_ranking }
-      else
-        format.html { render :new }
-        format.json { render json: @player_ranking.errors, status: :unprocessable_entity }
-      end
+    if @player_ranking.save
+      redirect_to @player_ranking, notice: "Player ranking was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /player_rankings/1
-  # PATCH/PUT /player_rankings/1.json
   def update
-    respond_to do |format|
-      if @player_ranking.update(player_ranking_params)
-        format.html { redirect_to @player_ranking, notice: 'Player ranking was successfully updated.' }
-        format.json { render :show, status: :ok, location: @player_ranking }
-      else
-        format.html { render :edit }
-        format.json { render json: @player_ranking.errors, status: :unprocessable_entity }
-      end
+    if @player_ranking.update(player_ranking_params)
+      redirect_to @player_ranking, notice: "Player ranking was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /player_rankings/1
-  # DELETE /player_rankings/1.json
   def destroy
     @player_ranking.destroy
-    respond_to do |format|
-      format.html { redirect_to player_rankings_url, notice: 'Player ranking was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to player_rankings_url, notice: "Player ranking was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_player_ranking
-      @player_ranking = PlayerRanking.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def player_ranking_params
-      params.require(:player_ranking).permit(:player_id, :region_id, :player_ranking_id, :season_id, :org_level, :discipline_id, :status, :points, :innings, :gd, :hs, :bed, :btg, :player_class_id, :p_player_class_id, :pp_player_class_id, :p_gd, :pp_gd, :tournament_player_class_id, :rank)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_player_ranking
+    @player_ranking = PlayerRanking.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def player_ranking_params
+    params.require(:player_ranking).permit(:player_id, :region_id, :season_id, :org_level, :discipline_id, :status, :points, :gd, :hs, :bed, :btg, :player_class_id, :p_player_class_id, :pp_player_class_id, :p_gd, :pp_gd, :tournament_player_class_id, :rank, :remarks, :g, :v, :quote, :sp_g, :sp_v, :sp_quote, :balls, :sets, :t_ids)
+  end
 end

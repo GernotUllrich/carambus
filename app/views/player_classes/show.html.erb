@@ -1,12 +1,19 @@
-<p>
-  <strong>Discipline:</strong>
-  <%= @player_class.discipline_id %>
-</p>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Player Classes', player_classes_path %> > Player Class #<%= @player_class.id %></h1>
+      <%= link_to( 'Edit', edit_player_class_path(@player_class), class: "btn btn-link") if current_user.andand.admin? %>
+    </div>
 
-<p>
-  <strong>Shortname:</strong>
-  <%= @player_class.shortname %>
-</p>
-
-<%= link_to 'Edit', edit_player_class_path(@player_class) %> |
-<%= link_to 'Back', player_classes_path %>
+    <div class="bg-white dark:bg-black rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @player_class.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Shortname</h5>
+        <%= @player_class.shortname %>
+      </div>
+          </div>
+  </div>
+</div>

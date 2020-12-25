@@ -1,9 +1,0 @@
-h1
-  | Editing Club
-.alert.alert-warning
-  |  Please Edit Data on #{ link_to "Billard Area", "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}"} and then request Download of Data from there to keep everything consistent!
-= link_to 'Refresh from Billard Area', reload_from_ba_club_path(@club), method: :post
-|  |&nbsp;
-= link_to 'Refresh from Billard Area with Player Details', reload_from_ba_with_player_details_club_path(@club), method: :post
-|  |&nbsp;
-= link_to 'Back', clubs_path

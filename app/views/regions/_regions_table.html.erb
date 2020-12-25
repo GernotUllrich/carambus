@@ -1,0 +1,40 @@
+<div>
+  <div id="regions_table" class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs">Logo</th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :shortname, 'Shortname', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :email, 'Email', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :country_id, 'Country', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @regions.each do |region| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+        <td class="p-3"><%= (image_tag(region.logo) if region.logo.present?) %></td>
+        <td class="p-3"><%= link_to(region.name, region_path(region)) %></td>
+        <td class="p-3"><%= link_to(region.shortname, "https://#{region.shortname.downcase}.billardarea.de") %></td>
+        <td class="p-3"><%= mail_to(region.email) %></td>
+        <td class="p-3"><%= region.address.gsub(/\n+/, "<br />").html_safe %></td>
+        <td class="p-3"><%= link_to(region.country.andand.code, country_path(region.country)) %></td>
+
+        <td>
+          <%= link_to t('view'), region, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>
+</div>

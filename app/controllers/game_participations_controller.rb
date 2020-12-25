@@ -2,17 +2,15 @@ class GameParticipationsController < ApplicationController
   before_action :set_game_participation, only: [:show, :edit, :update, :destroy]
 
   # GET /game_participations
-  # GET /game_participations.json
   def index
-    @game_participations = GameParticipation.page(params[:page]).per(24)
-    respond_to do |format|
-      format.html
-      format.json { render json: GameParticipationsDatatable.new(view_context, nil) }
-    end
+    @pagy, @game_participations = pagy(GameParticipation.sort_by_params(params[:sort], sort_direction))
+
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @game_participations.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @game_participations.load
   end
 
   # GET /game_participations/1
-  # GET /game_participations/1.json
   def show
   end
 
@@ -26,53 +24,40 @@ class GameParticipationsController < ApplicationController
   end
 
   # POST /game_participations
-  # POST /game_participations.json
   def create
     @game_participation = GameParticipation.new(game_participation_params)
 
-    respond_to do |format|
-      if @game_participation.save
-        format.html { redirect_to @game_participation, notice: 'Game participation was successfully created.' }
-        format.json { render :show, status: :created, location: @game_participation }
-      else
-        format.html { render :new }
-        format.json { render json: @game_participation.errors, status: :unprocessable_entity }
-      end
+    if @game_participation.save
+      redirect_to @game_participation, notice: "Game participation was successfully created."
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /game_participations/1
-  # PATCH/PUT /game_participations/1.json
   def update
-    respond_to do |format|
-      if @game_participation.update(game_participation_params)
-        format.html { redirect_to @game_participation, notice: 'Game participation was successfully updated.' }
-        format.json { render :show, status: :ok, location: @game_participation }
-      else
-        format.html { render :edit }
-        format.json { render json: @game_participation.errors, status: :unprocessable_entity }
-      end
+    if @game_participation.update(game_participation_params)
+      redirect_to @game_participation, notice: "Game participation was successfully updated."
+    else
+      render :edit
     end
   end
 
   # DELETE /game_participations/1
-  # DELETE /game_participations/1.json
   def destroy
     @game_participation.destroy
-    respond_to do |format|
-      format.html { redirect_to game_participations_url, notice: 'Game participation was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to game_participations_url, notice: "Game participation was successfully destroyed."
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_game_participation
-      @game_participation = GameParticipation.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def game_participation_params
-      params.require(:game_participation).permit(:game_id, :player_id, :role)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_game_participation
+    @game_participation = GameParticipation.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def game_participation_params
+    params.require(:game_participation).permit(:game_id, :player_id, :role, :data, :points, :result, :innings, :gd, :hs, :game)
+  end
 end

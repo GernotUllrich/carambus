@@ -1,0 +1,52 @@
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs" />
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :ba_id, t('club.ba_id'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :region_id, t('club.region_id'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :name, t('club.name'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :shortname, t('club.shortname'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :address, t('club.address'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :homepage, t('club.homepage'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :email, t('club.email'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :priceinfo, t('club.priceinfo'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :logo, t('club.logo'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :status, t('club.status'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :founded, t('club.founded'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :dbu_entry, t('club.dbu_entry'), class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @clubs.each do |club| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+        <td class="p-3"><%= (club.logo.present? ? ("<img src=\"<#{ club.logo}\"") : "") %></td>
+        <td class="p-3"><%= link_to club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}" %></td>
+        <td class="p-3"><%= link_to club.region.name, region_path(club.region) if club.region.present? %></td>
+        <td class="p-3"><%= link_to(club.name,club_path(club)) %></td>
+        <td class="p-3"><%= club.shortname %></td>
+        <td class="p-3"><%= club.address.gsub(/\n+/, "<br />").html_safe %></td>
+        <td class="p-3"><%= club.homepage == "http://" ? "" : (link_to club.homepage, club.homepage) %></td>
+        <td class="p-3"><%= mail_to club.email %></td>
+        <td class="p-3"><%= club.priceinfo.truncate(150) %></td>
+        <td class="p-3"><%= club.logo %></td>
+        <td class="p-3"><%= club.status %></td>
+        <td class="p-3"><%= club.founded %></td>
+        <td class="p-3"><%= club.dbu_entry %></td>
+
+        <td>
+          <%= link_to t('view'), club, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>
