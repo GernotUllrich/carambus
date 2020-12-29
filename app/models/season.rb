@@ -25,6 +25,12 @@ class Season < ApplicationRecord
     @current_season = Season.find_by_name("#{year}/#{year+1}")
   end
 
+  def self.update_seasons
+    (2009..(Date.today.year)).each_with_index do |year, ix|
+      Season.find_by_name("#{year}/#{year + 1}") || Season.create(ba_id: ix + 1, name: "#{year}/#{year + 1}")
+    end
+  end
+
   def previous
     @previous || Season.find_by_ba_id(ba_id - 1)
   end

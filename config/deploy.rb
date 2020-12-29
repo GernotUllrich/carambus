@@ -2,11 +2,11 @@
 lock '3.14.1'
 
 set :application, 'carambus'
-set :repo_url, 'git@gitlab.com:GernotUllrich/carambus.git'
+set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
 
 # Default branch is :master
 #ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, 'carambus'
+set :branch, 'master'
 
 # Default deploy_to directory is /var/www/my_app_name
 # set :deploy_to, '/var/www/my_app_name'

@@ -32,6 +32,30 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-4xl mx-auto">
     <div class="flex flex-col mb-4">
+      <h3 class="h3"><%= t('player_ranking.index.player_rankings') %></h3>
+      <div class="bg-white dark:bg-black rounded shadow table-responsive">
+        <ul class="list">
+          <%- Discipline.joins(:player_rankings => :player).where(players: { id: @player.id }).order("disciplines.name desc").uniq.each do |dis| %>
+            <li><%= dis.name %>
+              <%- dis.player_rankings.joins(:season).joins(:player).where(players: { id: @player.id }).order("seasons.name asc").each do |ranking| %>
+                <%- next if ranking.btg.blank? %>
+                <div class="pl-10 flex flex-row">
+                  <div class="flex w-1/6"><%= "#{ranking.season.name}: " %></div>
+                  <div class="flex w-1/6"><%= "\##{ranking.rank} " %></div>
+                  <div class="flex w-full"><%= "BTG:#{ranking.btg}" %></div>
+                </div>
+              <%- end %>
+            </li>
+          <%- end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col mb-4">
       <h3 class="h3"><%= t('seeding.index.seedings') %></h3>
       <div class="bg-white dark:bg-black rounded shadow table-responsive">
         <table>
@@ -74,7 +98,7 @@
           </tr>
           </thead>
           <tbody>
-          <% SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: {id: @player.id}).order("season_participations.season_id desc").uniq.each do |season_participation| %>
+          <% SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: { id: @player.id }).order("season_participations.season_id desc").uniq.each do |season_participation| %>
             <tr>
               <td><%= link_to season_participation.season.name, season_path(season_participation.season) %></td>
               <td><%= link_to season_participation.club.shortname, club_path(season_participation.club) %></td>

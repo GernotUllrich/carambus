@@ -29,7 +29,27 @@ class Club < ApplicationRecord
   has_many :season_participations
   has_many :tournament_locations, as: :organizer, class_name: "Location"
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
-  has_one :club
+
+  BA_COLUMNS = [
+    :address,
+    :dbu_entry,
+    :email,
+    :founded,
+    :homepage,
+    :logo,
+    :name,
+    :priceinfo,
+    :shortname,
+    :status,
+    :ba_id
+  ]
+  CA_COLUMNS = [
+    :region_id,
+    :id,
+    :created_at,
+    :updated_at
+  ]
+
   REFLECTION_KEYS = ["region", "players", "season_participations"]
   COLUMN_NAMES = {#TODO FILTERS
                   "BA_ID" => "clubs.ba_id",

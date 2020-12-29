@@ -12,6 +12,7 @@ namespace :carambus do
 
   desc "scrape regions"
   task :scrape_regions => :environment do
+    Region.scrape_regions
     country_de = Country.find_by_code("DE")
     url = "https://portal.billardarea.de"
     Rails.logger.info "reading index page - to scrape regions"
@@ -40,9 +41,16 @@ namespace :carambus do
 
   desc "Update Seasons"
   task :update_seasons => :environment do
-    (2009..(Date.today.year)).each_with_index do |year, ix|
-      Season.find_by_name("#{year}/#{year + 1}") || Season.create(ba_id: ix + 1, name: "#{year}/#{year + 1}")
+    Season.update_seasons
+  end
+
+  desc "daily update"
+  task :daily_update => :environment do
+    if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
+      Season.update_seasons
     end
+    Region.scrape_regions
+
   end
 
   desc "scrape clubs"
@@ -52,7 +60,6 @@ namespace :carambus do
       Region.all.each do |region|
         #if region.shortname.downcase == 'nbv'
         #if ["BVNRW"].include?(region.shortname)
-        Club.scrape_single_club(player_details: true)
         url = "https://#{region.shortname.downcase}.billardarea.de"
         Rails.logger.info "reading #{url + '/cms_clubs'} - region clubs"
         html = open(url + '/cms_clubs')
