@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: t_locations
+# Table name: locations
 #
 #  id             :bigint           not null, primary key
 #  address        :text
@@ -14,13 +14,13 @@
 #
 # Indexes
 #
-#  index _t_locations_on_club_id      (club_id)
-#  index_t_locations_on_foreign_keys  (club_id)
+#  index_locations_on_club_id       (club_id)
+#  index_locations_on_foreign_keys  (club_id)
 #
-class TLocation < ApplicationRecord
+class Location < ApplicationRecord
   belongs_to :club
   belongs_to :organizer, polymorphic: true
   has_many :tables
-  has_many :t_tournaments, foreign_key: :t_location_id
+  has_many :tournaments, foreign_key: :location_id
   serialize :data, Hash
 end

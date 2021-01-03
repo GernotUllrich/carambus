@@ -1,29 +1,25 @@
 # == Schema Information
 #
-# Table name: t_games
+# Table name: games
 #
-#  id              :bigint           not null, primary key
-#  data            :text
-#  ended_at        :datetime
-#  gname           :string
-#  group_no        :integer
-#  roles           :text
-#  round_no        :integer
-#  seqno           :integer
-#  started_at      :datetime
-#  table_no        :integer
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  t_tournament_id :integer
+#  id            :bigint           not null, primary key
+#  data          :text
+#  ended_at      :datetime
+#  gname         :string
+#  group_no      :integer
+#  roles         :text
+#  round_no      :integer
+#  seqno         :integer
+#  started_at    :datetime
+#  table_no      :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  tournament_id :integer
 #
-# Indexes
-#
-#  index_t_games_on_foreign_keys  (t_tournament_id) UNIQUE
-#
-class TGame < ApplicationRecord
+class Game < ApplicationRecord
 
-  belongs_to :t_tournament
-  has_many :t_game_participations, :dependent => :destroy
+  belongs_to :tournament
+  has_many :game_participations, :dependent => :destroy
   has_one :table_monitor, :dependent => :nullify
   has_many :innings, -> { order("sequence_number") }, :dependent => :destroy
 
@@ -38,7 +34,7 @@ class TGame < ApplicationRecord
 
   before_save do
     if seqno_changed?
-      Tournament.logger.info "TGame[#{id}] - #{gname} ##{seqno}"
+      Tournament.logger.info "Game[#{id}] - #{gname} ##{seqno}"
     end
   end
 
@@ -83,14 +79,14 @@ class TGame < ApplicationRecord
   end
 
   def display_gname
-    TGame.display_ranking_key(gname)
+    Game.display_ranking_key(gname)
   end
 
   def self.fix_participation(game)
     mapping = {"Gr." => :gname, "Ergebnis" => :result, "Aufnahme" => :innings, "HS" => :hs, "GD" => :gd, "Punkte" => :points}
     tournament = game.tournament
     if tournament.present?
-      game.t_game_participations.delete_all
+      game.game_participations.delete_all
       player_a = Player.joins(:seedings => :tournament).where(tournaments: {id: tournament.id}).
           where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
       gp_a = GameParticipation.create(game_id: game.id, player_id: player_a.id, role: "Heim") if player_a.present?

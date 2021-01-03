@@ -43,9 +43,8 @@ class TournamentsController < ApplicationController
   end
 
   def order_by_ranking
-    @t_tournament = TTournament.init(@tournament)
     hash = {}
-    @t_tournament.seedings.each do |seeding|
+    @tournament.seedings.each do |seeding|
       hash[seeding] = seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999
     end
     sorted = hash.to_a.sort_by do |a|
@@ -56,15 +55,15 @@ class TournamentsController < ApplicationController
       seeding.update_attributes(position: ix + 1)
     end
 
-    @t_tournament.finish_seeding!
-    @t_tournament.reload
-    redirect_to tournament_path(@ba_tournament)
+    @tournament.finish_seeding!
+    @tournament.reload
+    redirect_to tournament_path(@tournament)
     return
   end
 
   def reload_from_ba
-    @ba_tournament.scrape_single_tournament(game_details: true)
-    redirect_back(fallback_location: tournament_path(@ba_tournament))
+    @tournament.scrape_single_tournament(game_details: true)
+    redirect_back(fallback_location: tournament_path(@tournament))
   end
 
   def finalize_modus
@@ -124,15 +123,42 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments/new
   def new
-    redirect_to new_t_tournament_path
+    @tournament = Tournament.new
   end
 
   # GET /tournaments/1/edit
   def edit
-    if @ba_tournament.t_tournament.present?
-      redirect_to edit_t_tournament_path(has_one :t_tournament)
-      return
+
+  end
+
+  # POST /tournaments
+  def create
+    @tournament = Tournament.new(tournament_params.merge(organizer: @organizer))
+
+    if @tournament.save
+      redirect_to @tournament, notice: "Tournament was successfully created."
+    else
+      render :new
     end
+  end
+
+  # PATCH/PUT /tournaments/1
+  def update
+    begin
+      if @tournament.update(tournament_params.merge(organizer: @organizer))
+        redirect_to @tournament, notice: "Tournament was successfully updated."
+      else
+        render :edit
+      end
+    rescue Exception => e
+      Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
+    end
+  end
+
+  # DELETE /tournaments/1
+  def destroy
+    @tournament.destroy
+    redirect_to tournaments_url, notice: "Tournament was successfully destroyed."
   end
 
   private
@@ -145,10 +171,6 @@ class TournamentsController < ApplicationController
       @organizer = GlobalID::Locator.locate(organizer_gid)
       params[:organizer] = @organizer if organizer_gid.present?
     end
-
-    @ba_tournament = @tournament
-    @tournament= @tournament.t_tournament
-    @x_tournament = @tournament || @ba_tournament
   end
 
   # Only allow a trusted parameter "white list" through.

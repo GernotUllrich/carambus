@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: t_game_participations
+# Table name: game_participations
 #
 #  id         :bigint           not null, primary key
 #  data       :text
@@ -13,17 +13,17 @@
 #  role       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  game_id    :integer
 #  player_id  :integer
-#  t_game_id  :integer
 #
 # Indexes
 #
-#  index_t_game_participations_on_foreign_keys  (t_game_id,player_id,role) UNIQUE
+#  index_game_participations_on_foreign_keys  (game_id,player_id,role) UNIQUE
 #
-class TGameParticipation < ApplicationRecord
+class GameParticipation < ApplicationRecord
   include CableReady::Broadcaster
   belongs_to :player
-  belongs_to :t_game
+  belongs_to :game
   has_paper_trail
 
   after_update do
