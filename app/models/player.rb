@@ -18,8 +18,8 @@
 #
 class Player < ApplicationRecord
   belongs_to :club
-  has_many :game_participations
-  has_many :seedings
+  has_many :game_participations, dependent: :destroy
+  has_many :seedings, dependent: :destroy
   has_many :season_participations
   has_many :player_rankings
   has_one :admin_user, class_name: "User", foreign_key: "player_id"

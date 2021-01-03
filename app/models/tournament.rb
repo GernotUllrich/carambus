@@ -52,14 +52,17 @@ class Tournament < ApplicationRecord
   belongs_to :discipline, optional: true
   belongs_to :region
   belongs_to :season
-  belongs_to :tournament_plan, optional: true
   has_many :seedings, -> { order(position: :asc) }
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
+  has_one :t_tournament
   has_one :setting
   has_many :tournament_tables
-  belongs_to :organizer, polymorphic: true
+  belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
+
+  belongs_to :tournament_plan
+  delegate :tournament_plan_id, to: :t_tournament
 
   serialize :data, Hash
 
@@ -231,7 +234,7 @@ class Tournament < ApplicationRecord
           seeding = nil
           table.css("td").each do |td|
             if td.css("div").present?
-              lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
+              lastname, firstname, club_str = td.css("div").text.strip.match(/([^()]*),\s*([^()]*)\s*\(([^()]*)/).to_a[1..-1].map(&:strip)
               club = Club.where(region: region).where("name ilike ?", club_str).first ||
                 Club.where(region: region).where("shortname ilike ?", club_str).first
               club

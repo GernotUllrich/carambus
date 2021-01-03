@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: seedings
+# Table name: t_seedings
 #
 #  id                    :bigint           not null, primary key
 #  ba_state              :string
@@ -13,13 +13,13 @@
 #  updated_at            :datetime         not null
 #  player_id             :integer
 #  playing_discipline_id :integer
-#  tournament_id         :integer
+#  t_tournament_id       :integer
 #
 # Indexes
 #
-#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
+#  index_t_seedings_on_foreign_keys  (player_id,t_tournament_id) UNIQUE
 #
-class Seeding < ApplicationRecord
+class TSeeding < ApplicationRecord
   include AASM
   aasm column: "state", skip_validation_on_save: true do
     state :registered, initial: true
@@ -28,10 +28,10 @@ class Seeding < ApplicationRecord
     state :no_show
   end
   belongs_to :player, optional: true
-  belongs_to :tournament, optional: true
+  belongs_to :t_tournament, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
 
-  acts_as_list scope: :tournament
+  acts_as_list scope: :t_tournament
 
   serialize :data, Hash
 

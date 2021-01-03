@@ -82,7 +82,7 @@ class AddTemporaryModels < ActiveRecord::Migration[6.0]
       t.index ["ba_id"], name: "index_t_tournaments_on_ba_id", unique: true
       t.index ["title", "season_id", "region_id"], name: "index_t_tournaments_on_foreign_keys"
     end
-    create_table "locations", force: :cascade do |t|
+    create_table "t_locations", force: :cascade do |t|
       t.integer "club_id"
       t.text "address"
       t.text "data"
@@ -91,8 +91,8 @@ class AddTemporaryModels < ActiveRecord::Migration[6.0]
       t.datetime "updated_at", precision: 6, null: false
       t.string "organizer_type"
       t.integer "organizer_id"
-      t.index ["club_id"], name: "index_locations_on_club_id"
-      t.index ["club_id"], name: "index_locations_on_foreign_keys"
+      t.index ["club_id"], name: "index _t_locations_on_club_id"
+      t.index ["club_id"], name: "index_t_locations_on_foreign_keys"
     end
   end
 

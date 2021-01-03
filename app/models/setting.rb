@@ -22,9 +22,9 @@ class Setting < ApplicationRecord
   serialize :data, Hash
   attr_reader :key
   attr_reader :value
-  belongs_to :region
-  belongs_to :club
-  belongs_to :tournament
+  belongs_to :region, optional: true
+  belongs_to :club, optional: true
+  belongs_to :tournament, optional: true
 
   include AASM
 
