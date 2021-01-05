@@ -15,10 +15,6 @@
 #  playing_discipline_id :integer
 #  tournament_id         :integer
 #
-# Indexes
-#
-#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
-#
 
 one:
   player_id: 1

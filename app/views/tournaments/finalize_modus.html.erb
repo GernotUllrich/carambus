@@ -18,7 +18,7 @@
 <div flex flex-wrap>
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-3xl mx-auto">
-      <h3><%= I18n.t("tournaments.finalize_modus.teilnehmer", count: @tournament.seedings.all.count) %></h3>
+      <h3><%= I18n.t("tournaments.finalize_modus.teilnehmer", count: @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").all.count) %></h3>
     </div>
   </div>
   <hr/>
@@ -73,7 +73,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), alternative.ngroups) %>
               <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
             </div>
           </div>
@@ -99,7 +99,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), alternative.ngroups) %>
+              <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), alternative.ngroups) %>
               <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_other_groups} %>
             </div>
           </div>

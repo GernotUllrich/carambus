@@ -1,7 +1,16 @@
-<%= content_tag "div",
-                type: "text",
-                data: { reflex: "keypress->NumberPadReflex#key_pressed click->NumberPadReflex#outside", id: @table_monitor.id },
-                id: "full_screen_table_monitor_#{@table_monitor.id}",
-                class: "table_monitor flex-1 h-screen" do %>
-  <%= render partial: "show", locals: {table_monitor: @table_monitor, full_screen: true} %>
+<%- if @table_monitor.setup_modal_should_be_open? || @table_monitor.shootout_modal_should_be_open? %>
+
+  <%= content_tag "div",
+                  type: "text",
+                  data: { reflex: "keypress->NumberPadReflex#key_pressed click->NumberPadReflex#outside", id: @table_monitor.id },
+                  id: "full_screen_table_monitor_#{@table_monitor.id}",
+                  class: "table_monitor flex-1 h-screen" do %>
+    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true } %>
+  <%- end %>
+<%- else %>
+  <%= content_tag "div",
+                  id: "full_screen_table_monitor_#{@table_monitor.id}",
+                  class: "table_monitor flex-1 h-screen" do %>
+    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true } %>
+  <%- end %>
 <%- end %>

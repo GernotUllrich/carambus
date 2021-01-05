@@ -1,3 +1,7 @@
+require 'open-uri'
+require 'uri'
+require 'net/http'
+
 # == Schema Information
 #
 # Table name: settings
@@ -26,6 +30,10 @@ class Setting < ApplicationRecord
   belongs_to :club
   belongs_to :tournament
 
+  before_save do
+    Rails.logger.info "!!!!!!!" + JSON.pretty_generate(self.attributes)
+  end
+
   include AASM
 
   @@setting = Setting.first || Setting.create!
@@ -48,7 +56,7 @@ class Setting < ApplicationRecord
     Setting.transaction do
       inst = Setting.instance
       hash = inst.read_attribute(:data)
-      hash[k.to_s] = {v.class.name => v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s}
+      hash[k.to_s] = { v.class.name => v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s }
       inst.data_will_change!
       inst.write_attribute(:data, hash)
       inst.save!
@@ -92,5 +100,34 @@ class Setting < ApplicationRecord
     rescue
       return nil
     end
+  end
+
+  def self.get_carambus_api_token
+    expire_str = Setting.key_get_value("carambus_api_token_expire_at")
+    if expire_str.blank? || Time.parse(expire_str) < Time.now
+      url = URI("https://dev-r4djmvaa.eu.auth0.com/oauth/token")
+      http = Net::HTTP.new(url.host, url.port)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      request = Net::HTTP::Post.new(url)
+      request["content-type"] = 'application/json'
+      request.body = "{\"client_id\":\"cCr6hh6iGG0c6518jNhrTQE2QyCpIlfU\",\"client_secret\":\"fOxSsvvc7MxRtAI2EeRi8309sycFIHEUvRQ00mY_i-vg3MJoo85Tl2AUcifM5aRQ\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"
+      response = http.request(request)
+      if response.message == "OK"
+        resp = JSON.parse(response.read_body)
+        access_token = resp["access_token"]
+        token_type = resp["token_type"]
+
+        Setting.key_set_value("carambus_api_access_token", access_token)
+        Setting.key_set_value("carambus_api_token_type", token_type)
+        Setting.key_set_value("carambus_api_token_expire_at", Time.now + 36000.seconds)
+      else
+        return []
+      end
+    else
+      access_token = Setting.key_get_value("carambus_api_access_token")
+      token_type = Setting.key_get_value("carambus_api_token_type")
+    end
+    return [access_token, token_type]
   end
 end

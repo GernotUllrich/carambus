@@ -69,7 +69,7 @@
           </tr>
           </thead>
           <tbody>
-          <% @player.seedings.joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc").each do |seeding| %>
+          <% @player.seedings.where("seedings.id < #{Seeding::MIN_ID}").joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc").each do |seeding| %>
             <tr class="flex flex-row with-full">
               <td class="flex w-1/6"><%= link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
               <td class="flex w-1/6"><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>

@@ -1,4 +1,5 @@
 <%= render :partial => "show", locals: {tournament: @tournament, subtitle: "", show_edit_back: true} %>
+<%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
 <div class="container mx-auto my-8">
   <div class="max-w-6xl mx-auto">
     <div class="flex flex-wrap bg-white dark:bg-black rounded shadow p-8 pb-4">
@@ -40,7 +41,7 @@
         </tr>
         </thead>
         <tbody>
-        <%- @tournament.seedings.joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
+        <%- @tournament.seedings.where(seeding_scope).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
           <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.club %>
           <tr>
             <td><%= seeding.position %></td>
@@ -64,21 +65,21 @@
   <div class="max-w-2xl mx-auto">
     <h2 class="mt-4 mb-6"><%= I18n.t("tournaments.show.rankings") %></h2>
     <div class="flex-1 flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
-      <%- lists = @tournament.seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
-      <%- lists.each do |list| %>
+      <%- lists = @tournament.seedings.where(seeding_scope).joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
+        <%- lists.each do |list| %>
         <div class="flex flex-col">
           <h3><%= list %></h3>
           <table class="flex-1">
             <thead>
             <tr>
-              <%- @tournament.seedings.select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
+              <%- @tournament.seedings.where(seeding_scope).select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
                 <%- next if k == "Rank" %>
                 <th><%= k %></th>
               <%- end %>
             </tr>
             </thead>
             <tbody>
-            <%- @tournament.seedings.select { |seeding| seeding.data["result"].andand[list].present? }.sort_by { |seeding| seeding.data["result"][list]["#"].to_i }.each do |seeding| %>
+            <%- @tournament.seedings.where(seeding_scope).select { |seeding| seeding.data["result"].andand[list].present? }.sort_by { |seeding| seeding.data["result"][list]["#"].to_i }.each do |seeding| %>
               <tr>
                 <%- seeding.data["result"][list].each do |k, v| %>
                   <%- next if k == "Rank" %>
@@ -93,21 +94,22 @@
     </div>
   </div>
 </div>
+<%- game_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-5xl mx-auto">
     <h2 class="mt-4 mb-6"><%= I18n.t("tournaments.show.games") %></h2>
     <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
-      <%- if @tournament.games.present? %>
+      <%- if @tournament.games.where(game_scope).present? %>
         <table class="flex-1">
           <thead>
           <tr>
-            <%- @tournament.games.first.data.keys.each do |k| %>
+            <%- @tournament.games.where(game_scope).first.data.keys.each do |k| %>
               <th><%= k %></th>
             <%- end %>
           </tr>
           </thead>
           <tbody>
-          <%- @tournament.games.each do |game| %>
+          <%- @tournament.games.where(game_scope).each do |game| %>
             <tr>
               <%- skip = false %>
               <%- game.data.each do |k, v| %>
@@ -124,7 +126,7 @@
     </div>
   </div>
 </div>
-<%- games = @tournament.games.order(seqno: :asc) %>
+<%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
 <%- if !@tournament.tournament_started %>
   <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
 <%- end %>

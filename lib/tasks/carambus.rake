@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "#{Rails.root}/app/helpers/application_helper"
 require 'open-uri'
+require 'uri'
 require 'net/http'
 
 include ApplicationHelper
@@ -95,27 +96,71 @@ namespace :carambus do
     end
   end
 
+  desc "retrieve updates from API server"
+  task :retrieve_updates => :environment do
+    access_token, token_type = Setting.get_carambus_api_token
+    url = URI("http://localhost:3010/versions/get_updates?last_version_id=#{Setting.key_get_value("last_version_id").to_i}")
+    http = Net::HTTP.new(url.host, url.port)
+
+    request2 = Net::HTTP::Get.new(url)
+    request2["authorization"] = "#{token_type} #{access_token}"
+
+    response2 = http.request(request2)
+    if response2.message == "OK"
+      vers = JSON.parse(response2.read_body)
+      last_version_id = Setting.key_get_value("last_version_id")
+      while vers.present? do
+        h = vers.shift
+        last_version_id = h["id"].to_i
+        if h["event"] == "create"
+          args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
+          args["data"] = YAML.load(args["data"]) if args["data"].present?
+          begin
+            h["item_type"].constantize.create(args)
+          rescue Exception => e
+            e
+          end
+        elsif h["event"] == "update"
+          args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
+          args["data"] = YAML.load(args["data"]) if args["data"].present?
+          begin
+            h["item_type"].constantize.find(h["item_id"]).update(args)
+          rescue Exception => e
+            e
+          end
+        elsif h["event"] == "destroy"
+          begin
+            h["item_type"].constantize.find(h["item_id"]).delete
+          rescue Exception => e
+            e
+          end
+        end
+      end
+      Version.sequence_reset
+      Setting.key_set_value("last_version_id", last_version_id)
+    end
+  end
+
   desc "Init Disciplines"
   task :init_disciplines => :environment do
 
     TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
 
-
     TABLE_KIND_DISCIPLINE_NAMES = {
-        "Pin Billards" => [],
-        "Biathlon" => [],
-        "5-Pin Billards" => [],
-        "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
-        "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
-        "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
-        "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"]}
+      "Pin Billards" => [],
+      "Biathlon" => [],
+      "5-Pin Billards" => [],
+      "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
+      "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
+      "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
+      "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"] }
 
     TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
       tk = TableKind.find_by_name(tk_name) ||
-          TableKind.create(name: tk_name)
+        TableKind.create(name: tk_name)
       v.each do |dis_name|
         dis = Discipline.find_by_name_and_table_kind_id(dis_name, tk.id) ||
-            Discipline.create(name: dis_name, table_kind_id: tk.id)
+          Discipline.create(name: dis_name, table_kind_id: tk.id)
       end
     end
   end
@@ -160,7 +205,8 @@ namespace :carambus do
               plan_or_show = m[2] rescue nil
               if ba_id.present?
                 tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
-                tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league)
+                tournament.scrape_single_tournament(game_details: true)
+                tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
                 tournament.update_columns(last_ba_sync_date: Time.now)
               else
                 ba_id
@@ -187,8 +233,8 @@ namespace :carambus do
       Region.all.each do |region|
         #next unless region.shortname == "NBV" #TODO TEST
         season.tournaments.joins(:region).
-            #where(ba_id: 13933).#TODO TEST
-            where(region_id: region.id).all.each do |tournament|
+          #where(ba_id: 13933).#TODO TEST
+          where(region_id: region.id).all.each do |tournament|
           on = on || tournament.ba_id == 12421
           if on
             scrape_single_tournament(tournament, logger: logger)
@@ -276,7 +322,7 @@ namespace :carambus do
                       tournament.update_attributes(discipline: discipline)
                     end
                     tournament ||=
-                        Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
+                      Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
                     tournament.update_attributes(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
                     scrape_single_tournament(tournament, logger: logger)
                     tournament.update_columns(last_ba_sync_date: Time.now)
@@ -308,94 +354,94 @@ namespace :carambus do
 
   desc "update ranking tables"
   task :update_ranking_tables => :environment do
-    # for all seasons - starting with earliest
-    season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2].name
-    #Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
-    Season.order(ba_id: :asc).each do |season|
-      # for all regions
-      # TEST
-      #next unless season.name == "2018/2019"
-      Region.all.each do |region|
-        # for all disciplines
-        # TEST
-        #next unless region.shortname == "NBV"
-        Discipline.all.each do |discipline|
-          # for all relevant tournaments
-          # TEST
-          next unless discipline.root.name == "Carambol"
-          players = {}
-          Tournament.where(season: season, region: region, discipline: discipline).each do |tournament|
-            # for all participants
-            sum_keys = %w{Sp.G Sp.V G V Bälle Aufn Punkte Frames Partiepunkte Satzpunkte Kegel}
-            max_keys = %w{Sp.Quote Quote GD HB HS HGD BED}
-            ignore_keys = %w{# Name Verein Rank}
-            computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
-            tournament.seedings.includes(:player).each do |seeding|
-              player_record = players[seeding.player.id]
-              gl = seeding.data["result"]["Gesamtrangliste"] rescue {}
-              unless player_record.present?
-                players[seeding.player.id] = {}
-                if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
-                  xxx
-                end
-                ((max_keys | sum_keys) & gl.keys).each do |k|
-                  players[seeding.player.id][k] = 0
-                end
-                players[seeding.player.id]["t_ids"] = []
-              end
-              players[seeding.player.id]["t_ids"] << tournament.id
-              (sum_keys & gl.keys).each do |k|
-                players[seeding.player.id][k] = (players[seeding.player.id][k] || 0) + gl[k].to_i
-              end
-              (max_keys & gl.keys).each do |k|
-                v = gl[k]
-                if v =~ /%/
-                  vf = (v.gsub(/\s*%/, "").gsub(",", ".")).to_f
-                  pf = players[seeding.player.id][k] || 0
-                  players[seeding.player.id][k] = [vf, pf].max
-                elsif v =~ /,/
-                  vf = (v.gsub(",", ".")).to_f
-                  pf = players[seeding.player.id][k] || 0
-                  players[seeding.player.id][k] = [vf, pf].max
-                else
-                  vi = v.to_i
-                  pi = players[seeding.player.id][k] || 0
-                  players[seeding.player.id][k] = [vi, pi].max
-                end
-              end
-            end
-          end
-          players.keys.select do |player_id|
-            values = players[player_id]
-            values["Bälle"].to_f > 0 && values["Aufn"].to_f > 0
-          end.
-              sort_by do |player_id|
-            values = players[player_id]
-            100.0 * values["Bälle"] / values["Aufn"]
-          end.reverse.
-              each_with_index do |player_id, ix|
-            args = {
-                player_id: player_id,
-                region_id: region.id,
-                season_id: season.id,
-                discipline_id: discipline.id
-            }
-            values = players[player_id]
-            player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
-            data = player_ranking.data
-            data["result"] = values
-            attributes = {}
-            values.keys.each do |k|
-              mapped_k = PlayerRanking::KEY_MAPPINGS[k]
-              attributes[mapped_k] = values[k]
-            end
-            attributes[:data] = data
-            attributes[:rank] = ix + 1
-            player_ranking.update_attributes(attributes)
-          end
-        end
-      end
-    end
+    # # for all seasons - starting with earliest
+    # season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2].name
+    # #Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
+    # Season.order(ba_id: :asc).each do |season|
+    #   # for all regions
+    #   # TEST
+    #   #next unless season.name == "2018/2019"
+    #   Region.all.each do |region|
+    #     # for all disciplines
+    #     # TEST
+    #     #next unless region.shortname == "NBV"
+    #     Discipline.all.each do |discipline|
+    #       # for all relevant tournaments
+    #       # TEST
+    #       next unless discipline.root.name == "Carambol"
+    #       players = {}
+    #       Tournament.where(season: season, region: region, discipline: discipline).each do |tournament|
+    #         # for all participants
+    #         sum_keys = %w{Sp.G Sp.V G V Bälle Aufn Punkte Frames Partiepunkte Satzpunkte Kegel}
+    #         max_keys = %w{Sp.Quote Quote GD HB HS HGD BED}
+    #         ignore_keys = %w{# Name Verein Rank}
+    #         computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
+    #         tournament.seedings.includes(:player).each do |seeding|
+    #           player_record = players[seeding.player.id]
+    #           gl = seeding.data["result"]["Gesamtrangliste"] rescue {}
+    #           unless player_record.present?
+    #             players[seeding.player.id] = {}
+    #             if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
+    #               xxx
+    #             end
+    #             ((max_keys | sum_keys) & gl.keys).each do |k|
+    #               players[seeding.player.id][k] = 0
+    #             end
+    #             players[seeding.player.id]["t_ids"] = []
+    #           end
+    #           players[seeding.player.id]["t_ids"] << tournament.id
+    #           (sum_keys & gl.keys).each do |k|
+    #             players[seeding.player.id][k] = (players[seeding.player.id][k] || 0) + gl[k].to_i
+    #           end
+    #           (max_keys & gl.keys).each do |k|
+    #             v = gl[k]
+    #             if v =~ /%/
+    #               vf = (v.gsub(/\s*%/, "").gsub(",", ".")).to_f
+    #               pf = players[seeding.player.id][k] || 0
+    #               players[seeding.player.id][k] = [vf, pf].max
+    #             elsif v =~ /,/
+    #               vf = (v.gsub(",", ".")).to_f
+    #               pf = players[seeding.player.id][k] || 0
+    #               players[seeding.player.id][k] = [vf, pf].max
+    #             else
+    #               vi = v.to_i
+    #               pi = players[seeding.player.id][k] || 0
+    #               players[seeding.player.id][k] = [vi, pi].max
+    #             end
+    #           end
+    #         end
+    #       end
+    #       players.keys.select do |player_id|
+    #         values = players[player_id]
+    #         values["Bälle"].to_f > 0 && values["Aufn"].to_f > 0
+    #       end.
+    #         sort_by do |player_id|
+    #         values = players[player_id]
+    #         100.0 * values["Bälle"] / values["Aufn"]
+    #       end.reverse.
+    #         each_with_index do |player_id, ix|
+    #         args = {
+    #           player_id: player_id,
+    #           region_id: region.id,
+    #           season_id: season.id,
+    #           discipline_id: discipline.id
+    #         }
+    #         values = players[player_id]
+    #         player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
+    #         data = player_ranking.data
+    #         data["result"] = values
+    #         attributes = {}
+    #         values.keys.each do |k|
+    #           mapped_k = PlayerRanking::KEY_MAPPINGS[k]
+    #           attributes[mapped_k] = values[k]
+    #         end
+    #         attributes[:data] = data
+    #         attributes[:rank] = ix + 1
+    #         player_ranking.update_attributes(attributes)
+    #       end
+    #     end
+    #   end
+    # end
 
   end
 end
