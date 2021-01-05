@@ -157,7 +157,7 @@ class Tournament < ApplicationRecord
       # http = TCPServer.new nil, 80
       # DNSSD.announce http, 'carambus server'
       # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
-      games = []
+      games.where("games.id >= #{Game::MIN_ID}").destroy_all
       tm = tournament_monitor || create_tournament_monitor()
       # tm = TournamentMonitor.find_or_create_by!(
       #     tournament_id: self.id
@@ -221,7 +221,7 @@ class Tournament < ApplicationRecord
       self.save!
       if game_details
         # Setzliste
-        seedings_prev = self.seedings
+        #seedings_prev = self.seedings
         self.seedings = []
         table = doc.css("#tabs-3 .matchday_table")[0]
         if table.present?
@@ -335,14 +335,14 @@ class Tournament < ApplicationRecord
         else
           table
         end
-
-        no_show_ups = seedings_prev - self.seedings
-        no_show_ups.each do |seeding|
-          seeding.status = "UNA"
-        end
+        #
+        # no_show_ups = seedings_prev - self.seedings
+        # no_show_ups.each do |seeding|
+        #   seeding.status = "UNA"
+        # end
         self.reload
         # Results
-        self.games = []
+        self.games.where("games.id >= #{Game::MIN_ID}").destroy_all
         self.reload
         table = doc.css("#tabs-2 .matchday_table")[0]
         keys = table.css("tr th div").map(&:text).map { |s| s.split("\n").first }
@@ -416,8 +416,8 @@ class Tournament < ApplicationRecord
     # use direct only for testing purposes
 
     tournament_monitor.andand.destroy
-    seedings.update_all(position: nil, data: nil)
-    games.destroy_all
+    seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+    games.where("games.id >= #{Game::MIN_ID}").destroy_all
     unless new_record?
       update_columns(tournament_plan_id: nil, state: "new_tournament")
       reload
@@ -430,7 +430,7 @@ class Tournament < ApplicationRecord
   end
 
   def tournament_started
-    games.present?
+    games.where("games.id >= #{Game::MIN_ID}").present?
   end
 
   def date_str

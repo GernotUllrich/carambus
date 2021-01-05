@@ -15,10 +15,6 @@
 #  playing_discipline_id :integer
 #  tournament_id         :integer
 #
-# Indexes
-#
-#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
-#
 require 'test_helper'
 
 class SeedingTest < ActiveSupport::TestCase

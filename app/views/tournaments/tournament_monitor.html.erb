@@ -19,6 +19,7 @@
     }
 </style>
 <%= render :partial => "show", locals: { drop_details: true, tournament: @tournament, subtitle: "Tournament Monitor" } %>
+<%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id< #{Seeding::MIN_ID}" %>
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
 
@@ -68,7 +69,7 @@
       </div>
     </div>
     <div class="bg-white dark:bg-black rounded shadow p-8">
-      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
+      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
       <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
     </div>
   </div>

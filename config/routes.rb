@@ -60,6 +60,7 @@ Rails.application.routes.draw do
         post :undo
         post :up
         post :down
+        get :toggle_dark_mode
       end
     end
     resources :settings do

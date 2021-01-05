@@ -23,6 +23,7 @@ class Game < ApplicationRecord
   has_one :table_monitor, :dependent => :nullify
   has_many :innings, -> { order("sequence_number") }, :dependent => :destroy
 
+  MIN_ID=50000000
   has_paper_trail
   serialize :data, Hash
 

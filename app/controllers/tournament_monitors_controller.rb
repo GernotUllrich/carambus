@@ -14,7 +14,7 @@ class TournamentMonitorsController < ApplicationController
 
   def update_games
     params["game_id"].each_with_index do |game_id,ix|
-      game = @tournament_monitor.tournament.games.includes(:table_monitor).find(game_id)
+      game = @tournament_monitor.tournament.games.where("id >= #{Game::MIN_ID}").includes(:table_monitor).find(game_id)
       if game.present?
         table_monitor = game.table_monitor
         table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i

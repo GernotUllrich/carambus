@@ -29,6 +29,7 @@ class TableMonitor < ApplicationRecord
 
   cattr_accessor :allow_change_tables
 
+
   include AASM
   belongs_to :tournament_monitor
   belongs_to :game, optional: true
@@ -257,7 +258,7 @@ class TableMonitor < ApplicationRecord
   def seeding_from(role)
     #TODO - puh can't this be easiere?
     game.game_participations.where(role: role).first.
-      player.seedings.where(tournament_id: tournament_monitor.tournament_id).first
+      player.seedings.where("seedings.id >= #{Seeding::MIN_ID}").where(tournament_id: tournament_monitor.tournament_id).first
   end
 
   def add_n_balls_to_current_players_inning(n)

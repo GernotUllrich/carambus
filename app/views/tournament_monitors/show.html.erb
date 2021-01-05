@@ -32,7 +32,7 @@
   </div>
 </div>
 <%- if @tournament_monitor.tournament.tournament_plan.present?  && @tournament_monitor.data.present? %>
-  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
+  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
   <div class="px-3 lg:px-0">
     <div class="container mx-auto my-8 px-4">
       <div class="max-w-3xl mx-auto">

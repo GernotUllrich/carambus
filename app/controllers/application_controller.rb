@@ -17,6 +17,7 @@ class ApplicationController < ActionController::Base
   before_action do
     @navbar = true
     @footer = true
+    @dark = false
   end
 
   before_action :set_paper_trail_whodunnit

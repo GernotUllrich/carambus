@@ -44,7 +44,11 @@ class TournamentsController < ApplicationController
 
   def order_by_ranking
     hash = {}
-    @tournament.seedings.each do |seeding|
+    @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+    @tournament.seedings.create(
+      @tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map{|s| {player_id: s.player_id}}
+    )
+    @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").each do |seeding|
       hash[seeding] = seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999
     end
     sorted = hash.to_a.sort_by do |a|
@@ -69,20 +73,20 @@ class TournamentsController < ApplicationController
   def finalize_modus
     @proposed_discipline_tournament_plan = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
       where(discipline_tournament_plans: {
-        players: @tournament.seedings.all.count,
+        players: @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").all.count,
         player_class: @tournament.player_class,
         discipline_id: @tournament.discipline_id
       }).first
-    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups) if @proposed_discipline_tournament_plan.present?
+    @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups) if @proposed_discipline_tournament_plan.present?
     @alternatives_same_discipline = ::TournamentPlan.joins(:discipline_tournament_plans => :discipline).
       where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id }).
       where(discipline_tournament_plans: {
-        players: @tournament.seedings.all.count,
+        players: @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").all.count,
         discipline_id: @tournament.discipline_id
       }).uniq
     @alternatives_other_disciplines = ::TournamentPlan.
       where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) }).
-      where(players: @tournament.seedings.all.count).uniq
+      where(players: @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").all.count).uniq
   end
 
   def select_modus

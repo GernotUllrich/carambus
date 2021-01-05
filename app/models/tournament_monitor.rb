@@ -337,8 +337,8 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def group_phase_finished?
-    n_group_games = tournament.games.where("gname ilike 'group%'").count
-    n_group_games_done = tournament.games.where("gname ilike 'group%'").where.not(ended_at: nil).count
+    n_group_games = tournament.games.where("games.id >= #{Game::MIN_ID}").where("gname ilike 'group%'").count
+    n_group_games_done = tournament.where("games.id >= #{Game::MIN_ID}").games.where("gname ilike 'group%'").where.not(ended_at: nil).count
     n_group_games == n_group_games_done
   end
 
@@ -346,7 +346,7 @@ class TournamentMonitor < ApplicationRecord
     # Gruppe;Partie;Spieler1;Spieler2;Ergebnis1;Ergebnis2;Aufnahmen1;Aufnahmen2;Höchstserie1;Höchstserie2;Tischnummer;Start;Ende
     # Hauptrunde;1;98765;95678;100;85;24;23;16;9;1;11:30:45;12:17:51
     game_data = []
-    tournament.games.each do |game|
+    tournament.games.where("games.id >= #{Game::MIN_ID}").each do |game|
       gruppe = "#{game.gname =~ /^group/ ? "Gruppe" : game.gname}#{" #{game.group_no}" if game.group_no.present?}"
       partie = game.seqno
       gp1 = game.game_participations.where(role: "playera").first
@@ -362,8 +362,8 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def finals_finished?
-    n_games = tournament.games.count
-    n_games_done = tournament.games.where.not(ended_at: nil).count
+    n_games = tournament.games.where("games.id >= #{Game::MIN_ID}").count
+    n_games_done = tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(ended_at: nil).count
     n_games == n_games_done
   end
 
@@ -399,14 +399,14 @@ class TournamentMonitor < ApplicationRecord
   def reset_tournament_monitor
 
     Tournament.logger.info "[tmon-reset_tournament_monitor]..."
-    tournament.games.destroy_all
+    tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
     table_monitors.destroy_all
     unless new_record?
       update(data: {})
     end
     @tournament_plan ||= tournament.tournament_plan
     initialize_table_monitors
-    @groups = TournamentMonitor.distribute_to_group(tournament.seedings.map(&:player_id), @tournament_plan.ngroups)
+    @groups = TournamentMonitor.distribute_to_group(tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player_id), @tournament_plan.ngroups)
     @placements = {}
     set_current_round!(1)
     deep_merge_data!("groups" => @groups)
@@ -475,7 +475,7 @@ class TournamentMonitor < ApplicationRecord
               winner_arr = winner.to_a
               #player1 = winner in first_game
               winner1 = winner_arr[0].player_id
-              table_nos = tournament.games.where(games: { round_no: 1, group_no: group_no }).map(&:table_no).shuffle
+              table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 1, group_no: group_no }).map(&:table_no).shuffle
               if table_from_winner
                 # winner stays on table
                 t_no = winner_arr[0].game.table_no
@@ -489,7 +489,7 @@ class TournamentMonitor < ApplicationRecord
               looser2 = winner_arr[3].player_id
               seqno2 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(looser2) + 1
               gname = "group#{group_no}:#{[seqno1, seqno2].sort.map(&:to_s).join("-")}"
-              game = tournament.games.find_by_gname(gname)
+              game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname)
               Tournament.logger.info "+++008 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
               do_placement(game, r_no, t_no)
               winner2 = winner_arr[1].player_id
@@ -505,7 +505,7 @@ class TournamentMonitor < ApplicationRecord
               looser1 = winner_arr[2].player_id
               seqno2 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(looser1) + 1
               gname = "group#{group_no}:#{[seqno1, seqno2].sort.map(&:to_s).join("-")}"
-              game = tournament.games.find_by_gname(gname)
+              game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname)
               Tournament.logger.info "+++011 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
               do_placement(game, r_no, t_no)
             elsif current_round == 3
@@ -514,7 +514,7 @@ class TournamentMonitor < ApplicationRecord
               winner_arr = winner.to_a
               table_from_winner = winner_arr[0].gd != winner_arr[1].gd
               winner1 = winner_arr[0].player_id
-              table_nos = tournament.games.where(games: { round_no: 2, group_no: group_no }).map(&:table_no).shuffle
+              table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 2, group_no: group_no }).map(&:table_no).shuffle
               if table_from_winner
                 t_no = winner_arr[0].game.table_no
                 table_nos = table_nos - [t_no]
@@ -525,11 +525,11 @@ class TournamentMonitor < ApplicationRecord
               end
               r_no = current_round
               seqno = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(winner1) + 1
-              game = tournament.games.where(games: { round_no: nil, group_no: group_no }).where("gname ilike '%:#{seqno}-%' or gname ilike '%-#{seqno}'").first
+              game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).where("gname ilike '%:#{seqno}-%' or gname ilike '%-#{seqno}'").first
               Tournament.logger.info "+++013 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
               do_placement(game, r_no, t_no)
               t_no = table_nos.shift
-              game = tournament.games.where(games: { round_no: nil, group_no: group_no }).first
+              game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).first
               Tournament.logger.info "+++014 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
               do_placement(game, r_no, t_no)
             end
@@ -542,7 +542,7 @@ class TournamentMonitor < ApplicationRecord
             executor_params[k]["sq"][round_no].to_a.each do |table_no, val|
               t_no = table_no.match(/t(\d+)/)[1].andand.to_i
               if m = val.match(/(\d+)-(\d+)/)
-                game = tournament.games.find_by_gname("group#{group_no}:#{val}")
+                game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname("group#{group_no}:#{val}")
               end
               Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
               do_placement(game, r_no, t_no)
@@ -564,7 +564,7 @@ class TournamentMonitor < ApplicationRecord
             self.allow_change_tables = true
           end
           Tournament.logger.info "+++012A k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
-          game = tournament.games.find_or_create_by(gname: k)
+          game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
           game.game_participations = []
           game.save
           ('a'..'b').each_with_index do |pl_no, ix|
@@ -627,7 +627,7 @@ class TournamentMonitor < ApplicationRecord
 
   def next_seqno
     #select max(seqno) from tournament.games
-    tournament.games.where.not(seqno: nil).map(&:seqno).max.to_i + 1
+    tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(seqno: nil).map(&:seqno).max.to_i + 1
   end
 
   def self.distribute_to_group(players, ngroups)

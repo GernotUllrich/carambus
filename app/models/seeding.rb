@@ -15,10 +15,6 @@
 #  playing_discipline_id :integer
 #  tournament_id         :integer
 #
-# Indexes
-#
-#  index_seedings_on_foreign_keys  (player_id,tournament_id) UNIQUE
-#
 class Seeding < ApplicationRecord
   include AASM
   aasm column: "state", skip_validation_on_save: true do
@@ -34,6 +30,8 @@ class Seeding < ApplicationRecord
   acts_as_list scope: :tournament
 
   serialize :data, Hash
+
+  MIN_ID=50000000
 
   COLUMN_NAMES = {
       "Player" => "players.lastname||', '||players.firstname",

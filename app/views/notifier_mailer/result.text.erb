@@ -1,5 +1,5 @@
 Anbei die csv Datei für den Upload in die Billard Area:
 
 Turnier:         <%= @tournament.title %>
-Turnierstart:    <%= @tournament.games.order(started_at: :asc).first.started_at.strftime("%F %R") %>
-Turnierende:     <%= @tournament.games.order(ended_at: :asc).first.started_at.strftime("%F %R") %>
+Turnierstart:    <%= @tournament.games.where("games.id >= #{Game::MIN_ID}").order(started_at: :asc).first.started_at.strftime("%F %R") %>
+Turnierende:     <%= @tournament.games.where("games.id >= #{Game::MIN_ID}").order(ended_at: :asc).first.started_at.strftime("%F %R") %>
