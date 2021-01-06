@@ -106,3 +106,6 @@ production:
 
   # Cache manifest.json for performance
   cache_manifest: true
+  #https://github.com/rails/webpacker/issues/2071#issuecomment-507311944
+  #TODO seems not logical because set in defaults already
+  extract_css: true
