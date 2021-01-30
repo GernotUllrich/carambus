@@ -1,6 +1,6 @@
 class StaticController < ApplicationController
 
-  before_action only: [:index, :start] do
+  before_action only: [:index, :start, :intro] do
     @navbar = @footer = false
   end
 
@@ -13,6 +13,9 @@ class StaticController < ApplicationController
   end
 
   def start
+  end
+
+  def intro
   end
 
   def index_t

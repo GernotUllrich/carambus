@@ -15,6 +15,10 @@ class ApplicationController < ActionController::Base
   before_action :masquerade_user!
 
   before_action do
+    if params.has_key?(:sSearch)
+      session[:"s_#{params[:controller]}"] = params[:sSearch]
+    end
+    @sSearch = session[:"s_#{params[:controller]}"] if params[:action] == "index"
     @navbar = true
     @footer = true
     @dark = false

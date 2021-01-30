@@ -6,7 +6,7 @@ class SeasonParticipationsController < ApplicationController
   # GET /clubs
   def index
     @season_participations = SeasonParticipation.joins(:season, :player, :club).sort_by_params(params[:sort], sort_direction)
-    if params[:sSearch].present?
+    if @sSearch.present?
       @season_participations = apply_filters(@season_participations, SeasonParticipation::COLUMN_NAMES, "(players.lastname ilike :search) or (players.firstname ilike :search) or (clubs.name ilike :search) or (clubs.shortname ilike :search) or (seasons.name ilike :search)")
     end
     @pagy, @season_participations = pagy(@season_participations)

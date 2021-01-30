@@ -131,6 +131,8 @@ Rails.application.routes.draw do
     resources :regions do
       member do
         get :get_club_selector
+        post :reload_from_ba
+        post :reload_from_ba_with_player_details
       end
     end
     resources :countries
@@ -178,6 +180,7 @@ Rails.application.routes.draw do
 
   scope controller: :static do
     get :start
+    get :intro
     get :about
     get :terms
     get :privacy

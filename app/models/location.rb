@@ -23,4 +23,12 @@ class Location < ApplicationRecord
   has_many :tables
   has_many :tournaments, foreign_key: :location_id
   serialize :data, Hash
+
+  REFLECTION_KEYS = ["club", "organizer"]
+  COLUMN_NAMES = {#TODO FILTERS
+                  "Club" => "clubs.name",
+                  "Address" => "locations.address",
+                  "Name" => "locations.name",
+                  "Region" => "regions.shortname"
+  }
 end
