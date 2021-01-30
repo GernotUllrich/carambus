@@ -114,6 +114,9 @@ class Tournament < ApplicationRecord
   end
 
   before_save do
+    if date.blank?
+      self.date = Time.at(0)
+    end
     if organizer.blank?
       self.organizer = self.region
     end

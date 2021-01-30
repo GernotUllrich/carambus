@@ -235,6 +235,9 @@ de:
     hs: HS
     gname: Spielbezeichnung
   region:
+    show:
+      reload_from_billard_area: "Datenabgleich mit der Billard Area inkl. Clubs"
+      reload_from_billard_area_with_details: "Datenabgleich mit der Billard Area inkl. Clubs und Spieler"
     index:
       region: Regionalverband
       regions: Regionalverbände
@@ -569,6 +572,7 @@ de:
       back: "Zurück"
       syncing_with_billard_area: 'Fast alle Turnierdaten müssen über die <a href="http://billard_area">Billard-Area</a> eingegeben werden. Hier gibt es nur die Möglichkeit ergänzende Informationen hinzuzufügen, soweit sie für die Tournierabwicklung erforderlich sind (Tischzuordnungen, Locations etc). Der Abgleich mit den Daten der Billard-Area erfogt über den Link'
       reload_from_billard_area: "Datenabgleich mit der Billard Area"
+      reload_from_billard_area_with_details: "Datenabgleich mit der Billard Area mit allen Details"
       order_by_ranking: 'Ordne nach Rangliste'
       finalize_tournament_modus: 'Turnier Modus festlegen'
       mangage_tournament_group_phase: 'Verwaltung der Turnierspiele'
@@ -603,7 +607,7 @@ de:
       training: 'Training'
       spieler: Spieler
       season: 'Saison'
-      seasonparticipation: 'Clubzugehörigkeiten'
+      seasonparticipation: 'Clubzugehörigkeit'
       player: 'Spieler'
       partien: Partien
       game: 'Partie'
@@ -705,3 +709,4 @@ de:
   select_game_mode: "Wähle den Spielmodus"
   tournaments_season: "Turniere in der Saison"
   add_tables: Tische hinzufügen
+  carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"

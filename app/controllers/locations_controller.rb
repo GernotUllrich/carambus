@@ -1,13 +1,24 @@
 class LocationsController < ApplicationController
+  include FiltersHelper
   before_action :set_location, only: [:show, :edit, :update, :destroy, :add_tables_to]
 
   # GET /locations
   def index
-    @pagy, @locations = pagy(Location.sort_by_params(params[:sort], sort_direction))
-
-    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
-    # Calling @locations.any? in the view will use the loaded records to check existence instead of making an extra DB call.
-    @locations.load
+    @locations = Location.joins(:club => :region).sort_by_params(params[:sort], sort_direction)
+    if @sSearch.present?
+      @locations = apply_filters(@locations, Location::COLUMN_NAMES, "(locations.name ilike :search) or (regions.shortname ilike :search) or (clubs.name ilike :search) or (locations.address ilike :search)")
+    end
+    @pagy, @locations = pagy(@locations)
+    respond_to do |format|
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end
+      }
+    end
   end
 
   # GET /locations/1

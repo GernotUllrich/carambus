@@ -22,6 +22,7 @@ module Jumpstart
     attr_accessor :support_email
     attr_accessor :multitenancy
     attr_writer :omniauth_providers
+    attr_accessor :carambus_api_url
 
     def self.load!
       if File.exist?(config_path)

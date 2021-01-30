@@ -31,8 +31,8 @@
 
     <%= yield :head %>
   </head>
-
-  <body class="h-full font-sans antialiased font-normal leading-normal bg-gray-100 dark:text-gray-200 dark:bg-gray-800 dark:bg-black">
+  <body class="h-full font-sans antialiased font-normal leading-normal bg-gray-100 dark:text-gray-200 dark:bg-gray-800 dark:bg-black"
+        data-controller="hotkeys command" data-hotkeys-bindings-value='{"pageup": "body->command#key_a", "pagedown": "body->command#key_b", "b": "body->command#key_c", "pagedown": "esc->command#key_d"}'>
     <div class="main">
       <%= render partial: "shared/flash" %>
       <%= render partial: "shared/navbar" if @navbar%>

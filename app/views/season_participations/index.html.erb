@@ -15,15 +15,20 @@
 </script>
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
-    <h1 class="h3">Season Participations</h1>
+    <h1 class="h3"><%= t('home.index.seasonparticipation') %></h1>
 
     <% if @season_participations.any? %>
       <div class="flex-row w-2/4">
-        <div class="flex-row">
-          <input oninput="searchSeasonParticipations(this, true)" value="<%= params[:sSearch] %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <input oninput="searchSeasonParticipations(this, true)" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block", title: "e.g. reg:nordd wedel" %>
+          </div>
         </div>
       </div>
-      <%= link_to('New Season Participation', new_season_participation_path, class: "btn btn-primary")  if current_user.andand.admin? %>
+      <%= link_to('New Season Participation', new_season_participation_path, class: "btn btn-primary") if current_user.andand.admin? %>
     <% end %>
   </div>
 
