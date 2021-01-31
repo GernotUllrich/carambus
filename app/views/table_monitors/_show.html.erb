@@ -1,4 +1,14 @@
 <!--suppress RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
+<script type="text/javascript">
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('1, 2, 3, 4', function(event, handler){
+// Prevent the default refresh event under WINDOWS system
+    event.preventDefault();
+    console.log(hotkeys.getPressedKeyCodes());
+    alert('you pressed ' + hotkeys.getPressedKeyCodes());
+  });
+</script>
 <%- if table_monitor.present? %>
   <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
   <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>

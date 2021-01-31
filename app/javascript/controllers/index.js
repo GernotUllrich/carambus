@@ -18,4 +18,4 @@ import StimulusReflex from 'stimulus_reflex'
 import consumer from '../channels/consumer'
 import controller from './application_controller'
 application.register('flatpickr', Flatpickr)
-StimulusReflex.initialize(application, { consumer, controller, debug: false })
+StimulusReflex.initialize(application, { consumer, controller, debug: true })
