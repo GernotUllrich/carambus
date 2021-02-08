@@ -2,6 +2,7 @@
 // Controller files must be named *_controller.js.
 
 import { Application } from "stimulus"
+import Hotkeys from 'stimulus-hotkeys'
 import { definitionsFromContext } from "stimulus/webpack-helpers"
 
 const application = Application.start()
@@ -13,9 +14,12 @@ application.register('dropdown', Dropdown)
 application.register('modal', Modal)
 application.register('tabs', Tabs)
 
+// Manually register Hotkeys as a Stimulus controller
+application.register('hotkeys', Hotkeys)
+
 import Flatpickr from 'stimulus-flatpickr'
 import StimulusReflex from 'stimulus_reflex'
 import consumer from '../channels/consumer'
 import controller from './application_controller'
 application.register('flatpickr', Flatpickr)
-StimulusReflex.initialize(application, { consumer, controller, debug: false })
+StimulusReflex.initialize(application, { consumer, controller, debug: true })

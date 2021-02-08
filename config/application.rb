@@ -19,17 +19,17 @@ module Carambus2App
 
     config.exceptions_app = routes
 
-    # Where the I18n library should search for translation files
-    # Search nested folders in config/locales for better organization
-    config.i18n.load_path += Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
-
-    # Permitted locales available for the application
-    config.i18n.available_locales = [:en, :de]
-
-    # Set default locale
-    config.i18n.default_locale = :en
-
-    # Use default language as fallback if translation is missing
+    # # Where the I18n library should search for translation files
+    # # Search nested folders in config/locales for better organization
+    # config.i18n.load_path += Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
+    #
+    # # Permitted locales available for the application
+    # config.i18n.available_locales = [:en, :de]
+    #
+    # # Set default locale
+    # config.i18n.default_locale = :en
+    #
+    # # Use default language as fallback if translation is missing
     config.i18n.fallbacks = true
   end
 end

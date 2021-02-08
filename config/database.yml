@@ -87,5 +87,5 @@ test:
 production:
   <<: *default
   database: carambus2_production
-  username: www_data
-  password: <%= ENV['JUMPSTART_DATABASE_PASSWORD'] %>
+  #username: www_data
+  #password: <%= ENV['JUMPSTART_DATABASE_PASSWORD'] %>

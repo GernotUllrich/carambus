@@ -98,47 +98,7 @@ namespace :carambus do
 
   desc "retrieve updates from API server"
   task :retrieve_updates => :environment do
-    access_token, token_type = Setting.get_carambus_api_token
-    url = URI("http://localhost:3010/versions/get_updates?last_version_id=#{Setting.key_get_value("last_version_id").to_i}")
-    http = Net::HTTP.new(url.host, url.port)
-
-    request2 = Net::HTTP::Get.new(url)
-    request2["authorization"] = "#{token_type} #{access_token}"
-
-    response2 = http.request(request2)
-    if response2.message == "OK"
-      vers = JSON.parse(response2.read_body)
-      last_version_id = Setting.key_get_value("last_version_id")
-      while vers.present? do
-        h = vers.shift
-        last_version_id = h["id"].to_i
-        if h["event"] == "create"
-          args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
-          args["data"] = YAML.load(args["data"]) if args["data"].present?
-          begin
-            h["item_type"].constantize.create(args)
-          rescue Exception => e
-            e
-          end
-        elsif h["event"] == "update"
-          args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
-          args["data"] = YAML.load(args["data"]) if args["data"].present?
-          begin
-            h["item_type"].constantize.find(h["item_id"]).update(args)
-          rescue Exception => e
-            e
-          end
-        elsif h["event"] == "destroy"
-          begin
-            h["item_type"].constantize.find(h["item_id"]).delete
-          rescue Exception => e
-            e
-          end
-        end
-      end
-      Version.sequence_reset
-      Setting.key_set_value("last_version_id", last_version_id)
-    end
+    Version.update_from_carambus_api
   end
 
   desc "Init Disciplines"

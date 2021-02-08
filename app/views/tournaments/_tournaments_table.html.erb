@@ -30,14 +30,14 @@
     </thead>
 
     <tbody>
-    <% @tournaments.each do |tournament| %>
+    <% @tournaments.includes(:discipline, :season, :region, ).each do |tournament| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
         <td class="p-3"><%= link_to(tournament.title, tournament_path(tournament)) %></td>
         <td class="p-3"><%= (link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present?) %></td>
         <td class="p-3"><%= tournament.modus %></td>
         <td class="p-3"><%= tournament.age_restriction %></td>
-        <td class="p-3"><%= tournament.date %></td>
-        <td class="p-3"><%= tournament.accredation_end %></td>
+        <td class="p-3"><%= tournament.date.andand.to_date %></td>
+        <td class="p-3"><%= tournament.accredation_end.andand.to_date %></td>
         <td class="p-3"><%= tournament.location %></td>
         <td class="p-3"><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %></td>
         <td class="p-3"><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>

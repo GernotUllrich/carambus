@@ -46,6 +46,22 @@ export default class extends ApplicationController {
    *
    *   reflexId - a UUID4 or developer-provided unique identifier for each Reflex
    */
+  key_a () {
+    console.log('KEY_A')
+    this.stimulate('TableMonitor#key_a')
+  }
+  key_b () {
+    console.log('KEY_B')
+    this.stimulate('TableMonitor#key_b')
+  }
+  key_c () {
+    console.log('KEY_C')
+    this.stimulate('TableMonitor#key_c')
+  }
+  key_d () {
+    console.log('KEY_D')
+    this.stimulate('TableMonitor#key_d')
+  }
 
   // Assuming you create a "Example#dance" action in your Reflex class
   // you'll be able to use the following lifecycle methods:

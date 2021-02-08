@@ -29,7 +29,6 @@ class TableMonitor < ApplicationRecord
 
   cattr_accessor :allow_change_tables
 
-
   include AASM
   belongs_to :tournament_monitor
   belongs_to :game, optional: true
@@ -38,7 +37,7 @@ class TableMonitor < ApplicationRecord
 
   before_save :log_state_change
 
-  NNN = "db"  #store nnn in database table_monitor
+  NNN = "db" #store nnn in database table_monitor
 
   def log_state_change
     if state_changed?
@@ -47,6 +46,8 @@ class TableMonitor < ApplicationRecord
   end
 
   serialize :data, Hash
+
+  #todo I18n
 
   STATE_DISPLAY_NAMES = {
     "new_table_monitor" => "",
@@ -57,8 +58,9 @@ class TableMonitor < ApplicationRecord
     "game_shootout_started" => "Ausstossen",
     "playing_game" => "",
     "game_finished" => "Partie beendet",
-    "game_result_reported" => "Partie beendet",
-    "ready_for_new_game" => "Partie beendet"
+    "game_show_result" => "Partie beendet - ok?",
+    "game_result_reported" => "Ergebnisse übernommen",
+    "ready_for_new_game" => "Tisch bereit"
   }
 
   aasm :column => 'state' do
@@ -70,6 +72,7 @@ class TableMonitor < ApplicationRecord
     state :game_shootout_started
     state :playing_game, :after_enter => [:set_start_time], :after_exit => [:set_end_time]
     state :game_finished
+    state :game_show_result
     state :game_result_reported
     state :ready_for_new_game #previous game result still displayed here - and probably next players
     event :start_new_game do
@@ -90,8 +93,11 @@ class TableMonitor < ApplicationRecord
     event :event_shootout_finished do
       transitions from: :game_shootout_started, to: :playing_game
     end
-    event :event_game_finished do
-      transitions from: :playing_game, to: :game_finished
+    event :event_game_show_result do
+      transitions from: :playing_game, to: :game_show_result
+    end
+    event :event_game_result_accepted do
+      transitions from: :game_show_result, to: :game_finished
     end
     event :event_game_result_reported do
       transitions from: :game_finished, to: :game_result_reported
@@ -99,6 +105,11 @@ class TableMonitor < ApplicationRecord
     event :we_re_ready do
       transitions from: [:new_table_monitor, :game_result_reported], to: :ready
     end
+  end
+
+  def state_display(locale)
+    @locale = locale || I18n.default_locale
+    I18n.t("table_monitor.status.#{state}")
   end
 
   @numbers_mode = false
@@ -110,17 +121,19 @@ class TableMonitor < ApplicationRecord
   end
 
   after_commit do
-
-    TableMonitorLaterJob.perform_later(self)
-    full_screen_html = ApplicationController.render(
-      partial: "table_monitors/show",
-      locals: { table_monitor: self, full_screen: true }
-    )
-    cable_ready["table-monitor-stream"].inner_html(
-      selector: "#full_screen_table_monitor_#{id}",
-      html: full_screen_html
-    )
-    cable_ready.broadcast
+    if previous_changes.present?
+      Rails.logger.info "table_monitor[#{id}] #{previous_changes.inspect}"
+      TableMonitorLaterJob.perform_later(self)
+      full_screen_html = ApplicationController.render(
+        partial: "table_monitors/show",
+        locals: { table_monitor: self, full_screen: true }
+      )
+      cable_ready["table-monitor-stream"].inner_html(
+        selector: "#full_screen_table_monitor_#{id}",
+        html: full_screen_html
+      )
+      cable_ready.broadcast
+    end
   end
 
   def numbers
@@ -137,7 +150,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def update_every_n_seconds(n)
-    TableMonitorJob.perform_later(self, n)
+    TableMonitorJob.perform_later(self, n, self.data["current_inning"]["active_player"], self.data[self.data["current_inning"]["active_player"]]["innings_redo_list"][-1].to_i, self.data[self.data["current_inning"]["active_player"]]["innings"])
   end
 
   def player_a_has_played_on_table_before
@@ -146,6 +159,24 @@ class TableMonitor < ApplicationRecord
 
   def player_b_has_played_on_table_before
     false
+  end
+
+  def do_play
+    active_timer = "time_out_stoke_preparation_sec"
+    units = "seconds"
+    start_at = Time.now
+    finish_at = Time.now + tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym)
+    if timer_halt_at.present?
+      extend = Time.now - timer_halt_at
+      start_at = timer_start_at + extend
+      finish_at = timer_finish_at + extend
+    end
+    update_attributes(
+      active_timer: active_timer,
+      timer_halt_at: nil,
+      timer_start_at: start_at,
+      timer_finish_at: finish_at)
+    update_every_n_seconds(2);
   end
 
   def render_last_innings(n, role)
@@ -188,6 +219,15 @@ class TableMonitor < ApplicationRecord
       green_bars = [((1.0 * n * delta_rest) / delta_total).ceil, 18].min
     end
     return [time_counter, green_bars]
+  end
+
+  def switch_players
+    if game.present?
+      roles = game.game_participations.map(&:role).reverse
+      game.game_participations.each_with_index do |gp, ix|
+        gp.update_attributes(role: roles[ix])
+      end
+    end
   end
 
   def set_start_time
@@ -387,7 +427,13 @@ class TableMonitor < ApplicationRecord
   def evaluate_result
     if playing_game?
       if end_result?
-        event_game_finished!
+        if playing_game?
+          event_game_show_result!
+          save!
+          return
+        elsif game_show_result?
+          event_game_result_accepted!
+        end
         save!
         reload
         prepare_final_game_result

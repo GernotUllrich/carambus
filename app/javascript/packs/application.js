@@ -28,6 +28,7 @@ import "src/direct_uploads"
 import "src/forms"
 import "src/timezone"
 import "src/tooltips"
+//import "src/hotkeys.min"
 
 import LocalTime from "local-time"
 LocalTime.start()

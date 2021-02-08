@@ -39,10 +39,10 @@
           </tr>
           </thead>
           <tbody>
-          <% tournament_monitor.andand.table_monitors.andand.order(:name).andand.each do |tm| %>
+          <% tournament_monitor.andand.table_monitors.andand.includes(game: {game_participations: :player}).andand.order(:name).andand.each do |tm| %>
             <% if tm.game.present? %>
               <% tm.allow_change_tables = true %>
-              <% tm.game.game_participations.order(:role).each_with_index do |gp, ix| %>
+              <% tm.game.game_participations.includes(:player).order(:role).each_with_index do |gp, ix| %>
                 <% active_player = (tm.playing_game? && tm.data["current_inning"].andand["active_player"] == gp.role) %>
                 <tr>
                   <% if ix == 0 %>

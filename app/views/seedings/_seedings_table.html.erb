@@ -3,6 +3,7 @@
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :player_id, 'Player', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :date, 'Date', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :tournament_id, 'Tournament', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :ba_state, 'Ba state', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :position, 'Position', class: 'text-gray-700 dark:text-gray-200' %></th>
@@ -18,6 +19,7 @@
     <% @seedings.each do |seeding| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
         <td class="p-3"><%= link_to(seeding.player.fullname, player_path(seeding.player)) %></td>
+        <td class="p-3"><%= seeding.tournament.date.to_date %></td>
         <td class="p-3"><%= link_to(seeding.tournament.title, tournament_path(seeding.tournament)) + " (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.plan_or_show}/#{seeding.tournament.ba_id}")})".html_safe %></td>
         <td class="p-3"><%= seeding.ba_state %></td>
         <td class="p-3"><%= seeding.position %></td>

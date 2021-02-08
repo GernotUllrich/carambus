@@ -4,8 +4,8 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments
   def index
-    @tournaments = Tournament.joins(:region, :season, :discipline).sort_by_params(params[:sort], sort_direction)
-    if params[:sSearch].present?
+    @tournaments = Tournament.joins(:region, :season, :discipline).sort_by_params(@sSearch, sort_direction)
+    if @sSearch.present?
       @tournaments = apply_filters(@tournaments, Tournament::COLUMN_NAMES, "(tournaments.ba_id = :isearch) or (tournaments.title ilike :search) or (tournaments.shortname ilike :search) or (regions.name ilike :search) or (seasons.name ilike :search) or (tournaments.plan_or_show ilike :search) or (tournaments.single_or_league ilike :search)")
     end
     @pagy, @tournaments = pagy(@tournaments)
@@ -66,7 +66,7 @@ class TournamentsController < ApplicationController
   end
 
   def reload_from_ba
-    @tournament.scrape_single_tournament(game_details: true)
+    Version.update_from_carambus_api(update_tournament_from_ba: @tournament.id)
     redirect_back(fallback_location: tournament_path(@tournament))
   end
 

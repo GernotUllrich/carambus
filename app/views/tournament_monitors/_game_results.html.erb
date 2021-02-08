@@ -19,7 +19,7 @@
       <tbody>
       <% @edit_games_modus = true %>
       <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
-        <% tournament_monitor.tournament.games.where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 }.each do |game| %>
+        <% tournament_monitor.tournament.games.includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 }.each do |game| %>
           <% playing_game = game.table_monitor.andand.playing_game? %>
           <tr>
             <% gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player %>
