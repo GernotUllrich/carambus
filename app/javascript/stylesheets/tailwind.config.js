@@ -13,14 +13,6 @@ module.exports = {
     standardFontWeights: true,
   },
 
-  listStyleType: {
-    none: 'none',
-    disc: 'disc',
-    decimal: 'decimal',
-    square: 'square',
-    roman: 'upper-roman',
-  },
-
   plugins: [
     // You can enable the forms plugin if you use Tailwind UI
     // require('@tailwindcss/forms'),

@@ -101,9 +101,6 @@ gem 'rails-i18n'
 gem 'acts_as_list'
 gem "stimulus_reflex", "~> 3.3"
 gem "cable_ready", "~> 4.4"
-gem 'coderay' #optional for Syntax Highlighting
-gem 'redcarpet'
-gem 'emd'
 
 group :production do
 

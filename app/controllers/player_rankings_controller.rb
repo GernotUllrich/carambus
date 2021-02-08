@@ -5,7 +5,7 @@ class PlayerRankingsController < ApplicationController
   # GET /player_rankings
   def index
     @player_rankings = PlayerRanking.joins(:discipline, :player, :region, :season).sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
+    if params[:sSearch].present?
       @player_rankings = apply_filters(@player_rankings, PlayerRanking::COLUMN_NAMES, "(regions.shortname ilike :search) or (seasons.name ilike :search) or (disciplines.name ilike :search) or (players.lastname||', '||players.firstname ilike :search)")
     end
     @pagy, @player_rankings = pagy(@player_rankings)

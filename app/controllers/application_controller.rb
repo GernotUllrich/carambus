@@ -15,14 +15,9 @@ class ApplicationController < ActionController::Base
   before_action :masquerade_user!
 
   before_action do
-    if params.has_key?(:sSearch)
-      session[:"s_#{params[:controller]}"] = params[:sSearch]
-    end
-    @sSearch = session[:"s_#{params[:controller]}"] if params[:action] == "index"
     @navbar = true
     @footer = true
-    @dark = session[:dark_scoreboard].present? ? session[:dark_scoreboard].to_s.downcase == "true" : false
-    @abcd = session[:abcd_scoreboard].present? ? session[:abcd_scoreboard].to_s.downcase == "true" : false
+    @dark = false
   end
 
   before_action :set_paper_trail_whodunnit

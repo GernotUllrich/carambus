@@ -1,12 +1,12 @@
 class RegionsController < ApplicationController
   include FiltersHelper
   protect_from_forgery except: :search
-  before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details]
+  before_action :set_region, only: [:show, :edit, :update, :destroy]
 
   # GET /regions
   def index
     @regions = Region.includes(:country).sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
+    if params[:sSearch].present?
       @regions = apply_filters(@regions, Region::COLUMN_NAMES, "(regions.name ilike :search) or (regions.shortname ilike :search) or (regions.email ilike :search)")
     end
     @pagy, @regions = pagy(@regions)
@@ -48,16 +48,6 @@ class RegionsController < ApplicationController
     else
       render :new
     end
-  end
-
-  def reload_from_ba
-    Version.update_from_carambus_api(update_region_from_ba: @region.id)
-    redirect_back(fallback_location: region_path(@region))
-  end
-
-  def reload_from_ba_with_player_details
-    Version.update_from_carambus_api(update_region_from_ba: @region.id, player_details: true)
-    redirect_back(fallback_location: region_path(@region))
   end
 
   # PATCH/PUT /regions/1

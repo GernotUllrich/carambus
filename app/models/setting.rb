@@ -117,7 +117,6 @@ class Setting < ApplicationRecord
         resp = JSON.parse(response.read_body)
         access_token = resp["access_token"]
         token_type = resp["token_type"]
-        Rails.logger.info "access_token: #{access_token} token_type: #{token_type}"
 
         Setting.key_set_value("carambus_api_access_token", access_token)
         Setting.key_set_value("carambus_api_token_type", token_type)

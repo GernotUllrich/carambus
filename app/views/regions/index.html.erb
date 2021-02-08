@@ -24,7 +24,7 @@
     <% if @regions.any? %>
       <div class="flex-row w-2/4">
         <div class="flex-row">
-          <input oninput="searchRegions(this, true)" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          <input oninput="searchRegions(this, true)" value="<%= params[:sSearch] %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
         </div>
       </div>
       <%= link_to('New Region', new_region_path, class: "btn btn-primary") if current_user.andand.admin? %>

@@ -22,91 +22,6 @@ class TableMonitorReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
 
-  def keyup
-    begin
-      raise Exception
-    rescue Exception => e
-      e
-    end
-  end
-
-  def key_a
-    morph :nothing
-    table_monitor = TableMonitor.find(element.dataset[:id])
-    if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started?
-        warmup_state_change ("a")
-      end
-    elsif table_monitor.shootout_modal_should_be_open?
-      table_monitor.switch_players
-    elsif table_monitor.playing_game?
-      if table_monitor.data["current_inning"]["active_player"] == "playera"
-        table_monitor.reset_timer!
-        table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play
-      elsif table_monitor.data["current_inning"]["active_player"] == "playerb"
-        table_monitor.reset_timer!
-        table_monitor.terminate_current_inning
-        table_monitor.do_play
-      end
-    end
-  end
-
-  def key_b
-    morph :nothing
-    table_monitor = TableMonitor.find(element.dataset[:id])
-    if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started?
-        warmup_state_change ("b")
-      end
-    elsif table_monitor.shootout_modal_should_be_open?
-      table_monitor.switch_players
-    elsif table_monitor.playing_game?
-      if table_monitor.data["current_inning"]["active_player"] == "playerb"
-        table_monitor.reset_timer!
-        table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play
-      elsif table_monitor.data["current_inning"]["active_player"] == "playera"
-        table_monitor.reset_timer!
-        table_monitor.terminate_current_inning
-        table_monitor.do_play
-      end
-    end
-  end
-
-  def key_c
-    morph :nothing
-    table_monitor = TableMonitor.find(element.dataset[:id])
-    if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
-        #void
-      end
-    elsif table_monitor.shootout_modal_should_be_open?
-
-    end
-  end
-
-  def key_d
-    morph :nothing
-    table_monitor = TableMonitor.find(element.dataset[:id])
-    if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
-        #start shoot-out
-        table_monitor.reset_timer!
-        table_monitor.event_warmup_finished!
-      end
-    elsif table_monitor.shootout_modal_should_be_open?
-      #start game
-      table_monitor.reset_timer!
-      table_monitor.event_shootout_finished!
-      table_monitor.do_play
-    elsif table_monitor.playing_game?
-      if table_monitor.end_result?
-        table_monitor.terminate_current_inning
-      end
-    end
-  end
-
   def undo
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
@@ -123,7 +38,13 @@ class TableMonitorReflex < ApplicationReflex
   def switch_players
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.switch_players
+    @game = table_monitor.game
+    if @game.present?
+      roles = @game.game_participations.map(&:role).reverse
+      @game.game_participations.each_with_index do |gp, ix|
+        gp.update_attributes(role: roles[ix])
+      end
+    end
   end
 
   def start_game
@@ -262,7 +183,21 @@ class TableMonitorReflex < ApplicationReflex
   def play
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.do_play
+    active_timer = "time_out_stoke_preparation_sec"
+    units = "seconds"
+    start_at = Time.now
+    finish_at = Time.now + table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym)
+    if table_monitor.timer_halt_at.present?
+      extend = Time.now - table_monitor.timer_halt_at
+      start_at = table_monitor.timer_start_at + extend
+      finish_at = table_monitor.timer_finish_at + extend
+    end
+    table_monitor.update_attributes(
+      active_timer: active_timer,
+      timer_halt_at: nil,
+      timer_start_at: start_at,
+      timer_finish_at: finish_at)
+    table_monitor.update_every_n_seconds(2);
   end
 
   def pause

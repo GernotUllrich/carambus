@@ -173,7 +173,7 @@ en:
         <p>Actually my consulting business Ullrich-IT-Consulting is already history, because I am retired since a long time.
         But on the occasion of a forthcoming major anniversary of my carambol club <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> the idea came to me
         to make a substantial contribution.</p>
-        <p>And anybody knowing me, knows that during my whole professional life - last as a visionary at Sun Microsystems - I was eager to discover and apply the newest technologies.
+        <p>And who knows me, knows that during my whole professional life - last as a visionary at Sun Microsystems - I was eager to use the newest technologies.
         in place.</p>
         <p>I first came into contact with the Ruby/Rails development environment 12 years ago. Since then I appreciate the enormous progress
         in development speed. The big question now was whether this project, which has in many places
@@ -182,7 +182,7 @@ en:
         Unfortunately, this would have lead in each case to very costly discontinuities between server-side database-oriented logic and the JavaScript-based endpoints with
         different operating systems, languages, and frameworks. Not a good idea.
         Fortunately
-        I came across <a href=\"http://gorails.com\">GoRails</a> for an ideal solution - Stimulus Reflex and Cable Ready!  Carambus is a server-based web solution with a single page feeling!
+        I came across <a href=\"http://gorails.com\">GoRails</a> for an ideal solution - Stimulus Reflex and Cable Ready!  Carambus is a server-based web solution with a single page feel!
         The project development could even be more excellerated by using their powerfull Jumpstart templates.</p>
 
     privacy:
@@ -439,9 +439,6 @@ en:
     created_at: created at
     updated_at: updated at
   region:
-    show:
-      reload_from_billard_area: 'Reload From Billard Area with clubs'
-      reload_from_billard_area_with_details: 'Reload From Billard Area with clubs and players'
     id: id
     name: name
     shortname: shortname
@@ -945,7 +942,6 @@ en:
       back: 'Back'
       syncing_with_billard_area: 'Almost all tournament data must be entered on the <a href="http://billard_area">Billard-Area</a> website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.). The download of Billiard-Area data is done via the link'
       reload_from_billard_area: 'Reload From Billard Area'
-      reload_from_billard_area_with_details: 'Reload From Billard Area with all details'
       order_by_ranking: 'Order By Ranking'
       finalize_tournament_modus: 'Finalize Tournament Modus'
       mangage_tournament_group_phase: 'Monitor Tournament Games'
@@ -1016,4 +1012,3 @@ en:
   select_game_mode: "Select Game Mode"
   tournaments_season: "Tournaments Season"
   add_tables: Add Tables
-  carambus_manages: "Carambus Manages Billard Tournaments"

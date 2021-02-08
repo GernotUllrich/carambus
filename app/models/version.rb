@@ -1,6 +1,3 @@
-require 'open-uri'
-require 'uri'
-require 'net/http'
 # == Schema Information
 #
 # Table name: versions
@@ -43,67 +40,5 @@ ORDER BY S.relname;
     ActiveRecord::Base.connection.execute(sql).each do |query|
       ActiveRecord::Base.connection.execute(query['query'])
     end
-  end
-
-  def self.update_from_carambus_api(opts = {})
-    begin
-      tournament_id = opts[:update_tournament_from_ba]
-      region_id = opts[:update_region_from_ba]
-      club_id = opts[:update_club_from_ba]
-      player_details = opts[:player_details]
-      access_token, token_type = Setting.get_carambus_api_token
-      url = URI("#{Jumpstart.config.carambus_api_url}/versions/get_updates?last_version_id=#{
-        Setting.key_get_value("last_version_id").to_i
-      }#{
-        "&update_tournament_from_ba=#{tournament_id}" if tournament_id.present?
-      }#{
-        "&update_region_from_ba=#{region_id}" if region_id.present?
-      }#{
-        "&update_club_from_ba=#{club_id}" if club_id.present?
-      }#{
-        "&player_details=#{player_details}" if player_details
-      }")
-      http = Net::HTTP.new(url.host, url.port)
-
-      request2 = Net::HTTP::Get.new(url)
-      request2["authorization"] = "#{token_type} #{access_token}"
-
-      response2 = http.request(request2)
-      if response2.message == "OK"
-        vers = JSON.parse(response2.read_body)
-        last_version_id = Setting.key_get_value("last_version_id")
-        while vers.present? do
-          h = vers.shift
-          last_version_id = h["id"].to_i
-          if h["event"] == "create"
-            args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
-            args["data"] = YAML.load(args["data"]) if args["data"].present?
-            begin
-              h["item_type"].constantize.create(args)
-            rescue Exception => e
-              e
-            end
-          elsif h["event"] == "update"
-            args = Hash[YAML.load(h["object_changes"]).map { |v| [v[0], v[1][1]] }]
-            args["data"] = YAML.load(args["data"]) if args["data"].present?
-            begin
-              h["item_type"].constantize.find(h["item_id"]).update(args)
-            rescue Exception => e
-              e
-            end
-          elsif h["event"] == "destroy"
-            begin
-              h["item_type"].constantize.find(h["item_id"]).delete
-            rescue Exception => e
-              e
-            end
-          end
-        end
-        Version.sequence_reset
-        Setting.key_set_value("last_version_id", last_version_id)
-      end
-    end
-  rescue Exception => e
-    e
   end
 end

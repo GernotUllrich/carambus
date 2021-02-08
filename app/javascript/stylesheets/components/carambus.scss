@@ -52,25 +52,10 @@
   select, input {
     @apply text-black;
   }
-
   p {
     @apply pb-4;
   }
-
   h2 {
     @apply text-xl;
-  }
-}
-
-ul {
-  li {
-    @apply ml-6;
-
-    ul {
-      li {
-        @apply ml-6;
-        list-style-type: circle;
-      }
-    }
   }
 }

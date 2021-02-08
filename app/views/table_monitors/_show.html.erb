@@ -1,10 +1,5 @@
 <!--suppress RubyScope -->
 <%- if table_monitor.present? %>
-  <%-
-    @abcd = false
-    #@dark = session[:dark_scoreboard].present? ? session[:dark_scoreboard].to_s.downcase == "true" : false
-    #@abcd = session[:abcd_scoreboard].present? ? session[:abcd_scoreboard].to_s.downcase == "true" : false
-  %>
   <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
   <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
   <%- options = {
@@ -63,8 +58,8 @@
     <%- end %>
     <%- if table_monitor.numbers_modal_should_be_open? %>
       <%= render partial: "table_monitors/numbers", locals: { table_monitor: table_monitor,
-                                                              full_screen: full_screen,
-                                                              modal_hidden: false },
+                                                               full_screen: full_screen,
+                                                               modal_hidden: false },
                  formats: :modal,
                  layout: "layouts/application"
       %>
@@ -100,7 +95,7 @@
               </div>
             </div>
             <div class="flex h-4/6 text-center text-20vw justify-center items-center font-bold">
-              <%= options[:player_a][:result].to_i + table_monitor.data["playera"]["innings_redo_list"][-1].to_i %>
+              <%= options[:player_a][:result].to_i %>
             </div>
             <%- showing_timer = options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? %>
             <%- if showing_timer %>
@@ -116,8 +111,7 @@
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
                 <div class="flex items-end justify-end">
-                  <%= link_to "Toggle<br>Light".html_safe, toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false %>
-                  <%= link_to "Toggle<br>Touch".html_safe, toggle_abcd_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false %>
+                  <%= link_to "#{@dark ? "Light<br>Mode" : "Dark<br>Mode"}".html_safe, toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false %>
                 </div>
                 <div class="flex w-full items-end justify-end text-gray-500 text-3vw p-2">
                   <%= table_monitor.render_last_innings(6, gps[0].andand.role) %>
@@ -132,13 +126,13 @@
           <%- end %>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6">
-              <div class="h-5/6 text-10vw font-bold text-center"><%= options[:player_a][:innings].to_i %></div>
-              <div class="h-1/6 items-center text-2vw justify-center text-center">von <%= options[:player_a][:innings_goal].to_i %></div>
+              <div class="h-4/6 text-10vw font-bold pt-2 text-center"><%= options[:player_a][:innings].to_i %></div>
+              <div class="h-2/6 items-center text-3vw justify-center text-center">von <%= options[:player_a][:innings_goal].to_i %></div>
             </div>
             <div class="flex flex-col h-3/6 bg-white dark:bg-black p-4 items-center ">
-              <div class="flex flex-1 items-center text-center text-2vw"><%= options[:name] %></div>
-              <div class="flex flex-1 items-center text-center text-2vw">Runde <%= options[:current_round] %></div>
-              <div class="flex flex-1 items-center text-center text-2vw"><%= options[:game_name] %></div>
+              <div class="flex flex-1 items-center text-center text-3vw"><%= options[:name] %></div>
+              <div class="flex flex-1 items-center text-center text-3vw">Runde <%= options[:current_round] %></div>
+              <div class="flex flex-1 items-center text-center text-3vw"><%= options[:game_name] %></div>
             </div>
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 flex-row space-x-3 rounded-full">
@@ -188,7 +182,7 @@
               </div>
             </div>
             <div class="flex h-4/6 text-center text-20vw justify-center items-center font-bold">
-              <%= options[:player_b][:result].to_i + table_monitor.data["playerb"]["innings_redo_list"][-1].to_i %>
+              <%= options[:player_b][:result].to_i %>
             </div>
             <%- showing_timer = options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? %>
             <%- if showing_timer %>
@@ -212,43 +206,24 @@
       <div class="flex h-1/6 p-2 space-x-2 flex-row justify-center">
         <%- if table_monitor.playing_game? %>
           <div class="flex w-1/3 justify-center">
-            <%- if !@abcd %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: options[:id] } do %>
-                <%= render_svg "icons/104-undo2", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
-              <%- end %>
-              <%= content_tag "div", class: "ml-20 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Subtract one from current Inning", data: { reflex: "click->TableMonitorReflex#minus_one", id: options[:id] } do %>
-                -1
-              <%- end %>
+            <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: options[:id] } do %>
+              <%= render_svg "icons/104-undo2", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
+            <%- end %>
+            <%= content_tag "div", class: "ml-20 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Subtract one from current Inning", data: { reflex: "click->TableMonitorReflex#minus_one", id: options[:id] } do %>
+              -1
             <%- end %>
           </div>
           <div class="flex w-1/3 justify-center">
-            <%- if @abcd %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] } do %>
-                A
-              <%- end %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_b", id: options[:id] } do %>
-                B
-              <%- end %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_c", id: options[:id] } do %>
-                C
-              <%- end %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_d", id: options[:id] } do %>
-                D
-              <%- end %>
-            <%- else %>
-              <%= content_tag "div", class: "mr-2 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Change Players", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#next_step", id: options[:id] } do %>
-                <%= render_svg "icons/302-loop", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
-              <%- end %>
+            <%= content_tag "div", class: "mr-2 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Change Players", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#next_step", id: options[:id] } do %>
+              <%= render_svg "icons/302-loop", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
             <%- end %>
           </div>
           <div class="flex w-1/3 justify-center">
-            <%- if !@abcd %>
-              <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#add_one", id: options[:id] } do %>
-                +1
-              <%- end %>
-              <%= content_tag "div", class: "mr-1 ml-20 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { reflex: "click->TableMonitorReflex#numbers", id: options[:id] } do %>
-                =nnn
-              <%- end %>
+            <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#add_one", id: options[:id] } do %>
+              +1
+            <%- end %>
+            <%= content_tag "div", class: "mr-1 ml-20 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { reflex: "click->TableMonitorReflex#numbers", id: options[:id] } do %>
+              =nnn
             <%- end %>
           </div>
         <%- end %>

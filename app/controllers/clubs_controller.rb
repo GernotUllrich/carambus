@@ -5,7 +5,7 @@ class ClubsController < ApplicationController
   # GET /clubs
   def index
     @clubs = Club.joins(:region).sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
+    if params[:sSearch].present?
       @clubs = apply_filters(@clubs, Club::COLUMN_NAMES, "(regions.name ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search)")
     end
     @pagy, @clubs = pagy(@clubs)
@@ -32,13 +32,13 @@ class ClubsController < ApplicationController
   end
 
   def reload_from_ba
-    Version.update_from_carambus_api(update_club_from_ba: @club.id)
-    redirect_back(fallback_location: club_path(@club))
+    @club.scrape_single_club(player_details: false)
+    redirect_to club_path(@club)
   end
 
   def reload_from_ba_with_player_details
-    Version.update_from_carambus_api(update_club_from_ba: @club.id, player_details: true)
-    redirect_back(fallback_location: club_path(@club))
+    @club.scrape_single_club(player_details: true)
+    redirect_to club_path(@club)
   end
 
   # GET /clubs/new

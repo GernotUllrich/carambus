@@ -6,7 +6,7 @@ class SeedingsController < ApplicationController
   # GET /seedings
   def index
     @seedings = Seeding.joins(:player, :tournament => :season).sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
+    if params[:sSearch].present?
       @seedings = apply_filters(@seedings, Seeding::COLUMN_NAMES, "(tournaments.title ilike :search) or (players.lastname||', '||players.firstname ilike :search) or (seasons.name ilike :search) or (seedings.state ilike :search)")
     end
     @pagy, @seedings = pagy(@seedings)

@@ -1,5 +1,5 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :toggle_dark_mode, :toggle_abcd_mode]
+  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :toggle_dark_mode]
 
   def set_balls
     unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
@@ -22,6 +22,7 @@ class TableMonitorsController < ApplicationController
   def show
     @navbar = false
     @footer = false
+    @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false
   end
 
   # GET /table_monitors/new
@@ -30,12 +31,7 @@ class TableMonitorsController < ApplicationController
   end
 
   def toggle_dark_mode
-    session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? session[:dark_scoreboard].to_s == "true" : false)
-    redirect_to @table_monitor
-  end
-
-  def toggle_abcd_mode
-    session[:abcd_scoreboard] = !(session[:abcd_scoreboard].present? ? session[:abcd_scoreboard].to_s == "true" : false)
+    session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false)
     redirect_to @table_monitor
   end
 

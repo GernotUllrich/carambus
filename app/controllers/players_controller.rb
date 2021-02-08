@@ -5,7 +5,7 @@ class PlayersController < ApplicationController
   # GET /players
   def index
     @players = Player.joins(:club => :region).sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
+    if params[:sSearch].present?
       @players = apply_filters(@players, Player::COLUMN_NAMES, "(players.firstname ilike :search) or (players.lastname ilike :search) or (regions.shortname ilike :search) or (clubs.shortname ilike :search)")
     end
     @pagy, @players = pagy(@players)

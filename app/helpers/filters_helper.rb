@@ -1,7 +1,7 @@
 module FiltersHelper
   def apply_filters(query, columns, search_query)
 
-    searches = @sSearch.to_s.split(/[,&\s]+/)
+    searches = params[:sSearch].split(/[,&\s]+/)
     searches.each do |search|
       if search =~ /:/
         key, value = search.split(":")

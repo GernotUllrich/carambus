@@ -1,41 +1,47 @@
-<script>
-  function searchLocations(selectObj, tableOnly) {
-    Rails.ajax({
-      type: "GET",
-      url: "/locations?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
-      success: function (response) {
-        var elem = document.getElementById("table_wrapper");
-        elem.innerHTML = response.body.innerHTML;
-      },
-      error: function (response) {
-        console.log(response.responseText);
-      }
-    })
-  }
-</script>
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Locations</h1>
 
     <% if @locations.any? %>
-      <div class="flex-row w-2/4">
-        <div class="flex flex-row">
-          <div class="flex w-full">
-            <input oninput="searchLocations(this, true)" type="search" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
-          </div>
-          <div class="flex pl-3">
-            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block", title:"e.g. reg:nbv" %>
-          </div>
-        </div>
-      </div>
       <%= link_to 'New Location', new_location_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 
   <% if @locations.any? %>
-    <div id="table_wrapper">
-      <%= render partial: 'locations_table' %>
+    <div class="bg-white dark:bg-black rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id, 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @locations.each do |location| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
+                      <td class="p-3"><%= location.club_id %></td>
+                      <td class="p-3"><%= location.address %></td>
+                      <td class="p-3"><%= location.data %></td>
+                      <td class="p-3"><%= location.name %></td>
+
+            <td>
+              <%= link_to t('view'), location, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
     </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
 
   <% else %>
     <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">

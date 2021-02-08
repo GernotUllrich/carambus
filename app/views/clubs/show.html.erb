@@ -6,20 +6,14 @@
     </div>
 
     <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.ba_id') %></h5><%= link_to @club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}" %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.ba_id') %></h5><%= link_to @club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}" %>
-      </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.region_id') %></h5><%= link_to @club.region.name, region_path(@club.region) if @club.region.present? %>
-      </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.name') %></h5><%= link_to(@club.name, club_path(@club)) %></div>
+        <h5><%= t('club.region_id') %></h5><%= link_to @club.region.name, region_path(@club.region) if @club.region.present? %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.name') %></h5><%= link_to(@club.name, club_path(@club)) %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.shortname') %></h5><%= @club.shortname %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.address') %></h5><%= @club.address.html_safe %>
-      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5>A<%= t('club.address') %></h5><%= @club.address.html_safe %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.homepage') %></h5><%= link_to_if @club.homepage.present?, @club.homepage, @club.homepage %>
-      </div>
+        <h5><%= t('club.homepage') %></h5><%= link_to_if @club.homepage.present?, @club.homepage, @club.homepage %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.email') %></h5><%= mail_to @club.email %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%= t('club.priceinfo') %></h5><%= @club.priceinfo.gsub(/\n+/, "<br />").html_safe %>
@@ -30,10 +24,6 @@
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
     </div>
   </div>
-</div>
-<div class="flex flex-row px-3 lg:px-0">
-  <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
-  <%= button_to I18n.t("tournaments.show.reload_from_billard_area_with_details"), reload_from_ba_with_player_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
 </div>
 <hr>
 <div class="px-3 lg:px-0">
@@ -83,9 +73,9 @@
               <td>
                 <%= form_tag add_tables_to_location_path(location) do %>
                   <%= select_tag :table_kind_id, options_for_select(TableKind.order(:name).all.map { |tk| [tk.name, tk.id] },
-                                                                    TableKind.find_by_name("Small Billard").id), class: "border-2" %>
+                                                                    TableKind.find_by_name("Small Billard").id), class:"border-2" %>
                   <br>
-                  <%= number_field_tag :number, value = 1, class: "border-2", style: "width: 50px" %>
+                  <%= number_field_tag :number, value = 1, class:"border-2", style: "width: 50px" %>
                   <%= submit_tag "Add" %>
                 <%- end %>
               </td>
