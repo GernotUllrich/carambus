@@ -49,22 +49,22 @@
     </div>
     <div class="flex h-1/6 flex-row mt-8 space-x-8">
       <%- showing_timer = (table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
-      <div class="flex flex-1 flex-col <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %>_<%= table_monitor.id %>">
-        <div class="flex flex-1 flex-row items-center">
-          <div class="w-1/6 font-bold text-3vw p-2"><%= time_counter %></div>
+      <div class="flex flex-1 flex-col">
+        <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %>_<%= table_monitor.id %>">
+          <div class="w-1/6 font-bold text-6vw p-2"><%= time_counter %></div>
           <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-4vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-4vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
           </div>
         </div>
       </div>
       <%- showing_timer = (table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
-      <div class="flex flex-1 flex-col <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-        <div class="flex flex-1 flex-row items-center">
-          <div class="w-1/6 font-bold text-3vw p-2"><%= time_counter %></div>
+      <div class="flex flex-1 flex-col">
+        <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+          <div class="w-1/6 font-bold text-6vw p-2"><%= time_counter %></div>
           <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-4vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-4vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
           </div>
         </div>
       </div>
