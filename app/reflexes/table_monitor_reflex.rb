@@ -22,11 +22,11 @@ class TableMonitorReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
 
-  def   key_a
-    morph :nothing
+  def key_a
+    #morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started?
+      if table_monitor.game_setup_started? || table_monitor.game_warmup_b_started?
         warmup_state_change ("a")
       end
     elsif table_monitor.shootout_modal_should_be_open?
@@ -41,14 +41,19 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.terminate_current_inning
         table_monitor.do_play
       end
+    elsif table_monitor.game_show_result?
+      table_monitor.event_game_result_accepted!
+      prepare_final_game_result
+    elsif table_monitor.game_finished?
+      table_monitor.tournament_monitor.report_result(table_monitor)
     end
   end
 
   def key_b
-    morph :nothing
+    #morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started?
+      if table_monitor.game_setup_started? || table_monitor.game_warmup_a_started?
         warmup_state_change ("b")
       end
     elsif table_monitor.shootout_modal_should_be_open?
@@ -63,26 +68,36 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.terminate_current_inning
         table_monitor.do_play
       end
+    elsif table_monitor.game_show_result?
+      table_monitor.event_game_result_accepted!
+      prepare_final_game_result
+    elsif table_monitor.game_finished?
+      table_monitor.tournament_monitor.report_result(table_monitor)
     end
   end
 
   def key_c
-    morph :nothing
+    #morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
       if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
         #void
       end
+    elsif table_monitor.game_show_result?
+      table_monitor.event_game_result_accepted!
+      prepare_final_game_result
+    elsif table_monitor.game_finished?
+      table_monitor.tournament_monitor.report_result(table_monitor)
     elsif table_monitor.shootout_modal_should_be_open?
 
     end
   end
 
   def key_d
-    morph :nothing
+    #morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
-      if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
+      if table_monitor.game_setup_started? || table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
         #start shoot-out
         table_monitor.reset_timer!
         table_monitor.event_warmup_finished!
@@ -96,6 +111,11 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.end_result?
         table_monitor.terminate_current_inning
       end
+    elsif table_monitor.game_show_result?
+      table_monitor.event_game_result_accepted!
+      prepare_final_game_result
+    elsif table_monitor.game_finished?
+      table_monitor.tournament_monitor.report_result(table_monitor)
     end
   end
 
@@ -154,6 +174,7 @@ class TableMonitorReflex < ApplicationReflex
   def numbers
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.reset_timer!
     if TableMonitor::NNN == "db"
       table_monitor.update_attributes(nnn: nil)
     else

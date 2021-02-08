@@ -1,5 +1,5 @@
 <%# Place any links for the RIGHT side of the nav bar here. Be sure to add class: "nav-link" to each item for proper spacing. %>
-<% if I18n.locale == I18n.default_locale %>
+<% if I18n.locale.to_s == "en" %>
   <%= link_to image_tag("flag_de.png"), { :locale=>'de' } %>
 
 <% else %>

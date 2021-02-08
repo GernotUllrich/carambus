@@ -27,9 +27,9 @@ class GameParticipation < ApplicationRecord
   has_paper_trail
 
   after_update do
-
     table_monitor = game.andand.table_monitor
-    if table_monitor.present?
+    if table_monitor.present? && role == "playera"
+      Rails.logger.info "game_participation.table_monitor[#{table_monitor.andand.id}] #{previous_changes.inspect}"
       html = ApplicationController.render(
         partial: "table_monitors/show",
         locals: { table_monitor: table_monitor, full_screen: false }

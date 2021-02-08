@@ -41,7 +41,7 @@
         </tr>
         </thead>
         <tbody>
-        <%- @tournament.seedings.where(seeding_scope).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
+        <%- @tournament.seedings.where(seeding_scope).includes(:player => :player_rankings ).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
           <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.club %>
           <tr>
             <td><%= seeding.position %></td>

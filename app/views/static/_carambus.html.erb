@@ -4,7 +4,6 @@
 
 <ul>
 <li><a href="#intro">Einführung</a></li>
-<li><a href="#glossar">Glossar</a></li>
 <li><a href="#structure">Struktur</a></li>
 <li><a href="#api">Carambus API.</a></li>
 <li><a href="#region_management">Regionales Turniermanagement.</a></li>
@@ -18,8 +17,6 @@
 <blockquote>
   <p>Automatisierung mit Carambus bedeutet Unterstützung aller Phasen des Billardspiels von der Turnierplanung, der Festsetzung des Turniermodus, der Einteilung der Spielpaarungen entsprechend der Rang- und Setzlisten, der Tischzuordnung, der Realzeiterfassung der Spiele über die Anzeigetafeln bis zur Auswertung der Ergebnisse und Übertragung an die zentralen Verbände.</p>
 </blockquote>
-
-<h2><a name="glossar"></a>Glossar</h2>
 
 <h2><a name="structure"></a>Struktur</h2>
 
@@ -138,8 +135,8 @@ Im Allgemeinen gibt es mehrere Möglichkeiten (Gruppenspiele und Hauptrunde, ggf
 
 <p><code>-1</code>   Erniedrige die Ballzahl der laufenden Aufnahme um eins.</p>
 
-<p><code>nnn</code>  Setze die Ballzahl der laufenden Aufnahme. Zeige das Nummernfeld 0-9. 
-        Eine belibige positive Zahl kann eingegeben werden. 
+<p><code>nnn</code>  Setze die Ballzahl der laufenden Aufnahme. Zeige das Nummernfeld 0-9.
+        Eine belibige positive Zahl kann eingegeben werden.
         Abschluss mit Enter oder Abbruch mit C</p>
 
 <p>Die Aufnahme-Historie wird in der Anzeigetafel gezeigt und kann mit der Korrekturtaste auch noch vor Beendigung des Spiels korrigiert werden, s.u.</p>
@@ -149,6 +146,28 @@ Im Allgemeinen gibt es mehrere Möglichkeiten (Gruppenspiele und Hauptrunde, ggf
 <p><code>^v</code>    Spielerwechsel: Die aktuelle Ballzahl der beendeten Aufnahme wird gespeichert und der Summe hinzugefügt.  Der andere nun aktive Spieler wird an der Anzeigetafel markiert.</p>
 
 <p>Der Schiedsrichter kann den Timer für die Bedenkzeit <code>&gt;</code> starten, <code>o</code> beenden oder <code>||</code> anhalten</p>
+<h4>2(4)-Tasten-Fernbedienung</h4>
+<p>
+    Bei Turnieren mit Schiedsricher, wird ein besonderer Bedienmodus mit 4-Tasten-Fernbedienungen unterstützt.
+    Diese Fernbedienungen sind solche, mit denen z.B. Powerpoint-Präsentationen ferngesteuert werden.</p>
+
+<p>
+  <%= image_tag ("pointer4.jpg"), width:200, style: "float:left; margin-right: 10px;" %>
+  Die Tasten A (pageup), B (pagedown), C (b) und D (F5, ESC) haben abhängig vom Partie-Status folgende Bedeutungen:
+<br><br>
+<strong>Einstossen</strong><br>A startet den Einstoss-Timer für Spieler A, B statet den Einstoss-Timer für Spieler B, mit D geht's weiter zur Ausstoßphase.
+<br><br>
+  <strong>Ausstossen</strong><br>A oder B wechselt den anstossenden Spieler (Spieler A stösst mit Weiss an), mit D wird das Spiel gestartet, sobald aufgebaut wurde und der Spieler A angetreten ist.
+  <br><br>
+    <strong>Spielphase</strong>
+  <br>Wenn Spieler A an Zug ist, wird für ihn mit A ein Punkt gezählt.
+  <br>Wenn Spieler A an Zug ist, wird bei Fehlaufnahme mit B zu Spieler B gewechselt.
+  <br>Wenn Spieler B an Zug ist, wird für ihn mit B ein Punkt gezählt.
+  <br>Wenn Spieler B an Zug ist, wird bei Fehlaufnahme mit A zu Spieler B gewechselt.
+  <br><br>Wenn ein Spieler das Ziel erreicht hat (Aufnahmebegrenzung oder Punktziel), wird automatisch entweder zum Spieler B zum Nachstoß gewechselt oder das Spiel beendet.
+</p>
+<p>Die Tasten sollten erst betätigt werden, wenn die Bälle zur Ruhe gekommen sind und der Spieler im Prinzip bereit für den nächsten Stoss ist.  Mit der Taste wird gleichzeitig der Timer für die Bedenkzeit gestartet.
+</p>
 
 <h3>Das Ende des Spiels</h3>
 

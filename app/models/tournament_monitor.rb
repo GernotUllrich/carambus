@@ -23,7 +23,7 @@ class TournamentMonitor < ApplicationRecord
   has_paper_trail
 
   belongs_to :tournament
-  has_many :table_monitors, :dependent => :destroy
+  has_many :table_monitors, :dependent => :nullify
 
   serialize :data, Hash
 
@@ -115,7 +115,7 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def all_table_monitors_finished?
-    !(table_monitors.map(&:state) & ["game_setup_started", "game_warmup_a_started", "game_warmup_b_started", "game_shootout_started", "playing_game"]).present?
+    !(table_monitors.map(&:state) & ["game_setup_started", "game_warmup_a_started", "game_warmup_b_started", "game_shootout_started", "playing_game", "game_finished", "game_show_result"]).present?
   end
 
   def finalize_round
@@ -338,7 +338,7 @@ class TournamentMonitor < ApplicationRecord
 
   def group_phase_finished?
     n_group_games = tournament.games.where("games.id >= #{Game::MIN_ID}").where("gname ilike 'group%'").count
-    n_group_games_done = tournament.where("games.id >= #{Game::MIN_ID}").games.where("gname ilike 'group%'").where.not(ended_at: nil).count
+    n_group_games_done = tournament.games.where("games.id >= #{Game::MIN_ID}").where("gname ilike 'group%'").where.not(ended_at: nil).count
     n_group_games == n_group_games_done
   end
 

@@ -313,6 +313,18 @@ de:
     timer_halt_at: Timer angehalten
     table_id: Tisch
     nnn: nnn
+    status:
+      new_table_monitor: "Startup..."
+      ready: "Frei"
+      game_setup_started: "Einstossen"
+      game_warmup_a_started: "Einstossen Spieler A"
+      game_warmup_b_started: "Einstossen Spieler B"
+      game_shootout_started: "Ausstossen"
+      playing_game: ""
+      game_finished: "Partie beendet - ok?"
+      game_show_result: "Partie beendet"
+      game_result_reported: "Ergebnisse erfasst"
+      ready_for_new_game: "Bereit für nächstes Spiel"
   seeding:
     index:
       seeding: Turnierteilnahme
@@ -596,9 +608,9 @@ de:
     start_tournament: 'Starte den Turnier-Monitor'
   home:
     index:
-      organisation: Organisation
+      organisation: "Vereine"
       country: 'Länder'
-      region: 'Regionalverband'
+      region: 'Regionalverbände'
       club: 'Clubs'
       tournaments: Turniere
       seeding: 'Setzlisten'
@@ -617,7 +629,7 @@ de:
       discipline: 'Disziplin'
       table_kind: 'Tischtypen'
       player_rankings: 'Ranglisten'
-      tournierplanung: Turnierplanung
+      tournierplanung: 'Turnierverwaltung'
       disciplinetournamentplan: 'Disziplin/Turnierpläne'
       tournamentplan: 'Turnierpläne'
       tournierabwicklung: Turnierabwicklung
@@ -710,3 +722,4 @@ de:
   tournaments_season: "Turniere in der Saison"
   add_tables: Tische hinzufügen
   carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"
+  welcome_to_carambus: "Willkommen bei Carambus"

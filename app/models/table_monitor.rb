@@ -47,6 +47,8 @@ class TableMonitor < ApplicationRecord
 
   serialize :data, Hash
 
+  #todo I18n
+
   STATE_DISPLAY_NAMES = {
     "new_table_monitor" => "",
     "ready" => "Tournier Modus",
@@ -56,8 +58,9 @@ class TableMonitor < ApplicationRecord
     "game_shootout_started" => "Ausstossen",
     "playing_game" => "",
     "game_finished" => "Partie beendet",
-    "game_result_reported" => "Partie beendet",
-    "ready_for_new_game" => "Partie beendet"
+    "game_show_result" => "Partie beendet - ok?",
+    "game_result_reported" => "Ergebnisse übernommen",
+    "ready_for_new_game" => "Tisch bereit"
   }
 
   aasm :column => 'state' do
@@ -104,6 +107,11 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  def state_display(locale)
+    @locale = locale || I18n.default_locale
+    I18n.t("table_monitor.status.#{state}")
+  end
+
   @numbers_mode = false
 
   def log_state_change
@@ -113,17 +121,19 @@ class TableMonitor < ApplicationRecord
   end
 
   after_commit do
-
-    TableMonitorLaterJob.perform_later(self)
-    full_screen_html = ApplicationController.render(
-      partial: "table_monitors/show",
-      locals: { table_monitor: self, full_screen: true }
-    )
-    cable_ready["table-monitor-stream"].inner_html(
-      selector: "#full_screen_table_monitor_#{id}",
-      html: full_screen_html
-    )
-    cable_ready.broadcast
+    if previous_changes.present?
+      Rails.logger.info "table_monitor[#{id}] #{previous_changes.inspect}"
+      TableMonitorLaterJob.perform_later(self)
+      full_screen_html = ApplicationController.render(
+        partial: "table_monitors/show",
+        locals: { table_monitor: self, full_screen: true }
+      )
+      cable_ready["table-monitor-stream"].inner_html(
+        selector: "#full_screen_table_monitor_#{id}",
+        html: full_screen_html
+      )
+      cable_ready.broadcast
+    end
   end
 
   def numbers
@@ -140,7 +150,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def update_every_n_seconds(n)
-    TableMonitorJob.perform_later(self, n)
+    TableMonitorJob.perform_later(self, n, self.data["current_inning"]["active_player"], self.data[self.data["current_inning"]["active_player"]]["innings_redo_list"][-1].to_i, self.data[self.data["current_inning"]["active_player"]]["innings"])
   end
 
   def player_a_has_played_on_table_before

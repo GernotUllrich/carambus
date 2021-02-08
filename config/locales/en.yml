@@ -559,6 +559,20 @@ en:
     timer_halt_at: timer halt at
     table_id: table id
     nnn: nnn
+    status:
+      new_table_monitor: "Startup..."
+      ready: "Free"
+      game_setup_started: "Training"
+      game_warmup_a_started: "Training Player A"
+      game_warmup_b_started: "Training Player B"
+      game_shootout_started: "Shoot Out"
+      playing_game: ""
+      game_finished: "Partie finished - ok?"
+      game_show_result: "Partie finished"
+      game_result_reported: "Results reported"
+      tournament_endresult: "Tournament Result"
+      ready_for_new_game: "Ready for new game"
+
   seeding:
     index:
       seedings: Tournament participations
@@ -970,7 +984,7 @@ en:
     start_tournament: 'Start Tournament'
   home:
     index:
-      organisation: Organisation
+      organisation: 'Vereine'
       country: 'Country'
       region: 'Region'
       club: 'Club'
@@ -991,7 +1005,7 @@ en:
       discipline: 'Discipline'
       table_kind: 'Table Kind'
       player_rankings: 'Player Rankings'
-      tournierplanung: Tournament Planning
+      tournierplanung: Tournament Mgmt
       disciplinetournamentplan: 'DisciplineTournamentPlan'
       tournamentplan: 'TournamentPlan'
       tournierabwicklung: Tournament Management
@@ -1017,3 +1031,4 @@ en:
   tournaments_season: "Tournaments Season"
   add_tables: Add Tables
   carambus_manages: "Carambus Manages Billard Tournaments"
+  welcome_to_carambus: "Welcome to Carambus"
