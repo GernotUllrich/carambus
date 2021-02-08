@@ -134,8 +134,8 @@
             </div>
             <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
             <%- if showing_timer.blank? %>
-              <div class="flex flex-1 flex-col <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-                <div class="flex flex-1 flex-row items-center">
+              <div class="flex flex-1 flex-col">
+                <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
                   <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
                   <div class="flex flex-1 flex-row w-5/6">
                     <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
@@ -221,8 +221,8 @@
             </div>
             <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
             <%- if showing_timer.blank? %>
-              <div class="flex flex-1 flex-col <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-                <div class="flex flex-1 flex-row items-center">
+              <div class="flex flex-1 flex-col">
+                <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
                   <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
                   <div class="flex flex-1 flex-row w-5/6">
                     <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
