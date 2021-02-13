@@ -84,6 +84,9 @@ Rails.application.routes.draw do
     resources :player_rankings
     resources :player_tournament_participations
     resources :locations do
+      collection do
+        post :merge
+      end
       member do
         post :add_tables_to
       end

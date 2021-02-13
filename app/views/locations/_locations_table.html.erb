@@ -2,6 +2,7 @@
   <table class="table">
     <thead>
     <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id, 'Id', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id, 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :region_id, 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
@@ -14,8 +15,9 @@
     <tbody>
     <% @locations.each do |location| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
-        <td class="p-3"><%= link_to location.club.shortname, club_path(location.club) %></td>
-        <td class="p-3"><%= link_to location.club.region.shortname, region_path(location.club.region) %></td>
+        <td class="p-3"><%= link_to location.id, location_path(location) %></td>
+        <td class="p-3"><%= link_to location.club.shortname, club_path(location.club) if location.club.present? %></td>
+        <td class="p-3"><%= link_to location.club.region.shortname, region_path(location.club.region) if location.club.present? %></td>
         <td class="p-3"><%= location.address %></td>
         <td class="p-3"><%= location.data %></td>
         <td class="p-3"><%= location.name %></td>
@@ -28,6 +30,12 @@
     </tbody>
   </table>
 </div>
+<%= form_tag merge_locations_path, method: :post do %>
+  <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master location id" %>
+
+  <%= label_tag "with duplicate" %><%= number_field_tag "with", nil, placeholder: "slave location id"  %>
+  <%= submit_tag "merge and delete slave", class: "btn btn-primary"%>
+<% end %>
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">

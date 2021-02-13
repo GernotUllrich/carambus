@@ -35,6 +35,18 @@ class LocationsController < ApplicationController
   def edit
   end
 
+  def merge
+    if params[:merge].present? && params[:with].present?
+      @merge_location = Location.find(params[:merge])
+      @with_location = Location.find(params[:with])
+      if @merge_location.present? && @with_location.present? && @merge_location != @with_location
+        @with_location.tournaments.update_all(location_id: @merge_location.id)
+        @with_location.destroy unless @with_location.tables.present?
+      end
+    end
+    redirect_to locations_path
+  end
+
   def add_tables_to
     table_kind = TableKind.find(params[:table_kind_id])
     next_name = (@location.tables.order(:name).last.andand.name || "Table 0").succ
@@ -89,6 +101,6 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    params.require(:location).permit(:club_id, :address, :data, :name)
+    params.require(:location).permit(:club_id, :address, :data, :name, :merge, :with)
   end
 end
