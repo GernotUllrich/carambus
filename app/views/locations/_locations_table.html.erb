@@ -1,32 +1,35 @@
-<div class="bg-white dark:bg-black rounded shadow table-responsive">
-  <table class="table">
-    <thead>
-    <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id, 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :region_id, 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
-    </tr>
-    </thead>
+<div class="bg-white dark:bg-black rounded shadow table-responsive" data-controller="location" data-reflex-root="#location" id="locations">
+  <div class="grid grid-cols-6 gap-4">
+    <div class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id, 'Id', class: 'text-gray-700 dark:text-gray-200' %></div>
+    <div class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id, 'Club', class: 'text-gray-700 dark:text-gray-200' %></div>
+    <div class="p-3 uppercase text-left text-xs"><%= sortable @locations, :region_id, 'Region', class: 'text-gray-700 dark:text-gray-200' %></div>
+    <div class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></div>
+    <div class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></div>
+    <div class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></div>
 
-    <tbody>
-    <% @locations.each do |location| %>
-      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
-        <td class="p-3"><%= link_to location.club.shortname, club_path(location.club) %></td>
-        <td class="p-3"><%= link_to location.club.region.shortname, region_path(location.club.region) %></td>
-        <td class="p-3"><%= location.address %></td>
-        <td class="p-3"><%= location.data %></td>
-        <td class="p-3"><%= location.name %></td>
+    <% @locations.each_with_index do |location, ix| %>
+      <div id="<%= dom_id(location) %>" class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800 list-item location-list-item list-group-item location-item" data-action="drop->location#merge"
+           data-location-id="<%= location.id %>"
+           data-reflex-root="#location"
+           draggable="true"
+           data-action="
+      drop->location#drop
+      dragover->location#dragover
+      dragenter->location#dragenter
+      dragleave->location#dragleave
+      dragstart->location#dragstart
+      dragend@window->location#dragend
+      " class="p-3"><%= location.id %></div>
+      <div class="p-3"><%= link_to location.club.shortname, club_path(location.club) if location.club.present? %></div>
+      <div class="p-3"><%= link_to location.club.region.shortname, region_path(location.club.region) if location.club.present? %></div>
+      <div class="p-3"><%= location.name %></div>
+      <div class="p-3"><%= location.address %></div>
 
-        <td>
-          <%= link_to t('view'), location, class: "btn btn-link no-underline" %>
-        </td>
-      </tr>
+      <div>
+        <%= link_to t('view'), location, class: "btn btn-link no-underline" %>
+      </div>
     <% end %>
-    </tbody>
-  </table>
+  </div>
 </div>
 
 <% if @pagy.pages > 1 %>

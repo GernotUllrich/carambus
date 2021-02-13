@@ -211,158 +211,76 @@
   <component name="RailsGeneratorsCache">
     <option name="generators">
       <list>
-        <option value="aasm" />
-        <option value="active_record:aasm" />
-        <option value="active_record:application_record" />
-        <option value="active_record:devise" />
-        <option value="active_record:pay" />
-        <option value="administrate:assets" />
-        <option value="administrate:assets:javascripts" />
-        <option value="administrate:assets:stylesheets" />
-        <option value="administrate:dashboard" />
-        <option value="administrate:field" />
-        <option value="administrate:install" />
-        <option value="administrate:routes" />
-        <option value="administrate:view" />
-        <option value="administrate:views" />
-        <option value="administrate:views:edit" />
-        <option value="administrate:views:field" />
-        <option value="administrate:views:form" />
-        <option value="administrate:views:index" />
-        <option value="administrate:views:layout" />
-        <option value="administrate:views:navigation" />
-        <option value="administrate:views:new" />
-        <option value="administrate:views:show" />
-        <option value="annotate:install" />
-        <option value="application_record" />
-        <option value="assets" />
-        <option value="capistrano:unicorn_nginx:config" />
-        <option value="channel" />
+        <option value="active_record:migration" />
+        <option value="active_record:model" />
+        <option value="active_record:observer" />
+        <option value="active_record:session_migration" />
         <option value="controller" />
-        <option value="devise" />
-        <option value="devise:controllers" />
-        <option value="devise:i18n:locale" />
-        <option value="devise:i18n:views" />
-        <option value="devise:install" />
-        <option value="devise:views" />
         <option value="erb:controller" />
         <option value="erb:mailer" />
         <option value="erb:scaffold" />
         <option value="generator" />
         <option value="helper" />
         <option value="integration_test" />
-        <option value="jbuilder" />
-        <option value="job" />
-        <option value="kaminari:config" />
-        <option value="kaminari:views" />
-        <option value="mailbox" />
         <option value="mailer" />
+        <option value="metal" />
         <option value="migration" />
         <option value="model" />
-        <option value="mongoid:aasm" />
-        <option value="mongoid:devise" />
-        <option value="nobrainer:aasm" />
-        <option value="noticed:delivery_method" />
-        <option value="noticed:model" />
-        <option value="noticed:notification" />
-        <option value="paper_trail:install" />
-        <option value="paper_trail:migration" />
-        <option value="paper_trail:update_item_subtype" />
-        <option value="pay" />
-        <option value="pay:email_views" />
-        <option value="pay:views" />
-        <option value="pg_search:migration:dmetaphone" />
-        <option value="pg_search:migration:multisearch" />
+        <option value="model_subclass" />
+        <option value="observer" />
+        <option value="performance_test" />
+        <option value="plugin" />
         <option value="resource" />
-        <option value="responders:install" />
-        <option value="responders_controller" />
         <option value="scaffold" />
         <option value="scaffold_controller" />
-        <option value="stimulus_reflex" />
-        <option value="system_test" />
-        <option value="task" />
-        <option value="test_unit:channel" />
-        <option value="test_unit:generator" />
-        <option value="test_unit:mailbox" />
+        <option value="session_migration" />
+        <option value="stylesheets" />
+        <option value="test_unit:controller" />
+        <option value="test_unit:helper" />
+        <option value="test_unit:integration" />
+        <option value="test_unit:mailer" />
+        <option value="test_unit:model" />
+        <option value="test_unit:observer" />
+        <option value="test_unit:performance" />
         <option value="test_unit:plugin" />
+        <option value="test_unit:scaffold" />
       </list>
     </option>
     <option name="myGenerators">
       <list>
-        <option value="aasm" />
-        <option value="active_record:aasm" />
-        <option value="active_record:application_record" />
-        <option value="active_record:devise" />
-        <option value="active_record:pay" />
-        <option value="administrate:assets" />
-        <option value="administrate:assets:javascripts" />
-        <option value="administrate:assets:stylesheets" />
-        <option value="administrate:dashboard" />
-        <option value="administrate:field" />
-        <option value="administrate:install" />
-        <option value="administrate:routes" />
-        <option value="administrate:view" />
-        <option value="administrate:views" />
-        <option value="administrate:views:edit" />
-        <option value="administrate:views:field" />
-        <option value="administrate:views:form" />
-        <option value="administrate:views:index" />
-        <option value="administrate:views:layout" />
-        <option value="administrate:views:navigation" />
-        <option value="administrate:views:new" />
-        <option value="administrate:views:show" />
-        <option value="annotate:install" />
-        <option value="application_record" />
-        <option value="assets" />
-        <option value="capistrano:unicorn_nginx:config" />
-        <option value="channel" />
+        <option value="active_record:migration" />
+        <option value="active_record:model" />
+        <option value="active_record:observer" />
+        <option value="active_record:session_migration" />
         <option value="controller" />
-        <option value="devise" />
-        <option value="devise:controllers" />
-        <option value="devise:i18n:locale" />
-        <option value="devise:i18n:views" />
-        <option value="devise:install" />
-        <option value="devise:views" />
         <option value="erb:controller" />
         <option value="erb:mailer" />
         <option value="erb:scaffold" />
         <option value="generator" />
         <option value="helper" />
         <option value="integration_test" />
-        <option value="jbuilder" />
-        <option value="job" />
-        <option value="kaminari:config" />
-        <option value="kaminari:views" />
-        <option value="mailbox" />
         <option value="mailer" />
+        <option value="metal" />
         <option value="migration" />
         <option value="model" />
-        <option value="mongoid:aasm" />
-        <option value="mongoid:devise" />
-        <option value="nobrainer:aasm" />
-        <option value="noticed:delivery_method" />
-        <option value="noticed:model" />
-        <option value="noticed:notification" />
-        <option value="paper_trail:install" />
-        <option value="paper_trail:migration" />
-        <option value="paper_trail:update_item_subtype" />
-        <option value="pay" />
-        <option value="pay:email_views" />
-        <option value="pay:views" />
-        <option value="pg_search:migration:dmetaphone" />
-        <option value="pg_search:migration:multisearch" />
+        <option value="model_subclass" />
+        <option value="observer" />
+        <option value="performance_test" />
+        <option value="plugin" />
         <option value="resource" />
-        <option value="responders:install" />
-        <option value="responders_controller" />
         <option value="scaffold" />
         <option value="scaffold_controller" />
-        <option value="stimulus_reflex" />
-        <option value="system_test" />
-        <option value="task" />
-        <option value="test_unit:channel" />
-        <option value="test_unit:generator" />
-        <option value="test_unit:mailbox" />
+        <option value="session_migration" />
+        <option value="stylesheets" />
+        <option value="test_unit:controller" />
+        <option value="test_unit:helper" />
+        <option value="test_unit:integration" />
+        <option value="test_unit:mailer" />
+        <option value="test_unit:model" />
+        <option value="test_unit:observer" />
+        <option value="test_unit:performance" />
         <option value="test_unit:plugin" />
+        <option value="test_unit:scaffold" />
       </list>
     </option>
   </component>
@@ -458,12 +376,14 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="carambus">
             <subtasks>
+              <RakeTaskImpl description="daily update" fullCommand="carambus:daily_update" id="daily_update" />
               <RakeTaskImpl description="fix game participations" fullCommand="carambus:fix_game_participations" id="fix_game_participations" />
               <RakeTaskImpl description="fix tournament discipline by name" fullCommand="carambus:fix_tournament_discipline_by_name" id="fix_tournament_discipline_by_name" />
               <RakeTaskImpl description="Init Disciplines" fullCommand="carambus:init_disciplines" id="init_disciplines" />
               <RakeTaskImpl description="Init PlayerClass" fullCommand="carambus:init_player_classes" id="init_player_classes" />
               <RakeTaskImpl description="list of scaffolds" fullCommand="carambus:list_scaffolds" id="list_scaffolds" />
               <RakeTaskImpl description="remove duplicate season participations" fullCommand="carambus:remove_duplicate_season_participations" id="remove_duplicate_season_participations" />
+              <RakeTaskImpl description="retrieve updates from API server" fullCommand="carambus:retrieve_updates" id="retrieve_updates" />
               <RakeTaskImpl description="scrape clubs" fullCommand="carambus:scrape_clubs" id="scrape_clubs" />
               <RakeTaskImpl description="scrape Players" fullCommand="carambus:scrape_players" id="scrape_players" />
               <RakeTaskImpl description="scrape regions" fullCommand="carambus:scrape_regions" id="scrape_regions" />
