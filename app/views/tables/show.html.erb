@@ -8,11 +8,11 @@
     <div class="bg-white dark:bg-black rounded shadow p-8">
             <div class="mb-4">
         <h5>Location</h5>
-        <%= @table.location_id %>
+        <%= link_to @table.location.display_address, location_path(@table.location) if @table.present? %>
       </div>
             <div class="mb-4">
         <h5>Table kind</h5>
-        <%= @table.table_kind_id %>
+        <%= link_to @table.table_kind.name, table_kind_path(@table.table_kind) if @table.table_kind.present? %>
       </div>
             <div class="mb-4">
         <h5>Name</h5>

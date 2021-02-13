@@ -4,15 +4,15 @@ class LocationsController < ApplicationController
 
   # GET /locations
   def index
-    @locations = Location.joins(:club => :region).sort_by_params(params[:sort], sort_direction)
+    @locations = Location.sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @locations = apply_filters(@locations, Location::COLUMN_NAMES, "(locations.name ilike :search) or (regions.shortname ilike :search) or (clubs.name ilike :search) or (locations.address ilike :search)")
+      @locations = apply_filters(@locations, Location::COLUMN_NAMES, "(locations.name ilike :search) or (locations.address ilike :search)")
     end
     @pagy, @locations = pagy(@locations)
     respond_to do |format|
       format.html {
         if params[:table_only].present?
-          params.reject!{|k,v| k.to_s == "table_only"}
+          params.reject! { |k, v| k.to_s == "table_only" }
           render(partial: "search", :layout => false)
         else
           render("index")
@@ -74,7 +74,17 @@ class LocationsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_location
-    @location = Location.find(params[:id])
+    @location = Location.find_by_md5(params[:id])
+    if @location.present?
+      unless current_user.present?
+        @user = User.find_by_first_name("scoreboard")
+        bypass_sign_in @user, scope: :user
+        Current.user = @user
+        redirect_to "/"
+      end
+    else
+      @location = Location.find(params[:id])
+    end
   end
 
   # Only allow a trusted parameter "white list" through.

@@ -5,6 +5,7 @@
 #  id             :bigint           not null, primary key
 #  address        :text
 #  data           :text
+#  md5            :string           not null
 #  name           :string
 #  organizer_type :string
 #  created_at     :datetime         not null
@@ -16,6 +17,7 @@
 #
 #  index_locations_on_club_id       (club_id)
 #  index_locations_on_foreign_keys  (club_id)
+#  index_locations_on_md5           (md5) UNIQUE
 #
 require 'test_helper'
 

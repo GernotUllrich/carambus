@@ -10,6 +10,10 @@
         <h5>Organizer</h5>
         <%= link_to "#{@location.organizer_type}: #{@location.organizer.name}", @location.organizer_type == "Club" ? club_path(@location.organizer) : region_path(@location.organizer) %>
       </div>
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @location.name %>
+      </div>
             <div class="mb-4">
         <h5>Address</h5>
         <%= @location.address.gsub("\n", "<br>").html_safe %>
@@ -19,8 +23,6 @@
         <%= @location.data %>
       </div>
             <div class="mb-4">
-        <h5>Name</h5>
-        <%= @location.name %>
       </div>
           </div>
   </div>

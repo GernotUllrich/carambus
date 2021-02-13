@@ -16,7 +16,7 @@
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.age_restriction') %></h5><%= tournament.age_restriction %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.date') %></h5><%= tournament.date %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= tournament.accredation_end %></div>
-        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.location') %></h5><%= "#{link_to tournament.tournament_location.andand.name, location_path(tournament.tournament_location) if tournament.tournament_location.present?}<br>#{tournament.tournament_location.andand.address.andand.gsub("\n", "<br>")}".andand.html_safe %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.location') %></h5><%= link_to tournament.tournament_location.display_address, location_path(tournament.tournament_location) if tournament.tournament_location.present? %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.ba_id') %></h5><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.season') %></h5><%= link_to(tournament.season.name, season_path(tournament.season)) %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.region') %></h5><%= link_to(tournament.region.name, region_path(tournament.region)) %></div>

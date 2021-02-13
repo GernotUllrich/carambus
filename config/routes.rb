@@ -32,7 +32,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tables
   scope :api, defaults: {format: :json} do
     scope :v1 do
       resource :auth
@@ -108,6 +107,7 @@ Rails.application.routes.draw do
     resources :game_participations
     resources :games
     resources :tournament_plans
+    resources :tables
     resources :innings
     resources :seedings do
       member do

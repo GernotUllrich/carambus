@@ -8,7 +8,7 @@
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :age_restriction, 'Age restriction', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :date, 'Date', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :accredation_end, 'Accredation end', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location, 'Location', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_id, 'Location', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :ba_id, 'Ba', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :season_id, 'Season', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :region_id, 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
@@ -38,7 +38,7 @@
         <td class="p-3"><%= tournament.age_restriction %></td>
         <td class="p-3"><%= tournament.date.andand.to_date %></td>
         <td class="p-3"><%= tournament.accredation_end.andand.to_date %></td>
-        <td class="p-3"><%= tournament.location %></td>
+        <td class="p-3"><%= link_to tournament.tournament_location.display_address, location_path(tournament.tournament_location) if tournament.tournament_location.present? %></td>
         <td class="p-3"><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") %></td>
         <td class="p-3"><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>
         <td class="p-3"><%= link_to(tournament.region.name, region_path(tournament.region)) %></td>
