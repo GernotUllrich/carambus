@@ -1,0 +1,18 @@
+Kommunikation Rails <-> react native
+    mit DNSSD (bounjour)
+    Rails:
+        tenderlove/dnssd
+    react native:
+        react-native-dnssd
+
+    Der Server annonciert sich mit "Carambus"
+    Die Scoreboards werden einem Tisch zugeordnet
+    Die Clients verbinden sich mit dem Carambus - TournamentMonitor
+        Verbinden mit dem zum Tisch gehörigen TableMonitor
+
+    FORGET DNSSD
+
+    1. Just use lanscan to find where local carambus server is located
+    2. On Rails use ActionCable (based on websockets)
+    3. on React Native use
+

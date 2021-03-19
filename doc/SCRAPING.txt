@@ -1,0 +1,20 @@
+1. create country  Deutschland DE
+    TODO countries ans I18n Names (from widgetlist)
+2. Task carambus:scrape_regions
+
+3. Task carambus:update_seasons
+    TODO should run every new year
+
+4. Task carambus:scrape_clubs
+    scrapes clubs and active players for every season
+    TODO should run every new season after club reports - when is that?
+
+5. Task carambus:init_disciplines
+    Should run only when new discipline arizes
+
+6. Task carambus:scrape_tournaments
+    scrapes tournaments
+    TODO should run for last 2 seasons on Friday - or when?
+
+7. Task carambus:scrape_tournaments_details
+    scrapes e.g. tournament seedings

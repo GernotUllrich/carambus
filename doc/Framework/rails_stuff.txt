@@ -1,0 +1,6 @@
+sudo -u postgres createuser www_data -s
+sudo su postgres
+    ALTER USER www_data CREATEDB;
+    create database production_carambus;
+    GRANT ALL PRIVILEGES ON  DATABASE production_carambus to www_data;
+    ALTER DATABASE production_carambus owner to www_data;

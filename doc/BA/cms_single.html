@@ -1,0 +1,924 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "https://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>BillardArea: Spielergebnisse</title>
+    <meta name="description"
+          content="Deutschlandweites Billardportal - Billardsport in einer neuen Dimension: News und Artikel, Spielbetrieb, Lokalsuche und Community für Pool Billard, Snooker, Karambol und Kegel">
+    <link rel="stylesheet" type="text/css" href="/css/frontend_final.css">
+    <link rel="stylesheet" type="text/css" href="/css/jquery.lightbox-0.5.css">
+    <link rel="stylesheet" type="text/css" href="/css/colorpicker/layout.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
+    <meta content="107551009272344" property="fb:page_id">
+
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/jquery-ui-1.7.1.custom.min.js"></script>
+    <script type="text/javascript" src="/js/rot13.js"></script>
+    <script type="text/javascript" src="/js/swfobject.js"></script>
+    <script type="text/javascript" src="/js/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="/js/jquery.lightbox-0.5.js"></script>
+
+    <!-- Cookie Meldung -->
+    <link rel="stylesheet" type="text/css"
+          href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css"/>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+    <script>
+        window.addEventListener("load", function () {
+            window.cookieconsent.initialise({
+                "palette": {
+                    "popup": {
+                        "background": "#ffffff"
+                    },
+                    "button": {
+                        "background": "#d99214"
+                    }
+                },
+                "theme": "edgeless",
+                "position": "bottom-left",
+                "content": {
+                    "message": "Die Seite billardarea.de verwendet Cookies, um Ihnen den bestmöglichen Service auf dieser Seite zu gewährleisten. Weitere Informationen erhalten Sie in unserer Datenschutzerklärung.",
+                    "dismiss": "OK",
+                    "link": "Weiterlesen",
+                    "href": "https://portal.billardarea.de/content/datenschutz"
+                }
+            })
+        });
+    </script>
+
+    <link rel="stylesheet" type="text/css" href="/css/cms/clients/16/styles.css">
+    <link rel="stylesheet" type="text/css" href="/css/cms/clients/16/nav_styles_1.css">
+
+
+    <!--[if lte IE 7]>
+    <link href="css/patches/patch.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/js/ie7.js"></script><![endif]-->
+
+
+    <script type="text/javascript"><!--
+
+    var hex = 0;
+
+    function MM_swapImgRestore() { //v3.0
+        var i, x, a = document.MM_sr;
+        for (i = 0; a && i < a.length && (x = a[i]) && x.oSrc; ++i) {
+            x.src = x.oSrc;
+        }
+    }
+
+    function MM_findObj(n, d) { //v3.0
+        var p, i, x;
+        if (!d) {
+            d = document;
+        }
+        if ((p = n.indexOf("?")) > 0 && parent.frames.length) {
+            d = parent.frames[n.substring(p + 1)].document;
+            n = n.substring(0, p);
+        }
+        if (!(x = d[n]) && d.all) {
+            x = d.all[n];
+        }
+        for (i = 0; !x && i < d.forms.length; ++i) {
+            x = d.forms[i][n];
+        }
+        for (i = 0; !x && d.layers && i < d.layers.length; ++i) {
+            x = MM_findObj(n, d.layers[i].document);
+        }
+        return (x);
+    }
+
+
+    function MM_swapImage() { //v3.0
+        var i, j = 0, x, a = MM_swapImage.arguments;
+        document.MM_sr = new Array;
+
+        for (i = 0; i < (a.length - 2); i += 3) {
+            if ((x = MM_findObj(a[i])) != null) {
+                document.MM_sr[j++] = x;
+                if (!x.oSrc)
+                    x.oSrc = x.src;
+                x.src = a[i + 2];
+            }
+        }
+    }
+
+
+    $(document).ready(function () {
+        $(function () {
+            $('#gallery a').lightBox();
+            $('a.lightbox').lightBox();
+        });
+    });
+
+    --></script>
+
+
+</head>
+
+<body class="text">
+<style>
+    #fb-banner {
+        position: fixed;
+        right: 0px;
+        top: 35%;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    #fb-banner:hover {
+        opacity: 1;
+    }
+</style>
+<div id="fb-banner">
+    <a href="https://www.facebook.com/billardarea" target="_blank"><img src="/img/fb_banner.png"></a>
+</div>
+
+
+<!-- Wallpaper oben -->
+<div id="page">&nbsp;
+    <div id="ad2"><!-- Wallpaper rechts -->
+    </div>
+    <div id="logoarea">
+
+        <div id="logoarea_left" style="width:795px">
+            <a href="https://portal.billardarea.de"><img src="/img/logo.png" width="307" height="73"
+                                                         alt="BillardArea - Deutschlandweites Billardportal" id="logo"
+                                                         border="0"></a>
+            <a href="https://www.germantour.net/touch-presseagentur/2019/dm/index.asp" target="_blank"
+               style="float:right"><img src="/img/dm_header.jpg" style="margin-top:0px" height="130"></a>
+        </div>
+        <div id="logoarea_right">
+            <div class="logo_image"></div>
+        </div>
+    </div>
+
+    <div id="main">
+
+
+        <div id="ebene1">
+
+            <ul id="nav_ebene1">
+                <li class="inaktiv  first" id="das-billardportal"><a href="/frontend">Das Billardportal</a></li>
+                <li class="aktiv " id="der-spielbetrieb"><a href="/cms_leagues">Der Spielbetrieb</a></li>
+                <li class="inaktiv " id="norddeutscher-billard-verband"><a href="/content">Norddeutscher Billard
+                    Verband</a></li>
+                <li class="inaktiv  last" id="meine-billardarea"><a href="http://admin.billardarea.de">Meine
+                    Billardarea</a></li>
+            </ul>
+        </div>
+        <div id="ebene2">
+            <ul id="nav_ebene2">
+                <li class="inaktiv  first" id="mannschaft"><a href="/cms_leagues">Mannschaft</a></li>
+                <li class="aktiv " id="einzel"><a href="/cms_single">Einzel</a></li>
+                <li class="inaktiv " id="vereine--mitglieder"><a href="/cms_clubs">Vereine &amp; Mitglieder</a></li>
+                <li class="inaktiv " id="kalender"><a href="/cms_calendar">Kalender</a></li>
+                <li class="inaktiv " id="auswertungen"><a href="/cms_evaluations">Auswertungen</a></li>
+            </ul>
+
+
+        </div>
+        <div id="ebene3">
+            <!-- <div id="breadcrumb">Sie befinden sich hier: <a href="/cms_leagues">Der Spielbetrieb</a>	&raquo; <a href="/cms_single">Einzel</a>        	</div> -->       </div>
+        <img src="/img/cms/tabunten.jpg" width="795" height="6" alt="Tab unten" border="0" style="padding:0px">
+        <div id="maininner" style="width:795px">
+            <br>
+            <div style="width:790px;text-align:center">
+                <!--<a href="https://www.epresia.de/?ref=billardarea" target="_blank"><img src="/img/superbanner_breit.gif" alt="epresia.de - Finde jetzt passende Geschenkes"></a>-->
+
+
+                <script type="text/javascript"><!--
+                google_ad_client = "ca-pub-0068043095147503";
+
+                google_ad_slot = "7353751266";
+                google_ad_width = 728;
+                google_ad_height = 90;
+                //-->
+                </script>
+                <script type="text/javascript"
+                        src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+                </script>
+            </div>
+            <br>
+
+
+            <br>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('#tabs-style').tabs();
+                    $('#tabs').tabs({selected: 0});
+                })
+            </script>
+
+            <div id="content_fullwidth">
+                <img src="/img/cms/taboben_right3.jpg" width="795" height="6" alt="Tab unten" border="0">
+
+                <div style="background-color:white" class="padding">
+
+                    <div class="changeseason">
+                        <form method="post" action="/cms_single/">
+                            <fieldset style="display:none;"><input type="hidden" name="_method" value="POST"/>
+                            </fieldset>
+                            <input type="hidden" name="data[Season][check]" value="87gdsjk8734tkfdl" id="SeasonCheck"/>
+                            <div class="input select"><label for="SeasonSeasonId">Wählen Sie eine Saison</label><select
+                                    name="data[Season][season_id]" onchange="this.form.submit();" id="SeasonSeasonId">
+                                <option value="12" selected="selected">2020/2021</option>
+                                <option value="11">2019/2020</option>
+                                <option value="10">2018/2019</option>
+                                <option value="9">2017/2018</option>
+                                <option value="8">2016/2017</option>
+                                <option value="7">2015/2016</option>
+                                <option value="6">2014/2015</option>
+                                <option value="5">2013/2014</option>
+                                <option value="4">2012/2013</option>
+                                <option value="3">2011/2012</option>
+                                <option value="2">2010/2011</option>
+                                <option value="1">2009/2010</option>
+                            </select></div>
+                        </form>
+                    </div>
+                    <div class="clearfloat"></div>
+
+                    <div id="tabs">
+                        <ul>
+                            <li><a href="#tabs-1">Pool</a></li>
+                            <li><a href="#tabs-2">Snooker</a></li>
+                            <li><a href="#tabs-3">Kegel</a></li>
+                            <li><a href="#tabs-4">5 Kegel</a></li>
+                            <li><a href="#tabs-5">Karambol großes Billard</a></li>
+                            <li><a href="#tabs-6">Karambol kleines Billard</a></li>
+                            <li><a href="#tabs-7">Biathlon</a></li>
+                        </ul>
+                        <!-- /Tab Navigation -->
+
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-1">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">31.10.2020</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15210">Bezirksmeisterschaft 14/1e</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">12.12.2020</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15211">Bezirksmeisterschaft 8-Ball</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">19.12.2020</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15214">Norddeutsche Meisterschaften Doppel 10-Ball</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">03.01.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15215">Norddeutsche Meisterschaften Doppel 9-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">03.04.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15212">Bezirksmeisterschaft 10-Ball</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">13.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15218">Norddeutsche Meisterschaften Damen 14/1e</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">13.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15217">Norddeutsche Meisterschaften Ladies 14/1e</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">13.05.2021 - 14.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15219">Norddeutsche Meisterschaften Herren 14/1e</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">13.05.2021 - 14.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15216">Norddeutsche Meisterschaften Senioren 14/1e</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">14.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15223">Norddeutsche Meisterschaften Damen 8-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">14.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15221">Norddeutsche Meisterschaften Ladies 8-Ball</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">14.05.2021 - 15.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15222">Norddeutsche Meisterschaften Herren 8-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">14.05.2021 - 15.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15220">Norddeutsche Meisterschaften Senioren
+                                            8-Ball</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">15.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15227">Norddeutsche Meisterschaften Damen 10-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">15.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15225">Norddeutsche Meisterschaften Ladies 10-Ball</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">15.05.2021 - 16.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15226">Norddeutsche Meisterschaften Herren 10-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">15.05.2021 - 16.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15224">Norddeutsche Meisterschaften Senioren
+                                            10-Ball</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">15.05.2021 - 16.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15229">Norddeutsche Meisterschaften Senioren
+                                            9-Ball</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">16.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15231">Norddeutsche Meisterschaften Damen 9-Ball</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">16.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15230">Norddeutsche Meisterschaften Herren 9-Ball</a>
+                                    </td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">16.05.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15228">Norddeutsche Meisterschaften Ladies 9-Ball</a>
+                                    </td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">05.06.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15213">Bezirksmeisterschaft 9-Ball</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-2">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">30.01.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15232">Norddeutsche Meisterschaft Damen</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">27.02.2021 - 28.02.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15241">Norddeutsche Meisterschaft Doppel</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">27.03.2021 - 28.03.2021</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15233">Norddeutsche Meisterschaft Senioren</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">01.05.2021 - 02.05.2021</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15234">Norddeutsche Meisterschaft Herren</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-3">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-4">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-5">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-6">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">19.09.2020</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15128">6. GrandPrix Einband 2020</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">26.09.2020</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15149">1.Vorgabeturnier Frei Partie</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">03.10.2020</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15150">1. PetitPrix Freie Partie</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first odd"></td>
+                                    <td class="odd" width="200">04.10.2020</td>
+                                    <td class="odd">
+                                        <a href="/cms_single/show/15151">1. NordCup Freie Partie</a></td>
+                                    <td class="odd"></td>
+                                    <td class="last odd"></td>
+                                </tr>
+                                <tr>
+                                    <td class="first even"></td>
+                                    <td class="even" width="200">11.10.2020</td>
+                                    <td class="even">
+                                        <a href="/cms_single/show/15152">1. Qualiturnier NDM Dreiband TB</a></td>
+                                    <td class="even"></td>
+                                    <td class="last even"></td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div id="tabs-7">
+
+
+                            Ausgetragene Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                            Noch auszutragende Meisterschaften
+                            <table class="ftable_type1">
+                                <thead>
+                                <tr>
+                                    <th class="top_left" width="200"></th>
+                                    <th>
+                                        Datum
+                                    </th>
+                                    <th>
+                                        Meisterschaft
+                                    </th>
+                                    <th>
+                                    </th>
+                                    <th class="top_right"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                            <br/><br/>
+                        </div>
+
+
+                    </div>
+
+                </div>
+                <img src="/img/cms/tabunten_right3.jpg" width="795" height="6" alt="Tab unten" border="0"></div>
+        </div>
+        <div class="clearfloat"></div>
+    </div>
+
+
+</div>
+<div class="clearfloat"></div>
+<div id="footerlinks">
+    <div id="footerlinks_inner"><a href="https://portal.billardarea.de/content/datenschutz" title="Datenschutz">Datenschutz</a>
+        - <a href="https://portal.billardarea.de/content/impressum" title="Impressum">Impressum</a><br>
+    </div>
+</div>
+
+<!-- JavaScript Includes -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#tabs").bind("tabsshow", function (event, ui) {
+            var id = $(this).attr('id');
+            var $tabs = $('#' + id).tabs();
+            var selected = $tabs.tabs('option', 'selected');
+            var url = "cms_single___2F";
+            $.ajax({url: "/session/active_tab/url:" + url + "/selected:" + selected + "/id:" + id});
+        });
+    });
+    $(document).ready(function () {
+    });
+</script>
+<!-- cms/default -->
+<script type="text/javascript"
+        src="https://reporting.exudev.de/tracking.js.php?df=1&tc1=UA-2214945-6&tc2=UA-2214945-9"></script>
+<!-- End of JavaScript Includes -->
+
+<a href="https://plus.google.com/104343624092678514347" rel="publisher"></a>
+</body>
+</html>
