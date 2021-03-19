@@ -301,8 +301,8 @@ class TournamentMonitor < ApplicationRecord
     accumulate_results
     if all_table_monitors_finished?
       finalize_round
-      incr_current_round!
-      populate_tables
+      incr_current_round! unless tournament.manual_assignment
+      populate_tables unless tournament.manual_assignment
       if group_phase_finished?
         if finals_finished?
           decr_current_round!
@@ -405,8 +405,8 @@ class TournamentMonitor < ApplicationRecord
       update(data: {})
     end
     @tournament_plan ||= tournament.tournament_plan
-    initialize_table_monitors
-    @groups = TournamentMonitor.distribute_to_group(tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player_id), @tournament_plan.ngroups)
+    initialize_table_monitors unless tournament.manual_assignment
+    @groups = TournamentMonitor.distribute_to_group(tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups)
     @placements = {}
     set_current_round!(1)
     deep_merge_data!("groups" => @groups)
@@ -425,15 +425,14 @@ class TournamentMonitor < ApplicationRecord
               i1, i2 = a
               Tournament.logger.info "NEW GAME #{} group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
               game = tournament.games.create(gname: "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}", group_no: group_no)
-              game.game_participations.create(player_id: @groups["group#{group_no}"][i1 - 1], role: "playera")
-              game.game_participations.create(player_id: @groups["group#{group_no}"][i2 - 1], role: "playerb")
-
+              game.game_participations.create(player: @groups["group#{group_no}"][i1 - 1], role: "playera")
+              game.game_participations.create(player: @groups["group#{group_no}"][i2 - 1], role: "playerb")
             end
           end
         end
       end
     end
-    populate_tables
+    populate_tables unless tournament.manual_assignment
     reload
     tournament.reload.signal_tournament_monitors_ready!
     start_playing_groups!
@@ -445,7 +444,8 @@ class TournamentMonitor < ApplicationRecord
     save!
     table_ids = tournament.data[:table_ids]
     (1..tournament.tournament_plan.tables).each do |t_no|
-      table_monitor = self.reload.table_monitors.find_or_create_by!(name: "table#{t_no}", table_id: table_ids[t_no - 1])
+      table_monitor = self.reload.table_monitors.find_or_create_by!(table_id: table_ids[t_no - 1])
+      table_monitor.update_attributes(name: "table#{t_no}")
     end
     reload
     Tournament.logger.info "state:#{state}...[tmon-initialize_table_monitors]"
@@ -586,14 +586,37 @@ class TournamentMonitor < ApplicationRecord
     Tournament.logger.info "...[tmon-populate_tables]"
   end
 
-  def do_placement(game, r_no, t_no)
-    if (current_round == r_no && game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
-      seqno = game.seqno.to_i > 0 ? game.seqno : next_seqno
-      game.update_attributes(round_no: r_no, table_no: t_no, seqno: seqno)
-      @placements["round#{r_no}"] ||= {}
-      @placements["round#{r_no}"]["table#{t_no}"] = game.id
-      Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{game.gname})"
-      table_monitors.find_by_name("table#{t_no}").andand.assign_game(game)
+  def do_placement(new_game, r_no, t_no)
+    info = "+++ 8a - tournament_monitor#do_placement @game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    if new_game.data.blank? || new_game.data.keys == ["tmp_results"]
+      info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      @placements = data["placements"].presence || {}
+      table_ids = tournament.data[:table_ids]
+      if (current_round == r_no && new_game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
+        seqno = new_game.seqno.to_i > 0 ? new_game.seqno : next_seqno
+        new_game.update_attributes(round_no: r_no, table_no: t_no, seqno: seqno)
+        @placements["round#{r_no}"] ||= {}
+        @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
+        Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
+        @table_monitor = table_monitors.find_by_table_id(table_ids[t_no - 1])
+        old_game = @table_monitor.game
+        if old_game.present?
+          @table_monitor.data_will_change!
+          info = "+++ 8c - tournament_monitor#do_placement - save current game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+          tmp_results = {}
+          tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
+          tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
+          tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
+          tmp_results["ba_results"] = @table_monitor.deep_delete!("ba_results", false) if @table_monitor.data["ba_results"].present?
+          tmp_results["state"] = @table_monitor.state
+          old_game.deep_merge_data!("tmp_results" => tmp_results) #save game data
+          @table_monitor.data_will_change!
+          @table_monitor.state = "ready"
+          @table_monitor.game_id = nil
+          @table_monitor.save!
+        end
+        @table_monitor.andand.assign_game(new_game.reload)
+      end
     end
   end
 

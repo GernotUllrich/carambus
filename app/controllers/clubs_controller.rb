@@ -1,6 +1,6 @@
 class ClubsController < ApplicationController
   include FiltersHelper
-  before_action :set_club, only: [:show, :edit, :update, :destroy, :get_club_details, :reload_from_ba, :reload_from_ba_with_player_details]
+  before_action :set_club, only: [:new_club_tournament, :show, :edit, :update, :destroy, :get_club_details, :reload_from_ba, :reload_from_ba_with_player_details]
 
   # GET /clubs
   def index
@@ -25,6 +25,13 @@ class ClubsController < ApplicationController
 
   # GET /clubs/1
   def show
+  end
+
+  def new_club_tournament
+    @season = Season.find(tournament_params[:season_id])
+
+    @tournament = @club.organized_tournaments.build(season_id: @season.id)
+    render "tournaments/new"
   end
 
   def get_club_details
@@ -83,8 +90,11 @@ class ClubsController < ApplicationController
     @club = Club.find(params[:id])
   end
 
+  def tournament_params
+    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :balls_goal, :handicap_tournier)
+  end
   # Only allow a trusted parameter "white list" through.
   def club_params
-    params.require(:club).permit(:ba_id, :region_id, :name, :shortname, :address, :homepage, :email, :priceinfo, :logo, :status, :founded, :dbu_entry)
+    params.require(:club).permit(:ba_id, :region_id, :name, :season_id, :shortname, :address, :homepage, :email, :priceinfo, :logo, :status, :founded, :dbu_entry)
   end
 end

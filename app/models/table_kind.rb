@@ -18,4 +18,8 @@ class TableKind < ApplicationRecord
       "Short" => "table_kinds.shortname",
       "Measures" => "table_kinds.measures",
   }
+
+  def display_name
+    I18n.t("table_kind.display_name_#{name.downcase.gsub(" ", "_")}")
+  end
 end

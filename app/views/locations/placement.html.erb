@@ -1,0 +1,106 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
+<script type="text/javascript">
+  window.onload = function () {
+    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      var current_element = tabbed_keys[0]
+      el = document.getElementById(current_element)
+      if (el != null)
+        el.focus();
+    }
+  };
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    //console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a",
+      37: "key_a",
+      34: "key_b",
+      39: "key_b",
+      66: "key_c",
+      38: "key_c",
+      116: "key_d",
+      27: "key_d",
+      40: "key_d",
+    }
+    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+
+    var el;
+    var current_element = document.activeElement.getAttribute("id")
+    console.log("active: " + current_element);
+    if (current_element == null) {
+      current_element = tabbed_keys[0];
+      console.log("active now: " + current_element);
+      el = document.getElementById(current_element)
+      if (el != null)
+        el.focus();
+    }
+
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c") {
+        window.history.back();
+      }
+      if (key == "key_b") {
+        var current_element = document.activeElement.getAttribute("id")
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i + 1;
+            if (ff >= tabbed_keys.length) ff = 0;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_a") {
+        var current_element = document.activeElement.getAttribute("id");
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i - 1;
+            if (ff < 0) ff = tabbed_keys.length - 1;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_d") {
+        console.log("activate: " + document.activeElement.getAttribute("id"));
+        el = document.activeElement
+        if (el != null)
+          el.click();
+      }
+    }
+    event.preventDefault();
+    return true
+  });
+</script>
+<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <h1><%= @tournament.title %></h1>
+  <h2 class="flex text-gray-200 "><%= t('select_game') %></h2>
+  <div class="flex grid grid-cols-3 gap-1">
+    <%- @games.each do |game| %>
+      <% gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player %>
+      <% gpb = game.game_participations.where(role: "playerb").first; playerb = gpb.andand.player %>
+      <%= link_to "#{playera.fullname} - #{playerb.fullname}", placement_tournament_path(@tournament, game_id: game.id, table_id: @table.id,), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-1vw lg:mr-4 mr-0 lg:mb-0 mb-4", id: "game_#{game.id}", tabindex: 1 %>
+    <%- end %>
+  </div>
+</div>

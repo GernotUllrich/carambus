@@ -4,7 +4,7 @@
   <div id="table_monitor_modal_<%= table_monitor.id %>" class="modal-content bg-white dark:bg-gray-800 flex-col h-4/5">
     <div class="flex h-1/6 flex-col">
       <div class="flex h-1/2 flex-row space-x-4">
-        <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/table(\d+)/).andand[1] %></div>
+        <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
         <div class="flex-1 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
         <div class="flex-1 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>
         <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.current_round %></div>
@@ -29,20 +29,20 @@
     </div>
     <div class="flex h-1/6 flex-row mt-2 space-x-8">
       <%- if table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
           <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
         <%- end %>
       <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
+        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
           <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
         <%- end %>
       <%- end %>
       <%- if table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
           <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
         <%- end %>
       <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
+        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
           <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
         <%- end %>
       <%- end %>
@@ -70,7 +70,7 @@
       </div>
     </div>
     <div class="flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
-      <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id } do %>
+      <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
         weiter
       <%- end %>
     </div>
@@ -143,7 +143,7 @@
       </div>
     </div>
     <div class="flex h-1/6 flex-row mt-8 space-x-8 justify-center">
-      <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id } do %>
+      <%= content_tag "div", class: "btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
         weiter
       <%- end %>
     </div>

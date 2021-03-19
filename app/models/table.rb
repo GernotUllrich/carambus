@@ -21,4 +21,9 @@ class Table < ApplicationRecord
   belongs_to :table_kind
   has_many :tournament_tables
   has_one :table_monitor
+
+  def number
+    m = name.match(/.*(\d+).*/)
+    m.present? ? m[1].to_i : 0
+  end
 end

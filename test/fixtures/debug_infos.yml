@@ -1,0 +1,15 @@
+# == Schema Information
+#
+# Table name: debug_infos
+#
+#  id         :bigint           not null, primary key
+#  info       :string
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+one:
+  info: MyString
+
+two:
+  info: MyString

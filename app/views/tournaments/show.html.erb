@@ -6,11 +6,18 @@
       <hr>
       <div class="flex flex-wrap">
         <div class="flex flex-wrap align-items-start pb-4">
-          <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+          <%= button_to I18n.t("tournaments.show.define_participants"), define_participants_tournament_path(@tournament), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" unless @tournament.organizer.is_a? Region %>
+        </div>
+        <div class="flex flex-wrap align-items-start pb-4">
+          <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" if @tournament.organizer.is_a? Region %>
         </div>
         <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
-          <%= button_to I18n.t("tournaments.show.order_by_ranking"), order_by_ranking_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
+          <%= button_to I18n.t("tournaments.show.order_by_ranking_or_handicap"), order_by_ranking_or_handicap_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
+        </div>
+        <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
+          <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
+          <%= button_to I18n.t("tournaments.show.finish_seeding"), finish_seeding_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
         </div>
         <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
@@ -36,7 +43,7 @@
           <th colspan="2"><%= I18n.t("tournaments.show.reorder") %></th>
           <th><%= I18n.t("tournaments.show.name") %></th>
           <th><%= I18n.t("tournaments.show.club") %></th>
-          <th>Rank<br><%= @tournament.discipline.andand.name %><br>Season <%= @tournament.season.previous.andand.name %>
+          <th>Rank/Handicap (Ballziel)<br><%= @tournament.discipline.andand.name %><br>Season <%= @tournament.season.previous.andand.name %>
           </th>
         </tr>
         </thead>
@@ -53,7 +60,7 @@
             </td>
             <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
             <td><%= link_to("#{club.shortname}", club_path(club)) %></td>
-            <td class="text-center"><%= seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999 %></td>
+            <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999) %></td>
           </tr>
         <%- end %>
         </tbody>
@@ -130,6 +137,6 @@
 <%- if !@tournament.tournament_started %>
   <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
 <%- end %>
-<%- if current_user.andand.email.andand.downcase == "gernot.ullrich@gmx.de" %>
+<%- if ["gernot.ullrich@gmx.de", "scoreboard@carambus.de"].include? current_user.andand.email.andand.downcase %>
   <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
 <% end %>

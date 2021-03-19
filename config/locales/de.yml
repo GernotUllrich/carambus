@@ -121,6 +121,8 @@ de:
     status: Status
     founded: Gegründet
     dbu_entry: DBU Eintritt
+    club_tournaments: Club Turniere
+    new_club_tournament: Neues Club Turnier anlegen
   plan:
     index:
       plan: Plan
@@ -321,8 +323,8 @@ de:
       game_warmup_b_started: "Einstossen Spieler B"
       game_shootout_started: "Ausstossen"
       playing_game: ""
-      game_finished: "Partie beendet - ok?"
-      game_show_result: "Partie beendet"
+      game_finished: "Partie beendet"
+      game_show_result: "Partie beendet - ok?"
       game_result_reported: "Ergebnisse erfasst"
       ready_for_new_game: "Bereit für nächstes Spiel"
   seeding:
@@ -400,6 +402,12 @@ de:
     measures: measures
     created_at: created at
     updated_at: updated at
+    display_name_pool: Pool
+    display_name_snooker: Snooker
+    display_name_small_billard: Kleiner Tisch
+    display_name_half_match: Halbmatch Tisch
+    display_name_match_billard: Großer Tisch
+    none_available: Keine Tische verfügbar
   table:
     id: id
     location_id: location id
@@ -535,6 +543,7 @@ de:
         ba_state: BA-Status
         state: Status
         region: Regionalverband
+        organizer: Organisiert von
         title: Titel
         season: Saison
         player_class: Spielerklasse
@@ -582,10 +591,13 @@ de:
       hosting_club: 'Gastgeber:'
       edit: "Aktualisieren"
       back: "Zurück"
-      syncing_with_billard_area: 'Fast alle Turnierdaten müssen über die <a href="http://billard_area">Billard-Area</a> eingegeben werden. Hier gibt es nur die Möglichkeit ergänzende Informationen hinzuzufügen, soweit sie für die Tournierabwicklung erforderlich sind (Tischzuordnungen, Locations etc). Der Abgleich mit den Daten der Billard-Area erfogt über den Link'
+      syncing_with_billard_area: 'Bis auf lokal im Club organisierte Turniere müssen fast alle Turnierdaten über die <a href="http://billard_area">Billard-Area</a> eingegeben werden. Hier gibt es nur die Möglichkeit ergänzende Informationen hinzuzufügen, soweit sie für die Tournierabwicklung erforderlich sind (Tischzuordnungen, Locations etc).'
+      syncing_with_billard_area_ext: 'Der Abgleich mit den Daten der Billard-Area erfogt über den Link'
       reload_from_billard_area: "Datenabgleich mit der Billard Area"
+      define_participants: "Setzliste aktualisieren"
       reload_from_billard_area_with_details: "Datenabgleich mit der Billard Area mit allen Details"
-      order_by_ranking: 'Ordne nach Rangliste'
+      order_by_ranking_or_handicap: 'Ordne nach Rangliste bzw. Handicap'
+      finish_seeding: 'Abschluss der Rangliste (nicht umkehrbar)'
       finalize_tournament_modus: 'Turnier Modus festlegen'
       mangage_tournament_group_phase: 'Verwaltung der Turnierspiele'
       reset_tournament_monitor: 'Zurücksetzen des Turnier-Monitors'
@@ -594,7 +606,7 @@ de:
       teilnehmer: 'Auswahl des Modus für %{count} Teilnehmer'
       proposed_modus: 'Vorgeschlagener Modus:'
       alternatives_same_discipline: 'Alternativen mit der gleichen Disziplin:'
-      alternatives_other_disciplines: 'Alternativen von anderen Disziplinen:'
+      alternatives_other_disciplines: 'Weitere Alternativen:'
       continue_with: Weiter mit
       final_modus_selection: Abschliessende Auswahl des Austragungsmodus
     form:
@@ -602,7 +614,7 @@ de:
       discipline: 'Disziplin'
       player_class: 'Spielerklasse'
     new:
-      new_tournament: Neues Turnier
+      new_tournament: Neues Club Turnier
       back: "Zurück"
     tournament_monitor: Turnier-Monitor
     start_tournament: 'Starte den Turnier-Monitor'
@@ -719,7 +731,11 @@ de:
   table_assignments_heterogen: "Tischzuordnung zu verschiedenen Locations"
   table_assignments_inconsistent: "Tischzuordnung mehrdeutig"
   select_game_mode: "Wähle den Spielmodus"
+  select_tournament_table: "Wähle Turnier und Tisch"
+  select_training_table: "Wähle Trainingstisch"
+  select_game: "Wähle aus den noch offenen Spielpaarungen"
   tournaments_season: "Turniere in der Saison"
   add_tables: Tische hinzufügen
   carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"
   welcome_to_carambus: "Willkommen bei Carambus"
+  welcome: "Willkommen"

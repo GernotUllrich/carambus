@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_10_201051) do
+ActiveRecord::Schema.define(version: 2021_03_18_213611) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -143,6 +143,12 @@ ActiveRecord::Schema.define(version: 2021_02_10_201051) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["code"], name: "index_countries_on_code", unique: true
+  end
+
+  create_table "debug_infos", force: :cascade do |t|
+    t.string "info"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "discipline_tournament_plans", force: :cascade do |t|
@@ -509,6 +515,7 @@ ActiveRecord::Schema.define(version: 2021_02_10_201051) do
     t.integer "organizer_id"
     t.string "organizer_type"
     t.integer "location_id"
+    t.boolean "manual_assignment", default: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
@@ -599,8 +606,6 @@ ActiveRecord::Schema.define(version: 2021_02_10_201051) do
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
-  add_foreign_key "table_monitors", "games"
-  add_foreign_key "table_monitors", "tournament_monitors"
   add_foreign_key "tables", "locations"
   add_foreign_key "tables", "table_kinds"
   add_foreign_key "tournament_monitors", "tournaments"

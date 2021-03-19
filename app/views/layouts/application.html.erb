@@ -41,8 +41,8 @@
         <%= yield %>
         <%= yield :javascript_code %>
       </div>
+      <%= render partial: "shared/footer" if @footer %>
     </div>
 
-    <%= render partial: "shared/footer" if @footer %>
   </body>
 </html>

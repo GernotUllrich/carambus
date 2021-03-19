@@ -19,15 +19,10 @@
 #  table_id              :integer          not null
 #  tournament_monitor_id :integer
 #
-# Foreign Keys
-#
-#  fk_rails_...  (game_id => games.id)
-#  fk_rails_...  (tournament_monitor_id => tournament_monitors.id)
-#
 class TableMonitor < ApplicationRecord
   include CableReady::Broadcaster
 
-  cattr_accessor :allow_change_tables
+  cattr_accessor :allow_change_tables, :panel_state, :current_element
 
   include AASM
   belongs_to :tournament_monitor
@@ -35,8 +30,17 @@ class TableMonitor < ApplicationRecord
   belongs_to :table
   has_paper_trail
 
+  before_create :on_create
   before_save :log_state_change
 
+  DEFAULT_ENTRY = {
+    "inputs" => "numbers",
+    "pointer_mode" => "pointer_mode",
+    "shootout" => "start_game",
+    "timer" => "play", #depends on state !
+    "setup" => "continue",
+    "numbers" => "nnn_1"
+  }
   NNN = "db" #store nnn in database table_monitor
 
   def log_state_change
@@ -71,8 +75,8 @@ class TableMonitor < ApplicationRecord
     state :game_warmup_b_started
     state :game_shootout_started
     state :playing_game, :after_enter => [:set_start_time], :after_exit => [:set_end_time]
-    state :game_finished
     state :game_show_result
+    state :game_finished
     state :game_result_reported
     state :ready_for_new_game #previous game result still displayed here - and probably next players
     event :start_new_game do
@@ -107,6 +111,9 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  def on_create
+    info = "+++ 8xxx - table_monitor#on_create"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+  end
   def state_display(locale)
     @locale = locale || I18n.default_locale
     I18n.t("table_monitor.status.#{state}")
@@ -175,8 +182,38 @@ class TableMonitor < ApplicationRecord
       active_timer: active_timer,
       timer_halt_at: nil,
       timer_start_at: start_at,
-      timer_finish_at: finish_at)
+      timer_finish_at: finish_at,
+      panel_state: "pointer_mode",
+      current_element: "pointer_mode")
     update_every_n_seconds(2);
+  end
+
+  def render_innings_list(role)
+    show_innings = Array(data[role].andand["innings_list"])
+    ret = ["<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    .space-above {
+        margin-top: 15px;
+    }
+
+    th, td {
+    }
+</style><table><thead><tr><th>Aufn</th><th>Pkt</th><th>∑</th><th>Aufn</th><th>Pkt</th><th>∑</th></tr></thead><tbody>"]
+    sum = 0
+    sums = []
+    show_innings.each_with_index do |inning, ix|
+      sum += inning
+      sums[ix] = sum
+    end
+    show_innings[0..9].each_with_index do |inning, ix|
+      ret << "<tr><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{inning}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix]}</strong>" : sums[ix]}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{"#{ix + 11}" if sums[ix + 10].present?}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{show_innings[ix + 10]}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 10 == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + 10]}</strong>" : sums[ix + 10]}</span></td></tr>"
+    end
+    ret << "</tbody></table>"
+    ret.join("\n").html_safe
   end
 
   def render_last_innings(n, role)
@@ -238,15 +275,31 @@ class TableMonitor < ApplicationRecord
     game.update_attributes(ended_at: Time.now)
   end
 
-  def assign_game(game)
+  def assign_game(game_p)
+    info = "+++ 8c - tournament_monitor#assign_game - game_p"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 8d - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
     self.allow_change_tables = tournament_monitor.allow_change_tables
-    update_attributes(game_id: game.id)
-    initialize_game
-    save!
-    start_new_game!
+    tmp_results = game_p.deep_delete!("tmp_results")
+    if tmp_results.andand["state"].present?
+      info = "+++ 8e - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      state = tmp_results.delete("state")
+      deep_merge_data!(tmp_results)
+      update_attributes(game_id: game_p.id, state: state)
+    else
+      update_attributes(game_id: game_p.id, state: "ready")
+      reload
+      info = "+++ 8f - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      initialize_game
+      save!
+      if [:ready, :ready_for_new_game, :game_setup_started, :game_result_reported, :game_finished].include?(self.state.to_sym)
+        info = "+++ 8g - tournament_monitor#assign_game - start_new_game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+        start_new_game!
+      end
+    end
   end
 
   def initialize_game
+    info = "+++ 7 - table_monitor#initialize_game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
     deep_merge_data! ({
       "playera" => {
         "result" => 0,
@@ -287,11 +340,13 @@ class TableMonitor < ApplicationRecord
         "balls" => 0
       }
     })
+    self.panel_state = "pointer_mode"
+    self.current_element = "pointer_mode"
     data
   end
 
   def display_name
-    t_no = name.match(/table(\d+)/).andand[1]
+    t_no = (name || table.name).andand.match(/table(\d+)/).andand[1]
     I18n.t("table_monitors.display_name", t_no: t_no)
   end
 
@@ -319,6 +374,9 @@ class TableMonitor < ApplicationRecord
           data_will_change!
           save
         end
+        update_attributes(
+          panel_state: "pointer_mode",
+          current_element: "pointer_mode")
       else
         @msg = "Game Finished - no more inputs allowed"
         return nil
@@ -396,8 +454,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def follow_up?
+    info = "+++ 10 - table_monitor#follow_up? table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
     data.present? &&
-      ((data["current_inning"]["active_player"] == "playerb") && (data["playera"]["result"].to_i >= data["playera"].andand["balls_goal"].to_i))
+      ((data["current_inning"].andand["active_player"] == "playerb") && (data["playera"].andand["result"].to_i >= data["playera"].andand["balls_goal"].to_i))
   end
 
   def undo
@@ -462,12 +521,28 @@ class TableMonitor < ApplicationRecord
     return false
   end
 
+  def name
+    table.andand.name
+  end
+
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
     self.data_will_change!
     self.data = JSON.parse(h.to_json)
     save!
+  end
+
+  def deep_delete!(key, do_save = true)
+    h = data.dup
+    res = nil
+    if h[key].present?
+      res = h.delete(key)
+      self.data_will_change!
+      self.data = JSON.parse(h.to_json)
+      save! if do_save
+    end
+    res
   end
 
   def prepare_final_game_result
@@ -490,6 +565,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_table_monitor
+    info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
     update_attributes(game_id: nil)
     we_re_ready!
   end

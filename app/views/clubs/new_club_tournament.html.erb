@@ -1,12 +1,12 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= t('tournaments.new.new_tournament') %></h1>
-      <%= link_to 'Cancel', tournaments_path, class: "btn btn-link" %>
+      <h1 class="h3"><%= t('club.new_club_tournament') %></h1>
+      <%= link_to 'Cancel', club_path(@club), class: "btn btn-link" %>
     </div>
 
     <div class="bg-white dark:bg-black rounded shadow p-8">
-      <%= render 'tournaments/form', tournament: @tournament, season: @season %>
+      <%= render 'tournaments/form', tournament: @tournament %>
     </div>
   </div>
 </div>

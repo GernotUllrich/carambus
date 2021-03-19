@@ -62,4 +62,35 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:time_out_warm_up_follow_up_min, val)
   end
 
+  def change_seeding
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    checked = element.attributes["checked"]
+    player = Player.find(element.attributes["id"].split("-")[1].to_i)
+    seeding = nil
+    if checked
+      seeding = tournament.seedings.create(player_id: player.id)
+    else
+      tournament.seedings.where(player_id: player.id).destroy_all
+    end
+    balls_goal_html = ApplicationController.render(
+      partial: "tournaments/balls_goal",
+      locals: { tournament: tournament, player: player, seeding: seeding }
+    )
+    cable_ready["tournament-stream"].outer_html(
+      selector: "#balls-#{player.id}",
+      html: balls_goal_html
+    )
+    cable_ready.broadcast
+  end
+
+  def change_point_goal
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"].to_i
+    player = Player.find(element.attributes["id"].split("-")[1].to_i)
+    seeding = tournament.seedings.where(player_id: player.id).first
+    seeding.update_attributes(balls_goal: val)
+  end
+
 end

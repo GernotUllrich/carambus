@@ -23,7 +23,7 @@ class Game < ApplicationRecord
   has_one :table_monitor, :dependent => :nullify
   has_many :innings, -> { order("sequence_number") }, :dependent => :destroy
 
-  MIN_ID=50000000
+  MIN_ID = 50000000
   has_paper_trail
   serialize :data, Hash
 
@@ -40,9 +40,9 @@ class Game < ApplicationRecord
   end
 
   COLUMN_NAMES = {
-      "Date" => "tournaments.date",
-      "Tournament" => "tournaments.title",
-      "Remarks" => "games.data",
+    "Date" => "tournaments.date",
+    "Tournament" => "tournaments.title",
+    "Remarks" => "games.data",
   }
 
   def deep_merge_data!(hash)
@@ -51,6 +51,18 @@ class Game < ApplicationRecord
     self.data_will_change!
     self.data = JSON.parse(h.to_json)
     save!
+  end
+
+  def deep_delete!(key)
+    h = data.dup
+    res = nil
+    if h[key].present?
+      res = h.delete(key)
+      self.data_will_change!
+      self.data = JSON.parse(h.to_json)
+      save!
+    end
+    res
   end
 
   def self.display_ranking_key(ranking_key)
@@ -65,11 +77,11 @@ class Game < ApplicationRecord
     elsif m = ranking_key.match(/hf/)
       "#{I18n.t("game.display_hf_game_group")}"
     elsif m = ranking_key.match(/qf(\/?\d+)/)
-      "#{I18n.t("game.display_qf_game_name", {game_no: m[1]})}"
+      "#{I18n.t("game.display_qf_game_name", { game_no: m[1] })}"
     elsif m = ranking_key.match(/qf/)
       "#{I18n.t("game.display_qf_game_group")}"
     elsif m = ranking_key.match(/af(\/?\d+)/)
-      "#{I18n.t("game.display_af_game_name", {game_no: m[1].to_str.gsub("/", "")})}"
+      "#{I18n.t("game.display_af_game_name", { game_no: m[1].to_str.gsub("/", "") })}"
     elsif m = ranking_key.match(/af/)
       "#{I18n.t("game.display_af_game_group")}"
     elsif m = ranking_key.match(/fin/)
@@ -84,15 +96,15 @@ class Game < ApplicationRecord
   end
 
   def self.fix_participation(game)
-    mapping = {"Gr." => :gname, "Ergebnis" => :result, "Aufnahme" => :innings, "HS" => :hs, "GD" => :gd, "Punkte" => :points}
+    mapping = { "Gr." => :gname, "Ergebnis" => :result, "Aufnahme" => :innings, "HS" => :hs, "GD" => :gd, "Punkte" => :points }
     tournament = game.tournament
     if tournament.present?
       game.game_participations.delete_all
-      player_a = Player.joins(:seedings => :tournament).where(tournaments: {id: tournament.id}).
-          where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
+      player_a = Player.joins(:seedings => :tournament).where(tournaments: { id: tournament.id }).
+        where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
       gp_a = GameParticipation.create(game_id: game.id, player_id: player_a.id, role: "Heim") if player_a.present?
-      player_b = Player.joins(:seedings => :tournament).where(tournaments: {id: tournament.id}).
-          where("players.lastname||', '||players.firstname = :name", name: game.data["Gast"]).first
+      player_b = Player.joins(:seedings => :tournament).where(tournaments: { id: tournament.id }).
+        where("players.lastname||', '||players.firstname = :name", name: game.data["Gast"]).first
       gp_b = GameParticipation.create(game_id: game.id, player_id: player_b.id, role: "Gast") if player_b.present?
       gp_a_results = {}
       gp_b_results = {}

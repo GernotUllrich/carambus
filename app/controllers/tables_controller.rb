@@ -12,6 +12,9 @@ class TablesController < ApplicationController
 
   # GET /tables/1
   def show
+    @navbar = false
+    @footer = false
+    @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false
   end
 
   # GET /tables/new

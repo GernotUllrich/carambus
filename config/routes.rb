@@ -89,6 +89,8 @@ Rails.application.routes.draw do
       end
       member do
         post :add_tables_to
+        post :placement
+        get :placement
       end
     end
     resources :seasons
@@ -96,13 +98,17 @@ Rails.application.routes.draw do
     resources :disciplines
     resources :tournaments do
       member do
-        post :order_by_ranking
+        post :order_by_ranking_or_handicap
         post :select_modus
         post :start
         post :reset
         get :finalize_modus
         get :tournament_monitor
         post :reload_from_ba
+        post :finish_seeding
+        get :define_participants
+        post :placement
+        get :placement
       end
     end
     resources :tournament_plan_games
@@ -129,6 +135,7 @@ Rails.application.routes.draw do
         get :get_club_details
         post :reload_from_ba
         post :reload_from_ba_with_player_details
+        post :new_club_tournament
       end
     end
     resources :regions do

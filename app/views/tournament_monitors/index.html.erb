@@ -67,7 +67,7 @@
   </thead>
   <tbody>
   <% if PaperTrail::Version.all.any? %>
-    <% PaperTrail::Version.all.last(200).reverse.each do |version| %>
+    <% PaperTrail::Version.all.last(600).reverse.each do |version| %>
       <tr>
         <td><%= version.id %></td>
         <td><%= version.event %></td>

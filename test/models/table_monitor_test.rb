@@ -19,11 +19,6 @@
 #  table_id              :integer          not null
 #  tournament_monitor_id :integer
 #
-# Foreign Keys
-#
-#  fk_rails_...  (game_id => games.id)
-#  fk_rails_...  (tournament_monitor_id => tournament_monitors.id)
-#
 require 'test_helper'
 
 class TableMonitorTest < ActiveSupport::TestCase

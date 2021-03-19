@@ -14,5 +14,12 @@ namespace :adhoc do
     tm = tournament.tournament_monitor
     tm.update_ranking
   end
+
+  task :test_default_plan => :environment do
+    nplayers = 23
+    plan = TournamentPlan.default_plan(nplayers)
+  end
+
+
 end
 

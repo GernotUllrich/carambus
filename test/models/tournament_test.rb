@@ -14,6 +14,7 @@
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime
 #  location                       :text
+#  manual_assignment              :boolean          default(FALSE)
 #  modus                          :string
 #  organizer_type                 :string
 #  plan_or_show                   :string

@@ -48,7 +48,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @groups} %>
+              <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @groups} if @groups.present?%>
             </div>
           </div>
         </div>

@@ -18,6 +18,7 @@ require 'net/http'
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime
 #  location                       :text
+#  manual_assignment              :boolean          default(FALSE)
 #  modus                          :string
 #  organizer_type                 :string
 #  plan_or_show                   :string
@@ -50,7 +51,7 @@ class Tournament < ApplicationRecord
   has_paper_trail
 
   belongs_to :discipline, optional: true
-  belongs_to :region
+  belongs_to :region, optional: true
   belongs_to :season
   belongs_to :tournament_plan, optional: true
   has_many :seedings, -> { order(position: :asc) }
@@ -66,7 +67,7 @@ class Tournament < ApplicationRecord
   validates_each :data do |record, attr, value|
     table_ids = Array(record.send(attr)[:table_ids])
     if table_ids.present?
-      incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i
+      incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i && !record.manual_assignment
       heterogen = Table.where(id: table_ids).all.map(&:location_id).uniq.length > 1
       inconsistent = table_ids != table_ids.uniq
       record.errors.add(attr, I18n.t('table_assignments_incomplete')) if incomplete
@@ -174,6 +175,14 @@ class Tournament < ApplicationRecord
 
     end
 
+  end
+
+  def t_no_from(table)
+    id = table.id
+    self.data[:table_ids].each_with_index do |table_id, ix|
+      return ix+1 if table_id.to_i == table.id
+    end
+    return 1
   end
 
   def scrape_single_tournament(opts = {})
@@ -417,12 +426,13 @@ class Tournament < ApplicationRecord
     logger.info "[reset_tournament]..."
     # called from state machine only
     # use direct only for testing purposes
-
     tournament_monitor.andand.destroy
-    seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+    unless organizer.is_a? Club
+      seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+    end
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
     unless new_record?
-      update_columns(tournament_plan_id: nil, state: "new_tournament")
+      update_attributes(tournament_plan_id: nil, state: "new_tournament", data: {})
       reload
     end
     logger.info "state:#{state}...[reset_tournament]"

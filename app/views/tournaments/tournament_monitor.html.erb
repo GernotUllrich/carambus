@@ -28,14 +28,24 @@
       <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
       <% if @tournament.tournament_monitor.present? %>
       <% else %>
-        <h4 class="mb-2">Zuordnung der Tische</h4>
+        <%- unless @tournament.manual_assignment %>
+          <h4 class="mb-2">Zuordnung der Tische</h4>
+        <% end %>
         <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post do %>
           <ol class="flex flex-col">
-            <%- (1..@tournament.tournament_plan.tables).each_with_index do |t_no, ix| %>
+            <%- available_fitting_table_ids = @tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: @tournament.discipline_id }).order("name").map(&:id) %>
+            <%- tournament_tables = @tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: @tournament.discipline_id }).count %>
+            <%- tournament_tables = @tournament.tournament_plan.tables unless @tournament.manual_assignment %>
+
+            <%- (1..tournament_tables).each_with_index do |t_no, ix| %>
               <li class="flex flex-row w-full space-x-4">
                 <div class="flex mt-1">Tisch <%= ix + 1 %>:</div>
                 <div class="flex" id="location_table_#{ix+1}">
-                  <%= select_tag "table_id[]", options_for_select(Table.joins(:location => {:club => :region}).where(regions: { id: @tournament.region_id }).order("locations.name, tables.name").map { |table| ["#{table.name} - #{table.table_kind.name} - #{table.location.name}", table.id] }), class: "border mt-1 w-full" %>
+                  <%- if @tournament.organizer.is_a? Club %>
+                    <%= select_tag "table_id[]", options_for_select(Table.joins(:location => :club).where(clubs: { id: @tournament.organizer_id }).order("locations.name, tables.name").map { |table| ["#{table.name} - #{table.table_kind.name} - #{table.location.name}", table.id] }, available_fitting_table_ids[ix]), class: "border mt-1 w-full" %>
+                  <%- else %>
+                    <%= select_tag "table_id[]", options_for_select(Table.joins(:location => { :club => :region }).where(regions: { id: @tournament.region_id }).order("locations.name, tables.name").map { |table| ["#{table.name} - #{table.table_kind.name} - #{table.location.name}", table.id] }, available_fitting_table_ids[ix + 1]), class: "border mt-1 w-full" %>
+                  <%- end %>
                 </div>
               </li>
             <%- end %>

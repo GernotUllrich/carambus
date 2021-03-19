@@ -396,13 +396,13 @@ class TournamentPlan < ApplicationRecord
           ]
         }
       },
-      "RK": [ "fin.rk1",
-        "fin.rk2",
-        "p<3-4>.rk1",
-        "p<3-4>.rk2",
-        "p<5-6>.rk1",
-        "p<5-6>.rk2",
-        "g2.rk4"
+      "RK": ["fin.rk1",
+             "fin.rk2",
+             "p<3-4>.rk1",
+             "p<3-4>.rk2",
+             "p<5-6>.rk1",
+             "p<5-6>.rk2",
+             "g2.rk4"
       ]
     },
     "T10": {
@@ -2741,6 +2741,39 @@ class TournamentPlan < ApplicationRecord
       }
     }
   }
+
+  def self.default_plan(nplayers)
+    plan = TournamentPlan.find_by_name("Default#{nplayers}")
+    plan ||= TournamentPlan.new(
+      name: "Default#{nplayers}",
+      players: nplayers
+    )
+    group_sizes = group_sizes_from(nplayers)
+    executor_params = {}
+    (0..group_sizes.length - 1).each do |gix|
+      g_perms = (1..group_sizes[gix]).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.map { |perm| perm.join("-") }
+      g_params = {
+        "pl": group_sizes[gix],
+        "rs": "eae_ma",
+        "sq": g_perms
+      }
+      executor_params["g#{gix + 1}"] = g_params
+    end
+    plan.update_attributes(
+      executor_class: "",
+      executor_params: executor_params.to_json,
+      ngroups: group_sizes.length,
+      nrepeats: 1
+    )
+    plan
+  end
+
+  def self.group_sizes_from(nplayers)
+    ngroups = nplayers / 8
+    ngroups += 1 if ngroups % 2 == 1
+    groups = TournamentMonitor.distribute_to_group((1..nplayers).to_a, ngroups)
+    group_sizes = (1..ngroups).to_a.map {|gix| groups["group#{gix}"].length}
+  end
 
   def self.update_tournament_plan_executor_params
     TournamentPlan::RULES.keys.each do |k|

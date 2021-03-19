@@ -1,3 +1,33 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
+<script type="text/javascript">
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a",
+      37: "key_a",
+      34: "key_b",
+      39: "key_b",
+      66: "key_c",
+      38: "key_c",
+      116: "key_d",
+      27: "key_d",
+      40: "key_d",
+    }
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c"){
+        event.preventDefault();
+        window.history.back();
+      }
+    }
+    return true
+  });
+</script>
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
     <div class="flex justify-between items-center mb-4">

@@ -91,6 +91,10 @@ class User < ApplicationRecord
 
   has_paper_trail
 
+  def self.scoreboard
+    @@scoreboard ||= User.find_by_email("scoreboard@carambus.de")
+  end
+
   def display_name
     username.presence || (lastname.present? ? "#{lastname}, #{firstname}" : nil) || email
   end

@@ -28,7 +28,9 @@ class Club < ApplicationRecord
   has_many :players
   has_many :season_participations
   has_many :tournament_locations, as: :organizer, class_name: "Location"
-  has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
+  has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
+
+  attr_accessor :season_id
 
   BA_COLUMNS = [
     :address,

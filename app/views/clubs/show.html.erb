@@ -1,5 +1,5 @@
 <div class="container mx-auto my-8 px-4">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-full mx-auto">
     <div class="flex justify-between items-center mb-4">
       <h1 class="h3"><%= link_to 'Clubs', clubs_path %> > <%= @club.name %></h1>
       <%= link_to('Edit', edit_club_path(@club), class: "btn btn-link") if current_user.andand.admin? %>
@@ -15,33 +15,38 @@
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%= t('club.name') %></h5><%= link_to(@club.name, club_path(@club)) %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.shortname') %></h5><%= @club.shortname %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.address') %></h5><%= @club.address.html_safe %>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5><%= t('club.address') %></h5><%= @club.address.andand.html_safe %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%= t('club.homepage') %></h5><%= link_to_if @club.homepage.present?, @club.homepage, @club.homepage %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.email') %></h5><%= mail_to @club.email %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.priceinfo') %></h5><%= @club.priceinfo.gsub(/\n+/, "<br />").html_safe %>
+        <h5><%= t('club.priceinfo') %></h5><%= @club.priceinfo.andand.gsub(/\n+/, "<br />").andand.html_safe %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.logo') %></h5><%= @club.logo %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.status') %></h5><%= @club.status %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.founded') %></h5><%= @club.founded %></div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
     </div>
+    <div class="flex flex-row px-3 lg:px-0">
+      <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("tournaments.show.reload_from_billard_area_with_details"), reload_from_ba_with_player_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+    </div>
   </div>
-</div>
-<div class="flex flex-row px-3 lg:px-0">
-  <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
-  <%= button_to I18n.t("tournaments.show.reload_from_billard_area_with_details"), reload_from_ba_with_player_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
 </div>
 <hr>
 <div class="px-3 lg:px-0">
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-xl justify-center mx-auto">
-      <h2 class="space-above"><%= t('player.index.players') %></h2>
       <%- Season.joins(:season_participations => :club).where(clubs: { id: @club.id }).order(name: :desc).uniq.each do |season| %>
-        <h3><%= t('home.index.season') %> <%= season.name %></h3>
+        <%- if season.id >= Season.current_season.id %>
+          <%= button_to t('club.new_club_tournament'), new_club_tournament_club_path(@club, tournament: { season_id: season.id }), class: "btn btn-flat btn-primary" %>
+        <%- end -%>
+        <h2><%= t('home.index.season') %> <%= season.name %></h2>
+
+        <h3 class="space-above"><%= t('player.index.players') %></h3>
         <div class="flex space-x-20 p-4 justify-center bg-white dark:bg-black">
           <table class="w-full">
             <thead>
@@ -66,6 +71,7 @@
             </tbody>
           </table>
         </div>
+        <h3><%= t('club.club_tournaments') %></h3>
       <%- end %>
     </div>
   </div>

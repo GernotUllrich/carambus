@@ -468,6 +468,8 @@ en:
     status: Status
     founded: Founded
     dbu_entry: DBU entry
+    club_tournaments: Club Tournaments
+    new_club_tournament: New Club Tournament
   player_class:
     id: id
     discipline_id: discipline id
@@ -476,7 +478,8 @@ en:
     updated_at: updated at
   location:
     index:
-      locations: locations
+      location: Location
+      locations: Locations
     id: id
     club_id: club id
     address: address
@@ -567,8 +570,8 @@ en:
       game_warmup_b_started: "Training Player B"
       game_shootout_started: "Shoot Out"
       playing_game: ""
-      game_finished: "Partie finished - ok?"
-      game_show_result: "Partie finished"
+      game_finished: "Partie finished"
+      game_show_result: "Partie finished - ok?"
       game_result_reported: "Results reported"
       tournament_endresult: "Tournament Result"
       ready_for_new_game: "Ready for new game"
@@ -647,6 +650,12 @@ en:
     measures: measures
     created_at: created at
     updated_at: updated at
+    display_name_pool: Pool
+    display_name_snooker: Snooker
+    display_name_small_billard: Small Table
+    display_name_half_match: Half Match Table
+    display_name_match_billard: Match Table
+    none_available: None available
   table:
     id: id
     location_id: location id
@@ -802,7 +811,8 @@ en:
         ba_id: BA Id
         ba_state: BA-State
         state: State
-        region: region
+        region: Region
+        organizer: Organizer
         title: title
         season: season
         player_class: player class
@@ -957,10 +967,13 @@ en:
       hosting_club: 'Hosting club:'
       edit: 'Edit'
       back: 'Back'
-      syncing_with_billard_area: 'Almost all tournament data must be entered on the <a href="http://billard_area">Billard-Area</a> website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.). The download of Billiard-Area data is done via the link'
+      syncing_with_billard_area: 'With the exception of Club-organized tournaments almost all tournament data must be entered on the <a href="http://billard_area">Billard-Area</a> website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.)'
+      syncing_with_billard_area_ext: 'The download of Billiard-Area data is done via the link'
       reload_from_billard_area: 'Reload From Billard Area'
+      define_participants: "Update Participants"
       reload_from_billard_area_with_details: 'Reload From Billard Area with all details'
-      order_by_ranking: 'Order By Ranking'
+      order_by_ranking_or_handicap: 'Order By Ranking or Handicap'
+      finish_seeding: 'Finish Seeding List (no easy return)'
       finalize_tournament_modus: 'Finalize Tournament Modus'
       mangage_tournament_group_phase: 'Monitor Tournament Games'
       reset_tournament_monitor: 'Reset Tournament Monitor'
@@ -970,7 +983,7 @@ en:
       teilnehmer: 'Select Tournament Modus for %{count} Players'
       proposed_modus: 'Proposed Modus:'
       alternatives_same_discipline: 'Alternatives same discipline:'
-      alternatives_other_disciplines: 'Alternatives other disciplines:'
+      alternatives_other_disciplines: 'More Alternatives:'
       continue_with: Proceed with
       final_modus_selection: Finale Auswahl des Spielmodus
     form:
@@ -978,7 +991,7 @@ en:
       discipline: 'Discipline'
       player_class: 'Player Class'
     new:
-      new_tournament: New Tournament
+      new_tournament: New Club Tournament
       back: 'Back'
     tournament_monitor: Tournament Monitor
     start_tournament: 'Start Tournament'
@@ -1028,7 +1041,11 @@ en:
   table_assignments_heterogen: "tables from multiple locations"
   table_assignments_inconsistent: "table assignment ambiguous"
   select_game_mode: "Select Game Mode"
+  select_game: "Select Game"
+  select_tournament_table: "Select Tournament and Table"
+  select_training_table: "Select Training Table"
   tournaments_season: "Tournaments Season"
   add_tables: Add Tables
   carambus_manages: "Carambus Manages Billard Tournaments"
   welcome_to_carambus: "Welcome to Carambus"
+  welcome: "Welcome"

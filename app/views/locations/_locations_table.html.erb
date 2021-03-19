@@ -33,7 +33,7 @@
 <%= form_tag merge_locations_path, method: :post do %>
   <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master location id" %>
 
-  <%= label_tag "with duplicate" %><%= number_field_tag "with", nil, placeholder: "slave location id"  %>
+  <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave location id"  %>
   <%= submit_tag "merge and delete slave", class: "btn btn-primary"%>
 <% end %>
 

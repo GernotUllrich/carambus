@@ -39,6 +39,13 @@
   <% if @tournaments.any? %>
     <div id="table_wrapper">
       <%= render partial: 'tournaments_table' %>
+
+
+      <% if @pagy.pages > 1 %>
+        <div class="text-center my-6">
+          <%== pagy_nav(@pagy) %>
+        </div>
+      <% end %>
     </div>
   <% else %>
     <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
