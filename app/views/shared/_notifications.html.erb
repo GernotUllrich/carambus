@@ -15,7 +15,7 @@
       </span>
     <% end %>
 
-    <div data-dropdown-target="menu" class="lg:absolute lg:right-0 mt-2 hidden z-20">
+    <div data-target="dropdown.menu" class="lg:absolute lg:right-0 mt-2 hidden z-20">
       <div data-target="notifications.list" class="bg-white shadow rounded border overflow-hidden sm:w-64">
         <%= render partial: "notifications/notification", collection: @notifications, cached: true %>
         <div class="hidden p-4 text-center" data-notifications-target="placeholder">

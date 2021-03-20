@@ -137,6 +137,15 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor.add_n_balls_to_current_players_inning(-1)
   end
 
+  def minus_ten
+    morph :nothing
+    table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
+    table_monitor.current_element = "minus_ten"
+    table_monitor.reset_timer!
+    table_monitor.add_n_balls_to_current_players_inning(-10)
+  end
+
   def switch_players
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
@@ -167,18 +176,25 @@ class TableMonitorReflex < ApplicationReflex
     end
   end
 
+  def add_ten
+    begin
+      morph :nothing
+      table_monitor = TableMonitor.find(element.dataset[:id])
+      table_monitor.panel_state = "inputs"
+      table_monitor.current_element = "add_ten"
+      table_monitor.reset_timer!
+      table_monitor.add_n_balls_to_current_players_inning(10)
+      Rails.logger.info("[add_ten] ++++1++++")
+    rescue Exception => e
+      Rails.logger.info("[add_ten] #{e} #{e.backtrace.join("\n")}")
+    end
+  end
+
   def set_balls
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.set_n_balls_to_current_players_inning(element.value.to_i)
-  end
-
-  def add_ten
-    morph :nothing
-    table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.reset_timer!
-    table_monitor.add_n_balls_to_current_players_inning(10)
   end
 
   def numbers

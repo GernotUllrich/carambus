@@ -14,7 +14,9 @@ module TableMonitorsHelper
     element_to_panel_state = {
       "undo" => "inputs",
       "minus_one" => "inputs",
+      "minus_ten" => "inputs",
       "next_step" => "inputs",
+      "add_ten" => "inputs",
       "add_one" => "inputs",
       "numbers" => "inputs",
       "pause" => "timer",

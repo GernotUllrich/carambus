@@ -55,6 +55,8 @@ Rails.application.routes.draw do
         post :set_balls
         post :add_one
         post :add_ten
+        post :minus_one
+        post :minus_ten
         post :next_step
         post :undo
         post :up
