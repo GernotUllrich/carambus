@@ -20,7 +20,7 @@
     "local-time": "^2.1.0",
     "postcss": "^8.1.7",
     "slim-select": "^1.23.1",
-    "stimulus": "https://github.com/stimulusjs/dev-builds/archive/2b6facc/stimulus.tar.gz",
+    "stimulus": "^2",
     "stimulus-flatpickr": "^1.2.4",
     "stimulus-hotkeys": "^1.0.3",
     "stimulus_reflex": "3.3.0",
@@ -34,6 +34,6 @@
   },
   "devDependencies": {
     "@webpack-cli/serve": "^1.1.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.2"
   }
 }

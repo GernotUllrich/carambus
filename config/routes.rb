@@ -41,14 +41,13 @@ Rails.application.routes.draw do
     end
   end
 
-  # User account
-  devise_for :users,
-             controllers: {
+    # User account
+    devise_for :users, skip: :omniauth_callbacks,
+               controllers: {
                  masquerades: "jumpstart/masquerades",
                  omniauth_callbacks: "users/omniauth_callbacks",
                  registrations: "users/registrations"
-             }
-  scope "(:locale)", locale: /en|de/ do
+               }
     resources :seedings
     resources :table_monitors do
       member do
@@ -148,7 +147,6 @@ Rails.application.routes.draw do
       end
     end
     resources :countries
-  end
   resources :announcements, only: [:index]
   resources :api_tokens
   resources :accounts do

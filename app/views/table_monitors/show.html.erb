@@ -5,12 +5,12 @@
                   data: { reflex: "keypress->NumberPadReflex#key_pressed click->NumberPadReflex#outside", id: @table_monitor.id },
                   id: "full_screen_table_monitor_#{@table_monitor.id}",
                   class: "table_monitor flex-1 h-screen" do %>
-    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true } %>
+    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true, panel_state: @table_monitor.panel_state, current_element: @table_monitor.current_element } %>
   <%- end %>
 <%- else %>
   <%= content_tag "div",
                   id: "full_screen_table_monitor_#{@table_monitor.id}",
                   class: "table_monitor flex-1 h-screen" do %>
-    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true } %>
+    <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true, panel_state: @table_monitor.panel_state, current_element: @table_monitor.current_element } %>
   <%- end %>
 <%- end %>

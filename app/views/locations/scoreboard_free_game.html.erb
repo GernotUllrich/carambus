@@ -1,0 +1,164 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
+<script type="text/javascript">
+  window.onload = function () {
+    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      var current_element = tabbed_keys[0]
+      document.getElementById(current_element).focus();
+    }
+  };
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    //console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a",
+      37: "key_a",
+      34: "key_b",
+      39: "key_b",
+      66: "key_c",
+      38: "key_c",
+      116: "key_d",
+      27: "key_d",
+      40: "key_d",
+    }
+    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+
+    var current_element = document.activeElement.getAttribute("id")
+    console.log("active: " + current_element);
+    if (current_element == null) {
+      current_element = tabbed_keys[0];
+      console.log("active now: " + current_element);
+      document.getElementById(current_element).focus();
+    }
+
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c") {
+        window.history.back();
+      }
+      if (key == "key_b") {
+        var current_element = document.activeElement.getAttribute("id")
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i + 1;
+            if (ff >= tabbed_keys.length) ff = 0;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            document.getElementById(tabbed_keys[ff]).focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_a") {
+        var current_element = document.activeElement.getAttribute("id");
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i - 1;
+            if (ff < 0) ff = tabbed_keys.length - 1;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            document.getElementById(tabbed_keys[ff]).focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_d") {
+        console.log("activate: " + document.activeElement.getAttribute("id"));
+        document.activeElement.click();
+      }
+    }
+    event.preventDefault();
+    return true
+  });
+</script>
+<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <h1 class="flex text-gray-200 "><%= "Trainingspartie #{@table.andand.name}" %></h1>
+  <%- if @location.present? %>
+    <h1 class="flex text-gray-200 mt-4"><%= @location.name %></h1>
+    <%= form_with model: @table_monitor, data: { reflex: "submit->TableMonitorReflex#submit", signed_id: @table_monitor.andand.to_sgid.to_s } do |form| %>
+
+      <div class="flex mt-4 text-center">
+        <%= form.submit "Start Game", class: "border-4 rounded-lg p-1 btn btn-primary text-2vw lg:mr-4 mr-0 lg:mb-0 mb-4", id:"submit", tabindex:"1" %>
+      </div>
+      <div style="text-shadow: 2px 2px #000000" class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
+        <div class="flex flex-col text-white">
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Disziplin</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline", id: @table_monitor.andand.id }, id: "discipline", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@discipline || "Freie Partie").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Aufnahmen</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#innings", id: @table_monitor.andand.id }, id: "innings", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@innings || "20").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Ballziel</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#balls_goal", id: @table_monitor.andand.id }, id: "balls_goal", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@balls_goal || "80").html_safe %>
+          <%- end %>
+        </div>
+      </div>
+
+      <div class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200" style="text-shadow: 2px 2px #000000">
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Name</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#player_a_name", id: @table_monitor.andand.id }, id: "player_a_name", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@player_a_name || "Spieler A").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Disziplin</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline_a", id: @table_monitor.andand.id }, id: "discipline_a", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@discipline_a || "Freie Partie").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex row-span-4 items-center">
+          <div class="p-10 w-full text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M6.59 12.83L4.4 15c-.58.58-1.59 1-2.4 1H0v-2h2c.29 0 .8-.2 1-.41l2.17-2.18 1.42 1.42zM16 4V1l4 4-4 4V6h-2c-.29 0-.8.2-1 .41l-2.17 2.18L9.4 7.17 11.6 5c.58-.58 1.59-1 2.41-1h2zm0 10v-3l4 4-4 4v-3h-2c-.82 0-1.83-.42-2.41-1l-8.6-8.59C2.8 6.21 2.3 6 2 6H0V4h2c.82 0 1.83.42 2.41 1l8.6 8.59c.2.2.7.41.99.41h2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Ballziel</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#@balls_goal_a", id: @table_monitor.andand.id }, id: "@balls_goal_a", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@balls_goal_a || "80").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Name</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#@player_b_name", id: @table_monitor.andand.id }, id: "@player_b_name", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@player_b_name || "Spieler B").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Disziplin</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline_b", id: @table_monitor.andand.id }, id: "discipline_b", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@discipline_b || "Freie Partie").html_safe %>
+          <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="mb-1">Ballziel</div>
+          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#balls_goal_b", id: @table_monitor.andand.id }, id: "balls_goal_b", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
+            <%= (@balls_goal_b || "80").html_safe %>
+          <%- end %>
+        </div>
+      </div>
+    <%- end %>
+  <%- end %>
+</div>

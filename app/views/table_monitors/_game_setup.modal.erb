@@ -7,7 +7,7 @@
         <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
         <div class="flex-1 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
         <div class="flex-1 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>
-        <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.current_round %></div>
+        <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
       </div>
       <hr>
       <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>

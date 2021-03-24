@@ -625,8 +625,8 @@ de:
       region: 'Regionalverbände'
       club: 'Clubs'
       tournaments: Turniere
-      seeding: 'Setzlisten'
-      tournament: 'Turnier'
+      seeding: 'Turnierteilnahmen'
+      tournament: 'Turniere'
       results: 'Ergebnisse'
       training: 'Training'
       spieler: Spieler

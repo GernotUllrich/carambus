@@ -25,7 +25,7 @@ class TableMonitor < ApplicationRecord
   cattr_accessor :allow_change_tables, :panel_state, :current_element
 
   include AASM
-  belongs_to :tournament_monitor
+  belongs_to :tournament_monitor, optional: true
   belongs_to :game, optional: true
   belongs_to :table
   has_paper_trail
@@ -133,7 +133,7 @@ class TableMonitor < ApplicationRecord
       TableMonitorLaterJob.perform_later(self)
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show",
-        locals: { table_monitor: self, full_screen: true }
+        locals: { table_monitor: self, full_screen: true, panel_state: session[:panel_state], current_element: session[:current_element]  }
       )
       cable_ready["table-monitor-stream"].inner_html(
         selector: "#full_screen_table_monitor_#{id}",
@@ -278,7 +278,7 @@ class TableMonitor < ApplicationRecord
   def assign_game(game_p)
     info = "+++ 8c - tournament_monitor#assign_game - game_p"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
     info = "+++ 8d - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
-    self.allow_change_tables = tournament_monitor.allow_change_tables
+    self.allow_change_tables = tournament_monitor.andand.allow_change_tables
     tmp_results = game_p.deep_delete!("tmp_results")
     if tmp_results.andand["state"].present?
       info = "+++ 8e - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info

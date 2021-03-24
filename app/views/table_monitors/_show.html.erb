@@ -248,8 +248,8 @@
     id: table_monitor.id,
     name: table_monitor.name,
     game_name: table_monitor.game.andand.display_gname,
-    tournament_title: table_monitor.tournament_monitor.tournament.title,
-    current_round: table_monitor.tournament_monitor.current_round,
+    tournament_title: table_monitor.andand.tournament_monitor.andand.tournament.andand.title,
+    current_round: table_monitor.tournament_monitor.andand.current_round,
     active_timer: table_monitor.active_timer,
     start_at: table_monitor.timer_start_at,
     finish_at: table_monitor.timer_finish_at,
@@ -397,7 +397,7 @@
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
               <div class="h-5/6 p-4 text-10vw font-bold text-center"><%= options[:player_a][:innings].to_i %></div>
-              <%- unless table_monitor.tournament_monitor.tournament.handicap_tournier? %>
+              <%- unless table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? %>
                 <div class="h-1/6 items-center text-2vw justify-center text-center">von <%= options[:player_a][:innings_goal].to_i %></div>
               <%- end %>
             </div>

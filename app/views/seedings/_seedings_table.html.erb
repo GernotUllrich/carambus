@@ -19,8 +19,8 @@
     <% @seedings.each do |seeding| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
         <td class="p-3"><%= link_to(seeding.player.fullname, player_path(seeding.player)) %></td>
-        <td class="p-3"><%= seeding.tournament.date.to_date %></td>
-        <td class="p-3"><%= link_to(seeding.tournament.title, tournament_path(seeding.tournament)) + " (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.plan_or_show}/#{seeding.tournament.ba_id}")})".html_safe %></td>
+        <td class="p-3"><%= ((seeding.tournament.date.to_date if seeding.tournament.date.to_i > 0)) || "#{seeding.tournament.season.name}" %></td>
+        <td class="p-3"><%= link_to(seeding.tournament.title, tournament_path(seeding.tournament)) + "#{" (BA #{link_to(seeding.tournament.ba_id, "https://#{seeding.tournament.organizer.shortname.downcase}.billardarea.de/cms_#{seeding.tournament.single_or_league}/#{seeding.tournament.plan_or_show}/#{seeding.tournament.ba_id}")})" if seeding.tournament.organizer.is_a? Region}".html_safe %></td>
         <td class="p-3"><%= seeding.ba_state %></td>
         <td class="p-3"><%= seeding.position %></td>
         <td class="p-3"><%= Seeding.result_display(seeding) %></td>

@@ -64,7 +64,7 @@
                   <%= link_to 'Letter Opener', letter_opener_web_path(script_name: nil), class: 'no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800  hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap', target: :_blank, data: { turbolinks: false } %>
                 <% end %>
 
-                <%= link_to t(".sign_out"), destroy_user_session_path, method: :delete, class: 'no-underline block px-6 py-3 border-t text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
+                <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: 'no-underline block px-6 py-3 border-t text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
               </div>
             </div>
           </div>

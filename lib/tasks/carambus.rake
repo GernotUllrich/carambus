@@ -314,94 +314,94 @@ namespace :carambus do
 
   desc "update ranking tables"
   task :update_ranking_tables => :environment do
-    # # for all seasons - starting with earliest
-    # season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2].name
-    # #Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
-    # Season.order(ba_id: :asc).each do |season|
-    #   # for all regions
-    #   # TEST
-    #   #next unless season.name == "2018/2019"
-    #   Region.all.each do |region|
-    #     # for all disciplines
-    #     # TEST
-    #     #next unless region.shortname == "NBV"
-    #     Discipline.all.each do |discipline|
-    #       # for all relevant tournaments
-    #       # TEST
-    #       next unless discipline.root.name == "Carambol"
-    #       players = {}
-    #       Tournament.where(season: season, region: region, discipline: discipline).each do |tournament|
-    #         # for all participants
-    #         sum_keys = %w{Sp.G Sp.V G V Bälle Aufn Punkte Frames Partiepunkte Satzpunkte Kegel}
-    #         max_keys = %w{Sp.Quote Quote GD HB HS HGD BED}
-    #         ignore_keys = %w{# Name Verein Rank}
-    #         computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
-    #         tournament.seedings.includes(:player).each do |seeding|
-    #           player_record = players[seeding.player.id]
-    #           gl = seeding.data["result"]["Gesamtrangliste"] rescue {}
-    #           unless player_record.present?
-    #             players[seeding.player.id] = {}
-    #             if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
-    #               xxx
-    #             end
-    #             ((max_keys | sum_keys) & gl.keys).each do |k|
-    #               players[seeding.player.id][k] = 0
-    #             end
-    #             players[seeding.player.id]["t_ids"] = []
-    #           end
-    #           players[seeding.player.id]["t_ids"] << tournament.id
-    #           (sum_keys & gl.keys).each do |k|
-    #             players[seeding.player.id][k] = (players[seeding.player.id][k] || 0) + gl[k].to_i
-    #           end
-    #           (max_keys & gl.keys).each do |k|
-    #             v = gl[k]
-    #             if v =~ /%/
-    #               vf = (v.gsub(/\s*%/, "").gsub(",", ".")).to_f
-    #               pf = players[seeding.player.id][k] || 0
-    #               players[seeding.player.id][k] = [vf, pf].max
-    #             elsif v =~ /,/
-    #               vf = (v.gsub(",", ".")).to_f
-    #               pf = players[seeding.player.id][k] || 0
-    #               players[seeding.player.id][k] = [vf, pf].max
-    #             else
-    #               vi = v.to_i
-    #               pi = players[seeding.player.id][k] || 0
-    #               players[seeding.player.id][k] = [vi, pi].max
-    #             end
-    #           end
-    #         end
-    #       end
-    #       players.keys.select do |player_id|
-    #         values = players[player_id]
-    #         values["Bälle"].to_f > 0 && values["Aufn"].to_f > 0
-    #       end.
-    #         sort_by do |player_id|
-    #         values = players[player_id]
-    #         100.0 * values["Bälle"] / values["Aufn"]
-    #       end.reverse.
-    #         each_with_index do |player_id, ix|
-    #         args = {
-    #           player_id: player_id,
-    #           region_id: region.id,
-    #           season_id: season.id,
-    #           discipline_id: discipline.id
-    #         }
-    #         values = players[player_id]
-    #         player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
-    #         data = player_ranking.data
-    #         data["result"] = values
-    #         attributes = {}
-    #         values.keys.each do |k|
-    #           mapped_k = PlayerRanking::KEY_MAPPINGS[k]
-    #           attributes[mapped_k] = values[k]
-    #         end
-    #         attributes[:data] = data
-    #         attributes[:rank] = ix + 1
-    #         player_ranking.update_attributes(attributes)
-    #       end
-    #     end
-    #   end
-    # end
+    # for all seasons - starting with earliest
+    season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2].name
+    #Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
+    Season.order(ba_id: :asc).each do |season|
+      # for all regions
+      # TEST
+      #next unless season.name == "2018/2019"
+      Region.all.each do |region|
+        # for all disciplines
+        # TEST
+        #next unless region.shortname == "NBV"
+        Discipline.all.each do |discipline|
+          # for all relevant tournaments
+          # TEST
+          next unless discipline.root.name == "Carambol"
+          players = {}
+          Tournament.where(season: season, organizer_type: "Region", organizer_id: region.id, discipline: discipline).each do |tournament|
+            # for all participants
+            sum_keys = %w{Sp.G Sp.V G V Bälle Aufn Punkte Frames Partiepunkte Satzpunkte Kegel}
+            max_keys = %w{Sp.Quote Quote GD HB HS HGD BED}
+            ignore_keys = %w{# Name Verein Rank}
+            computes = %w{GD:Bälle/Aufn Quote:100*G/V Sp.Quote:100*Sp.G/Sp.V}
+            tournament.seedings.includes(:player).each do |seeding|
+              player_record = players[seeding.player.id]
+              gl = seeding.data["result"]["Gesamtrangliste"] rescue {}
+              unless player_record.present?
+                players[seeding.player.id] = {}
+                if (gl.keys - (ignore_keys + sum_keys + max_keys)).present?
+                  xxx
+                end
+                ((max_keys | sum_keys) & gl.keys).each do |k|
+                  players[seeding.player.id][k] = 0
+                end
+                players[seeding.player.id]["t_ids"] = []
+              end
+              players[seeding.player.id]["t_ids"] << tournament.id
+              (sum_keys & gl.keys).each do |k|
+                players[seeding.player.id][k] = (players[seeding.player.id][k] || 0) + gl[k].to_i
+              end
+              (max_keys & gl.keys).each do |k|
+                v = gl[k]
+                if v =~ /%/
+                  vf = (v.gsub(/\s*%/, "").gsub(",", ".")).to_f
+                  pf = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vf, pf].max
+                elsif v =~ /,/
+                  vf = (v.gsub(",", ".")).to_f
+                  pf = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vf, pf].max
+                else
+                  vi = v.to_i
+                  pi = players[seeding.player.id][k] || 0
+                  players[seeding.player.id][k] = [vi, pi].max
+                end
+              end
+            end
+          end
+          players.keys.select do |player_id|
+            values = players[player_id]
+            values["Bälle"].to_f > 0 && values["Aufn"].to_f > 0
+          end.
+            sort_by do |player_id|
+            values = players[player_id]
+            100.0 * values["Bälle"] / values["Aufn"]
+          end.reverse.
+            each_with_index do |player_id, ix|
+            args = {
+              player_id: player_id,
+              region_id: region.id,
+              season_id: season.id,
+              discipline_id: discipline.id
+            }
+            values = players[player_id]
+            player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
+            data = player_ranking.data
+            data["result"] = values
+            attributes = {}
+            values.keys.each do |k|
+              mapped_k = PlayerRanking::KEY_MAPPINGS[k]
+              attributes[mapped_k] = values[k]
+            end
+            attributes[:data] = data
+            attributes[:rank] = ix + 1
+            player_ranking.update_attributes(attributes)
+          end
+        end
+      end
+    end
 
   end
 end

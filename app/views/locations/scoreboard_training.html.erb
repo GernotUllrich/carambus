@@ -100,7 +100,7 @@
           <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
           <%- if free_for_table_kind.present? %>
             <%- free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
-              <%= link_to table.name, table_path(table), data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-1 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "table_#{table.id}", tabindex: 1 %>
+              <%= link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-4vw p-2 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "table_monitor_#{table.id}", tabindex: 1 %>
             <% end %>
           <%- end %>
         </div>
