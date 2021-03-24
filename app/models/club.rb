@@ -89,7 +89,7 @@ class Club < ApplicationRecord
     club_status = doc_detail.css(".right fieldset:nth-child(1) .element").children
     club_founded = doc_detail.css(".right fieldset:nth-child(2) .element").text.strip
     club_dbu_entry = doc_detail.css(".right fieldset~ fieldset+ fieldset .element").text.strip
-    update_attributes(
+    update(
         name: club_name,
         shortname: club_shortname,
         homepage: club_homepage,
@@ -107,7 +107,7 @@ class Club < ApplicationRecord
         player = Player.find_by_ba_id(player_ba_id)
         skip_details = player.present? && !force_update
         player ||= players.new()
-        player.update_attributes(ba_id: player_ba_id)
+        player.update(ba_id: player_ba_id)
         sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, id) ||
             SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: id)
         unless skip_details
@@ -120,7 +120,7 @@ class Club < ApplicationRecord
           if player_ba_id == player.ba_id
             player_title = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(3) .field").text.strip
             player_lastname, player_firstname = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(4) .field").text.strip.split(", ")
-            player.update_attributes(title: player_title, lastname: player_lastname, firstname: player_firstname)
+            player.update(title: player_title, lastname: player_lastname, firstname: player_firstname)
           end
         end
       end

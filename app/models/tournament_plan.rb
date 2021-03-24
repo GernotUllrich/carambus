@@ -2759,7 +2759,7 @@ class TournamentPlan < ApplicationRecord
       }
       executor_params["g#{gix + 1}"] = g_params
     end
-    plan.update_attributes(
+    plan.update(
       executor_class: "",
       executor_params: executor_params.to_json,
       ngroups: group_sizes.length,
@@ -2778,7 +2778,7 @@ class TournamentPlan < ApplicationRecord
   def self.update_tournament_plan_executor_params
     TournamentPlan::RULES.keys.each do |k|
       tp = TournamentPlan.find_by_name(k)
-      tp.update_attributes(executor_params: TournamentPlan::RULES[k].to_json)
+      tp.update(executor_params: TournamentPlan::RULES[k].to_json)
     end
   end
 end

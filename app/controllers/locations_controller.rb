@@ -58,35 +58,35 @@ class LocationsController < ApplicationController
     @navbar = @footer = false
     @tournament = nil
     @table = Table.find(params[:table_id])
-    info = "+++ 1a - locations_controller#placement @table"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 1a - locations_controller#placement @table"; DebugInfo.instance.update(info: info); Rails.logger.info info
     @location = Location.find(params[:id])
-    info = "+++ 1b - locations_controller#placement @location"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 1b - locations_controller#placement @location"; DebugInfo.instance.update(info: info); Rails.logger.info info
     if params[:tournament_id].present?
       @tournament = Tournament.find(params[:tournament_id])
-      info = "+++ 1c - locations_controller#placement @tournament"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      info = "+++ 1c - locations_controller#placement @tournament"; DebugInfo.instance.update(info: info); Rails.logger.info info
       # @game = @table.table_monitor.andand.game
-      # info = "+++ 1d - locations_controller#placement @game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      # info = "+++ 1d - locations_controller#placement @game"; DebugInfo.instance.update(info: info); Rails.logger.info info
       # if @game.present? && @table.table_monitor.andand.data.present?
       #   tmp_results = {}
       #   if @table.table_monitor.andand.data["ba_results"].present?
-      #     info = "+++ 1e - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      #     info = "+++ 1e - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       #     tmp_results["ba_results"] = @table.table_monitor.data["ba_results"].dup
       #     tmp_results["state"] = @table.table_monitor.state
-      #     info = "+++ 2x - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      #     info = "+++ 2x - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       #     @game.deep_merge_data!("tmp_results" => tmp_results)
-      #     @table.table_monitor.update_attributes(state: "ready", game_id: nil, data: {})
+      #     @table.table_monitor.update(state: "ready", game_id: nil, data: {})
       #   elsif @table.table_monitor.andand.data["current_inning"].present? && @table.table_monitor.data["playera"].present? && @table.table_monitor.data["playerb"].present?
-      #     info = "+++ 2e - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      #     info = "+++ 2e - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       #     tmp_results["playera"] = @table.table_monitor.data["playera"].dup
       #     tmp_results["playerb"] = @table.table_monitor.data["playerb"].dup
       #     tmp_results["current_inning"] = @table.table_monitor.data["current_inning"].dup if
       #     tmp_results["state"] = @table.table_monitor.state
-      #     info = "+++ 2y - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      #     info = "+++ 2y - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       #     @game.deep_merge_data!("tmp_results" => tmp_results)
-      #     @table.table_monitor.update_attributes(state: "ready", game_id: nil, data: {})
+      #     @table.table_monitor.update(state: "ready", game_id: nil, data: {})
       #   end
       # end
-      info = "+++ 3l - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      info = "+++ 3l - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       @games = @tournament.games.joins(:game_participations => :player).where(game_participations: { role: "playera" }).to_a.sort_by { |game| game.game_participations.where(role: "playera").first.player.lastname + game.game_participations.where(role: "playerb").first.player.lastname }.select { |game| game.data.blank? || game.data["ba_results"].blank? }
     else
       redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game", player_a_id: @player_a.andand.id, player_b_id: @player_b.andand.id)

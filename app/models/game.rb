@@ -129,7 +129,7 @@ class Game < ApplicationRecord
         attrs = {}
         attrs = attrs.merge(Hash[gp_a.data["results"].map { |k, v| [mapping[k], v] }].symbolize_keys) if gp_a.data["results"].present?
         attrs = attrs.merge(data: remarks_a)
-        gp_a.update_attributes(attrs)
+        gp_a.update(attrs)
       end
       if gp_b.present?
         remarks_b = gp_b.andand.data || {}
@@ -137,7 +137,7 @@ class Game < ApplicationRecord
         attrs = {}
         attrs = attrs.merge(Hash[gp_b.data["results"].map { |k, v| [mapping[k], v] }].symbolize_keys) if gp_b.data["results"].present?
         attrs = attrs.merge(data: remarks_b)
-        gp_b.update_attributes(attrs)
+        gp_b.update(attrs)
       end
     else
       game.destroy

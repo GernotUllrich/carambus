@@ -53,7 +53,7 @@ class SettingsController < ApplicationController
 
   def manage_tournament
     @setting = Setting.instance
-    @setting.update_attributes(tournament_id: params[:tournament_id].to_i)
+    @setting.update(tournament_id: params[:tournament_id].to_i)
     redirect_to tournament_path(@setting.tournament)
   end
 

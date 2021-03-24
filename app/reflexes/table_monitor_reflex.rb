@@ -204,7 +204,7 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor.current_element = "numbers"
     table_monitor.reset_timer!
     if TableMonitor::NNN == "db"
-      table_monitor.update_attributes(nnn: nil)
+      table_monitor.update(nnn: nil)
     else
       session[:"nnn_#{element.dataset[:id]}"] = nil
     end
@@ -229,8 +229,8 @@ class TableMonitorReflex < ApplicationReflex
       Rails.logger.info ";;; game2.id=#{game2.andand.id}, tm2: #{JSON.pretty_generate(tm2.attributes)}"
       tm1_data = tm1.data.dup
       tm2_data = tm2.data.dup
-      tm1.update_attributes(game_id: game2.id, data: tm2_data)
-      tm2.update_attributes(game_id: game1.id, data: tm1_data)
+      tm1.update(game_id: game2.id, data: tm2_data)
+      tm2.update(game_id: game1.id, data: tm1_data)
     rescue Exception => e
       Rails.logger.info ";;; up #{e} #{e.backtrace.join("\n")}"
     end
@@ -253,8 +253,8 @@ class TableMonitorReflex < ApplicationReflex
       Rails.logger.info ";;; game2.id=#{game2.andand.id}, tm2: #{JSON.pretty_generate(tm2.attributes)}"
       tm1_data = tm1.data.dup
       tm2_data = tm2.data.dup
-      tm1.update_attributes(game_id: game2.id, data: tm2_data)
-      tm2.update_attributes(game_id: game1.id, data: tm1_data)
+      tm1.update(game_id: game2.id, data: tm2_data)
+      tm2.update(game_id: game1.id, data: tm1_data)
     rescue Exception => e
       Rails.logger.info ";;; down #{e} #{e.backtrace.join("\n")}"
     end
@@ -319,7 +319,7 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.panel_state = "timer"
     table_monitor.current_element = "pause"
-    table_monitor.update_attributes(timer_halt_at: Time.now)
+    table_monitor.update(timer_halt_at: Time.now)
   end
 
   private
@@ -341,7 +341,7 @@ class TableMonitorReflex < ApplicationReflex
         start_at = start_at + extend
         finish_at = finish_at + extend
       end
-      table_monitor.update_attributes(
+      table_monitor.update(
         active_timer: active_timer,
         timer_halt_at: nil,
         timer_start_at: start_at,

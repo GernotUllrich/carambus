@@ -25,7 +25,7 @@ namespace :carambus do
       region_shortname = region.attribute("name").value
       region_logo = url + region.attribute("onmouseover").value.gsub(/MM_swapImage\('#{region_shortname}','','(.*)',1\).*/, '\1')
       r = Region.find_by_shortname(region_shortname) || Region.new
-      r.update_attributes(name: region_name, shortname: region_shortname, logo: region_logo, country: country_de)
+      r.update(name: region_name, shortname: region_shortname, logo: region_logo, country: country_de)
     end
   end
 
@@ -91,7 +91,7 @@ namespace :carambus do
       if player_ba_id == player.ba_id
         player_title = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(3) .field").text.strip
         player_lastname, player_firstname = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(4) .field").text.strip.split(", ")
-        player.update_attributes(title: player_title, lastname: player_lastname, firstname: player_firstname)
+        player.update(title: player_title, lastname: player_lastname, firstname: player_firstname)
       end
     end
   end
@@ -131,7 +131,7 @@ namespace :carambus do
     Tournament.where(discipline_id: unknown_discipline.id).all.each do |tournament|
       Tournament::NAME_DISCIPLINE_MAPPINGS.each do |k, v|
         if tournament.title =~ /#{k}/
-          tournament.update_attributes(discipline_id: Discipline.find_by_name(v).id)
+          tournament.update(discipline_id: Discipline.find_by_name(v).id)
         end
       end
     end
@@ -166,7 +166,7 @@ namespace :carambus do
               if ba_id.present?
                 tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
                 tournament.scrape_single_tournament(game_details: true)
-                tournament.update_attributes(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
+                tournament.update(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
                 tournament.update_columns(last_ba_sync_date: Time.now)
               else
                 ba_id
@@ -279,11 +279,11 @@ namespace :carambus do
                   if ba_id.present?
                     tournament = Tournament.find_by_ba_id(ba_id)
                     if tournament.present? && tournament.discipline.blank?
-                      tournament.update_attributes(discipline: discipline)
+                      tournament.update(discipline: discipline)
                     end
                     tournament ||=
                       Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
-                    tournament.update_attributes(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
+                    tournament.update(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
                     scrape_single_tournament(tournament, logger: logger)
                     tournament.update_columns(last_ba_sync_date: Time.now)
                   else
@@ -307,7 +307,7 @@ namespace :carambus do
     # end
     Game.all.each do |game|
       gname = game.data["Gr."]
-      game.update_attributes(gname: gname) if gname.present?
+      game.update(gname: gname) if gname.present?
     end
     #Game.fix_participation(Game[42855])
   end
@@ -397,7 +397,7 @@ namespace :carambus do
             end
             attributes[:data] = data
             attributes[:rank] = ix + 1
-            player_ranking.update_attributes(attributes)
+            player_ranking.update(attributes)
           end
         end
       end

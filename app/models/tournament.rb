@@ -272,7 +272,7 @@ class Tournament < ApplicationRecord
                     logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
                     logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
                     player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-                    player_fixed.update_attributes(ba_id: 999000000 + player_fixed.id)
+                    player_fixed.update(ba_id: 999000000 + player_fixed.id)
                     SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
                       SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
@@ -322,8 +322,8 @@ class Tournament < ApplicationRecord
                 logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
                 fixed_club = region.clubs.create(name: club_str, shortname: club_str)
                 fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
-                fixed_club.update_attributes(ba_id: 999000000 + fixed_club.id)
-                fixed_player.update_attributes(ba_id: 999000000 + fixed_player.id)
+                fixed_club.update(ba_id: 999000000 + fixed_club.id)
+                fixed_player.update(ba_id: 999000000 + fixed_player.id)
                 SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
 
                 logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
@@ -432,7 +432,7 @@ class Tournament < ApplicationRecord
     end
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
     unless new_record?
-      update_attributes(tournament_plan_id: nil, state: "new_tournament", data: {})
+      update(tournament_plan_id: nil, state: "new_tournament", data: {})
       reload
     end
     logger.info "state:#{state}...[reset_tournament]"

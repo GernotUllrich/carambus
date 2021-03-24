@@ -23,7 +23,7 @@ module.exports = {
 
   plugins: [
     // You can enable the forms plugin if you use Tailwind UI
-    // require('@tailwindcss/forms'),
+    require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('@tailwindcss/aspect-ratio')
   ],

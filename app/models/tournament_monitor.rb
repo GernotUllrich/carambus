@@ -81,19 +81,19 @@ class TournamentMonitor < ApplicationRecord
   def set_current_round!(round)
     data_will_change!
     data["current_round"] = round
-    update_attributes(data: data)
+    update(data: data)
   end
 
   def incr_current_round!
     data_will_change!
     data["current_round"] = current_round + 1
-    update_attributes(data: data)
+    update(data: data)
   end
 
   def decr_current_round!
     data_will_change!
     data["current_round"] = current_round - 1
-    update_attributes(data: data)
+    update(data: data)
   end
 
   def finalize_game_result(table_monitor)
@@ -187,7 +187,7 @@ class TournamentMonitor < ApplicationRecord
         "gp_id": gp.id
       }
       gp.deep_merge_data!("results" => results)
-      gp.update_attributes(points: points["player#{c}"], result: result, innings: innings, gd: gd, hs: hs)
+      gp.update(points: points["player#{c}"], result: result, innings: innings, gd: gd, hs: hs)
       Tournament.logger.info("RESULT #{game.gname} points: #{points["player#{c}"]}, result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}")
     end
   end
@@ -329,7 +329,7 @@ class TournamentMonitor < ApplicationRecord
     rk_rules.each_with_index do |rule, ix|
       player_id = player_id_from_ranking(rule)
       rankings["total"][player_id.to_s]["rank"] = ix + 1
-      tournament.seedings.where(seedings: { player_id: player_id }).first.andand.update_attributes(rank: ix + 1)
+      tournament.seedings.where(seedings: { player_id: player_id }).first.andand.update(rank: ix + 1)
     end
     data_will_change!
     data["rankings"] = rankings
@@ -445,7 +445,7 @@ class TournamentMonitor < ApplicationRecord
     table_ids = tournament.data[:table_ids]
     (1..tournament.tournament_plan.tables).each do |t_no|
       table_monitor = self.reload.table_monitors.find_or_create_by!(table_id: table_ids[t_no - 1])
-      table_monitor.update_attributes(name: "table#{t_no}")
+      table_monitor.update(name: "table#{t_no}")
     end
     reload
     Tournament.logger.info "state:#{state}...[tmon-initialize_table_monitors]"
@@ -587,14 +587,14 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def do_placement(new_game, r_no, t_no)
-    info = "+++ 8a - tournament_monitor#do_placement @game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 8a - tournament_monitor#do_placement @game"; DebugInfo.instance.update(info: info); Rails.logger.info info
     if new_game.data.blank? || new_game.data.keys == ["tmp_results"]
-      info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       @placements = data["placements"].presence || {}
       table_ids = tournament.data[:table_ids]
       if (current_round == r_no && new_game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
         seqno = new_game.seqno.to_i > 0 ? new_game.seqno : next_seqno
-        new_game.update_attributes(round_no: r_no, table_no: t_no, seqno: seqno)
+        new_game.update(round_no: r_no, table_no: t_no, seqno: seqno)
         @placements["round#{r_no}"] ||= {}
         @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
         Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
@@ -602,7 +602,7 @@ class TournamentMonitor < ApplicationRecord
         old_game = @table_monitor.game
         if old_game.present?
           @table_monitor.data_will_change!
-          info = "+++ 8c - tournament_monitor#do_placement - save current game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+          info = "+++ 8c - tournament_monitor#do_placement - save current game"; DebugInfo.instance.update(info: info); Rails.logger.info info
           tmp_results = {}
           tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
           tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)

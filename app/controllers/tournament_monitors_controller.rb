@@ -6,7 +6,7 @@ class TournamentMonitorsController < ApplicationController
     if @game.present?
       roles = @game.game_participations.map(&:role).reverse
       @game.game_participations.each_with_index do |gp, ix|
-        gp.update_attributes(role: roles[ix])
+        gp.update(role: roles[ix])
       end
     end
     redirect_to tournament_monitor_path(@tournament_monitor)
@@ -27,7 +27,7 @@ class TournamentMonitorsController < ApplicationController
         table_monitor.data["playerb"]["gd"] = sprintf("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
         table_monitor.data_will_change!
         table_monitor.save
-        game.update_attributes(ended_at: Time.now)
+        game.update(ended_at: Time.now)
         @tournament_monitor.update_game_participations(table_monitor)
         table_monitor.evaluate_result
       end

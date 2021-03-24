@@ -65,7 +65,7 @@ class TournamentsController < ApplicationController
     end
     sorted.each_with_index do |a, ix|
       seeding, rank = a
-      seeding.update_attributes(position: ix + 1)
+      seeding.update(position: ix + 1)
     end
 
     #@tournament.finish_seeding!
@@ -109,7 +109,7 @@ class TournamentsController < ApplicationController
 
   def select_modus
     begin
-      @tournament.update_attributes(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
+      @tournament.update(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
       @tournament.finish_mode_selection!
       @tournament.reload
     rescue Exception => e
@@ -127,45 +127,45 @@ class TournamentsController < ApplicationController
   end
 
   def placement
-    info = "+++ 4 - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 4 - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     @navbar = @footer = false
     @game = Game.find(params[:game_id])
     @table = Table.find(params[:table_id])
     @tournament_monitor = @tournament.tournament_monitor
     @table_monitor = TableMonitor.find_by_table_id(@table.id) || TableMonitor.create(table_id: @table.id)
-    @table_monitor.update_attributes(tournament_monitor_id: @tournament_monitor.id)
+    @table_monitor.update(tournament_monitor_id: @tournament_monitor.id)
     # if @table_monitor.game.present? && @game != @table_monitor.game
-    #   info = "+++ 4b - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #   info = "+++ 4b - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #   tmp_results = {}
     #   if @table_monitor.andand.data["ba_results"].present?
-    #     info = "+++ 1 - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #     info = "+++ 1 - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #     tmp_results["ba_results"] = @table_monitor.data["ba_results"].dup
     #     tmp_results["state"] = @table_monitor.state
-    #     info = "+++ 2a - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #     info = "+++ 2a - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #     @game.deep_merge_data!("tmp_results" => tmp_results)
-    #     @table_monitor.update_attributes(state: "ready", game_id: nil, data: {})
+    #     @table_monitor.update(state: "ready", game_id: nil, data: {})
     #   elsif @table_monitor.andand.data["current_inning"].present? && @table_monitor.data["playera"].present? && @table_monitor.data["playerb"].present?
     #
-    #     info = "+++ 2 - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #     info = "+++ 2 - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #     tmp_results["playera"] = @table_monitor.data["playera"].dup
     #     tmp_results["playerb"] = @table_monitor.data["playerb"].dup
     #     tmp_results["current_inning"] = @table_monitor.data["current_inning"].dup
     #     tmp_results["state"] = @table_monitor.state
-    #     info = "+++ 2b - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #     info = "+++ 2b - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #     @game.deep_merge_data!("tmp_results" => tmp_results)
-    #     @table_monitor.update_attributes(state: "ready", game_id: nil, data: {})
+    #     @table_monitor.update(state: "ready", game_id: nil, data: {})
     #   end
     # end
-    # @table_monitor.update_attributes(name: "table#{@table.number}")
+    # @table_monitor.update(name: "table#{@table.number}")
     # if @game.andand.data.andand["tmp_results"].present?
-    #   info = "+++ 5 - tournaments_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    #   info = "+++ 5 - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #   #Rails.logger.info "+++ 5 - tournaments_controller#placement"
     #   tmp_results = @game.data.delete("tmp_results")
     #   state = tmp_results.delete("state")
     #   @table_monitor.deep_merge_data!(tmp_results)
-    #   @table_monitor.update_attributes(state: state, game_id: @game.id)
+    #   @table_monitor.update(state: state, game_id: @game.id)
     # end
-    # info = "+++ 3t2 - locations_controller#placement"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    # info = "+++ 3t2 - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     Rails.logger.info "+++ 6 - tournaments_controller#placement"
       @tournament_monitor.do_placement(@game, @tournament_monitor.current_round, @tournament.t_no_from(@table))
     redirect_to table_monitor_path(@table_monitor)
@@ -174,13 +174,13 @@ class TournamentsController < ApplicationController
   def start
     data_ = @tournament.data
     data_[:table_ids] = params[:table_id]
-    @tournament.update_attributes(data: data_)
+    @tournament.update(data: data_)
     if @tournament.valid?
       @tournament.initialize_tournament_monitor
       @tournament.reload
       @tournament.start_tournament!
       @tournament.reload
-      @tournament.tournament_monitor.update_attributes(current_admin: current_user)
+      @tournament.tournament_monitor.update(current_admin: current_user)
       redirect_to tournament_monitor_path(@tournament.tournament_monitor)
     else
       flash[:alert] = @tournament.errors.full_messages

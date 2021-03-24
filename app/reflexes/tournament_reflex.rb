@@ -90,7 +90,7 @@ class TournamentReflex < ApplicationReflex
     val = element.attributes["value"].to_i
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where(player_id: player.id).first
-    seeding.update_attributes(balls_goal: val)
+    seeding.update(balls_goal: val)
   end
 
 end

@@ -11,13 +11,13 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <%# All assets are defined in Webpacker app/javascripts now %>
     <%#- TODO is deletion of next line realy a solution? (https://github.com/rails/webpacker/issues/2071#issuecomment-550037326) %>
     <%#- this is not a solution - now nothing is generated %>
-    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
-    <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%= stylesheet_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
 
     <%# Be sure to add your own custom favicons %>
     <%= render "shared/favicons" %>

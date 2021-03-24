@@ -112,7 +112,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def on_create
-    info = "+++ 8xxx - table_monitor#on_create"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 8xxx - table_monitor#on_create"; DebugInfo.instance.update(info: info); Rails.logger.info info
   end
   def state_display(locale)
     @locale = locale || I18n.default_locale
@@ -133,7 +133,7 @@ class TableMonitor < ApplicationRecord
       TableMonitorLaterJob.perform_later(self)
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show",
-        locals: { table_monitor: self, full_screen: true, panel_state: session[:panel_state], current_element: session[:current_element]  }
+        locals: { table_monitor: self, full_screen: true }
       )
       cable_ready["table-monitor-stream"].inner_html(
         selector: "#full_screen_table_monitor_#{id}",
@@ -178,7 +178,7 @@ class TableMonitor < ApplicationRecord
       start_at = timer_start_at + extend
       finish_at = timer_finish_at + extend
     end
-    update_attributes(
+    update(
       active_timer: active_timer,
       timer_halt_at: nil,
       timer_start_at: start_at,
@@ -262,44 +262,44 @@ class TableMonitor < ApplicationRecord
     if game.present?
       roles = game.game_participations.map(&:role).reverse
       game.game_participations.each_with_index do |gp, ix|
-        gp.update_attributes(role: roles[ix])
+        gp.update(role: roles[ix])
       end
     end
   end
 
   def set_start_time
-    game.update_attributes(started_at: Time.now)
+    game.update(started_at: Time.now)
   end
 
   def set_end_time
-    game.update_attributes(ended_at: Time.now)
+    game.update(ended_at: Time.now)
   end
 
   def assign_game(game_p)
-    info = "+++ 8c - tournament_monitor#assign_game - game_p"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
-    info = "+++ 8d - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 8c - tournament_monitor#assign_game - game_p"; DebugInfo.instance.update(info: info); Rails.logger.info info
+    info = "+++ 8d - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
     self.allow_change_tables = tournament_monitor.andand.allow_change_tables
     tmp_results = game_p.deep_delete!("tmp_results")
     if tmp_results.andand["state"].present?
-      info = "+++ 8e - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      info = "+++ 8e - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
       state = tmp_results.delete("state")
       deep_merge_data!(tmp_results)
-      update_attributes(game_id: game_p.id, state: state)
+      update(game_id: game_p.id, state: state)
     else
-      update_attributes(game_id: game_p.id, state: "ready")
+      update(game_id: game_p.id, state: "ready")
       reload
-      info = "+++ 8f - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+      info = "+++ 8f - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
       initialize_game
       save!
       if [:ready, :ready_for_new_game, :game_setup_started, :game_result_reported, :game_finished].include?(self.state.to_sym)
-        info = "+++ 8g - tournament_monitor#assign_game - start_new_game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+        info = "+++ 8g - tournament_monitor#assign_game - start_new_game"; DebugInfo.instance.update(info: info); Rails.logger.info info
         start_new_game!
       end
     end
   end
 
   def initialize_game
-    info = "+++ 7 - table_monitor#initialize_game"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 7 - table_monitor#initialize_game"; DebugInfo.instance.update(info: info); Rails.logger.info info
     deep_merge_data! ({
       "playera" => {
         "result" => 0,
@@ -374,7 +374,7 @@ class TableMonitor < ApplicationRecord
           data_will_change!
           save
         end
-        update_attributes(
+        update(
           panel_state: "pointer_mode",
           current_element: "pointer_mode")
       else
@@ -388,7 +388,7 @@ class TableMonitor < ApplicationRecord
 
   def reset_timer!
     begin
-      update_attributes(
+      update(
         active_timer: nil,
         timer_start_at: nil,
         timer_finish_at: nil,
@@ -454,7 +454,9 @@ class TableMonitor < ApplicationRecord
   end
 
   def follow_up?
-    info = "+++ 10 - table_monitor#follow_up? table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
+    info = "+++ 10 - table_monitor#follow_up? table_monitor"
+    DebugInfo.instance.update(info: info)
+    Rails.logger.info info
     data.present? &&
       ((data["current_inning"].andand["active_player"] == "playerb") && (data["playera"].andand["result"].to_i >= data["playera"].andand["balls_goal"].to_i))
   end
@@ -565,8 +567,8 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_table_monitor
-    info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update_attributes(info: info); Rails.logger.info info
-    update_attributes(game_id: nil)
+    info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
+    update(game_id: nil)
     we_re_ready!
   end
 end
