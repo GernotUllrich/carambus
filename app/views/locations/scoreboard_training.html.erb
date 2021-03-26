@@ -47,7 +47,12 @@
     if (event.keyCode in keyMap) {
       var key = keyMap[event.keyCode];
       if (key == "key_c") {
-        window.history.back();
+        var current_element = document.activeElement.getAttribute("id") || "back";
+        if (current_element != "back") {
+          document.getElementById("back").focus()
+        } else {
+          window.history.back();
+        }
       }
       if (key == "key_b") {
         var current_element = document.activeElement.getAttribute("id")
@@ -83,19 +88,19 @@
   });
 </script>
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
-  <h1 class="flex text-gray-200 "><%= t('select_training_table') %></h1>
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= t('select_training_table') %></h1>
   <div class="flex items-center mt-10 flex-row h-1/8 space-x-20">
     <%= link_to "Back to Home", location_path(@location, sb_state: "welcome"), class: "btn btn-primary ring-4 h-full text-2vw p-1 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "back", tabindex: 1 %>
   </div>
   <%- if @location.present? %>
-    <h1 class="flex text-gray-200 mt-4"><%= @location.name %></h1>
+    <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mt-4"><%= @location.name %></h1>
     <%- tournament_tables = @location.tournaments.map(&:tournament_monitor).compact.map(&:table_monitors).flatten.select{|tm| !%w{new_table_monitor ready ready_for_new_game}.include?(tm.state)}.map(&:table) %>
     <%- tables = @location.tables %>
     <%- free_tables = tables - tournament_tables %>
     <%- table_kinds = free_tables.map(&:table_kind).uniq.sort_by { |tk| tk.name } %>
     <%- if table_kinds.present? -%>
       <%- table_kinds.each do |table_kind| %>
-        <h1 class="flex text-yellow-500 mt-10 "><%= table_kind.display_name %></h1>
+        <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-500 mt-10 "><%= table_kind.display_name %></h1>
         <div class="flex items-center mt-10 flex-row h-1/8 space-x-20">
           <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
           <%- if free_for_table_kind.present? %>

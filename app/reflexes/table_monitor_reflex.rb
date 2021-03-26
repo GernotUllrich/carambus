@@ -349,4 +349,44 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.update_every_n_seconds(10);
     end
   end
+
+  def submit
+
+  end
+
+  def discipline
+
+  end
+
+  def innings
+
+  end
+
+  def balls_goal
+
+  end
+
+  def player_a_name
+
+  end
+
+  def discipline_a
+
+  end
+
+  def balls_goal_a
+
+  end
+
+  def player_b_name
+
+  end
+
+  def discipline_b
+
+  end
+
+  def balls_goal_b
+
+  end
 end

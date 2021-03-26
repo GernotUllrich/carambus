@@ -628,6 +628,7 @@ de:
       seeding: 'Turnierteilnahmen'
       tournament: 'Turniere'
       results: 'Ergebnisse'
+      results_so_far: 'Ergebnisse bisher'
       training: 'Training'
       spieler: Spieler
       season: 'Saison'

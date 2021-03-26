@@ -1005,6 +1005,7 @@ en:
       seeding: 'Seeding'
       tournament: 'Tournament'
       results: 'Results'
+      results_so_far: 'Results so far'
       training: 'Training'
       spieler: Players
       season: 'Season'

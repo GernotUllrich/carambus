@@ -57,6 +57,7 @@ Rails.application.routes.draw do
         post :minus_one
         post :minus_ten
         post :next_step
+        post :start_game
         post :undo
         post :up
         post :down
@@ -91,6 +92,8 @@ Rails.application.routes.draw do
       member do
         post :add_tables_to
         post :placement
+        post :game_results
+        get :game_results
         get :placement
       end
     end

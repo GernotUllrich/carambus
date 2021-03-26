@@ -86,7 +86,7 @@
         <%= render partial: "game_results", locals: { tournament_monitor: @tournament_monitor } %>
       </div>
       <div id="tournament_monitor_rankings_<%= @tournament_monitor.id %>" class="col-sm-4 space-above">
-        <%= render partial: "rankings", locals: { tournament_monitor: @tournament_monitor } %>
+        <%= render partial: "rankings", locals: { tournament_monitor: @tournament_monitor, totals: true } %>
       </div>
     </div>
   </div>

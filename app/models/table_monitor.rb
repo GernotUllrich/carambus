@@ -33,6 +33,8 @@ class TableMonitor < ApplicationRecord
   before_create :on_create
   before_save :log_state_change
 
+  delegate :name, to: :table, allow_nil: true
+
   DEFAULT_ENTRY = {
     "inputs" => "numbers",
     "pointer_mode" => "pointer_mode",
@@ -346,7 +348,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def display_name
-    t_no = (name || table.name).andand.match(/table(\d+)/).andand[1]
+    t_no = (name || table.name).andand.match(/.*(\d+)/).andand[1]
     I18n.t("table_monitors.display_name", t_no: t_no)
   end
 

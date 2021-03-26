@@ -1,9 +1,53 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
 <script type="text/javascript">
+  var table_kind;
+  var players;
+  var player_ids;
+  var tabbed_elements;
+  var tabbed_keys;
+  var game_values_disciplines;
+  var game_values_innings;
+  var game_values_balls_goal;
+
   window.onload = function () {
-    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
-    var tabbed_keys = []
+    game_values_disciplines = {
+      "Pool": ["Pool",
+        "9-Ball",
+        "8-Ball",
+        "14.1 endlos",
+        "Blackball",
+        "10-Ball"],
+      "Snooker": ["Snooker"],
+      "Small Billard": ["Freie Partie klein",
+        "Dreiband klein",
+        "Cadre 35/2",
+        "Cadre 52/2",
+        "Einband klein",
+        "Biathlon",
+        "5-Pin Billards"],
+      "Half Match Billard": ["Cadre 57/2", "Cadre 38/2", "Dreiband halb", "Einband halb"],
+      "Match Billard": ["Dreiband groß",
+        "Freie Partie groß",
+        "Einband groß",
+        "Cadre 47/1",
+        "Cadre 71/2",
+        "Cadre 47/2"],
+      "Pin Billards": ["Pin Billards"],
+    }
+    players = eval('<%= @player_names.inspect.html_safe %>');
+    player_ids = eval('<%= (@player_ids).inspect %>');
+    game_values_innings = [
+      15, 20
+    ]
+    game_values_balls_goal = [
+      80, 100, 120, 150, 200, 400, 8, 16, 32, 45, 60
+    ]
+
+    table_kind = "<%= @table_monitor.andand.table.andand.table_kind.andand.name %>";
+    tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+    set_default_values();
+    tabbed_keys = []
     for (let i = 0; i < tabbed_elements.length; i++) {
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
@@ -29,14 +73,14 @@
       27: "key_d",
       40: "key_d",
     }
-    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+    tabbed_elements = document.querySelectorAll('[tabindex="1"]')
 
-    var tabbed_keys = []
+    tabbed_keys = []
     for (let i = 0; i < tabbed_elements.length; i++) {
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
 
-    var current_element = document.activeElement.getAttribute("id")
+    var current_element = document.activeElement.getAttribute("id") || "submit"
     console.log("active: " + current_element);
     if (current_element == null) {
       current_element = tabbed_keys[0];
@@ -47,69 +91,161 @@
     if (event.keyCode in keyMap) {
       var key = keyMap[event.keyCode];
       if (key == "key_c") {
-        window.history.back();
+        var current_element = document.activeElement.getAttribute("id") || "submit";
+        if (current_element != "submit") {
+          document.getElementById("submit").focus()
+        } else {
+          window.history.back();
+        }
       }
       if (key == "key_b") {
-        var current_element = document.activeElement.getAttribute("id")
+        var current_element = document.activeElement.getAttribute("id") || "submit";
         for (var i = 0; i < tabbed_keys.length; i++) {
           if (tabbed_keys[i] == current_element) {
             var ff = i + 1;
             if (ff >= tabbed_keys.length) ff = 0;
             console.log("active becomes (a): " + tabbed_keys[ff]);
-            document.getElementById(tabbed_keys[ff]).focus();
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
             break;
           }
         }
       }
       if (key == "key_a") {
-        var current_element = document.activeElement.getAttribute("id");
+        var current_element = document.activeElement.getAttribute("id") || "submit";
         for (var i = 0; i < tabbed_keys.length; i++) {
           if (tabbed_keys[i] == current_element) {
             var ff = i - 1;
             if (ff < 0) ff = tabbed_keys.length - 1;
             console.log("active becomes (a): " + tabbed_keys[ff]);
-            document.getElementById(tabbed_keys[ff]).focus();
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
             break;
           }
         }
       }
       if (key == "key_d") {
-        console.log("activate: " + document.activeElement.getAttribute("id"));
-        document.activeElement.click();
+        current_element = document.activeElement.getAttribute("id") || "submit";
+        set_next_value(current_element);
       }
     }
     event.preventDefault();
     return true
   });
+
+  function set_next_value(name_) {
+    let name_stripped1 = name_.replace("_w", "");
+    let player_select = "";
+    let name_stripped = "";
+    if (name_stripped1.endsWith("_a")) {
+      player_select = "_a";
+      name_stripped = name_stripped1.replace("_a", "");
+    } else if (name_stripped1.endsWith("_b")) {
+      player_select = "_b";
+      name_stripped = name_stripped1.replace("_b", "");
+    } else {
+      player_select = ""
+      name_stripped = name_stripped1;
+    }
+    current_value = document.getElementById(name_stripped1).value;
+    var next_val;
+    switch (name_stripped) {
+      case "discipline":
+        next_val = next_value(game_values_disciplines[table_kind], current_value);
+        break;
+      case "innings":
+        next_val = next_value(game_values_innings, current_value);
+        break;
+      case "balls_goal":
+        next_val = next_value(game_values_balls_goal, current_value);
+        break;
+      case "player":
+        default_name = "Spieler A"
+        if (player_select == "_b") default_name = "Spieler B"
+        var players_p = [...players]
+        players_p.unshift(default_name)
+        next_val = next_value(players_p, current_value);
+        value_id = document.getElementById(name_stripped1 + "_id").value;
+
+        var player_ids_p = [...player_ids]
+        player_ids_p.unshift(0)
+        next_val_id = next_value(player_ids_p, value_id);
+        document.getElementById(name_stripped1 + "_id").value = next_val_id;
+    }
+    document.getElementById(name_stripped1).value = next_val;
+    if (name_stripped != "player" && player_select == "") {
+      document.getElementById(name_stripped + "_a").value = next_val
+      document.getElementById(name_stripped + "_b").value = next_val
+    }
+  };
+
+  function next_value(values, value) {
+    for (var i = 0; i < values.length; i++) {
+      if (values[i] == value) {
+        nix = i + 1
+        if (i >= values) nix = 0
+        return values[nix];
+      }
+    }
+    return values[0]
+  }
+
+  function set_default_values() {
+    if (document.getElementById("discipline").value == "") {
+      document.getElementById("discipline").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("discipline_a").value == "") {
+      document.getElementById("discipline_a").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("discipline_b").value == "") {
+      document.getElementById("discipline_b").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("balls_goal").value == "") {
+      document.getElementById("balls_goal").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("balls_goal_a").value == "") {
+      document.getElementById("balls_goal_a").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("balls_goal_b").value == "") {
+      document.getElementById("balls_goal_b").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("innings").value == "") {
+      document.getElementById("innings").value = game_values_innings[0]
+    }
+  }
 </script>
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
-  <h1 class="flex text-gray-200 "><%= "Trainingspartie #{@table.andand.name}" %></h1>
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= "Trainingspartie #{@table.andand.name} (#{@table.andand.table_kind.andand.name})" %></h1>
   <%- if @location.present? %>
-    <h1 class="flex text-gray-200 mt-4"><%= @location.name %></h1>
-    <%= form_with model: @table_monitor, data: { reflex: "submit->TableMonitorReflex#submit", signed_id: @table_monitor.andand.to_sgid.to_s } do |form| %>
+    <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mt-4"><%= @location.name %></h1>
+    <%= form_tag start_game_table_monitor_path(@table_monitor), method: :post, class: "flex flex-col text-gray-200 mt-4" do %>
 
-      <div class="flex mt-4 text-center">
-        <%= form.submit "Start Game", class: "border-4 rounded-lg p-1 btn btn-primary text-2vw lg:mr-4 mr-0 lg:mb-0 mb-4", id:"submit", tabindex:"1" %>
+      <div class="flex justify-center mt-4 text-center">
+        <div id="submit" tabindex=1 class="min-w-min ">
+          <%= submit_tag "Start Game", class: "border-4 rounded-lg p-1 btn btn-primary text-center text-2vw lg:mr-4 mr-0 lg:mb-0 mb-4" %>
+        </div>
       </div>
       <div style="text-shadow: 2px 2px #000000" class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
         <div class="flex flex-col text-white">
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline", id: @table_monitor.andand.id }, id: "discipline", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@discipline || "Freie Partie").html_safe %>
+          <%= content_tag :div, id: "discipline_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :discipline, @discipline, class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Aufnahmen</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#innings", id: @table_monitor.andand.id }, id: "innings", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@innings || "20").html_safe %>
+          <%= content_tag :div, id: "innings_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :innings, @innings, class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#balls_goal", id: @table_monitor.andand.id }, id: "balls_goal", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@balls_goal || "80").html_safe %>
+          <%= content_tag :div, id: "balls_goal_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :balls_goal, @balls_goal || "80", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>
@@ -117,14 +253,15 @@
       <div class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200" style="text-shadow: 2px 2px #000000">
         <div class="flex flex-col text-white">
           <div class="mb-1">Name</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#player_a_name", id: @table_monitor.andand.id }, id: "player_a_name", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@player_a_name || "Spieler A").html_safe %>
+          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= hidden_field_tag :player_a_id, @player_a_id || 0, class: "p-1 text-2vw w-full" %>
+            <%= text_field_tag :player_a, @player_a || "Spieler A", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline_a", id: @table_monitor.andand.id }, id: "discipline_a", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@discipline_a || "Freie Partie").html_safe %>
+          <%= content_tag :div, id: "discipline_a_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :discipline_a, @discipline_a, class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex row-span-4 items-center">
@@ -136,26 +273,27 @@
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#@balls_goal_a", id: @table_monitor.andand.id }, id: "@balls_goal_a", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@balls_goal_a || "80").html_safe %>
+          <%= content_tag :div, id: "balls_goal_a_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :balls_goal_a, @balls_goal_a || "80", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Name</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#@player_b_name", id: @table_monitor.andand.id }, id: "@player_b_name", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@player_b_name || "Spieler B").html_safe %>
+          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= hidden_field_tag :player_b_id, @player_b_id || 0, class: "p-1 text-2vw w-full" %>
+            <%= text_field_tag :player_b, @player_b || "Spieler B", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#discipline_b", id: @table_monitor.andand.id }, id: "discipline_b", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@discipline_b || "Freie Partie").html_safe %>
+          <%= content_tag :div, id: "discipline_b_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :discipline_b, @discipline_b, class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
-          <%= content_tag :div, data: { turbolinks: false, reflex: "click->TableMonitorReflex#balls_goal_b", id: @table_monitor.andand.id }, id: "balls_goal_b", tabindex: 1, class: "border-4 rounded-lg p-4" do %>
-            <%= (@balls_goal_b || "80").html_safe %>
+          <%= content_tag :div, id: "balls_goal_b_w", tabindex: 1, class: "border-4 rounded-lg p-1" do %>
+            <%= text_field_tag :balls_goal_b, @balls_goal_b || "80", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>

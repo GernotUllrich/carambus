@@ -299,7 +299,7 @@ class TournamentMonitor < ApplicationRecord
     table_monitor.event_game_result_reported!
     finalize_game_result(table_monitor)
     accumulate_results
-    if all_table_monitors_finished?
+    if all_table_monitors_finished? || tournament.manual_assignment
       finalize_round
       incr_current_round! unless tournament.manual_assignment
       populate_tables unless tournament.manual_assignment

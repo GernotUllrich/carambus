@@ -2,7 +2,7 @@
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
 <script type="text/javascript">
   window.onload = function () {
-    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
     var tabbed_keys = []
     for (let i = 0; i < tabbed_elements.length; i++) {
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
@@ -31,7 +31,7 @@
       27: "key_d",
       40: "key_d",
     }
-    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    var tabbed_elements = document.querySelectorAll('[tabindex="1"]')
 
     var tabbed_keys = []
     for (let i = 0; i < tabbed_elements.length; i++) {
@@ -94,13 +94,12 @@
   });
 </script>
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
-  <h1 class="text-yellow-500"><%= @tournament.title %></h1>
-  <h2 class="flex text-gray-200 mb-5"><%= t('select_game') %></h2>
+  <h1 style="text-shadow: 2px 2px #000000" class="text-yellow-500"><%= @tournament.title %></h1>
+  <%= link_to t('home.index.results_so_far'), game_results_location_path(@location, tournament_id: @tournament.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 text-2vw p-1 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "game_results_#{@tournament.id}", tabindex: 1 %>
+  <h2 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mb-5"><%= t('select_game') %></h2>
   <div class="flex grid grid-cols-3 gap-1">
-    <%- @games.each do |game| %>
-      <% gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player %>
-      <% gpb = game.game_participations.where(role: "playerb").first; playerb = gpb.andand.player %>
-      <%= link_to "#{playera.fullname} - #{playerb.fullname}", placement_tournament_path(@tournament, game_id: game.id, table_id: @table.id,), method: :post, data: { turbolinks: false }, class: "btn btn-primary p-1 ring-4 h-full text-1vw lg:mr-4 mr-0 lg:mb-0 mb-4", id: "game_#{game.id}", tabindex: 1 %>
+    <%- @pairs.each do |pair| %>
+      <%= link_to "#{pair[1]} - #{pair[2]}", placement_tournament_path(@tournament, game_id: pair[0], table_id: @table.id,), method: :post, data: { turbolinks: false }, class: "btn btn-primary p-1 ring-4 h-full text-1vw lg:mr-4 mr-0 lg:mb-0 mb-4", id: pair[3], tabindex: 1 %>
     <%- end %>
   </div>
 </div>

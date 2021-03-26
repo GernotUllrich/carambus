@@ -44,13 +44,28 @@ class LocationsController < ApplicationController
         @player_b = Player.find(params[:player_b_id]) if params[:player_b_id].present?
         if @table.present?
           @table_monitor = @table.table_monitor || TableMonitor.create!(table_id: @table.id)
-          @game = @table_monitor.game || Game.create!
-          @game.game_participations.create(player: @player_a, role: "playera")
-          @game.game_participations.create(player: @player_a, role: "playerb")
+          @game = @table_monitor.game
+          if @game.blank?
+            @game = Game.create!
+            @game.game_participations.create(player: @player_a, role: "playera")
+            @game.game_participations.create(player: @player_a, role: "playerb")
+          end
           @table_monitor.assign_game(@game)
         end
+        @players = @location.club.players.joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).order(:lastname, :firstname)
+        @player_names = @players.map { |p| "#{p.lastname}, #{p.firstname}" }
+        @player_ids = @players.map(&:id)
         render "scoreboard_free_game"
       end
+    end
+  end
+
+  def game_results
+    @navbar = @footer = false
+    @tournament = nil
+    @location = Location.find(params[:id])
+    if params[:tournament_id].present?
+      @tournament = Tournament.find(params[:tournament_id])
     end
   end
 
@@ -88,6 +103,14 @@ class LocationsController < ApplicationController
       # end
       info = "+++ 3l - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
       @games = @tournament.games.joins(:game_participations => :player).where(game_participations: { role: "playera" }).to_a.sort_by { |game| game.game_participations.where(role: "playera").first.player.lastname + game.game_participations.where(role: "playerb").first.player.lastname }.select { |game| game.data.blank? || game.data["ba_results"].blank? }
+      @pairs = []
+      @games.map do |game|
+        gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player
+        gpb = game.game_participations.where(role: "playerb").first; playerb = gpb.andand.player
+        @pairs << [game.id, playera.fullname, playerb.fullname, "game_#{game.id}a"]
+        @pairs << [game.id, playerb.fullname, playera.fullname, "game_#{game.id}b"]
+      end
+      @pairs = @pairs.sort_by { |a| "#{a[1]} - #{a[2]}" }
     else
       redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game", player_a_id: @player_a.andand.id, player_b_id: @player_b.andand.id)
     end

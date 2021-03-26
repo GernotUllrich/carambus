@@ -10,7 +10,7 @@ class TournamentMonitorUpdateResultsJob < ApplicationJob
     )
     html_rankings = ApplicationController.render(
       partial: "tournament_monitors/rankings",
-      locals: { tournament_monitor: tournament_monitor }
+      locals: { tournament_monitor: tournament_monitor, totals: true }
     )
     cable_ready["tournament-monitor-stream"].inner_html(
       selector: "#tournament_monitor_game_results_#{tournament_monitor.id}",

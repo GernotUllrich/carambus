@@ -1,11 +1,11 @@
-<div class="row">
+<div class="<%= grid ? "flex grid grid-cols-2 gap-2" : "row"%>">
   <% if tournament_monitor.data["rankings"].present? %>
     <% tournament_monitor.data["rankings"].keys.each do |ranking_key| %>
-      <% if ranking_key == "total" %>
+      <% if ranking_key == "total" && totals %>
         <% if tournament_monitor.data["rankings"]["total"].present? %>
           <div class="max-w-xl justify-center mx-auto">
             <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.tournament_results", :default => "Tournament Results") %></h2>
-            <%= ranking_table(tournament_monitor.data["rankings"]["total"], order: [:rank], reverse: true) %>
+            <%= ranking_table(tournament_monitor.data["rankings"]["total"], order: [:rank], reverse: true, grid: defined?(grid)) %>
           </div>
         <% end %>
       <% elsif ranking_key == "groups" %>
@@ -13,13 +13,15 @@
           <div class="max-w-xl justify-center mx-auto">
             <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.group_rankings", :default => "Group Rankings") %></h2>
             <% tournament_monitor.data["rankings"]["groups"].keys.each do |ranking_key2| %>
-              <% if ranking_key2 == "total" %>
+              <% if ranking_key2 == "total" && totals %>
                 <h3 class="space-above"><%= I18n.t("tournament_monitors.rankings.group_results_in_total", :default => "Group Results in Total") %></h3>
-                <%= ranking_table(tournament_monitor.data["rankings"]["groups"]["total"], order: [:points, :gd]) %>
+                <%= ranking_table(tournament_monitor.data["rankings"]["groups"]["total"], order: [:points, :gd], grid: defined?(grid)) %>
               <% else %>
                 <% if tournament_monitor.data["rankings"]["groups"][ranking_key2].present? %>
-                  <h3 class="space-above"><%= Game.display_ranking_key(ranking_key2) %></h3>
-                  <%= ranking_table(tournament_monitor.data["rankings"]["groups"][ranking_key2], order: [:points, :gd]) %>
+                  <%- unless ranking_key2 == "total" && !totals %>
+                    <h3 class="space-above"><%= Game.display_ranking_key(ranking_key2) %></h3>
+                    <%= ranking_table(tournament_monitor.data["rankings"]["groups"][ranking_key2], order: [:points, :gd], grid: defined?(grid)) %>
+                  <%- end %>
                 <% end %>
               <% end %>
             <% end %>
@@ -30,14 +32,14 @@
           <div class="max-w-xl justify-center mx-auto">
             <h2 class="space-above"><%= I18n.t("tournament_monitors.rankings.finals_rankings", :default => "Finals Rankings") %></h2>
             <% tournament_monitor.data["rankings"]["endgames"].keys.each do |ranking_key2| %>
-              <% if ranking_key2 == "total" %>
+              <% if ranking_key2 == "total" && totals %>
                 <h3 class="space-above"><%= I18n.t("tournament_monitors.rankings.finals_results_in_total", :default => "Finals Results in Total") %></h3>
-                <%= ranking_table(tournament_monitor.data["rankings"]["endgames"]["total"], order: [:points, :gd]) %>
+                <%= ranking_table(tournament_monitor.data["rankings"]["endgames"]["total"], order: [:points, :gd], grid: defined?(grid)) %>
               <% elsif ranking_key2 == "groups" %>
               <% else %>
                 <% if tournament_monitor.data["rankings"]["endgames"][ranking_key2].present? %>
                   <h3 class="space-above"><%= Game.display_ranking_key(ranking_key2) %></h3>
-                  <%= ranking_table(tournament_monitor.data["rankings"]["endgames"][ranking_key2], order: [:points, :gd]) %>
+                  <%= ranking_table(tournament_monitor.data["rankings"]["endgames"][ranking_key2], order: [:points, :gd], grid: defined?(grid)) %>
                 <% end %>
               <% end %>
             <% end %>

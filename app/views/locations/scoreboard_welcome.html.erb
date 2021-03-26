@@ -70,11 +70,11 @@
     <%= link_to image_tag("flag_en.png"), { :locale => 'en' }, id: "language", data: { turbolinks: false }, tabindex: 0 %>
 
   <% end %>
-  <h1 class="flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
-  <p class="mb-6 text-gray-200 leading-normal text-xl"><%= t('carambus_manages') %></p>
+  <h1 style="text-shadow: 2px 2px #000000" class="flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
+  <p style="text-shadow: 2px 2px #000000" class="mb-6 text-gray-200 leading-normal text-xl"><%= t('carambus_manages') %></p>
   <span>
-    <%= link_to "Start", location_path(sb_state: "start"), class: "btn btn-primary lg:mr-4 mr-0 lg:mb-0 mb-4", id: "start", data: { turbolinks: false }, tabindex: 1 %>
-    <%= link_to "Intro", intro_path, class: "btn btn-primary lg:mr-4 mr-0 lg:mb-0 mb-4", id: "intro", data: { turbolinks: false }, tabindex: 2 %>
+    <%= link_to "Start", location_path(sb_state: "start"), class: "btn btn-primary text-2vw lg:mr-4 mr-0 lg:mb-0 mb-4", id: "start", data: { turbolinks: false }, tabindex: 1 %>
+    <%= link_to "Intro", intro_path, class: "btn btn-primary text-2vw lg:mr-4 mr-0 lg:mb-0 mb-4", id: "intro", data: { turbolinks: false }, tabindex: 2 %>
 
   </span>
 </div>
