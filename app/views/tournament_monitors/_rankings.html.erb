@@ -1,4 +1,4 @@
-<div class="<%= grid ? "flex grid grid-cols-2 gap-2" : "row"%>">
+<div class="<%= defined?(grid) && grid ? "flex grid grid-cols-2 gap-2" : "row"%>">
   <% if tournament_monitor.data["rankings"].present? %>
     <% tournament_monitor.data["rankings"].keys.each do |ranking_key| %>
       <% if ranking_key == "total" && totals %>

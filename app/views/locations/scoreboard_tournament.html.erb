@@ -96,7 +96,7 @@
           <%- end %>
         <%- else %>
           <%- tournament.tournament_monitor.table_monitors.order(:name).each do |table_monitor| %>
-            <%= link_to table_monitor.display_name, table_monitor_path(table_monitor), data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-1 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "table_monitor_#{table_monitor.id}", tabindex: 1 %>
+            <%= link_to table_monitor.display_name, table_monitor_path(table_monitor), data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-1 lg:mr-4 mr-0 lg:mb-2 mb-1", id: "table_monitor_#{table_monitor.id}", tabindex: 1 %>
           <% end %>
         <%- end %>
     <%- end %>

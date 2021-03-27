@@ -7,6 +7,9 @@
   &:hover,
   &:focus {
     @apply cursor-pointer;
+    outline-width: 3px;
+    outline-color: greenyellow;
+    outline-offset: 3px;
   }
 }
 
