@@ -8,8 +8,8 @@
 // layout file, like app/views/layouts/application.html.erb
 
 // Rails functionality
-import Rails from "@rails/ujs"
-import Turbolinks from "turbolinks"
+window.Rails = require("@rails/ujs")
+require("turbolinks").start()
 import * as ActiveStorage from "@rails/activestorage"
 import "channels"
 require("trix")
@@ -37,5 +37,4 @@ LocalTime.start()
 
 // Start Rails UJS
 Rails.start()
-Turbolinks.start()
 ActiveStorage.start()

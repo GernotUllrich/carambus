@@ -1,5 +1,5 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :edit, :update, :destroy, :set_balls, :toggle_dark_mode]
+  before_action :set_table_monitor, only: [:show, :start_game, :edit, :update, :destroy, :set_balls, :toggle_dark_mode]
 
   def set_balls
     unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
@@ -35,6 +35,38 @@ class TableMonitorsController < ApplicationController
   def toggle_dark_mode
     session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false)
     redirect_to @table_monitor
+  end
+
+  def start_game
+    @game = @table_monitor.game
+    if @game.blank?
+      @game = Game.create!(table_monitor: @table_monitor)
+    else
+      @game.game_participations.destroy_all
+    end
+    @game.update(data: {})
+    @game.game_participations.create!(player: (params[:player_a_id].to_i > 0 ? Player.find(params[:player_a_id]) : nil), role: "playera")
+    @game.game_participations.create!(player: (params[:player_b_id].to_i > 0 ? Player.find(params[:player_b_id]) : nil), role: "playerb")
+
+    result = { "result" => {
+      "playera" => {
+        "balls_goal" => params[:balls_goal_a],
+        "inings" => params[:innings],
+        "discipline" => params[:discipline_a],
+      },
+      "playerb" => {
+        "balls_goal" => params[:balls_goal_b],
+        "inings" => params[:innings],
+        "discipline" => params[:discipline_b],
+      },
+    }
+    }
+    @table_monitor.initialize_game
+    @table_monitor.deep_merge_data!(result)
+    @navbar = false
+    @footer = false
+
+    redirect_to (@table_monitor)
   end
 
   # GET /table_monitors/1/edit

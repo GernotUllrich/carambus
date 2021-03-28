@@ -22,7 +22,7 @@
 #
 class GameParticipation < ApplicationRecord
   include CableReady::Broadcaster
-  belongs_to :player
+  belongs_to :player, optional: true
   belongs_to :game
   has_paper_trail
 

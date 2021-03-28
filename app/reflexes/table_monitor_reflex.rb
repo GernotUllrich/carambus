@@ -23,7 +23,7 @@ class TableMonitorReflex < ApplicationReflex
   # Learn more at: https://docs.stimulusreflex.com
 
   def key_a
-    #morph :nothing
+    morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
       if table_monitor.game_setup_started? || table_monitor.game_warmup_b_started?
@@ -51,7 +51,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_b
-    #morph :nothing
+    morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
       if table_monitor.game_setup_started? || table_monitor.game_warmup_a_started?
@@ -73,12 +73,17 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.event_game_result_accepted!
       table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
-      table_monitor.tournament_monitor.report_result(table_monitor)
+      if table_monitor.tournament_monitor.present?
+        table_monitor.tournament_monitor.report_result(table_monitor)
+      else
+        table_monitor.event_game_result_reported!
+        table_monitor.reset_table_monitor
+      end
     end
   end
 
   def key_c
-    #morph :nothing
+    morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
       if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
@@ -95,7 +100,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_d
-    #morph :nothing
+    morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     if table_monitor.setup_modal_should_be_open?
       if table_monitor.game_setup_started? || table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
@@ -335,7 +340,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.send(:"event_play_warm_up_#{player}!")
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
       start_at = Time.now
-      finish_at = Time.now + table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym)
+      finish_at = Time.now + table_monitor.tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym).to_i
       if table_monitor.timer_halt_at.present?
         extend = Time.now - table_monitor.timer_halt_at
         start_at = start_at + extend

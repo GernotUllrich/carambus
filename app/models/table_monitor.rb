@@ -174,7 +174,7 @@ class TableMonitor < ApplicationRecord
     active_timer = "time_out_stoke_preparation_sec"
     units = "seconds"
     start_at = Time.now
-    finish_at = Time.now + tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym)
+    finish_at = Time.now + tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym).to_i
     if timer_halt_at.present?
       extend = Time.now - timer_halt_at
       start_at = timer_start_at + extend
@@ -266,6 +266,12 @@ class TableMonitor < ApplicationRecord
       game.game_participations.each_with_index do |gp, ix|
         gp.update(role: roles[ix])
       end
+      ret_a = data["playerb"].dup
+      ret_b = data["playera"].dup
+      deep_merge_data!({
+                         "playera" => ret_a,
+                         "playerb" => ret_b,
+                       })
     end
   end
 

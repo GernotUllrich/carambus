@@ -18,7 +18,7 @@
 #
 class TournamentPlan < ApplicationRecord
   has_many :discipline_tournament_plans
-  has_many :tournament_plan_games
+  has_many :tournament_plan_games, dependent: :nullify
   has_many :tournaments
 
   has_paper_trail
