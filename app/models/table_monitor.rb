@@ -22,7 +22,7 @@
 class TableMonitor < ApplicationRecord
   include CableReady::Broadcaster
 
-  cattr_accessor :allow_change_tables, :panel_state, :current_element
+  cattr_accessor :allow_change_tables
 
   include AASM
   belongs_to :tournament_monitor, optional: true
@@ -174,7 +174,7 @@ class TableMonitor < ApplicationRecord
     active_timer = "time_out_stoke_preparation_sec"
     units = "seconds"
     start_at = Time.now
-    finish_at = Time.now + tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym).to_i
+    finish_at = Time.now + (tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || 5.minutes).to_i
     if timer_halt_at.present?
       extend = Time.now - timer_halt_at
       start_at = timer_start_at + extend
@@ -184,9 +184,7 @@ class TableMonitor < ApplicationRecord
       active_timer: active_timer,
       timer_halt_at: nil,
       timer_start_at: start_at,
-      timer_finish_at: finish_at,
-      panel_state: "pointer_mode",
-      current_element: "pointer_mode")
+      timer_finish_at: finish_at)
     update_every_n_seconds(2);
   end
 
@@ -348,8 +346,8 @@ class TableMonitor < ApplicationRecord
         "balls" => 0
       }
     })
-    self.panel_state = "pointer_mode"
-    self.current_element = "pointer_mode"
+    # self.panel_state = "pointer_mode"
+    # self.current_element = "pointer_mode"
     data
   end
 
@@ -382,9 +380,9 @@ class TableMonitor < ApplicationRecord
           data_will_change!
           save
         end
-        update(
-          panel_state: "pointer_mode",
-          current_element: "pointer_mode")
+        # update(
+        #   panel_state: "pointer_mode",
+        #   current_element: "pointer_mode")
       else
         @msg = "Game Finished - no more inputs allowed"
         return nil

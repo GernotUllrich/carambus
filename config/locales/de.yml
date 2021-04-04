@@ -722,6 +722,9 @@ de:
     right_nav:
       pricing: "Preise"
       announcements: "Was gibt's neues"
+  dashboard:
+    show:
+      title: "Dashboard"
   announcements:
     index:
       title: "Neuigkeiten"

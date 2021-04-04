@@ -33,10 +33,10 @@ class TournamentsController < ApplicationController
 
   def reset
     if params[:force_reset].present?
-      @tournament.tournament_monitor.destroy
+      @tournament.tournament_monitor.andand.destroy
       @tournament.forced_reset_tournament_monitor!
     elsif !@tournament.tournament_started
-      @tournament.tournament_monitor.destroy
+      @tournament.tournament_monitor.andand.destroy
       @tournament.reset_tournament_monitor!
     else
       flash[:alert] = "Cannot reset running or finished tournament"

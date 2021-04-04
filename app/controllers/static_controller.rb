@@ -1,5 +1,5 @@
 class StaticController < ApplicationController
-
+  before_action :authenticate_user!, only: [:start]
   before_action only: [:index, :start, :intro] do
     @navbar = @footer = false
   end
@@ -13,6 +13,7 @@ class StaticController < ApplicationController
   end
 
   def start
+    redirect_to root_path
   end
 
   def intro
@@ -22,6 +23,7 @@ class StaticController < ApplicationController
   end
 
   def training
+    params
   end
 
   def pricing
@@ -32,5 +34,6 @@ class StaticController < ApplicationController
   end
 
   def privacy
+    params
   end
 end

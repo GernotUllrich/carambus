@@ -1,0 +1,58 @@
+<div class="container mx-auto p-4">
+  <div class="my-8">
+    <h1><%= t(".title") %></h1>
+
+    <p class="mb-2">Dies ist der Einstieg für registrierte Benutzer.</p>
+    <p>Alle Funktionen sind über die Menüs zugreifbar.  Die meisten Daten werden von der Billard-Area üver den API-Server geholt:</p>
+    <ul>
+      <li><%= link_to "Regionalverbände", regions_path %>
+        <ul>
+          <li>BA-ID[1], Name, Kurzname, Logo, E-Mail, Adresse, Land</li>
+        </ul></li>
+      <li><%= link_to "Clubs", clubs_path %>
+        <ul>
+          <li>BA-ID, Region, Name, Kurzname, Adresse, Home-Page, E-Mail, Logo</li>
+        </ul></li>
+      <li><%= link_to "Spiellokale", locations_path %>
+        <ul>
+          <li>Club, Region, Name, Adresse</li>
+        </ul></li>
+      <li><%= link_to "Tischausstattung", tables_path %>
+        <ul>
+          <li>Tischarten, Zahl, Größe, Namen, Verwaltung über die Spiellokale</li>
+        </ul></li>
+      <li><%= link_to "Spielerdaten", players_path %>
+        <ul>
+          <li>BA-ID, Club, Nachname, Vorname, Titel</li>
+        </ul></li>
+      <li><%= link_to "Saisonale Vereinszugehörigkeiten", season_participations_path %>
+        <ul>
+          <li>Spieler, Saison, Club</li>
+        </ul></li>
+      <li><%= link_to "Turniere", tournaments_path %>
+        <ul>
+          <li>BA-ID, Titel, Disziplin, Spielklasse, Modus, Zugangsbeschränkung, Datum, Akkreditierungsschluss, Spiellokal, Saison, Region, Schlussdatum, Aufnahmegrenze, Punktziel, Organisator (Club oder Region)</li>
+        </ul></li>
+      <li><%= link_to "Turniermoduspläne", tournament_plans_path %>
+        <ul>
+          <li>Name, Regelsystem, Spielerzahl, Tischzahl, Beschreibung, Gruppenzahl, formaler Ablauf</li>
+        </ul></li>
+      <li><%= link_to "Turnier/Spieler Setzlisten", seedings_path %>
+        <ul>
+          <li>Spieler, Listenplatz, Turnier, ggf. Vorgaben bei Vorgabeturnieren</li>
+        </ul></li>
+      <li><%= link_to "Spiele", game_participations_path %>
+        <ul>
+          <li>Turnier, Spielname, PlayerA, PlayerB</li>
+        </ul></li>
+      <li><%= link_to "Spielergebnisse", games_path %>
+        <ul>
+          <li>Spiel, Bälle, Aufnahmen, Höchstserie, Durchschnitt</li>
+        </ul></li>
+      <li><%= link_to "Spieler Rankings", player_rankings_path %>
+        <ul>
+          <li>Spieler, Disziplin, bester Einzeldurchschnitt, bester Turnierdurchschnitt</li>
+        </ul></li>
+    </ul>
+  </div>
+</div>

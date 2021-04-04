@@ -1,9 +1,10 @@
 class TableMonitorLaterChannel < ApplicationCable::Channel
   def subscribed
     stream_from "table-monitor-stream-later"
+    Rails.logger.info "TableMonitorLaterChannel subscribed"
   end
 
   def unsubscribed
-    # Any cleanup needed when channel is unsubscribed
+    Rails.logger.info "TableMonitorLaterChannel unsubscribed"
   end
 end

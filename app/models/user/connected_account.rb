@@ -33,8 +33,8 @@ class User::ConnectedAccount < ApplicationRecord
   # Associations
   belongs_to :user
 
-  attr_encrypted :access_token, key: Base64.decode64(Rails.application.credentials.access_token_encryption_key)
-  attr_encrypted :access_token_secret, key: Base64.decode64(Rails.application.credentials.access_token_encryption_key), allow_empty_value: true
+  attr_encrypted :access_token, key: (Base64.decode64(Rails.application.credentials.access_token_encryption_key) rescue nil)
+  attr_encrypted :access_token_secret, key: (Base64.decode64(Rails.application.credentials.access_token_encryption_key) rescue nil), allow_empty_value: true
 
   # Helper scopes for each provider
   Devise.omniauth_configs.each do |provider, _|

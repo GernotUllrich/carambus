@@ -35,7 +35,7 @@ class NumberPadReflex < ApplicationReflex
       table_monitor_id = element.dataset[:id]
       table_monitor = TableMonitor.find(table_monitor_id)
       table_monitor.update_columns(nnn: val == "c" ? 0 : (table_monitor.nnn || 0) * 10 + val)
-      cable_ready["table-monitor-stream"].inner_html(
+      cable_ready["number-pad-stream"].inner_html(
         selector: "#number_field_#{table_monitor_id}",
         html: table_monitor.nnn.to_s
       )
@@ -43,9 +43,9 @@ class NumberPadReflex < ApplicationReflex
     else
       session_key = :"nnn_#{table_monitor_id}"
       session[session_key] = val == "c" ? 0 : (session[session_key] || 0) * 10 + val
-      cable_ready["table-monitor-stream"].inner_html(
+      cable_ready["number-pad-stream"].inner_html(
         selector: "#number_field_#{table_monitor_id}",
-        html: session[session_key].to_s
+        html: session[session_key]. to_s
       )
       cable_ready.broadcast
     end

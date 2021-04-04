@@ -36,11 +36,11 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play
+        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       elsif table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.do_play
+        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       end
     elsif table_monitor.game_show_result?
       table_monitor.event_game_result_accepted!
@@ -63,11 +63,11 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play
+        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       elsif table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.do_play
+        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       end
     elsif table_monitor.game_show_result?
       table_monitor.event_game_result_accepted!
@@ -112,7 +112,7 @@ class TableMonitorReflex < ApplicationReflex
       #start game
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
-      table_monitor.do_play
+      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
     elsif table_monitor.playing_game?
       if table_monitor.end_result?
         table_monitor.terminate_current_inning
@@ -128,16 +128,12 @@ class TableMonitorReflex < ApplicationReflex
   def undo
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "undo"
     table_monitor.undo
   end
 
   def minus_one
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "minus_one"
     table_monitor.reset_timer!
     table_monitor.add_n_balls_to_current_players_inning(-1)
   end
@@ -145,8 +141,6 @@ class TableMonitorReflex < ApplicationReflex
   def minus_ten
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "minus_ten"
     table_monitor.reset_timer!
     table_monitor.add_n_balls_to_current_players_inning(-10)
   end
@@ -154,8 +148,6 @@ class TableMonitorReflex < ApplicationReflex
   def switch_players
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "next_step"
     table_monitor.switch_players
   end
 
@@ -164,15 +156,12 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.event_shootout_finished!
-    table_monitor.panel_state = table_monitor.current_element = "pointer_mode"
   end
 
   def add_one
     begin
       morph :nothing
       table_monitor = TableMonitor.find(element.dataset[:id])
-      table_monitor.panel_state = "inputs"
-      table_monitor.current_element = "add_one"
       table_monitor.reset_timer!
       table_monitor.add_n_balls_to_current_players_inning(1)
       Rails.logger.info("[add_one] ++++1++++")
@@ -185,8 +174,6 @@ class TableMonitorReflex < ApplicationReflex
     begin
       morph :nothing
       table_monitor = TableMonitor.find(element.dataset[:id])
-      table_monitor.panel_state = "inputs"
-      table_monitor.current_element = "add_ten"
       table_monitor.reset_timer!
       table_monitor.add_n_balls_to_current_players_inning(10)
       Rails.logger.info("[add_ten] ++++1++++")
@@ -205,8 +192,6 @@ class TableMonitorReflex < ApplicationReflex
   def numbers
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "numbers"
     table_monitor.reset_timer!
     if TableMonitor::NNN == "db"
       table_monitor.update(nnn: nil)
@@ -268,8 +253,6 @@ class TableMonitorReflex < ApplicationReflex
   def next_step
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "inputs"
-    table_monitor.current_element = "next_step"
     table_monitor.reset_timer!
     table_monitor.terminate_current_inning
   end
@@ -289,8 +272,6 @@ class TableMonitorReflex < ApplicationReflex
   def stop
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "timer"
-    table_monitor.current_element = "stop"
     table_monitor.reset_timer!
   end
 
@@ -299,8 +280,6 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.event_warmup_finished!
-    table_monitor.panel_state = "shootout"
-    table_monitor.current_element = "start_game"
   end
 
   def play_warm_up_a
@@ -314,16 +293,14 @@ class TableMonitorReflex < ApplicationReflex
   def play
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "timer"
-    table_monitor.current_element = "play"
-    table_monitor.do_play
+    session["panel_state"] = "timer"
+    session["current_element"] = "play"
+    table_monitor.do_play if table_monitor.tournament_monitor_id.present?
   end
 
   def pause
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.panel_state = "timer"
-    table_monitor.current_element = "pause"
     table_monitor.update(timer_halt_at: Time.now)
   end
 
@@ -340,7 +317,8 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.send(:"event_play_warm_up_#{player}!")
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
       start_at = Time.now
-      finish_at = Time.now + table_monitor.tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym).to_i
+      delta =  table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : 5.minutes
+      finish_at = Time.now + delta
       if table_monitor.timer_halt_at.present?
         extend = Time.now - table_monitor.timer_halt_at
         start_at = start_at + extend

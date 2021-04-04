@@ -55,7 +55,10 @@ class LocationsController < ApplicationController
         @players = @location.club.players.joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).order(:lastname, :firstname)
         @player_names = @players.map { |p| "#{p.lastname}, #{p.firstname}" }
         @player_ids = @players.map(&:id)
-        render "scoreboard_free_game"
+        if @table.present?
+          render "scoreboard_free_game"
+          return
+        end
       end
     end
   end

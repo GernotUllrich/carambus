@@ -8,7 +8,7 @@
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
     if (tabbed_keys.length > 0) {
-      var current_element = tabbed_keys[0]
+      var current_element = tabbed_keys[1]
       document.getElementById(current_element).focus();
     }
   };
@@ -47,7 +47,10 @@
     if (event.keyCode in keyMap) {
       var key = keyMap[event.keyCode];
       if (key == "key_c") {
-        window.history.back();
+        if (current_element == tabbed_keys[0])
+          window.history.back()
+        else
+          document.getElementById(tabbed_keys[0]).focus()
       }
       if (key == "key_b") {
         var current_element = document.activeElement.getAttribute("id")

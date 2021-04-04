@@ -2771,6 +2771,7 @@ class TournamentPlan < ApplicationRecord
   def self.group_sizes_from(nplayers)
     ngroups = nplayers / 8
     ngroups += 1 if ngroups % 2 == 1
+    ngroups = 1 if ngroups == 0
     groups = TournamentMonitor.distribute_to_group((1..nplayers).to_a, ngroups)
     group_sizes = (1..ngroups).to_a.map {|gix| groups["group#{gix}"].length}
   end

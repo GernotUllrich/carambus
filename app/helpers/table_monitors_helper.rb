@@ -11,7 +11,7 @@ module TableMonitorsHelper
   end
 
   def evaluate_panel_and_current(table_monitor)
-    element_to_panel_state = {
+      element_to_panel_state = {
       "undo" => "inputs",
       "minus_one" => "inputs",
       "minus_ten" => "inputs",
@@ -41,13 +41,11 @@ module TableMonitorsHelper
       "practice_a" => "setup",
       "practice_b" => "setup",
     }
-    panel_state = table_monitor.panel_state
-    current_element = table_monitor.current_element
     panel_state = "setup" if table_monitor.setup_modal_should_be_open?
     panel_state = "numbers" if table_monitor.numbers_modal_should_be_open?
     panel_state = "shootout" if table_monitor.shootout_modal_should_be_open?
     if panel_state.present?
-      unless current_element.present? && current_element == element_to_panel_state[current_element]
+      unless panel_state == element_to_panel_state["pointer_mode"]
         current_element = TableMonitor::DEFAULT_ENTRY[panel_state]
         if panel_state == "timer"
           current_element = (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?) ? "pause" : "play"

@@ -654,29 +654,33 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def self.distribute_to_group(players, ngroups)
-    groups = {}
-    (1..ngroups).each do |group_no|
-      groups["group#{group_no}"] = []
-    end
-    group_ix = 1
-    direction_right = true
-    players.each do |player|
-      groups["group#{group_ix}"] << player
-      if direction_right
-        group_ix += 1
-        if group_ix > ngroups
-          direction_right = false
-          group_ix = ngroups
-        end
-      else
-        group_ix -= 1
-        if group_ix <= 0
-          direction_right = true
-          group_ix = 1
+    begin
+      groups = {}
+      (1..ngroups).each do |group_no|
+        groups["group#{group_no}"] = []
+      end
+      group_ix = 1
+      direction_right = true
+      players.each do |player|
+        groups["group#{group_ix}"] << player
+        if direction_right
+          group_ix += 1
+          if group_ix > ngroups
+            direction_right = false
+            group_ix = ngroups
+          end
+        else
+          group_ix -= 1
+          if group_ix <= 0
+            direction_right = true
+            group_ix = 1
+          end
         end
       end
+      return groups
+    rescue Exception => e
+      return groups
     end
-    return groups
   end
 
   private

@@ -9,6 +9,7 @@
   var game_values_disciplines;
   var game_values_innings;
   var game_values_balls_goal;
+  var current_element;
 
   window.onload = function () {
     game_values_disciplines = {
@@ -35,8 +36,7 @@
         "Cadre 47/2"],
       "Pin Billards": ["Pin Billards"],
     }
-    players = eval('<%= @player_names.inspect.html_safe %>');
-    player_ids = eval('<%= (@player_ids).inspect %>');
+    players = JSON.parse('<%= @players.map { |p| [p.id, "#{p.lastname}, #{p.firstname}"] }.to_json.html_safe %>');
     game_values_innings = [
       20, 15
     ]
@@ -52,7 +52,7 @@
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
     if (tabbed_keys.length > 0) {
-      var current_element = tabbed_keys[0]
+      current_element = "player_a_w"
       document.getElementById(current_element).focus();
     }
   };
@@ -80,7 +80,7 @@
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
 
-    var current_element = document.activeElement.getAttribute("id") || "submit"
+    current_element = document.activeElement.getAttribute("id") || "submit"
     console.log("active: " + current_element);
     if (current_element == null) {
       current_element = tabbed_keys[0];
@@ -91,7 +91,7 @@
     if (event.keyCode in keyMap) {
       var key = keyMap[event.keyCode];
       if (key == "key_c") {
-        var current_element = document.activeElement.getAttribute("id") || "submit";
+        current_element = document.activeElement.getAttribute("id") || "submit";
         if (current_element != "submit") {
           document.getElementById("submit").focus()
         } else {
@@ -99,7 +99,7 @@
         }
       }
       if (key == "key_b") {
-        var current_element = document.activeElement.getAttribute("id") || "submit";
+        current_element = document.activeElement.getAttribute("id") || "submit";
         for (var i = 0; i < tabbed_keys.length; i++) {
           if (tabbed_keys[i] == current_element) {
             var ff = i + 1;
@@ -113,7 +113,7 @@
         }
       }
       if (key == "key_a") {
-        var current_element = document.activeElement.getAttribute("id") || "submit";
+        current_element = document.activeElement.getAttribute("id") || "submit";
         for (var i = 0; i < tabbed_keys.length; i++) {
           if (tabbed_keys[i] == current_element) {
             var ff = i - 1;
@@ -142,6 +142,14 @@
     let name_stripped1 = name_.replace("_w", "");
     let player_select = "";
     let name_stripped = "";
+    let next_val = "";
+    let next_val_id = 0;
+    let current_value = "";
+    let default_name = "Spieler A"
+    // let players_p = [...players]
+    // let player_ids_p = [...player_ids]
+    let value_id = 0;
+
     if (name_stripped1.endsWith("_a")) {
       player_select = "_a";
       name_stripped = name_stripped1.replace("_a", "");
@@ -153,7 +161,6 @@
       name_stripped = name_stripped1;
     }
     current_value = document.getElementById(name_stripped1).value;
-    var next_val;
     switch (name_stripped) {
       case "discipline":
         next_val = next_value(game_values_disciplines[table_kind], current_value);
@@ -165,17 +172,17 @@
         next_val = next_value(game_values_balls_goal, current_value);
         break;
       case "player":
-        default_name = "Spieler A"
+        current_player_id = document.getElementById(name_stripped1 + "_id").value
         if (player_select == "_b") default_name = "Spieler B"
-        var players_p = [...players]
-        players_p.unshift(default_name)
+        players_p = [...players]
+        players_p.unshift([0, default_name])
+        current_value = player_from_id(players_p, current_player_id)
         next_val = next_value(players_p, current_value);
-        value_id = document.getElementById(name_stripped1 + "_id").value;
-
-        var player_ids_p = [...player_ids]
-        player_ids_p.unshift(0)
-        next_val_id = next_value(player_ids_p, value_id);
-        document.getElementById(name_stripped1 + "_id").value = next_val_id;
+        document.getElementById(name_stripped1 + "_id").value = next_val[0];
+        document.getElementById(name_stripped1).setAttribute("value", next_val[1]);
+        document.getElementById(name_stripped1).value = next_val[1];
+        document.getElementById(name_stripped1).disabled = true;
+        return
     }
     document.getElementById(name_stripped1).value = next_val;
     if (name_stripped != "player" && player_select == "") {
@@ -184,12 +191,20 @@
     }
   };
 
+  function player_from_id(values, value) {
+    for (var i = 0; i < values.length; i++) {
+      if (values[i][0] == value )
+        return values[i];
+    }
+    return values[0]
+  }
+
   function next_value(values, value) {
     for (var i = 0; i < values.length; i++) {
       if (values[i] == value) {
-        nix = i + 1
-        if (i >= values) nix = 0
-        return values[nix];
+        next = i + 1
+        if (i >= values) next = 0
+        return values[next];
       }
     }
     return values[0]

@@ -77,6 +77,7 @@ en:
       new:
         sign_up: Sign up
         login_html: "Or %{link}"
+        login_link: "log in to your account"
         terms_html: "I accept the %{terms} &amp; %{privacy}"
         submitting: "Submitting..."
       signed_up: "Welcome! You have signed up successfully."
@@ -90,6 +91,7 @@ en:
       already_signed_out: "Signed out successfully."
       new:
         sign_up_html: "Or %{link}"
+        sign_up_link: "sign up for an account"
         sign_in: "Log In"
       signed_in: "Signed in successfully."
       signed_out: "Signed out successfully."

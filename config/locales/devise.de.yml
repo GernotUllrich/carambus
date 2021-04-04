@@ -45,6 +45,22 @@ de:
       updated: Dein Passwort wurde geändert. Du bist jetzt angemeldet.
       updated_not_active: Dein Passwort wurde geändert.
     registrations:
+      edit:
+        are_you_sure: Sind Sie sicher??
+        cancel_my_account: Lösche meinen Account
+        currently_waiting_confirmation_for_email: 'Wir warten auf die Bestätigung der email: %{email}'
+        leave_blank_if_you_don_t_want_to_change_it: Leere Eingabe, wenn keine Änderung gewollt wird
+        title: Ändern des Profils
+        unhappy: Unglücklich?
+        update: Ändern
+        we_need_your_current_password_to_confirm_your_changes: Wir brauchen das aktuelle Passwort um die Änderungen zu speichern
+        saving: "Speichern..."
+      new:
+        sign_up: Registrieren
+        login_html: "oder %{link}"
+        login_link: "in den Account einloggen"
+        terms_html: "Ich akzeptiere %{terms} &amp; %{privacy}"
+        submitting: "Übertragen..."
       destroyed: Dein Account wurde gelöscht.
       signed_up: Du hast Dich erfolgreich registriert.
       signed_up_but_inactive: Du hast Dich erfolgreich registriert. Wir konnten
@@ -60,7 +76,11 @@ de:
         mit der Du die Änderung Deiner E-Mail-Adresse abschliessen kannst.
       updated: Deine Daten wurden aktualisiert.
     sessions:
-      already_signed_out: Di bist bereits abgemeldet.
+      new:
+        sign_up_html: "Oder %{link}"
+        sign_up_link: "Registriere Dich für einen neuen Account"
+        sign_in: "Anmelden"
+      already_signed_out: Du bist bereits abgemeldet.
       signed_in: Erfolgreich angemeldet.
       signed_out: Erfolgreich abgemeldet.
     unlocks:
