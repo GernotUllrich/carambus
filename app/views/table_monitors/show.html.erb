@@ -35,7 +35,7 @@
     }
 </style>
 <script type="text/javascript">
-  var panel_nav_b = {
+  var panel_nav_h = {
     "undo": "minus_one",
     "minus_one": "minus_ten",
     "minus_ten": "next_step",
@@ -47,28 +47,29 @@
     "play": "stop",
     "stop": "pause",
     "pointer_mode": "pointer_mode",
+    "number_field": "nnn_1",
     "nnn_1": "nnn_2",
     "nnn_2": "nnn_3",
-    "nnn_3": "nnn_1",
+    "nnn_3": "number_field",
     "nnn_4": "nnn_5",
     "nnn_5": "nnn_6",
     "nnn_6": "nnn_4",
     "nnn_7": "nnn_8",
     "nnn_8": "nnn_9",
     "nnn_9": "nnn_7",
-    "nnn_0": "nnn_c",
-    "nnn_c": "nnn_enter",
-    "nnn_enter": "nnn_0",
+    "nnn_0": "nnn_del",
+    "nnn_del": "nnn_esc",
+    "nnn_esc": "nnn_0",
     "start_game": "change",
     "change": "start_game",
     "continue": "practice_a",
     "practice_a": "practicet_b",
     "practice_b": "continue",
   }
-  var panel_nav_d = {
-    "pointer_mode": "inputs",
-    "inputs": "timer",
-    "timer": "pointer_mode",
+  var panel_nav_v = {
+    "pointer_mode": "timer",
+    "timer": "inputs",
+    "number_field": "nnn_1",
     "nnn_1": "nnn_4",
     "nnn_2": "nnn_5",
     "nnn_3": "nnn_6",
@@ -76,11 +77,11 @@
     "nnn_5": "nnn_8",
     "nnn_6": "nnn_9",
     "nnn_7": "nnn_0",
-    "nnn_8": "nnn_c",
-    "nnn_9": "nnn_enter",
-    "nnn_0": "nnn_1",
-    "nnn_c": "nnn_2",
-    "nnn_enter": "nnn_3",
+    "nnn_8": "nnn_del",
+    "nnn_9": "nnn_esc",
+    "nnn_0": "number_field",
+    "nnn_del": "nnn_2",
+    "nnn_esc": "nnn_3",
   }
   var keyMap = {
     33: "key_a",
@@ -171,6 +172,14 @@
     return el.getAttribute("previous_element")
   }
 
+  function previous(ce) {
+    for (var ix in panel_nav_h) {
+      if (panel_nav_h[ix] == ce)
+        return ix;
+    }
+    return ce;
+  }
+
   function reset_to_pointer_mode() {
     set_panel_state("pointer_mode")
     set_current_element("pointer_mode")
@@ -199,27 +208,31 @@
     set_previous_element(get_current_element())
     set_previous_panel(get_panel_state())
     event.preventDefault();
-    console.log(hotkeys.getPressedKeyCodes());
+    console.log("+++ GOT KEYCODES: " + hotkeys.getPressedKeyCodes());
     //alert('you pressed ' + hotkeys.getPressedKeyCodes());
     if (event.keyCode in keyMap) {
       var keyCode = keyMap[event.keyCode]
-      if (keyCode == "key_c") window.history.back()
-      else if (keyCode == "key_d") {
-        if (get_panel_state() == "pointer_mode") { // => inputs
-          set_panel_state(panel_nav_d[get_panel_state()])
-          set_current_element("numbers")
+      if (keyCode == "key_c") {
+        if (get_panel_state() == "inputs") {
+          set_panel_state("pointer_mode")
+          set_current_element("pointer_mode")
           if (!focus_or_reset_element())
             backout()
-        } else if (get_panel_state() == "inputs") { // goto => timer
-          set_panel_state(panel_nav_d[get_panel_state()])
+        } else
+          window.history.back()
+      } else if (keyCode == "key_d") {
+        if (get_panel_state() == "pointer_mode") { // => timer
+          set_panel_state(panel_nav_v[get_panel_state()])
           var play = isHidden(document.getElementById("pause"))
           set_current_element(play ? "play" : "pause")
           if (!focus_or_reset_element())
             backout()
-        } else if (get_panel_state() == "timer") { // goto pointer_mode
-          set_current_element("pointer_mode")
-          set_panel_state(panel_nav_d[get_panel_state()])
-          var el = document.getElementById(get_current_element());
+        } else if (get_panel_state() == "inputs") {
+          if (!click_or_reset_element())
+            backout()
+        } else if (get_panel_state() == "timer") { // goto inputs
+          set_panel_state(panel_nav_v[get_panel_state()])
+          set_current_element("add_one")
           if (!focus_or_reset_element())
             backout()
         } else if (get_panel_state() == "shootout") { // => shootout
@@ -235,7 +248,7 @@
           set_panel_state("shootout")
           set_current_element("start_game")
         } else if (get_panel_state() == "numbers") {
-          set_current_element(panel_nav_d[get_current_element()])
+          set_current_element(panel_nav_v[get_current_element()])
           if (!focus_or_reset_element())
             backout()
         }
@@ -243,12 +256,12 @@
         if (get_panel_state() == "pointer_mode" || get_panel_state() == "setup") {
           document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click();
         } else if (get_panel_state() == "inputs" || get_panel_state() == "numbers") {
-          set_current_element(panel_nav_b[get_current_element()])
+          set_current_element(panel_nav_h[get_current_element()])
           if (!focus_or_reset_element())
             backout()
         } else if (get_panel_state() == "timer") {
           var play = isHidden(document.getElementById("pause"))
-          var next = (panel_nav_b[get_current_element()] == "pause" ? (play ? "play" : "pause") : panel_nav_b[get_current_element()])
+          var next = (panel_nav_h[get_current_element()] == "pause" ? (play ? "play" : "pause") : panel_nav_h[get_current_element()])
           set_current_element(next)
           if (!focus_or_reset_element())
             backout()
@@ -261,8 +274,12 @@
       } else if (keyCode == "key_a") {
         if (get_panel_state() == "pointer_mode" || get_panel_state() == "setup") {
           document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click()
-        } else if (get_panel_state() == "timer" || get_panel_state() == "inputs" || get_panel_state() == "numbers") {
+        } else if (get_panel_state() == "timer" || get_panel_state() == "numbers") {
           if (!click_or_reset_element())
+            backout()
+        } else if (get_panel_state() == "inputs") {
+          set_current_element(previous(get_current_element()))
+          if (!focus_or_reset_element())
             backout()
         } else if (get_panel_state() == "shootout") {
           set_current_element("change")
@@ -289,12 +306,12 @@
 <%= content_tag "div", class: "hidden mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_d", id: @table_monitor.id }, id: "key_d_table_monitor_#{@table_monitor.id}" do %>
   D
 <%- end %>
-<%- if @table_monitor.setup_modal_should_be_open? || @table_monitor.shootout_modal_should_be_open? %>
+<%- if @table_monitor.setup_modal_should_be_open? || @table_monitor.shootout_modal_should_be_open? || @table_monitor.numbers_modal_should_be_open? %>
 
   <%= content_tag "div",
                   type: "text",
                   "data-controller": "table-monitor",
-                  data: { reflex: "keypress->NumberPadReflex#key_pressed click->NumberPadReflex#outside", id: @table_monitor.id },
+                  data: { reflex: "keypress->TableMonitorReflex#key_pressed click->TableMonitorReflex#outside", id: @table_monitor.id },
                   id: "full_screen_table_monitor_#{@table_monitor.id}",
                   class: "table_monitor flex-1 h-screen" do %>
     <%= render partial: "show", locals: { table_monitor: @table_monitor, full_screen: true } %>

@@ -19,6 +19,7 @@
     "jstz": "^2.0.0",
     "local-time": "^2.1.0",
     "postcss": "^8.2.8",
+    "radiolabel": "^1.1.0",
     "slim-select": "^1.23.1",
     "stimulus": "^2.0.0",
     "stimulus-flatpickr": "^1.2.4",

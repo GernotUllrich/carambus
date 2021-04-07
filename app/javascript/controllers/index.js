@@ -3,6 +3,7 @@
 
 import { Application } from "stimulus"
 import Hotkeys from 'stimulus-hotkeys'
+import Radiolabel from 'radiolabel'
 import { definitionsFromContext } from "stimulus/webpack-helpers"
 
 const application = Application.start()
@@ -23,3 +24,11 @@ import consumer from '../channels/consumer'
 import controller from './application_controller'
 application.register('flatpickr', Flatpickr)
 StimulusReflex.initialize(application, { consumer, controller, debug: true })
+
+// Manually register Radiolabel as a Stimulus controller
+
+// if (process.env.RAILS_ENV === 'development') {
+//   import('radiolabel').then(Radiolabel =>
+//     application.register('radiolabel', Radiolabel.default)
+//   )
+// }

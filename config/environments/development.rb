@@ -71,4 +71,7 @@ Rails.application.configure do
 
   # Allow accessing localhost on any domain. Important for testing multi-tenant apps
   config.hosts = nil
+
+  # :debug, :info, :warn, :error, :fatal, :unknown
+  config.log_level = :info
 end

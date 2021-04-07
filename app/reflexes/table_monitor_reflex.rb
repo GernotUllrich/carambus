@@ -21,6 +21,67 @@ class TableMonitorReflex < ApplicationReflex
   #   end
   #
   # Learn more at: https://docs.stimulusreflex.com
+  #
+  (0..9).each do |i|
+    define_method :"nnn_#{i}" do
+      key(element.dataset[:id], i)
+    end
+  end
+
+  def key(table_monitor_id, val)
+    morph :nothing
+    if TableMonitor::NNN == "db"
+      table_monitor_id = element.dataset[:id]
+      table_monitor = TableMonitor.find(table_monitor_id)
+      table_monitor.update(nnn: val == "c" ? table_monitor.nnn.to_i/10 : (table_monitor.nnn || 0) * 10 + val)
+      # cable_ready["table-monitor-stream"].inner_html(
+      #   selector: "#number_field",
+      #   html: table_monitor.nnn.to_s
+      # )
+      # cable_ready.broadcast
+    else
+      session_key = :"nnn_#{table_monitor_id}"
+      session[session_key] = val == "c" ? 0 : (session[session_key] || 0) * 10 + val
+      cable_ready["table-monitor-stream"].inner_html(
+        selector: "#number_field",
+        html: session[session_key]. to_s
+      )
+      cable_ready.broadcast
+    end
+  end
+
+  def nnn_del
+    key(element.dataset[:id], "c")
+  end
+
+  def nnn_enter
+    morph :nothing
+    table_monitor_id = element.dataset[:id]
+    table_monitor = TableMonitor.find(table_monitor_id)
+    table_monitor.reset_timer!
+
+    if TableMonitor::NNN == "db"
+      table_monitor.set_n_balls_to_current_players_inning(table_monitor.nnn, true)
+    else
+      session_key = :"nnn_#{table_monitor_id}"
+      table_monitor.set_n_balls_to_current_players_inning(session[session_key].to_i, true)
+    end
+    table_monitor.save
+  end
+
+  def outside
+    morph :nothing
+    table_monitor_id = element.dataset[:id]
+    table_monitor = TableMonitor.find(table_monitor_id)
+    table_monitor.touch
+    table_monitor.assign_attributes(nnn:nil, panel_state: "pointer_mode", current_element: "pointer_mode")
+    table_monitor.save
+  end
+
+  def key_pressed
+    morph :nothing
+  end
+
 
   def key_a
     morph :nothing
@@ -37,10 +98,12 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
         table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       elsif table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
         table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
     elsif table_monitor.game_show_result?
       table_monitor.event_game_result_accepted!
@@ -48,6 +111,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif table_monitor.game_finished?
       table_monitor.tournament_monitor.report_result(table_monitor)
     end
+    table_monitor.save
   end
 
   def key_b
@@ -80,6 +144,7 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.reset_table_monitor
       end
     end
+    table_monitor.save
   end
 
   def key_c
@@ -97,6 +162,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif table_monitor.shootout_modal_should_be_open?
 
     end
+    table_monitor.save
   end
 
   def key_d
@@ -123,32 +189,41 @@ class TableMonitorReflex < ApplicationReflex
     elsif table_monitor.game_finished?
       table_monitor.tournament_monitor.report_result(table_monitor)
     end
+    table_monitor.save
   end
 
   def undo
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
     table_monitor.undo
+    table_monitor.save
   end
 
   def minus_one
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
     table_monitor.reset_timer!
     table_monitor.add_n_balls_to_current_players_inning(-1)
+    table_monitor.save
   end
 
   def minus_ten
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
     table_monitor.reset_timer!
     table_monitor.add_n_balls_to_current_players_inning(-10)
+    table_monitor.save
   end
 
   def switch_players
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
     table_monitor.switch_players
+    table_monitor.save
   end
 
   def start_game
@@ -156,15 +231,20 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.event_shootout_finished!
+    table_monitor.save
   end
 
   def add_one
     begin
       morph :nothing
       table_monitor = TableMonitor.find(element.dataset[:id])
+      table_monitor.panel_state = "inputs"
+      table_monitor.current_element = "add_one"
       table_monitor.reset_timer!
+      Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if{|k,v| k == "data"})}")
       table_monitor.add_n_balls_to_current_players_inning(1)
-      Rails.logger.info("[add_one] ++++1++++")
+      Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if{|k,v| k == "data"})}")
+      table_monitor.save
     rescue Exception => e
       Rails.logger.info("[add_one] #{e} #{e.backtrace.join("\n")}")
     end
@@ -174,9 +254,12 @@ class TableMonitorReflex < ApplicationReflex
     begin
       morph :nothing
       table_monitor = TableMonitor.find(element.dataset[:id])
+      table_monitor.panel_state = "inputs"
+      table_monitor.current_element = "add_ten"
       table_monitor.reset_timer!
       table_monitor.add_n_balls_to_current_players_inning(10)
       Rails.logger.info("[add_ten] ++++1++++")
+      table_monitor.save
     rescue Exception => e
       Rails.logger.info("[add_ten] #{e} #{e.backtrace.join("\n")}")
     end
@@ -185,20 +268,18 @@ class TableMonitorReflex < ApplicationReflex
   def set_balls
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
+    table_monitor.panel_state = "inputs"
     table_monitor.reset_timer!
     table_monitor.set_n_balls_to_current_players_inning(element.value.to_i)
+    table_monitor.save
   end
 
   def numbers
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
-    if TableMonitor::NNN == "db"
-      table_monitor.update(nnn: nil)
-    else
-      session[:"nnn_#{element.dataset[:id]}"] = nil
-    end
     table_monitor.numbers
+    table_monitor.save
   end
 
   def up
@@ -219,8 +300,9 @@ class TableMonitorReflex < ApplicationReflex
       Rails.logger.info ";;; game2.id=#{game2.andand.id}, tm2: #{JSON.pretty_generate(tm2.attributes)}"
       tm1_data = tm1.data.dup
       tm2_data = tm2.data.dup
-      tm1.update(game_id: game2.id, data: tm2_data)
-      tm2.update(game_id: game1.id, data: tm1_data)
+      tm1.assign_attributes(game_id: game2.id, data: tm2_data)
+      tm2.assign_attributes(game_id: game1.id, data: tm1_data)
+      table_monitor.save
     rescue Exception => e
       Rails.logger.info ";;; up #{e} #{e.backtrace.join("\n")}"
     end
@@ -243,8 +325,10 @@ class TableMonitorReflex < ApplicationReflex
       Rails.logger.info ";;; game2.id=#{game2.andand.id}, tm2: #{JSON.pretty_generate(tm2.attributes)}"
       tm1_data = tm1.data.dup
       tm2_data = tm2.data.dup
-      tm1.update(game_id: game2.id, data: tm2_data)
-      tm2.update(game_id: game1.id, data: tm1_data)
+      tm1.assign_attributes(game_id: game2.id, data: tm2_data)
+      tm2.assign_attributes(game_id: game1.id, data: tm1_data)
+      tm1.save
+      tm2.save
     rescue Exception => e
       Rails.logger.info ";;; down #{e} #{e.backtrace.join("\n")}"
     end
@@ -255,6 +339,7 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.terminate_current_inning
+    table_monitor.save
   end
 
   def force_next_state
@@ -266,13 +351,25 @@ class TableMonitorReflex < ApplicationReflex
     elsif [:game_shootout_started].include?(table_monitor.state.to_sym)
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
+    elsif table_monitor.game_show_result?
+      table_monitor.event_game_result_accepted!
+      table_monitor.prepare_final_game_result
+    elsif table_monitor.game_finished?
+      if table_monitor.tournament_monitor.present?
+        table_monitor.tournament_monitor.report_result(table_monitor)
+      else
+        table_monitor.event_game_result_reported!
+        table_monitor.reset_table_monitor
+      end
     end
+    table_monitor.save
   end
 
   def stop
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
+    table_monitor.save
   end
 
   def warm_up_finished
@@ -280,28 +377,33 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.event_warmup_finished!
+    table_monitor.save
   end
 
   def play_warm_up_a
     warmup_state_change ("a")
+    table_monitor.save
   end
 
   def play_warm_up_b
     warmup_state_change ("b")
+    table_monitor.save
   end
 
   def play
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    session["panel_state"] = "timer"
-    session["current_element"] = "play"
+    table_monitor.panel_state = "timer"
+    table_monitor.current_element = "play"
     table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+    table_monitor.save
   end
 
   def pause
     morph :nothing
     table_monitor = TableMonitor.find(element.dataset[:id])
-    table_monitor.update(timer_halt_at: Time.now)
+    table_monitor.assign_attributes(timer_halt_at: Time.now)
+    table_monitor.save
   end
 
   private
@@ -324,13 +426,14 @@ class TableMonitorReflex < ApplicationReflex
         start_at = start_at + extend
         finish_at = finish_at + extend
       end
-      table_monitor.update(
+      table_monitor.assign_attributes(
         active_timer: active_timer,
         timer_halt_at: nil,
         timer_start_at: start_at,
         timer_finish_at: finish_at)
       table_monitor.update_every_n_seconds(10);
     end
+    table_monitor.save
   end
 
   def submit

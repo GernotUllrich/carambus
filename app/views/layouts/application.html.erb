@@ -32,7 +32,7 @@
     <%= yield :head %>
   </head>
 
-  <body class="h-full font-sans antialiased font-normal leading-normal bg-gray-100 dark:text-gray-200 dark:bg-gray-800 dark:bg-black">
+  <body data-controller="radiolabel" class="h-full font-sans antialiased font-normal leading-normal bg-gray-100 dark:text-gray-200 dark:bg-gray-800 dark:bg-black">
     <div class="main">
       <%= render partial: "shared/flash" %>
       <%= render partial: "shared/navbar" if @navbar%>

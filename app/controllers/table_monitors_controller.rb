@@ -23,7 +23,6 @@ class TableMonitorsController < ApplicationController
     @navbar = false
     @footer = false
     @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false
-    #@panel_state = "score"
     @current_element = ""
   end
 

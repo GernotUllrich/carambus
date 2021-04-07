@@ -37,33 +37,32 @@
     }
   } %>
   <%- if full_screen %>
-      <%= render partial: "table_monitors/game_setup",
-                 locals: {
-                   modal_hidden: !table_monitor.setup_modal_should_be_open?,
-                   full_screen: full_screen,
-                   table_monitor: table_monitor },
-                 formats: :modal,
-                 layout: "layouts/application"
-      %>
-      <%= render partial: "table_monitors/shootout", locals: { table_monitor: table_monitor,
-                                                               full_screen: full_screen,
-                                                               modal_hidden: !table_monitor.shootout_modal_should_be_open? },
-                 formats: :modal,
-                 layout: "layouts/application"
-      %>
-      <%= render partial: "table_monitors/numbers", locals: { table_monitor: table_monitor,
-                                                              full_screen: full_screen,
-                                                              modal_hidden: !table_monitor.numbers_modal_should_be_open? },
-                 formats: :modal,
-                 layout: "layouts/application"
-      %>
+    <%= render partial: "table_monitors/game_setup",
+               locals: {
+                 modal_hidden: !table_monitor.setup_modal_should_be_open?,
+                 full_screen: full_screen,
+                 table_monitor: table_monitor },
+               formats: :modal,
+               layout: "layouts/application"
+    %>
+    <%= render partial: "table_monitors/shootout", locals: { table_monitor: table_monitor,
+                                                             full_screen: full_screen,
+                                                             modal_hidden: !table_monitor.shootout_modal_should_be_open? },
+               formats: :modal,
+               layout: "layouts/application"
+    %>
+    <%= render partial: "table_monitors/numbers", locals: { table_monitor: table_monitor,
+                                                            full_screen: full_screen,
+                                                            modal_hidden: !table_monitor.numbers_modal_should_be_open? },
+               formats: :modal,
+               layout: "layouts/application"
+    %>
   <%- end %>
-  <%- panel_state, current_element = evaluate_panel_and_current(table_monitor) %>
-  <%= content_tag "div", id: "panel_state", panel_state: panel_state, style: "display: none" do %>
-    <%= panel_state %>
+  <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, style: "display: none" do %>
+    <%= table_monitor.panel_state %>
   <%- end %>
-  <%= content_tag "div", id: "current_element", current_element: current_element, style: "display: none" do %>
-    <%= current_element %>
+  <%= content_tag "div", id: "current_element", current_element: table_monitor.current_element, style: "display: none" do %>
+    <%= table_monitor.current_element %>
   <%- end %>
   <%= content_tag "div", id: "previous_panel", previous_panel: "pointer_mode", style: "display: none" do %>
     <%= "pointer_mode" %>
@@ -101,9 +100,9 @@
                   <div class="flex-1">HS: <%= options[:player_a][:hs] %></div>
                 </div>
               </div>
-              <div class="flex h-4/6 text-center text-20vw justify-center items-center font-bold">
+              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-20vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
                 <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
-              </div>
+              <%- end %>
               <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
               <%- if showing_timer.blank? %>
                 <div class="flex flex-1 flex-col">
@@ -131,7 +130,7 @@
           </div>
         </div>
         <div class="w-1/5 bg-grey">
-          <%= content_tag "div", data: { reflex: "dblclick->TableMonitorReflex#force_next_state", id: options[:id] }, class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-3vw p-2 text-center bg-white dark:bg-black" do %>
+          <%= content_tag "div", data: { reflex: "dblclick->TableMonitorReflex#force_next_state", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-3vw p-2 text-center bg-white dark:bg-black" do %>
             <%= table_monitor.state_display(I18n.locale) %>
           <%- end %>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
@@ -197,9 +196,9 @@
                   </div>
                 </div>
               </div>
-              <div class="flex h-4/6 text-center text-20vw justify-center items-center font-bold">
+              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-20vw justify-center items-center font-bold", title: "Player_b", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
                 <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
-              </div>
+              <%- end %>
               <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
               <%- if showing_timer.blank? %>
                 <div class="flex flex-1 flex-col">
@@ -286,7 +285,7 @@
           </div>
         </div>
         <div class="w-1/5 bg-grey">
-          <%= content_tag "div", data: { reflex: "dblclick->TableMonitorReflex#force_next_state", id: options[:id] }, class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-1-5vw p-2 text-center bg-white dark:bg-black" do %>
+          <%= content_tag "div", data: { reflex: "dblclick->TableMonitorReflex#force_next_state", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-1-5vw p-2 text-center bg-white dark:bg-black" do %>
             <%= table_monitor.state_display(I18n.locale) %>
           <%- end %>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">

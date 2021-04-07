@@ -4,10 +4,12 @@
 #
 #  id                    :bigint           not null, primary key
 #  active_timer          :string
+#  current_element       :string           default("pointer_mode"), not null
 #  data                  :text
 #  ip_address            :string
 #  name                  :string
 #  nnn                   :integer
+#  panel_state           :string           default("pointer_mode"), not null
 #  state                 :string
 #  timer_finish_at       :datetime
 #  timer_halt_at         :datetime
@@ -41,7 +43,8 @@ class TableMonitor < ApplicationRecord
     "shootout" => "start_game",
     "timer" => "play", #depends on state !
     "setup" => "continue",
-    "numbers" => "nnn_1"
+    "numbers" => "number_field",
+    "game_finished" => "game_state"
   }
   NNN = "db" #store nnn in database table_monitor
 
@@ -77,9 +80,9 @@ class TableMonitor < ApplicationRecord
     state :game_warmup_b_started
     state :game_shootout_started
     state :playing_game, :after_enter => [:set_start_time], :after_exit => [:set_end_time]
-    state :game_show_result
-    state :game_finished
-    state :game_result_reported
+    state :game_show_result, :after_enter => [:set_game_show_result_panel_state]
+    state :game_finished, :after_enter => [:set_game_show_result_panel_state]
+    state :game_result_reported, :after_enter => [:set_game_show_result_panel_state]
     state :ready_for_new_game #previous game result still displayed here - and probably next players
     event :start_new_game do
       transitions from: [:ready, :ready_for_new_game, :game_setup_started, :game_result_reported, :game_finished], to: :game_setup_started, :after_enter => [:initialize_game]
@@ -116,12 +119,11 @@ class TableMonitor < ApplicationRecord
   def on_create
     info = "+++ 8xxx - table_monitor#on_create"; DebugInfo.instance.update(info: info); Rails.logger.info info
   end
+
   def state_display(locale)
     @locale = locale || I18n.default_locale
     I18n.t("table_monitor.status.#{state}")
   end
-
-  @numbers_mode = false
 
   def log_state_change
     if state_changed?
@@ -129,24 +131,36 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  def set_game_show_result_panel_state
+    update(panel_state: "game_finished", current_element: "game_state")
+  end
+
   after_commit do
     if previous_changes.present?
-      Rails.logger.info "table_monitor[#{id}] #{previous_changes.inspect}"
-      TableMonitorLaterJob.perform_later(self)
-      full_screen_html = ApplicationController.render(
-        partial: "table_monitors/show",
-        locals: { table_monitor: self, full_screen: true }
-      )
-      cable_ready["table-monitor-stream"].inner_html(
-        selector: "#full_screen_table_monitor_#{id}",
-        html: full_screen_html
-      )
-      cable_ready.broadcast
+      Rails.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
+      self.evaluate_panel_and_current
+      if changes.present?
+        Rails.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
+        save
+      else
+        TableMonitorLaterJob.perform_later(self)
+        full_screen_html = ApplicationController.render(
+          partial: "table_monitors/show",
+          locals: { table_monitor: self, full_screen: true }
+        )
+        cable_ready["table-monitor-stream"].inner_html(
+          selector: "#full_screen_table_monitor_#{id}",
+          html: full_screen_html
+        )
+        cable_ready.broadcast
+      end
     end
   end
 
   def numbers
-    @numbers_mode = true
+    active_player = data["current_inning"].andand["active_player"]
+    nnn_val = data[active_player].andand["innings_redo_list"].andand[-1].to_i
+    self.update(nnn: nnn_val)
     full_screen_html = ApplicationController.render(
       partial: "table_monitors/show",
       locals: { table_monitor: self, full_screen: true }
@@ -236,7 +250,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def numbers_modal_should_be_open?
-    @numbers_mode
+    self.nnn.present? || self.panel_state == "numbers"
   end
 
   def get_progress_bar_status(n)
@@ -378,7 +392,6 @@ class TableMonitor < ApplicationRecord
         else
           #data[current_role]["innings_redo_list"].pop if Array(data[current_role]["innings_redo_list"]).last.to_i > 10000
           data_will_change!
-          save
         end
         # update(
         #   panel_state: "pointer_mode",
@@ -394,7 +407,7 @@ class TableMonitor < ApplicationRecord
 
   def reset_timer!
     begin
-      update(
+      assign_attributes(
         active_timer: nil,
         timer_start_at: nil,
         timer_finish_at: nil,
@@ -409,17 +422,71 @@ class TableMonitor < ApplicationRecord
     @msg
   end
 
-  def set_n_balls_to_current_players_inning(n_balls)
+  def evaluate_panel_and_current
+    element_to_panel_state = {
+      "undo" => "inputs",
+      "minus_one" => "inputs",
+      "minus_ten" => "inputs",
+      "next_step" => "inputs",
+      "add_ten" => "inputs",
+      "add_one" => "inputs",
+      "numbers" => "inputs",
+      "pause" => "timer",
+      "play" => "timer",
+      "stop" => "timer",
+      "pointer_mode" => "pointer_mode",
+      "number_field" => "numbers",
+      "nnn_1" => "numbers",
+      "nnn_2" => "numbers",
+      "nnn_3" => "numbers",
+      "nnn_4" => "numbers",
+      "nnn_5" => "numbers",
+      "nnn_6" => "numbers",
+      "nnn_7" => "numbers",
+      "nnn_8" => "numbers",
+      "nnn_9" => "numbers",
+      "nnn_0" => "numbers",
+      "nnn_del" => "numbers",
+      "nnn_enter" => "numbers",
+      "nnn_esc" => "numbers",
+      "start_game" => "shootout",
+      "change" => "shootout",
+      "continue" => "setup",
+      "practice_a" => "setup",
+      "practice_b" => "setup",
+    }
+    new_current_element = new_panel_state = nil
+    if setup_modal_should_be_open?
+      new_panel_state = "setup"
+    elsif self.shootout_modal_should_be_open?
+      new_panel_state = "setup"
+    elsif self.numbers_modal_should_be_open?
+      new_panel_state = "numbers"
+    elsif self.game_show_result? || self.game_finished?
+      new_panel_state = "show_results"
+    end
+    if new_panel_state.present?
+      new_current_element = TableMonitor::DEFAULT_ENTRY[new_panel_state]
+      if new_panel_state == "timer"
+        new_current_element = (timer_finish_at.present? && self.timer_halt_at.blank?) ? "pause" : "play"
+      end
+    else
+      new_panel_state = self.panel_state
+      new_current_element = self.current_element
+    end
+    self.assign_attributes(panel_state: new_panel_state, current_element: element_to_panel_state[new_current_element] == new_panel_state ? new_current_element : TableMonitor::DEFAULT_ENTRY[self.panel_state])
+  end
+
+  def set_n_balls_to_current_players_inning(n_balls, change_to_pointer_mode = false)
     @msg = nil
     if playing_game?
       current_role = data["current_inning"]["active_player"]
       data[current_role]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"].empty?
       to_play = data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i)
-      set = [n_balls, to_play].min
+      set = [n_balls.to_i, to_play.to_i].min
       data[current_role]["innings_redo_list"][-1] = set
       data_will_change!
-      save
-      update_columns(nnn: nil)
+      assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : self.panel_state)
       if set == to_play
         terminate_current_inning
       end
@@ -574,7 +641,7 @@ class TableMonitor < ApplicationRecord
 
   def reset_table_monitor
     info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
-    update(game_id: nil)
+    update(game_id: nil, nnn: nil, panel_state: "pointer_mode")
     we_re_ready!
   end
 end

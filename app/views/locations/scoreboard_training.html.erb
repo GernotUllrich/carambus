@@ -48,12 +48,7 @@
     if (event.keyCode in keyMap) {
       var key = keyMap[event.keyCode];
       if (key == "key_c") {
-        var current_element = document.activeElement.getAttribute("id") || "back";
-        if (current_element != "back") {
-          document.getElementById("back").focus()
-        } else {
-          window.history.back();
-        }
+        window.history.back();
       }
       if (key == "key_b") {
         var current_element = document.activeElement.getAttribute("id")

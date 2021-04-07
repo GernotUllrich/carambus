@@ -4,10 +4,12 @@
 #
 #  id                    :bigint           not null, primary key
 #  active_timer          :string
+#  current_element       :string           default("pointer_mode"), not null
 #  data                  :text
 #  ip_address            :string
 #  name                  :string
 #  nnn                   :integer
+#  panel_state           :string           default("pointer_mode"), not null
 #  state                 :string
 #  timer_finish_at       :datetime
 #  timer_halt_at         :datetime
