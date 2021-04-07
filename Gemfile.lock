@@ -151,7 +151,7 @@ GEM
     cable_ready (4.5.0)
       rails (>= 5.2)
       thread-local (>= 1.1.0)
-    capistrano (3.14.1)
+    capistrano (3.16.0)
       airbrussh (>= 1.0.0)
       i18n
       rake (>= 10.0.0)
@@ -214,7 +214,7 @@ GEM
     http-parser (1.2.2)
       ffi-compiler
     i15r (0.5.5)
-    i18n (1.8.9)
+    i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.1)
       mini_magick (>= 4.9.5, < 5)
@@ -419,7 +419,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sshkit (1.21.1)
+    sshkit (1.21.2)
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
     standard (0.9.0)

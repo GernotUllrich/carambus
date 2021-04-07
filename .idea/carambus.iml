@@ -88,7 +88,7 @@
     <orderEntry type="library" scope="PROVIDED" name="http-form_data (v2.3.0, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="http-parser (v1.2.2, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="i15r (v0.5.5, rbenv: 3.0.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="i18n (v1.8.9, rbenv: 3.0.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="i18n (v1.8.10, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="image_processing (v1.12.1, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="inline_svg (v1.7.1, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="invisible_captcha (v1.1.0, rbenv: 3.0.0) [gem]" level="application" />
@@ -179,7 +179,7 @@
     <orderEntry type="library" scope="PROVIDED" name="spring-watcher-listen (v2.0.1, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="sprockets (v4.0.2, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="sprockets-rails (v3.2.2, rbenv: 3.0.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="sshkit (v1.21.1, rbenv: 3.0.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="sshkit (v1.21.2, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="standard (v0.9.0, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="stimulus_reflex (v3.4.1, rbenv: 3.0.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="temple (v0.8.2, rbenv: 3.0.0) [gem]" level="application" />
