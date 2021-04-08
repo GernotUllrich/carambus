@@ -234,6 +234,7 @@
     }
   }
 </script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back"  class="fixed text-gray-400 text-4vw p-5 font-bold" style="left: 0; top: 0;"><</div>
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= "Trainingspartie #{@table.andand.name} (#{@table.andand.table_kind.andand.name})" %></h1>
   <%- if @location.present? %>

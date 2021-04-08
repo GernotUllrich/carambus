@@ -97,7 +97,7 @@ class TableMonitor < ApplicationRecord
       transitions from: [:game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_warmup_b_started
     end
     event :event_warmup_finished do
-      transitions from: [:game_shootout_started, :game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
+      transitions from: [:game_shootout_started,  :game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
     end
     event :event_shootout_finished do
       transitions from: :game_shootout_started, to: :playing_game

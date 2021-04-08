@@ -71,6 +71,7 @@
     <%= "pointer_mode" %>
   <%- end %>
   <%- if full_screen %>
+    <div data-action="click->table-monitor#back"  class="fixed text-gray-400 text-4vw p-5 font-bold" style="left: 0; top: 0;"><</div>
     <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow table_monitor_body_<%= options[:id] %>">
       <div class="flex h-5/6 bg-gray-200">
         <div class="w-2/5 bg-white dark:bg-black">
@@ -79,7 +80,7 @@
             <div class="flex-nowrap <%= "p-4" if options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
           </div>
           <div class="flex flex-col h-5/6 bg-white dark:bg-black border-solid <%= options[:player_a_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
-            <%- unless table_monitor.game_show_result? %>
+            <%- if !table_monitor.game_show_result? %>
               <div class="flex h-1/6">
                 <div class="flex-1 text-left font-bold text-red-400">
                   <div class="text-8vw p-4">
@@ -172,7 +173,7 @@
             <div class="flex-nowrap <%= "p-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
           <div class="flex flex-col h-5/6 bg-yellow-200 dark:text-yellow-200 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
-            <%- unless table_monitor.game_show_result? %>
+            <%- if !table_monitor.game_show_result? %>
               <div class="flex h-1/6">
                 <div class="flex flex-col flex-1 text-left text-gray-500 text-3vw">
                   <div class="flex-1 mb-1">
