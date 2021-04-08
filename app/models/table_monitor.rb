@@ -97,7 +97,7 @@ class TableMonitor < ApplicationRecord
       transitions from: [:game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_warmup_b_started
     end
     event :event_warmup_finished do
-      transitions from: [:game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
+      transitions from: [:game_shootout_started, :game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
     end
     event :event_shootout_finished do
       transitions from: :game_shootout_started, to: :playing_game
@@ -143,7 +143,7 @@ class TableMonitor < ApplicationRecord
         Rails.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
         save
       else
-        TableMonitorLaterJob.perform_later(self)
+        #TableMonitorLaterJob.perform_later(self)
         full_screen_html = ApplicationController.render(
           partial: "table_monitors/show",
           locals: { table_monitor: self, full_screen: true }
