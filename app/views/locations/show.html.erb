@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <h1 class="h3"><%= link_to 'Locations', locations_path %> > Location #<%= @location.id %></h1>
       <%= link_to('Edit', edit_location_path(@location), class: "btn btn-link") if current_user.andand.admin? %>
-      <%= link_to('scoreboard_link', "/locations/#{@location.md5}", class: "btn btn-link") if current_user.andand.admin? %>
+      <%= link_to('scoreboard_link', "/locations/#{@location.md5}/scoreboard", class: "btn btn-link") if current_user.andand.admin? %>
     </div>
 
     <div class="bg-white dark:bg-black rounded shadow p-8">

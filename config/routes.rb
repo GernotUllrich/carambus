@@ -95,6 +95,7 @@ Rails.application.routes.draw do
         post :game_results
         get :game_results
         get :placement
+        get :scoreboard
       end
     end
     resources :seasons

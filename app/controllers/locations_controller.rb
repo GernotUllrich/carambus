@@ -1,6 +1,6 @@
 class LocationsController < ApplicationController
   include FiltersHelper
-  before_action :set_location, only: [:show, :edit, :update, :destroy, :add_tables_to]
+  before_action :set_location, only: [:scoreboard, :show, :edit, :update, :destroy, :add_tables_to]
 
   # GET /locations
   def index
@@ -61,6 +61,17 @@ class LocationsController < ApplicationController
         end
       end
     end
+  end
+
+  def scoreboard
+    session[:location_id] = @location.id
+    if current_user.present?
+      sign_out(current_user)
+      @user = User.find_by_first_name("scoreboard")
+      bypass_sign_in @user, scope: :user
+      Current.user = @user
+    end
+    redirect_to "/locations/#{@location.md5}"
   end
 
   def game_results
