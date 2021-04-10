@@ -44,7 +44,11 @@ class TableMonitor < ApplicationRecord
     "timer" => "play", #depends on state !
     "setup" => "continue",
     "numbers" => "number_field",
-    "game_finished" => "game_state"
+    "game_finished" => "game_state",
+    "game_show_result" => "game_state",
+    "game_result_reported" => "game_state",
+    "ready_for_new_game" => "game_state",
+    "show_results" => "game_state"
   }
   NNN = "db" #store nnn in database table_monitor
 
@@ -559,7 +563,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def evaluate_result
-    if playing_game?
+    if playing_game? || game_show_result?
       if end_result?
         if playing_game?
           event_game_show_result!

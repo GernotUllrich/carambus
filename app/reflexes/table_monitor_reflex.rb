@@ -106,10 +106,12 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
     elsif table_monitor.game_show_result?
-      table_monitor.event_game_result_accepted!
-      table_monitor.prepare_final_game_result
+      table_monitor.evaluate_result
+      # table_monitor.event_game_result_accepted!
+      # table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
-      table_monitor.tournament_monitor.report_result(table_monitor)
+      table_monitor.evaluate_result
+      #table_monitor.tournament_monitor.report_result(table_monitor)
     end
     table_monitor.save
   end
@@ -131,14 +133,17 @@ class TableMonitorReflex < ApplicationReflex
       elsif table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.evaluate_result
+        #table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       end
     elsif table_monitor.game_show_result?
-      table_monitor.event_game_result_accepted!
-      table_monitor.prepare_final_game_result
+      table_monitor.evaluate_result
+      # table_monitor.event_game_result_accepted!
+      # table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
       if table_monitor.tournament_monitor.present?
-        table_monitor.tournament_monitor.report_result(table_monitor)
+        table_monitor.evaluate_result
+        #table_monitor.tournament_monitor.report_result(table_monitor)
       else
         table_monitor.event_game_result_reported!
         table_monitor.reset_table_monitor
@@ -155,10 +160,12 @@ class TableMonitorReflex < ApplicationReflex
         #void
       end
     elsif table_monitor.game_show_result?
-      table_monitor.event_game_result_accepted!
-      table_monitor.prepare_final_game_result
+      table_monitor.evaluate_result
+      # table_monitor.event_game_result_accepted!
+      # table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
-      table_monitor.tournament_monitor.report_result(table_monitor)
+      table_monitor.evaluate_result
+      #table_monitor.tournament_monitor.report_result(table_monitor)
     elsif table_monitor.shootout_modal_should_be_open?
 
     end
@@ -178,16 +185,19 @@ class TableMonitorReflex < ApplicationReflex
       #start game
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
-      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+      table_monitor.evaluate_result
+      #table_monitor.do_play if table_monitor.tournament_monitor_id.present?
     elsif table_monitor.playing_game?
       if table_monitor.end_result?
         table_monitor.terminate_current_inning
       end
     elsif table_monitor.game_show_result?
-      table_monitor.event_game_result_accepted!
-      table_monitor.prepare_final_game_result
+      table_monitor.evaluate_result
+      # table_monitor.event_game_result_accepted!
+      # table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
-      table_monitor.tournament_monitor.report_result(table_monitor)
+      table_monitor.evaluate_result
+      #table_monitor.tournament_monitor.report_result(table_monitor)
     end
     table_monitor.save
   end
@@ -336,6 +346,7 @@ class TableMonitorReflex < ApplicationReflex
 
   def next_step
     morph :nothing
+    Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.terminate_current_inning
@@ -352,11 +363,13 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
     elsif table_monitor.game_show_result?
-      table_monitor.event_game_result_accepted!
-      table_monitor.prepare_final_game_result
+      table_monitor.evaluate_result
+      # table_monitor.event_game_result_accepted!
+      # table_monitor.prepare_final_game_result
     elsif table_monitor.game_finished?
       if table_monitor.tournament_monitor.present?
-        table_monitor.tournament_monitor.report_result(table_monitor)
+        table_monitor.evaluate_result
+        #table_monitor.tournament_monitor.report_result(table_monitor)
       else
         table_monitor.event_game_result_reported!
         table_monitor.reset_table_monitor
