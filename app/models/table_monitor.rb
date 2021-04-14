@@ -113,7 +113,7 @@ class TableMonitor < ApplicationRecord
       transitions from: :game_show_result, to: :game_finished
     end
     event :event_game_result_reported do
-      transitions from: :game_finished, to: :game_result_reported
+      transitions from: [:game_result_reported, :game_finished], to: :game_result_reported
     end
     event :we_re_ready do
       transitions from: [:new_table_monitor, :game_result_reported], to: :ready
@@ -563,7 +563,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def evaluate_result
-    if playing_game? || game_show_result?
+    if playing_game? || game_show_result? || game_finished?  || game_result_reported?
       if end_result?
         if playing_game?
           event_game_show_result!
@@ -571,6 +571,8 @@ class TableMonitor < ApplicationRecord
           return
         elsif game_show_result?
           event_game_result_accepted!
+        elsif game_finished?
+          event_game_result_reported!
         end
         save!
         reload

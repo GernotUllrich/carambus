@@ -105,7 +105,7 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.do_play if table_monitor.tournament_monitor_id.present?
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
-    elsif table_monitor.game_show_result?
+    elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result
       # table_monitor.event_game_result_accepted!
       # table_monitor.prepare_final_game_result
@@ -136,7 +136,7 @@ class TableMonitorReflex < ApplicationReflex
         table_monitor.evaluate_result
         #table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       end
-    elsif table_monitor.game_show_result?
+    elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result
       # table_monitor.event_game_result_accepted!
       # table_monitor.prepare_final_game_result
@@ -159,7 +159,7 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.game_warmup_a_started? || table_monitor.game_warmup_b_started?
         #void
       end
-    elsif table_monitor.game_show_result?
+    elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result
       # table_monitor.event_game_result_accepted!
       # table_monitor.prepare_final_game_result
@@ -191,7 +191,7 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.end_result?
         table_monitor.terminate_current_inning
       end
-    elsif table_monitor.game_show_result?
+    elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result
       # table_monitor.event_game_result_accepted!
       # table_monitor.prepare_final_game_result
@@ -362,7 +362,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif [:game_shootout_started].include?(table_monitor.state.to_sym)
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
-    elsif table_monitor.game_show_result?
+    elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result
       # table_monitor.event_game_result_accepted!
       # table_monitor.prepare_final_game_result
