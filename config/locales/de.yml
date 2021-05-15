@@ -285,18 +285,6 @@ de:
     ba_id: BA ID
     name: Name
     data: Daten
-  inning:
-    index:
-      inning: Aufnahme
-      innings: Aufnahmen
-    id: id
-    game_id: Partie
-    sequence_number: Lfd. Nr.
-    player_a_count: Spieler A Zähler
-    player_b_count: Spieler B Zähler
-    player_c_count: Spieler C Zähler
-    player_d_count: Spieler D Zähler
-    data: Daten
   table_monitor:
     index:
       table_monitor: Tischmonitor

@@ -534,17 +534,6 @@ en:
     data: data
     created_at: created at
     updated_at: updated at
-  inning:
-    id: id
-    game_id: game id
-    sequence_number: sequence number
-    player_a_count: player a count
-    player_b_count: player b count
-    player_c_count: player c count
-    player_d_count: player d count
-    data: data
-    created_at: created at
-    updated_at: updated at
   table_monitor:
     id: id
     tournament_monitor_id: tournament monitor id
