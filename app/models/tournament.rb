@@ -58,7 +58,6 @@ class Tournament < ApplicationRecord
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
   has_one :setting
-  has_many :tournament_tables
   belongs_to :organizer, polymorphic: true
   belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
 

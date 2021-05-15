@@ -19,7 +19,6 @@
 class Table < ApplicationRecord
   belongs_to :location
   belongs_to :table_kind
-  has_many :tournament_tables
   has_one :table_monitor
 
   def number
