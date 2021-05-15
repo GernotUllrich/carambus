@@ -70,14 +70,37 @@
   <%= content_tag "div", id: "previous_element", previous_element: "pointer_mode", style: "display: none" do %>
     <%= "pointer_mode" %>
   <%- end %>
+  <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg"></div>
+  <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back">
+    <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-0 rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 dark:bg-black bg-white outline-none focus:outline-none">
+      <div class="flex flex-col justify-center items-center">
+        <%= render_svg "icons/information-outline", styles: "flex fill-current lg:m-5 h-12 lg:h-24 w-12 lg:w-24", title: "e.g. reg:nordd wedel" %>
+        <h1 class="text-3vw mb-5">Warnung</h1>
+        <p class="text-2vw text-center"> Du bist dabei, das laufende Spiel zu verlassen. </p>
+        <%- if table_monitor.tournament_monitor.blank? %>
+          <p class="text-2vw text-center">Spielergebnisse gehen dabei verloren!</p>
+        <%- end %>
+        <div class="flex flex-row pt-5 space-x-10">
+          <%- if table_monitor.tournament_monitor.present? %>
+            <%= link_to "Spiel unterbrechen", location_path(table_monitor.table.location, sb_state: "tables"), data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok" %>
+          <%- else %>
+            <%= link_to "Spiel beenden", "#", class: "btn btn-primary text-2vw", id: "ok" %>
+          <%- end %>
+          <%= link_to t('continue'), "#", class: "btn btn-primary text-2vw", id: "cancel" %>
+        </div>
+      </div>
+    </div>
+  </div>
   <%- if full_screen %>
-    <div data-action="click->table-monitor#back"  class="fixed text-gray-400 text-4vw p-5 font-bold" style="left: 0; top: 0;"><</div>
-    <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow table_monitor_body_<%= options[:id] %>">
+    <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+    </div>
+    <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow">
       <div class="flex h-5/6 bg-gray-200">
         <div class="w-2/5 bg-white dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_a][:logo]) if options[:player_a][:logo].present? %></div>
-            <div class="flex-nowrap <%= "p-4" if options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
+            <div class="flex-nowrap <%= "lg:pt-4" if options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
           </div>
           <div class="flex flex-col h-5/6 bg-white dark:bg-black border-solid <%= options[:player_a_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
@@ -170,7 +193,7 @@
         <div class="w-2/5 bg-yellow-200 dark:text-yellow-200 dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
-            <div class="flex-nowrap <%= "p-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
+            <div class="flex-nowrap <%= "lg:pt-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
           <div class="flex flex-col h-5/6 bg-yellow-200 dark:text-yellow-200 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>

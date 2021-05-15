@@ -1,4 +1,4 @@
-<!--suppress RubyScope, RubyScope, RubyScope -->
+  <!--suppress RubyScope, RubyScope, RubyScope -->
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
 <script type="text/javascript">
   window.onload = function () {
@@ -83,8 +83,10 @@
     return true
   });
 </script>
-<div data-controller="table-monitor" data-action="click->table-monitor#back"  class="fixed text-gray-400 text-4vw p-5 font-bold" style="left: 0; top: 0;"><</div>
-<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+    <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+  </div>
+  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= t('select_training_table') %></h1>
   <%- if @location.present? %>
     <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mt-4"><%= @location.name %></h1>
@@ -94,12 +96,12 @@
     <%- table_kinds = free_tables.map(&:table_kind).uniq.sort_by { |tk| tk.name } %>
     <%- if table_kinds.present? -%>
       <%- table_kinds.each do |table_kind| %>
-        <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-500 mt-10 "><%= table_kind.display_name %></h1>
+        <h1 style="text-shadow: 2px 2px #000000" class="flex text-white mt-10 "><%= table_kind.display_name %></h1>
         <div class="flex items-center mt-10 flex-row h-1/8 space-x-20">
           <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
           <%- if free_for_table_kind.present? %>
             <%- free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
-              <%= link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mb-0 mb-4", id: "table_monitor_#{table.id}", tabindex: 1 %>
+              <%= link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
             <% end %>
           <%- end %>
         </div>

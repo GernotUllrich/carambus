@@ -444,7 +444,7 @@ class TableMonitorReflex < ApplicationReflex
         timer_halt_at: nil,
         timer_start_at: start_at,
         timer_finish_at: finish_at)
-      table_monitor.update_every_n_seconds(10);
+      table_monitor.update_every_n_seconds(2);
     end
     table_monitor.save
   end

@@ -1,152 +1,168 @@
+<script type="text/javascript">
+  function toggleModal(modalID) {
+    document.getElementById(modalID).classList.toggle("hidden");
+    document.getElementById(modalID + "-backdrop").classList.toggle("hidden");
+    document.getElementById(modalID).classList.toggle("flex");
+    document.getElementById(modalID + "-backdrop").classList.toggle("flex");
+  }
+</script>
 <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
 <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
 <%- if full_screen %>
-  <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="modal-content bg-white dark:bg-gray-800 flex-col h-4/5">
-    <div class="flex h-1/6 flex-col">
-      <div class="flex h-1/2 flex-row space-x-4">
-        <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
-        <div class="flex-1 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
-        <div class="flex-1 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>
-        <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
-      </div>
-      <hr>
-      <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
-      <div class="flex h-1/2 flex-row text-black space-x-4 m-4 m-8">
-        <div class="flex-1 text-3vw text-center dark:text-gray-200 font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A" %></div>
-        <div class="flex-1 text-3vw text-center dark:text-yellow-200 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
-      </div>
-    </div>
-    <div class="flex h-1/6 flex-col space-x-4">
-      <div class="flex w-full h-1/2 justify-center mt-5 text-center text-2vw">Einspielzeit</div>
-      <div class="flex h-1/2 flex-row space-x-4">
-        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-2vw text-center">5
-          Min.
+  <div class="flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
+    <!--content-->
+    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-0 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4 dark:bg-gray-400 bg-white outline-none focus:outline-none">
+
+      <div class="dark:bg-gray-600 bg-gray-50 flex h-1/6 flex-col">
+        <div class="flex h-1/2 flex-row space-x-4">
+          <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
+          <div class="flex-1 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
+          <div class="flex-1 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>
+          <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
         </div>
-        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-2vw text-center">5
-          Min.
+        <hr>
+        <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+        <div class="flex h-1/2 flex-row text-black space-x-4">
+          <div class="flex-1 text-3vw text-center dark:text-gray-200 font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A" %></div>
+          <div class="flex-1 text-3vw text-center dark:text-yellow-200 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
         </div>
       </div>
-    </div>
-    <div class="flex h-1/6 flex-row mt-2 space-x-8">
-      <%- if table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-          <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+      <div class="dark:bg-gray-600 bg-gray-50 flex h-1/6 flex-row mt-2 space-x-8">
+        <%- if table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+            <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
+        <%- else %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
+            <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
         <%- end %>
-      <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
-          <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-2vw text-center">Einspielzeit
+          5
+          Min.
+        </div>
+        <%- if table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+            <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
+        <%- else %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
+            <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
         <%- end %>
-      <%- end %>
-      <%- if table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-          <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
-        <%- end %>
-      <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
-          <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
-        <%- end %>
-      <%- end %>
-    </div>
-    <div class="flex h-1/6 flex-row mt-8 space-x-8">
-      <%- showing_timer = (table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
-      <div class="flex flex-1 flex-col">
-        <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %>_<%= table_monitor.id %>">
-          <div class="w-1/6 font-bold text-6vw p-2"><%= time_counter %></div>
-          <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+      </div>
+      <div class="dark:bg-gray-600 bg-gray-50 flex h-3/6 flex-col " id="timer_table_monitor_<%= table_monitor.id %>">
+        <div class="flex flex-row items-center justify-center">
+          <div class="flex w-4/12"></div>
+          <div class="flex w-4/12 text-10vw p-2"><%= time_counter.to_i == 0 ? "&nbsp;".html_safe : time_counter %></div>
+          <div class="flex w-4/12"></div>
+        </div>
+        <div class="flex flex-row space-x-8">
+          <%- showing_timer = (table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+          <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+              <div class="flex flex-1 flex-row w-5/6">
+                <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              </div>
+            </div>
+          </div>
+          <%- showing_timer = (table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+          <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+              <div class="flex flex-1 flex-row w-5/6">
+                <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <%- showing_timer = (table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
-      <div class="flex flex-1 flex-col">
-        <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-          <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
-          <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
-          </div>
-        </div>
+      <div class="dark:bg-gray-300 bg-gray-200 flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
+        <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
+          weiter
+        <%- end %>
       </div>
-    </div>
-    <div class="flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
-      <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
-        weiter
-      <%- end %>
     </div>
   </div>
+  <div class="flex opacity-50 fixed inset-0 z-40 bg-black" id="modal-id-backdrop"></div>
 <%- else %>
-  <div id="table_monitor_modal_<%= table_monitor.id %>" class="modal-content bg-gray-100 dark:bg-gray-800 space-y-4 flex-col h-4/5">
-    <div class="flex h-1/6 flex-col space-x-4">
-      <div class="flex h-1/2 flex-row space-x-4">
-        <div class="flex-1 text-center">Tisch <%= table_monitor.name.match(/table(\d+)/).andand[1] %></div>
-        <div class="flex-1 text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].gsub("group", "Gruppe ") %></div>
-        <div class="flex-1 text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].gsub("group", "Gruppe ") %></div>
-        <div class="flex-1 text-center">Runde <%= table_monitor.tournament_monitor.current_round %></div>
-      </div>
-      <hr>
-      <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
-      <div class="flex h-1/2 flex-row text-black bg-gray-100 dark:bg-gray-800 space-x-4 m-4 mb-8">
-        <div class="flex-1 text-2vw text-center font-semibold"><%= gps[0].andand.player.andand.fullname %></div>
-        <div class="flex-1 text-2vw text-center font-semibold"><%= gps[1].andand.player.andand.fullname %></div>
-      </div>
-    </div>
-    <div class="flex h-1/6 flex-col space-x-4">
-      <div class="flex w-full h-1/2 justify-center mt-5 text-center text-1-5vw">Einspielzeit</div>
-      <div class="flex h-1/2 flex-row space-x-4">
-        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-1-5vw text-center">5
-          Min.
+  <div class="flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
+    <!--content-->
+    <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-0 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4 bg-white outline-none focus:outline-none">
+      <div class="flex h-1/6 flex-col">
+        <div class="flex h-1/2 flex-row space-x-4">
+          <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
+          <div class="flex-1 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
+          <div class="flex-1 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>
+          <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
         </div>
-        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-1-5vw text-center">5
-          Min.
+        <hr>
+        <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+        <div class="flex h-1/2 flex-row text-black space-x-4 m-4 m-8">
+          <div class="flex-1 text-3vw text-center dark:text-gray-200 font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A" %></div>
+          <div class="flex-1 text-3vw text-center dark:text-yellow-200 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
         </div>
       </div>
-    </div>
-    <div class="flex h-1/6 flex-row mt-8 space-x-8">
-      <%- if table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-          <%= render_svg "icons/287-stop2", styles: "fill-current icon-3xl text-gray-600 inline-block" %>
+      <div class="flex h-1/6 flex-row mt-2 space-x-8">
+        <%- if table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+            <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
+        <%- else %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
+            <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
         <%- end %>
-      <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
-          <%= render_svg "icons/285-play3", styles: "fill-current icon-3xl text-gray-600 inline-block" %>
+        <div class="flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-2vw text-center">Einspielzeit
+          5
+          Min.
+        </div>
+        <%- if table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
+            <%= render_svg "icons/287-stop2", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
+        <%- else %>
+          <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { turbolinks: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
+            <%= render_svg "icons/285-play3", styles: "fill-current icon-2xl text-gray-600 inline-block" %>
+          <%- end %>
         <%- end %>
-      <%- end %>
-      <%- if table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-          <%= render_svg "icons/287-stop2", styles: "fill-current icon-3xl text-gray-600 inline-block" %>
-        <%- end %>
-      <%- else %>
-        <%= content_tag "div", class: "flex flex-1 items-center rounded-full justify-center hover:bg-gray-300 dark:hover:bg-gray-900 text-8vw text-center", data: { reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
-          <%= render_svg "icons/285-play3", styles: "fill-current icon-3xl text-gray-600 inline-block" %>
-        <%- end %>
-      <%- end %>
-    </div>
-    <div class="flex h-1/6 flex-row mt-8 space-x-8">
-      <div class="flex flex-1 flex-col">
-        <div class="flex flex-1 flex-row items-center <%= table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present? ? "" : "hidden" %>">
-          <div class="w-1/6 font-bold text-2vw p-2"><%= time_counter %></div>
-          <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+      </div>
+      <div class="flex flex-col " id="timer_table_monitor_<%= table_monitor.id %>">
+        <div class="flex flex-row items-center justify-center">
+          <div class="flex w-4/12"></div>
+          <div class="flex w-4/12 text-10vw p-2"><%= time_counter.to_i == 0 ? "&nbsp;".html_safe : time_counter %></div>
+          <div class="flex w-4/12"></div>
+        </div>
+        <div class="flex h-1/6 flex-row space-x-8">
+          <%- showing_timer = (table_monitor.game_warmup_a_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+          <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+              <div class="flex flex-1 flex-row w-5/6">
+                <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              </div>
+            </div>
+          </div>
+          <%- showing_timer = (table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+          <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+              <div class="flex flex-1 flex-row w-5/6">
+                <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="flex flex-1 h-2/12 flex-col">
-        <div class="flex flex-1 flex-row items-center <%= table_monitor.game_warmup_b_started? && table_monitor.timer_finish_at.present? ? "" : "hidden" %>">
-          <div class="w-1/6 font-bold text-2vw p-2"><%= time_counter %></div>
-          <div class="flex flex-1 flex-row w-5/6">
-            <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-            <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
-          </div>
-        </div>
+      <div class="flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
+        <%= content_tag "div", class: "btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
+          weiter
+        <%- end %>
       </div>
-    </div>
-    <div class="flex h-1/6 flex-row mt-8 space-x-8 justify-center">
-      <%= content_tag "div", class: "btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
-        weiter
-      <%- end %>
+
     </div>
   </div>
+  <div class="flex opacity-50 fixed inset-0 z-40 bg-black" id="modal-id-backdrop"></div>
 <%- end %>
 

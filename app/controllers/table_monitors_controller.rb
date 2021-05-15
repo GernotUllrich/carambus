@@ -24,6 +24,7 @@ class TableMonitorsController < ApplicationController
     @footer = false
     @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false
     @current_element = ""
+    @table_monitor.evaluate_panel_and_current
   end
 
   # GET /table_monitors/new

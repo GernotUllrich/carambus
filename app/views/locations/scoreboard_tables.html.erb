@@ -1,0 +1,142 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
+<script type="text/javascript">
+  window.onload = function () {
+    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      var current_element = tabbed_keys[0]
+      document.getElementById(current_element).focus();
+    }
+  };
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    //console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a", //pointer left
+      37: "key_a", //arrow left
+      34: "key_b", //pointer right
+      39: "key_b", //arrow right
+      66: "key_c", //pointer up
+      38: "key_c", //arrow up
+      116: "key_d", //pointer down
+      27: "key_d", //pointer down
+      40: "key_d", //arrow down
+      13: "key_d", //return
+    }
+    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+
+    var current_element = document.activeElement.getAttribute("id")
+    console.log("active: " + current_element);
+    if (current_element == null) {
+      current_element = tabbed_keys[0];
+      console.log("active now: " + current_element);
+      document.getElementById(current_element).focus();
+    }
+
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c") {
+        window.history.back();
+      }
+      if (key == "key_b") {
+        var current_element = document.activeElement.getAttribute("id")
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i + 1;
+            if (ff >= tabbed_keys.length) ff = 0;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            document.getElementById(tabbed_keys[ff]).focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_a") {
+        var current_element = document.activeElement.getAttribute("id");
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i - 1;
+            if (ff < 0) ff = tabbed_keys.length - 1;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            document.getElementById(tabbed_keys[ff]).focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_d") {
+        console.log("activate: " + document.activeElement.getAttribute("id"));
+        document.activeElement.click();
+      }
+    }
+    event.preventDefault();
+    return true
+  });
+</script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+</div>
+<div class="p-7 lg:p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= t('select_training_table') %>
+    - <%= @location.name %></h1>
+  <%- if @location.present? %>
+    <%- tournament_tables = @location.tournaments.map(&:tournament_monitor).compact.map(&:table_monitors).flatten.select { |tm| !%w{new_table_monitor ready ready_for_new_game}.include?(tm.state) }.map(&:table) %>
+    <%- tables = @location.tables %>
+    <%- free_tables = tables - tournament_tables %>
+    <%- table_kinds = free_tables.map(&:table_kind).uniq.sort_by { |tk| tk.name } %>
+    <%- if table_kinds.present? -%>
+      <%- table_kinds.each do |table_kind| %>
+        <h1 style="text-shadow: 2px 2px #000000" class="flex text-white lg:mt-10 text-3vw"><%= table_kind.display_name %></h1>
+        <div class="flex items-center lg:mt-10 flex-row h-1/8 space-x-20">
+          <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
+          <%- if true %>
+            <%- tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
+              <div class="flex flex-col items-center">
+                <%- if table.table_monitor.present? %>
+                  <%- if table.table_monitor.tournament_monitor.present? %>
+                    <%= link_to table.name, table_monitor_path(table.table_monitor), data: { turbolinks: false }, class: "flex btn btn-primary ring-4 h-full text-2vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.table_monitor.id}", tabindex: 1 %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= table.table_monitor.tournament_monitor.tournament.title %></p>
+                    <%- if table.table_monitor.game.present? %>
+                      <%- gps = table.table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+                      <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= "#{gps[0].andand.player.andand.lastname} - #{gps[1].andand.player.andand.lastname}" %></p>
+                    <%- else %>
+                      <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white ">frei</p>
+                    <%- end %>
+                  <%- else %>
+                    <%- if table.table_monitor.game.present? %>
+                      <%= link_to table.name, table_monitor_path(table.table_monitor), data: { turbolinks: false }, class: "flex btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.table_monitor.id}", tabindex: 1 %>
+                      <%- gps = table.table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+                      <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= gps[0].andand.player.present? ? "#{gps[0].andand.player.andand.lastname} - #{gps[1].andand.player.andand.lastname}" : "belegt" %></p>
+                    <%- else %>
+                      <%- if @location.tournaments.active_manual_assignment.present? && (@location.tournaments.active_manual_assignment.map(&:discipline).compact.map(&:name) & table.table_kind.disciplines.map(&:name)).present? %>
+                        <%= link_to table.name, location_path(@location, sb_state: "start", tournament_id: "", table_id: table.id), data: { turbolinks: false }, class: "flex btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                      <%- else %>
+                        <%= link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                      <%- end %>
+                      <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white ">frei</p>
+                    <%- end %>
+                  <%- end %>
+                <%- else %>
+                  <%= link_to table.name, location_path(@location, sb_state: "start", tournament_id: "", table_id: table.id), data: { turbolinks: false }, class: "flex btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                  <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white ">frei</p>
+                <%- end %>
+              </div>
+            <% end %>
+          <%- end %>
+        </div>
+      <%- end %>
+    <%- else %>
+      <span><%= t('table_kind.none_available') %></span>
+    <% end %>
+  <%- end %>
+</div>

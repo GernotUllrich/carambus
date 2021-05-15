@@ -115,7 +115,7 @@
                       </td>
                     <% end %>
                   <% else %>
-                    <td colspan=6><%= TableMonitor::STATE_DISPLAY_NAMES[tm.state] %></td>
+                    <td colspan=6><%= I18n.t("table_monitor.status.#{tm.state}") %></td>
                   <% end %>
                 </tr>
               <% end %>

@@ -29,13 +29,16 @@ class LocationsController < ApplicationController
       session[:sb_state] = params[:sb_state] if params[:sb_state].present?
 
       @navbar = @footer = false
+      @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
       when "welcome"
         render "scoreboard_welcome"
       when "start"
-        render "scoreboard_start"
+        render "scoreboard_start", locals: {table: @table}
       when "tournament"
         render "scoreboard_tournament"
+      when "tables"
+        render "scoreboard_tables"
       when "training"
         render "scoreboard_training"
       when "free_game"

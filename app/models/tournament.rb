@@ -62,6 +62,8 @@ class Tournament < ApplicationRecord
   belongs_to :organizer, polymorphic: true
   belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
 
+  scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
+
   serialize :data, Hash
 
   validates_each :data do |record, attr, value|

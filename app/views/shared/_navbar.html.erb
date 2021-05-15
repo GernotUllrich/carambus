@@ -37,7 +37,7 @@
             </div>
             <div data-target="dropdown.menu" class="z-20 hidden mt-2 lg:absolute lg:right-0 dropdown-menu">
               <div class="overflow-hidden bg-white dark:bg-gray-800 border rounded shadow-sm">
-                <%= link_to t(".signed_in_as_html", user: current_account.name), current_account, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
+                <%= link_to t(".signed_in_as_html", user: current_user.email), current_account, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
                 <%= link_to t(".profile"), edit_user_registration_path, class: 'no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
                 <%= link_to t(".password"), account_password_path, class: 'no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800  hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
                 <%= link_to t(".connected_accounts"), user_connected_accounts_path, class: 'no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800  hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' if Devise.omniauth_configs.any? %>

@@ -3,6 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <h1 class="h3"><%= link_to 'Tables', tables_path %> > Table #<%= @table.id %></h1>
       <%= link_to( 'Edit', edit_table_path(@table), class: "btn btn-link") if current_user.andand.admin? %>
+      <%= link_to( 'Löschen', table_path(@table), method: :delete, class: "btn btn-link") if current_user.andand.admin? %>
     </div>
 
     <div class="bg-white dark:bg-black rounded shadow p-8">

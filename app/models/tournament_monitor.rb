@@ -112,6 +112,9 @@ class TournamentMonitor < ApplicationRecord
     # }
     game = table_monitor.game
     game.deep_merge_data!("ba_results" => table_monitor.data["ba_results"])
+    if tournament_monitor.tournament.manual_assignment
+      table_monitor.update(game_id: nil, tournament_monitor_id: nil)
+    end
   end
 
   def all_table_monitors_finished?
@@ -300,7 +303,7 @@ class TournamentMonitor < ApplicationRecord
     finalize_game_result(table_monitor)
     accumulate_results
     if all_table_monitors_finished? || tournament.manual_assignment
-      finalize_round
+      finalize_round unless tournament.manual_assignment
       incr_current_round! unless tournament.manual_assignment
       populate_tables unless tournament.manual_assignment
       if group_phase_finished?
@@ -367,12 +370,12 @@ class TournamentMonitor < ApplicationRecord
     n_games == n_games_done
   end
 
-  def table_monitors_ready_and_populated
-    Tournament.logger.info "[tmon-table_monitors_ready_and_populated]..."
-    res = table_monitors_ready? && table_monitors_populated?
-    Tournament.logger.info "returns #{res}...[tmon-table_monitors_ready_and_populated]"
-    return res
-  end
+  # def table_monitors_ready_and_populated
+  #   Tournament.logger.info "[tmon-table_monitors_ready_and_populated]..."
+  #   res = table_monitors_ready? && table_monitors_populated?
+  #   Tournament.logger.info "returns #{res}...[tmon-table_monitors_ready_and_populated]"
+  #   return res
+  # end
 
   def table_monitors_ready?
     Tournament.logger.info "[tmon-table_monitors_ready]..."
@@ -381,20 +384,20 @@ class TournamentMonitor < ApplicationRecord
     return res
   end
 
-  def table_monitors_populated?
-    Tournament.logger.info "[tmon-table_monitors_populated]..."
-    ret = true
-    placements = data[:placements]
-    placements.to_a.each do |round_no, game_hash|
-      next unless "round#{current_round}" == round_no
-      game_hash.to_a.each do |table_no, game_id|
-        tm = table_monitors.find_by_name(table_no)
-        ret = ret && (tm.game_id == game_id)
-      end
-    end
-    Tournament.logger.info "returns #{ret}...[tmon-table_monitors_populated]"
-    ret
-  end
+  # def table_monitors_populated?
+  #   Tournament.logger.info "[tmon-table_monitors_populated]..."
+  #   ret = true
+  #   placements = data[:placements]
+  #   placements.to_a.each do |round_no, game_hash|
+  #     next unless "round#{current_round}" == round_no
+  #     game_hash.to_a.each do |table_no, game_id|
+  #       tm = table_monitors.find_by_name(table_no)
+  #       ret = ret && (tm.game_id == game_id)
+  #     end
+  #   end
+  #   Tournament.logger.info "returns #{ret}...[tmon-table_monitors_populated]"
+  #   ret
+  # end
 
   def reset_tournament_monitor
 

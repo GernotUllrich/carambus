@@ -2,19 +2,19 @@
   <h1 class="flex text-gray-200 "><%= t('select_game_mode') %></h1>
   <div class="flex items-center mt-20 flex-row h-1/4 space-x-20">
 
-    <%= link_to t('home.index.tournament'), regions_path, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mb-0 mb-4" %>
-    <%= link_to t('home.index.training'), training_path, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mb-0 mb-4" %>
+    <%= link_to t('home.index.tournament'), regions_path, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
+    <%= link_to t('home.index.training'), training_path, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
 
   </div>
   <% if false && Rails.env.development? %>
     <div class="flex flex-col items-center md:flex-row">
       <div class="w-full md:w-auto">
-        <%= link_to "Configure Jumpstart", jumpstart_path, data: { turbolinks: false }, class: "btn btn-primary lg:mr-4 mr-0 lg:mb-0 mb-4" %>
+        <%= link_to "Configure Jumpstart", jumpstart_path, data: { turbolinks: false }, class: "btn btn-primary lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
       </div>
       <div>
         <span class="hidden md:inline border border-gray-200 h-10 mr-4"></span>
-        <%= link_to "Create a User", new_user_registration_path, class: "btn btn-tertiary outline lg:mr-4 mr-0 lg:mb-0 mb-4" %>
-        <%= link_to "Read the Docs", jumpstart.docs_path, target: :_blank, data: { turbolinks: false }, class: "btn btn-tertiary outline lg:mr-4 mr-0 lg:mb-0 mb-4" %>
+        <%= link_to "Create a User", new_user_registration_path, class: "btn btn-tertiary outline lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
+        <%= link_to "Read the Docs", jumpstart.docs_path, target: :_blank, data: { turbolinks: false }, class: "btn btn-tertiary outline lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
       </div>
     </div>
   <% end %>

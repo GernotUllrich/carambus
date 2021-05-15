@@ -19,6 +19,7 @@
 #  game_id               :integer
 #  next_game_id          :integer
 #  table_id              :integer          not null
+#  timer_job_id          :string
 #  tournament_monitor_id :integer
 #
 class TableMonitor < ApplicationRecord
@@ -48,7 +49,8 @@ class TableMonitor < ApplicationRecord
     "game_show_result" => "game_state",
     "game_result_reported" => "game_state",
     "ready_for_new_game" => "game_state",
-    "show_results" => "game_state"
+    "show_results" => "game_state",
+    "warning" => "ok"
   }
   NNN = "db" #store nnn in database table_monitor
 
@@ -61,20 +63,6 @@ class TableMonitor < ApplicationRecord
   serialize :data, Hash
 
   #todo I18n
-
-  STATE_DISPLAY_NAMES = {
-    "new_table_monitor" => "",
-    "ready" => "Tournier Modus",
-    "game_setup_started" => "Warm Up",
-    "game_warmup_a_started" => "Warm Up A",
-    "game_warmup_b_started" => "Warm Up B",
-    "game_shootout_started" => "Ausstossen",
-    "playing_game" => "",
-    "game_finished" => "Partie beendet",
-    "game_show_result" => "Partie beendet - ok?",
-    "game_result_reported" => "Ergebnisse übernommen",
-    "ready_for_new_game" => "Tisch bereit"
-  }
 
   aasm :column => 'state' do
     state :new_table_monitor, initial: true, :after_enter => [:reset_table_monitor]
@@ -101,7 +89,7 @@ class TableMonitor < ApplicationRecord
       transitions from: [:game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_warmup_b_started
     end
     event :event_warmup_finished do
-      transitions from: [:game_shootout_started,  :game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
+      transitions from: [:game_shootout_started, :game_setup_started, :game_warmup_a_started, :game_warmup_b_started], to: :game_shootout_started
     end
     event :event_shootout_finished do
       transitions from: :game_shootout_started, to: :playing_game
@@ -238,7 +226,7 @@ class TableMonitor < ApplicationRecord
     show_innings = Array(data[role].andand["innings_list"])
     ret = show_innings.dup
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << "#{ix == 0 ? "<strong class=\"border-2 border-gray-500 p-1\">#{i}</strong>" : "#{i}"}"
+      ret << "#{ix == 0 ? "<strong class=\"border-2 border-green-600 p-1\">#{i}</strong>" : "#{i}"}"
     end
     return ret.length > n ?
              ("..." + ret[-n..-1].join("-")).html_safe :
@@ -268,9 +256,15 @@ class TableMonitor < ApplicationRecord
     end
     if (finish.present? && (Time.now < finish))
       delta_total = (finish - start).to_i
-      delta_rest = (finish - Time.now).to_i
+      delta_rest = (finish - Time.now)
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
-      time_counter = (1.0 * delta_rest / 1.send(units)).ceil
+      if (units == "minutes")
+        minutes = (delta_rest / 1.send(units)).to_i
+        seconds = ((((delta_rest / 1.send(units)) - (delta_rest.to_i / 1.send(units))) * 100 * 60 / 100).to_i + 100).to_s[-2..-1]
+        time_counter = "#{minutes}:#{seconds}"
+      else
+        time_counter = (1.0 * delta_rest / 1.send(units)).ceil
+      end
       green_bars = [((1.0 * n * delta_rest) / delta_total).ceil, 18].min
     end
     return [time_counter, green_bars]
@@ -468,6 +462,8 @@ class TableMonitor < ApplicationRecord
       new_panel_state = "numbers"
     elsif self.game_show_result? || self.game_finished?
       new_panel_state = "show_results"
+    else
+      new_panel_state = "pointer_mode"
     end
     if new_panel_state.present?
       new_current_element = TableMonitor::DEFAULT_ENTRY[new_panel_state]
@@ -563,7 +559,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def evaluate_result
-    if playing_game? || game_show_result? || game_finished?  || game_result_reported?
+    if playing_game? || game_show_result? || game_finished? || game_result_reported?
       if end_result?
         if playing_game?
           event_game_show_result!
@@ -627,22 +623,25 @@ class TableMonitor < ApplicationRecord
   end
 
   def prepare_final_game_result
+    if game.present?
+      game_ba_result = {
+        "Gruppe" => game.group_no,
+        "Partie" => game.seqno,
 
-    game_ba_result = {
-      "Gruppe" => game.group_no,
-      "Partie" => game.seqno,
-
-      "Spieler1" => game.game_participations.where(role: "playera").first.player.ba_id,
-      "Spieler2" => game.game_participations.where(role: "playerb").first.player.ba_id,
-      "Ergebnis1" => data["playera"]["result"].to_i,
-      "Ergebnis2" => data["playerb"]["result"].to_i,
-      "Aufnahmen1" => data["playera"]["innings"].to_i,
-      "Aufnahmen2" => data["playerb"]["innings"].to_i,
-      "Höchstserie1" => data["playera"]["hs"].to_i,
-      "Höchstserie2" => data["playerb"]["hs"].to_i,
-      "Tischnummer" => game.table_no
-    }
-    deep_merge_data!("ba_results" => game_ba_result)
+        "Spieler1" => game.game_participations.where(role: "playera").first.player.ba_id,
+        "Spieler2" => game.game_participations.where(role: "playerb").first.player.ba_id,
+        "Ergebnis1" => data["playera"]["result"].to_i,
+        "Ergebnis2" => data["playerb"]["result"].to_i,
+        "Aufnahmen1" => data["playera"]["innings"].to_i,
+        "Aufnahmen2" => data["playerb"]["innings"].to_i,
+        "Höchstserie1" => data["playera"]["hs"].to_i,
+        "Höchstserie2" => data["playerb"]["hs"].to_i,
+        "Tischnummer" => game.table_no
+      }
+      deep_merge_data!("ba_results" => game_ba_result)
+    else
+      Rails.logger.info "[prepare_final_game_result] ignored - no game"
+    end
   end
 
   def reset_table_monitor
