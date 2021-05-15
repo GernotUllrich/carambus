@@ -122,8 +122,7 @@ Rails.application.routes.draw do
     resources :games
     resources :tournament_plans
     resources :tables
-    resources :innings
-    resources :seedings do
+      resources :seedings do
       member do
         post :down
         post :up

@@ -204,20 +204,6 @@ ActiveRecord::Schema.define(version: 2021_04_19_205544) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "innings", force: :cascade do |t|
-    t.integer "game_id"
-    t.integer "sequence_number"
-    t.string "player_a_count"
-    t.string "player_b_count"
-    t.string "player_c_count"
-    t.string "player_d_count"
-    t.text "data"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["game_id", "sequence_number"], name: "index_innings_on_foreign_keys", unique: true
-    t.index ["game_id", "sequence_number"], name: "index_innings_on_game_id_and_sequence_number", unique: true
-  end
-
   create_table "kvc_settings", force: :cascade do |t|
     t.string "key"
     t.text "value"
