@@ -6,7 +6,7 @@
       <%= link_to('scoreboard', "/locations/#{@location.md5}/scoreboard?sb_state=welcome", class: "btn btn-link") if current_user.andand.admin? %>
       <button
         class="btn"
-        data-clipboard-text="/locations/<%= @location.md5 %>/scoreboard?sb_state=welcome"
+        data-clipboard-text="<%= scoreboard_location_url(@location.md5, sp_state: "welcome") %>"
       >
         <%= t('copy_to_clipboard') %>
       </button>

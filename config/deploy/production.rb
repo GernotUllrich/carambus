@@ -3,7 +3,7 @@
 # Defines a single server with a list of roles and multiple properties.
 # You can define all roles on a single server, or split them:
 
-server '192.168.178.81', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+server '192.168.178.52', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 # server 'example.com', user: 'deploy', roles: %w{app web}, other_property: :other_value
 # server 'db.example.com', user: 'deploy', roles: %w{db}
 

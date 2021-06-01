@@ -457,13 +457,13 @@ class TableMonitor < ApplicationRecord
     if setup_modal_should_be_open?
       new_panel_state = "setup"
     elsif self.shootout_modal_should_be_open?
-      new_panel_state = "setup"
+      new_panel_state = "shootout"
     elsif self.numbers_modal_should_be_open?
       new_panel_state = "numbers"
     elsif self.game_show_result? || self.game_finished?
       new_panel_state = "show_results"
     else
-      new_panel_state = "pointer_mode"
+      #new_panel_state = "pointer_mode"
     end
     if new_panel_state.present?
       new_current_element = TableMonitor::DEFAULT_ENTRY[new_panel_state]

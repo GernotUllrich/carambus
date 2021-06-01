@@ -68,13 +68,14 @@ class LocationsController < ApplicationController
 
   def scoreboard
     session[:location_id] = @location.id
+    sb_state = params[:sb_state] || "welcome"
     if current_user.present?
       sign_out(current_user)
       @user = User.find_by_first_name("scoreboard")
       bypass_sign_in @user, scope: :user
       Current.user = @user
     end
-    redirect_to "/locations/#{@location.md5}"
+    redirect_to "/locations/#{@location.md5}?sb_state=#{sb_state}"
   end
 
   def game_results

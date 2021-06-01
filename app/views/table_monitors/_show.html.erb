@@ -37,26 +37,32 @@
     }
   } %>
   <%- if full_screen %>
-    <%= render partial: "table_monitors/game_setup",
-               locals: {
-                 modal_hidden: !table_monitor.setup_modal_should_be_open?,
-                 full_screen: full_screen,
-                 table_monitor: table_monitor },
-               formats: :modal,
-               layout: "layouts/application"
-    %>
-    <%= render partial: "table_monitors/shootout", locals: { table_monitor: table_monitor,
-                                                             full_screen: full_screen,
-                                                             modal_hidden: !table_monitor.shootout_modal_should_be_open? },
-               formats: :modal,
-               layout: "layouts/application"
-    %>
-    <%= render partial: "table_monitors/numbers", locals: { table_monitor: table_monitor,
-                                                            full_screen: full_screen,
-                                                            modal_hidden: !table_monitor.numbers_modal_should_be_open? },
-               formats: :modal,
-               layout: "layouts/application"
-    %>
+    <%- if table_monitor.setup_modal_should_be_open? %>
+      <%= render partial: "table_monitors/game_setup",
+                 locals: {
+                   modal_hidden: !table_monitor.setup_modal_should_be_open?,
+                   full_screen: full_screen,
+                   table_monitor: table_monitor },
+                 formats: :modal,
+                 layout: "layouts/application"
+      %>
+    <%- end %>
+    <%- if table_monitor.shootout_modal_should_be_open? %>
+      <%= render partial: "table_monitors/shootout", locals: { table_monitor: table_monitor,
+                                                               full_screen: full_screen,
+                                                               modal_hidden: !table_monitor.shootout_modal_should_be_open? },
+                 formats: :modal,
+                 layout: "layouts/application"
+      %>
+    <%- end %>
+    <%- if table_monitor.numbers_modal_should_be_open? %>
+      <%= render partial: "table_monitors/numbers", locals: { table_monitor: table_monitor,
+                                                              full_screen: full_screen,
+                                                              modal_hidden: !table_monitor.numbers_modal_should_be_open? },
+                 formats: :modal,
+                 layout: "layouts/application"
+      %>
+    <%- end %>
   <%- end %>
   <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, style: "display: none" do %>
     <%= table_monitor.panel_state %>
@@ -72,7 +78,7 @@
   <%- end %>
   <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg"></div>
   <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back">
-    <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-0 rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 dark:bg-black bg-white outline-none focus:outline-none">
+    <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-white rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 dark:bg-black bg-white outline-none focus:outline-none">
       <div class="flex flex-col justify-center items-center">
         <%= render_svg "icons/information-outline", styles: "flex fill-current lg:m-5 h-12 lg:h-24 w-12 lg:w-24", title: "e.g. reg:nordd wedel" %>
         <h1 class="text-3vw mb-5">Warnung</h1>
@@ -84,9 +90,9 @@
           <%- if table_monitor.tournament_monitor.present? %>
             <%= link_to "Spiel unterbrechen", location_path(table_monitor.table.location, sb_state: "tables"), data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok" %>
           <%- else %>
-            <%= link_to "Spiel beenden", "#", class: "btn btn-primary text-2vw", id: "ok" %>
+            <%= link_to "Spiel beenden", "#", data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok" %>
           <%- end %>
-          <%= link_to t('continue'), "#", class: "btn btn-primary text-2vw", id: "cancel" %>
+          <%= link_to t('continue'), "javascript:unset_warning_modal()", data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "cancel" %>
         </div>
       </div>
     </div>

@@ -112,7 +112,7 @@ class TournamentMonitor < ApplicationRecord
     # }
     game = table_monitor.game
     game.deep_merge_data!("ba_results" => table_monitor.data["ba_results"])
-    if tournament_monitor.tournament.manual_assignment
+    if tournament.manual_assignment
       table_monitor.update(game_id: nil, tournament_monitor_id: nil)
     end
   end

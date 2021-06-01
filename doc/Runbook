@@ -1,0 +1,54 @@
+# Installation Carambus Server
+
+## Konfiguration
+* Raspberry Pi 4 m. 4GB
+* Micro SDCD 32 GB
+* Joy-iT Alu Gehäuse f. Pi 4
+
+OS mit Raspberry Pi Manager laden:
+* Raspberry Pi OS (32-bit)
+* Mouse und Keyboard anschliessen und OS starten 
+* WLAN konfigurieren
+  IP z.B. 192.168.178.52
+* Software update/upgrade
+
+* German Keyboard Layout (Preferences -> Mouse and Keyboard Settings)
+* root password ändern
+
+* Install ssh
+  
+  sudo apt install openssh-server
+  
+  systemctl start ssh
+
+  check with systemctl status ssh
+
+* eventually adjust firewall
+  
+  ufw allow ssh
+
+* passwort-losen Zugang einrichten:\
+  Login, and edit this file: sudo nano /etc/ssh/sshd_config\
+  Find this line: PermitRootLogin without-password\
+  Edit: PermitRootLogin yes\
+  Close and save file\
+  reboot or restart sshd service using: /etc/init.d/ssh restart\
+  Set a root password if there isn't one already: sudo passwd root\
+  $ ssh-copy-id root@192.168.178.52       (ggf vorher, brew install ssh-copy-id)
+
+## Konfigurieren mit ansible
+
+* in ansible/hosts eintragen\
+carambus3 ansible_host=192.168.178.52  node_name=web3.carambus.de provider=domainfactory php_time_zone="Europe/Berlin"
+
+* in /etc/hosts eintragen\
+  192.168.178.52 web3.carambus.de  
+  
+* /etc/host_vars/carambus3\
+  (copy/edit from carambus)
+
+
+
+
+
+

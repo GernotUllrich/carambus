@@ -1,4 +1,10 @@
 de:
+  something_went_wrong: "Da ist was schief gegangen"
+  create_an_account_first: "Bitte eröffne zuächst einen Account."
+  must_be_an_admin: "Adminrechte erforderlich."
+  are_you_sure: "Sicher?"
+  delete: "Löschen"
+  back: "Zurück"
   ca:
     update: Aktualisieren
   hello: "Hallo Welt"
@@ -730,7 +736,7 @@ de:
   add_tables: Tische hinzufügen
   carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"
   welcome_to_carambus: "Willkommen bei Carambus"
-  welcome: "Willkommen"
+  welcome: "Willkommen beim"
   copied: "Kopiert!"
   copy_to_clipboard: "Kopiere den Scoreboard-Link"
   continue: "Weiter"

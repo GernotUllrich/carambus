@@ -124,17 +124,19 @@ class TableMonitorReflex < ApplicationReflex
         warmup_state_change ("b")
       end
     elsif table_monitor.shootout_modal_should_be_open?
+      table_monitor.reset_timer!
       table_monitor.switch_players
     elsif table_monitor.playing_game?
       if table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
         table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       elsif table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.evaluate_result
-        #table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
     elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
       table_monitor.evaluate_result

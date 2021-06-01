@@ -91,7 +91,7 @@
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-4vw"><%= t('select_tournament') %></h1>
   <h2 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= @table.andand.name %></h2>
-
+  <%- found = false %>
   <%- if @location.tournaments.present? %>
     <%- @location.tournaments.joins(:tournament_monitor).each do |tournament| %>
       <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-500 m-5 text-3vw"><%= tournament.title %></h1>
@@ -99,18 +99,25 @@
       <div class="flex items-center mt-10 flex-row h-1/8 space-x-10">
         <%- if tournament.manual_assignment? %>
           <%- if @table.present? %>
+            <%- found = true %>
             <%= link_to t('continue'), placement_location_path(@location, tournament_id: tournament.id, table_id: @table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{@table.id}", tabindex: 1 %>
           <%- else %>
             <%- tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: tournament.discipline_id }).each do |table| %>
+              <%- found = true %>
               <%= link_to table.name, placement_location_path(@location, tournament_id: tournament.id, table_id: table.id), method: :post, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
             <%- end %>
           <%- end %>
         <%- else %>
           <%- tournament.tournament_monitor.table_monitors.order(:name).each do |table_monitor| %>
+            <%- found = true %>
             <%= link_to table_monitor.display_name, table_monitor_path(table_monitor), data: { turbolinks: false }, class: "btn btn-primary ring-4 h-full text-3vw p-1 lg:mr-4 mr-0 lg:mb-2 mb-1", id: "table_monitor_#{table_monitor.id}", tabindex: 1 %>
           <% end %>
         <%- end %>
+      </div>
     <%- end %>
-    </div>
   <% end %>
+  <%- unless found %>
+    <h2 style="text-shadow: 2px 2px #000000" class="flex text-red-200 text-3vw"><%= "Kein Tournier registriert." %></h2>
+    <%= link_to t('back'), :back, data: { turbolinks: false }, class: "btn btn-primary ring-4 h-3 text-3vw p-8 lg:mr-4 mr-0 lg:mb-2 mb-1 mt-5", id: "back", tabindex: 1 %>
+  <%- end %>
 </div>

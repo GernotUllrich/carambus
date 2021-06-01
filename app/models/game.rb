@@ -21,7 +21,6 @@ class Game < ApplicationRecord
   belongs_to :tournament, optional: true
   has_many :game_participations, :dependent => :destroy
   has_one :table_monitor, :dependent => :nullify
-  has_many :innings, -> { order("sequence_number") }, :dependent => :destroy
 
   MIN_ID = 50000000
   has_paper_trail

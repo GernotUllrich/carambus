@@ -1038,7 +1038,8 @@ en:
   add_tables: Add Tables
   carambus_manages: "Carambus Manages Billard Tournaments"
   welcome_to_carambus: "Welcome to Carambus"
-  welcome: "Welcome"
+  welcome: "Welcome to the"
   copied: "Copied!"
   copy_to_clipboard: "Copy scoreboard link to clipboard"
   continue: "continue"
+  back: "Back"
