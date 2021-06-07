@@ -16,14 +16,15 @@ require "capistrano/deploy"
 #   https://github.com/capistrano/passenger
 #
 # require 'capistrano/rvm'
-#require 'capistrano/rbenv'
+require 'capistrano/rbenv'
 # require 'capistrano/chruby'
 require 'capistrano/bundler'
 require 'capistrano/rails/assets'
-# require 'capistrano/rails/migrations'
-# require 'capistrano/passenger'
-#require 'capistrano/secrets_yml'
-require 'capistrano/deploy'
+require 'capistrano/rails/migrations'
 
-# Load custom tasks from `lib/capistrano/tasks` if you have any defined
-Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
+require 'capistrano/unicorn_nginx'
+require 'capistrano/maintenance'
+
+# Loads custom tasks from `lib/capistrano/tasks' if you have any defined.
+Dir.glob('lib/capistrano/tasks/*.cap').each { |r| import r }
+Dir.glob('lib/capistrano/**/*.rb').each { |r| import r }

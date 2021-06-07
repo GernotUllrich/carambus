@@ -122,5 +122,6 @@ group :development do
   gem 'capistrano-rails'
   gem 'capistrano-bundler'
   gem 'capistrano-rbenv', github: "capistrano/rbenv"
+  gem 'capistrano-maintenance'
   #gem 'capistrano-secrets-yml'
 end
