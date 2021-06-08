@@ -1,5 +1,5 @@
 # config valid only for current version of Capistrano
-lock '3.16.0'
+lock '3.8.1'
 
 set :application, 'carambus'
 set :repo_url, 'git@github.com:GernotUllrich/carambus.git'
@@ -36,7 +36,7 @@ append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'public/syst
 append :linked_dirs, '.bundle'
 
 set :rbenv_type, :local
-set :rbenv_ruby, '3.0.1'
+set :rbenv_ruby, '2.7.2'
 set :maintenance_tournament_plan_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
 set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w{rake gem bundle ruby rails}

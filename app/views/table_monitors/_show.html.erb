@@ -87,19 +87,18 @@
           <p class="text-2vw text-center">Spielergebnisse gehen dabei verloren!</p>
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
-          <%- if table_monitor.tournament_monitor.present? %>
-            <%= link_to "Spiel unterbrechen", location_path(table_monitor.table.location, sb_state: "tables"), data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok" %>
-          <%- else %>
-            <%= link_to "Spiel beenden", "#", data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok" %>
+          <%= link_to "Spiel unterbrechen", location_path(table_monitor.table.location, sb_state: "tables"), data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
+          <%- unless table_monitor.tournament_monitor.present? %>
+            <%= link_to "Spiel beenden", location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
-          <%= link_to t('continue'), "javascript:unset_warning_modal()", data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "cancel" %>
+          <%= link_to t('continue'), "javascript:unset_warning_modal()", data: { turbolinks: false }, class: "btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
         </div>
       </div>
     </div>
   </div>
   <%- if full_screen %>
-    <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+    <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;" tabindex="1">
+      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "browser back" %>
     </div>
     <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow">
       <div class="flex h-5/6 bg-gray-200">

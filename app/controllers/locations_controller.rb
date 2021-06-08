@@ -24,11 +24,13 @@ class LocationsController < ApplicationController
   # GET /locations/1
   def show
     if Current.user == User.scoreboard
-      @table = @table_monitor = @player_a = @player_b = nil
+      @table = @game = @table_monitor = @player_a = @player_b = nil
       session[:sb_state] ||= "welcome"
       session[:sb_state] = params[:sb_state] if params[:sb_state].present?
 
       @navbar = @footer = false
+      @game = Game.find(params[:terminate_game_id]) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
+      @game.destroy if @game.present?
       @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
       when "welcome"

@@ -117,11 +117,17 @@ group :production do
 end
 
 group :development do
-  gem 'capistrano'
-  gem 'capistrano-unicorn-nginx'
-  gem 'capistrano-rails'
-  gem 'capistrano-bundler'
-  gem 'capistrano-rbenv', github: "capistrano/rbenv"
-  gem 'capistrano-maintenance'
-  #gem 'capistrano-secrets-yml'
+  gem 'capistrano', '=3.8.1'
+
+  # rails specific capistrano funcitons
+  gem 'capistrano-rails', '=1.2.2'
+
+  # integrate bundler with capistrano
+  gem 'capistrano-bundler', '=1.2.0'
+
+  # if you are using RBENV
+  gem 'capistrano-rbenv', '=2.1.6'
+
+  gem 'capistrano-unicorn-nginx', '=4.1.0'
+  #gem 'capistrano-maintenance', '=1.2.1'
 end
