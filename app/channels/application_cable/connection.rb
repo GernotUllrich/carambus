@@ -25,7 +25,7 @@ module ApplicationCable
 
     def find_verified_user
       mm = request.user_agent.match(/.*Carambus\/(t\d+\.\d+)/)
-      verified_user = User.find_by(name: mm[1]) if mm.present?
+      verified_user = User.find_by(username: mm[1]) if mm.present?
       verified_user ||= User.find_by(id: cookies.signed['user.id'])
       Tournament.logger.info "[find_verified_user] #{verified_user}"
       if verified_user && cookies.signed['user.expires_at'] > Time.now

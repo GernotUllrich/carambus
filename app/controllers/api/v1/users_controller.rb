@@ -11,7 +11,7 @@ class Api::V1::UsersController < Api::BaseController
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: user.username,
           api_tokens: [{
             id: api_token.id,
             name: api_token.name,

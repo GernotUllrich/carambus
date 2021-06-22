@@ -18,7 +18,7 @@
         <h1 class="h2"><%= @account.name %></h1>
       </div>
 
-      <p class="my-4"><%= t(".description", user: @account_user.user.name || @account_user.user.email) %></p>
+      <p class="my-4"><%= t(".description", user: @account_user.user.username || @account_user.user.email) %></p>
 
       <%= render "form", account_user: @account_user %>
     </div>

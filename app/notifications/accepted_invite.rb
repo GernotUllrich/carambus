@@ -9,7 +9,7 @@ class AcceptedInvite < ApplicationNotification
   end
 
   def message
-    t "notifications.invite_accepted", user: user.name
+    t "notifications.invite_accepted", user: user.username
   end
 
   def url
