@@ -48,7 +48,7 @@ class TableMonitorsController < ApplicationController
     @game.game_participations.create!(player: (params[:player_a_id].to_i > 0 ? Player.find(params[:player_a_id]) : nil), role: "playera")
     @game.game_participations.create!(player: (params[:player_b_id].to_i > 0 ? Player.find(params[:player_b_id]) : nil), role: "playerb")
 
-    result = { "result" => {
+    result = {
       "playera" => {
         "balls_goal" => params[:balls_goal_a],
         "inings" => params[:innings],
@@ -59,7 +59,6 @@ class TableMonitorsController < ApplicationController
         "inings" => params[:innings],
         "discipline" => params[:discipline_b],
       },
-    }
     }
     @table_monitor.initialize_game
     @table_monitor.deep_merge_data!(result)
@@ -108,6 +107,8 @@ class TableMonitorsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def table_monitor_params
-    params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data, :ip_address)
+    params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data,
+                                          :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
+                                          :balls_goal_b, :discipline, :discipline_a, :discipline_b)
   end
 end
