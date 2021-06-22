@@ -211,6 +211,28 @@
       el.focus()
   }
 
+  function touch2Mouse(e)
+  {
+    var theTouch = e.changedTouches[0];
+    var mouseEv;
+
+    switch(e.type)
+    {
+      case "touchstart": mouseEv="mousedown"; break;
+      case "touchend":   mouseEv="mouseup"; break;
+      case "touchmove":  mouseEv="mousemove"; break;
+      default: return;
+    }
+
+    var mouseEvent = document.createEvent("MouseEvent");
+    mouseEvent.initMouseEvent(mouseEv, true, true, window, 1, theTouch.screenX, theTouch.screenY, theTouch.clientX, theTouch.clientY, false, false, false, false, 0, null);
+
+    theTouch.target.dispatchEvent(mouseEvent);
+    e.preventDefault();
+  }
+
+
+
   window.onload = function () {
     const afterInnerHtmlHandler = event => {
       console.log(event.detail);
@@ -232,6 +254,10 @@
       focus_or_reset_element()
     } else
       reset_to_pointer_mode()
+
+    document.addEventListener("touchstart", touch2Mouse, true);
+    document.addEventListener("touchmove", touch2Mouse, true);
+    document.addEventListener("touchend", touch2Mouse, true);
   }
   ;
   // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
