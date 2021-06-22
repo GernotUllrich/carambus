@@ -211,18 +211,23 @@
       el.focus()
   }
 
-  function touch2Mouse(e)
-  {
+  function touch2Mouse(e) {
     var theTouch = e.changedTouches[0];
     var mouseEv;
     alert("e.type: " + e.type)
 
-    switch(e.type)
-    {
-      case "touchstart": mouseEv="mousedown"; break;
-      case "touchend":   mouseEv="mouseup"; break;
-      case "touchmove":  mouseEv="mousemove"; break;
-      default: return;
+    switch (e.type) {
+      case "touchstart":
+        mouseEv = "mousedown";
+        break;
+      case "touchend":
+        mouseEv = "mouseup";
+        break;
+      case "touchmove":
+        mouseEv = "mousemove";
+        break;
+      default:
+        return;
     }
 
     var mouseEvent = document.createEvent("MouseEvent");
@@ -232,7 +237,15 @@
     e.preventDefault();
   }
 
-
+  function warning_mode() {
+    set_previous_element(get_current_element())
+    set_previous_panel(get_panel_state())
+    set_panel_state("warning")
+    set_current_element("ok")
+    set_warning_modal();
+    if (!focus_or_reset_element())
+      backout()
+  }
 
   window.onload = function () {
     const afterInnerHtmlHandler = event => {
@@ -245,7 +258,7 @@
       tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
     }
     for (let i = 0; i < tabbed_keys.length; i++) {
-      var i_next = i < tabbed_keys.length - 1 ? i+1 : 0
+      var i_next = i < tabbed_keys.length - 1 ? i + 1 : 0
       panel_nav_h[tabbed_keys[i]] = tabbed_keys[i_next]
     }
     document.addEventListener("cable-ready:after-inner-html", afterInnerHtmlHandler);
@@ -279,14 +292,15 @@
             backout()
         } else if (get_panel_state() == "warning") {
         } else {
+          warning_mode();
           //if ("<%#= @table_monitor.tournament_monitor_id.to_s %>" == "") {
-          set_previous_element(get_current_element())
-          set_previous_panel(get_panel_state())
-          set_panel_state("warning")
-          set_current_element("ok")
-          set_warning_modal();
-          if (!focus_or_reset_element())
-            backout()
+          // set_previous_element(get_current_element())
+          // set_previous_panel(get_panel_state())
+          // set_panel_state("warning")
+          // set_current_element("ok")
+          // set_warning_modal();
+          // if (!focus_or_reset_element())
+          //   backout()
           //}
           //window.history.back()
         }
