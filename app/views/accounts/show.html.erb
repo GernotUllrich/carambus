@@ -39,7 +39,7 @@
             <tr class="border-t border-gray-400 group hover:bg-gray-200">
               <td class="p-3">
                 <%= image_tag avatar_url_for(user), class: "h-4 h-6 inline-block rounded-full mr-2" %>
-                <%= user.name || user.email %>
+                <%= user.username || user.email %>
               </td>
               <td class="p-3"><%= account_user_roles(@account, account_user).join(", ") %></td>
               <td class="w-48 p-3 text-center"><%= link_to t(".edit"), edit_account_account_user_path(@account, account_user), class: "text-primary-600 no-underline" if account_admin?(@account, current_user) %></td>
