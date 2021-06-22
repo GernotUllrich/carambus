@@ -5,6 +5,7 @@
 #  id            :bigint           not null, primary key
 #  balls_goal    :integer
 #  data          :text
+#  initial_tc    :integer
 #  innings_goal  :integer
 #  state         :string
 #  created_at    :datetime         not null

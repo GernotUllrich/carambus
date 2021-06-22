@@ -470,6 +470,8 @@ en:
     dbu_entry: DBU entry
     club_tournaments: Club Tournaments
     new_club_tournament: New Club Tournament
+    new_club_location: New Club Location
+    new_club_guest: New Club Guest
   player_class:
     id: id
     discipline_id: discipline id
@@ -661,6 +663,7 @@ en:
     state: state
     innings_goal: innings goal
     balls_goal: balls goal
+    initial_tc: time out bonus count
     created_at: created at
     updated_at: updated at
   tournament_plan:
@@ -756,6 +759,7 @@ en:
     tournament_plan_id: tournament plan id
     innings_goal: innings goal
     balls_goal: balls goal
+    initial_tc: time out bonus count
     handicap_tournier: handicap tournier
     created_at: created at
     updated_at: updated at
@@ -812,6 +816,7 @@ en:
         location: location
         hosting_club: hosting club
         innings_goal: innings goal
+        initial_tc: timeout counter
         handicap_tournier: handicap tournier
 
     errors:
@@ -1006,9 +1011,15 @@ en:
       inning: 'Inning'
       disziplinen: Disciplines
       discipline: 'Discipline'
+      location: 'Location'
+      locations: Locations
+      guest: 'Guest'
+      guests: 'Guests'
       table_kind: 'Table Kind'
       player_rankings: 'Player Rankings'
       tournierplanung: Tournament Mgmt
+      docs: Documentation
+      intro: Introduction
       disciplinetournamentplan: 'DisciplineTournamentPlan'
       tournamentplan: 'TournamentPlan'
       tournierabwicklung: Tournament Management

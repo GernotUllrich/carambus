@@ -140,6 +140,8 @@ Rails.application.routes.draw do
         post :reload_from_ba
         post :reload_from_ba_with_player_details
         post :new_club_tournament
+        post :new_club_location
+        post :new_club_guest
       end
     end
     resources :regions do
@@ -204,6 +206,7 @@ Rails.application.routes.draw do
 
   match "/404", via: :all, to: "errors#not_found"
   match "/500", via: :all, to: "errors#internal_server_error"
+  get "/intro", to: "static#intro"
 
   authenticated :user do
     root to: "dashboard#show", as: :user_root

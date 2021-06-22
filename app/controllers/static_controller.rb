@@ -1,7 +1,7 @@
 class StaticController < ApplicationController
   before_action :authenticate_user!, only: [:start]
   before_action only: [:index, :start, :intro] do
-    @navbar = @footer = false
+    @navbar = @footer = (!["scoreboard@carambus.de"].include?(current_user.andand.email.andand.downcase))
   end
 
   def index

@@ -66,10 +66,10 @@
         <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal, class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Stroke Preparation (Sek.)" %></span><span id="time_out_stoke_preparation_sec"><%= number_field_tag :time_out_stoke_preparation_sec, @tournament.time_out_stoke_preparation_sec, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_stoke_preparation_sec", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Stroke Preparation Timeout (Sek.)" %></span><span id="time_out_stoke_preparation_sec"><%= number_field_tag :time_out_stoke_preparation_sec, @tournament.time_out_stoke_preparation_sec, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_stoke_preparation_sec", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Stroke Preparation (Sek.)" %></span><span id="time_out_stoke_preparation_sec"><%= number_field_tag :time_out_stoke_preparation_sec, @tournament.time_out_stoke_preparation_sec, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_stoke_preparation_sec", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Remaining Timeouts (Init. value)" %></span><span id="initial_tc"><%= number_field_tag :initial_tc, @tournament.initial_tc, class: "border-2", data: { reflex: "change->TournamentReflex#initial_tc", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>

@@ -45,7 +45,8 @@
     "numbers": "undo",
     "pause": "stop",
     "play": "stop",
-    "stop": "pause",
+    "stop": "timeout",
+    "timeout": "pause",
     "pointer_mode": "pointer_mode",
     "number_field": "nnn_1",
     "nnn_1": "nnn_2",
@@ -65,8 +66,8 @@
     "continue": "practice_a",
     "practice_a": "practicet_b",
     "practice_b": "continue",
-    "ok": "terminate",
-    "terminate": "cancel",
+    "ok": "<%= @table_monitor.tournament_monitor.present? ? "cancel" : "terminate" %>",
+    "<%= @table_monitor.tournament_monitor.present? ? "txxx" : "terminate" %>": "<%= @table_monitor.tournament_monitor.present? ? "cxxx" : "cance" %>",
     "cancel": "ok",
   }
   var panel_nav_v = {
@@ -215,6 +216,15 @@
       console.log(event.detail);
       focus_or_reset_element();
     }
+    var tabbed_elements = document.querySelectorAll('a[tabindex="11"]')
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    for (let i = 0; i < tabbed_keys.length; i++) {
+      var i_next = i < tabbed_keys.length - 1 ? i+1 : 0
+      panel_nav_h[tabbed_keys[i]] = tabbed_keys[i_next]
+    }
     document.addEventListener("cable-ready:after-inner-html", afterInnerHtmlHandler);
     console.log("active: " + get_current_element());
     if (get_current_element() != "" && get_current_element() != null) {
@@ -256,8 +266,9 @@
       } else if (keyCode == "key_d") {
         if (get_panel_state() == "pointer_mode") { // => timer
           set_panel_state(panel_nav_v[get_panel_state()])
+          var timeout = !isHidden(document.getElementById("timeout"))
           var play = isHidden(document.getElementById("pause"))
-          set_current_element(play ? "play" : "pause")
+          set_current_element(timeout ? "timeout" : play ? "play" : "pause")
           if (!focus_or_reset_element())
             backout()
         } else if (get_panel_state() == "inputs" || get_panel_state() == "warning") {
@@ -288,14 +299,8 @@
       } else if (keyCode == "key_b") {
         if (get_panel_state() == "pointer_mode" || get_panel_state() == "setup") {
           document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click();
-        } else if (get_panel_state() == "inputs" || get_panel_state() == "numbers" || get_panel_state() == "warning") {
+        } else if (get_panel_state() == "inputs" || get_panel_state() == "numbers" || get_panel_state() == "warning" || get_panel_state() == "timer") {
           set_current_element(panel_nav_h[get_current_element()])
-          if (!focus_or_reset_element())
-            backout()
-        } else if (get_panel_state() == "timer") {
-          var play = isHidden(document.getElementById("pause"))
-          var next = (panel_nav_h[get_current_element()] == "pause" ? (play ? "play" : "pause") : panel_nav_h[get_current_element()])
-          set_current_element(next)
           if (!focus_or_reset_element())
             backout()
         } else if (get_panel_state() == "shootout") {

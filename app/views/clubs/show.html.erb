@@ -40,6 +40,36 @@
 <div class="px-3 lg:px-0">
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-xl justify-center mx-auto">
+      <h2><%= t("home.index.guests") %></h2>
+      <%= button_to t('club.new_club_guest'), new_club_guest_club_path(@club), class: "btn btn-flat btn-primary" %>
+      <div class="flex space-x-20 p-4 justify-center bg-white dark:bg-black">
+        <ul>
+          <%- Player.where(club: @club.id, guest: true).order(firstname: :desc).uniq.each do |player| %>
+            <li><%= link_to "#{player.lastname}, #{player.firstname}", player_path(player) %></li>
+          <%- end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-xl justify-center mx-auto">
+      <h2><%= t('home.index.locations') %></h2>
+      <%= button_to t('club.new_club_location'), new_club_location_club_path(@club), class: "btn btn-flat btn-primary" %>
+      <div class="flex space-x-20 p-4 justify-center bg-white dark:bg-black">
+        <ul>
+          <%- Location.where(organizer: @club.id).order(name: :desc).uniq.each do |location| %>
+            <li><%= link_to location.name, location_path(location) %></li>
+          <%- end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-xl justify-center mx-auto">
       <%- Season.joins(:season_participations => :club).where(clubs: { id: @club.id }).order(name: :desc).uniq.each do |season| %>
         <%- if season.id >= Season.current_season.id %>
           <%= button_to t('club.new_club_tournament'), new_club_tournament_club_path(@club, tournament: { season_id: season.id }), class: "btn btn-flat btn-primary" %>

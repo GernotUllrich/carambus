@@ -13,6 +13,7 @@
             <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :innings_goal, 'Innings goal', class: 'text-gray-700 dark:text-gray-200' %></th>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :initial_tc, 'Timeount Count', class: 'text-gray-700 dark:text-gray-200' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
           </tr>
         </thead>
@@ -25,6 +26,7 @@
                       <td class="p-3"><%= tournament_monitor.state %></td>
                       <td class="p-3"><%= tournament_monitor.innings_goal %></td>
                       <td class="p-3"><%= tournament_monitor.balls_goal %></td>
+                      <td class="p-3"><%= tournament_monitor.initial_tc %></td>
 
             <td>
               <%= link_to t('view'), tournament_monitor, class: "btn btn-link no-underline" %>

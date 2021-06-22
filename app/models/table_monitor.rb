@@ -334,7 +334,11 @@ class TableMonitor < ApplicationRecord
         "innings_goal" =>
           tournament_monitor.andand.innings_goal ||
             tournament_monitor.andand.tournament.andand.innings_goal ||
-            20
+            20,
+        "tc" =>
+          tournament_monitor.andand.initial_tc ||
+            tournament_monitor.andand.tournament.andand.initial_tc ||
+            0,
       },
       "playerb" => {
         "result" => 0,
@@ -351,7 +355,11 @@ class TableMonitor < ApplicationRecord
         "innings_goal" =>
           tournament_monitor.andand.innings_goal ||
             tournament_monitor.andand.tournament.andand.innings_goal ||
-            20
+            20,
+        "tc" =>
+          tournament_monitor.andand.initial_tc ||
+            tournament_monitor.andand.tournament.andand.initial_tc ||
+            0,
       },
       "current_inning" => {
         "active_player" => "playera",

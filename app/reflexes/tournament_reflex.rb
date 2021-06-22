@@ -30,6 +30,14 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:innings_goal, val)
   end
 
+  def initial_tc
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"].to_i
+    val = 0 if val <0
+    tournament.update_attribute(:initial_tc, val)
+  end
+
   def balls_goal
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])

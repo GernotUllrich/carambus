@@ -29,7 +29,7 @@ class LocationsController < ApplicationController
       session[:sb_state] = params[:sb_state] if params[:sb_state].present?
 
       @navbar = @footer = false
-      @game = Game.find(params[:terminate_game_id]) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
+      @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
       @game.destroy if @game.present?
       @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
@@ -57,7 +57,10 @@ class LocationsController < ApplicationController
           end
           @table_monitor.assign_game(@game)
         end
-        @players = @location.club.players.joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).order(:lastname, :firstname)
+        @club = @location.club || (@location.organizer.is_a?(Club) ? @location.organizer : nil)
+        @club_player_ids = @club.players.select("players.id").joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).map(&:id)
+        @guest_player_ids = @club.players.select("players.id").where("players.guest IS TRUE").map(&:id) - @club_player_ids
+        @players = Player.where(id: @guest_player_ids + (@club_player_ids - @guest_player_ids)).order("guest  desc nulls last", :lastname, :firstname)
         @player_names = @players.map { |p| "#{p.lastname}, #{p.firstname}" }
         @player_ids = @players.map(&:id)
         if @table.present?
@@ -212,6 +215,6 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    params.require(:location).permit(:club_id, :address, :data, :name, :merge, :with)
+    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :organizer_type, :merge, :with)
   end
 end

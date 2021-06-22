@@ -92,6 +92,6 @@ class TournamentMonitorsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def tournament_monitor_params
-    params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :balls_goal)
+    params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :initial_tc, :balls_goal)
   end
 end

@@ -15,6 +15,7 @@ require 'net/http'
 #  date                           :datetime
 #  end_date                       :datetime
 #  handicap_tournier              :boolean
+#  initial_tc                     :integer          default(0), not null
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime
 #  location                       :text

@@ -4,6 +4,7 @@
 #
 #  id         :bigint           not null, primary key
 #  firstname  :string
+#  guest      :boolean          default(FALSE), not null
 #  lastname   :string
 #  title      :string
 #  created_at :datetime         not null

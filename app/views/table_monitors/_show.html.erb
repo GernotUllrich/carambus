@@ -20,7 +20,8 @@
       hs: table_monitor.data[gps[0].andand.role].andand["hs"],
       gd: table_monitor.data[gps[0].andand.role].andand["gd"],
       innings: table_monitor.data[gps[0].andand.role].andand["innings"],
-      innings_goal: table_monitor.data[gps[0].andand.role].andand["innings_goal"]
+      innings_goal: table_monitor.data[gps[0].andand.role].andand["innings_goal"],
+      tc: table_monitor.data[gps[0].andand.role].andand["tc"]
     },
     player_b: {
       logo: gps[1].andand.player.andand.club.andand.logo,
@@ -30,7 +31,8 @@
       hs: table_monitor.data[gps[1].andand.role].andand["hs"],
       gd: table_monitor.data[gps[1].andand.role].andand["gd"],
       innings: table_monitor.data[gps[1].andand.role].andand["innings"],
-      innings_goal: table_monitor.data[gps[1].andand.role].andand["innings_goal"]
+      innings_goal: table_monitor.data[gps[1].andand.role].andand["innings_goal"],
+      tc: table_monitor.data[gps[1].andand.role].andand["tc"]
     },
     current_inning: {
       balls: table_monitor.data["current_inning"].andand["balls"].to_i
@@ -127,6 +129,7 @@
                   </div>
                   <div class="flex-1 mb-1">GD: <%= options[:player_a][:gd] %></div>
                   <div class="flex-1">HS: <%= options[:player_a][:hs] %></div>
+                  <div class="flex-1"> <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 0 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 1 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 2 ? "green" : "red"}-400 inline-block" %></div>
                 </div>
               </div>
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-20vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
@@ -180,13 +183,16 @@
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 flex-row space-x-3 rounded-full">
                 <%- if table_monitor.playing_game? %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#stop", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -3px;", id: "stop", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#stop", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -3px;", id: "stop", tabindex: 11 do %>
                     <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
                   <%- end %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#pause", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none  bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -3px;", id: "pause", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#timeout", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "TimeOut", style: "letter-spacing: -3px;", id: "timeout", tabindex: 11 do %>
+                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
+                  <%- end %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#pause", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none  bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -3px;", id: "pause", tabindex: 11 do %>
                     <%= render_svg "icons/286-pause2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
                   <%- end %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#play", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -3px;", id: "play", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#play", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -3px;", id: "play", tabindex: 11 do %>
                     <%= render_svg "icons/285-play3", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
                   <%- end %>
                 <%- end %>
@@ -209,6 +215,7 @@
                   </div>
                   <div class="flex-1 mb-1">GD: <%= options[:player_b][:gd] %></div>
                   <div class="flex-1"> HS: <%= options[:player_b][:hs] %></div>
+                  <div class="flex-1"> <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 0 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 1 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 2 ? "green" : "red"}-400 inline-block" %></div>
                 </div>
                 <div class="flex-1 text-right font-bold text-red-400">
                   <div class="text-8vw p-4">
@@ -303,6 +310,7 @@
                 </div>
                 <div class="flex-1 mb-1">GD: <%= options[:player_a][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_a][:hs] %></div>
+                <div class="flex-1"> <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 0 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 1 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > 2 ? "green" : "red"}-400 inline-block" %></div>
               </div>
             </div>
             <div class="flex h-4/6 text-center text-10vw justify-center items-center font-bold">
@@ -330,13 +338,16 @@
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 min-w-1/2 flex-row space-x-3 rounded-full">
                 <%- if table_monitor.playing_game? %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#stop", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -3px;", id: "stop", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#stop", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -3px;", id: "stop", tabindex: 11 do %>
                     <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
                   <%- end %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#pause", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -3px;", id: "pause", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#timeout", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "TimeOut", style: "letter-spacing: -3px;", id: "timeout", tabindex: 11 do %>
+                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon-lg text-gray-400 inline-block" %>
+                  <%- end %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#pause", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -3px;", id: "pause", tabindex: 11 do %>
                     <%= render_svg "icons/286-pause2", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
                   <%- end %>
-                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#play", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -3px;", id: "play", tabindex: 1 do %>
+                  <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#play", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -3px;", id: "play", tabindex: 11 do %>
                     <%= render_svg "icons/285-play3", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
                   <%- end %>
                 <%- end %>
@@ -358,6 +369,7 @@
                 </div>
                 <div class="flex-1 mb-1">GD: <%= options[:player_b][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_b][:hs] %></div>
+                <div class="flex-1"> <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 0 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 1 ? "green" : "red"}-400 inline-block" %><%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > 2 ? "green" : "red"}-400 inline-block" %></div>
               </div>
               <div class="flex-1 text-right font-bold text-red-400">
                 <div class="text-3vw p-2">

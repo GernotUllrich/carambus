@@ -241,6 +241,6 @@ class TournamentsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def tournament_params
-    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :balls_goal, :handicap_tournier, :organizer_id, :organizer_type, :manual_assignment)
+    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :initial_tc, :balls_goal, :handicap_tournier, :organizer_id, :organizer_type, :manual_assignment)
   end
 end

@@ -33,7 +33,7 @@ class TableMonitorReflex < ApplicationReflex
     if TableMonitor::NNN == "db"
       table_monitor_id = element.dataset[:id]
       table_monitor = TableMonitor.find(table_monitor_id)
-      table_monitor.update(nnn: val == "c" ? table_monitor.nnn.to_i/10 : (table_monitor.nnn || 0) * 10 + val)
+      table_monitor.update(nnn: val == "c" ? table_monitor.nnn.to_i / 10 : (table_monitor.nnn || 0) * 10 + val)
       # cable_ready["table-monitor-stream"].inner_html(
       #   selector: "#number_field",
       #   html: table_monitor.nnn.to_s
@@ -44,7 +44,7 @@ class TableMonitorReflex < ApplicationReflex
       session[session_key] = val == "c" ? 0 : (session[session_key] || 0) * 10 + val
       cable_ready["table-monitor-stream"].inner_html(
         selector: "#number_field",
-        html: session[session_key]. to_s
+        html: session[session_key].to_s
       )
       cable_ready.broadcast
     end
@@ -74,14 +74,13 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor_id = element.dataset[:id]
     table_monitor = TableMonitor.find(table_monitor_id)
     table_monitor.touch
-    table_monitor.assign_attributes(nnn:nil, panel_state: "pointer_mode", current_element: "pointer_mode")
+    table_monitor.assign_attributes(nnn: nil, panel_state: "pointer_mode", current_element: "pointer_mode")
     table_monitor.save
   end
 
   def key_pressed
     morph :nothing
   end
-
 
   def key_a
     morph :nothing
@@ -253,9 +252,10 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.panel_state = "inputs"
       table_monitor.current_element = "add_one"
       table_monitor.reset_timer!
-      Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if{|k,v| k == "data"})}")
+      Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if { |k, v| k == "data" })}")
       table_monitor.add_n_balls_to_current_players_inning(1)
-      Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if{|k,v| k == "data"})}")
+      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+      Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if { |k, v| k == "data" })}")
       table_monitor.save
     rescue Exception => e
       Rails.logger.info("[add_one] #{e} #{e.backtrace.join("\n")}")
@@ -270,6 +270,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.current_element = "add_ten"
       table_monitor.reset_timer!
       table_monitor.add_n_balls_to_current_players_inning(10)
+      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
       Rails.logger.info("[add_ten] ++++1++++")
       table_monitor.save
     rescue Exception => e
@@ -421,6 +422,28 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor.save
   end
 
+  def timeout
+    begin
+      morph :nothing
+      table_monitor = TableMonitor.find(element.dataset[:id])
+      if table_monitor.playing_game?
+        data = table_monitor.data
+        current_role = data["current_inning"]["active_player"]
+        if data[current_role]["tc"] > 0
+          data[current_role]["tc"] = data[current_role]["tc"] - 1
+          units = table_monitor.active_timer =~ /min$/ ? "minutes" : "seconds"
+          delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(table_monitor.active_timer.to_sym).send(units.to_sym) : 5.minutes
+          table_monitor.update(
+            timer_halt_at: nil,
+            timer_finish_at: table_monitor.timer_finish_at + delta,
+            data: data)
+        end
+      end
+    rescue Exception => e
+      Rails.logger.info("[add_one] #{e} #{e.backtrace.join("\n")}")
+    end
+  end
+
   private
 
   def warmup_state_change (player)
@@ -434,7 +457,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.send(:"event_play_warm_up_#{player}!")
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
       start_at = Time.now
-      delta =  table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : 5.minutes
+      delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : 5.minutes
       finish_at = Time.now + delta
       if table_monitor.timer_halt_at.present?
         extend = Time.now - table_monitor.timer_halt_at

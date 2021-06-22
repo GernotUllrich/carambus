@@ -129,6 +129,8 @@ de:
     dbu_entry: DBU Eintritt
     club_tournaments: Club Turniere
     new_club_tournament: Neues Club Turnier anlegen
+    new_club_location: Neuen Club Spielort anlegen
+    new_club_guest: Neuen Club Gast anlegen
   plan:
     index:
       plan: Plan
@@ -418,6 +420,7 @@ de:
     state: state
     innings_goal: innings goal
     balls_goal: balls goal
+    initial_tc: time out bonus count
     created_at: created at
     updated_at: updated at
   tournament_plan:
@@ -514,6 +517,7 @@ de:
     tournament_plan_id: Tournier Plan
     innings_goal: Aufnahmeziel
     balls_goal: Bälleziel
+    initial_tc: Timeout Count
     handicap_tournier: Handicap Tournier
     time_out_stoke_preparation_sec: Time-out Stossvorbereitung (sek)
     time_out_warm_up_first_min: Time-Out Einspielzeit neuer Tisch
@@ -548,6 +552,7 @@ de:
         location: Spielort
         hosting_club: Gastgeber
         innings_goal: Aufnahme-begrenzung
+        initial_tc: Timeout Counter
         handicap_tournier: Handicap-Turnier
   tournaments:
     index:
@@ -592,7 +597,7 @@ de:
       reload_from_billard_area_with_details: "Datenabgleich mit der Billard Area mit allen Details"
       order_by_ranking_or_handicap: 'Ordne nach Rangliste bzw. Handicap'
       finish_seeding: 'Abschluss der Rangliste (nicht umkehrbar)'
-      finalize_tournament_modus: 'Turnier Modus festlegen'
+      finalize_tournament_modus: 'Turniermodus festlegen'
       mangage_tournament_group_phase: 'Verwaltung der Turnierspiele'
       reset_tournament_monitor: 'Zurücksetzen des Turnier-Monitors'
       debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'
@@ -636,7 +641,13 @@ de:
       discipline: 'Disziplin'
       table_kind: 'Tischtypen'
       player_rankings: 'Ranglisten'
+      location: Spielort
+      locations: Spielorte
+      guest: 'Gast'
+      guests: 'Gäste'
       tournierplanung: 'Turnierverwaltung'
+      docs: 'Dokumentation'
+      intro: "Einführung"
       disciplinetournamentplan: 'Disziplin/Turnierpläne'
       tournamentplan: 'Turnierpläne'
       tournierabwicklung: Turnierabwicklung
@@ -736,7 +747,7 @@ de:
   add_tables: Tische hinzufügen
   carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"
   welcome_to_carambus: "Willkommen bei Carambus"
-  welcome: "Willkommen beim"
+  welcome: "Willkommen bei"
   copied: "Kopiert!"
   copy_to_clipboard: "Kopiere den Scoreboard-Link"
   continue: "Weiter"
