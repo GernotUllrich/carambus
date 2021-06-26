@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_20_154119) do
+ActiveRecord::Schema.define(version: 2021_06_23_225025) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -439,7 +439,8 @@ ActiveRecord::Schema.define(version: 2021_06_20_154119) do
     t.integer "balls_goal"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "initial_tc"
+    t.integer "timeouts"
+    t.integer "timeout", default: 0, null: false
   end
 
   create_table "tournament_plan_games", force: :cascade do |t|
@@ -500,14 +501,14 @@ ActiveRecord::Schema.define(version: 2021_06_20_154119) do
     t.boolean "handicap_tournier"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "time_out_stoke_preparation_sec", default: 45
+    t.integer "timeout", default: 45
     t.integer "time_out_warm_up_first_min", default: 5
     t.integer "time_out_warm_up_follow_up_min", default: 3
     t.integer "organizer_id"
     t.string "organizer_type"
     t.integer "location_id"
     t.boolean "manual_assignment", default: false
-    t.integer "initial_tc", default: 0, null: false
+    t.integer "timeouts", default: 0, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

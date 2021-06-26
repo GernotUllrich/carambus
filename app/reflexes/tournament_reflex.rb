@@ -30,12 +30,12 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:innings_goal, val)
   end
 
-  def initial_tc
+  def timeouts
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
     val = 0 if val <0
-    tournament.update_attribute(:initial_tc, val)
+    tournament.update_attribute(:timeouts, val)
   end
 
   def balls_goal
@@ -46,12 +46,12 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:balls_goal, val)
   end
 
-  def time_out_stoke_preparation_sec
+  def timeout
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
     val = nil if val <=0
-    tournament.update_attribute(:time_out_stoke_preparation_sec, val)
+    tournament.update_attribute(:timeout, val)
   end
 
   def time_out_warm_up_first_min

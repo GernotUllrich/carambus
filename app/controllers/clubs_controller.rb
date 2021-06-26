@@ -101,7 +101,7 @@ class ClubsController < ApplicationController
   end
 
   def tournament_params
-    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :initial_tc, :balls_goal, :handicap_tournier)
+    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal, :handicap_tournier)
   end
   # Only allow a trusted parameter "white list" through.
   def club_params

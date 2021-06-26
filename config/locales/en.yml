@@ -663,7 +663,7 @@ en:
     state: state
     innings_goal: innings goal
     balls_goal: balls goal
-    initial_tc: time out bonus count
+    timeouts: '# timeouts'
     created_at: created at
     updated_at: updated at
   tournament_plan:
@@ -759,11 +759,11 @@ en:
     tournament_plan_id: tournament plan id
     innings_goal: innings goal
     balls_goal: balls goal
-    initial_tc: time out bonus count
+    timeouts: '# timeouts'
     handicap_tournier: handicap tournier
     created_at: created at
     updated_at: updated at
-    time_out_stoke_preparation_sec: time out stoke preparation sec
+    timeout: time out stoke preparation sec
     time_out_warm_up_first_min: time out warm up first min
     time_out_warm_up_follow_up_min: time out warm up follow up min
     organizer_id: organizer id
@@ -816,7 +816,8 @@ en:
         location: location
         hosting_club: hosting club
         innings_goal: innings goal
-        initial_tc: timeout counter
+        timeouts: '# timeouts'
+        timeout: 'timeout (sec.)'
         handicap_tournier: handicap tournier
 
     errors:

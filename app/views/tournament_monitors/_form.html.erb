@@ -22,8 +22,13 @@
   </div>
 
   <div class="form-group">
-    <%= form.label :initial_tc %>
-    <%= form.number_field :initial_tc, class: "form-control" %>
+    <%= form.label :timeouts %>
+    <%= form.select :timeouts, options_for_select([0, 1, 2, 3, 4, 5], @timeouts), class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :timeout %>
+    <%= form.select :timeout, options_for_select([["-", 0], 30, 40], @timeout), class: "form-control" %>
   </div>
 
   <div class="form-group">

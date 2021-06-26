@@ -245,6 +245,10 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor.save
   end
 
+  def home
+
+  end
+
   def add_one
     begin
       morph :nothing

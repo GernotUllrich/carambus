@@ -24,6 +24,8 @@
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :tournament_plan_id, 'Tournament plan', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :innings_goal, 'Innings goal', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :timeouts, '# Timeouts', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :timeout, 'Timeout (sec)', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :handicap_tournier, 'Handicap tournier', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
     </tr>
@@ -54,6 +56,8 @@
         <td class="p-3"><%= tournament.tournament_plan_id %></td>
         <td class="p-3"><%= tournament.innings_goal %></td>
         <td class="p-3"><%= tournament.balls_goal %></td>
+        <td class="p-3"><%= tournament.timeouts %></td>
+        <td class="p-3"><%= tournament.timeout %></td>
         <td class="p-3"><%= tournament.handicap_tournier %></td>
 
         <td>

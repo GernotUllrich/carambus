@@ -37,7 +37,8 @@
         </div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.innings_goal') %></h5><%= tournament.innings_goal %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.balls_goal') %></h5><%= tournament.balls_goal %></div>
-        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.initial_tc') %></h5><%= tournament.initial_tc %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.timeouts') %></h5><%= tournament.timeouts %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.timeout') %></h5><%= tournament.timeout %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.handicap_tournier') %></h5><%= tournament.handicap_tournier %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= "Verantwortlich:" %></h5><%= (link_to tournament.organizer.andand.name, tournament.organizer.is_a?(Region) ? regions_path(tournament.organizer) : clubs_path(tournament.organizer)) if tournament.organizer.present? %></div>
       </div>

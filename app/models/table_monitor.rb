@@ -177,7 +177,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def do_play
-    active_timer = "time_out_stoke_preparation_sec"
+    active_timer = "timeout"
     units = "seconds"
     start_at = Time.now
     finish_at = Time.now + (tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || 5.minutes).to_i
@@ -336,8 +336,8 @@ class TableMonitor < ApplicationRecord
             tournament_monitor.andand.tournament.andand.innings_goal ||
             20,
         "tc" =>
-          tournament_monitor.andand.initial_tc ||
-            tournament_monitor.andand.tournament.andand.initial_tc ||
+          tournament_monitor.andand.timeouts ||
+            tournament_monitor.andand.tournament.andand.timeouts ||
             0,
       },
       "playerb" => {
@@ -357,8 +357,8 @@ class TableMonitor < ApplicationRecord
             tournament_monitor.andand.tournament.andand.innings_goal ||
             20,
         "tc" =>
-          tournament_monitor.andand.initial_tc ||
-            tournament_monitor.andand.tournament.andand.initial_tc ||
+          tournament_monitor.andand.timeouts ||
+            tournament_monitor.andand.tournament.andand.timeouts ||
             0,
       },
       "current_inning" => {

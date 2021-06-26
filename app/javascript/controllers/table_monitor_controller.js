@@ -67,6 +67,10 @@ export default class extends ApplicationController {
     window.history.back();
   }
 
+  home () {
+    this.stimulate('TableMonitor#home')
+  }
+
   // Assuming you create a "Example#dance" action in your Reflex class
   // you'll be able to use the following lifecycle methods:
 

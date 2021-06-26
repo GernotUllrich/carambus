@@ -11,7 +11,6 @@
 #  date                           :datetime
 #  end_date                       :datetime
 #  handicap_tournier              :boolean
-#  initial_tc                     :integer          default(0), not null
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime
 #  location                       :text
@@ -23,9 +22,10 @@
 #  shortname                      :string
 #  single_or_league               :string
 #  state                          :string
-#  time_out_stoke_preparation_sec :integer          default(45)
 #  time_out_warm_up_first_min     :integer          default(5)
 #  time_out_warm_up_follow_up_min :integer          default(3)
+#  timeout                        :integer          default(45)
+#  timeouts                       :integer          default(0), not null
 #  title                          :string
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null

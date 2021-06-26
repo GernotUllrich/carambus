@@ -52,11 +52,13 @@ class TableMonitorsController < ApplicationController
       "playera" => {
         "balls_goal" => params[:balls_goal_a],
         "inings" => params[:innings],
+        "timeouts" => params[:timeouts],
         "discipline" => params[:discipline_a],
       },
       "playerb" => {
         "balls_goal" => params[:balls_goal_b],
         "inings" => params[:innings],
+        "timeouts" => params[:timeouts],
         "discipline" => params[:discipline_b],
       },
     }
@@ -109,6 +111,7 @@ class TableMonitorsController < ApplicationController
   def table_monitor_params
     params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data,
                                           :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
-                                          :balls_goal_b, :discipline, :discipline_a, :discipline_b)
+                                          :balls_goal_b, :discipline, :discipline_a, :discipline_b,
+                                          :timeout, :timeouts)
   end
 end

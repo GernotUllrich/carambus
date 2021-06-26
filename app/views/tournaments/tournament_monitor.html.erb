@@ -49,15 +49,7 @@
                 </div>
               </li>
             <%- end %>
-          </ol>
-          <div class="flex justify-end w-10/12"><%= submit_tag I18n.t("tournaments.start_tournament"), class: "btn btn-flat btn-primary mt-2" %></div>
-        <%- end %>
-        <div class="mt-4">
-          <%= link_to "Back to Mode Selection", finalize_modus_tournament_path(@tournament) %>
-        </div>
-      <%- end %>
-    </div>
-    <div class="bg-white space-y-2 rounded shadow p-8">
+          </ol>    <div class="bg-white space-y-2 rounded shadow p-8">
       <h4 class="mb-4">Turnier Parameter</h4>
       <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal, class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
@@ -66,10 +58,10 @@
         <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal, class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Stroke Preparation Timeout (Sek.)" %></span><span id="time_out_stoke_preparation_sec"><%= number_field_tag :time_out_stoke_preparation_sec, @tournament.time_out_stoke_preparation_sec, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_stoke_preparation_sec", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeout (Sek.)" %></span><span id="timeout"><%= number_field_tag :timeout, @tournament.timeout, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Remaining Timeouts (Init. value)" %></span><span id="initial_tc"><%= number_field_tag :initial_tc, @tournament.initial_tc, class: "border-2", data: { reflex: "change->TournamentReflex#initial_tc", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeouts" %></span><span id="timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
@@ -77,6 +69,14 @@
       <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp Same Table (Min.)" %></span><span id="time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
       </div>
+    </div>
+
+          <div class="flex justify-end w-10/12"><%= submit_tag I18n.t("tournaments.start_tournament"), class: "btn btn-flat btn-primary mt-2" %></div>
+        <%- end %>
+        <div class="mt-4">
+          <%= link_to "Back to Mode Selection", finalize_modus_tournament_path(@tournament) %>
+        </div>
+      <%- end %>
     </div>
     <div class="bg-white dark:bg-black rounded shadow p-8">
       <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>

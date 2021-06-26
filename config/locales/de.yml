@@ -420,7 +420,7 @@ de:
     state: state
     innings_goal: innings goal
     balls_goal: balls goal
-    initial_tc: time out bonus count
+    timeouts: '# timeouts'
     created_at: created at
     updated_at: updated at
   tournament_plan:
@@ -517,9 +517,9 @@ de:
     tournament_plan_id: Tournier Plan
     innings_goal: Aufnahmeziel
     balls_goal: Bälleziel
-    initial_tc: Timeout Count
+    timeouts: Timeouts
     handicap_tournier: Handicap Tournier
-    time_out_stoke_preparation_sec: Time-out Stossvorbereitung (sek)
+    timeout: Time-out Stossvorbereitung (sek)
     time_out_warm_up_first_min: Time-Out Einspielzeit neuer Tisch
     time_out_warm_up_follow_up_min: Time-Out Einspielzeit selber Tisch
     organizer_id: Organisiert durch
@@ -552,7 +552,8 @@ de:
         location: Spielort
         hosting_club: Gastgeber
         innings_goal: Aufnahme-begrenzung
-        initial_tc: Timeout Counter
+        timeouts: '# Timeouts'
+        timeout: 'Timeout (Sek.)'
         handicap_tournier: Handicap-Turnier
   tournaments:
     index:

@@ -174,13 +174,19 @@ class TournamentsController < ApplicationController
   def start
     data_ = @tournament.data
     data_[:table_ids] = params[:table_id]
-    @tournament.update(data: data_)
+    data_[:balls_goal] = params[:balls_goal]
+    data_[:innings_goal] = params[:innings_goal]
+    data_[:timeout] = params[:timeout]
+    data_[:timeouts] = params[:timeouts]
+    data_[:time_out_warm_up_first_min] = params[:time_out_warm_up_first_min]
+    data_[:time_out_warm_up_follow_up_min] = params[:time_out_warm_up_follow_up_min]
+    @tournament.update(data: data_ )
     if @tournament.valid?
       @tournament.initialize_tournament_monitor
       @tournament.reload
       @tournament.start_tournament!
       @tournament.reload
-      @tournament.tournament_monitor.update(current_admin: current_user)
+      @tournament.tournament_monitor.update(current_admin: current_user, timeout: params[:timeout].to_i, timeouts: params[:timeouts].to_i)
       redirect_to tournament_monitor_path(@tournament.tournament_monitor)
     else
       flash[:alert] = @tournament.errors.full_messages
@@ -241,6 +247,10 @@ class TournamentsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def tournament_params
-    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end, :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show, :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date, :player_class, :tournament_plan_id, :innings_goal, :initial_tc, :balls_goal, :handicap_tournier, :organizer_id, :organizer_type, :manual_assignment)
+    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end,
+                                       :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show,
+                                       :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date,
+                                       :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
+                                       :handicap_tournier, :organizer_id, :organizer_type, :manual_assignment)
   end
 end

@@ -5,9 +5,10 @@
 #  id            :bigint           not null, primary key
 #  balls_goal    :integer
 #  data          :text
-#  initial_tc    :integer
 #  innings_goal  :integer
 #  state         :string
+#  timeout       :integer          default(0), not null
+#  timeouts      :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :integer
