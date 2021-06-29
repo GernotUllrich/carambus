@@ -177,10 +177,11 @@ class TableMonitor < ApplicationRecord
   end
 
   def do_play
+    return unless tournament_monitor_id.present? || data["timeout"].to_i > 0
     active_timer = "timeout"
     units = "seconds"
     start_at = Time.now
-    finish_at = Time.now + (tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || 5.minutes).to_i
+    finish_at = Time.now + (tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || (data["timeout"].to_i > 0 ? data["timeout"].to_i.seconds : 5.minutes)).to_i
     if timer_halt_at.present?
       extend = Time.now - timer_halt_at
       start_at = timer_start_at + extend

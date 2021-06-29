@@ -45,20 +45,26 @@ class TableMonitorsController < ApplicationController
       @game.game_participations.destroy_all
     end
     @game.update(data: {})
+    if (params[:player_a_id].to_i > 0 && params[:player_a_id] == params[:player_b_id])
+      redirect_to "/locations/#{@table_monitor.table.location.id}?sb_state=free_game&table_id=#{@table_monitor.table.id}"
+      return
+    end
     @game.game_participations.create!(player: (params[:player_a_id].to_i > 0 ? Player.find(params[:player_a_id]) : nil), role: "playera")
     @game.game_participations.create!(player: (params[:player_b_id].to_i > 0 ? Player.find(params[:player_b_id]) : nil), role: "playerb")
 
     result = {
+      "timeouts" => params[:timeouts].to_i,
+      "timeout" => params[:timeout].to_i,
       "playera" => {
         "balls_goal" => params[:balls_goal_a],
         "inings" => params[:innings],
-        "timeouts" => params[:timeouts],
+        "tc" => params[:timeouts].to_i,
         "discipline" => params[:discipline_a],
       },
       "playerb" => {
         "balls_goal" => params[:balls_goal_b],
         "inings" => params[:innings],
-        "timeouts" => params[:timeouts],
+        "tc" => params[:timeouts].to_i,
         "discipline" => params[:discipline_b],
       },
     }

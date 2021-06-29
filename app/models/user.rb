@@ -65,6 +65,8 @@ class User < ApplicationRecord
 
   include UserAccounts
   include UserAgreements
+  PRIVILEGED = ["gernot.ullrich@gmx.de", "nla@ph.at"]
+
 
   has_person_name
 

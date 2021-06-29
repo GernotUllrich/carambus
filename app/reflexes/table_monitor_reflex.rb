@@ -96,12 +96,12 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.do_play
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       elsif table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.do_play
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
     elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
@@ -129,12 +129,12 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.data["current_inning"]["active_player"] == "playerb"
         table_monitor.reset_timer!
         table_monitor.add_n_balls_to_current_players_inning(1)
-        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.do_play
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       elsif table_monitor.data["current_inning"]["active_player"] == "playera"
         table_monitor.reset_timer!
         table_monitor.terminate_current_inning
-        table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+        table_monitor.do_play
         table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
       end
     elsif table_monitor.game_show_result? || table_monitor.game_result_reported?
@@ -187,7 +187,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.reset_timer!
       table_monitor.event_shootout_finished!
       table_monitor.evaluate_result
-      #table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+      #table_monitor.do_play
     elsif table_monitor.playing_game?
       if table_monitor.end_result?
         table_monitor.terminate_current_inning
@@ -258,7 +258,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.reset_timer!
       Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if { |k, v| k == "data" })}")
       table_monitor.add_n_balls_to_current_players_inning(1)
-      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+      table_monitor.do_play
       Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(table_monitor.attributes.delete_if { |k, v| k == "data" })}")
       table_monitor.save
     rescue Exception => e
@@ -274,7 +274,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.current_element = "add_ten"
       table_monitor.reset_timer!
       table_monitor.add_n_balls_to_current_players_inning(10)
-      table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+      table_monitor.do_play
       Rails.logger.info("[add_ten] ++++1++++")
       table_monitor.save
     rescue Exception => e
@@ -415,7 +415,7 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.panel_state = "timer"
     table_monitor.current_element = "play"
-    table_monitor.do_play if table_monitor.tournament_monitor_id.present?
+    table_monitor.do_play
     table_monitor.save
   end
 
@@ -433,10 +433,10 @@ class TableMonitorReflex < ApplicationReflex
       if table_monitor.playing_game?
         data = table_monitor.data
         current_role = data["current_inning"]["active_player"]
-        if data[current_role]["tc"] > 0
-          data[current_role]["tc"] = data[current_role]["tc"] - 1
+        if data["timeout"].to_i > 0 && data[current_role]["tc"].to_i > 0
+          data[current_role]["tc"] = data[current_role]["tc"].to_i - 1
           units = table_monitor.active_timer =~ /min$/ ? "minutes" : "seconds"
-          delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(table_monitor.active_timer.to_sym).send(units.to_sym) : 5.minutes
+          delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(table_monitor.active_timer.to_sym).send(units.to_sym) : (data["timeout"].to_i > 0 ? data["timeout"].to_i.seconds : 5.minutes)
           table_monitor.update(
             timer_halt_at: nil,
             timer_finish_at: table_monitor.timer_finish_at + delta,
@@ -461,7 +461,7 @@ class TableMonitorReflex < ApplicationReflex
       table_monitor.send(:"event_play_warm_up_#{player}!")
       units = active_timer =~ /min$/ ? "minutes" : "seconds"
       start_at = Time.now
-      delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : 5.minutes
+      delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : (table_monitor.data["timeout"].to_i > 0 ? table_monitor.data["timeout"].to_i.seconds : 5.minutes)
       finish_at = Time.now + delta
       if table_monitor.timer_halt_at.present?
         extend = Time.now - table_monitor.timer_halt_at

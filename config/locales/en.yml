@@ -560,6 +560,9 @@ en:
       game_warmup_a_started: "Training Player A"
       game_warmup_b_started: "Training Player B"
       game_shootout_started: "Shoot Out"
+      start_game: "Start Game"
+      shootout_result: "Exchange Players after Shootout"
+      exchange_players: "Exchange (Key A or Key B)"
       playing_game: ""
       game_finished: "Partie finished"
       game_show_result: "Partie finished - ok?"
@@ -602,10 +605,10 @@ en:
     innings: innings
     status: status
     points: points
-    gd: gd
+    gd: avg
     hs: hs
-    bed: bed
-    btg: btg
+    bed: bavg
+    btg: btavg
     player_class_id: player class id
     p_player_class_id: p player class id
     pp_player_class_id: pp player class id
@@ -1048,10 +1051,17 @@ en:
   select_training_table: "Table Assignments"
   tournaments_season: "Tournaments Season"
   add_tables: Add Tables
+  of: "of"
+  goal: Goal
+  gd: "AVG"
   carambus_manages: "Carambus Manages Billard Tournaments"
   welcome_to_carambus: "Welcome to Carambus"
   welcome: "Welcome to the"
   copied: "Copied!"
+  training_game: "Training Game"
   copy_to_clipboard: "Copy scoreboard link to clipboard"
   continue: "continue"
-  back: "Back"
+  leaving_game: "You are about to leave the current game."
+  warning: "Warning"
+  may_loose_results: "You may loose game results!"
+  cancel_game: "Cancel game"
