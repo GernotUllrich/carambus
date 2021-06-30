@@ -8,6 +8,7 @@
 <li><a href="#api">Carambus API.</a></li>
 <li><a href="#region_management">Regionales Turniermanagement.</a></li>
 <li><a href="#location_management">Lokales Spielmanagement.</a></li>
+<li><a href="#training">Trainingsmodus.</a></li>
 </ul>
 
 <h2><a name="intro"></a>Einführung</h2>
@@ -22,7 +23,7 @@
 
 <p>Technisch gesehen ist Carambus eine Hierarchie von Webservices. An der Spitze steht ein Webserver, der nur dazu dient, externe Daten so Zeit aktuell und effizient wie möglich vorzuhalten. Konsumenten dieser Daten sind auf Regionalebene und am Veranstaltungsort, bzw. in den Clubheimen Webserver, die den lokalen Spielbetrieb verwalten.</p>
 
-<p>Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Tourniere, sowie die verschieden Anzeige- und Eingabegeräte am Veranstaltungsort.</p>
+<p>Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Turniere, sowie die verschieden Anzeige- und Eingabegeräte am Veranstaltungsort.</p>
 
 <p>Da alles auf standardisierten HTML Protokollen basiert, ist Carambus weitgehend hardwareunabhängig.</p>
 
@@ -189,3 +190,23 @@ Im Allgemeinen gibt es mehrere Möglichkeiten (Gruppenspiele und Hauptrunde, ggf
 <h3>Ende des Turniers</h3>
 
 <p>Sobald alle Spiele des Turniers abgeschlossen sind, wird ein Endprotokoll an den Spielleiter gesendet mit einer CSV-Datei, die dann direkt zum Upload der Ergebnisse in die Billard-Area genutzt werden kann.</p>
+
+<h2><a name="training"></a>Trainingsmodus</h2>
+
+<p>An den Scoreboards können die jeweiligen Tische ausgewählt werden.
+  Abhängig vom Turnierstatus können freie Tische erkannt werden und für das freie Trainingsspiel
+  genutzt werden.</p>
+
+<p>Ad-Hoc-Spiele können über ein Parameterfeld initialisiert werden. Eingabemöglichkeiten sind dabei</p>
+
+<ul>
+  <li>Disziplin (entsprechend der jeweiligen Tischeigenschaften, für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)</li>
+  <li>Zielballzahl (für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)</li>
+  <li>Aufnahmebegrenzung</li>
+  <li>Timeout (optional)</li>
+  <li>Timeouts (optionale Anzahl der Timeoutverlänngerungen)</li>
+  <li>Spieler (Selektion aus den Clubspielern oder Gästen)</li>
+  <li>Individuelle Disziplin bzw. Zielballzahl</li>
+</ul>
+<p></p>
+<p>Für eine zukünftige Erweiterung sind Statistiken über Trainingsspiele geplant (pro Spieler und pro Spielpaarung)</p>
