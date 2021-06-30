@@ -242,6 +242,8 @@ class TableMonitorReflex < ApplicationReflex
     table_monitor = TableMonitor.find(element.dataset[:id])
     table_monitor.reset_timer!
     table_monitor.event_shootout_finished!
+    table_monitor.panel_state = "pointer_mode"
+    table_monitor.do_play
     table_monitor.save
   end
 
