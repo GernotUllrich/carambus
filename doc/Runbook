@@ -27,7 +27,7 @@ OS mit Raspberry Pi Manager laden:
   
   ufw allow ssh
 
-* passwort-losen Zugang einrichten:\
+* passwort-losen Zugang einrich ten:\
   Login, and edit this file: sudo nano /etc/ssh/sshd_config\
   Find this line: PermitRootLogin without-password\
   Edit: PermitRootLogin yes\
@@ -47,8 +47,168 @@ carambus3 ansible_host=192.168.178.52  node_name=web3.carambus.de provider=domai
 * /etc/host_vars/carambus3\
   (copy/edit from carambus)
 
+rbenv install 2.7.2
+
+mkdir -p carambus/shared/config
+
+vi carambus/shared/config/database.yml
+production:
+host: web3.carambus.de
+adapter: postgresql
+database: carambus_production
+port: 5432
+username: www_data
+password: toS6E7tARQafHCXz
+
+vi carambus/shared/config/master.key
+bdb689ada581c5cd22726d5641b82ccf
+
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt update
+sudo apt install yarn
+yarn --version
+1.22.5
+
+gem install bundler:2.2.19
+bin/rails action_text:install
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v
+v14.17.2
+
+sudo -u postgres psql
+create user www_data with password 'toS6E7tARQafHCXz';
+alter role www_data superuser createrole createdb replication;
+create database carambus_production owner www_data;
+
+vi shared/config/unicorn.rb
+working_directory "/var/www/carambus/current"
+pid "/var/www/carambus/current/tmp/pids/unicorn.pid"
+stderr_path "/var/www/carambus/shared/log/unicorn.log"
+stdout_path "/var/www/carambus/shared/log/unicorn.log"
+
+listen "/tmp/unicorn.carambus_production.sock"
+worker_processes 4
+timeout  150
+
+preload_app true
+
+before_exec do |server|
+ENV["BUNDLE_GEMFILE"] = "/var/www/carambus/current/Gemfile"
+end
+
+before_fork do |server, worker|
+# Disconnect since the database connection will not carry over
+if defined? ActiveRecord::Base
+ActiveRecord::Base.connection.disconnect!
+end
+
+# Quit the old unicorn process
+old_pid = "#{server.config[:pid]}.oldbin"
+if File.exists?(old_pid) && server.pid != old_pid
+begin
+Process.kill("QUIT", File.read(old_pid).to_i)
+rescue Errno::ENOENT, Errno::ESRCH
+# someone else did our job for us
+end
+end
+
+if defined?(Resque)
+Resque.redis.quit
+end
+
+sleep 1
+end
+
+after_fork do |server, worker|
+# Start up the database connection again in the worker
+if defined?(ActiveRecord::Base)
+ActiveRecord::Base.establish_connection
+end
+
+if defined?(Resque)
+Resque.redis = 'localhost:6379'
+end
+end
+
+##################
+
+apt-get remove apache2
+
+vi /etc/nginx/sites-enabled/carambus
+server {
+listen *:80;
+listen [::]:80;
+
+        server_name web3.carambus.de;
+
+        root   /var/www/carambus/current/public/;
 
 
+	#if ($scheme != "https") {
+            #rewrite ^ https://$http_host$request_uri? permanent;
+        #}
+
+        error_log /var/log/carambus/error.log debug;
+        access_log /var/log/carambus/access.log combined;
+
+        location ~ /\. {
+			deny all;
+        }
+
+        location ^~ /.well-known/acme-challenge/ {
+			access_log off;
+			log_not_found off;
+			auth_basic off;
+			root /usr/local/ispconfig/interface/acme/;
+			autoindex off;
+			index index.html;
+			try_files $uri $uri/ =404;
+        }
+
+        location = /favicon.ico {
+            log_not_found off;
+            access_log off;
+            expires max;
+            add_header Cache-Control "public, must-revalidate, proxy-revalidate";
+        }
+
+        location = /robots.txt {
+            allow all;
+            log_not_found off;
+            access_log off;
+        }
+
+        location / {
+        		root /var/www/carambus/current/public;
+        		try_files $uri @unicorn_carambus_production;
+        }
+
+        location @unicorn_carambus_production {
+        	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        	    proxy_set_header Host $http_host;
+        	    proxy_set_header X-Forwarded-Proto  $scheme;
+
+        	    proxy_set_header  X-Real-IP         $remote_addr;
+        	    proxy_set_header  X-Sendfile-Type   X-Accel-Redirect;
+
+        	    proxy_connect_timeout      2500;
+        	    proxy_send_timeout         2500;
+        	    proxy_read_timeout         2500;
+
+        	    proxy_redirect off;
+
+        	    proxy_pass http://unicorn_carambus_production;
+        	    access_log /var/www/carambus/shared/log/nginx.access.log;
+        	    error_log /var/www/carambus/shared/log/nginx.error.log;
+        }
+
+
+}
+
+####################
+
+apt-get install redis
 
 
 
