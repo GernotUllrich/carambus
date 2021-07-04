@@ -38,42 +38,16 @@ class TableMonitorsController < ApplicationController
   end
 
   def start_game
-    @game = @table_monitor.game
-    if @game.blank?
-      @game = Game.create!(table_monitor: @table_monitor)
-    else
-      @game.game_participations.destroy_all
-    end
-    @game.update(data: {})
-    if (params[:player_a_id].to_i > 0 && params[:player_a_id] == params[:player_b_id])
-      redirect_to "/locations/#{@table_monitor.table.location.id}?sb_state=free_game&table_id=#{@table_monitor.table.id}"
-      return
-    end
-    @game.game_participations.create!(player: (params[:player_a_id].to_i > 0 ? Player.find(params[:player_a_id]) : nil), role: "playera")
-    @game.game_participations.create!(player: (params[:player_b_id].to_i > 0 ? Player.find(params[:player_b_id]) : nil), role: "playerb")
-
-    result = {
-      "timeouts" => params[:timeouts].to_i,
-      "timeout" => params[:timeout].to_i,
-      "playera" => {
-        "balls_goal" => params[:balls_goal_a],
-        "inings" => params[:innings],
-        "tc" => params[:timeouts].to_i,
-        "discipline" => params[:discipline_a],
-      },
-      "playerb" => {
-        "balls_goal" => params[:balls_goal_b],
-        "inings" => params[:innings],
-        "tc" => params[:timeouts].to_i,
-        "discipline" => params[:discipline_b],
-      },
-    }
-    @table_monitor.initialize_game
-    @table_monitor.deep_merge_data!(result)
+    res = @table_monitor.start_game(params.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
+                                                 :balls_goal_a, :balls_goal_b, :innings, :discipline_a,
+                                                 :discipline_b))
     @navbar = false
     @footer = false
-
-    redirect_to (@table_monitor)
+    if res
+      redirect_to (@table_monitor)
+    else
+      redirect_to "/locations/#{table.location.id}?sb_state=free_game&table_id=#{table.id}"
+    end
   end
 
   # GET /table_monitors/1/edit

@@ -578,13 +578,72 @@ class TableMonitor < ApplicationRecord
           event_game_result_accepted!
         elsif game_finished?
           event_game_result_reported!
+        else
+          if tournament_monitor.blank?
+            revert_players
+            update(state: "playing_game")
+            do_play
+            return
+          end
         end
         save!
         reload
         prepare_final_game_result
-        tournament_monitor.report_result(self)
+        tournament_monitor.andand.report_result(self)
       end
     end
+  end
+
+  def start_game(options = {})
+      @game = game
+      if @game.blank?
+        @game = Game.create!(table_monitor: self)
+      else
+        @game.game_participations.destroy_all
+      end
+      reload
+      @game.update(data: {})
+      if (options["player_a_id"].to_i > 0 && options["player_a_id"] == options["player_b_id"])
+        return false
+      end
+      @game.game_participations.create!(player: (options["player_a_id"].to_i > 0 ? Player.find(options["player_a_id"]) : nil), role: "playera")
+      @game.game_participations.create!(player: (options["player_b_id"].to_i > 0 ? Player.find(options["player_b_id"]) : nil), role: "playerb")
+
+      result = {
+        "timeouts" => options["timeouts"].to_i,
+        "timeout" => options["timeout"].to_i,
+        "playera" => {
+          "balls_goal" => options["balls_goal_a"],
+          "inings" => options["innings"],
+          "tc" => options["timeouts"].to_i,
+          "discipline" => options["discipline_a"],
+        },
+        "playerb" => {
+          "balls_goal" => options["balls_goal_b"],
+          "inings" => options["innings"],
+          "tc" => options["timeouts"].to_i,
+          "discipline" => options["discipline_b"],
+        },
+      }
+      initialize_game
+      deep_merge_data!(result)
+      return true
+  end
+
+  def revert_players
+    options = {
+      "player_a_id" => game.game_participations.where(role: "playerb").first.andand.player.andand.id,
+      "player_b_id" => game.game_participations.where(role: "playera").first.andand.player.andand.id,
+      "timeouts" => data["timeouts"].to_i,
+      "timeout" => data["timeout"].to_i,
+      "balls_goal_a" => data["playerb"]["balls_goal"].to_i,
+      "balls_goal_b" => data["playera"]["balls_goal"].to_i,
+      "innings" => data["playera"]["innings"].to_i,
+      "discipline_a" => data["playerb"]["discipline"],
+      "discipline_b" => data["playera"]["discipline"]
+    }
+    update(game_id: nil)
+    start_game(options)
   end
 
   def set_player_sequence(players)
