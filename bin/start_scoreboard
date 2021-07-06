@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-/usr/bin/chromium-browser --kiosk  --disable-restore-session-state http://localhost/locations/969ba3b9eedc18571880303f4e4f3faa/scoreboard?locale=de&sp_state=welcome
+/usr/bin/chromium-browser --kiosk  --disable-restore-session-state `cat /var/www/carambus/current/config/scoreboard_url`
