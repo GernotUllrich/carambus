@@ -272,11 +272,11 @@
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex text-gray-200 "><%= "#{t("training_game")} #{@table.andand.name} (#{@table.andand.table_kind.andand.name})" %></h1>
   <%- if @location.present? %>
     <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex text-gray-200 mt-4"><%= @location.name %></h1>
-    <%= form_tag start_game_table_monitor_path(@table_monitor), method: :post, class: "flex flex-col text-gray-200 lg:mt-4 mt-2" do %>
+    <%= form_tag start_game_table_monitor_path(@table_monitor), method: :post, class: "flex flex-col text-gray-200" do %>
 
       <div class="flex justify-center mt-4 text-center">
         <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
-          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg p-1 btn btn-primary text-center text-2vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1" %>
+          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
         </div>
       </div>
       <div style="text-shadow: 2px 2px #000000" class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
