@@ -1,0 +1,26 @@
+WLAN SCAN:
+
+sudo iwlist wlan0 scan | egrep 'IEEE|ESSID'
+
+cat /etc/wpa_supplicant/wpa_supplicant.conf
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=DE
+
+network={
+	ssid="Gernots iPhone"
+	psk="ownnov41"
+	key_mgmt=WPA-PSK
+}
+
+network={
+	ssid="Phat-Guest"
+	psk="+phatsack2017"
+	key_mgmt=WPA-PSK
+}
+
+network={
+	ssid="FRITZ!Box 7490 UL"
+	psk="6964362753744967"
+	key_mgmt=WPA-PSK
+}
