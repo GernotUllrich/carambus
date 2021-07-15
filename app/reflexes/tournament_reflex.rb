@@ -26,7 +26,7 @@ class TournamentReflex < ApplicationReflex
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = nil if val <=0
+    #val = nil if val <=0
     tournament.update_attribute(:innings_goal, val)
   end
 

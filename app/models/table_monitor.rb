@@ -196,6 +196,8 @@ class TableMonitor < ApplicationRecord
   end
 
   def render_innings_list(role)
+    innings = data["playera"]["innings"].to_i
+    cols = [(innings/15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
     ret = ["<style>
     table, th, td {
@@ -209,15 +211,25 @@ class TableMonitor < ApplicationRecord
 
     th, td {
     }
-</style><table><thead><tr><th>Aufn</th><th>Pkt</th><th>∑</th><th>Aufn</th><th>Pkt</th><th>∑</th></tr></thead><tbody>"]
+    </style><table><thead><tr>"]
+    (1..cols).each do |icol|
+      ret << "<th>Aufn</th><th>Pkt</th><th>∑</th>"
+    end
+    ret << "</tr></thead><tbody>"
     sum = 0
     sums = []
     show_innings.each_with_index do |inning, ix|
       sum += inning
       sums[ix] = sum
     end
-    show_innings[0..9].each_with_index do |inning, ix|
-      ret << "<tr><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{inning}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix]}</strong>" : sums[ix]}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{"#{ix + 11}" if sums[ix + 10].present?}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{show_innings[ix + 10]}</span></td><td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 10 == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + 10]}</strong>" : sums[ix + 10]}</span></td></tr>"
+    (0..14).each do |ix|
+      ret << "<tr>"
+      (1..cols).each_with_index do |col, icol|
+        ret << "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1 + (icol*15)}</span></td>
+<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol*15)) == sums.length ? "GD" : show_innings[ix + (icol*15)]}</span></td>
+<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol*15)) == sums.length ? "%0.2f" % (sums.last.to_i / innings.to_f) : (ix + (icol*15)) == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + (icol*15)]}</strong>" : sums[ix + (icol*15)]}</span></td>"
+      end
+      ret << "</tr>"
     end
     ret << "</tbody></table>"
     ret.join("\n").html_safe
@@ -320,6 +332,10 @@ class TableMonitor < ApplicationRecord
   def initialize_game
     info = "+++ 7 - table_monitor#initialize_game"; DebugInfo.instance.update(info: info); Rails.logger.info info
     deep_merge_data! ({
+      "innings_goal" =>
+        tournament_monitor.andand.innings_goal ||
+          tournament_monitor.andand.tournament.andand.innings_goal ||
+          20,
       "playera" => {
         "result" => 0,
         "innings" => 0,
@@ -332,10 +348,6 @@ class TableMonitor < ApplicationRecord
             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playera").balls_goal.presence ||
             tournament_monitor.andand.balls_goal ||
             tournament_monitor.andand.tournament.andand.balls_goal || 80,
-        "innings_goal" =>
-          tournament_monitor.andand.innings_goal ||
-            tournament_monitor.andand.tournament.andand.innings_goal ||
-            20,
         "tc" =>
           tournament_monitor.andand.timeouts ||
             tournament_monitor.andand.tournament.andand.timeouts ||
@@ -353,10 +365,6 @@ class TableMonitor < ApplicationRecord
             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playerb").balls_goal.presence ||
             tournament_monitor.andand.balls_goal ||
             tournament_monitor.andand.tournament.andand.balls_goal || 80,
-        "innings_goal" =>
-          tournament_monitor.andand.innings_goal ||
-            tournament_monitor.andand.tournament.andand.innings_goal ||
-            20,
         "tc" =>
           tournament_monitor.andand.timeouts ||
             tournament_monitor.andand.tournament.andand.timeouts ||
@@ -389,7 +397,7 @@ class TableMonitor < ApplicationRecord
       if playing_game?
         current_role = data["current_inning"]["active_player"]
         data[current_role]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"].empty?
-        to_play = data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i + data[current_role]["innings_redo_list"][-1].to_i)
+        to_play = data[current_role].andand["balls_goal"].to_i <= 0 ? 99999 : data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i + data[current_role]["innings_redo_list"][-1].to_i)
         add = [n, to_play].min
         data[current_role]["innings_redo_list"][-1] = [(data[current_role]["innings_redo_list"][-1].to_i + add), 0].max
         if add == to_play
@@ -491,7 +499,7 @@ class TableMonitor < ApplicationRecord
     if playing_game?
       current_role = data["current_inning"]["active_player"]
       data[current_role]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"].empty?
-      to_play = data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i)
+      to_play = data[current_role].andand["balls_goal"].to_i <= 0 ? 99999 : data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i)
       set = [n_balls.to_i, to_play.to_i].min
       data[current_role]["innings_redo_list"][-1] = set
       data_will_change!
@@ -540,7 +548,7 @@ class TableMonitor < ApplicationRecord
     DebugInfo.instance.update(info: info)
     Rails.logger.info info
     data.present? &&
-      ((data["current_inning"].andand["active_player"] == "playerb") && (data["playera"].andand["result"].to_i >= data["playera"].andand["balls_goal"].to_i))
+      ((data["current_inning"].andand["active_player"] == "playerb") && data["playera"].andand["balls_goal"].to_i > 0 && (data["playera"].andand["result"].to_i >= data["playera"].andand["balls_goal"].to_i))
   end
 
   def undo
@@ -612,15 +620,14 @@ class TableMonitor < ApplicationRecord
       result = {
         "timeouts" => options["timeouts"].to_i,
         "timeout" => options["timeout"].to_i,
+        "innings_goal" => options["innings"],
         "playera" => {
           "balls_goal" => options["balls_goal_a"],
-          "inings" => options["innings"],
           "tc" => options["timeouts"].to_i,
           "discipline" => options["discipline_a"],
         },
         "playerb" => {
           "balls_goal" => options["balls_goal_b"],
-          "inings" => options["innings"],
           "tc" => options["timeouts"].to_i,
           "discipline" => options["discipline_b"],
         },
@@ -654,12 +661,12 @@ class TableMonitor < ApplicationRecord
   end
 
   def end_result?
-    if (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
+    if data["playera"]["balls_goal"].to_i > 0 && ((data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
-      data["playera"]["innings"] == data["playerb"]["innings"]
+      data["playera"]["innings"] == data["playerb"]["innings"])
       return true
-    elsif (data["playera"]["innings"].to_i >= data["playera"]["innings_goal"].to_i ||
-      data["playera"]["innings"].to_i >= data["playera"]["innings_goal"].to_i) &&
+    elsif ((data["innings_goal"].to_i > 0 && data["playera"]["innings"].to_i >= data["innings_goal"].to_i) ||
+      (data["innings_goal"].to_i > 0 && data["playera"]["innings"].to_i >= data["innings_goal"].to_i)) &&
       data["playera"]["innings"] == data["playerb"]["innings"]
       return true
     end

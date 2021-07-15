@@ -68,12 +68,12 @@
                     <strong><%= tm.data[gp.role].andand["result"] %></strong>
                   </td>
                   <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= tm.data[gp.role].andand["balls_goal"] %>
+                    <%= s = tm.data[gp.role].andand["balls_goal"].to_i; s > 0 ? s : "no limit" %>
                   </td>
                   <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                     <strong><%= tm.data[gp.role].andand["innings"] %></strong></td>
                   <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
-                    <%= tm.data[gp.role].andand["innings_goal"] %>
+                    <%= s = tm.data[gp.role].andand["innings_goal"].to_i; s > 0 ? s : "no limit" %>
                   </td>
                   <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                     <%= tm.data[gp.role].andand["hs"] %></td>

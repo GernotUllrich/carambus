@@ -39,7 +39,7 @@ class TableMonitorsController < ApplicationController
 
   def start_game
     res = @table_monitor.start_game(params.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
-                                                 :balls_goal_a, :balls_goal_b, :innings, :discipline_a,
+                                                 :balls_goal_a, :balls_goal_b, :innings_goal, :discipline_a,
                                                  :discipline_b))
     @navbar = false
     @footer = false
@@ -91,7 +91,7 @@ class TableMonitorsController < ApplicationController
   def table_monitor_params
     params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data,
                                           :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
-                                          :balls_goal_b, :discipline, :discipline_a, :discipline_b,
+                                          :balls_goal_b, :discipline, :discipline_a, :discipline_b, :innings_goal,
                                           :timeout, :timeouts)
   end
 end

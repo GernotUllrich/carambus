@@ -2,18 +2,18 @@
   <h1 class="mb-4"><%= t(".title") %></h1>
 
   <p class="mb-4 text-xl text-gray-700 dark:text-gray-200 leading-normal">
-    This site has mainly two interfaces:
-      - tournament plans and results taken from the website billardarea.de (BA)
-      - the scoreboards at the billard tables.
+    This web application has two main interfaces:
+    - tournament schedules and results from the billardarea.de website (BA)
+    - the scoreboards at the tables.
   </p>
   <p class="mb-4 text-xl text-gray-700 dark:text-gray-200 leading-normal">
-    Once the tournament data and seedings have been taken from the BA, the system operates
-    standalone tightly integrating the tournament plan with the scoreboards, managed with little
-    interaction by the tournament manager. Inputs on the table scoreboards or their remote controles
-    are consumed in realtime and trigger new table assignments driven by the tournament plan and game results.
+    After the tournament data and seed lists have been retrieved from the BA, Carambus works
+    independently, matching the selected tournament mode with the scoreboards.
+    Without further intervention by the Tournament Manager, the tournament schedule is controlled by the entries on the scoreboards.
+    according to the selected tournament mode.
   </p>
   <p class="mb-4 text-xl text-gray-700 dark:text-gray-200 leading-normal">
-    For safety reasons the tournament management should not solely rely on the scoreboard data.
-    The player actions should be documented in parallel on hand written game sheets.
+    For security reasons (no waranty here! ;-) ), tournament management should not rely solely on the
+    entries on the scoreboards.  A parallel entry of the match results on the given match report forms should be carried out manually.
   </p>
 </div>

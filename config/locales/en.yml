@@ -173,8 +173,7 @@ en:
         <p>Actually my consulting business Ullrich-IT-Consulting is already history, because I am retired since a long time.
         But on the occasion of a forthcoming major anniversary of my carambol club <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> the idea came to me
         to make a substantial contribution.</p>
-        <p>And anybody knowing me, knows that during my whole professional life - last as a visionary at Sun Microsystems - I was eager to discover and apply the newest technologies.
-        in place.</p>
+        <p>And anybody knowing me, knows that during my whole professional life - last as a visionary at Sun Microsystems - I was eager to discover and apply the newest technologies available.</p>
         <p>I first came into contact with the Ruby/Rails development environment 12 years ago. Since then I appreciate the enormous progress
         in development speed. The big question now was whether this project, which has in many places
         real-time requirements on the display and acquisition system involved, could be sensibly realized with RoR.<p>
@@ -433,6 +432,7 @@ en:
     points: points
     result: result
     innings: innings
+    balls_goal: balls goal
     gd: gd
     hs: hs
     gname: gname

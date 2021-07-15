@@ -241,6 +241,7 @@ de:
     points: Bälle
     result: Ergebnis
     innings: Aufnahmen
+    balls_goal: Ballziel
     gd: GD
     hs: HS
     gname: Spielbezeichnung
@@ -695,6 +696,7 @@ de:
         Also verschiedene Betriebssysteme, Sprachen und Frameworks. Keine gute Idee.
         Glücklicherweise
         kam ich über <a href=\"http://gorails.com\">GoRails</a> zu einer idealen Lösung - Stimulus Reflex und Cable Ready!  Carambus ist ein serverbasierte Weblösung mit Single Page Feeling!</p>
+        <p>Durch die Verwendung der Startup Scripts "Jumpstart" von GoRails konnte die Entwicklung weiter beschleunigt werden.</p>
 
     privacy:
       title: "Datenschutzrichtlinien"

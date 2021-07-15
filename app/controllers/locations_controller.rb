@@ -54,6 +54,7 @@ class LocationsController < ApplicationController
             @game = Game.create!
             @game.game_participations.create(player: @player_a, role: "playera")
             @game.game_participations.create(player: @player_a, role: "playerb")
+            @innings = 20
           end
           @table_monitor.assign_game(@game)
         end

@@ -5,7 +5,7 @@
     id: table_monitor.id,
     name: table_monitor.name,
     game_name: table_monitor.game.andand.display_gname,
-      tournament_title: table_monitor.andand.tournament_monitor.andand.tournament.andand.title || t('training_game'),
+    tournament_title: table_monitor.andand.tournament_monitor.andand.tournament.andand.title || t('training_game'),
     current_round: table_monitor.tournament_monitor.andand.current_round,
     timeout: table_monitor.tournament_monitor.andand.timeout || table_monitor.data["timeout"].to_i,
     timeouts: table_monitor.tournament_monitor.andand.timeouts || table_monitor.data["timeouts"].to_i,
@@ -19,10 +19,10 @@
       fullname: gps[0].andand.player.andand.fullname,
       balls_goal: table_monitor.data[gps[0].andand.role].andand["balls_goal"].to_i,
       result: table_monitor.data[gps[0].andand.role].andand["result"].to_i,
-      hs: table_monitor.data[gps[0].andand.role].andand["hs"],
+      hs: table_monitor.data[gps[0].andand.role].andand["hs"].to_i,
       gd: table_monitor.data[gps[0].andand.role].andand["gd"],
-      innings: table_monitor.data[gps[0].andand.role].andand["innings"],
-      innings_goal: table_monitor.data[gps[0].andand.role].andand["innings_goal"],
+      innings: table_monitor.data[gps[0].andand.role].andand["innings"].to_i,
+      innings_goal: table_monitor.data["innings_goal"].to_i,
       tc: table_monitor.data[gps[0].andand.role].andand["tc"].to_i
     },
     player_b: {
@@ -30,10 +30,10 @@
       fullname: gps[1].andand.player.andand.fullname,
       balls_goal: table_monitor.data[gps[1].andand.role].andand["balls_goal"].to_i,
       result: table_monitor.data[gps[1].andand.role].andand["result"].to_i,
-      hs: table_monitor.data[gps[1].andand.role].andand["hs"],
+      hs: table_monitor.data[gps[1].andand.role].andand["hs"].to_i,
       gd: table_monitor.data[gps[1].andand.role].andand["gd"],
-      innings: table_monitor.data[gps[1].andand.role].andand["innings"],
-      innings_goal: table_monitor.data[gps[1].andand.role].andand["innings_goal"],
+      innings: table_monitor.data[gps[1].andand.role].andand["innings"].to_i,
+      innings_goal: table_monitor["innings_goal"].to_i,
       tc: table_monitor.data[gps[1].andand.role].andand["tc"].to_i
     },
     current_inning: {
@@ -128,20 +128,20 @@
                   </div>
                   <div class="text-2vw">
                     <%- to_play = options[:player_a][:balls_goal].to_i - (options[:player_a][:result].to_i + Array(table_monitor.data["playera"].andand["innings_redo_list"])[-1].to_i) %>
-                    <%- if options[:player_a_active] && to_play <= 3 %>
+                    <%- if options[:player_a][:balls_goal].to_i > 0 && options[:player_a_active] && to_play <= 3 %>
                       pour <%= to_play %>
                     <%- end %>
                   </div>
                 </div>
                 <div class="flex flex-col flex-1 text-right text-gray-500 text-3vw">
                   <div class="flex-1 mb-1">
-                    <%= t('goal') %>: <%= options[:player_a][:balls_goal].to_i %>
+                    <%= t('goal') %>: <%= s = options[:player_a][:balls_goal].to_i; s > 0 ? s : "no limit" %>
                   </div>
                   <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_a][:gd] %></div>
                   <div class="flex-1">HS: <%= options[:player_a][:hs] %></div>
                   <div class="flex-1">
                     <%- (1..options[:timeouts].to_i).each do |i| %>
-                      <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > (i-1) ? "green" : "red"}-400 inline-block" %>
+                      <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
                     <%- end %>
                   </div>
                 </div>
@@ -179,8 +179,8 @@
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
               <div class="h-5/6 p-4 text-8vw font-bold text-center"><%= options[:player_a][:innings].to_i %></div>
-              <%- unless table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? %>
-                <div class="h-1/6 items-center text-2vw justify-center text-center"><%= t('of')%> <%= options[:player_a][:innings_goal].to_i %></div>
+              <%- unless (table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:player_a][:innings_goal].to_i == 0) %>
+                <div class="h-1/6 items-center text-2vw justify-center text-center"><%= t('of') %> <%= options[:player_a][:innings_goal].to_i %></div>
               <%- end %>
             </div>
             <div class="flex flex-col h-3/6 bg-white dark:bg-black p-4 items-center ">
@@ -222,13 +222,13 @@
               <div class="flex h-1/6">
                 <div class="flex flex-col flex-1 text-left text-gray-500 text-3vw">
                   <div class="flex-1 mb-1">
-                    <%= t('goal') %>: <%= options[:player_b][:balls_goal].to_i %>
+                    <%= t('goal') %>: <%= s = options[:player_b][:balls_goal].to_i; s > 0 ? s : "no limit" %>
                   </div>
                   <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_b][:gd] %></div>
                   <div class="flex-1"> HS: <%= options[:player_b][:hs] %></div>
                   <div class="flex-1">
                     <%- (1..options[:timeouts].to_i).each do |i| %>
-                      <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > (i-1) ? "green" : "red"}-400 inline-block" %>
+                      <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
                     <%- end %>
                   </div>
                 </div>
@@ -237,11 +237,11 @@
                     <%= options[:player_b_active] ? table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1] : "" %>
                   </div>
                   <div class="text-2vw">
-                    <%- to_play = options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) %>
+                    <%- to_play = options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999%>
                     <%- if table_monitor.follow_up? %>
                       Nachstoss
                     <%- end %>
-                    <%- if options[:player_b_active] && to_play <= 3 %>
+                    <%- if options[:player_a][:balls_goal].to_i > 0 && options[:player_b_active] && to_play <= 3 %>
                       pour <%= to_play %>
                     <%- end %>
                   </div>
@@ -313,7 +313,7 @@
                   <%= options[:player_a_active] ? table_monitor.data["playera"].andand["innings_redo_list"].andand[-1] : "" %>
                 </div>
                 <div class="text-1vw">
-                  <%- to_play = options[:player_a][:balls_goal].to_i - (options[:player_a][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) %>
+                  <%- to_play = options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i - (options[:player_a][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999 %>
                   <%- if options[:player_a_active] && to_play <= 3 %>
                     pour <%= to_play %>
                   <%- end %>
@@ -321,13 +321,13 @@
               </div>
               <div class="flex flex-col flex-1 text-right text-gray-500 text-1-5vw">
                 <div class="flex-1 mb-1">
-                  <%= t('goal') %>: <%= options[:player_a][:balls_goal].to_i %>
+                  <%= t('goal') %>: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i : "no limit"%>
                 </div>
                 <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_a][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_a][:hs] %></div>
                 <div class="flex-1">
                   <%- (1..options[:timeouts].to_i).each do |i| %>
-                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > (i-1) ? "green" : "red"}-400 inline-block" %>
+                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_a][:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
                   <%- end %>
                 </div>
               </div>
@@ -347,7 +347,10 @@
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6">
               <div class="h-4/6 text-4vw font-bold text-center"><%= options[:player_a][:innings].to_i %></div>
-              <div class="h-2/6 items-center text-1-5vw justify-center text-center"><%= t("of") %> <%= options[:player_a][:innings_goal].to_i %></div>
+              <%- unless (table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:player_a][:innings_goal].to_i == 0) %>
+
+                <div class="h-2/6 items-center text-1-5vw justify-center text-center"><%= t("of") %> <%= options[:player_a][:innings_goal].to_i %></div>
+              <%- end %>
             </div>
             <div class="flex flex-col h-3/6 bg-white dark:bg-black items-center ">
               <div class="flex flex-1 items-center text-center text-1-5vw"><%= options[:name] %></div>
@@ -384,13 +387,13 @@
             <div class="flex h-1/6">
               <div class="flex flex-col flex-1 text-left text-gray-500 text-1-5vw">
                 <div class="flex-1 mb-1">
-                  <%= t('goal') %>: <%= options[:player_b][:balls_goal].to_i %>
+                  <%= t('goal') %>: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i : "no limit"%>
                 </div>
                 <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_b][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_b][:hs] %></div>
                 <div class="flex-1">
                   <%- (1..options[:timeouts].to_i).each do |i| %>
-                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > (i-1) ? "green" : "red"}-400 inline-block" %>
+                    <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{options[:player_b][:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
                   <%- end %>
                 </div>
               </div>
