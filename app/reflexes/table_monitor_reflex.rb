@@ -461,9 +461,9 @@ class TableMonitorReflex < ApplicationReflex
                      "time_out_warm_up_first_min"
     if (table_monitor.game_setup_started? || table_monitor.send(:"game_warmup_#{player}_started?") || table_monitor.send(:"game_warmup_#{other_player}_started?"))
       table_monitor.send(:"event_play_warm_up_#{player}!")
-      units = active_timer =~ /min$/ ? "minutes" : "seconds"
-      start_at = Time.now
-      delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : (table_monitor.data["timeout"].to_i > 0 ? table_monitor.data["timeout"].to_i.seconds : 5.minutes)
+      units = "minutes" #active_timer =~ /min$/ ? "minutes" : "seconds"
+        start_at = Time.now
+      delta = table_monitor.tournament_monitor.present? ? table_monitor.tournament_monitor.tournament.send(active_timer.to_sym).send(units.to_sym) : 5.minutes
       finish_at = Time.now + delta
       if table_monitor.timer_halt_at.present?
         extend = Time.now - table_monitor.timer_halt_at

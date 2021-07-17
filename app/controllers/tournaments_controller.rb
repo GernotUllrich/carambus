@@ -177,13 +177,13 @@ class TournamentsController < ApplicationController
     data_[:balls_goal] = params[:balls_goal].to_i
     data_[:innings_goal] = params[:innings_goal].to_i
     data_[:timeout] = params[:timeout].to_i
-    data_[:timeouts] = params[:timeouts].o_i
+    data_[:timeouts] = params[:timeouts].to_i
     data_[:time_out_warm_up_first_min] = params[:time_out_warm_up_first_min].to_i
     data_[:time_out_warm_up_follow_up_min] = params[:time_out_warm_up_follow_up_min].to_i
     @tournament.update(data: data_ )
     if @tournament.valid?
       @tournament.initialize_tournament_monitor
-      @tournament.reload
+        @tournament.reload
       @tournament.start_tournament!
       @tournament.reload
       @tournament.tournament_monitor.update(current_admin: current_user, timeout: params[:timeout].to_i, timeouts: params[:timeouts].to_i)
