@@ -620,7 +620,7 @@ class TableMonitor < ApplicationRecord
       result = {
         "timeouts" => options["timeouts"].to_i,
         "timeout" => options["timeout"].to_i,
-        "innings_goal" => options["innings"],
+        "innings_goal" => options["innings_goal"],
         "playera" => {
           "balls_goal" => options["balls_goal_a"],
           "tc" => options["timeouts"].to_i,
