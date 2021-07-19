@@ -87,7 +87,7 @@
     <%- if table.present? %>
       <%= link_to t('home.index.training'), placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
     <%- else %>
-      <%= link_to t('home.index.training'), location_path(@location, sb_state: "training", table_id: table.andand.id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
+      <%= link_to t('home.index.training'), location_path(@location, sb_state: "tables", table_id: table.andand.id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
     <%- end %>
 
   </div>

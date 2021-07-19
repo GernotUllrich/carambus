@@ -315,7 +315,7 @@ de:
     status:
       new_table_monitor: "Startup..."
       ready: "Frei"
-      game_setup_started: "Einstossen"
+      game_setup_started: "Spielbeginn"
       game_warmup_a_started: "Einstossen Spieler A"
       game_warmup_b_started: "Einstossen Spieler B"
       game_shootout_started: "Ausstossen"
