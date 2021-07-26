@@ -520,7 +520,7 @@ en:
     display_af_game_name: "Eigth Final %{game_no}"
     display_af_game_group: "Eigth Finals"
     display_fin_game_name: "Final"
-    display_place_game_name: 'Place %{n1}-%{n2}'
+    display_place_game_name: 'Place %{n1}-%{n2} %{n3}'
   season_participation:
     id: id
     player_id: player id

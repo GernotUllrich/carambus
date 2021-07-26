@@ -1,4 +1,4 @@
-<%- if table_monitor.present? %>
+<%- if table_monitor.andand.reload.present? %>
   <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
   <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
   <%- options = {

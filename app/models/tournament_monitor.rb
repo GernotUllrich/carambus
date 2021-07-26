@@ -247,8 +247,8 @@ class TournamentMonitor < ApplicationRecord
         "p<7-8>" => {},
 
         "p<5-8>" => {},
-        "p<5-8>.1" => {},
-        "p<5-8>.2" => {},
+        "p<5-8>1" => {},
+        "p<5-8>2" => {},
       }
     }
     GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_id }).each do |gp|
@@ -301,30 +301,32 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def report_result(table_monitor)
-    table_monitor.event_game_result_reported!
-    finalize_game_result(table_monitor)
-    accumulate_results
-    if all_table_monitors_finished? || tournament.manual_assignment
-      finalize_round unless tournament.manual_assignment
-      incr_current_round! unless tournament.manual_assignment
-      populate_tables unless tournament.manual_assignment
-      if group_phase_finished?
-        if finals_finished?
-          decr_current_round!
-          update_ranking
-          write_finale_csv_for_upload
-          end_of_tournament!
-          tournament.finish_tournament!
-          tournament.have_results_published!
+    TournamentMonitor.transaction do
+      table_monitor.event_game_result_reported! if table_monitor.may_event_game_result_reported?
+      finalize_game_result(table_monitor)
+      accumulate_results
+      reload
+      if all_table_monitors_finished? || tournament.manual_assignment
+        finalize_round unless tournament.manual_assignment
+        incr_current_round! unless tournament.manual_assignment
+        populate_tables unless tournament.manual_assignment
+        if group_phase_finished?
+          if finals_finished?
+            decr_current_round!
+            update_ranking
+            write_finale_csv_for_upload
+            end_of_tournament!
+            tournament.finish_tournament!
+            tournament.have_results_published!
+          else
+            start_playing_finals!
+          end
         else
-          start_playing_finals!
+          start_playing_groups!
         end
-      else
-        start_playing_groups!
+        TournamentMonitorUpdateResultsJob.perform_later(self)
       end
-      TournamentMonitorUpdateResultsJob.perform_later(self)
     end
-
   end
 
   def update_ranking
@@ -402,46 +404,47 @@ class TournamentMonitor < ApplicationRecord
   # end
 
   def reset_tournament_monitor
-
-    Tournament.logger.info "[tmon-reset_tournament_monitor]..."
-    tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
-    table_monitors.destroy_all
-    unless new_record?
-      update(data: {})
-    end
-    @tournament_plan ||= tournament.tournament_plan
-    initialize_table_monitors unless tournament.manual_assignment
-    @groups = TournamentMonitor.distribute_to_group(tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups)
-    @placements = {}
-    set_current_round!(1)
-    deep_merge_data!("groups" => @groups)
-    deep_merge_data!("placements" => @placements)
-    executor_params = JSON.parse(@tournament_plan.executor_params)
-    executor_params.keys.each do |k|
-      if m = k.match(/g(\d+)/)
-        group_no = m[1].to_i
-        if @groups["group#{group_no}"].count != executor_params[k]["pl"].to_i
-          return { "ERROR" => "Group Count Mismatch: group#{group_no}, #{@groups["group#{group_no}"].count} vs. #{executor_params[k]["pl"].to_i} from executor_params" }
-        end
-        repeats = executor_params[k]["rp"].presence || 1
-        (1..repeats).each do |rp|
-          if executor_params[k]["rs"] =~ /^eae/
-            (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each_with_index do |a, ix|
-              i1, i2 = a
-              Tournament.logger.info "NEW GAME #{} group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
-              game = tournament.games.create(gname: "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}", group_no: group_no)
-              game.game_participations.create(player: @groups["group#{group_no}"][i1 - 1], role: "playera")
-              game.game_participations.create(player: @groups["group#{group_no}"][i2 - 1], role: "playerb")
+    TournamentMonitor.transaction do
+      Tournament.logger.info "[tmon-reset_tournament_monitor]..."
+      tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
+      table_monitors.destroy_all
+      unless new_record?
+        update(data: {})
+      end
+      @tournament_plan ||= tournament.tournament_plan
+      initialize_table_monitors unless tournament.manual_assignment
+      @groups = TournamentMonitor.distribute_to_group(tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups)
+      @placements = {}
+      set_current_round!(1)
+      deep_merge_data!("groups" => @groups)
+      deep_merge_data!("placements" => @placements)
+      executor_params = JSON.parse(@tournament_plan.executor_params)
+      executor_params.keys.each do |k|
+        if m = k.match(/g(\d+)/)
+          group_no = m[1].to_i
+          if @groups["group#{group_no}"].count != executor_params[k]["pl"].to_i
+            return { "ERROR" => "Group Count Mismatch: group#{group_no}, #{@groups["group#{group_no}"].count} vs. #{executor_params[k]["pl"].to_i} from executor_params" }
+          end
+          repeats = executor_params[k]["rp"].presence || 1
+          (1..repeats).each do |rp|
+            if executor_params[k]["rs"] =~ /^eae/
+              (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each_with_index do |a, ix|
+                i1, i2 = a
+                Tournament.logger.info "NEW GAME #{} group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
+                game = tournament.games.create(gname: "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}", group_no: group_no)
+                game.game_participations.create(player: @groups["group#{group_no}"][i1 - 1], role: "playera")
+                game.game_participations.create(player: @groups["group#{group_no}"][i2 - 1], role: "playerb")
+              end
             end
           end
         end
       end
+      populate_tables unless tournament.manual_assignment
+      reload
+      tournament.reload.signal_tournament_monitors_ready!
+      start_playing_groups!
+      Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state: #{tournament.state} tournament_monitor.state: #{state}"
     end
-    populate_tables unless tournament.manual_assignment
-    reload
-    tournament.reload.signal_tournament_monitors_ready!
-    start_playing_groups!
-    Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state: #{tournament.state} tournament_monitor.state: #{state}"
   end
 
   def initialize_table_monitors
@@ -457,171 +460,186 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def populate_tables
-    Tournament.logger.info "[tmon-populate_tables]..."
-    self.allow_change_tables = false
-    executor_params = JSON.parse(tournament.tournament_plan.executor_params)
-    @placements = data["placements"].presence || {}
-    ordered_table_nos = nil
-    admin_table_nos = nil
-    executor_params.keys.each do |k|
-      if m = k.match(/g(\d+)/)
-        Tournament.logger.info "+++001 k,v = [#{k} => #{executor_params[k].inspect}]"
-        group_no = m[1].to_i
-        #apply table/round_rules
-        if executor_params[k]["sq"]["r#{current_round}"].blank?
-          Tournament.logger.info "+++002 k,v = [#{k} => #{executor_params[k].inspect}] [k][\"sq\"][\"r#{current_round}\"] is blank"
-          if executor_params[k]["rs"].to_s == "eae_pg"
-            Tournament.logger.info "+++003 k,v = [#{k} => #{executor_params[k].inspect}] params[k][\"rs\"] == \"eae_pg\""
-            if current_round == 2
-              Tournament.logger.info "+++004 k,v = [#{k} => #{executor_params[k].inspect}] current_round == 2"
-              #if winner on both tables
-              winner = GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament.id }).where(games: { round_no: 1, group_no: group_no }).order("points desc, game_id asc")
-              table_from_winner = winner.where(points: 2).count == 2
-              winner_arr = winner.to_a
-              #player1 = winner in first_game
-              winner1 = winner_arr[0].player_id
-              table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 1, group_no: group_no }).map(&:table_no).shuffle
-              if table_from_winner
-                # winner stays on table
-                t_no = winner_arr[0].game.table_no
-                Tournament.logger.info "+++006 k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
-              else
+    try do
+
+      Tournament.logger.info "[tmon-populate_tables]..."
+      self.allow_change_tables = false
+      executor_params = JSON.parse(tournament.tournament_plan.executor_params)
+      @placements = data["placements"].presence || {}
+      ordered_table_nos = {}
+      admin_table_nos = {}
+      executor_params.keys.each do |k|
+        if m = k.match(/g(\d+)/)
+          Tournament.logger.info "+++001 k,v = [#{k} => #{executor_params[k].inspect}]"
+          group_no = m[1].to_i
+          #apply table/round_rules
+          if executor_params[k]["sq"]["r#{current_round}"].blank?
+            Tournament.logger.info "+++002 k,v = [#{k} => #{executor_params[k].inspect}] [k][\"sq\"][\"r#{current_round}\"] is blank"
+            if executor_params[k]["rs"].to_s == "eae_pg"
+              Tournament.logger.info "+++003 k,v = [#{k} => #{executor_params[k].inspect}] params[k][\"rs\"] == \"eae_pg\""
+              if current_round == 2
+                Tournament.logger.info "+++004 k,v = [#{k} => #{executor_params[k].inspect}] current_round == 2"
+                #if winner on both tables
+                winner = GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament.id }).where(games: { round_no: 1, group_no: group_no }).order("points desc, game_id asc")
+                table_from_winner = winner.where(points: 2).count == 2
+                winner_arr = winner.to_a
+                #player1 = winner in first_game
+                winner1 = winner_arr[0].player_id
+                table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 1, group_no: group_no }).map(&:table_no).shuffle
+                if table_from_winner
+                  # winner stays on table
+                  t_no = winner_arr[0].game.table_no
+                  table_nos = table_nos - [t_no]
+                  Tournament.logger.info "+++006 k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
+                else
+                  t_no = table_nos.shift
+                  Tournament.logger.info "+++007 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
+                end
+                r_no = current_round
+                seqno1_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index { |a| a["id"] == winner1 } + 1
+                looser2 = winner_arr[3].player_id
+                seqno2_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index { |a| a["id"] == looser2 } + 1
+                gname_a = "group#{group_no}:#{[seqno1_a, seqno2_a].sort.map(&:to_s).join("-")}"
+                game_a = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname_a)
+                Tournament.logger.info "+++008 do_placement(game a = #{game_a.gname}, r_no = #{r_no}, t_no = #{t_no})"
+                do_placement(game_a, r_no, t_no)
+                winner2 = winner_arr[1].player_id
+                if table_from_winner
+                  t_no = winner_arr[1].game.table_no
+                  Tournament.logger.info "+++009 k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner2 = #{Player[winner2].fullname} [#{winner2}]"
+                else
+                  t_no = table_nos.shift
+                  Tournament.logger.info "+++010 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
+                end
+                r_no = current_round
+                seqno1_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index { |a| a["id"] == winner2 } + 1
+                looser1 = winner_arr[2].player_id
+                seqno2_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index { |a| a["id"] == looser1 } + 1
+                gname_b = "group#{group_no}:#{[seqno1_b, seqno2_b].sort.map(&:to_s).join("-")}"
+                game_b = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname_b)
+                Tournament.logger.info "+++011 do_placement(game b = #{game_b.gname}, r_no = #{r_no}, t_no = #{t_no})"
+                do_placement(game_b, r_no, t_no)
+              elsif current_round == 3
+                Tournament.logger.info "+++012 current_round = 3"
+                winner = GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament.id }).where(games: { round_no: 2, group_no: group_no }).order("gd desc")
+                winner_arr = winner.to_a
+                table_from_winner = winner_arr[0].gd != winner_arr[1].gd
+                winner1 = winner_arr[0].player_id
+                table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 2, group_no: group_no }).map(&:table_no).shuffle
+                if table_from_winner
+                  t_no = winner_arr[0].game.table_no
+                  Tournament.logger.info "+++012A k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
+                else
+                  t_no = table_nos.shift
+                  Tournament.logger.info "+++012B k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
+                end
+                r_no = current_round
+                seqno = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index { |a| a["id"] == winner1 } + 1
+                game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).where("gname ilike '%:#{seqno}-%' or gname ilike '%-#{seqno}'").first
+                Tournament.logger.info "+++013 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
+                do_placement(game, r_no, t_no)
                 t_no = table_nos.shift
-                Tournament.logger.info "+++007 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
+                game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).first
+                Tournament.logger.info "+++014 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
+                do_placement(game, r_no, t_no)
               end
-              r_no = current_round
-              seqno1 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(winner1) + 1
-              looser2 = winner_arr[3].player_id
-              seqno2 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(looser2) + 1
-              gname = "group#{group_no}:#{[seqno1, seqno2].sort.map(&:to_s).join("-")}"
-              game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname)
-              Tournament.logger.info "+++008 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
-              do_placement(game, r_no, t_no)
-              winner2 = winner_arr[1].player_id
-              if table_from_winner
-                t_no = winner_arr[1].game.table_no
-                Tournament.logger.info "+++009 k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner2 = #{Player[winner2].fullname} [#{winner2}]"
-              else
-                t_no = table_nos.shift
-                Tournament.logger.info "+++010 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
-              end
-              r_no = current_round
-              seqno1 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(winner2) + 1
-              looser1 = winner_arr[2].player_id
-              seqno2 = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(looser1) + 1
-              gname = "group#{group_no}:#{[seqno1, seqno2].sort.map(&:to_s).join("-")}"
-              game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname(gname)
-              Tournament.logger.info "+++011 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
-              do_placement(game, r_no, t_no)
-            elsif current_round == 3
-              Tournament.logger.info "+++012 current_round = 3"
-              winner = GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament.id }).where(games: { round_no: 2, group_no: group_no }).order("gd desc")
-              winner_arr = winner.to_a
-              table_from_winner = winner_arr[0].gd != winner_arr[1].gd
-              winner1 = winner_arr[0].player_id
-              table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 2, group_no: group_no }).map(&:table_no).shuffle
-              if table_from_winner
-                t_no = winner_arr[0].game.table_no
-                table_nos = table_nos - [t_no]
-                Tournament.logger.info "+++012A k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
-              else
-                t_no = table_nos.shift
-                Tournament.logger.info "+++012B k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
-              end
-              r_no = current_round
-              seqno = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index(winner1) + 1
-              game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).where("gname ilike '%:#{seqno}-%' or gname ilike '%-#{seqno}'").first
-              Tournament.logger.info "+++013 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
-              do_placement(game, r_no, t_no)
-              t_no = table_nos.shift
-              game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: nil, group_no: group_no }).first
-              Tournament.logger.info "+++014 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
-              do_placement(game, r_no, t_no)
             end
           end
-        end
-        executor_params[k]["sq"].to_a.each do |round_no, h1|
-          r_no = round_no.match(/r(\d+)/)[1].andand.to_i
-          if (r_no == current_round)
-            Tournament.logger.info "+++020 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{r_no}"
-            executor_params[k]["sq"][round_no].to_a.each do |table_no, val|
-              t_no = table_no.match(/t(\d+)/)[1].andand.to_i
-              if m = val.match(/(\d+)-(\d+)/)
-                game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname("group#{group_no}:#{val}")
+          executor_params[k]["sq"].to_a.each do |round_no, h1|
+            r_no = round_no.match(/r(\d+)/)[1].andand.to_i
+            if (r_no == current_round)
+              Tournament.logger.info "+++020 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{r_no}"
+              executor_params[k]["sq"][round_no].to_a.each do |table_no, val|
+                t_no = table_no.match(/t(\d+)/)[1].andand.to_i
+                if m = val.match(/(\d+)-(\d+)/)
+                  game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_by_gname("group#{group_no}:#{val}")
+                end
+                Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
+                do_placement(game, r_no, t_no)
               end
-              Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
-              do_placement(game, r_no, t_no)
             end
           end
-        end
-      elsif k.match(/(?:hf|af|qf|fin|p<(?:\d+)(?:\.\.|-)(?:\d+)>)(\d+)?/)
-        r_no = executor_params[k].keys.select { |kk| kk =~ /r\d+/ }.first.match(/r(\d+)/)[1].to_i
-        if (current_round == r_no)
-          tno_str, players = executor_params[k]["r#{r_no}"].to_a[0]
-          if mm = tno_str.match(/t(\d+)/)
-            t_no = mm[1]
-          elsif mm = tno_str.match(/t-rand-(\d+)-(\d+)/)
-            ordered_table_nos ||= (mm[1].to_i..mm[2].to_i).to_a.shuffle
-            t_no = ordered_table_nos.pop
-          elsif mm = tno_str.match(/t-admin-(\d+)-(\d+)/)
-            admin_table_nos ||= (mm[1].to_i..mm[2].to_i).to_a
-            t_no = admin_table_nos.shift
-            self.allow_change_tables = true
+        elsif k.match(/(?:hf|af|qf|fin|p<(?:\d+)(?:\.\.|-)(?:\d+)>)(\d+)?/)
+          r_no = executor_params[k].keys.select { |kk| kk =~ /r\d+/ }.first.match(/r(\d+)/)[1].to_i
+          if (current_round == r_no)
+            tno_str, players = executor_params[k]["r#{r_no}"].to_a[0]
+            Tournament.logger.info "+++012B r_no, tno_str, players = #{r_no}, #{tno_str}, #{players}"
+            if mm = tno_str.match(/t(\d+)/)
+              t_no = mm[1]
+            elsif mm = tno_str.match(/t-rand-(\d+)-(\d+)/)
+              ordered_table_nos[tno_str] ||= (mm[1].to_i..mm[2].to_i).to_a.shuffle
+              t_no = ordered_table_nos[tno_str].pop
+            elsif mm = tno_str.match(/t-admin-(\d+)-(\d+)/)
+              admin_table_nos[tno_str] ||= (mm[1].to_i..mm[2].to_i).to_a
+              t_no = admin_table_nos[tno_str].shift
+              self.allow_change_tables = true
+            end
+            Tournament.logger.info "+++012D k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
+            game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
+            game.game_participations = []
+            game.save
+            ('a'..'b').each_with_index do |pl_no, ix|
+              rule_str = players[ix]
+              player_id = player_id_from_ranking(rule_str)
+              game.game_participations.find_or_create_by(player_id: player_id, role: "player#{pl_no}")
+            end
+            reload
+            Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
+            do_placement(game, r_no, t_no)
           end
-          Tournament.logger.info "+++012A k,v = [#{k} => #{executor_params[k].inspect}] find or create game #{k}"
-          game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: k)
-          game.game_participations = []
-          game.save
-          ('a'..'b').each_with_index do |pl_no, ix|
-            rule_str = players[ix]
-            player_id = player_id_from_ranking(rule_str)
-            game.game_participations.find_or_create_by(player_id: player_id, role: "player#{pl_no}")
-          end
-          Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
-          do_placement(game, r_no, t_no)
+        elsif k == "RK"
+        else
+          #TournamentPlan Error
+          Tournament.logger.info "[tmon-populate_tables] FATAL ERROR TournamentPlan Error - ROLLBACK - #{e} #{e.backtrace.join("\n")}"
         end
-      elsif k == "RK"
-      else
-        #TournamentPlan Error
-        Kernel.exit(333)
       end
+      deep_merge_data!("placements" => @placements)
+      Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
+      Tournament.logger.info "...[tmon-populate_tables]"
+    rescue Exception => e
+      Tournament.logger.info "[tmon-populate_tables] EXCEPTION - ROLLBACK - #{e} #{e.backtrace.join("\n")}"
+      raise ActiveRecord::Rollback
     end
-    deep_merge_data!("placements" => @placements)
-    Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
-    Tournament.logger.info "...[tmon-populate_tables]"
   end
 
   def do_placement(new_game, r_no, t_no)
-    info = "+++ 8a - tournament_monitor#do_placement @game"; DebugInfo.instance.update(info: info); Rails.logger.info info
-    if new_game.data.blank? || new_game.data.keys == ["tmp_results"]
-      info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
-      @placements = data["placements"].presence || {}
-      table_ids = tournament.data[:table_ids]
-      if (current_round == r_no && new_game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
-        seqno = new_game.seqno.to_i > 0 ? new_game.seqno : next_seqno
-        new_game.update(round_no: r_no, table_no: t_no, seqno: seqno)
-        @placements["round#{r_no}"] ||= {}
-        @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
-        Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
-        @table_monitor = table_monitors.find_by_table_id(table_ids[t_no - 1])
-        old_game = @table_monitor.game
-        if old_game.present?
-          @table_monitor.data_will_change!
-          info = "+++ 8c - tournament_monitor#do_placement - save current game"; DebugInfo.instance.update(info: info); Rails.logger.info info
-          tmp_results = {}
-          tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
-          tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
-          tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
-          tmp_results["ba_results"] = @table_monitor.deep_delete!("ba_results", false) if @table_monitor.data["ba_results"].present?
-          tmp_results["state"] = @table_monitor.state
-          old_game.deep_merge_data!("tmp_results" => tmp_results) #save game data
-          @table_monitor.data_will_change!
-          @table_monitor.state = "ready"
-          @table_monitor.game_id = nil
-          @table_monitor.save!
+    try do
+      info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no: #{new_game.attributes.inspect}, #{r_no}, #{t_no}"; DebugInfo.instance.update(info: info); Rails.logger.info info
+      if new_game.data.blank? || new_game.data.keys == ["tmp_results"]
+        info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
+        table_ids = tournament.data[:table_ids]
+        if (current_round == r_no && new_game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
+          seqno = new_game.seqno.to_i > 0 ? new_game.seqno : next_seqno
+          new_game.update(round_no: r_no, table_no: t_no, seqno: seqno)
+          @placements["round#{r_no}"] ||= {}
+          @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
+          Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
+          @table_monitor = table_monitors.find_by_table_id(table_ids[t_no - 1])
+          old_game = @table_monitor.game
+          if old_game.present?
+            @table_monitor.data_will_change!
+            info = "+++ 8c - tournament_monitor#do_placement - save current game"; DebugInfo.instance.update(info: info); Rails.logger.info info
+            tmp_results = {}
+            tmp_results["playera"] = @table_monitor.deep_delete!("playera", false)
+            tmp_results["playerb"] = @table_monitor.deep_delete!("playerb", false)
+            tmp_results["current_inning"] = @table_monitor.deep_delete!("current_inning", false)
+            tmp_results["ba_results"] = @table_monitor.deep_delete!("ba_results", false) if @table_monitor.data["ba_results"].present?
+            tmp_results["state"] = @table_monitor.state
+            old_game.deep_merge_data!("tmp_results" => tmp_results) #save game data
+            @table_monitor.data_will_change!
+            @table_monitor.state = "ready"
+            @table_monitor.game_id = nil
+            @table_monitor.save!
+          end
+          @table_monitor.andand.assign_game(new_game.reload)
+        else
+          info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data: #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game: #{new_game.andand.attributes.inspect}, current_round: #{current_round}"; DebugInfo.instance.update(info: info); Rails.logger.info info
         end
-        @table_monitor.andand.assign_game(new_game.reload)
+
       end
+    rescue Exception => e
+      Rails.logger.info "EXCEPTION #{e}, #{e.backtrace.join("\n")}"
+      raise ActiveRecord::Rollback
     end
   end
 
@@ -650,6 +668,7 @@ class TournamentMonitor < ApplicationRecord
       end
     rescue Exception => e
       Tournament.logger.info "player_id_from_ranking(#{rule_str}) #{e} #{e.backtrace.join("\n")}"
+      return nil
     end
   end
 
@@ -684,7 +703,8 @@ class TournamentMonitor < ApplicationRecord
       end
       return groups
     rescue Exception => e
-      return groups
+      Tournament.logger.info "distribute_to_group(#{players}, #{ngroups}) #{e} #{e.backtrace.join("\n")}"
+      return {}
     end
   end
 

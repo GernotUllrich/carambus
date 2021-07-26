@@ -36,7 +36,7 @@
                       <td class="p-3"><%= tournament_plan.more_description %></td>
                       <td class="p-3"><%= tournament_plan.even_more_description %></td>
                       <td class="p-3"><%= tournament_plan.executor_class %></td>
-                      <td class="p-3"><%= tournament_plan.executor_params %></td>
+                      <td class="p-3"><%= JSON.parse tournament_plan.executor_params %></td>
                       <td class="p-3"><%= tournament_plan.ngroups %></td>
                       <td class="p-3"><%= tournament_plan.nrepeats %></td>
 

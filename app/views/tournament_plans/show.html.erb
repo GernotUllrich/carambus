@@ -37,9 +37,7 @@
       </div>
       <div class="mb-4">
         <h5>Executor params</h5>
-        <pre>
-        <%= JSON.pretty_generate(JSON.parse(@tournament_plan.executor_params)) %>
-        </pre>
+        <%= JSON.parse @tournament_plan.executor_params %>
       </div>
       <div class="mb-4">
         <h5>Ngroups</h5>

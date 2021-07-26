@@ -130,7 +130,7 @@ class TableMonitor < ApplicationRecord
   after_commit do
     if previous_changes.present?
       Rails.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
-      self.evaluate_panel_and_current
+      self.reload.evaluate_panel_and_current
       if changes.present?
         Rails.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
         save
@@ -516,14 +516,14 @@ class TableMonitor < ApplicationRecord
   def terminate_current_inning
     begin
       @msg = nil
-      if playing_game?
-        current_role = data["current_inning"]["active_player"]
+      current_role = data["current_inning"]["active_player"]
+        if playing_game? && (data["innings_goal"].to_i == 0 || data[current_role]["innings"].to_i < data["innings_goal"].to_i)
         n_balls = Array(data[current_role]["innings_redo_list"]).pop.to_i
         data[current_role]["innings_list"] ||= []
         data[current_role]["innings_redo_list"] ||= []
         data[current_role]["innings_list"] << n_balls
         data[current_role]["result"] = data[current_role]["innings_list"].sum
-        data[current_role]["innings"] += 1
+        data[current_role]["innings"] += 1 if data["innings_goal"].to_i == 0 || data[current_role]["innings"].to_i < data["innings_goal"].to_i
         data[current_role]["hs"] = n_balls if n_balls > data[current_role]["hs"].to_i
         data[current_role]["gd"] = sprintf("%.2f", data[current_role]["result"].to_f / data[current_role]["innings"])
         other_player = current_role == "playera" ? "playerb" : "playera"

@@ -109,7 +109,7 @@ de:
     display_af_game_name: "Achtelfinale %{game_no}"
     display_af_game_group: "Achtelfinale"
     display_fin_game_name: "Finale"
-    display_place_game_name: 'Platz %{n1}-%{n2}'
+    display_place_game_name: 'Platz %{n1}-%{n2} %{n3}'
   club:
     index:
       club: Club

@@ -89,8 +89,8 @@ class Game < ApplicationRecord
         "#{I18n.t("game.display_af_game_group")}"
       elsif m = ranking_key.match(/fin/)
         "#{I18n.t("game.display_fin_game_name")}"
-      elsif m = ranking_key.match(/p<(\d+)(?:\.\.|-)(\d+)>/)
-        "#{I18n.t("game.display_place_game_name", n1: m[1].to_str.gsub("/", ""), n2: m[2].to_str.gsub("/", ""))}"
+      elsif m = ranking_key.match(/p<(\d+)(?:\.\.|-)(\d+)>(\d+)?/)
+        "#{I18n.t("game.display_place_game_name", n1: m[1].to_s.gsub("/", ""), n2: m[2].to_s.gsub("/", ""), n3: m[3].to_s.gsub("/", ""))}"
       end
     end
   end

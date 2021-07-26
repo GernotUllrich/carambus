@@ -62,7 +62,7 @@
                     <% end %>
                   <% end %>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{"bg-yellow-200 dark:text-yellow-200 dark:bg-black" if gp.role == "playerb"} #{gp.role}\"".html_safe if ix == 1 %>>
-                    <strong><%= gp.player.lastname %><%= " *" if active_player %></strong>
+                    <strong><%= gp.player.andand.lastname %><%= " *" if active_player %></strong>
                   </td>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                     <strong><%= tm.data[gp.role].andand["result"] %></strong>
