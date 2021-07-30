@@ -57,7 +57,7 @@ namespace :carambus do
   desc "scrape clubs"
   task :scrape_clubs => :environment do
 
-    Season.where(ba_id: [3, 2, 1]).order(name: :desc).each do |season|
+    Season.where(ba_id: [12,13]).order(name: :desc).each do |season|
       Region.all.each do |region|
         #if region.shortname.downcase == 'nbv'
         #if ["BVNRW"].include?(region.shortname)

@@ -24,7 +24,7 @@
       </div>
       <div class="mb-4">
         <h5><%= t('region.address') %></h5>
-        <%= @region.address.split("\n").select { |s| s.present? }.join(", ") %>
+        <%= @region.address.andand.split("\n").andand.select { |s| s.present? }.andand.join(", ") %>
       </div>
       <div class="mb-4">
         <h5><%= t('region.country_id') %></h5>
