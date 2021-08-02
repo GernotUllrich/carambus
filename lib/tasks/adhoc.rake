@@ -14,6 +14,8 @@ namespace :adhoc do
     TableMonitor.where("id > 50000000").destroy_all
     Game.where("id > 50000000").destroy_all
     GameParticipation.where("id > 50000000").destroy_all
+    Account.where("id > 50000000").destroy_all
+    User.where("id > 50000000").destroy_all
   end
 
 
