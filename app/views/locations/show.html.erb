@@ -23,7 +23,7 @@
       </div>
       <div class="mb-4">
         <h5>Address</h5>
-        <%= @location.address.gsub("\n", "<br>").html_safe %>
+        <%= @location.address.andand.gsub("\n", "<br>").andand.html_safe %>
       </div>
       <div class="mb-4">
         <h5>Data</h5>
