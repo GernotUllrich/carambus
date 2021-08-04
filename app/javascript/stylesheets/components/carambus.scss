@@ -48,6 +48,11 @@
   line-height: 1;
 }
 
+.text-24vw {
+  font-size: 24vw;
+  line-height: 1;
+}
+
 @layer base {
   select, input {
     @apply text-black;

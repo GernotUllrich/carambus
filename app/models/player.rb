@@ -35,6 +35,7 @@ class Player < ApplicationRecord
                   "Region" => "regions.shortname",
                   "BaId" => "players.ba_id",
   }
+
   def fullname
     "#{lastname}, #{firstname}"
   end

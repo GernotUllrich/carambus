@@ -46,14 +46,14 @@ class TournamentsController < ApplicationController
 
   def order_by_ranking_or_handicap
     hash = {}
-    unless @tournament.organizer.is_a? Club
+    unless @tournament.organizer.is_a?(Club)
       #restore seedings from ba
       @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
       @tournament.seedings.create(
-        @tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map { |s| { player_id: s.player_id } }
+        @tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map { |s| { player_id: s.player_id, balls_goal: s.balls_goal } }
       )
     end
-    @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").each do |seeding|
+    @tournament.seedings.where("seedings.id >= #{@tournament.organizer.is_a?(Club) ? Seeding::MIN_ID : 0}").each do |seeding|
       if @tournament.handicap_tournier
         hash[seeding] = -seeding.balls_goal.to_i
       else

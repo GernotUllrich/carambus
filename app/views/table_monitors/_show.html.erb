@@ -148,7 +148,7 @@
                   </div>
                 </div>
               </div>
-              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a touchstart->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-20vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
+              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a touchstart->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
                 <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
               <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
@@ -249,7 +249,7 @@
                   </div>
                 </div>
               </div>
-              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b touchstart->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-20vw justify-center items-center font-bold", title: "Player_b", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
+              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b touchstart->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_b", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
                 <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
               <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
