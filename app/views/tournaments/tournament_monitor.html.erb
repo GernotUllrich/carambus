@@ -33,8 +33,8 @@
         <% end %>
         <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post do %>
           <ol class="flex flex-col">
-            <%- available_fitting_table_ids = @tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: @tournament.discipline_id }).order("name").map(&:id) %>
-            <%- tournament_tables = @tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: @tournament.discipline_id }).count %>
+            <%- available_fitting_table_ids = @tournament.tournament_location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.order("name").andand.map(&:id).to_a %>
+            <%- tournament_tables = @tournament.tournament_location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.count.to_i %>
             <%- tournament_tables = @tournament.tournament_plan.tables unless @tournament.manual_assignment %>
 
             <%- (1..tournament_tables).each_with_index do |t_no, ix| %>
