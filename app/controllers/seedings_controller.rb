@@ -26,6 +26,7 @@ class SeedingsController < ApplicationController
 
   def up
     @seeding.move_higher
+    @seeding.reload
     redirect_back(fallback_location: tournament_path(@seeding.tournament))
   end
 

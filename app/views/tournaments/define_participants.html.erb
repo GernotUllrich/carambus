@@ -17,7 +17,9 @@
         </thead>
         <tbody>
         <%- players = @tournament.organizer.is_a?(  Region) ? Player.all.joins(:seedings).where(seedings: {tournament_id: @tournament.id}) : @tournament.organizer.players.joins(:season_participations).where(season_participations: { season: @tournament.season }) %>
-        <%- players.order(:lastname).each do |player| %>
+        <%- club_players = players.order(:lastname).to_a %>
+        <%- guest_players = @tournament.organizer.is_a?(  Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a %>
+        <%- (club_players + guest_players).each do |player| %>
           <%- seeding = @tournament.seedings.where(player_id: player.id).first %>
           <tr>
             <td><%= player.fullname %></td>

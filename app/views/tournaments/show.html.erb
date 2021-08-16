@@ -49,7 +49,7 @@
         </thead>
         <tbody>
         <%- @tournament.seedings.where(seeding_scope).includes(:player => :player_rankings ).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
-          <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.club %>
+          <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
           <tr>
             <td><%= seeding.position %></td>
             <td>
@@ -59,7 +59,7 @@
               <%= link_to image_tag("down-icon.png"), down_seeding_path(seeding), method: :post %>
             </td>
             <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
-            <td><%= link_to("#{club.shortname}", club_path(club)) %></td>
+            <td><%= link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
             <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999) %></td>
           </tr>
         <%- end %>

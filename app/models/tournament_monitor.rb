@@ -115,6 +115,8 @@ class TournamentMonitor < ApplicationRecord
     game = table_monitor.game
     game.deep_merge_data!("ba_results" => table_monitor.data["ba_results"])
     if tournament.manual_assignment
+      update_game_participations(table_monitor)
+      table_monitor.result_accepted!
       table_monitor.update(game_id: nil, tournament_monitor_id: nil)
     end
   end
@@ -173,7 +175,7 @@ class TournamentMonitor < ApplicationRecord
     rank = {}
     points = {}
     ("a".."b").each do |c|
-      rank["player#{c}"] = tabmon.data["player#{c}"]["result"].to_i
+      rank["player#{c}"] = tabmon.data["player#{c}"]["result"].to_i - tabmon.data["player#{c}"]["balls_goal"].to_i
     end
     points["playera"] = rank["playera"] > rank["playerb"] ? 2 : (rank["playera"] < rank["playerb"] ? 0 : 1)
     points["playerb"] = rank["playerb"] > rank["playera"] ? 2 : (rank["playerb"] < rank["playera"] ? 0 : 1)
@@ -307,7 +309,7 @@ class TournamentMonitor < ApplicationRecord
       accumulate_results
       reload
       if all_table_monitors_finished? || tournament.manual_assignment
-        finalize_round unless tournament.manual_assignment
+        finalize_round # unless tournament.manual_assignment
         incr_current_round! unless tournament.manual_assignment
         populate_tables unless tournament.manual_assignment
         if group_phase_finished?
@@ -604,13 +606,16 @@ class TournamentMonitor < ApplicationRecord
 
   def do_placement(new_game, r_no, t_no)
     try do
+      @placements ||= data["placements"].presence
+      @placements ||= {}
       info = "+++ 8a - tournament_monitor#do_placement new_game, r_no, t_no: #{new_game.attributes.inspect}, #{r_no}, #{t_no}"; DebugInfo.instance.update(info: info); Rails.logger.info info
       if new_game.data.blank? || new_game.data.keys == ["tmp_results"]
         info = "+++ 8b - tournament_monitor#do_placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
         table_ids = tournament.data[:table_ids]
-        if (current_round == r_no && new_game.present? && @placements["round#{r_no}"].andand["table#{t_no}"].blank?)
+        if (current_round == r_no && new_game.present? && @placements.andand["round#{r_no}"].andand["table#{t_no}"].blank?)
           seqno = new_game.seqno.to_i > 0 ? new_game.seqno : next_seqno
           new_game.update(round_no: r_no, table_no: t_no, seqno: seqno)
+          @placements ||= {}
           @placements["round#{r_no}"] ||= {}
           @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
           Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"

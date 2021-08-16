@@ -587,7 +587,7 @@ class TableMonitor < ApplicationRecord
         elsif game_finished?
           event_game_result_reported!
         else
-          if tournament_monitor.blank?
+          if tournament_monitor.blank? && game.present?
             revert_players
             update(state: "playing_game")
             do_play
