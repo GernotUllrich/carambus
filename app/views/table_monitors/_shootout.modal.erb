@@ -3,7 +3,7 @@
     <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
     <div class="flex h-1/2 flex-row items-center text-black dark:text-white  space-x-4 m-4 mb-8">
       <div class="flex-1 text-3vw items-center text-center font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A"  %></div>
-      <div class="flex-1 text-3vw bg-yellow-400 dark:text-yellow-400 dark:bg-black items-center text-center font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B"  %></div>
+      <div class="flex-1 text-3vw bg-yellow-500 dark:text-yellow-500 dark:bg-black items-center text-center font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B"  %></div>
     </div>
   </div>
   <div class="flex h-1/3 flex-row w-full space-x-4">

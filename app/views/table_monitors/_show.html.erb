@@ -214,12 +214,12 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 bg-yellow-400 dark:text-yellow-400 dark:bg-black">
+        <div class="w-2/5 bg-yellow-500 dark:text-yellow-500 dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap <%= "lg:pt-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-yellow-400 dark:text-yellow-400 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 bg-yellow-500 dark:text-yellow-500 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
               <div class="flex h-1/6">
                 <div class="flex flex-col flex-1 text-left text-gray-500 text-3vw">
@@ -380,12 +380,12 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 bg-yellow-400 dark:text-yellow-400 dark:bg-black">
+        <div class="w-2/5 bg-yellow-500 dark:text-yellow-500 dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_b][:fullname] %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-yellow-400 dark:text-yellow-400 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 bg-yellow-500 dark:text-yellow-500 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
             <div class="flex h-1/6">
               <div class="flex flex-col flex-1 text-left text-gray-500 text-1-5vw">
                 <div class="flex-1 mb-1">

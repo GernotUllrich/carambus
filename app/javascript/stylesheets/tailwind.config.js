@@ -105,7 +105,7 @@ module.exports = {
           900: '#492525',
         },
         "code-400": "#fefcf9",
-        "code-600": "#3c455b",
+        "code-600": "#3c455b"
       },
     },
     // override the default theme using the key directly
