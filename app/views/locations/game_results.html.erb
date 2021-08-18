@@ -12,6 +12,11 @@
     th, td {
         padding: 8px;
     }
+
+    h1, h2, h3, h4 {
+        color: white;
+        text-shadow: 2px 2px #000000;
+    }
 </style>
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
 <script type="text/javascript">
@@ -41,17 +46,20 @@
     return true
   });
 </script>
-<div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-  <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
-</div>
-<div class="fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-  <%= link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false)  do %>
-    <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
-  <% end %>
-</div>
-<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
-  <h1 class="text-yellow-500"><%= @tournament.title %></h1>
-  <div class="flex">
-    <%= render partial: "tournament_monitors/rankings", locals: { tournament_monitor: @tournament.tournament_monitor, full_screen: true, totals: true, grid: true } %>
+<div class="bg-gray-800">
+  <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+    <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+  </div>
+  <div class="fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+    <%= link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
+      <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <% end %>
+  </div>
+  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+    <h1 class="text-yellow-500"><%= @tournament.title %></h1>
+    <div class="flex flex-col">
+      <%= render partial: "tournament_monitors/rankings", locals: { tournament_monitor: @tournament.tournament_monitor, full_screen: true, totals: true, grid: true } %>
+      <%= render partial: "tournament_monitors/game_results", locals: { tournament_monitor: @tournament.tournament_monitor } %>
+    </div>
   </div>
 </div>

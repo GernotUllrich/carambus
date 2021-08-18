@@ -36,7 +36,7 @@ class LocationsController < ApplicationController
       when "welcome"
         render "scoreboard_welcome"
       when "start"
-        render "scoreboard_start", locals: {table: @table}
+        render "scoreboard_start", locals: { table: @table }
       when "tournament"
         render "scoreboard_tournament"
       when "tables"
@@ -130,9 +130,13 @@ class LocationsController < ApplicationController
       @pairs = []
       @games.map do |game|
         gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player
+        seeding_state_a = game.tournament.seedings.where(player_id: playera.id).first.andand.state
         gpb = game.game_participations.where(role: "playerb").first; playerb = gpb.andand.player
-        @pairs << [game.id, playera.fullname, playerb.fullname, "game_#{game.id}a"]
-        @pairs << [game.id, playerb.fullname, playera.fullname, "game_#{game.id}b"]
+        seeding_state_b = game.tournament.seedings.where(player_id: playerb.id).first.andand.state
+        unless seeding_state_a == "no_show" || seeding_state_b == "no_show"
+          @pairs << [game.id, playera.fullname, playerb.fullname, "game_#{game.id}a"]
+          @pairs << [game.id, playerb.fullname, playera.fullname, "game_#{game.id}b"]
+        end
       end
       @pairs = @pairs.sort_by { |a| "#{a[1]} - #{a[2]}" }
     else

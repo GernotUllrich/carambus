@@ -80,7 +80,7 @@ class TableMonitor < ApplicationRecord
       transitions from: [:ready, :ready_for_new_game, :game_setup_started, :game_result_reported, :game_finished], to: :game_setup_started, :after_enter => [:initialize_game]
     end
     event :result_accepted do
-      transitions from: [:game_result_reported, :ready_for_new_game], to: :ready_for_new_game
+      transitions from: [:playing_game, :game_result_reported, :ready_for_new_game], to: :ready_for_new_game
     end
     event :event_play_warm_up_a do
       transitions from: [:game_setup_started, :game_warmup_b_started, :game_warmup_a_started], to: :game_warmup_a_started
@@ -334,8 +334,7 @@ class TableMonitor < ApplicationRecord
     deep_merge_data! ({
       "innings_goal" =>
         tournament_monitor.andand.innings_goal ||
-          tournament_monitor.andand.tournament.andand.innings_goal ||
-          20,
+          tournament_monitor.andand.tournament.andand.innings_goal,
       "playera" => {
         "result" => 0,
         "innings" => 0,
@@ -347,7 +346,7 @@ class TableMonitor < ApplicationRecord
           data["result"].andand["playera"].andand["balls_goal"] ||
             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playera").balls_goal.presence ||
             tournament_monitor.andand.balls_goal ||
-            tournament_monitor.andand.tournament.andand.balls_goal || 80,
+            tournament_monitor.andand.tournament.andand.balls_goal,
         "tc" =>
           tournament_monitor.andand.timeouts ||
             tournament_monitor.andand.tournament.andand.timeouts ||
@@ -364,7 +363,7 @@ class TableMonitor < ApplicationRecord
           data["result"].andand["playerb"].andand["balls_goal"] ||
             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from("playerb").balls_goal.presence ||
             tournament_monitor.andand.balls_goal ||
-            tournament_monitor.andand.tournament.andand.balls_goal || 80,
+            tournament_monitor.andand.tournament.andand.balls_goal,
         "tc" =>
           tournament_monitor.andand.timeouts ||
             tournament_monitor.andand.tournament.andand.timeouts ||

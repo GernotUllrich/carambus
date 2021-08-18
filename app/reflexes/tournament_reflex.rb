@@ -92,6 +92,18 @@ class TournamentReflex < ApplicationReflex
     cable_ready.broadcast
   end
 
+  def change_no_show
+    tournament = Tournament.find(element.dataset["id"])
+    checked = element.attributes["checked"]
+    player = Player.find(element.attributes["id"].split("-")[1].to_i)
+    seeding = tournament.seedings.where(player_id: player.id)
+    if checked
+      seeding.update(state: "no_show")
+    else
+      seeding.update(state: "registered")
+    end
+  end
+
   def change_point_goal
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])

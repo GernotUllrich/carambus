@@ -1,4 +1,4 @@
-<%= render :partial => "show", locals: {tournament: @tournament, subtitle: "", show_edit_back: true} %>
+<%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
 <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
 <div class="container mx-auto my-8">
   <div class="max-w-6xl mx-auto">
@@ -11,19 +11,23 @@
         <div class="flex flex-wrap align-items-start pb-4">
           <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" if @tournament.organizer.is_a? Region %>
         </div>
-        <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
+        <div class="flex flex-wrap align-items-start pb-4">
+          <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
           <%= button_to I18n.t("tournaments.show.order_by_ranking_or_handicap"), order_by_ranking_or_handicap_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
         </div>
-        <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
+        <div class="flex flex-wrap align-items-start pb-4">
+          <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
           <%= button_to I18n.t("tournaments.show.finish_seeding"), finish_seeding_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
         </div>
-        <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
+        <div class="flex flex-wrap align-items-start pb-4">
+          <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
           <%= button_to I18n.t("tournaments.show.finalize_tournament_modus"), finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
         </div>
-        <div class="flex flex-wrap align-items-start pb-4"><span class="strong flex" style="padding-top: 7px;">==&gt;</span>
+        <div class="flex flex-wrap align-items-start pb-4">
+          <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
           <%- disabled = %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>
           <%= button_to I18n.t("tournaments.show.mangage_tournament_group_phase"), tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
         </div>
@@ -43,12 +47,14 @@
           <th colspan="2"><%= I18n.t("tournaments.show.reorder") %></th>
           <th><%= I18n.t("tournaments.show.name") %></th>
           <th><%= I18n.t("tournaments.show.club") %></th>
-          <th>Rank/Handicap (Ballziel)<br><%= @tournament.discipline.andand.name %><br>Season <%= @tournament.season.previous.andand.name %>
+          <th>Rank/Handicap (Ballziel)<br><%= @tournament.discipline.andand.name %>
+            <br>Season <%= @tournament.season.previous.andand.name %>
           </th>
+          <th>No Show</th>
         </tr>
         </thead>
         <tbody>
-        <%- @tournament.seedings.where(seeding_scope).includes(:player => :player_rankings ).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
+        <%- @tournament.seedings.where(seeding_scope).includes(:player => :player_rankings).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
           <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
           <tr>
             <td><%= seeding.position %></td>
@@ -61,6 +67,9 @@
             <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
             <td><%= link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
             <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999) %></td>
+              <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
+                <%= check_box_tag "participate-#{seeding.player.id}", "1", seeding.no_show?, data: { reflex: "change->TournamentReflex#change_no_show", id: @tournament.id } %>
+              <%- end %>
           </tr>
         <%- end %>
         </tbody>
@@ -73,7 +82,7 @@
     <h2 class="mt-4 mb-6"><%= I18n.t("tournaments.show.rankings") %></h2>
     <div class="flex-1 flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
       <%- lists = @tournament.seedings.where(seeding_scope).joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
-        <%- lists.each do |list| %>
+      <%- lists.each do |list| %>
         <div class="flex flex-col">
           <h3><%= list %></h3>
           <table class="flex-1">
@@ -135,7 +144,7 @@
 </div>
 <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
 <%- if !@tournament.tournament_started %>
-  <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: {confirm: 'Are you sure?'}, style: "float: left; margin-right: 10px;" %>
+  <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
 <%- end %>
 <%- if (User::PRIVILEGED + ["scoreboard@carambus.de"]).include? current_user.andand.email.andand.downcase %>
   <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
