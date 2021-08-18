@@ -24,7 +24,7 @@
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
         <div class="mt-4 flex h-1/2 flex-row text-black space-x-4">
           <div class="flex-1 text-3vw text-center dark:text-gray-200 font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A" %></div>
-          <div class="flex-1 text-3vw text-center dark:text-yellow-200 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
+          <div class="flex-1 text-3vw text-center dark:text-yellow-400 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
         </div>
       </div>
       <div class="dark:bg-gray-800 bg-gray-50 flex h-1/6 flex-row mt-2 space-x-8">
@@ -101,7 +101,7 @@
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
         <div class="flex h-1/2 flex-row text-black space-x-4 m-4 m-8">
           <div class="flex-1 text-3vw text-center dark:text-gray-200 font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A" %></div>
-          <div class="flex-1 text-3vw text-center dark:text-yellow-200 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
+          <div class="flex-1 text-3vw text-center dark:text-yellow-400 font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B" %></div>
         </div>
       </div>
       <div class="flex h-1/6 flex-row mt-2 space-x-8">

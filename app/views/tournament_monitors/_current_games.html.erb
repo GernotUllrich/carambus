@@ -61,7 +61,7 @@
                         </div>
                     <% end %>
                   <% end %>
-                  <td style="font-size:1.2em"<%= " class=\"last-line #{"bg-yellow-300 dark:text-yellow-200 dark:bg-black" if gp.role == "playerb"} #{gp.role}\"".html_safe if ix == 1 %>>
+                  <td style="font-size:1.2em"<%= " class=\"last-line #{"bg-yellow-400 dark:text-yellow-400 dark:bg-black" if gp.role == "playerb"} #{gp.role}\"".html_safe if ix == 1 %>>
                     <strong><%= gp.player.andand.lastname %><%= " *" if active_player %></strong>
                   </td>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
