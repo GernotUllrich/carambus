@@ -724,6 +724,7 @@ class TableMonitor < ApplicationRecord
   def reset_table_monitor
     info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
     force_we_re_ready!
+    save!
     update(game_id: nil, nnn: nil, panel_state: "pointer_mode", data: {})
   end
 end
