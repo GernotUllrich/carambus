@@ -61,7 +61,8 @@
                         </div>
                     <% end %>
                   <% end %>
-                  <td style="font-size:1.2em"<%= " class=\"last-line #{"bg-yellow-500 dark:text-yellow-500 dark:bg-black" if gp.role == "playerb"} #{gp.role}\"".html_safe if ix == 1 %>>
+                  <%- ev = gp.role == "playerb" ? (gp.game.table_monitor.data["switch_colors"].present? ? "" : "bg-yellow-500 dark:text-yellow-500 dark:bg-black") : (gp.game.table_monitor.data["switch_colors"].present? ? "bg-yellow-500 dark:text-yellow-500 dark:bg-black" : "") %>
+                  <td style="font-size:1.2em"<%= " class=\"last-line #{ev} #{gp.role}\"".html_safe %>>
                     <strong><%= gp.player.andand.lastname %><%= " *" if active_player %></strong>
                   </td>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>

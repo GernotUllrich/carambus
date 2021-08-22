@@ -260,6 +260,7 @@
       var i_next = i < tabbed_keys.length - 1 ? i + 1 : 0
       panel_nav_h[tabbed_keys[i]] = tabbed_keys[i_next]
     }
+    TurboLinks.clearCache();
     document.addEventListener("cable-ready:after-inner-html", afterInnerHtmlHandler);
     console.log("active: " + get_current_element());
     if (get_current_element() != "" && get_current_element() != null) {

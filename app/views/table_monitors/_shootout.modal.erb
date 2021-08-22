@@ -2,8 +2,8 @@
   <div class="flex h-1/3 flex-col space-x-4">
     <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
     <div class="flex h-1/2 flex-row items-center text-black dark:text-white  space-x-4 m-4 mb-8">
-      <div class="flex-1 text-3vw items-center text-center font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A"  %></div>
-      <div class="flex-1 text-3vw bg-yellow-500 dark:text-yellow-500 dark:bg-black items-center text-center font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B"  %></div>
+      <div class="flex-1 text-3vw <%= !table_monitor.data[:switch_colors] ? "" : "bg-yellow-500 dark:text-yellow-500" %> dark:bg-blackitems-center text-center font-semibold"><%= gps[0].andand.player.andand.fullname || "Spieler A"  %></div>
+      <div class="flex-1 text-3vw <%= table_monitor.data[:switch_colors] ? "" : "bg-yellow-500 dark:text-yellow-500" %> dark:bg-black items-center text-center font-semibold"><%= gps[1].andand.player.andand.fullname || "Spieler B"  %></div>
     </div>
   </div>
   <div class="flex h-1/3 flex-row w-full space-x-4">
@@ -13,6 +13,14 @@
     <div class="flex-1">
       <%= content_tag "div", class: "btn btn-primary", data: {turbolinks: false, reflex: "click->TableMonitorReflex#switch_players", id: table_monitor.id}, id: "change", tabindex: 6 do %>
         <%= t('table_monitor.status.exchange_players') %>
+      <%- end %>
+    </div>
+    <h3 class="flex-1 text-right">
+      <%= t('table_monitor.status.shootout_change_colors') %>:
+    </h3>
+    <div class="flex-1">
+      <%= content_tag "div", class: "btn btn-primary", data: {turbolinks: false, reflex: "click->TableMonitorReflex#switch_colors", id: table_monitor.id}, id: "change", tabindex: 6 do %>
+        <%= t('table_monitor.status.exchange_colors') %>
       <%- end %>
     </div>
   </div>

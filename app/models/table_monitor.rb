@@ -301,6 +301,12 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  def switch_colors
+    deep_merge_data!({
+                       switch_colors: !data[:switch_colors].present?,
+                     })
+  end
+
   def set_start_time
     game.update(started_at: Time.now)
   end
@@ -335,6 +341,7 @@ class TableMonitor < ApplicationRecord
   def initialize_game
     info = "+++ 7 - table_monitor#initialize_game"; DebugInfo.instance.update(info: info); Rails.logger.info info
     deep_merge_data! ({
+
       "innings_goal" =>
         tournament_monitor.andand.innings_goal ||
           tournament_monitor.andand.tournament.andand.innings_goal,

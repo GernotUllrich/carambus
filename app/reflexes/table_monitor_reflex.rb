@@ -232,6 +232,14 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
+  def switch_colors
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.dataset[:id])
+    @table_monitor.panel_state = "inputs"
+    @table_monitor.switch_colors
+    @table_monitor.save
+  end
+
   def start_game
     morph :nothing
     @table_monitor = TableMonitor.find(element.dataset[:id])

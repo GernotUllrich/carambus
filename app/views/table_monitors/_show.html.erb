@@ -10,6 +10,7 @@
     timeout: table_monitor.tournament_monitor.andand.timeout || table_monitor.data["timeout"].to_i,
     timeouts: table_monitor.tournament_monitor.andand.timeouts || table_monitor.data["timeouts"].to_i,
     innings_goal: table_monitor.data["innings_goal"].to_i,
+    switch_colors: table_monitor.data["switch_colors"].present?,
     active_timer: table_monitor.active_timer,
     start_at: table_monitor.timer_start_at,
     finish_at: table_monitor.timer_finish_at,
@@ -79,17 +80,6 @@
   <%= content_tag "div", id: "previous_element", previous_element: "pointer_mode", style: "display: none" do %>
     <%= "pointer_mode" %>
   <%- end %>
-  <div class="fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-    <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
-      <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-4 mr-0 #{@dark ? "text-gray-600" : "text-gray-200"} inline-block", title: "home" %>
-    <% end %>
-    <%= link_to scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-      <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-4 mr-0 #{@dark ? "text-gray-600" : "text-gray-200"} inline-block", title: "home" %>
-    <% end %>
-    <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-      <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-4 #{@dark ? "text-gray-600" : "text-gray-200"} inline-block", title: "home" %>
-    <% end %>
-  </div>
   <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg"></div>
   <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back">
     <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-white rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 dark:bg-black bg-white outline-none focus:outline-none">
@@ -111,17 +101,14 @@
     </div>
   </div>
   <%- if full_screen %>
-    <div onclick="warning_mode();" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;" tabindex="1">
-      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "browser back" %>
-    </div>
-    <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow">
+    <div class="fullscreen flex flex-col h-full bg-white dark:bg-black rounded shadow">
       <div class="flex h-5/6 bg-gray-200">
-        <div class="w-2/5 bg-white dark:bg-black">
-          <div class="flex h-1/6 bg-white dark:bg-black items -center">
+        <div class="player_a w-2/5 <%= options[:switch_colors] ? "dark:bg-black bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
+          <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_a][:logo]) if options[:player_a][:logo].present? %></div>
             <div class="flex-nowrap  <%= "lg:pt-4" if options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-white dark:bg-black border-solid <%= options[:player_a_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 <%= options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_a_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
               <div class="flex h-1/6">
                 <div class="flex-1 text-left font-bold text-red-400">
@@ -151,7 +138,7 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a touchstart->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
                 <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+              <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && table_monitor.tournament_monitor.timeout.to_i > 0) ? "" : "hidden" %>
               <%- if showing_timer.blank? %>
                 <div class="flex flex-1 flex-col">
                   <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
@@ -175,9 +162,22 @@
           </div>
         </div>
         <div class="w-1/5 bg-grey">
-          <%= content_tag "div", data: { reflex: "dblclick->TableMonitorReflex#key_a", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-3vw p-2 text-center bg-white dark:bg-black" do %>
-            <%= table_monitor.state_display(I18n.locale) %>
-          <%- end %>
+          <div class="flex flex-col h-1/6 bg-white dark:bg-gray-800">
+            <div class="bg-white dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
+              <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
+                <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-4 mr-0 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+              <% end %>
+              <%= link_to scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
+                <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 m-2 mr-0 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+              <% end %>
+              <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
+                <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+              <% end %>
+            </div>
+            <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-2vw text-center bg-white dark:bg-black" do %>
+              <%= table_monitor.state_display(I18n.locale) %>
+            <%- end %>
+          </div>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
               <div class="h-5/6 p-4 text-8vw font-bold text-center"><%= options[:player_a][:innings].to_i %></div>
@@ -214,12 +214,12 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 bg-yellow-500 dark:text-yellow-500 dark:bg-black">
+        <div class="player_b w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap <%= "lg:pt-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-yellow-500 dark:text-yellow-500 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 <%= !options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_b_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
               <div class="flex h-1/6">
                 <div class="flex flex-col flex-1 text-left text-gray-500 text-3vw">
@@ -239,7 +239,7 @@
                     <%= options[:player_b_active] ? table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1] : "" %>
                   </div>
                   <div class="text-2vw">
-                    <%- to_play = options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999%>
+                    <%- to_play = options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999 %>
                     <%- if table_monitor.follow_up? %>
                       Nachstoss
                     <%- end %>
@@ -252,8 +252,8 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b touchstart->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_b", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
                 <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
-              <%- if showing_timer.blank? %>
+              <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && table_monitor.tournament_monitor.timeout.to_i > 0) ? "" : "hidden" %>
+                <%- if showing_timer.blank? %>
                 <div class="flex flex-1 flex-col">
                   <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
                     <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
@@ -274,7 +274,7 @@
           </div>
         </div>
       </div>
-      <div class="flex h-1/6 grid grid-cols-7 gap-1">
+      <div class="controls flex h-1/6 grid grid-cols-7 gap-1">
         <%- if table_monitor.playing_game? %>
           <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: options[:id] }, id: "undo", tabindex: 2 do %>
             <%= render_svg "icons/104-undo2", styles: "fill-current icon-2xl text-red-400 inline-block" %>
@@ -301,14 +301,14 @@
       </div>
     </div>
   <%- else %>
-    <div class="flex flex-col h-full bg-white dark:bg-black rounded shadow">
-      <div class="flex h-5/6 bg-gray-200">
-        <div class="w-2/5 bg-white dark:bg-black">
-          <div class="flex h-1/6 bg-white dark:bg-black items -center">
+    <div class="flex h-full bg-white dark:bg-black rounded shadow">
+      <div class="flex w-full bg-gray-200">
+        <div class="w-2/5 <%= options[:switch_colors] ? "dark:bg-black bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
+          <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_a][:logo]) if options[:player_a][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_a][:fullname] %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-white dark:bg-black border-solid <%= options[:player_a_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 <%= options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_a_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <div class="flex h-1/6">
               <div class="flex-1 text-left font-bold text-red-400">
                 <div class="text-3vw p-2">
@@ -323,7 +323,8 @@
               </div>
               <div class="flex flex-col flex-1 text-right text-gray-500 text-1-5vw">
                 <div class="flex-1 mb-1">
-                  <%= t('goal') %>: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i : "no limit"%>
+                  <%= t('goal') %>
+                  : <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i : "no limit" %>
                 </div>
                 <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_a][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_a][:hs] %></div>
@@ -380,16 +381,17 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 bg-yellow-500 dark:text-yellow-500 dark:bg-black">
+        <div class="w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_b][:fullname] %></div>
           </div>
-          <div class="flex flex-col h-5/6 bg-yellow-500 dark:text-yellow-500 dark:bg-black border-solid <%= options[:player_b_active] ? "border-red-400 border-4" : "border-gray dark:border-gray-700 border-4" %>">
+          <div class="flex flex-col h-5/6 <%= !options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_b_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <div class="flex h-1/6">
               <div class="flex flex-col flex-1 text-left text-gray-500 text-1-5vw">
                 <div class="flex-1 mb-1">
-                  <%= t('goal') %>: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i : "no limit"%>
+                  <%= t('goal') %>
+                  : <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i : "no limit" %>
                 </div>
                 <div class="flex-1 mb-1"><%= t('gd') %>: <%= options[:player_b][:gd] %></div>
                 <div class="flex-1"> HS: <%= options[:player_b][:hs] %></div>
@@ -422,31 +424,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="flex h-1/6 p-2 space-x-2 flex-row justify-center">
-        <%- if table_monitor.playing_game? %>
-          <div class="flex w-1/3 justify-center">
-            <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: options[:id] }, id: "undo", tabindex: 2 do %>
-              <%= render_svg "icons/104-undo2", styles: "svg-red fill-current icon-lg text-gray-400 inline-block" %>
-            <%- end %>
-            <%= content_tag "div", class: "ml-10 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Subtract one from current Inning", data: { reflex: "click->TableMonitorReflex#minus_one", id: options[:id] }, id: "minus_one", tabindex: 2 do %>
-              -1
-            <%- end %>
-          </div>
-          <div class="flex w-1/3 justify-center">
-            <%= content_tag "div", class: "mr-2 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Change Players", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#next_step", id: options[:id] }, id: "next_step", tabindex: 2 do %>
-              <%= render_svg "icons/302-loop", styles: "svg-red fill-current icon-lg text-gray-400 inline-block" %>
-            <%- end %>
-          </div>
-          <div class="flex w-1/3 justify-center">
-            <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#add_one touchstart->TableMonitorReflex#add_one", id: options[:id] }, id: "add_one", tabindex: 2 do %>
-              +1
-            <%- end %>
-            <%= content_tag "div", class: "ml-10 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-2vw bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { reflex: "click->TableMonitorReflex#numbers", id: options[:id] }, id: "numbers", tabindex: 2 do %>
-              =nnn
-            <%- end %>
-          </div>
-        <%- end %>
       </div>
     </div>
   <%- end %>
