@@ -324,7 +324,7 @@ class TableMonitor < ApplicationRecord
       info = "+++ 8e - tournament_monitor#assign_game - table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
       state = tmp_results.delete("state")
       deep_merge_data!(tmp_results)
-      update(gameapp/views/locations/scoreboard_tournament.html.erb_id: game_p.id, state: state)
+      update(game_id: game_p.id, state: state)
     else
       update(game_id: game_p.id, state: "ready")
       reload
