@@ -131,9 +131,11 @@ class TournamentsController < ApplicationController
     @navbar = @footer = false
     @game = Game.find(params[:game_id])
     @table = Table.find(params[:table_id])
-    @tournament_monitor = @tournament.tournament_monitor
-    @table_monitor = TableMonitor.find_by_table_id(@table.id) || TableMonitor.create(table_id: @table.id)
-    @table_monitor.update(tournament_monitor_id: @tournament_monitor.id)
+    TournamentMonitor.transaction do
+      @tournament_monitor = @tournament.tournament_monitor
+      @table_monitor = TableMonitor.find_by_table_id(@table.id) || TableMonitor.create(table_id: @table.id)
+      @table_monitor.update(tournament_monitor_id: @tournament_monitor.id)
+    end
     # if @table_monitor.game.present? && @game != @table_monitor.game
     #   info = "+++ 4b - tournaments_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     #   tmp_results = {}
@@ -167,7 +169,7 @@ class TournamentsController < ApplicationController
     # end
     # info = "+++ 3t2 - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
     Rails.logger.info "+++ 6 - tournaments_controller#placement"
-      @tournament_monitor.do_placement(@game, @tournament_monitor.current_round, @tournament.t_no_from(@table))
+    @tournament_monitor.do_placement(@game, @tournament_monitor.current_round, @tournament.t_no_from(@table))
     redirect_to table_monitor_path(@table_monitor)
   end
 
@@ -180,10 +182,10 @@ class TournamentsController < ApplicationController
     data_[:timeouts] = params[:timeouts].to_i
     data_[:time_out_warm_up_first_min] = params[:time_out_warm_up_first_min].to_i
     data_[:time_out_warm_up_follow_up_min] = params[:time_out_warm_up_follow_up_min].to_i
-    @tournament.update(data: data_ )
+    @tournament.update(data: data_)
     if @tournament.valid?
       @tournament.initialize_tournament_monitor
-        @tournament.reload
+      @tournament.reload
       @tournament.start_tournament!
       @tournament.reload
       @tournament.tournament_monitor.update(current_admin: current_user, timeout: params[:timeout].to_i, timeouts: params[:timeouts].to_i)

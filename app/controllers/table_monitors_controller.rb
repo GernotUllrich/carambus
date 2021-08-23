@@ -29,7 +29,7 @@ class TableMonitorsController < ApplicationController
 
   # GET /table_monitors/new
   def new
-    @table_monitor = TableMonitor.new
+    # @table_monitor = TableMonitor.new
   end
 
   def toggle_dark_mode
@@ -56,13 +56,13 @@ class TableMonitorsController < ApplicationController
 
   # POST /table_monitors
   def create
-    @table_monitor = TableMonitor.new(table_monitor_params)
-
-    if @table_monitor.save
-      redirect_to @table_monitor, notice: "Table monitor was successfully created."
-    else
-      render :new
-    end
+    # @table_monitor = TableMonitor.new(table_monitor_params)
+    #
+    # if @table_monitor.save
+    #   redirect_to @table_monitor, notice: "Table monitor was successfully created."
+    # else
+    #   render :new
+    # end
   end
 
   # PATCH/PUT /table_monitors/1

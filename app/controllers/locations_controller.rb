@@ -29,7 +29,7 @@ class LocationsController < ApplicationController
       session[:sb_state] = params[:sb_state] if params[:sb_state].present?
 
       @navbar = @footer = false
-      @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
+      @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present? && game.tournament.blank?
       @game.destroy if @game.present?
       @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
@@ -47,16 +47,18 @@ class LocationsController < ApplicationController
         @table = Table.find(params[:table_id]) if params[:table_id].present?
         @player_a = Player.find(params[:player_a_id]) if params[:player_a_id].present?
         @player_b = Player.find(params[:player_b_id]) if params[:player_b_id].present?
-        if @table.present?
-          @table_monitor = @table.table_monitor || TableMonitor.create!(table_id: @table.id)
-          @game = @table_monitor.game
-          if @game.blank?
-            @game = Game.create!
-            @game.game_participations.create(player: @player_a, role: "playera")
-            @game.game_participations.create(player: @player_a, role: "playerb")
-            @innings = 20
+        Table.transaction do
+          if @table.present?
+            @table_monitor = @table.table_monitor || TableMonitor.create!(table_id: @table.id)
+            @game = @table_monitor.game
+            if @game.blank?
+              @game = Game.create!
+              @game.game_participations.create(player: @player_a, role: "playera")
+              @game.game_participations.create(player: @player_a, role: "playerb")
+              @innings = 20
+            end
+            @table_monitor.assign_game(@game)
           end
-          @table_monitor.assign_game(@game)
         end
         @club = @location.club || (@location.organizer.is_a?(Club) ? @location.organizer : nil)
         @club_player_ids = @club.players.select("players.id").joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).map(&:id)
