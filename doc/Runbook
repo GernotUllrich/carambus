@@ -38,13 +38,13 @@ OS mit Raspberry Pi Manager laden:
 
 ## Konfigurieren mit ansible
 
-* in ansible/hosts eintragen\
+* in ~/ansible/hosts eintragen\
 carambus3 ansible_host=192.168.178.52  node_name=web3.carambus.de provider=domainfactory php_time_zone="Europe/Berlin"
 
 * in /etc/hosts eintragen\
   192.168.178.52 web3.carambus.de  
   
-* /etc/host_vars/carambus3\
+* ~/ansible/host_vars/carambus3\
   (copy/edit from carambus)
 
 rbenv install 2.7.2
