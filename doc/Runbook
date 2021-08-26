@@ -69,6 +69,14 @@ sudo apt install yarn
 yarn --version
 1.22.5
 
+evtl fix: https://github.com/Joystream/helpdesk/issues/16
+
+sudo apt remove cmdtest
+sudo apt remove yarn
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt-get update && sudo apt-get install yarn
+
 gem install bundler:2.2.19
 bin/rails action_text:install
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -134,6 +142,8 @@ end
 ##################
 
 apt-get remove apache2
+
+mkdir /var/log/carambus
 
 vi /etc/nginx/sites-enabled/carambus
 server {
@@ -236,4 +246,70 @@ sudo vi  /etc/xdg/lxsession/LXDE-pi/autostart
 /var/www/carambus/current/bin/start_scoreboard_delayed
 
 
+How do I hide the boot text?
+  https://retropie.org.uk/docs/FAQ/#how-do-i-hide-the-boot-text
 
+without grome:
+  https://die-antwort.eu/techblog/2017-12-setup-raspberry-pi-for-kiosk-mode/
+
+gtk fix
+https://askubuntu.com/questions/101306/how-do-i-install-gtk-3-0
+To use gtk2 or gtk3 apps you don't need to install anything. But, if you want to develop (or even just compile) apps this is what you're looking for:
+
+  sudo apt-get install libgtk-3-dev
+
+Install gstreamer
+ https://github.com/alexa/avs-device-sdk/issues/462
+ sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-libav
+
+Install docbook
+https://zoomadmin.com/HowToInstall/UbuntuPackage/docbook-xml
+  sudo apt-get install -y docbook-xml
+
+
+https://www.raspberrypi.org/forums/viewtopic.php?t=139178
+  sudo apt install libxlt1-dev
+
+https://raspberrytips.com/autostart-a-program-on-boot/
+https://www.raspberrypi.org/documentation/computers/configuration.html#configuring-screen-blanking
+
+Virtual Keyboard extension
+https://chrome.google.com/webstore/detail/virtual-keyboard/pflmllfnnabikmfkkaddkoolinlfninn?hl=en
+
+Check server is reachable
+https://stackoverflow.com/questions/8937663/shell-script-to-check-whether-a-server-is-reachable
+
+matchbox-keyboard
+https://pimylifeup.com/raspberry-pi-on-screen-keyboard/
+--------------------------------------------------------------------------------
+pre-install for wlan
+https://www.raspberrypi.org/forums/viewtopic.php?t=254526
+- Write a Raspbian image to the SD card with Etcher.
+- Remove and reinsert the card, so your Windows/Mac OS PC can see the "boot" partition (ignore/canel format warnings).
+- Add an empty file named ssh (or ssh.txt).
+- Add a pre-configured wpa_supplicant.conf file.
+- Safely eject the card and use it to boot the headless Pi computer.
+
+The wpa_supplicant.conf file should contain the following.
+
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=DE
+
+network={
+ssid="WLAN-15AE35"
+psk="3065178072045907"
+key_mgmt=WPA-PSK
+}
+
+network={
+ssid="FRITZ!Box 7490 UL"
+psk="6964362753744967"
+key_mgmt=WPA-PSK
+}
+
+network={
+ssid="Phat-Guest"
+psk="+phatsack2017"
+key_mgmt=WPA-PSK
+}
