@@ -29,8 +29,8 @@ class LocationsController < ApplicationController
       session[:sb_state] = params[:sb_state] if params[:sb_state].present?
 
       @navbar = @footer = false
-      @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present? && game.tournament.blank?
-      @game.destroy if @game.present?
+      @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
+      @game.destroy if @game.present? && @game.tournament.blank?
       @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
       when "welcome"

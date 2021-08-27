@@ -53,12 +53,12 @@ mkdir -p carambus/shared/config
 
 vi carambus/shared/config/database.yml
 production:
-host: web3.carambus.de
-adapter: postgresql
-database: carambus_production
-port: 5432
-username: www_data
-password: toS6E7tARQafHCXz
+  host: web3.carambus.de
+  adapter: postgresql
+  database: carambus_production
+  port: 5432
+  username: www_data
+  password: toS6E7tARQafHCXz
 
 vi carambus/shared/config/master.key
 bdb689ada581c5cd22726d5641b82ccf
@@ -87,9 +87,30 @@ v14.17.2
 sudo -u postgres psql
 create user www_data with password 'toS6E7tARQafHCXz';
 alter role www_data superuser createrole createdb replication;
+
+in /etc/postgresql/11/main/pg_hba.conf:
+
+  # TYPE  DATABASE        USER            ADDRESS                 METHOD
+  # "local" is for Unix domain socket connections only
+  local   all             all                                     md5
+  # IPv4 local connections:
+  host    all             all             0.0.0.0/0            md5
+  host    all             www_data        0.0.0.0/32            ident
+  # IPv6 local connections:
+  host    carambus_production  www_data   127.0.0.1/32    md5
+  host    all             all             ::1/128                 md5
+  # Allow replication connections from localhost, by a user with the
+  # replication privilege.
+  local   replication     all                                     peer
+  host    replication     all             127.0.0.1/32            md5
+  host    replication     all             ::1/128                 md5
+
+
+
+
 create database carambus_production owner www_data;
 
-vi shared/config/unicorn.rb
+  vi shared/config/unicorn.rb
 working_directory "/var/www/carambus/current"
 pid "/var/www/carambus/current/tmp/pids/unicorn.pid"
 stderr_path "/var/www/carambus/shared/log/unicorn.log"
@@ -272,13 +293,16 @@ https://www.raspberrypi.org/forums/viewtopic.php?t=139178
 
 https://raspberrytips.com/autostart-a-program-on-boot/
 https://www.raspberrypi.org/documentation/computers/configuration.html#configuring-screen-blanking
-
+--------------------------------------------------------------------------------
 Virtual Keyboard extension
+Zuche im Webstore nach virtual keyboard
+Das beste derzeit ist das von maslovvlad94
+oder auch
 https://chrome.google.com/webstore/detail/virtual-keyboard/pflmllfnnabikmfkkaddkoolinlfninn?hl=en
-
+--------------------------------------------------------------------------------
 Check server is reachable
 https://stackoverflow.com/questions/8937663/shell-script-to-check-whether-a-server-is-reachable
-
+--------------------------------------------------------------------------------
 matchbox-keyboard
 https://pimylifeup.com/raspberry-pi-on-screen-keyboard/
 --------------------------------------------------------------------------------
@@ -313,3 +337,11 @@ ssid="Phat-Guest"
 psk="+phatsack2017"
 key_mgmt=WPA-PSK
 }
+------------------------------------
+shutdown button
+
+add to /boot/config.txt
+dtoverlay=gpio-shutdown,gpio_pin=3,active_low=1,gpio_pull=up
+---------------------------------------
+To prevent the screen from going blank try adding to the end of the first line of /boot/cmdline.txt
+consoleblank=0 
