@@ -174,9 +174,12 @@
                 <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
               <% end %>
             </div>
-            <div class="bg-white dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold"><%= Time.now.strftime("%H:%M") %></div>
-            <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-2vw text-center bg-white dark:bg-black" do %>
-              <%= table_monitor.state_display(I18n.locale) %>
+            <%- if table_monitor.state_display(I18n.locale).present? %>
+              <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a", id: options[:id] }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-2vw text-center bg-white dark:bg-black" do %>
+                <%= table_monitor.state_display(I18n.locale) %>
+              <%- end %>
+            <%- else %>
+              <div class="bg-white dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-3vw text-center font-bold"><%= Time.now.strftime("%H:%M") %></div>
             <%- end %>
           </div>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
@@ -254,7 +257,7 @@
                 <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
               <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && table_monitor.tournament_monitor.timeout.to_i > 0) ? "" : "hidden" %>
-                <%- if showing_timer.blank? %>
+              <%- if showing_timer.blank? %>
                 <div class="flex flex-1 flex-col">
                   <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
                     <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>

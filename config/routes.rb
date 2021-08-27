@@ -207,6 +207,8 @@ Rails.application.routes.draw do
   match "/404", via: :all, to: "errors#not_found"
   match "/500", via: :all, to: "errors#internal_server_error"
   get "/intro", to: "static#intro"
+  get "/about", to: "static#about"
+  get "/version", to: "static#version"
 
   authenticated :user do
     root to: "dashboard#show", as: :user_root

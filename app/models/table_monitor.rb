@@ -652,9 +652,9 @@ class TableMonitor < ApplicationRecord
       "player_b_id" => game.game_participations.where(role: "playera").first.andand.player.andand.id,
       "timeouts" => data["timeouts"].to_i,
       "timeout" => data["timeout"].to_i,
+      "innings_goal" => data["innings_goal"].to_i,
       "balls_goal_a" => data["playerb"]["balls_goal"].to_i,
       "balls_goal_b" => data["playera"]["balls_goal"].to_i,
-      "innings" => data["playera"]["innings"].to_i,
       "discipline_a" => data["playerb"]["discipline"],
       "discipline_b" => data["playera"]["discipline"]
     }

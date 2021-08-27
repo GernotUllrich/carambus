@@ -655,6 +655,8 @@ de:
       tournierplanung: 'Turnierverwaltung'
       docs: 'Dokumentation'
       intro: "Einführung"
+      about: "Der Entwickler"
+      version: "Versionen"
       disciplinetournamentplan: 'Disziplin/Turnierpläne'
       tournamentplan: 'Turnierpläne'
       tournierabwicklung: Turnierabwicklung
@@ -682,8 +684,10 @@ de:
       get_started: "Auf geht's"
 
     about:
-      title: "Über mich"
+      title: "Der Entwickler über sich selbst:"
       content: |
+        <i>
+        <p>&nbsp;</p>
         <p>Kompromisslose Automatisierung des Billard Spielbetriebs von der Tournierplanung über die Datenerfassung bis hin zur Übertragung der Spielergebnisse. Das ist das Ziel des Carambus Projektes.</p>
         <p>Eigentlich ist mein Beratungsgewerbe Ullrich-IT-Consulting bereits Geschichte, da ich mich schon seit längerem Im Ruhestand befinde.
         Aber anlässlich des bevorstehenden Jubiläums meines Vereins <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> kam mir die Idee
@@ -699,7 +703,9 @@ de:
         Glücklicherweise
         kam ich über <a href=\"http://gorails.com\">GoRails</a> zu einer idealen Lösung - Stimulus Reflex und Cable Ready!  Carambus ist ein serverbasierte Weblösung mit Single Page Feeling!</p>
         <p>Durch die Verwendung der Startup Scripts "Jumpstart" von GoRails konnte die Entwicklung weiter beschleunigt werden.</p>
-
+        <p>Dr. Gernot Ullrich</p>
+        <p>Ullrich-IT-Consulting</p>
+        </i>
     privacy:
       title: "Datenschutzrichtlinien"
     terms:

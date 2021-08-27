@@ -167,8 +167,10 @@ en:
       get_started: "Get Started"
 
     about:
-      title: "About me"
+      title: "The developer about himself:"
       content: |
+        <i>
+        <p>&nbsp;</p>
         <p>Automation of billiards game operations without compromize from tournament scheduling to data collection and transfer of game results. That is the goal of the Carambus project.</p>
         <p>Actually my consulting business Ullrich-IT-Consulting is already history, because I am retired since a long time.
         But on the occasion of a forthcoming major anniversary of my carambol club <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> the idea came to me
@@ -183,7 +185,9 @@ en:
         Fortunately
         I came across <a href=\"http://gorails.com\">GoRails</a> for an ideal solution - Stimulus Reflex and Cable Ready!  Carambus is a server-based web solution with a single page feeling!
         The project development could even be more excellerated by using their powerfull Jumpstart templates.</p>
-
+        <p>Dr. Gernot Ullrich</p>
+        <p>Ullrich-IT-Consulting</p>
+        </i>
     privacy:
       title: "Privacy Policy"
     terms:
@@ -1026,6 +1030,8 @@ en:
       tournierplanung: Tournament Mgmt
       docs: Documentation
       intro: Introduction
+      about: The Developer
+      version: Versions
       disciplinetournamentplan: 'DisciplineTournamentPlan'
       tournamentplan: 'TournamentPlan'
       tournierabwicklung: Tournament Management
