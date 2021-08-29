@@ -106,7 +106,7 @@
         <div class="player_a w-2/5 <%= options[:switch_colors] ? "dark:bg-black bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_a][:logo]) if options[:player_a][:logo].present? %></div>
-            <div class="flex-nowrap  <%= "lg:pt-4" if options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
+            <div class="flex-nowrap  <%= "lg:pt-4" if table_monitor.tournament_monitor_id.present? && options[:player_a][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_a][:fullname] || "Spieler A" %></div>
           </div>
           <div class="flex flex-col h-5/6 <%= options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_a_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
@@ -221,7 +221,7 @@
         <div class="player_b w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items -center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
-            <div class="flex-nowrap <%= "lg:pt-4" if options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
+            <div class="flex-nowrap <%= "lg:pt-4" if table_monitor.tournament_monitor_id.present? && options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
           <div class="flex flex-col h-5/6 <%= !options[:switch_colors] ? "bg-yellow-500" : "bg-white" %> dark:bg-black border-solid <%= options[:player_b_active] ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" %>">
             <%- if !table_monitor.game_show_result? %>
