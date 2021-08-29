@@ -1,3 +1,4 @@
+require "#{Rails.root}/app/jobs/clock_job"
 # == Schema Information
 #
 # Table name: table_monitors
@@ -310,7 +311,7 @@ class TableMonitor < ApplicationRecord
 
   def set_start_time
     game.update(started_at: Time.now)
-    ::ClockJob.perform_later(game.table_monitor, 5)
+    ClockJob.perform_later(game.table_monitor, 5)
   end
 
   def set_end_time

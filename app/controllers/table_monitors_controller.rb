@@ -1,3 +1,4 @@
+require "#{Rails.root}/app/jobs/clock_job"
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor, only: [:show, :start_game, :edit, :update, :destroy, :set_balls, :toggle_dark_mode]
 
@@ -26,7 +27,7 @@ class TableMonitorsController < ApplicationController
     @current_element = ""
     @table_monitor.evaluate_panel_and_current
     if @table_monitor.andand.playing_game?
-      ::ClockJob.perform_later(@table_monitor, 5)
+      ClockJob.perform_later(@table_monitor, 5)
     end
   end
 
