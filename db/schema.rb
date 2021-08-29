@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_21_134620) do
+ActiveRecord::Schema.define(version: 2021_08_29_135843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -419,6 +419,7 @@ ActiveRecord::Schema.define(version: 2021_07_21_134620) do
     t.string "panel_state", default: "pointer_mode", null: false
     t.string "current_element", default: "pointer_mode", null: false
     t.string "timer_job_id"
+    t.string "clock_job_id"
   end
 
   create_table "tables", force: :cascade do |t|

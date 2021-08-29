@@ -22,9 +22,12 @@ class TableMonitorsController < ApplicationController
   def show
     @navbar = false
     @footer = false
-    @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false
+    @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false
     @current_element = ""
     @table_monitor.evaluate_panel_and_current
+    if @table_monitor.andand.playing_game?
+      ClockJob.perform_later(@table_monitor, 5)
+    end
   end
 
   # GET /table_monitors/new
@@ -33,7 +36,7 @@ class TableMonitorsController < ApplicationController
   end
 
   def toggle_dark_mode
-    session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard]) : false)
+    session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false)
     redirect_to @table_monitor
   end
 

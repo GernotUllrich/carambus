@@ -151,8 +151,8 @@
                 </div>
               <%- else %>
                 <div class="flex h-1/6 w-full flex-row">
-                  <div class="flex w-full items-end justify-end text-gray-500 text-3vw p-2">
-                    <%= table_monitor.render_last_innings(6, gps[0].andand.role) %>
+                  <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                    <%= table_monitor.render_last_innings(60, gps[0].andand.role) %>
                   </div>
                 </div>
               <%- end %>
@@ -165,13 +165,13 @@
           <div class="flex flex-col h-1/6 bg-white dark:bg-gray-800">
             <div class="bg-white dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
               <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
-                <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-4 mr-0 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+                <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-4 mr-0 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
               <% end %>
               <%= link_to scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-                <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 m-2 mr-0 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+                <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 m-2 mr-0 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
               <% end %>
               <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-                <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-400 text-gray-200 inline-block", title: "home" %>
+                <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
               <% end %>
             </div>
             <%- if table_monitor.state_display(I18n.locale).present? %>
@@ -179,7 +179,7 @@
                 <%= table_monitor.state_display(I18n.locale) %>
               <%- end %>
             <%- else %>
-              <div class="bg-white dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-3vw text-center font-bold"><%= Time.now.strftime("%H:%M") %></div>
+              <div id=clock class="bg-white dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-3vw text-center font-bold"><%= Time.now.strftime("%H:%M") %></div>
             <%- end %>
           </div>
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
@@ -268,8 +268,10 @@
                   </div>
                 </div>
               <%- else %>
-                <div class="flex h-1/6 w-full items-end justify-end text-gray-500 text-3vw p-2">
-                  <%= table_monitor.render_last_innings(6, gps[1].andand.role) %>
+                <div class="flex h-1/6 w-full flex-row">
+                  <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                    <%= table_monitor.render_last_innings(60, gps[1].andand.role) %>
+                  </div>
                 </div>
               <%- end %>
             <% else %>
@@ -342,8 +344,10 @@
             <div class="flex h-4/6 text-center text-8vw justify-center items-center font-bold">
               <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
             </div>
-            <div class="flex h-1/6 w-full items-end justify-end text-gray-500 text-1-5vw p-2">
-              <%= table_monitor.render_last_innings(8, gps[0].andand.role) %>
+            <div class="flex h-1/6 w-full flex-row">
+              <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                <%= table_monitor.render_last_innings(60, gps[0].andand.role) %>
+              </div>
             </div>
           </div>
         </div>
@@ -423,8 +427,10 @@
             <div class="flex h-4/6 text-center text-10vw justify-center items-center font-bold">
               <%= options[:player_b][:result].to_i %>
             </div>
-            <div class="flex h-1/6 w-full items-end justify-end text-gray-500 text-1-5vw p-2">
-              <%= table_monitor.render_last_innings(8, gps[1].andand.role) %>
+            <div class="flex h-1/6 w-full flex-row">
+              <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+                <%= table_monitor.render_last_innings(60, gps[1].andand.role) %>
+              </div>
             </div>
           </div>
         </div>

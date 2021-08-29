@@ -16,6 +16,7 @@
 #  timer_start_at        :datetime
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
+#  clock_job_id          :string
 #  game_id               :integer
 #  next_game_id          :integer
 #  table_id              :integer          not null
