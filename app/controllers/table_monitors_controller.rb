@@ -26,7 +26,7 @@ class TableMonitorsController < ApplicationController
     @current_element = ""
     @table_monitor.evaluate_panel_and_current
     if @table_monitor.andand.playing_game?
-      ClockJob.perform_later(@table_monitor, 5)
+      ::ClockJob.perform_later(@table_monitor, 5)
     end
   end
 
