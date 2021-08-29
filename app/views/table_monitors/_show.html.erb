@@ -219,7 +219,7 @@
           </div>
         </div>
         <div class="player_b w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
-          <div class="flex h-1/6 bg-white dark:bg-black items -center">
+          <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap <%= "lg:pt-4" if table_monitor.tournament_monitor_id.present? && options[:player_b][:fullname].andand.length.to_i < 20 %> text-4vw"><%= options[:player_b][:fullname] || "Spieler B" %></div>
           </div>
@@ -390,7 +390,7 @@
           </div>
         </div>
         <div class="w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
-          <div class="flex h-1/6 bg-white dark:bg-black items -center">
+          <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_b][:fullname] %></div>
           </div>
