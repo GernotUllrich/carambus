@@ -1,0 +1,8 @@
+<div class="container mx-auto mt-8 max-w-3xl ">
+  <h1><%= t("home.index.version") %></h1>
+
+  <pre>
+    Rails:    <%= Rails.version %>
+    Carambus: <%= Rails.env == 'development' ? `git log -10` : "#{"tail -1 #{Rails.root}/../../revisions.log"}" %>
+  </pre>
+</div>

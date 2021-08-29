@@ -1,4 +1,3 @@
-require "#{Rails.root}/app/jobs/clock_job"
 # == Schema Information
 #
 # Table name: table_monitors
