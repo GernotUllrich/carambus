@@ -304,7 +304,7 @@ class TableMonitor < ApplicationRecord
 
   def switch_colors
     deep_merge_data!({
-                       switch_colors: !data[:switch_colors].present?,
+                       "switch_colors": !data["switch_colors"].present?,
                      })
   end
 

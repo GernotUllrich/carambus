@@ -18,7 +18,7 @@
     player_b_active: table_monitor.playing_game? && (table_monitor.data["current_inning"].andand["active_player"] == gps[1].andand.role),
     player_a: {
       logo: gps[0].andand.player.andand.club.andand.logo,
-      fullname: gps[0].andand.player.andand.fullname,
+      fullname: table_monitor.tournament_monitor_id.present? ? gps[0].andand.player.andand.fullname : gps[0].andand.player.andand.simple_firstname,
       balls_goal: table_monitor.data[gps[0].andand.role].andand["balls_goal"].to_i,
       result: table_monitor.data[gps[0].andand.role].andand["result"].to_i,
       hs: table_monitor.data[gps[0].andand.role].andand["hs"].to_i,
@@ -28,7 +28,7 @@
     },
     player_b: {
       logo: gps[1].andand.player.andand.club.andand.logo,
-      fullname: gps[1].andand.player.andand.fullname,
+      fullname: table_monitor.tournament_monitor_id.present? ? gps[1].andand.player.andand.fullname : gps[1].andand.player.andand.simple_firstname,
       balls_goal: table_monitor.data[gps[1].andand.role].andand["balls_goal"].to_i,
       result: table_monitor.data[gps[1].andand.role].andand["result"].to_i,
       hs: table_monitor.data[gps[1].andand.role].andand["hs"].to_i,

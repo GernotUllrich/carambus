@@ -39,4 +39,8 @@ class Player < ApplicationRecord
   def fullname
     "#{lastname}, #{firstname}"
   end
+
+  def simple_firstname
+    firstname.gsub("Dr.", "")
+  end
 end
