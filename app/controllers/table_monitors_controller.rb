@@ -20,6 +20,10 @@ class TableMonitorsController < ApplicationController
 
   # GET /table_monitors/1
   def show
+    if @table_monitor.game_id.blank?
+      redirect_to location_path(@table_monitor.table.location, sb_state: "start", table_id: @table_monitor.table.id)
+      return
+    end
     @navbar = false
     @footer = false
     @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false

@@ -731,9 +731,13 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_table_monitor
-    info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
-    force_we_re_ready!
-    save!
-    update(game_id: nil, nnn: nil, panel_state: "pointer_mode", data: {})
+    if tournament_monitor.present? && !tournament_monitor.tournament.manual_assignment?
+      info = "+++ 8 - IGNORING table_monitor#reset_table_monitor - cannot reset managed tournament"; DebugInfo.instance.update(info: info); Rails.logger.info info
+    else
+      info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
+      force_we_re_ready!
+      save!
+      update(tournament_monitor_id: nil, game_id: nil, nnn: nil, panel_state: "pointer_mode", data: {})
+    end
   end
 end
