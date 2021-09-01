@@ -309,7 +309,7 @@
   <%- else %>
     <div class="flex h-full bg-white dark:bg-black rounded shadow">
       <div class="flex w-full bg-gray-200">
-        <div class="w-2/5 <%= options[:switch_colors] ? "dark:bg-black bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
+        <div class="w-2/5 <%= options[:switch_colors] ? "bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_a][:logo]) if options[:player_a][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_a][:fullname] %></div>
@@ -321,7 +321,7 @@
                   <%= options[:player_a_active] ? table_monitor.data["playera"].andand["innings_redo_list"].andand[-1] : "" %>
                 </div>
                 <div class="text-1vw">
-                  <%- to_play = options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i - (options[:player_a][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999 %>
+                  <%- to_play = options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal].to_i - (options[:player_a][:result].to_i + Array(table_monitor.data["playera"].andand["innings_redo_list"])[-1].to_i) : 9999 %>
                   <%- if options[:player_a_active] && to_play <= 3 %>
                     pour <%= to_play %>
                   <%- end %>
@@ -345,7 +345,7 @@
               <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
             </div>
             <div class="flex h-1/6 w-full flex-row">
-              <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+              <div class="flex w-full items-end justify-end text-gray-500 text-vw p-2 flex-nowrap">
                 <%= table_monitor.render_last_innings(60, gps[0].andand.role) %>
               </div>
             </div>
@@ -370,7 +370,7 @@
             </div>
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 min-w-1/2 flex-row space-x-3 rounded-full">
-                <%- if table_monitor.playing_game? %>
+                <%- if table_monitor.playing_game? && options[:timeout].to_i > 0 %>
                   <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#stop", id: options[:id] }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -3px;", id: "stop", tabindex: 11 do %>
                     <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
                   <%- end %>
@@ -389,7 +389,7 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 <%= !options[:switch_colors] ? "dark:bg-black bg-white dark:text-yellow-500" : "dark:text-white bg-yellow-500" %> dark:bg-black">
+        <div class="w-2/5 <%= !options[:switch_colors] ? "bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500"  %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_b][:fullname] %></div>
@@ -414,7 +414,7 @@
                   <%= options[:player_b_active] ? table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1] : "" %>
                 </div>
                 <div class="text-1vw">
-                  <%- to_play = options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) %>
+                  <%- to_play = options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal].to_i - (options[:player_b][:result].to_i + Array(table_monitor.data["playerb"].andand["innings_redo_list"])[-1].to_i) : 9999 %>
                   <%- if table_monitor.follow_up? %>
                     Nachstoss
                   <%- end %>
@@ -424,11 +424,11 @@
                 </div>
               </div>
             </div>
-            <div class="flex h-4/6 text-center text-10vw justify-center items-center font-bold">
-              <%= options[:player_b][:result].to_i %>
+            <div class="flex h-4/6 text-center text-8vw justify-center items-center font-bold">
+              <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
             </div>
             <div class="flex h-1/6 w-full flex-row">
-              <div class="flex w-full items-end justify-end text-gray-500 text-2vw p-2 flex-nowrap">
+              <div class="flex w-full items-end justify-end text-gray-500 text-vw p-2 flex-nowrap">
                 <%= table_monitor.render_last_innings(60, gps[1].andand.role) %>
               </div>
             </div>
