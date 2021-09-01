@@ -702,6 +702,7 @@ en:
     club_id: club id
     lastname: lastname
     firstname: firstname
+    nickname: nickname
     title: title
     created_at: created at
     updated_at: updated at

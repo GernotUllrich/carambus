@@ -6,6 +6,7 @@
 #  firstname  :string
 #  guest      :boolean          default(FALSE), not null
 #  lastname   :string
+#  nickname   :string
 #  title      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null

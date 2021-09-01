@@ -6,6 +6,7 @@
 #  firstname  :string
 #  guest      :boolean          default(FALSE), not null
 #  lastname   :string
+#  nickname   :string
 #  title      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -28,6 +29,7 @@ class Player < ApplicationRecord
 
   COLUMN_NAMES = {#TODO FILTERS
                   "Id" => "players.id",
+                  "Nickname" => "players.nickname",
                   "Firstname" => "players.firstname",
                   "Lastname" => "players.lastname",
                   "Title" => "players.title",
@@ -41,6 +43,6 @@ class Player < ApplicationRecord
   end
 
   def simple_firstname
-    firstname.gsub("Dr.", "")
+    nickname.presence || firstname.gsub("Dr.", "")
   end
 end

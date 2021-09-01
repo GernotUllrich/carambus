@@ -6,7 +6,7 @@ class PlayersController < ApplicationController
   def index
     @players = Player.joins(:club => :region).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @players = apply_filters(@players, Player::COLUMN_NAMES, "(players.firstname ilike :search) or (players.lastname ilike :search) or (regions.shortname ilike :search) or (clubs.shortname ilike :search)")
+      @players = apply_filters(@players, Player::COLUMN_NAMES, "(players.firstname ilike :search) or (players.nickname ilike :search) or (players.lastname ilike :search) or (regions.shortname ilike :search) or (clubs.shortname ilike :search)")
     end
     @pagy, @players = pagy(@players)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
@@ -71,6 +71,6 @@ class PlayersController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def player_params
-    params.require(:player).permit(:ba_id, :club_id, :guest, :lastname, :firstname, :title)
+    params.require(:player).permit(:ba_id, :club_id, :guest, :lastname, :firstname, :nickname, :title)
   end
 end

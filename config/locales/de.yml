@@ -459,6 +459,7 @@ de:
     club_id: Club
     lastname: Nachname
     firstname: Vorname
+    nickname: Spitzname
     title: Titel
   user:
     id: id
@@ -490,8 +491,8 @@ de:
     invitations_count: invitations count
     preferred_language: preferred language
     username: username
-    firstname: firstname
-    lastname: lastname
+    firstname: Vorname
+    lastname: Nachname
     player_id: player id
     sign_in_count: sign in count
     current_sign_in_at: current sign in at

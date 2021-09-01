@@ -4,8 +4,9 @@
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :ba_id, 'Ba', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "clubs.shortname", 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "regions.shortname", 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname, 'Lastname', class: 'text-gray-700 dark:text-gray-200' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :firstname, 'Firstname', class: 'text-gray-700 dark:text-gray-200' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname, t('player.lastname'), class: 'text-gray-700 dark:text-gray-200' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :nickname, t('player.nickname'), class: 'text-gray-700 dark:text-gray-200' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :firstname, t('player.firstname'), class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :title, 'Title', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
   </tr>
@@ -18,6 +19,7 @@
       <td class="p-3"><%= link_to player.club.shortname, club_path(player.club) if player.andand.club.present? %></td>
       <td class="p-3"><%= link_to player.club.region.shortname, region_path(player.club.region) if player.andand.club.andand.region.present? %></td>
       <td class="p-3"><%= player.lastname %></td>
+      <td class="p-3"><%= player.nickname %></td>
       <td class="p-3"><%= player.firstname %></td>
       <td class="p-3"><%= player.title %></td>
 

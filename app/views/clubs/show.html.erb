@@ -84,6 +84,7 @@
               <th><%= t('season_participation.player_id') %></th>
               <th><%= t('season_participation.club_id') %></th>
               <th><%= t('player.firstname') %></th>
+              <th><%= t('player.nickname') %></th>
               <th><%= t('player.lastname') %></th>
               <th><%= t('player.title') %></th>
             </tr>
@@ -94,6 +95,7 @@
                 <td><%= link_to player.ba_id, player_path(player) %></td>
                 <td><%= link_to @club.shortname, club_path(@club) %></td>
                 <td><%= player.firstname %></td>
+                <td><%= player.nickname %></td>
                 <td><%= player.lastname %></td>
                 <td><%= player.title %></td>
               </tr>

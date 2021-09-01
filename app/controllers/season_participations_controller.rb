@@ -7,7 +7,7 @@ class SeasonParticipationsController < ApplicationController
   def index
     @season_participations = SeasonParticipation.joins(:season, :player, :club).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @season_participations = apply_filters(@season_participations, SeasonParticipation::COLUMN_NAMES, "(players.lastname ilike :search) or (players.firstname ilike :search) or (clubs.name ilike :search) or (clubs.shortname ilike :search) or (seasons.name ilike :search)")
+      @season_participations = apply_filters(@season_participations, SeasonParticipation::COLUMN_NAMES, "(players.lastname ilike :search) or (players.nickname ilike :search) or (players.firstname ilike :search) or (clubs.name ilike :search) or (clubs.shortname ilike :search) or (seasons.name ilike :search)")
     end
     @pagy, @season_participations = pagy(@season_participations)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
