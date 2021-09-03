@@ -565,7 +565,7 @@ class TournamentMonitor < ApplicationRecord
           r_no = executor_params[k].keys.select { |kk| kk =~ /r\d+/ }.first.match(/r(\d+)/)[1].to_i
           if (current_round == r_no)
             tno_str, players = executor_params[k]["r#{r_no}"].to_a[0]
-            Tournament.logger.info "+++012B r_no, tno_str, players = #{r_no}, #{tno_str}, #{players}"
+            Tournament.logger.info "+++012B k, r_no, tno_str, players = #{k}, #{r_no}, #{tno_str}, #{players}"
             if mm = tno_str.match(/t(\d+)/)
               t_no = mm[1]
             elsif mm = tno_str.match(/t-rand-(\d+)-(\d+)/)

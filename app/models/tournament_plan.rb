@@ -1077,7 +1077,7 @@ class TournamentPlan < ApplicationRecord
       },
       "hf1": {
         "r6": {
-          "t-rand-1-4": [
+          "t-rand-1-2": [
             "g1.rk1",
             "g2.rk2"
           ]
@@ -1085,7 +1085,7 @@ class TournamentPlan < ApplicationRecord
       },
       "hf2": {
         "r6": {
-          "t-rand-1-4": [
+          "t-rand-1-2": [
             "g2.rk1",
             "g1.rk2"
           ]
@@ -1212,7 +1212,7 @@ class TournamentPlan < ApplicationRecord
       },
       "hf1": {
         "r6": {
-          "t-rand-1-4": [
+          "t-rand-1-2": [
             "g1.rk1",
             "g2.rk2"
           ]
@@ -1220,7 +1220,7 @@ class TournamentPlan < ApplicationRecord
       },
       "hf2": {
         "r6": {
-          "t-rand-1-4": [
+          "t-rand-1-2": [
             "g2.rk1",
             "g1.rk2"
           ]

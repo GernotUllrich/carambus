@@ -55,7 +55,7 @@ matchbox-keyboard
 https://pimylifeup.com/raspberry-pi-on-screen-keyboard/
 
 sudo apt update
-sudo apt-upgrade
+sudo apt upgrade
 sudo apt install matchbox-keyboard
 on desktop:
 Accessories => Keyboard
