@@ -204,53 +204,12 @@ class TournamentMonitor < ApplicationRecord
       "total" => {},
       "groups" => {
         "total" => {},
-        "group1" => {},
-        "group2" => {},
-        "group3" => {},
-        "group4" => {},
-        "group5" => {},
-        "group6" => {},
-        "group7" => {},
-        "group8" => {},
       },
       "endgames" => {
         "total" => {},
         "groups" => {
           "total" => {},
-          "fg1" => {},
-          "fg2" => {},
-          "fg3" => {},
-          "fg4" => {},
         },
-        "af" => {},
-        "af1" => {},
-        "af2" => {},
-        "af3" => {},
-        "af4" => {},
-        "af5" => {},
-        "af6" => {},
-        "af7" => {},
-        "af8" => {},
-
-        "qf" => {},
-        "qf1" => {},
-        "qf2" => {},
-        "qf3" => {},
-        "qf4" => {},
-
-        "hf" => {},
-        "hf1" => {},
-        "hf2" => {},
-
-        "fin" => {},
-
-        "p<3-4>" => {},
-        "p<5-6>" => {},
-        "p<7-8>" => {},
-
-        "p<5-8>" => {},
-        "p<5-8>1" => {},
-        "p<5-8>2" => {},
       }
     }
     GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_id }).each do |gp|
@@ -261,19 +220,23 @@ class TournamentMonitor < ApplicationRecord
           group_no = m[1]
           add_result_to(gp, rankings["total"])
           add_result_to(gp, rankings["groups"]["total"])
+          rankings["groups"]["group#{group_no}"] ||= {}
           add_result_to(gp, rankings["groups"]["group#{group_no}"])
         elsif m = game.gname.match(/^fg(\d+):(\d+)-(\d+)$/)
           group_no = m[1]
           add_result_to(gp, rankings["total"])
           add_result_to(gp, rankings["endgames"]["total"])
           add_result_to(gp, rankings["endgames"]["groups"]["total"])
+          rankings["endgames"]["groups"]["fg#{group_no}"] ||= {}
           add_result_to(gp, rankings["endgames"]["groups"]["fg#{group_no}"])
         elsif m = game.gname.match(/^(af|qf|hf|fin|p<(?:\d+)(?:\.\.|-)(?:\d+)>)(\d+)?$/)
           level = m[1]
           group_no = m[2]
           add_result_to(gp, rankings["total"])
           add_result_to(gp, rankings["endgames"]["total"])
+          rankings["endgames"]["#{level}"] ||= {}
           add_result_to(gp, rankings["endgames"]["#{level}"])
+          rankings["endgames"]["#{level}#{group_no}"] ||= {}
           add_result_to(gp, rankings["endgames"]["#{level}#{group_no}"])
         end
       end
@@ -371,7 +334,8 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def finals_finished?
-    n_games = tournament.games.where("games.id >= #{Game::MIN_ID}").count
+    executor_params = JSON.parse(tournament.tournament_plan.executor_params)
+    n_games = executor_params["GK"] || tournament.games.where("games.id >= #{Game::MIN_ID}").count
     n_games_done = tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(ended_at: nil).count
     n_games == n_games_done
   end
@@ -470,6 +434,7 @@ class TournamentMonitor < ApplicationRecord
       @placements = data["placements"].presence || {}
       ordered_table_nos = {}
       admin_table_nos = {}
+
       executor_params.keys.each do |k|
         if m = k.match(/g(\d+)/)
           Tournament.logger.info "+++001 k,v = [#{k} => #{executor_params[k].inspect}]"
@@ -590,6 +555,7 @@ class TournamentMonitor < ApplicationRecord
             do_placement(game, r_no, t_no)
           end
         elsif k == "RK"
+        elsif k == "GK"
         else
           #TournamentPlan Error
           Tournament.logger.info "[tmon-populate_tables] FATAL ERROR TournamentPlan Error - ROLLBACK - #{e} #{e.backtrace.join("\n")}"

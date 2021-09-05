@@ -112,6 +112,10 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  def internal_name
+    read_attribute(:name)
+  end
+
   def on_create
     info = "+++ 8xxx - table_monitor#on_create"; DebugInfo.instance.update(info: info); Rails.logger.info info
   end

@@ -308,8 +308,8 @@ class TableMonitorReflex < ApplicationReflex
     begin
       morph :nothing
       @table_monitor = TableMonitor.find(element.dataset[:id])
-      t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
-      switch_to = @table_monitor.tournament_monitor.table_monitors.map { |tm| tm.name.match(/table(\d+)/).andand[1].to_i }.sort
+      t_no = @table_monitor.internal_name.match(/table(\d+)/).andand[1].to_i
+      switch_to = @table_monitor.tournament_monitor.table_monitors.map { |tm| tm.internal_name.match(/table(\d+)/).andand[1].to_i }.sort
       ix = switch_to.index(t_no)
       ix2 = ix + switch_to.length
       switch_to = switch_to + switch_to
@@ -324,7 +324,9 @@ class TableMonitorReflex < ApplicationReflex
       tm2_data = tm2.data.dup
       tm1.assign_attributes(game_id: game2.id, data: tm2_data)
       tm2.assign_attributes(game_id: game1.id, data: tm1_data)
-      @table_monitor.save
+      tm1.save
+      tm2.save
+      @table_monitor.reload
     rescue Exception => e
       Rails.logger.info ";;; up #{e} #{e.backtrace.join("\n")}"
     end
@@ -334,8 +336,8 @@ class TableMonitorReflex < ApplicationReflex
     begin
       morph :nothing
       @table_monitor = TableMonitor.find(element.dataset[:id])
-      t_no = @table_monitor.name.match(/table(\d+)/).andand[1].to_i
-      switch_to = @table_monitor.tournament_monitor.table_monitors.map { |tm| tm.name.match(/table(\d+)/).andand[1].to_i }.sort
+      t_no = @table_monitor.internal_name.match(/table(\d+)/).andand[1].to_i
+      switch_to = @table_monitor.tournament_monitor.table_monitors.map { |tm| tm.internal_name.match(/table(\d+)/).andand[1].to_i }.sort
       ix = switch_to.index(t_no)
       switch_to = switch_to + switch_to
       new_t_no = switch_to[ix + 1]
@@ -351,6 +353,7 @@ class TableMonitorReflex < ApplicationReflex
       tm2.assign_attributes(game_id: game1.id, data: tm1_data)
       tm1.save
       tm2.save
+      @table_monitor.reload
     rescue Exception => e
       Rails.logger.info ";;; down #{e} #{e.backtrace.join("\n")}"
     end
