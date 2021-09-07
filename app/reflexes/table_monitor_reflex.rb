@@ -210,6 +210,7 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     @table_monitor = TableMonitor.find(element.dataset[:id])
     @table_monitor.panel_state = "inputs"
+    @table_monitor.current_element = "minus_one"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls_to_current_players_inning(-1)
     @table_monitor.save
@@ -219,8 +220,19 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     @table_monitor = TableMonitor.find(element.dataset[:id])
     @table_monitor.panel_state = "inputs"
+    @table_monitor.current_element = "minus_ten"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls_to_current_players_inning(-10)
+    @table_monitor.save
+  end
+
+  def minus_five
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.dataset[:id])
+    @table_monitor.panel_state = "inputs"
+    @table_monitor.current_element = "minus_five"
+    @table_monitor.reset_timer!
+    @table_monitor.add_n_balls_to_current_players_inning(-5)
     @table_monitor.save
   end
 
@@ -284,6 +296,22 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.save
     rescue Exception => e
       Rails.logger.info("[add_ten] #{e} #{e.backtrace.join("\n")}")
+    end
+  end
+
+  def add_five
+    begin
+      morph :nothing
+      @table_monitor = TableMonitor.find(element.dataset[:id])
+      @table_monitor.panel_state = "inputs"
+      @table_monitor.current_element = "add_five"
+      @table_monitor.reset_timer!
+      @table_monitor.add_n_balls_to_current_players_inning(5)
+      @table_monitor.do_play
+      Rails.logger.info("[add_five] ++++1++++")
+      @table_monitor.save
+    rescue Exception => e
+      Rails.logger.info("[add_five] #{e} #{e.backtrace.join("\n")}")
     end
   end
 
