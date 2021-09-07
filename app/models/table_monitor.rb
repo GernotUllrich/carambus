@@ -205,7 +205,7 @@ class TableMonitor < ApplicationRecord
 
   def render_innings_list(role)
     innings = data["playera"]["innings"].to_i
-    cols = [(innings/15.0).ceil, 2].max
+    cols = [(innings / 15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
     ret = ["<style>
     table, th, td {
@@ -233,9 +233,9 @@ class TableMonitor < ApplicationRecord
     (0..14).each do |ix|
       ret << "<tr>"
       (1..cols).each_with_index do |col, icol|
-        ret << "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1 + (icol*15)}</span></td>
-<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol*15)) == sums.length ? "GD" : show_innings[ix + (icol*15)]}</span></td>
-<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol*15)) == sums.length ? "%0.2f" % (sums.last.to_i / innings.to_f) : (ix + (icol*15)) == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + (icol*15)]}</strong>" : sums[ix + (icol*15)]}</span></td>"
+        ret << "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1 + (icol * 15)}</span></td>
+<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol * 15)) == sums.length ? "GD" : show_innings[ix + (icol * 15)]}</span></td>
+<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol * 15)) == sums.length ? "%0.2f" % (sums.last.to_i / innings.to_f) : (ix + (icol * 15)) == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + (icol * 15)]}</strong>" : sums[ix + (icol * 15)]}</span></td>"
       end
       ret << "</tr>"
     end
@@ -413,15 +413,17 @@ class TableMonitor < ApplicationRecord
         current_role = data["current_inning"]["active_player"]
         data[current_role]["innings_redo_list"] = [0] if data[current_role]["innings_redo_list"].empty?
         to_play = data[current_role].andand["balls_goal"].to_i <= 0 ? 99999 : data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i + data[current_role]["innings_redo_list"][-1].to_i)
-        add = [n, to_play].min
-        data[current_role]["innings_redo_list"][-1] = [(data[current_role]["innings_redo_list"][-1].to_i + add), 0].max
-        if add == to_play
-          data_will_change!
-          save
-          terminate_current_inning
-        else
-          #data[current_role]["innings_redo_list"].pop if Array(data[current_role]["innings_redo_list"]).last.to_i > 10000
-          data_will_change!
+        if n <= to_play
+          add = [n, to_play].min
+          data[current_role]["innings_redo_list"][-1] = [(data[current_role]["innings_redo_list"][-1].to_i + add), 0].max
+          if add == to_play
+            data_will_change!
+            save
+            terminate_current_inning
+          else
+            #data[current_role]["innings_redo_list"].pop if Array(data[current_role]["innings_redo_list"]).last.to_i > 10000
+            data_will_change!
+          end
         end
         # update(
         #   panel_state: "pointer_mode",
@@ -532,7 +534,7 @@ class TableMonitor < ApplicationRecord
     begin
       @msg = nil
       current_role = data["current_inning"]["active_player"]
-        if playing_game? && (data["innings_goal"].to_i == 0 || data[current_role]["innings"].to_i < data["innings_goal"].to_i)
+      if playing_game? && (data["innings_goal"].to_i == 0 || data[current_role]["innings"].to_i < data["innings_goal"].to_i)
         n_balls = Array(data[current_role]["innings_redo_list"]).pop.to_i
         data[current_role]["innings_list"] ||= []
         data[current_role]["innings_redo_list"] ||= []
@@ -618,38 +620,38 @@ class TableMonitor < ApplicationRecord
   end
 
   def start_game(options = {})
-      @game = game
-      if @game.blank?
-        @game = Game.create!(table_monitor: self)
-      else
-        @game.game_participations.destroy_all
-      end
-      reload
-      @game.update(data: {})
-      if (options["player_a_id"].to_i > 0 && options["player_a_id"] == options["player_b_id"])
-        return false
-      end
-      @game.game_participations.create!(player: (options["player_a_id"].to_i > 0 ? Player.find(options["player_a_id"]) : nil), role: "playera")
-      @game.game_participations.create!(player: (options["player_b_id"].to_i > 0 ? Player.find(options["player_b_id"]) : nil), role: "playerb")
+    @game = game
+    if @game.blank?
+      @game = Game.create!(table_monitor: self)
+    else
+      @game.game_participations.destroy_all
+    end
+    reload
+    @game.update(data: {})
+    if (options["player_a_id"].to_i > 0 && options["player_a_id"] == options["player_b_id"])
+      return false
+    end
+    @game.game_participations.create!(player: (options["player_a_id"].to_i > 0 ? Player.find(options["player_a_id"]) : nil), role: "playera")
+    @game.game_participations.create!(player: (options["player_b_id"].to_i > 0 ? Player.find(options["player_b_id"]) : nil), role: "playerb")
 
-      result = {
-        "timeouts" => options["timeouts"].to_i,
-        "timeout" => options["timeout"].to_i,
-        "innings_goal" => options["innings_goal"],
-        "playera" => {
-          "balls_goal" => options["balls_goal_a"],
-          "tc" => options["timeouts"].to_i,
-          "discipline" => options["discipline_a"],
-        },
-        "playerb" => {
-          "balls_goal" => options["balls_goal_b"],
-          "tc" => options["timeouts"].to_i,
-          "discipline" => options["discipline_b"],
-        },
-      }
-      initialize_game
-      deep_merge_data!(result)
-      return true
+    result = {
+      "timeouts" => options["timeouts"].to_i,
+      "timeout" => options["timeout"].to_i,
+      "innings_goal" => options["innings_goal"],
+      "playera" => {
+        "balls_goal" => options["balls_goal_a"],
+        "tc" => options["timeouts"].to_i,
+        "discipline" => options["discipline_a"],
+      },
+      "playerb" => {
+        "balls_goal" => options["balls_goal_b"],
+        "tc" => options["timeouts"].to_i,
+        "discipline" => options["discipline_b"],
+      },
+    }
+    initialize_game
+    deep_merge_data!(result)
+    return true
   end
 
   def revert_players
