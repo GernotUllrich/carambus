@@ -108,7 +108,7 @@
             <%- tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
               <div class="flex flex-col items-center">
                 <%- if table.table_monitor.present? %>
-                  <%- if table.table_monitor.tournament_monitor.present? %>
+                  <%- if table.table_monitor.reload.tournament_monitor.present? %>
                     <%= link_to table.name, table_monitor_path(table.table_monitor), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 flex btn btn-primary ring-4 h-full text-2vw lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.table_monitor.id}", tabindex: 1 %>
                     <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= table.table_monitor.tournament_monitor.tournament.title %></p>
                     <%- if table.table_monitor.game.present? %>

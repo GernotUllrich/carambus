@@ -19,7 +19,6 @@
 #  clock_job_id          :string
 #  game_id               :integer
 #  next_game_id          :integer
-#  table_id              :integer          not null
 #  timer_job_id          :string
 #  tournament_monitor_id :integer
 #
@@ -31,7 +30,7 @@ class TableMonitor < ApplicationRecord
   include AASM
   belongs_to :tournament_monitor, optional: true
   belongs_to :game, optional: true
-  belongs_to :table
+  has_one :table, :dependent => :nullify
   has_paper_trail
 
   before_create :on_create

@@ -39,7 +39,7 @@
           </tr>
           </thead>
           <tbody>
-          <% tournament_monitor.andand.table_monitors.andand.includes(game: {game_participations: :player}).andand.order(:name).andand.each do |tm| %>
+          <% tournament_monitor.andand.table_monitors.joins(:table).andand.includes(game: {game_participations: :player}).andand.order("tables.name asc").andand.each do |tm| %>
             <% if tm.game.present? %>
               <% tm.allow_change_tables = true %>
               <% tm.game.game_participations.includes(:player).order(:role).each_with_index do |gp, ix| %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_07_214403) do
+ActiveRecord::Schema.define(version: 2021_09_08_094135) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -427,7 +427,6 @@ ActiveRecord::Schema.define(version: 2021_09_07_214403) do
     t.datetime "timer_start_at"
     t.datetime "timer_finish_at"
     t.datetime "timer_halt_at"
-    t.integer "table_id", null: false
     t.integer "nnn"
     t.string "panel_state", default: "pointer_mode", null: false
     t.string "current_element", default: "pointer_mode", null: false
@@ -443,6 +442,7 @@ ActiveRecord::Schema.define(version: 2021_09_07_214403) do
     t.string "ip_address"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "table_monitor_id"
   end
 
   create_table "tournament_monitors", force: :cascade do |t|

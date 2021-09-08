@@ -2,14 +2,15 @@
 #
 # Table name: tables
 #
-#  id            :bigint           not null, primary key
-#  data          :text
-#  ip_address    :string
-#  name          :string
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  location_id   :integer
-#  table_kind_id :integer
+#  id               :bigint           not null, primary key
+#  data             :text
+#  ip_address       :string
+#  name             :string
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  location_id      :integer
+#  table_kind_id    :integer
+#  table_monitor_id :integer
 #
 # Foreign Keys
 #

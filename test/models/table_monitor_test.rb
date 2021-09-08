@@ -19,7 +19,6 @@
 #  clock_job_id          :string
 #  game_id               :integer
 #  next_game_id          :integer
-#  table_id              :integer          not null
 #  timer_job_id          :string
 #  tournament_monitor_id :integer
 #

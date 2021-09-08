@@ -418,8 +418,14 @@ class TournamentMonitor < ApplicationRecord
     save!
     table_ids = tournament.data[:table_ids]
     (1..tournament.tournament_plan.tables).each do |t_no|
-      table_monitor = self.reload.table_monitors.find_or_create_by!(table_id: table_ids[t_no - 1])
-      table_monitor.update(name: "table#{t_no}")
+      table = Table.find(table_ids[t_no - 1])
+      table_monitor = table.table_monitor
+      if table_monitor.andand.game.present?
+        table_monitor.reset_table_monitor
+      end
+      if table_monitor.blank?
+        table.create_table_monitor(tournament_monitor: self)
+      end
     end
     reload
     Tournament.logger.info "state:#{state}...[tmon-initialize_table_monitors]"
@@ -585,7 +591,8 @@ class TournamentMonitor < ApplicationRecord
           @placements["round#{r_no}"] ||= {}
           @placements["round#{r_no}"]["table#{t_no}"] = new_game.id
           Tournament.logger.info "DO PLACEMENT round=#{r_no} table#{t_no} assign_game(#{new_game.gname})"
-          @table_monitor = table_monitors.find_by_table_id(table_ids[t_no - 1])
+          @table = Table.find(table_ids[t_no - 1])
+          @table_monitor = @table.table_monitor || @table.create_table_monitor()
           old_game = @table_monitor.game
           if old_game.present?
             @table_monitor.data_will_change!
@@ -602,6 +609,7 @@ class TournamentMonitor < ApplicationRecord
             @table_monitor.game_id = nil
             @table_monitor.save!
           end
+          @table_monitor.update(tournament_monitor: self)
           @table_monitor.andand.assign_game(new_game.reload)
         else
           info = "+++ 8a - tournament_monitor#do_placement FAILED new_game.data: #{new_game.data.inspect}, @placements: #{@placements.inspect}, new_game: #{new_game.andand.attributes.inspect}, current_round: #{current_round}"; DebugInfo.instance.update(info: info); Rails.logger.info info

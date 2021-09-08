@@ -107,7 +107,7 @@
             <%- found = true %>
             <%= link_to t('continue'), placement_location_path(@location, tournament_id: tournament.id, table_id: @table.id), method: :post, data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{@table.id}", tabindex: 1 %>
           <%- else %>
-            <%- tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: tournament.discipline_id }).each do |table| %>
+            <%- tournament.tournament_location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: tournament.discipline_id }).order("tables.name asc").each do |table| %>
               <%- found = true %>
               <div class="flex flex-col">
               <%= link_to table.name, placement_location_path(@location, tournament_id: tournament.id, table_id: table.id), method: :post, data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
