@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_04_211903) do
+ActiveRecord::Schema.define(version: 2021_09_07_214403) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -523,6 +523,7 @@ ActiveRecord::Schema.define(version: 2021_09_04_211903) do
     t.integer "location_id"
     t.boolean "manual_assignment", default: false
     t.integer "timeouts", default: 0, null: false
+    t.boolean "admin_controlled", default: false, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

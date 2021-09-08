@@ -122,7 +122,11 @@ class TableMonitor < ApplicationRecord
 
   def state_display(locale)
     @locale = locale || I18n.default_locale
-    I18n.t("table_monitor.status.#{state}")
+    if state == "game_show_result"
+      I18n.t("table_monitor.status.game_show_result", wait_check: player_controlled? ? "OK?" : I18n.t("table_monitor.status.wait_check"))
+    else
+      I18n.t("table_monitor.status.#{state}")
+    end
   end
 
   def log_state_change
@@ -558,6 +562,10 @@ class TableMonitor < ApplicationRecord
     rescue Exception => e
       Tournament.logger.info "#{e}, #{e.backtrace.join("\n")}"
     end
+  end
+
+  def player_controlled?
+    tournament_monitor.blank? || tournament_monitor.tournament.blank? || tournament_monitor.tournament.player_controlled?
   end
 
   def follow_up?

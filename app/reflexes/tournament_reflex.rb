@@ -54,6 +54,13 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:timeout, val)
   end
 
+  def admin_controlled
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:admin_controlled, val)
+  end
+
   def time_out_warm_up_first_min
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])

@@ -8,6 +8,7 @@ require 'net/http'
 #
 #  id                             :bigint           not null, primary key
 #  accredation_end                :datetime
+#  admin_controlled               :boolean          default(FALSE), not null
 #  age_restriction                :string
 #  ba_state                       :string
 #  balls_goal                     :integer
@@ -185,6 +186,11 @@ class Tournament < ApplicationRecord
       return ix+1 if table_id.to_i == table.id
     end
     return 1
+  end
+
+  def player_controlled?
+    # players can advance from Game-Finished-OK without admin or referee interaction?
+    !admin_controlled?
   end
 
   def scrape_single_tournament(opts = {})

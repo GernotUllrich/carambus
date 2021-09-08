@@ -116,7 +116,7 @@
                       </td>
                     <% end %>
                   <% else %>
-                    <td colspan=6><%= I18n.t("table_monitor.status.#{tm.state}") %></td>
+                    <td colspan=6><%= link_to I18n.t("table_monitor.status.#{tm.state}", wait_check: tm.player_controlled? ? "OK?" : I18n.t("table_monitor.status.wait_check")), evaluate_result_table_monitor_path(tm), method: :post %></td>
                   <% end %>
                 </tr>
               <% end %>

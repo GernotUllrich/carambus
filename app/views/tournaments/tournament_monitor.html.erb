@@ -64,6 +64,9 @@
         <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeouts" %></span><span id="timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="timeouts"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">

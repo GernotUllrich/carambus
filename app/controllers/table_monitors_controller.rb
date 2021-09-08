@@ -1,5 +1,5 @@
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :start_game, :edit, :update, :destroy, :set_balls, :toggle_dark_mode]
+  before_action :set_table_monitor, only: [:show, :start_game, :edit, :update, :destroy, :evaluate_result, :set_balls, :toggle_dark_mode]
 
   def set_balls
     unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
@@ -55,6 +55,11 @@ class TableMonitorsController < ApplicationController
     else
       redirect_to "/locations/#{table.location.id}?sb_state=free_game&table_id=#{table.id}"
     end
+  end
+
+  def evaluate_result
+    @table_monitor.evaluate_result
+    redirect_to tournament_monitor_path(@table_monitor.tournament_monitor)
   end
 
   # GET /table_monitors/1/edit
