@@ -149,7 +149,7 @@ class TableMonitor < ApplicationRecord
         #TableMonitorLaterJob.perform_later(self)
         full_screen_html = ApplicationController.render(
           partial: "table_monitors/show",
-          locals: { table_monitor: self, full_screen: true }
+          locals: { table_monitor: self.reload, full_screen: true }
         )
         cable_ready["table-monitor-stream"].inner_html(
           selector: "#full_screen_table_monitor_#{id}",
@@ -744,13 +744,17 @@ class TableMonitor < ApplicationRecord
   end
 
   def reset_table_monitor
-    if tournament_monitor.present? && !tournament_monitor.tournament.manual_assignment?
-      info = "+++ 8 - IGNORING table_monitor#reset_table_monitor - cannot reset managed tournament"; DebugInfo.instance.update(info: info); Rails.logger.info info
-    else
-      info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
-      force_we_re_ready!
-      save!
-      update(tournament_monitor_id: nil, game_id: nil, nnn: nil, panel_state: "pointer_mode", data: {})
+    begin
+      if tournament_monitor.present? && !tournament_monitor.tournament.manual_assignment?
+        info = "+++ 8 - IGNORING table_monitor#reset_table_monitor - cannot reset managed tournament"; DebugInfo.instance.update(info: info); Rails.logger.info info
+      else
+        info = "+++ 8 - table_monitor#reset_table_monitor"; DebugInfo.instance.update(info: info); Rails.logger.info info
+        force_we_re_ready! unless new_record?
+        save!
+        update(tournament_monitor_id: nil, game_id: nil, nnn: nil, panel_state: "pointer_mode", data: {})
+      end
+    rescue Exception => e
+      e
     end
   end
 end

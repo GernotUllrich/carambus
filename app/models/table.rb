@@ -26,4 +26,14 @@ class Table < ApplicationRecord
     m = name.match(/.*(\d+).*/)
     m.present? ? m[1].to_i : 0
   end
+
+  def table_monitor
+    table_monitor_id = read_attribute(:table_monitor_id)
+    tm = TableMonitor.find_by_id(table_monitor_id)
+    if tm.blank?
+      tm = TableMonitor.create
+      update(table_monitor: tm)
+    end
+    tm
+  end
 end

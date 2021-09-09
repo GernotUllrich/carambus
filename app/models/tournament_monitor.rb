@@ -330,7 +330,8 @@ class TournamentMonitor < ApplicationRecord
     f = File.new("#{Rails.root}/tmp/result-#{tournament.ba_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
-    NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse - #{tournament.title}", "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
+    #NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse - #{tournament.title}", "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
+    NotifierMailer.result(tournament, "gernot.ullrich@gmx.de", "Turnierergebnisse - #{tournament.title}", "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
   end
 
   def finals_finished?
@@ -423,9 +424,7 @@ class TournamentMonitor < ApplicationRecord
       if table_monitor.andand.game.present?
         table_monitor.reset_table_monitor
       end
-      if table_monitor.blank?
-        table.create_table_monitor(tournament_monitor: self)
-      end
+      table_monitor.update(tournament_monitor: self)
     end
     reload
     Tournament.logger.info "state:#{state}...[tmon-initialize_table_monitors]"

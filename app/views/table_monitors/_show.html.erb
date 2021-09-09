@@ -92,7 +92,7 @@
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
           <%= link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless table_monitor.tournament_monitor.present? %>
+          <%- unless table_monitor.tournament_monitor.present? #&& !table_monitor.end_result?%>
             <%= link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
           <%= link_to t('continue'), "javascript:unset_warning_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>

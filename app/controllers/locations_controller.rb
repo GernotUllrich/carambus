@@ -49,7 +49,7 @@ class LocationsController < ApplicationController
         @player_b = Player.find(params[:player_b_id]) if params[:player_b_id].present?
         Table.transaction do
           if @table.present?
-            @table_monitor = @table.table_monitor || TableMonitor.create!(table_id: @table.id)
+            @table_monitor = @table.table_monitor
             @game = @table_monitor.game
             if @game.blank?
               @game = Game.create!
