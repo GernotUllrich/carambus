@@ -111,6 +111,7 @@
         <div data-target="dropdown.menu" class="z-20 hidden mt-2 lg:absolute lg:right-0 dropdown-menu">
           <div class="overflow-hidden bg-white dark:bg-black border rounded shadow-sm">
             <%= link_to I18n.t("home.index.intro", :default => "Einführung"), intro_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= link_to I18n.t("home.index.tournierplanung", :default => "Turnier Management"), doc_tournament_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
             <%= link_to I18n.t("home.index.about", :default => "Über den Entwickler"), about_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
             <%= link_to I18n.t("home.index.version", :default => "Versionen"), version_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
           </div>

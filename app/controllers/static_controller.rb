@@ -16,6 +16,10 @@ class StaticController < ApplicationController
     redirect_to root_path
   end
 
+  def tournament
+    @content = File.read("#{Rails.root}/doc/Tournament.mds")
+  end
+
   def intro
   end
 

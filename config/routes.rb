@@ -210,6 +210,7 @@ Rails.application.routes.draw do
   get "/intro", to: "static#intro"
   get "/about", to: "static#about"
   get "/version", to: "static#version"
+  get "/doc_tournament", to: "static#tournament"
 
   authenticated :user do
     root to: "dashboard#show", as: :user_root
