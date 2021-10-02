@@ -461,7 +461,7 @@ class TournamentMonitor < ApplicationRecord
                 if table_from_winner
                   # winner stays on table
                   t_no = winner_arr[0].game.table_no
-                  table_nos = table_nos - [t_no]
+                  table_nos.delete(t_no)
                   Tournament.logger.info "+++006 k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
                 else
                   t_no = table_nos.shift
@@ -500,6 +500,7 @@ class TournamentMonitor < ApplicationRecord
                 table_nos = tournament.games.where("games.id >= #{Game::MIN_ID}").where(games: { round_no: 2, group_no: group_no }).map(&:table_no).shuffle
                 if table_from_winner
                   t_no = winner_arr[0].game.table_no
+                  table_nos.delete(t_no)
                   Tournament.logger.info "+++012A k,v = [#{k} => #{executor_params[k].inspect}] table from winner t_no = #{t_no} winner1 = #{Player[winner1].fullname} [#{winner1}]"
                 else
                   t_no = table_nos.shift
