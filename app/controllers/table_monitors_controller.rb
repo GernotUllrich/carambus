@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 class TableMonitorsController < ApplicationController
-  before_action :set_table_monitor, only: [:show, :start_game, :edit, :update, :destroy, :evaluate_result, :set_balls, :toggle_dark_mode]
+  before_action :set_table_monitor,
+                only: %i[show start_game edit update destroy evaluate_result set_balls toggle_dark_mode]
 
   def set_balls
-    unless @table_monitor.set_n_balls_to_current_players_inning(params[:add_balls].to_i)
+    unless @table_monitor.set_n_balls(params[:add_balls].to_i)
       flash.now[:alert] = @msg
       flash.keep[:alert]
     end
@@ -21,17 +24,16 @@ class TableMonitorsController < ApplicationController
   # GET /table_monitors/1
   def show
     if @table_monitor.game_id.blank?
-      redirect_to location_path(@table_monitor.table.location, sb_state: "start", table_id: @table_monitor.table.id)
+      redirect_to location_path(@table_monitor.table.location, sb_state: 'start', table_id: @table_monitor.table.id)
       return
     end
     @navbar = false
     @footer = false
     @dark = session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false
-    @current_element = ""
+    @current_element = ''
     @table_monitor.evaluate_panel_and_current
-    if @table_monitor.andand.playing_game?
-      ClockJob.perform_later(@table_monitor, 5)
-    end
+    # noinspection RubyResolve
+    ClockJob.perform_later(@table_monitor, 5) if @table_monitor.andand.playing_game?
   end
 
   # GET /table_monitors/new
@@ -40,7 +42,8 @@ class TableMonitorsController < ApplicationController
   end
 
   def toggle_dark_mode
-    session[:dark_scoreboard] = !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false)
+    session[:dark_scoreboard] =
+      !(session[:dark_scoreboard].present? ? JSON.parse(session[:dark_scoreboard].to_s) : false)
     redirect_to @table_monitor
   end
 
@@ -51,7 +54,7 @@ class TableMonitorsController < ApplicationController
     @navbar = false
     @footer = false
     if res
-      redirect_to (@table_monitor)
+      redirect_to @table_monitor
     else
       redirect_to "/locations/#{table.location.id}?sb_state=free_game&table_id=#{table.id}"
     end
@@ -63,8 +66,7 @@ class TableMonitorsController < ApplicationController
   end
 
   # GET /table_monitors/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /table_monitors
   def create
@@ -80,7 +82,7 @@ class TableMonitorsController < ApplicationController
   # PATCH/PUT /table_monitors/1
   def update
     if @table_monitor.update(table_monitor_params)
-      redirect_to @table_monitor, notice: "Table monitor was successfully updated."
+      redirect_to @table_monitor, notice: 'Table monitor was successfully updated.'
     else
       render :edit
     end
@@ -89,7 +91,7 @@ class TableMonitorsController < ApplicationController
   # DELETE /table_monitors/1
   def destroy
     @table_monitor.destroy
-    redirect_to table_monitors_url, notice: "Table monitor was successfully destroyed."
+    redirect_to table_monitors_url, notice: 'Table monitor was successfully destroyed.'
   end
 
   private
