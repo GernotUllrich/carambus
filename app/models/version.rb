@@ -78,16 +78,16 @@ class Version < ApplicationRecord
         last_version_id = h['id'].to_i
         case h['event']
         when 'create'
-          args = Hash[YAML.safe_load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-          args['data'] = YAML.safe_load(args['data']) if args['data'].present?
+          args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
+          args['data'] = YAML.load(args['data']) if args['data'].present?
           begin
             h['item_type'].constantize.create(args)
           rescue StandardError => e
             e
           end
         when 'update'
-          args = Hash[YAML.safe_load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-          args['data'] = YAML.safe_load(args['data']) if args['data'].present?
+          args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
+          args['data'] = YAML.load(args['data']) if args['data'].present?
           begin
             h['item_type'].constantize.find(h['item_id']).update(args)
           rescue StandardError => e
