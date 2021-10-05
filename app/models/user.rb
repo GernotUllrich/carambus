@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: users
@@ -55,23 +57,24 @@
 #
 #  fk_rails_...  (player_id => players.id)
 #
-
 class User < ApplicationRecord
   include ActionText::Attachable
 
   # Include default devise modules. Others available are:
-  # :lockable, :timeoutable, andle :trackable
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable, :confirmable, :masqueradable, :omniauthable
+  # :lockable, :timeoutable, :trackable
+  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable, :confirmable,
+         :masqueradable, :omniauthable
 
   include UserAccounts
   include UserAgreements
-  PRIVILEGED = ["gernot.ullrich@gmx.de", "nla@ph.at"]
+  PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at joerg.unger@hamburg.de].freeze
 
+  SCOREBOARD_USER = User.find_by_email('scoreboard@carambus.de')
 
   has_person_name
 
   include PgSearch::Model
-  pg_search_scope :search_by_full_name, against: [:first_name, :last_name], using: {tsearch: {prefix: true}}
+  pg_search_scope :search_by_full_name, against: %i[first_name last_name], using: { tsearch: { prefix: true } }
 
   # ActiveStorage Associations
   has_one_attached :avatar
@@ -94,7 +97,7 @@ class User < ApplicationRecord
   has_paper_trail
 
   def self.scoreboard
-    @@scoreboard ||= User.find_by_email("scoreboard@carambus.de")
+    SCOREBOARD_USER
   end
 
   def display_name

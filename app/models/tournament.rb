@@ -49,6 +49,8 @@ require 'net/http'
 #
 class Tournament < ApplicationRecord
 
+  DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
+
   include AASM
   has_paper_trail
 
@@ -60,6 +62,7 @@ class Tournament < ApplicationRecord
   has_many :games, dependent: :destroy
   has_one :tournament_monitor
   has_one :setting
+  #noinspection RailsParamDefResolve
   belongs_to :organizer, polymorphic: true
   belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
 
@@ -67,7 +70,7 @@ class Tournament < ApplicationRecord
 
   serialize :data, Hash
 
-  validates_each :data do |record, attr, value|
+  validates_each :data do |record, attr, _value|
     table_ids = Array(record.send(attr)[:table_ids])
     if table_ids.present?
       incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i && !record.manual_assignment
@@ -127,7 +130,7 @@ class Tournament < ApplicationRecord
   end
 
   def self.logger
-    @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
+    DEBUG_LOGGER
   end
 
   NAME_DISCIPLINE_MAPPINGS = {
@@ -159,33 +162,27 @@ class Tournament < ApplicationRecord
   }
 
   def initialize_tournament_monitor
-    logger.info "[initialize_tournament_monitor]..."
+    Tournament.logger.info "[initialize_tournament_monitor]..."
     TournamentMonitor.transaction do
       # http = TCPServer.new nil, 80
       # DNSSD.announce http, 'carambus server'
       # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
       games.where("games.id >= #{Game::MIN_ID}").destroy_all
-      tm = tournament_monitor || create_tournament_monitor()
-      # tm = TournamentMonitor.find_or_create_by!(
-      #     tournament_id: self.id
-      # )
-      # reload
-      logger.info "state:#{state}...[initialize_tournament_monitor]"
-    rescue Exception => e
-      logger.info "...[initialize_tournament_monitor] Exception #{e}:\n#{e.backtrace.join("\n")}"
-      reset_tournament
+      create_tournament_monitor unless tournament_monitor.present?
+      Tournament.logger.info "state:#{state}...[initialize_tournament_monitor]"
+    rescue StandardError => e
+      Tournament.logger.info "...[initialize_tournament_monitor] StandardError #{e}:\n#{e.backtrace.to_a.join("\n")}"
       Rails.logger.error("Some problem occurred when creating TournamentMonitor - Tournament resetted")
-
+      reset_tournament
     end
 
   end
 
   def t_no_from(table)
-    id = table.id
-    self.data[:table_ids].each_with_index do |table_id, ix|
-      return ix+1 if table_id.to_i == table.id
+    self.data[:table_ids].to_a.each_with_index do |table_id, ix|
+      return ix + 1 if table_id.to_i == table.id
     end
-    return 1
+    1
   end
 
   def player_controlled?
@@ -221,7 +218,7 @@ class Tournament < ApplicationRecord
         }
         case label
         when "Datum"
-          date_begin, time_begin, date_end = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?(?:\s+\-\s+(\d+\.\d+\.\d+))?.*/).to_a[1..-1]
+          date_begin, time_begin, date_end = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?(?:\s+-\s+(\d+\.\d+\.\d+))?.*/).to_a[1..-1]
           self.date = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
           self.end_date = DateTime.parse(date_end) if date_end.present?
         when "Meldeschluss"
@@ -245,7 +242,6 @@ class Tournament < ApplicationRecord
         self.seedings = []
         table = doc.css("#tabs-3 .matchday_table")[0]
         if table.present?
-          player = nil
           states = %w{FG NG ENA UNA DIS}
           state_ix = 0
           seeding = nil
@@ -254,7 +250,6 @@ class Tournament < ApplicationRecord
               lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
               club = Club.where(region: region).where("name ilike ?", club_str).first ||
                 Club.where(region: region).where("shortname ilike ?", club_str).first
-              club
               if club.present?
                 season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname })
                 if season_participations.count == 1
@@ -268,8 +263,8 @@ class Tournament < ApplicationRecord
                     real_club = season_participations.first.club
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
                     logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-                    sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
-                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
+                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless 
+                      SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
                       Seeding.create(player_id: player.id, tournament_id: self.id)
                     state_ix = 0
@@ -431,7 +426,7 @@ class Tournament < ApplicationRecord
   end
 
   def reset_tournament
-    logger.info "[reset_tournament]..."
+    Tournament.logger.info "[reset_tournament]..."
     # called from state machine only
     # use direct only for testing purposes
     tournament_monitor.andand.destroy
@@ -443,7 +438,7 @@ class Tournament < ApplicationRecord
       update(tournament_plan_id: nil, state: "new_tournament", data: {})
       reload
     end
-    logger.info "state:#{state}...[reset_tournament]"
+    Tournament.logger.info "state:#{state}...[reset_tournament]"
   end
 
   def tournament_not_yet_started
@@ -463,6 +458,6 @@ class Tournament < ApplicationRecord
   private
 
   def before_all_events
-    Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
+    Tournament.Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
   end
 end

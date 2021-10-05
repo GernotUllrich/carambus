@@ -82,7 +82,7 @@ class TournamentMonitor < ApplicationRecord
     data['current_round'].presence || 0
   end
 
-  def set_current_round!(round)
+  def current_round!(round)
     data_will_change!
     data['current_round'] = round
     update(data: data)
@@ -389,7 +389,7 @@ class TournamentMonitor < ApplicationRecord
         tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups
       )
       @placements = {}
-      set_current_round!(1)
+      current_round!(1)
       deep_merge_data!('groups' => @groups)
       deep_merge_data!('placements' => @placements)
       executor_params = JSON.parse(@tournament_plan.executor_params)
@@ -542,8 +542,6 @@ class TournamentMonitor < ApplicationRecord
                                                                                             group_no: group_no }).first
                 Tournament.logger.info "+++014 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
                 do_placement(game, r_no, t_no)
-              else
-                # type code here
               end
             end
           end
@@ -603,7 +601,7 @@ class TournamentMonitor < ApplicationRecord
       Tournament.logger.info "[tmon-populate_tables] placements: #{@placements.inspect}"
       Tournament.logger.info '...[tmon-populate_tables]'
     rescue StandardError => e
-      Tournament.logger.info "[tmon-populate_tables] EXCEPTION - ROLLBACK - #{e} #{e.backtrace.to_a.join("\n")}"
+      Tournament.logger.info "[tmon-populate_tables] StandardError - ROLLBACK - #{e} #{e.backtrace.to_a.join("\n")}"
       raise ActiveRecord::Rollback
     end
   end
@@ -657,7 +655,7 @@ class TournamentMonitor < ApplicationRecord
 
       end
     rescue StandardError => e
-      Rails.logger.info "EXCEPTION #{e}, #{e.backtrace.to_a.join("\n")}"
+      Rails.logger.info "StandardError #{e}, #{e.backtrace.to_a.join("\n")}"
       raise ActiveRecord::Rollback
     end
   end

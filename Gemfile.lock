@@ -420,6 +420,7 @@ GEM
       rack
       rails (>= 5.2)
       redis
+    string-similarity (2.1.0)
     temple (0.8.2)
     thor (1.1.0)
     thread-local (1.1.0)
@@ -534,6 +535,7 @@ DEPENDENCIES
   spring-watcher-listen (~> 2.0.0)
   standard
   stimulus_reflex
+  string-similarity
   thor
   turbolinks (~> 5)
   turbolinks_render (~> 0.9.12)

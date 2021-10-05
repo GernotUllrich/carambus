@@ -79,7 +79,7 @@ class LocationsController < ApplicationController
     sb_state = params[:sb_state] || "welcome"
     if current_user.present?
       sign_out(current_user)
-      @user = User.find_by_first_name("scoreboard")
+      @user = User.scoreboard
       bypass_sign_in @user, scope: :user
       Current.user = @user
     end
@@ -211,7 +211,7 @@ class LocationsController < ApplicationController
     if @location.present?
       session[:location_id] = @location.id
       unless current_user.present?
-        @user = User.find_by_first_name("scoreboard")
+        @user = User.scoreboard
         bypass_sign_in @user, scope: :user
         Current.user = @user
       end

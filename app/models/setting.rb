@@ -76,7 +76,7 @@ class Setting < ApplicationRecord
       hash.delete(k.to_s)
       inst.data_will_change!
       inst.write_attribute(:data, hash)
-    rescue Exception => e
+    rescue StandardError => e
       return nil
     end
   end

@@ -572,7 +572,7 @@ class TableMonitor < ApplicationRecord
       @msg = 'Game Finished - no more inputs allowed'
       nil
     end
-  rescue Exception => e
+  rescue StandardError => e
     Tournament.logger.info "#{e}, #{e.backtrace.join("\n")}"
   end
 
@@ -607,7 +607,7 @@ class TableMonitor < ApplicationRecord
       @msg = 'Game Finished - no more inputs allowed'
       nil
     end
-  rescue Exception => e
+  rescue StandardError => e
     Tournament.logger.info "#{e}, #{e.backtrace.join("\n")}"
   end
 
@@ -767,7 +767,7 @@ class TableMonitor < ApplicationRecord
       save!
       update(tournament_monitor_id: nil, game_id: nil, nnn: nil, panel_state: 'pointer_mode', data: {})
     end
-  rescue Exception => e
+  rescue StandardError => e
     e
   end
 end

@@ -9,6 +9,17 @@ include ApplicationHelper
 DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
 DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
 
+TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
+
+TABLE_KIND_DISCIPLINE_NAMES = {
+  "Pin Billards" => [],
+  "Biathlon" => [],
+  "5-Pin Billards" => [],
+  "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
+  "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
+  "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
+  "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"] }
+
 namespace :carambus do
 
   desc "scrape regions"
@@ -70,7 +81,7 @@ namespace :carambus do
         club_details.each do |club_detail|
           club_ba_id = club_detail.match(/.*\/(\d+)$/).andand[1].to_i
           club = Club.find_by_ba_id(club_ba_id) || Club.new(ba_id: club_ba_id, region_id: region.id)
-          club.scrape_single_club(player_details: true, season: season, force_update: false)
+          club.scrape_single_club(player_details: true, season: season, force_update: force)
         end
       end
     end
@@ -103,24 +114,11 @@ namespace :carambus do
 
   desc "Init Disciplines"
   task :init_disciplines => :environment do
-
-    TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
-
-    TABLE_KIND_DISCIPLINE_NAMES = {
-      "Pin Billards" => [],
-      "Biathlon" => [],
-      "5-Pin Billards" => [],
-      "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
-      "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
-      "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
-      "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"] }
-
     TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
       tk = TableKind.find_by_name(tk_name) ||
         TableKind.create(name: tk_name)
       v.each do |dis_name|
-        dis = Discipline.find_by_name_and_table_kind_id(dis_name, tk.id) ||
-          Discipline.create(name: dis_name, table_kind_id: tk.id)
+        Discipline.create(name: dis_name, table_kind_id: tk.id) unless Discipline.find_by_name_and_table_kind_id(dis_name, tk.id).present?
       end
     end
   end
@@ -135,6 +133,12 @@ namespace :carambus do
         end
       end
     end
+  end
+
+  desc "update tournament_plan executor_params"
+  # TODO TournamentPlans should be generated from readable Version in TournamentPlan Model
+  task :update_executor_params => :environment do
+    TournamentPlan.update_executor_params
   end
 
   desc "Scrape Tournaments"
@@ -173,7 +177,6 @@ namespace :carambus do
               end
             end
           else
-            tab_text
             break
           end
         end
@@ -209,7 +212,7 @@ namespace :carambus do
   task :remove_duplicate_season_participations => :environment do
     grouped = SeasonParticipation.all.group_by { |s| [s.player_id, s.club_id, s.season_id] }
     grouped.values.each do |duplicates|
-      first_one = duplicates.shift
+      duplicates.shift
       duplicates.each { |double| double.destroy }
     end
   end

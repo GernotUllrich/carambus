@@ -114,7 +114,7 @@ class TournamentsController < ApplicationController
       @tournament.update(tournament_plan_id: TournamentPlan.find_by_id(params[:tournament_plan_id]).id)
       @tournament.finish_mode_selection!
       @tournament.reload
-    rescue Exception => e
+    rescue StandardError => e
       flash[:alert] = e.message
       redirect_back(fallback_location: tournament_path(@tournament))
       return
@@ -227,7 +227,7 @@ class TournamentsController < ApplicationController
       else
         render :edit
       end
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
     end
   end

@@ -973,7 +973,7 @@ en:
       hosting_club: 'Hosting club:'
       edit: 'Edit'
       back: 'Back'
-      syncing_with_billard_area: 'With the exception of Club-organized tournaments almost all tournament data must be entered on the <a href="http://billard_area">Billard-Area</a> website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.)'
+      syncing_with_billard_area: 'With the StandardError of Club-organized tournaments almost all tournament data must be entered on the <a href="http://billard_area">Billard-Area</a> website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.)'
       syncing_with_billard_area_ext: 'The download of Billiard-Area data is done via the link'
       reload_from_billard_area: 'Reload From Billard Area'
       define_participants: "Update Participants"

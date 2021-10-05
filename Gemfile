@@ -108,6 +108,7 @@ gem "cable_ready", "~> 4.4"
 gem 'coderay' #optional for Syntax Highlighting
 gem 'redcarpet'
 gem 'emd'
+gem 'string-similarity'
 
 group :production do
 
