@@ -263,7 +263,7 @@ class Tournament < ApplicationRecord
                     real_club = season_participations.first.club
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
                     logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless 
+                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless
                       SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
                       Seeding.create(player_id: player.id, tournament_id: self.id)
@@ -458,6 +458,6 @@ class Tournament < ApplicationRecord
   private
 
   def before_all_events
-    Tournament.Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
+    Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
   end
 end

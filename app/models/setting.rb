@@ -34,9 +34,9 @@ class Setting < ApplicationRecord
     Rails.logger.info "!!!!!!!" + JSON.pretty_generate(self.attributes)
   end
 
-  include AASM
+  SETTING = Setting.first || Setting.create!
 
-  @@setting = Setting.first || Setting.create!
+  include AASM
 
   aasm :column => 'state' do
     state :startup, initial: true
@@ -45,37 +45,32 @@ class Setting < ApplicationRecord
   end
 
   def self.instance
-    ret = @@setting
-    if ret.blank?
-      ret = @@setting = Setting.first || Setting.new.save!
-    end
-    ret
+    SETTING
   end
 
   def self.key_set_value(k, v)
     Setting.transaction do
-      inst = Setting.instance
-      hash = inst.read_attribute(:data)
+      inst = Setting.instance.reload
+      hash = inst.data
       hash[k.to_s] = { v.class.name => v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s }
       inst.data_will_change!
-      inst.write_attribute(:data, hash)
-      inst.save!
+      inst.update(data: hash)
     rescue
       return nil
     end
   end
 
   def self.get_keys
-    Setting.instance.read_attribute(:data).keys
+    Setting.instance.data.keys
   end
 
   def self.key_delete(k)
     Setting.transaction do
       inst = Setting.instance
-      hash = inst.read_attribute(:data)
+      hash = inst.data
       hash.delete(k.to_s)
       inst.data_will_change!
-      inst.write_attribute(:data, hash)
+      inst.update(data: hash)
     rescue StandardError => e
       return nil
     end
@@ -83,8 +78,8 @@ class Setting < ApplicationRecord
 
   def self.key_get_value(k)
     Setting.transaction do
-      inst = Setting.instance
-      type, val = inst.read_attribute(:data)[k.to_s].to_a.flatten
+      inst = Setting.instance.reload
+      type, val = inst.data[k.to_s].to_a.flatten
       return case type
              when "Integer"
                val.to_i
