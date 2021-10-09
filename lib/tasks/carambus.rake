@@ -22,6 +22,11 @@ TABLE_KIND_DISCIPLINE_NAMES = {
 
 namespace :carambus do
 
+  desc "eliminate location duplicates"
+  task :eliminate_location_duplicates => :environment do
+
+  end
+
   desc "scrape regions"
   task :scrape_regions => :environment do
     Region.scrape_regions
@@ -68,7 +73,7 @@ namespace :carambus do
   desc "scrape clubs"
   task :scrape_clubs => :environment do
 
-    Season.where(ba_id: [12,13]).order(name: :desc).each do |season|
+    Season.where(ba_id: [12, 13]).order(name: :desc).each do |season|
       Region.all.each do |region|
         #if region.shortname.downcase == 'nbv'
         #if ["BVNRW"].include?(region.shortname)

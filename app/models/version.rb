@@ -72,42 +72,55 @@ class Version < ApplicationRecord
     response2 = http.request(request2)
     if response2.message == 'OK'
       vers = JSON.parse(response2.read_body)
-      last_version_id = Setting.key_get_value('last_version_id')
-      while vers.present?
-        h = vers.shift
-        last_version_id = h['id'].to_i
-        case h['event']
-        when 'create'
-          args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-          args['data'] = YAML.load(args['data']) if args['data'].present?
-          begin
-            h['item_type'].constantize.create(args)
-          rescue StandardError => e
-            e
+      Setting.transaction do
+        last_version_id = Setting.key_get_value('last_version_id')
+        while vers.present?
+          h = vers.shift
+          last_version_id = h['id'].to_i
+          case h['event']
+          when 'create'
+            args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
+            args['data'] = YAML.load(args['data']) if args['data'].present?
+            begin
+              oapp/views/tournaments/show.html.erbbj = h['item_type'].constantize.where(id: args["id"]).first
+              if obj.present?
+                obj.update(args)
+              else
+                h['item_type'].constantize.create(args)
+              end
+            rescue Exception => e
+              e
+            end
+          when 'update'
+            args = YAML.load(h['object'])
+            args['data'] = YAML.load(args['data']) if args['data'].present?
+            begin
+              obj = h['item_type'].constantize.where(id: args["id"]).first
+              if obj.present?
+                obj.update(args)
+              else
+                obj = h['item_type'].constantize.new
+                obj.id = h['item_id']
+                obj.save!
+                obj.update(args)
+              end
+            rescue Exception => e
+              e
+            end
+          when 'destroy'
+            begin
+              h['item_type'].constantize.find(h['item_id']).delete
+            rescue Exception => e
+              e
+            end
+          else
+            # type code here
+            Raise 'FatalProtocolError'
           end
-        when 'update'
-          args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-          args['data'] = YAML.load(args['data']) if args['data'].present?
-          begin
-            h['item_type'].constantize.find(h['item_id']).update(args)
-          rescue StandardError => e
-            e
-          end
-        when 'destroy'
-          begin
-            h['item_type'].constantize.find(h['item_id']).delete
-          rescue StandardError => e
-            e
-          end
-        else
-          # type code here
-          Raise 'FatalProtocolError'
         end
+        #Version.sequence_reset
+        Setting.key_set_value('last_version_id', last_version_id)
       end
-      Version.sequence_reset
-      Setting.key_set_value('last_version_id', last_version_id)
     end
-  rescue StandardError => e
-    e
   end
 end

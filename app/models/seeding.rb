@@ -27,6 +27,8 @@ class Seeding < ApplicationRecord
   belongs_to :tournament, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
 
+  after_create :loggit
+
   acts_as_list scope: :tournament
 
   serialize :data, Hash
@@ -43,6 +45,10 @@ class Seeding < ApplicationRecord
       "Position" => "seeding.position",
       "Remarks" => "seeding.data",
   }
+
+  def loggit
+    Rails.logger.info "Seeding[#{id}] created."
+  end
 
   def self.result_display(seeding)
     ret = []

@@ -345,3 +345,13 @@ dtoverlay=gpio-shutdown,gpio_pin=3,active_low=1,gpio_pull=up
 ---------------------------------------
 To prevent the screen from going blank try adding to the end of the first line of /boot/cmdline.txt
 consoleblank=0 
+-----------------
+
+Create client database from API database
+
+------------------
+
+Create User
+
+User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true
+

@@ -73,5 +73,5 @@ Rails.application.configure do
   config.hosts = nil
 
   # :debug, :info, :warn, :error, :fatal, :unknown
-  config.log_level = :info
+  config.log_level = :debug
 end
