@@ -349,8 +349,8 @@ class TournamentMonitor < ApplicationRecord
     f.write(game_data.join("\n"))
     f.close
     # NotifierMailer.result(tournament, current_admin.email, "Turnierergebnisse - #{tournament.title}", "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
-    NotifierMailer.result(tournament, 'gernot.ullrich@gmx.de', "Turnierergebnisse - #{tournament.title}",
-                          "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
+    #NotifierMailer.result(tournament, 'gernot.ullrich@gmx.de', "Turnierergebnisse - #{tournament.title}",
+    #                     "result-#{tournament.ba_id}.csv", "#{Rails.root}/tmp/result-#{tournament.ba_id}.csv").deliver
   end
 
   def finals_finished?

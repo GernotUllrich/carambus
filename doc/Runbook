@@ -1,4 +1,4 @@
-# Installation Carambus Server
+[# Installation Carambus Server
 
 ## Konfiguration
 * Raspberry Pi 4 m. 4GB
@@ -348,10 +348,59 @@ consoleblank=0
 -----------------
 
 Create client database from API database
-
+1. on api server dump api db
+   ssh api
+   cd carambus_api/current
+   cat config/database.yml
+   pg_dump -Uwww_data carambus_api_production |gzip > carambus_api_production.sql.gz
+2. on development system 
+  cd ~/carambus
+   scp api:carambus_api/current/carambus_api_production.sql.gz .
+   gunzip carambus_api_production.sql.gz
+   scp carambus_api_production.sql pi4bw:
+3. on location server
+  ssh pi4bw
+   cd carambus/current
+   cat config/database.yml
+   /etc/init.d/unicorn_carambus_production stop
+   DISABLE_DATABASE_ENVIRONMENT_CHECK=1 RAILS_ENV=production bundle exec rake db:drop
+   sudo su postgres
+  psql postgres
+   create database carambus_production;
+   alter database carambus_production owner to www_data;
+  \q
+  ^D
+  psql -Uwww_data carambus_production
+  \i ~/carambus_api_production.sql
+4. on development system deploy newest version
+   cd ~/caambus
+   bundle exec cap production deploy
+5. on location server
+   ssh pi4bw
+   cd carambus/current
+   RAILS_ENV=production bundle exec rails c
+6. Sequence Reset
+  Version.sequence_reset
+7. Update API URL
+   vi config/jumpstart.yml
+      carambus_api_url: "http://api.carambus.de:8088"
+8. Create Scoreboard User
+   RAILS_ENV=production bundle exec rails c
+   User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true
+9. Update last_version_id:
+   1. Get Version from API Server
+      PaperTrail::Version.last.id
+        z.B. 306616
+   2. set Version on Local Server
+      Setting.key_set_value("last_version_id", 306616)
+10. Before Tournament Management update location_id (1 for BCW)
+  t = Tournament[nnnn]
+  t.update(location_id: 1)
+  
 ------------------
 
-Create User
+Create default Scoreboard User
 
 User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true
 
+]()
