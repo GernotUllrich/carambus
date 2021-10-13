@@ -373,7 +373,7 @@ Create client database from API database
   psql -Uwww_data carambus_production
   \i ~/carambus_api_production.sql
 4. on development system deploy newest version
-   cd ~/caambus
+   cd ~/carambus
    bundle exec cap production deploy
 5. on location server
    ssh pi4bw
