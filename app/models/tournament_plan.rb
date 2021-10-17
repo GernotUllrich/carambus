@@ -1741,7 +1741,7 @@ class TournamentPlan < ApplicationRecord
           }
         }
       },
-      "p<11-12": {
+      "p<11-12>": {
         "r6": {
           "t-rand-1-4": [
             '(g1.rk4 + g2.rk4 +g3.rk4).rk2',
@@ -1749,7 +1749,7 @@ class TournamentPlan < ApplicationRecord
           ]
         }
       },
-      "p<9-10": {
+      "p<9-10>": {
         "r6": {
           "t-rand-1-4": [
             '(g1.rk4 + g2.rk4 +g3.rk4).rk1',

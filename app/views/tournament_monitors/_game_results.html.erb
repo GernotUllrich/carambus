@@ -44,6 +44,7 @@
             </tr>
           <%- end %>
         <% end %>
+        <p><%= @edit_games_modus ? submit_tag("update", class: "btn btn-primary") : "" %></p>
       <% end %>
       </tbody>
     </table>

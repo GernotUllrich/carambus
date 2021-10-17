@@ -18,6 +18,12 @@ namespace :adhoc do
     User.where("id > 50000000").destroy_all
   end
 
+  task :test_player_id_from_ranking => :environment do
+    tm = TournamentMonitor[50000018]
+    player_id = tm.player_id_from_ranking("(g1.rk4 + g2.rk4 +g3.rk4).rk2")
+    puts player_id
+  end
+
 
 
   end

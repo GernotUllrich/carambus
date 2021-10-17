@@ -186,12 +186,18 @@ class TournamentsController < ApplicationController
     data_[:time_out_warm_up_follow_up_min] = params[:time_out_warm_up_follow_up_min].to_i
     @tournament.update(data: data_)
     if @tournament.valid?
-      @tournament.initialize_tournament_monitor
-      @tournament.reload
-      @tournament.start_tournament!
-      @tournament.reload
-      @tournament.tournament_monitor.update(current_admin: current_user, timeout: params[:timeout].to_i, timeouts: params[:timeouts].to_i)
-      redirect_to tournament_monitor_path(@tournament.tournament_monitor)
+      Tournament.transaction do
+        @tournament.initialize_tournament_monitor
+        @tournament.reload
+        @tournament.start_tournament!
+        @tournament.reload
+        @tournament.tournament_monitor.update(current_admin: current_user, timeout: params[:timeout].to_i, timeouts: params[:timeouts].to_i)
+      end
+      if @tournament.tournament_started_waiting_for_monitors?
+        redirect_to tournament_monitor_path(@tournament.tournament_monitor)
+      else
+        redirect_back(fallback_location: tournament_path(@tournament))
+      end
     else
       flash[:alert] = @tournament.errors.full_messages
       redirect_back(fallback_location: tournament_path(@tournament))
