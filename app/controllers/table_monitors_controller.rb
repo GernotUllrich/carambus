@@ -56,7 +56,7 @@ class TableMonitorsController < ApplicationController
     if res
       redirect_to @table_monitor
     else
-      redirect_to "/locations/#{table.location.id}?sb_state=free_game&table_id=#{table.id}"
+      redirect_to "/locations/#{@table_monitor.table.location.id}?sb_state=free_game#{"&table_id=#{@table_monitor.table.id}" if @table_monitor.table.present?}"
     end
   end
 

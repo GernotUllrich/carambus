@@ -438,7 +438,16 @@ class Tournament < ApplicationRecord
       update(tournament_plan_id: nil, state: "new_tournament", data: {})
       reload
     end
+    reorder_seedings
     Tournament.logger.info "state:#{state}...[reset_tournament]"
+  end
+
+  def reorder_seedings
+    l_seeding_ids = seeding_ids
+    l_seeding_ids.each_with_index do |seeding_id, ix|
+      Seeding.find_by_id(seeding_id).update_columns(position: ix+1)
+    end
+    reload
   end
 
   def tournament_not_yet_started

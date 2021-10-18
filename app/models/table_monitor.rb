@@ -136,7 +136,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_game_show_result
-    update(panel_state: 'game_finished', current_element: 'game_state')
+    update(current_element: 'game_state')
   end
 
   after_commit do

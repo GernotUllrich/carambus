@@ -12,5 +12,5 @@ email_provider: ''
 personal_accounts: true
 livereload: falsenaments
 register_with_account: false
-#carambus_api_url: "http://api.carambus.de:8088"
-carambus_api_url: "http://localhost:3333"
+carambus_api_url: "http://api.carambus.de:8088"
+#carambus_api_url: "http://localhost:3333"
