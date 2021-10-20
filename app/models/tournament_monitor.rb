@@ -249,8 +249,8 @@ class TournamentMonitor < ApplicationRecord
           add_result_to(gp, rankings['endgames']['total'])
           rankings['endgames'][level.to_s] ||= {}
           add_result_to(gp, rankings['endgames'][level.to_s])
-          rankings['endgames']["#{level}#{group_no}"] ||= {}
-          add_result_to(gp, rankings['endgames']["#{level}#{group_no}"])
+          rankings['endgames']["#{level}#{group_no}"] ||= {} if group_no.present?
+          add_result_to(gp, rankings['endgames']["#{level}#{group_no}"]) if group_no.present?
         end
       end
     end

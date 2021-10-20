@@ -308,6 +308,20 @@ namespace :carambus do
 
   end
 
+  desc "create local seed"
+  task :create_local_seed => :environment do
+    output = ""
+    %w{User Account AccountUser TournamentMonitor Tournament TableMonitor Game Seeding GameParticipation}.each do |classz|
+      classz.constantize.where("id >= 50000000").order(:id).all.each do |obj|
+        output << "obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if {|key, value| ['created_at','updated_at'].include?(key)}.to_s.gsub(/[{}]/,'')})\n"
+        output << "obj.save!\n"
+      end
+    end
+    f = File.new("#{Rails.root}/db/seeds.rb", "w")
+    f.write(output)
+    f.close
+  end
+
   desc "fix game participations"
   task :fix_game_participations => :environment do
     # Game.all.each do |game|

@@ -24,6 +24,11 @@ namespace :adhoc do
     puts player_id
   end
 
+  task :test_accumulate_results => :environment do
+    tm = TournamentMonitor[50000026]
+    tm.accumulate_results
+  end
+
 
 
   end
