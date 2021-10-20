@@ -313,8 +313,26 @@ namespace :carambus do
     output = ""
     %w{User Account AccountUser TournamentMonitor Tournament TableMonitor Game Seeding GameParticipation}.each do |classz|
       classz.constantize.where("id >= 50000000").order(:id).all.each do |obj|
-        output << "obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if {|key, value| ['created_at','updated_at'].include?(key)}.to_s.gsub(/[{}]/,'')})\n"
+        time_keys = %w{created updated started ended accepted_terms accepted_privacy announcements_read invitation_created invitation_accepted}
+        hash_keys = %w{data roles}
+        output << "obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (hash_keys + time_keys.map { |s| s + "_at" }).include?(key) }.to_s.gsub(/[{}]/, '')})\n"
+        hash_keys.each do |key|
+          if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
+            output << "#{key} = Json.parse(#{obj.send("#{key}").to_json})\n"
+            output << "obj.#{key} = #{key}\n"
+          end
+        end
+        time_keys.each do |key|
+          if obj.respond_to?(:"#{key}_at") && obj.send(:"#{key}_at").present?
+            output << "#{key}_at = Time.parse(\"#{obj.send("#{key}_at").to_s}\")\n"
+          end
+        end
         output << "obj.save!\n"
+        time_keys.each do |key|
+          if obj.respond_to?(:"#{key}_at") && obj.send(:"#{key}_at").present?
+            output << "obj.update_column(:\"#{key}_at\", #{key}_at)\n"
+          end
+        end
       end
     end
     f = File.new("#{Rails.root}/db/seeds.rb", "w")
