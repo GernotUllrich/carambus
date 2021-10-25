@@ -180,7 +180,7 @@ class TournamentMonitor < ApplicationRecord
     rank = {}
     points = {}
     ('a'..'b').each do |c|
-      rank["player#{c}"] = tabmon.data["player#{c}"]['result'].to_i - tabmon.data["player#{c}"]['balls_goal'].to_i
+      rank["player#{c}"] = tabmon.data["player#{c}"]['result'].to_f / tabmon.data["player#{c}"]['balls_goal'].to_f * 100.0
     end
     points['playera'] = if rank['playera'] > rank['playerb']
                           2

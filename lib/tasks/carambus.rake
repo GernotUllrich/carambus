@@ -300,39 +300,125 @@ namespace :carambus do
                 end
               end
             end
-
           end
         end
       end
     end
-
   end
 
   desc "create local seed"
   task :create_local_seed => :environment do
     output = ""
-    %w{User Account AccountUser TournamentMonitor Tournament TableMonitor Game Seeding GameParticipation}.each do |classz|
+    void_keys = {"User" => ["terms_of_service"], "Account" => ["quantity", "plan", "card_token"]}
+    %w{User Account AccountUser Player Tournament Seeding Game GameParticipation TournamentMonitor TableMonitor}.each do |classz|
+      output << "#{classz.underscore}_id_map = {}\n"
+      if classz == "Account"
+        output << "#+++Account+++\n"
+        output << "#---User---\n"
+        output << "h1 = JSON.pretty_generate(user_id_map)\n"
+      elsif classz == "AccountUser"
+        output << "#+++AccountUser+++\n"
+        output << "#---Account---\n"
+        output << "h1 = JSON.pretty_generate(account_id_map)\n"
+        output << "#---User---\n"
+        output << "h2 = JSON.pretty_generate(user_id_map)\n"
+      elsif classz == "TournamentMonitor\n"
+        output << "#+++TournamentMonitor+++\n"
+        output << "#---Tournament---\n"
+        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+      elsif classz == "Game"
+        output << "#---Tournament---\n"
+        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+      elsif classz == "GameParticipation"
+        output << "#+++GameParticipation+++\n"
+        output << "#---Player---\n"
+        output << "h1 = JSON.pretty_generate(player_id_map)\n"
+        output << "#---Game---\n"
+        output << "h2 = JSON.pretty_generate(game_id_map)\n"
+      elsif classz == "Seeding"
+        output << "#+++Seeding+++\n"
+        output << "#---Tournament---\n"
+        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+        output << "#---Player---\n"
+        output << "h2 = JSON.pretty_generate(player_id_map)\n"
+      elsif classz == "TableMonitor"
+        output << "#+++TableMonitor+++\n"
+        output << "#---TournamentMonitor---\n"
+        output << "h1 = JSON.pretty_generate(tournament_monitor_id_map)\n"
+      elsif classz == "User"
+      end
       classz.constantize.where("id >= 50000000").order(:id).all.each do |obj|
-        time_keys = %w{created updated started ended accepted_terms accepted_privacy announcements_read invitation_created invitation_accepted}
+        time_keys = %w{date created_at updated_at started_at ended_at accepted_terms_at accepted_privacy_at announcements_read_at invitation_created_at invitation_accepted_at timer_start_at timer_finish_at timer_halt_at trial_ends_at ends_at }
         hash_keys = %w{data roles}
-        output << "obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (hash_keys + time_keys.map { |s| s + "_at" }).include?(key) }.to_s.gsub(/[{}]/, '')})\n"
+        attrs = obj.serializable_hash.delete_if { |key, value| (hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')
+        time_keys.each do |key|
+          if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
+            output << "#{key} = Time.at(#{obj.send("#{key}").to_f})\n"
+            attrs += ", #{key}: #{key}"
+          end
+        end
+        output << "obj_was = #{classz.constantize}.where(#{attrs}).first\n"
+        output << "if obj_was.blank?\n"
+        attrs_no_id = obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')
+        output << "  obj_was = #{classz.constantize}.where(#{attrs_no_id}).first\n"
+        output << "  if obj_was.blank?\n"
+        output << "    obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')})\n"
+        if classz == "Account"
+          output << "    obj.owner_id = user_id_map[#{obj.owner_id}] if user_id_map[#{obj.owner_id}].present?\n"
+          output << "    obj.plan = nil\n"
+          output << "    obj.quantity = nil\n"
+          output << "    obj.card_token = nil\n"
+        elsif classz == "AccountUser"
+          output << "    obj.account_id = account_id_map[#{obj.account_id}] if account_id_map[#{obj.account_id}].present?\n"
+          output << "    obj.user_id = user_id_map[#{obj.user_id}] if user_id_map[#{obj.user_id}].present?\n"
+        elsif classz == "TournamentMonitor"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+        elsif classz == "Game"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+        elsif classz == "GameParticipation"
+          output << "    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?\n"
+        elsif classz == "Seeding"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+          output << "    obj.player_id = player_id_map[#{obj.player_id}] if player_id_map[#{obj.player_id}].present?\n"
+        elsif classz == "TableMonitor"
+          output << "    obj.tournament_monitor_id = tournament_monitor_id_map[#{obj.tournament_monitor_id}] if tournament_monitor_id_map[#{obj.tournament_monitor_id}].present?\n" if obj.tournament_monitor_id.present?
+          output << "    obj.game_id = game_id_map[#{obj.id}] if game_id_map[#{obj.game_id}].present?\n" if obj.game_id.present?
+        elsif classz == "User"
+          output << "    obj.password = \"******\"\n"
+          output << "    obj.terms_of_service = true\n"
+        end
         hash_keys.each do |key|
           if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
-            output << "#{key} = Json.parse(#{obj.send("#{key}").to_json})\n"
-            output << "obj.#{key} = #{key}\n"
+            output << "    #{key} = #{obj.send("#{key}").inspect}\n"
+            output << "    obj.#{key} = #{key}\n"
           end
         end
         time_keys.each do |key|
-          if obj.respond_to?(:"#{key}_at") && obj.send(:"#{key}_at").present?
-            output << "#{key}_at = Time.parse(\"#{obj.send("#{key}_at").to_s}\")\n"
+          if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
+            output << "    #{key} = Time.at(#{obj.send("#{key}").to_f})\n"
           end
         end
-        output << "obj.save!\n"
+        output << "    begin\n"
+        output << "      obj.save!\n"
+        if classz == "User"
+          output << "      obj.update_column(:encrypted_password, \"#{obj.encrypted_password}\")\n"
+        end
+        output << "      id = obj.id\n"
+        output << "      #{classz.underscore}_id_map[#{obj.id}] = id\n"
         time_keys.each do |key|
-          if obj.respond_to?(:"#{key}_at") && obj.send(:"#{key}_at").present?
-            output << "obj.update_column(:\"#{key}_at\", #{key}_at)\n"
+          if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
+            output << "      obj.update_column(:\"#{key}\", #{key})\n"
           end
         end
+        output << "    rescue StandardError => e\n"
+        output << "    end\n"
+        output << "  else\n"
+
+        output << "    id = obj_was.id\n"
+        output << "    #{classz.underscore}_id_map[#{obj.id}] = id\n"
+
+        output << "  end\n"
+        output << "end\n"
       end
     end
     f = File.new("#{Rails.root}/db/seeds.rb", "w")
