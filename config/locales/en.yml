@@ -1063,6 +1063,7 @@ en:
   add_tables: Add Tables
   of: "of"
   goal: Goal
+  last_inning: last inning
   gd: "AVG"
   carambus_manages: "Carambus Manages Billard Tournaments"
   welcome_to_carambus: "Welcome to Carambus"

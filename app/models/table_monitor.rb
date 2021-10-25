@@ -585,7 +585,10 @@ class TableMonitor < ApplicationRecord
     DebugInfo.instance.update(info: info)
     Rails.logger.info info
     data.present? &&
-      ((data['current_inning'].andand['active_player'] == 'playerb') && data['playera'].andand['balls_goal'].to_i.positive? && (data['playera'].andand['result'].to_i >= data['playera'].andand['balls_goal'].to_i))
+      ((data['current_inning'].andand['active_player'] == 'playerb') &&
+        (data['playera'].andand['balls_goal'].to_i.positive? && (data['playera'].andand['result'].to_i >= data['playera'].andand['balls_goal'].to_i) ||
+        (data['innings_goal'].to_i.positive? && data['playera'].andand['innings'].to_i >= data['innings_goal'].to_i))
+      )
   end
 
   def undo

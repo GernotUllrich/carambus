@@ -763,6 +763,7 @@ de:
   add_tables: Tische hinzufügen
   of: "von"
   goal: "Ziel"
+  last_inning: "Letzte<br />Aufnahme"
   gd: "GD"
   carambus_manages: "Carambus verwaltet den Billard-Spielbetrieb"
   welcome_to_carambus: "Willkommen bei Carambus"

@@ -120,6 +120,9 @@
                     <%- if options[:player_a][:balls_goal].to_i > 0 && options[:player_a_active] && to_play <= 3 %>
                       pour <%= to_play %>
                     <%- end %>
+                    <%- if options[:innings_goal].to_i > 0 && options[:player_a_active] && (options[:innings_goal].to_i - options[:player_a][:innings].to_i) == 1 %>
+                      <%= t('last_inning').html_safe %>
+                    <%- end %>
                   </div>
                 </div>
                 <div class="flex flex-col flex-1 text-right text-gray-500 text-3vw">
