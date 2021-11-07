@@ -3,14 +3,15 @@
 # Defines a single server with a list of roles and multiple properties.
 # You can define all roles on a single server, or split them:
 
-#server '192.168.41.75', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+#server '192.168.41.246', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+server '192.168.178.79', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 #server '192.168.178.57', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 #server '192.168.2.231', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 #server '192.168.178.66', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4b
 #server '192.168.178.60', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bcw
 #server '192.168.178.53', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bcww
 #server '192.168.178.81', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bw
-server '192.168.2.143', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
+#server '192.168.2.143', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
 # server 'example.com', user: 'deploy', roles: %w{app web}, other_property: :other_value
 # server 'db.example.com', user: 'deploy', roles: %w{db}
 

@@ -67,6 +67,9 @@
         <span class="w-1/2 text-right text-2vw"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="timeouts"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "GD has prio on inter-group-comparisons" %></span><span id="timeouts"><%= check_box_tag :gd_has_prio, "1", @tournament.gd_has_prio?, class: "border-2", data: { reflex: "change->TournamentReflex#gd_has_prio", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">

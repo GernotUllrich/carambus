@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_10_05_131517) do
+ActiveRecord::Schema.define(version: 2021_11_02_124619) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -214,6 +214,8 @@ ActiveRecord::Schema.define(version: 2021_10_05_131517) do
     t.text "data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["game_id", "sequence_number"], name: "index_innings_on_foreign_keys", unique: true
+    t.index ["game_id", "sequence_number"], name: "index_innings_on_game_id_and_sequence_number", unique: true
   end
 
   create_table "kvc_settings", force: :cascade do |t|
@@ -450,6 +452,14 @@ ActiveRecord::Schema.define(version: 2021_10_05_131517) do
     t.integer "table_monitor_id"
   end
 
+  create_table "tournament_locals", force: :cascade do |t|
+    t.integer "tournament_id"
+    t.integer "timeout"
+    t.integer "timeouts"
+    t.boolean "admin_controlled"
+    t.boolean "gd_has_prio"
+  end
+
   create_table "tournament_monitors", force: :cascade do |t|
     t.integer "tournament_id"
     t.text "data"
@@ -526,9 +536,10 @@ ActiveRecord::Schema.define(version: 2021_10_05_131517) do
     t.integer "organizer_id"
     t.string "organizer_type"
     t.integer "location_id"
-    t.boolean "manual_assignment", default: false
     t.integer "timeouts", default: 0, null: false
     t.boolean "admin_controlled", default: false, null: false
+    t.boolean "manual_assignment", default: false
+    t.boolean "gd_has_prio", default: false, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

@@ -15,6 +15,7 @@ require 'net/http'
 #  data                           :text
 #  date                           :datetime
 #  end_date                       :datetime
+#  gd_has_prio                    :boolean          default(FALSE), not null
 #  handicap_tournier              :boolean
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime
@@ -65,6 +66,7 @@ class Tournament < ApplicationRecord
   #noinspection RailsParamDefResolve
   belongs_to :organizer, polymorphic: true
   belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
+  has_one :tournament_local, :dependent => :nullify
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
 
@@ -80,6 +82,42 @@ class Tournament < ApplicationRecord
       record.errors.add(attr, I18n.t('table_assignments_heterogen')) if heterogen
       record.errors.add(attr, I18n.t('table_assignments_inconsistent')) if inconsistent
     end
+  end
+
+  def timeout
+    tournament_local.present? ? tournament_local.timeout : read_attribute(:timeout)
+  end
+
+  def timeout=(value)
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(timeout: value)
+  end
+
+  def timeouts
+    tournament_local.present? ? tournament_local.timeouts : read_attribute(:timeouts)
+  end
+
+  def timeouts=(value)
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(timeouts: value)
+  end
+
+  def gd_has_priority
+    tournament_local.present? ? tournament_local.gd_has_priority : read_attribute(:gd_has_priority)
+  end
+
+  def gd_has_priority=(value)
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(gd_has_priority: value)
+  end
+
+  def admin_controlled
+    tournament_local.present? ? tournament_local.admin_controlled : read_attribute(:admin_controlled)
+  end
+
+  def admin_controlled=(value)
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(admin_controlled: value)
   end
 
   aasm column: 'state', skip_validation_on_save: true do

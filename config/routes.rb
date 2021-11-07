@@ -48,7 +48,14 @@ Rails.application.routes.draw do
                  omniauth_callbacks: "users/omniauth_callbacks",
                  registrations: "users/registrations"
                }
-    resources :seedings
+    resources :seedings do
+      member do
+        post :up
+        post :down
+        get :up
+        get :down
+      end
+    end
     resources :table_monitors do
       member do
         post :set_balls
@@ -62,6 +69,8 @@ Rails.application.routes.draw do
         post :undo
         post :up
         post :down
+        get :up
+        get :down
         get :toggle_dark_mode
       end
     end

@@ -49,7 +49,7 @@
       "", "30", "40", "45"
     ]
     game_values_balls_goal = [
-      80, 100, 120, 150, 200, 400, 0, 8, 16, 32, 45, 60, 75
+      80, 100, 120, 150, 200, 400, 0, 8, 16, 32, 50, 60, 75
     ]
     <%- table_kind = @table_monitor.andand.table.andand.table_kind.andand.name %>
     table_kind = "<%= table_kind %>";
@@ -297,7 +297,7 @@
         <div class="flex flex-col text-white">
           <div class="mb-1"><%= t("game_participation.balls_goal") %></div>
           <%= content_tag :div, id: "balls_goal_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["45",45], ["60", 60], ["75",75]], (@balls_goal || "80").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["50",50], ["60", 60], ["75",75]], (@balls_goal || "80").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>
@@ -341,7 +341,7 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
           <%= content_tag :div, id: "balls_goal_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 -4 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal_a, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["45",45], ["60", 60], ["75",75]], (@balls_goal_a || "80").to_i), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal_a, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["50",50], ["60", 60], ["75",75]], (@balls_goal_a || "80").to_i), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
@@ -359,7 +359,7 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
           <%= content_tag :div, id: "balls_goal_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal_b, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["45",45], ["60", 60], ["75",75]], (@balls_goal_b || "80").to_i), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal_b, options_for_select([["80", 80], ["100",100], ["120",120], ["150",150], ["200", 200], ["400",400], ["no limit", 0], ["8",8], ["10",10], ["16",16], ["32",32], ["50",50], ["60", 60], ["75",75]], (@balls_goal_b || "80").to_i), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>

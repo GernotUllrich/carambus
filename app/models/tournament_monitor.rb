@@ -671,6 +671,7 @@ class TournamentMonitor < ApplicationRecord
   def player_id_from_ranking(rule_str)
     if (mm = rule_str.match(/\((.*)\)\.rk(\d)$/).presence)
       # rule_str: "(g1.rk4 + g2.rk4 +g3.rk4).rk2"
+      inter_group_order = tournament.gd_has_prio? ? %i[gd points] : %i[points gd]
       players = mm[1]
       rank = mm[2]
       subset = {}
@@ -688,7 +689,7 @@ class TournamentMonitor < ApplicationRecord
           end
         subset.merge!(Hash[*rk])
       end
-      return TournamentMonitor.ranking(subset, order: %i[points gd])[rank.to_i - 1].andand[0]
+      return TournamentMonitor.ranking(subset, order: inter_group_order)[rank.to_i - 1].andand[0]
 
     else
       g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]

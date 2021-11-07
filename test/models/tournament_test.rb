@@ -11,6 +11,7 @@
 #  data                           :text
 #  date                           :datetime
 #  end_date                       :datetime
+#  gd_has_prio                    :boolean          default(FALSE), not null
 #  handicap_tournier              :boolean
 #  innings_goal                   :integer
 #  last_ba_sync_date              :datetime

@@ -949,6 +949,7 @@ en:
     show:
       registrations: Registrations
       position: Position
+      new_position: "Edit Position"
       reorder: Reorder
       name: Name
       club: Club

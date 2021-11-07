@@ -34,7 +34,7 @@ class TournamentReflex < ApplicationReflex
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = 0 if val <0
+    val = 0 if val < 0
     tournament.update_attribute(:timeouts, val)
   end
 
@@ -42,7 +42,7 @@ class TournamentReflex < ApplicationReflex
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = nil if val <=0
+    val = nil if val <= 0
     tournament.update_attribute(:balls_goal, val)
   end
 
@@ -50,7 +50,7 @@ class TournamentReflex < ApplicationReflex
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = nil if val <=0
+    val = nil if val <= 0
     tournament.update_attribute(:timeout, val)
   end
 
@@ -61,11 +61,18 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:admin_controlled, val)
   end
 
+  def gd_has_prio
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:gd_has_prio, val)
+  end
+
   def time_out_warm_up_first_min
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = nil if val <=0
+    val = nil if val <= 0
     tournament.update_attribute(:time_out_warm_up_first_min, val)
   end
 
@@ -73,7 +80,7 @@ class TournamentReflex < ApplicationReflex
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     val = element.attributes["value"].to_i
-    val = nil if val <=0
+    val = nil if val <= 0
     tournament.update_attribute(:time_out_warm_up_follow_up_min, val)
   end
 
@@ -109,6 +116,13 @@ class TournamentReflex < ApplicationReflex
     else
       seeding.update(state: "registered")
     end
+  end
+
+  def change_position
+    tournament = Tournament.find(element.dataset["id"])
+    player = Player.find(element.attributes["id"].split("-")[1].to_i)
+    seeding = tournament.seedings.where("id > ?", 50000000).where(player_id: player.id).first
+    seeding.set_list_position(element.attributes["value"].to_i)
   end
 
   def change_point_goal

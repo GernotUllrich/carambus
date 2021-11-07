@@ -576,6 +576,7 @@ de:
     show:
       registrations: Registrierungen
       position: Position
+      new_position: "Edit Position"
       reorder: Reihenfolge
       name: Name
       club: Club

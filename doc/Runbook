@@ -404,6 +404,7 @@ Create default Scoreboard User
 User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true
 
 Mail einrichten:
+https://decatec.de/linux/linux-einfach-e-mails-versenden-mit-msmtp/
 
 apt-get update && apt-get upgrade -V
 apt-get install msmtp msmtp-mta mailutils

@@ -44,6 +44,7 @@
         <thead>
         <tr>
           <th><%= I18n.t("tournaments.show.position") %></th>
+          <th><%= I18n.t("tournaments.show.new_position") %></th>
           <th colspan="2"><%= I18n.t("tournaments.show.reorder") %></th>
           <th><%= I18n.t("tournaments.show.name") %></th>
           <th><%= I18n.t("tournaments.show.club") %></th>
@@ -58,6 +59,7 @@
           <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
           <tr>
             <td><%= seeding.position %></td>
+            <td><%= number_field_tag "new_position-#{seeding.player.id}", nil, style: "width:60px", max: 99, data: { reflex: "change->TournamentReflex#change_position", id: @tournament.id } %></td>
             <td>
               <%= link_to image_tag("up-icon.png"), up_seeding_path(seeding), method: :post %>
             </td>
