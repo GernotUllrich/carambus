@@ -310,7 +310,7 @@ namespace :carambus do
   task :create_local_seed => :environment do
     output = ""
     void_keys = {"User" => ["terms_of_service"], "Account" => ["quantity", "plan", "card_token"]}
-    %w{User Account AccountUser Player Tournament Seeding Game GameParticipation TournamentMonitor TableMonitor}.each do |classz|
+    %w{User Account AccountUser Player Tournament Seeding Game GameParticipation TournamentMonitor TableMonitor TournamentLocal Location Table}.each do |classz|
       output << "#{classz.underscore}_id_map = {}\n"
       if classz == "Account"
         output << "#+++Account+++\n"
@@ -329,6 +329,10 @@ namespace :carambus do
       elsif classz == "Game"
         output << "#---Tournament---\n"
         output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+      elsif classz == "Location"
+      elsif classz == "table"
+        output << "#---Location---\n"
+        output << "h1 = JSON.pretty_generate(location_id_map)\n"
       elsif classz == "GameParticipation"
         output << "#+++GameParticipation+++\n"
         output << "#---Player---\n"
@@ -377,6 +381,8 @@ namespace :carambus do
           output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
         elsif classz == "GameParticipation"
           output << "    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?\n"
+        elsif classz == "Table"
+          output << "    obj.location_id = location_id_map[#{obj.location_id}] if location_id_map[#{obj.location_id}].present?\n"
         elsif classz == "Seeding"
           output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
           output << "    obj.player_id = player_id_map[#{obj.player_id}] if player_id_map[#{obj.player_id}].present?\n"
