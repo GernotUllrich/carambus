@@ -82,20 +82,20 @@ class Version < ApplicationRecord
             args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
-              oapp/views/tournaments/show.html.erbbj = h['item_type'].constantize.where(id: args["id"]).first
+              obj = h['item_type'].constantize.where(id: args['id']).first
               if obj.present?
                 obj.update(args)
               else
                 h['item_type'].constantize.create(args)
               end
-            rescue Exception => e
+            rescue StandardError => e
               e
             end
           when 'update'
             args = YAML.load(h['object'])
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
-              obj = h['item_type'].constantize.where(id: args["id"]).first
+              obj = h['item_type'].constantize.where(id: args['id']).first
               if obj.present?
                 obj.update(args)
               else
@@ -104,13 +104,13 @@ class Version < ApplicationRecord
                 obj.save!
                 obj.update(args)
               end
-            rescue Exception => e
+            rescue StandardError => e
               e
             end
           when 'destroy'
             begin
               h['item_type'].constantize.find(h['item_id']).delete
-            rescue Exception => e
+            rescue StandardError => e
               e
             end
           else
