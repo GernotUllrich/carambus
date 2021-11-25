@@ -82,7 +82,7 @@ class Version < ApplicationRecord
             args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
-              obj = h['item_type'].constantize.where(id: args['id']).first
+              obj = h['item_type'].constantize.where(id: h['item_id']).first
               if obj.present?
                 obj.update(args)
               else
@@ -92,10 +92,10 @@ class Version < ApplicationRecord
               e
             end
           when 'update'
-            args = YAML.load(h['object'])
+            args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
-              obj = h['item_type'].constantize.where(id: args['id']).first
+              obj = h['item_type'].constantize.where(id: h['item_id']).first
               if obj.present?
                 obj.update(args)
               else
