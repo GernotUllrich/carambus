@@ -40,12 +40,12 @@ class PlayerRanking < ApplicationRecord
   belongs_to :player
   belongs_to :region
   belongs_to :season
-  belongs_to :player_class
-  belongs_to :p_player_class, foreign_key: :p_player_class_id, class_name: "PlayerClass"
-  belongs_to :pp_player_class, foreign_key: :pp_player_class_id, class_name: "PlayerClass"
-  belongs_to :tournament_player_class, foreign_key: :tournament_player_class_id, class_name: "PlayerClass"
+  #belongs_to :player_class
+  #belongs_to :p_player_class, foreign_key: :p_player_class_id, class_name: "PlayerClass"
+  #belongs_to :pp_player_class, foreign_key: :pp_player_class_id, class_name: "PlayerClass"
+  #belongs_to :tournament_player_class, foreign_key: :tournament_player_class_id, class_name: "PlayerClass"
 
-  serialize :data, Hash
+  serialize :remarks, Hash
   serialize :t_ids, Array
 
   KEY_MAPPINGS = {

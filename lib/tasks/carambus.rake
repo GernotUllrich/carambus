@@ -519,22 +519,24 @@ namespace :carambus do
               discipline_id: discipline.id
             }
             values = players[player_id]
-            player_ranking = PlayerRanking.where(args).first || PlayerRanking.create(args)
-            data = player_ranking.data
+            player_ranking = PlayerRanking.where(args).first
+            player_ranking ||= PlayerRanking.create(args)
+            data = player_ranking.remarks
             data["result"] = values
             attributes = {}
             values.keys.each do |k|
               mapped_k = PlayerRanking::KEY_MAPPINGS[k]
               attributes[mapped_k] = values[k]
             end
-            attributes[:data] = data
+            attributes[:remarks] = data
             attributes[:rank] = ix + 1
             player_ranking.update(attributes)
           end
         end
       end
     end
-
+  rescue StandardError => e
+    e
   end
 end
 
