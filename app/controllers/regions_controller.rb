@@ -16,7 +16,7 @@ class RegionsController < ApplicationController
     respond_to do |format|
       format.html {
         if params[:table_only].present?
-          params.reject!{|k,v| k.to_s == "table_only"}
+          params.reject! { |k, v| k.to_s == "table_only" }
           render(partial: "search", :layout => false)
         else
           render("index")
