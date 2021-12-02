@@ -89,7 +89,7 @@ class Version < ApplicationRecord
                 h['item_type'].constantize.create(args)
               end
             rescue StandardError => e
-              e
+              Rails.logger.info "#{e} #{e.backtrace.inspect}"
             end
           when 'update'
             args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
@@ -105,16 +105,17 @@ class Version < ApplicationRecord
                 obj.update(args)
               end
             rescue StandardError => e
-              e
+              Rails.logger.info "#{e} #{e.backtrace.inspect}"
             end
           when 'destroy'
             begin
               h['item_type'].constantize.find(h['item_id']).delete
             rescue StandardError => e
-              e
+              Rails.logger.info "#{e} #{e.backtrace.inspect}"
             end
           else
             # type code here
+            Rails.logger.info "FatalProtocolError"
             Raise 'FatalProtocolError'
           end
         end
