@@ -88,7 +88,7 @@ class TableMonitor < ApplicationRecord
                   to: :game_warmup_b_started
     end
     event :event_warmup_finished do
-      transitions from: %i[game_shootout_started game_setup_started game_warmup_a_started game_warmup_b_started],
+      transitions from: %i[ready game_shootout_started game_setup_started game_warmup_a_started game_warmup_b_started],
                   to: :game_shootout_started
     end
     event :event_shootout_finished do
