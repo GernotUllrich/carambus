@@ -92,7 +92,7 @@ class Tournament < ApplicationRecord
     if (tol = tournament_local.present?)
       tol.update(timeout: value)
     else
-      create_tournament_local(timeout: value)
+      TournamentLocal.create(tournament_id: id, timeout: value)
     end
   end
 
@@ -104,7 +104,7 @@ class Tournament < ApplicationRecord
     if (tol = tournament_local.present?)
       tol.update(timeouts: value)
     else
-      create_tournament_local(timeouts: value)
+      TournamentLocal.create(tournament_id: id, timeouts: value)
     end
   end
 
@@ -116,7 +116,7 @@ class Tournament < ApplicationRecord
     if (tol = tournament_local.present?)
       tol.update(gd_has_priority: value)
     else
-      create_tournament_local(gd_has_priority: value)
+      TournamentLocal.create(tournament_id: id, gd_has_priority: value)
     end
   end
 
@@ -128,7 +128,7 @@ class Tournament < ApplicationRecord
     if (tol = tournament_local.present?)
       tol.update(admin_controlled: value)
     else
-      create_tournament_local(admin_controlled: value)
+      TournamentLocal.create(tournament_id: id, admin_controlled: value)
     end
   end
 
