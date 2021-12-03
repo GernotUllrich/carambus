@@ -299,6 +299,7 @@ class TournamentMonitor < ApplicationRecord
             tournament.finish_tournament!
             # noinspection RubyResolve
             tournament.have_results_published!
+            tournament.tournament_monitor.andand.table_monitors.andand.destroy_all
           else
             # noinspection RubyResolve
             start_playing_finals!
