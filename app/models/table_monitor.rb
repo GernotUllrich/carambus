@@ -416,6 +416,7 @@ class TableMonitor < ApplicationRecord
                      })
     # self.panel_state = "pointer_mode"
     # self.current_element = "pointer_mode"
+    event_warmup_finished! #TODO  INTERMEDIATE SOLUTION UNTIL SHOOTOUT WORKS
     data
   end
 
