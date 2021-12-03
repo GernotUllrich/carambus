@@ -90,7 +90,7 @@ class Tournament < ApplicationRecord
 
   def timeout=(value)
     tol = tournament_local.presence || create_tournament_local
-    tol.update(timeout: value)
+    tol.update(timeout: value) rescue nil
   end
 
   def timeouts
@@ -99,7 +99,7 @@ class Tournament < ApplicationRecord
 
   def timeouts=(value)
     tol = tournament_local.presence || create_tournament_local
-    tol.update(timeouts: value)
+    tol.update(timeouts: value) rescue nil
   end
 
   def gd_has_priority
@@ -108,7 +108,7 @@ class Tournament < ApplicationRecord
 
   def gd_has_priority=(value)
     tol = tournament_local.presence || create_tournament_local
-    tol.update(gd_has_priority: value)
+    tol.update(gd_has_priority: value) rescue nil
   end
 
   def admin_controlled
@@ -117,7 +117,7 @@ class Tournament < ApplicationRecord
 
   def admin_controlled=(value)
     tol = tournament_local.presence || create_tournament_local
-    tol.update(admin_controlled: value)
+    tol.update(admin_controlled: value) rescue nil
   end
 
   aasm column: 'state', skip_validation_on_save: true do
