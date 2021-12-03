@@ -162,7 +162,7 @@ class Tournament < ApplicationRecord
       transitions to: :new_tournament
     end
     event :finish_tournament do
-      transitions from: :tournament_started, to: :tournament_finished
+      transitions from: [:results_published, :tournament_finished, :tournament_started], to: :tournament_finished
     end
 
     event :have_results_published do
