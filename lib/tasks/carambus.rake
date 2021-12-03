@@ -368,23 +368,23 @@ namespace :carambus do
         output << "  if obj_was.blank?\n"
         output << "    obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')})\n"
         if classz == "Account"
-          output << "    obj.owner_id = user_id_map[#{obj.owner_id}] if user_id_map[#{obj.owner_id}].present?\n"
+          output << "    obj.owner_id = user_id_map[#{obj.owner_id}] if user_id_map[#{obj.owner_id}].present?\n" if obj.owner_id.present?
           output << "    obj.plan = nil\n"
           output << "    obj.quantity = nil\n"
           output << "    obj.card_token = nil\n"
         elsif classz == "AccountUser"
-          output << "    obj.account_id = account_id_map[#{obj.account_id}] if account_id_map[#{obj.account_id}].present?\n"
-          output << "    obj.user_id = user_id_map[#{obj.user_id}] if user_id_map[#{obj.user_id}].present?\n"
+          output << "    obj.account_id = account_id_map[#{obj.account_id}] if account_id_map[#{obj.account_id}].present?\n" if obj.account_id.present?
+          output << "    obj.user_id = user_id_map[#{obj.user_id}] if user_id_map[#{obj.user_id}].present?\n" if obj.user_id.present?
         elsif classz == "TournamentMonitor"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
         elsif classz == "Game"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
         elsif classz == "GameParticipation"
-          output << "    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?\n"
+          output << "    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?\n" if obj.game_id.present?
         elsif classz == "Table"
-          output << "    obj.location_id = location_id_map[#{obj.location_id}] if location_id_map[#{obj.location_id}].present?\n"
+          output << "    obj.location_id = location_id_map[#{obj.location_id}] if location_id_map[#{obj.location_id}].present?\n" if obj.location_id.present?
         elsif classz == "Seeding"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n"
+          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
           output << "    obj.player_id = player_id_map[#{obj.player_id}] if player_id_map[#{obj.player_id}].present?\n"
         elsif classz == "TableMonitor"
           output << "    obj.tournament_monitor_id = tournament_monitor_id_map[#{obj.tournament_monitor_id}] if tournament_monitor_id_map[#{obj.tournament_monitor_id}].present?\n" if obj.tournament_monitor_id.present?
