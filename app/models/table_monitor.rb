@@ -131,7 +131,7 @@ class TableMonitor < ApplicationRecord
 
   def log_state_change
     if state_changed?
-      Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}"
+      Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]} #{caller[0..4].join("\n")}"
     end
   end
 
