@@ -141,10 +141,10 @@ class TableMonitor < ApplicationRecord
 
   after_commit do
     if previous_changes.present?
-      Rails.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
+      Tournament.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
       reload.evaluate_panel_and_current
       if changes.present?
-        Rails.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
+        Tournament.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
         save
       else
         # TableMonitorLaterJob.perform_later(self)
