@@ -84,33 +84,35 @@ class TableMonitorReflex < ApplicationReflex
 
   def key_a
     morph :nothing
-    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    # noinspection RubyResolve
-    if @table_monitor.setup_modal_should_be_open?
+    TableMonitor.transaction do
+      @table_monitor = TableMonitor.find(element.andand.dataset[:id])
       # noinspection RubyResolve
-      warmup_state_change('a') if @table_monitor.game_setup_started? || @table_monitor.game_warmup_b_started?
-    elsif @table_monitor.shootout_modal_should_be_open?
-      @table_monitor.reset_timer!
-      @table_monitor.switch_players
-    elsif @table_monitor.playing_game?
-      case @table_monitor.data['current_inning']['active_player']
-      when 'playera'
+      if @table_monitor.setup_modal_should_be_open?
+        # noinspection RubyResolve
+        warmup_state_change('a') if @table_monitor.game_setup_started? || @table_monitor.game_warmup_b_started?
+      elsif @table_monitor.shootout_modal_should_be_open?
         @table_monitor.reset_timer!
-        @table_monitor.add_n_balls(1)
-        @table_monitor.do_play
-        @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
-      when 'playerb'
-        @table_monitor.reset_timer!
-        @table_monitor.terminate_current_inning
-        @table_monitor.do_play
-        @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
-      else
-        # type code here
+        @table_monitor.switch_players
+      elsif @table_monitor.playing_game?
+        case @table_monitor.data['current_inning']['active_player']
+        when 'playera'
+          @table_monitor.reset_timer!
+          @table_monitor.add_n_balls(1)
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
+        when 'playerb'
+          @table_monitor.reset_timer!
+          @table_monitor.terminate_current_inning
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
+        else
+          # type code here
+        end
+      elsif (@table_monitor.game_show_result? && @table_monitor.player_controlled?) || @table_monitor.game_finished?
+        @table_monitor.evaluate_result
       end
-    elsif (@table_monitor.game_show_result? && @table_monitor.player_controlled?) || @table_monitor.game_result_reported? || @table_monitor.game_finished?
-      @table_monitor.evaluate_result
+      @table_monitor.save
     end
-    @table_monitor.save
   end
 
   def key_b
@@ -279,13 +281,13 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.current_element = 'add_one'
     @table_monitor.reset_timer!
     Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(@table_monitor.attributes.delete_if do |k, _v|
-                                                                    k == 'data'
-                                                                  end)}")
+      k == 'data'
+    end)}")
     @table_monitor.add_n_balls(1)
     @table_monitor.do_play
     Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(@table_monitor.attributes.delete_if do |k, _v|
-                                                                    k == 'data'
-                                                                  end)}")
+      k == 'data'
+    end)}")
     @table_monitor.save
   rescue StandardError => e
     Rails.logger.info("[add_one] #{e} #{e.backtrace.to_a.join("\n")}")
