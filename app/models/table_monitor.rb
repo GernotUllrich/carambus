@@ -131,7 +131,7 @@ class TableMonitor < ApplicationRecord
 
   def log_state_change
     if state_changed?
-      Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]} #{caller.join("\n")}"
+      Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]} #{caller.select{|s| s.include?("/app/").join("\n")}"
     end
   end
 
@@ -624,7 +624,7 @@ class TableMonitor < ApplicationRecord
       elsif game_show_result?
         event_game_result_accepted!
       elsif game_finished?
-        Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].join("\n")}"
+        # Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
         event_game_result_reported!
       elsif tournament_monitor.blank? && game.present?
         revert_players

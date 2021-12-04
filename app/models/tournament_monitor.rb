@@ -280,7 +280,7 @@ class TournamentMonitor < ApplicationRecord
   def report_result(table_monitor)
     TournamentMonitor.transaction do
       # noinspection RubyResolve
-      Tournament.logger.info "[tournament_monitor#report_result] #{caller[0..4].join("\n")}" if table_monitor.may_event_game_result_reported?
+      # Tournament.logger.info "[tournament_monitor#report_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}" if table_monitor.may_event_game_result_reported?
       table_monitor.event_game_result_reported! if table_monitor.may_event_game_result_reported?
       finalize_game_result(table_monitor)
       accumulate_results
