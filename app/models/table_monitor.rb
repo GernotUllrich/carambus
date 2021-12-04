@@ -132,7 +132,6 @@ class TableMonitor < ApplicationRecord
   def log_state_change
     if state_changed?
       Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]} #{caller.select{|s| s.include?("/app/")}.join("\n")}"
-      touch
     end
   end
 
@@ -140,7 +139,7 @@ class TableMonitor < ApplicationRecord
     update(current_element: 'game_state')
   end
 
-  after_commit do
+  after_save do
     if previous_changes.present?
       Tournament.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
       reload.evaluate_panel_and_current
