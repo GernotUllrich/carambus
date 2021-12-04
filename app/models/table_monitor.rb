@@ -624,6 +624,7 @@ class TableMonitor < ApplicationRecord
       elsif game_show_result?
         event_game_result_accepted!
       elsif game_finished?
+        Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].join("\n")}"
         event_game_result_reported!
       elsif tournament_monitor.blank? && game.present?
         revert_players

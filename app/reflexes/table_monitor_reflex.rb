@@ -148,6 +148,7 @@ class TableMonitorReflex < ApplicationReflex
         # @table_monitor.tournament_monitor.report_result(@table_monitor)
       else
         # noinspection RubyResolve
+        Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].join("\n")}"
         @table_monitor.event_game_result_reported!
         @table_monitor.reset_table_monitor
       end
@@ -420,6 +421,7 @@ class TableMonitorReflex < ApplicationReflex
         # @table_monitor.tournament_monitor.report_result(@table_monitor)
       else
         # noinspection RubyResolve
+        Tournament.logger.info "[table_monitor_reflex#force_next_state] #{caller[0..4].join("\n")}"
         @table_monitor.event_game_result_reported!
         @table_monitor.reset_table_monitor
       end
