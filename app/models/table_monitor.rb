@@ -196,12 +196,14 @@ class TableMonitor < ApplicationRecord
     active_timer = 'timeout'
     units = 'seconds'
     start_at = Time.now
-    finish_at = Time.now + (tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || (data['timeout'].to_i.positive? ? data['timeout'].to_i.seconds : 5.minutes)).to_i
-    if timer_halt_at.present?
+    delta = tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || (data['timeout'].to_i.positive? ? data['timeout'].to_i.seconds : nil)
+    finish_at = delta.present? ? delta.to_i : nil
+    if timer_halt_at.present? && finish_at.present?
       extend = Time.now - timer_halt_at
       start_at = timer_start_at + extend
       finish_at = timer_finish_at + extend
     end
+    Rails.logger.info "[table_monitor#do_play] active_timer, start_at, finish_at: #{[active_timer, start_at, finish_at].inspect}"
     update(
       active_timer: active_timer,
       timer_halt_at: nil,
