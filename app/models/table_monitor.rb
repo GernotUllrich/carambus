@@ -288,15 +288,20 @@ class TableMonitor < ApplicationRecord
     time_counter = green_bars = 0
     finish = timer_finish_at
     start = timer_start_at
+    Rails.logger.info "[table_monitor#get_progress_bar_status] finish, start: #{[finish, start].inspect}"
     if finish.present? && timer_halt_at.present?
+      Rails.logger.info "[table_monitor#get_progress_bar_status] finish.present && timer_halt_at.present ..."
       halted = Time.now - timer_halt_at
       finish += halted
       start += halted
+      Rails.logger.info "[table_monitor#get_progress_bar_status] halted, finish, start: #{[halted, finish, start].inspect}"
     end
     if finish.present? && (Time.now < finish)
+      Rails.logger.info "[table_monitor#get_progress_bar_status] finish.present && Time.now < finish ..."
       delta_total = (finish - start).to_i
       delta_rest = (finish - Time.now)
       units = active_timer =~ /min$/ ? 'minutes' : 'seconds'
+      Rails.logger.info "[table_monitor#get_progress_bar_status] halted, finish, start: #{[delta_total, delta_rest, units].inspect}"
       if units == 'minutes'
         minutes = (delta_rest / 1.send(units)).to_i
         seconds = ((((delta_rest / 1.send(units)) - (delta_rest.to_i / 1.send(units))) * 100 * 60 / 100).to_i + 100).to_s[-2..]
@@ -305,7 +310,9 @@ class TableMonitor < ApplicationRecord
         time_counter = (1.0 * delta_rest / 1.send(units)).ceil
       end
       green_bars = [((1.0 * n * delta_rest) / delta_total).ceil, 18].min
+      Rails.logger.info "[table_monitor#get_progress_bar_status] time_counter, green_bars: #{[time_counter, green_bars].inspect}"
     end
+    Rails.logger.info "[table_monitor#get_progress_bar_status] return [time_counter, green_bars]: #{[time_counter, green_bars].inspect}"
     [time_counter, green_bars]
   end
 

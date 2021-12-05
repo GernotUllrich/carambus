@@ -7,16 +7,12 @@ class TableMonitorJob < ApplicationJob
     table_monitor, delta, active_player, balls, inning = args
     table_monitor.reload
     Rails.logger.info "[TableMonitorJob#perform] monit: #{table_monitor.timer_job_id} self: #{self.job_id}"
-    #if table_monitor.timer_job_id.blank?# || table_monitor.timer_job_id == self.job_id
     Rails.logger.info "[TableMonitorJob#perform] delta, active_player, balls, inning: #{[delta, active_player, balls, inning].inspect}"
     if table_monitor.timer_finish_at.present? && (table_monitor.timer_finish_at + 10.seconds) > Time.now
       Rails.logger.info "[TableMonitorJob#perform] #{table_monitor.timer_finish_at}, #{Time.now.utc}, delta, active_player, balls, inning: #{[delta, active_player, balls, inning].inspect}"
       time_counter, green_bars = table_monitor.get_progress_bar_status(18)
 
       if table_monitor.timer_halt_at.present? || (table_monitor.timer_job_id.present? && table_monitor.timer_job_id != self.job_id)
-        #table_monitor.data["current_inning"]["active_player"] != active_player# ||
-        #table_monitor.data[table_monitor.data["current_inning"]["active_player"]]["innings_redo_list"][-1].to_i != balls ||
-        #table_monitor.data[table_monitor.data["current_inning"]["active_player"]]["innings"] != inning
         Rails.logger.info "[TableMonitorJob#perform] TERMINATED delta, active_player, balls, inning: #{[delta, active_player, balls, inning].inspect}"
         self
       else
