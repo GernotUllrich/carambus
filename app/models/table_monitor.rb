@@ -134,6 +134,7 @@ class TableMonitor < ApplicationRecord
       #Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]} #{caller.select{|s| s.include?("/app/")}.join("\n")}"
       Tournament.logger.info "[TableMonitor] STATE_CHANGED [#{id}]: #{state_change[0]} -> #{state_change[1]}"
     end
+  end
 
   def set_game_show_result
     update(current_element: 'game_state')
