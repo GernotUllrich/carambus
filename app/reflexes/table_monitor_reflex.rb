@@ -524,13 +524,15 @@ class TableMonitorReflex < ApplicationReflex
         start_at += extend
         finish_at += extend
       end
-      @table_monitor.assign_attributes(
+      @table_monitor.update(
         active_timer: active_timer,
         timer_halt_at: nil,
         timer_start_at: start_at,
         timer_finish_at: finish_at
       )
       @table_monitor.update_every_n_seconds(2)
+    else
+      Time.now
     end
     @table_monitor.save
   end

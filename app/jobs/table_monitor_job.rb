@@ -29,6 +29,8 @@ class TableMonitorJob < ApplicationJob
         enqueue(wait: delta.seconds)
         return
       end
+    else
+      Rails.logger.info "[TableMonitorJob#perform] OOPS"
     end
     table_monitor.update_columns(timer_job_id: nil)
     #else
