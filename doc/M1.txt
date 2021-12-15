@@ -1,0 +1,37 @@
+# native reinstall node, yarn, node-modules etc
+# remove old stuff
+cd
+rm -rf .nvm
+rm -rf .npm
+rm -rf n
+cd carambus
+rm -rf node_modules
+cd /usr/local/bin
+sudo rm node npm npx react-* serve webpack-cli
+
+# https://github.com/nvm-sh/nvm#manual-install
+
+export NVM_DIR="$HOME/.nvm" && (
+  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+  cd "$NVM_DIR"
+  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
+) && \. "$NVM_DIR/nvm.sh"
+
+# add to ~/.zshrc
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# https://github.com/nvm-sh/nvm#manual-upgrade
+
+(
+  cd "$NVM_DIR"
+  git fetch --tags origin
+  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
+) && \. "$NVM_DIR/nvm.sh"
+
+# show dot files per default
+defaults write com.apple.finder AppleShowAllFiles TRUE; killall Finder
+
+
