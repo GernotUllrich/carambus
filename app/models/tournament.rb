@@ -89,10 +89,11 @@ class Tournament < ApplicationRecord
   end
 
   def timeout=(value)
-    if (tol = tournament_local.present?)
-      tol.update(timeout: value)
+    if new_record?
+      write_attribute(:timeout, value)
     else
-      TournamentLocal.create(tournament_id: id, timeout: value)
+      tol = tournament_local.presence || create_tournament_local
+      tol.update(timeout: value)
     end
   end
 
@@ -101,10 +102,11 @@ class Tournament < ApplicationRecord
   end
 
   def timeouts=(value)
-    if (tol = tournament_local.present?)
-      tol.update(timeouts: value)
+    if new_record?
+      write_attribute(:timeouts, value)
     else
-      TournamentLocal.create(tournament_id: id, timeouts: value)
+      tol = tournament_local.presence || create_tournament_local
+      tol.update(timeouts: value)
     end
   end
 
@@ -113,11 +115,8 @@ class Tournament < ApplicationRecord
   end
 
   def gd_has_priority=(value)
-    if (tol = tournament_local.present?)
-      tol.update(gd_has_priority: value)
-    else
-      TournamentLocal.create(tournament_id: id, gd_has_priority: value)
-    end
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(gd_has_priority: value)
   end
 
   def admin_controlled
@@ -125,11 +124,8 @@ class Tournament < ApplicationRecord
   end
 
   def admin_controlled=(value)
-    if (tol = tournament_local.present?)
-      tol.update(admin_controlled: value)
-    else
-      TournamentLocal.create(tournament_id: id, admin_controlled: value)
-    end
+    tol = tournament_local.presence || create_tournament_local
+    tol.update(admin_controlled: value)
   end
 
   aasm column: 'state', skip_validation_on_save: true do
@@ -162,7 +158,7 @@ class Tournament < ApplicationRecord
       transitions to: :new_tournament
     end
     event :finish_tournament do
-      transitions from: [:results_published, :tournament_finished, :tournament_started], to: :tournament_finished
+      transitions from: :tournament_started, to: :tournament_finished
     end
 
     event :have_results_published do
@@ -313,8 +309,7 @@ class Tournament < ApplicationRecord
                     real_club = season_participations.first.club
                     logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
                     logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless
-                      SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
+                    SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
                     seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
                       Seeding.create(player_id: player.id, tournament_id: self.id)
                     state_ix = 0
@@ -487,15 +482,15 @@ class Tournament < ApplicationRecord
     unless new_record?
       update(tournament_plan_id: nil, state: "new_tournament", data: {})
       reload
+      reorder_seedings
     end
-    reorder_seedings
     Tournament.logger.info "state:#{state}...[reset_tournament]"
   end
 
   def reorder_seedings
     l_seeding_ids = seeding_ids
     l_seeding_ids.each_with_index do |seeding_id, ix|
-      Seeding.find_by_id(seeding_id).update_columns(position: ix+1)
+      Seeding.find_by_id(seeding_id).update_columns(position: ix + 1)
     end
     reload
   end
