@@ -25,7 +25,7 @@
               <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 mb-4 mr-0 text-gray-400 inline-block", title: "home" %>
             <% end %>
             <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-              <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-4 text-gray-400 inline-block", title: "cancel" %>
+              <%= render_svg "icons/backspace", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-4 text-gray-400 inline-block", title: "cancel" %>
             <% end %>
           </div>
           <div class="flex-auto mt-5 text-2vw text-center">Partie <%= table_monitor.game.andand.gname.andand.split(":").andand[1].andand.gsub("group", "Gruppe ") %></div>

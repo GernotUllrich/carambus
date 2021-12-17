@@ -174,7 +174,7 @@
                 <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 m-2 mr-0 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
               <% end %>
               <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-                <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
+                <%= render_svg "icons/backspace", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg m-2 lg:m-4 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
               <% end %>
             </div>
             <%- if table_monitor.state_display(I18n.locale).present? %>

@@ -12,7 +12,7 @@
             <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 mb-4 mr-0 hover:text-black text-gray-400 inline-block", title: "home" %>
           <% end %>
           <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-            <%= render_svg "icons/arrow-outline-left", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-4 hover:text-black text-gray-400 inline-block", title: "home" %>
+            <%= render_svg "icons/backspace", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-4 hover:text-black text-gray-400 inline-block", title: "home" %>
           <% end %>
         </div>
         <div class="flex-auto text-3vw <%= table_monitor.data["switch_colors"] ? "" : "bg-yellow-500 " %> items-center text-center font-semibold"><%= table_monitor.tournament_monitor_id.present? ? gps[1].andand.player.andand.fullname : gps[1].andand.player.andand.simple_firstname || "Spieler B" %></div>
