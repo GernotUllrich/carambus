@@ -755,8 +755,8 @@ class TableMonitor < ApplicationRecord
         'Gruppe' => game.group_no,
         'Partie' => game.seqno,
 
-        'Spieler1' => game.game_participations.where(role: 'playera').first.player.ba_id,
-        'Spieler2' => game.game_participations.where(role: 'playerb').first.player.ba_id,
+        'Spieler1' => game.game_participations.where(role: 'playera').first.player.andand.ba_id,
+        'Spieler2' => game.game_participations.where(role: 'playerb').first.player.andand.ba_id,
         'Ergebnis1' => data['playera']['result'].to_i,
         'Ergebnis2' => data['playerb']['result'].to_i,
         'Aufnahmen1' => data['playera']['innings'].to_i,

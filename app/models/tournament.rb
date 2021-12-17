@@ -115,8 +115,12 @@ class Tournament < ApplicationRecord
   end
 
   def gd_has_priority=(value)
-    tol = tournament_local.presence || create_tournament_local
-    tol.update(gd_has_priority: value)
+    if new_record?
+      write_attribute(:gd_has_priority, value)
+    else
+      tol = tournament_local.presence || create_tournament_local
+      tol.update(gd_has_priority: value)
+    end
   end
 
   def admin_controlled
@@ -124,8 +128,12 @@ class Tournament < ApplicationRecord
   end
 
   def admin_controlled=(value)
-    tol = tournament_local.presence || create_tournament_local
-    tol.update(admin_controlled: value)
+    if new_record?
+      write_attribute(:admin_controlled, value)
+    else
+      tol = tournament_local.presence || create_tournament_local
+      tol.update(admin_controlled: value)
+    end
   end
 
   aasm column: 'state', skip_validation_on_save: true do

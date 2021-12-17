@@ -108,7 +108,7 @@ class TableMonitorReflex < ApplicationReflex
         else
           # type code here
         end
-      elsif (@table_monitor.game_show_result? && @table_monitor.player_controlled?) || @table_monitor.game_finished?
+      elsif (@table_monitor.game_show_result? && @table_monitor.player_controlled?) || @table_monitor.game_result_reported? || @table_monitor.game_finished?
         @table_monitor.evaluate_result
       end
       @table_monitor.save
