@@ -141,7 +141,7 @@ class TableMonitor < ApplicationRecord
   end
 
   after_save do
-    if previous_changes.present?
+    if previous_changes["id"].nil? && previous_changes.present?
       Tournament.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
       reload.evaluate_panel_and_current
       if changes.present?
