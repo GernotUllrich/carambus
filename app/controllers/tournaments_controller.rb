@@ -51,13 +51,14 @@ class TournamentsController < ApplicationController
       @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
       @tournament.seedings.create(
         @tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map { |s| { player_id: s.player_id, balls_goal: s.balls_goal } }
-      )
+        )
     end
     @tournament.seedings.where("seedings.id >= #{@tournament.organizer.is_a?(Club) ? Seeding::MIN_ID : Seeding::MIN_ID}").each do |seeding|
       if @tournament.handicap_tournier
         hash[seeding] = -seeding.balls_goal.to_i
       else
-        hash[seeding] = seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999
+        diff = Season.current_season.name == "2021/2022" ? 2 : 1
+        hash[seeding] = seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || 999
       end
     end
     sorted = hash.to_a.sort_by do |a|

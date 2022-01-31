@@ -68,7 +68,8 @@
             </td>
             <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
             <td><%= link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
-            <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - 1)).first.andand.rank.presence || 999) %></td>
+            <%- diff = Season.current_season.name == "2021/2022" ? 2 : 1 %>
+            <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || 999) %></td>
               <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
                 <%= check_box_tag "participate-#{seeding.player.id}", "1", seeding.no_show?, data: { reflex: "change->TournamentReflex#change_no_show", id: @tournament.id } %>
               <%- end %>
