@@ -99,6 +99,8 @@ class TableMonitorsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_table_monitor
     @table_monitor = TableMonitor.find(params[:id])
+    @display_only = params[:display_only] == "false" ? false : session[:display_only].presence && JSON.parse(session[:display_only].to_s) || params[:display_only] == "true"
+    session[:display_only] = JSON.parse(@display_only.to_s)
   end
 
   # Only allow a trusted parameter "white list" through.

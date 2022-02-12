@@ -197,7 +197,7 @@ class TableMonitor < ApplicationRecord
     units = 'seconds'
     start_at = Time.now
     delta = tournament_monitor.andand.tournament.andand.send(active_timer.to_sym).andand.send(units.to_sym) || (data['timeout'].to_i.positive? ? data['timeout'].to_i.seconds : nil)
-    finish_at = delta.present? ? delta.to_i : nil
+    finish_at = delta.present? ? start_at + delta.to_i : nil
     if timer_halt_at.present? && finish_at.present?
       extend = Time.now - timer_halt_at
       start_at = timer_start_at + extend
@@ -245,12 +245,13 @@ class TableMonitor < ApplicationRecord
       (1..cols).each_with_index do |_col, icol|
         ret << "<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{ix + 1 + (icol * 15)}</span></td>
 <td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{(ix + (icol * 15)) == sums.length ? 'GD' : show_innings[ix + (icol * 15)]}</span></td>
-<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{if (ix + (icol * 15)) == sums.length
-                                                              format('%0.2f',
-                                                                     (sums.last.to_i / innings.to_f))
-                                                            else
-                                                              (ix + (icol * 15)) == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + (icol * 15)]}</strong>" : sums[ix + (icol * 15)]
-                                                            end}</span></td>"
+<td><span class=\"sm:text-xs lg:text-lg sm:px-2 lg:px-4\">#{
+          if (ix + (icol * 15)) == sums.length
+            format('%0.2f',
+                   (sums.last.to_i / innings.to_f))
+          else
+            (ix + (icol * 15)) == sums.length - 1 ? "<strong class=\"text-3vw\">#{sums[ix + (icol * 15)]}</strong>" : sums[ix + (icol * 15)]
+          end}</span></td>"
       end
       ret << '</tr>'
     end
@@ -287,7 +288,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def get_progress_bar_status(n)
-    time_counter = green_bars = 0
+    time_counter = green_bars = do_green_bars = do_yellow_bars = do_orange_bars = do_lightred_bars = do_red_bars = 0
     finish = timer_finish_at
     start = timer_start_at
     Rails.logger.info "[table_monitor#get_progress_bar_status] finish, start: #{[finish, start].inspect}"
@@ -312,10 +313,16 @@ class TableMonitor < ApplicationRecord
         time_counter = (1.0 * delta_rest / 1.send(units)).ceil
       end
       green_bars = [((1.0 * n * delta_rest) / delta_total).ceil, 18].min
+      do_bars = [((1.0 * 50 * delta_rest) / delta_total).ceil, 50].min
+      do_green_bars = [[do_bars - 40, 10].min, 0].max
+      do_yellow_bars = [[do_bars - 30, 10].min, 0].max
+      do_orange_bars = [[do_bars - 20, 10].min, 0].max
+      do_lightred_bars = [[do_bars - 10, 10].min, 0].max
+      do_red_bars = [[do_bars, 10].min, 0].max
       Rails.logger.info "[table_monitor#get_progress_bar_status] time_counter, green_bars: #{[time_counter, green_bars].inspect}"
     end
     Rails.logger.info "[table_monitor#get_progress_bar_status] return [time_counter, green_bars]: #{[time_counter, green_bars].inspect}"
-    [time_counter, green_bars]
+    [time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars]
   end
 
   def switch_players
@@ -393,14 +400,14 @@ class TableMonitor < ApplicationRecord
                          'hs' => 0,
                          'gd' => 0.0,
                          'balls_goal' =>
-          data['result'].andand['playera'].andand['balls_goal'] ||
-            tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from('playera').balls_goal.presence ||
-            tournament_monitor.andand.balls_goal ||
-            tournament_monitor.andand.tournament.andand.balls_goal,
+                           data['result'].andand['playera'].andand['balls_goal'] ||
+                             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from('playera').balls_goal.presence ||
+                             tournament_monitor.andand.balls_goal ||
+                             tournament_monitor.andand.tournament.andand.balls_goal,
                          'tc' =>
-          tournament_monitor.andand.timeouts ||
-            tournament_monitor.andand.tournament.andand.timeouts ||
-            0
+                           tournament_monitor.andand.timeouts ||
+                             tournament_monitor.andand.tournament.andand.timeouts ||
+                             0
                        },
                        'playerb' => {
                          'result' => 0,
@@ -410,14 +417,14 @@ class TableMonitor < ApplicationRecord
                          'hs' => 0,
                          'gd' => 0.0,
                          'balls_goal' =>
-          data['result'].andand['playerb'].andand['balls_goal'] ||
-            tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from('playerb').balls_goal.presence ||
-            tournament_monitor.andand.balls_goal ||
-            tournament_monitor.andand.tournament.andand.balls_goal,
+                           data['result'].andand['playerb'].andand['balls_goal'] ||
+                             tournament_monitor.andand.tournament.andand.handicap_tournier? && seeding_from('playerb').balls_goal.presence ||
+                             tournament_monitor.andand.balls_goal ||
+                             tournament_monitor.andand.tournament.andand.balls_goal,
                          'tc' =>
-          tournament_monitor.andand.timeouts ||
-            tournament_monitor.andand.tournament.andand.timeouts ||
-            0
+                           tournament_monitor.andand.timeouts ||
+                             tournament_monitor.andand.tournament.andand.timeouts ||
+                             0
                        },
                        'current_inning' => {
                          'active_player' => 'playera',
@@ -598,7 +605,7 @@ class TableMonitor < ApplicationRecord
     data.present? &&
       ((data['current_inning'].andand['active_player'] == 'playerb') &&
         (data['playera'].andand['balls_goal'].to_i.positive? && (data['playera'].andand['result'].to_i >= data['playera'].andand['balls_goal'].to_i) ||
-        (data['innings_goal'].to_i.positive? && data['playera'].andand['innings'].to_i >= data['innings_goal'].to_i))
+          (data['innings_goal'].to_i.positive? && data['playera'].andand['innings'].to_i >= data['innings_goal'].to_i))
       )
   end
 
@@ -718,7 +725,7 @@ class TableMonitor < ApplicationRecord
       return true
     elsif ((data['innings_goal'].to_i.positive? && data['playera']['innings'].to_i >= data['innings_goal'].to_i) ||
       (data['innings_goal'].to_i.positive? && data['playera']['innings'].to_i >= data['innings_goal'].to_i)) &&
-          data['playera']['innings'] == data['playerb']['innings']
+      data['playera']['innings'] == data['playerb']['innings']
       return true
     end
 

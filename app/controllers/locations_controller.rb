@@ -209,6 +209,8 @@ class LocationsController < ApplicationController
   def set_location
     @location = Location.find_by_md5(params[:id])
     if @location.present?
+      @display_only = params[:display_only] == "false" ? false : session[:display_only].presence && JSON.parse(session[:display_only].to_s) || params[:display_only] == "true"
+      session[:display_only] = JSON.parse(@display_only.to_s)
       session[:location_id] = @location.id
       unless current_user.present?
         @user = User.scoreboard

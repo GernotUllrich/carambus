@@ -1,5 +1,5 @@
 <%- if table_monitor.andand.reload.present? %>
-  <%- time_counter, green_bars = table_monitor.get_progress_bar_status(18) %>
+  <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = table_monitor.get_progress_bar_status(18) %>
   <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
   <%- options = {
     id: table_monitor.id,
@@ -92,7 +92,8 @@
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
           <%= link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless table_monitor.tournament_monitor.present? #&& !table_monitor.end_result?%>
+          <%- unless table_monitor.tournament_monitor.present?
+                #&& !table_monitor.end_result? %>
             <%= link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
           <%= link_to t('continue'), "javascript:unset_warning_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
@@ -100,6 +101,28 @@
       </div>
     </div>
   </div>
+  <style>
+
+      .display-only .hide-on-display-only {
+          display: none
+      }
+
+      .hide-on-display-only {
+          display: grid
+      }
+
+      .display-only .show-on-display-only.flex {
+          display: flex
+      }
+
+      .display-only .show-on-display-only {
+          display: grid
+      }
+
+      .show-on-display-only {
+          display: none
+      }
+  </style>
   <%- if full_screen %>
     <div class="fullscreen flex flex-col h-full bg-white dark:bg-black rounded shadow">
       <div class="flex h-5/6 bg-gray-200">
@@ -141,14 +164,16 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a touchstart->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_a", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
                 <%= options[:player_a][:result].to_i + table_monitor.data["playera"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && table_monitor.tournament_monitor.timeout.to_i > 0) ? "" : "hidden" %>
-              <%- if showing_timer.blank? %>
-                <div class="flex flex-1 flex-col">
-                  <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-                    <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
-                    <div class="flex flex-1 flex-row w-5/6">
-                      <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-                      <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              <%- showing_timer_a = (options[:player_a_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+              <%- if showing_timer_a.blank? %>
+                <div class="hide-on-display-only">
+                  <div class="flex flex-1 flex-col">
+                    <div class="flex flex-1 flex-row items-center <%= showing_timer_a %>" id="timer_table_monitor_<%= showing_timer_a %><%= table_monitor.id %>">
+                      <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
+                      <div class="flex flex-1 flex-row w-5/6">
+                        <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                        <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -259,14 +284,16 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b touchstart->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "Player_b", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
                 <%= options[:player_b][:result].to_i + table_monitor.data["playerb"].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && table_monitor.tournament_monitor.timeout.to_i > 0) ? "" : "hidden" %>
-              <%- if showing_timer.blank? %>
-                <div class="flex flex-1 flex-col">
-                  <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
-                    <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
-                    <div class="flex flex-1 flex-row w-5/6">
-                      <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
-                      <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+              <%- showing_timer_b = (options[:player_b_active] && table_monitor.playing_game? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+              <%- if showing_timer_b.blank? %>
+                <div class="hide-on-display-only">
+                  <div class="flex flex-1 flex-col">
+                    <div class="flex flex-1 flex-row items-center <%= showing_timer_b %>" id="timer_table_monitor_<%= showing_timer_b %><%= table_monitor.id %>">
+                      <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
+                      <div class="flex flex-1 flex-row w-5/6">
+                        <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+                        <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -283,7 +310,18 @@
           </div>
         </div>
       </div>
-      <div class="controls flex h-1/6 grid grid-cols-9 gap-1">
+      <%- showing_timer = showing_timer_a.blank? ? showing_timer_a : showing_timer_b.blank? ? showing_timer_b : "hidden" %>
+      <div class="show-on-display-only flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_new_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+        <div class="w-1/12 font-bold text-center text-4vw p-2"><%= time_counter %></div>
+        <div class="flex flex-1 w-full justify-end mr-10 flex-row w-11/12">
+          <div class="flex text-6vw font-bold text-green-400"><%= "I" * do_green_bars %></div>
+          <div class="flex text-6vw font-bold text-yellow-200"><%= "I" * do_yellow_bars %></div>
+          <div class="flex text-6vw font-bold text-yellow-500"><%= "I" * do_orange_bars %></div>
+          <div class="flex text-6vw font-bold text-red-400"><%= "I" * do_lightred_bars %></div>
+          <div class="flex text-6vw font-bold text-red-600"><%= "I" * do_red_bars %></div>
+        </div>
+      </div>
+      <div class="controls hide-on-display-only h-1/6 grid grid-cols-9 gap-1">
         <%- if table_monitor.playing_game? %>
           <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-gray-800 hover:bg-gray-300 dark:text-red-200 text-red-200", title: "Undo", style: "letter-spacing: -3px;", data: { reflex: "click->TableMonitorReflex#undo", id: options[:id] }, id: "undo", tabindex: 2 do %>
             <%= render_svg "undo", styles: "fill-current icon-2xl text-red-300 inline-block" %>
@@ -312,9 +350,9 @@
           <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "number popup", data: { reflex: "click->TableMonitorReflex#numbers", id: options[:id] }, id: "numbers", tabindex: 2 do %>
             <%= render_svg "icons/calculator", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
           <%- end %>
+          </div>
         <%- end %>
-      </div>
-    </div>
+        </div>
   <%- else %>
     <div class="flex h-full bg-white dark:bg-black rounded shadow">
       <div class="flex w-full bg-gray-200">
@@ -398,7 +436,7 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 <%= !options[:switch_colors] ? "bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500"  %> dark:bg-black">
+        <div class="w-2/5 <%= !options[:switch_colors] ? "bg-yellow-500 dark:text-yellow-500" : "bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items-center">
             <div class="p-2"><%= image_tag(options[:player_b][:logo]) if options[:player_b][:logo].present? %></div>
             <div class="flex-nowrap text-2vw"><%= options[:player_b][:fullname] %></div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="<%= "dark" if @dark %> h-full antialiased">
+<html class="<%= "dark " if @dark %><%= "display-only" if @display_only %> h-full antialiased">
   <head>
     <title>
       <% if content_for?(:title) %>
