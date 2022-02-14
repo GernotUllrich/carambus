@@ -64,8 +64,11 @@ Rails.application.routes.draw do
         post :minus_one
         post :minus_ten
         post :next_step
+        get :next_step
         post :start_game
+        get :start_game
         post :evaluate_result
+        get :evaluate_result
         post :undo
         post :up
         post :down
