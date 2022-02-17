@@ -773,6 +773,8 @@ class TableMonitor < ApplicationRecord
         'Tischnummer' => game.table_no
       }
       deep_merge_data!('ba_results' => game_ba_result)
+      game.andand.deep_merge_data!(data) if tournament_monitor_id.blank? and game_finished?
+
     else
       Rails.logger.info '[prepare_final_game_result] ignored - no game'
     end
