@@ -59,7 +59,7 @@
     <h1 class="text-yellow-500"><%= @tournament.title %></h1>
     <div class="flex flex-col">
       <%= render partial: "tournament_monitors/rankings", locals: { tournament_monitor: @tournament.tournament_monitor, full_screen: true, totals: true, grid: true } %>
-      <%= render partial: "tournament_monitors/game_results", locals: { tournament_monitor: @tournament.tournament_monitor } %>
+      <%= render partial: "tournament_monitors/game_results", locals: { tournament_monitor: @tournament.tournament_monitor, edit_games_modus: false } %>
     </div>
   </div>
 </div>

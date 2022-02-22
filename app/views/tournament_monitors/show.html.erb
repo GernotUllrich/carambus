@@ -83,7 +83,7 @@
   <div class="px-3 lg:px-0">
     <div class="container max-w-4xl mx-auto my-8 px-4">
       <div id="tournament_monitor_game_results_<%= @tournament_monitor.id %>" class="max-w-4xl mx-auto">
-        <%= render partial: "game_results", locals: { tournament_monitor: @tournament_monitor } %>
+        <%= render partial: "game_results", locals: { tournament_monitor: @tournament_monitor, edit_games_modus: true } %>
       </div>
       <div id="tournament_monitor_rankings_<%= @tournament_monitor.id %>" class="col-sm-4 space-above">
         <%= render partial: "rankings", locals: { tournament_monitor: @tournament_monitor, totals: true } %>
