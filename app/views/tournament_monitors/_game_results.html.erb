@@ -21,8 +21,8 @@
       <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
         <% tournament_monitor.tournament.games.includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 }.each do |game| %>
           <% playing_game = game.table_monitor.andand.playing_game? %>
-          <% gpa = game.game_participations.where("role = playera or role = Heim").first; playera = gpa.andand.player %>
-          <% gpb = game.game_participations.where("role = playerb or role = Gast").first; playerb = gpb.andand.player %>
+          <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
+          <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
           <%- if playera.present? && playerb.present? %>
             <%- seeding_state_a = game.tournament.seedings.where(player_id: playera.id).first.andand.state %>
             <%- seeding_state_b = game.tournament.seedings.where(player_id: playerb.id).first.andand.state %>
