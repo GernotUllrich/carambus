@@ -7,6 +7,14 @@ GIT
       request_store (>= 1.0.5)
 
 GIT
+  remote: https://github.com/capistrano/rbenv.git
+  revision: 1fdb93a6dd4a4ab3fb786c995055cf6949daf7a4
+  specs:
+    capistrano-rbenv (2.2.0)
+      capistrano (~> 3.1)
+      sshkit (~> 1.3)
+
+GIT
   remote: https://github.com/excid3/administrate.git
   revision: b0f2ae27fd7ce76189e262e6842c82434b669bae
   branch: jumpstart
@@ -140,21 +148,20 @@ GEM
     cable_ready (4.5.0)
       rails (>= 5.2)
       thread-local (>= 1.1.0)
-    capistrano (3.8.1)
+    capistrano (3.16.0)
       airbrussh (>= 1.0.0)
       i18n
       rake (>= 10.0.0)
       sshkit (>= 1.9.0)
-    capistrano-bundler (1.2.0)
+    capistrano-bundler (2.0.1)
       capistrano (~> 3.1)
-      sshkit (~> 1.2)
-    capistrano-rails (1.2.2)
+    capistrano-rails (1.6.1)
       capistrano (~> 3.1)
-      capistrano-bundler (~> 1.1)
-    capistrano-rbenv (2.1.6)
-      capistrano (~> 3.1)
-      sshkit (~> 1.3)
-    capistrano-unicorn-nginx (4.1.0)
+      capistrano-bundler (>= 1.1, < 3)
+    capistrano-secrets-yml (1.2.1)
+      capistrano (>= 3.10)
+      sshkit (>= 1.17.0)
+    capistrano-unicorn-nginx (5.2.0)
       capistrano (>= 3.1)
       sshkit (>= 1.2.0)
     capybara (3.36.0)
@@ -280,6 +287,7 @@ GEM
     method_source (1.0.0)
     mini_magick (4.11.0)
     mini_mime (1.1.2)
+    mini_portile2 (2.7.1)
     minitest (5.15.0)
     momentjs-rails (2.29.1.1)
       railties (>= 3.1)
@@ -292,7 +300,8 @@ GEM
       net-ssh (>= 2.6.5, < 7.0.0)
     net-ssh (6.1.0)
     nio4r (2.5.8)
-    nokogiri (1.13.1-aarch64-linux)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
       racc (~> 1.4)
     nokogiri (1.13.1-arm64-darwin)
       racc (~> 1.4)
@@ -507,8 +516,8 @@ GEM
     zeitwerk (2.5.4)
 
 PLATFORMS
-  aarch64-linux
   arm64-darwin-21
+  armv7l-linux-eabihf
 
 DEPENDENCIES
   aasm
@@ -525,11 +534,12 @@ DEPENDENCIES
   bundler-audit!
   byebug
   cable_ready (~> 4.4)
-  capistrano (= 3.8.1)
-  capistrano-bundler (= 1.2.0)
-  capistrano-rails (= 1.2.2)
-  capistrano-rbenv (= 2.1.6)
-  capistrano-unicorn-nginx (= 4.1.0)
+  capistrano
+  capistrano-bundler
+  capistrano-rails
+  capistrano-rbenv!
+  capistrano-secrets-yml
+  capistrano-unicorn-nginx
   capybara (>= 3.26)
   coderay
   devise (>= 4.7.1)
