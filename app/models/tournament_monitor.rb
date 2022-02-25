@@ -550,15 +550,44 @@ class TournamentMonitor < ApplicationRecord
             next unless r_no == current_round
 
             Tournament.logger.info "+++020 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{r_no}"
-            executor_params[k]['sq'][round_no].to_a.each do |table_no, val|
-              t_no = table_no.match(/t(\d+)/)[1].andand.to_i
-              game = nil
-              if val.match(/(\d+)-(\d+)/)
-                game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(gname: "group#{group_no}:#{val}").first
-              end
-              if game.present?
-                Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
-                do_placement(game, r_no, t_no)
+            executor_params[k]['sq'][round_no].to_a.each do |tno_str, val|
+              if (mm = tno_str.match(/t(\d+)/))
+                t_no = mm[1].andand.to_i
+                game = nil
+                if val.match(/(\d+)-(\d+)/)
+                  game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(gname: "group#{group_no}:#{val}").first
+                end
+                if game.present?
+                  Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
+                  do_placement(game, r_no, t_no)
+                end
+              elsif (mm = tno_str.match(/t-rand-(\d+)-(\d+)/))
+                ordered_table_nos[tno_str] ||= (mm[1].to_i..mm[2].to_i).to_a.shuffle
+                pairs = val.to_a
+                pairs.each do |pair|
+                  players_match = pair.match(/(\d+)-(\d+)/)
+                  players = [players_match[1].to_i, players_match[2].to_i]
+                  t_no = ordered_table_nos[tno_str].pop
+                  game = tournament.games.where("games.id >= #{Game::MIN_ID}").where(gname: "group#{group_no}:#{pair}").first
+                  if game.present?
+                    Tournament.logger.info "+++015 do_placement(game = #{game.gname}, r_no = #{r_no}, t_no = #{t_no})"
+                    do_placement(game, r_no, t_no)
+                  else
+                    game = tournament.games.where("games.id >= #{Game::MIN_ID}").find_or_create_by(gname: "group#{group_no}:#{pair}")
+                    game.game_participations = []
+                    game.save
+                    ('a'..'b').each_with_index do |pl_no, ix|
+                      rule_str = "g#{group_no}.#{players[ix]}"
+                      player_id = player_id_from_ranking(rule_str)
+                      game.game_participations.find_or_create_by(player_id: player_id, role: "player#{pl_no}")
+                    end
+                    reload
+                    if t_no.present?
+                      Tournament.logger.info "+++016 do_placement(game = #{game.attributes.inspect}, r_no = #{r_no}, t_no = #{t_no})"
+                      do_placement(game, r_no, t_no)
+                    end
+                  end
+                end
               end
             end
           end
@@ -693,6 +722,13 @@ class TournamentMonitor < ApplicationRecord
       end
       return TournamentMonitor.ranking(subset, order: inter_group_order)[rank.to_i - 1].andand[0]
 
+    elsif (mm = rule_str.match(/g(\d+).(\d+)$/).presence)
+      group_no = mm[1]
+      seeding_index = mm[2].to_i
+      seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id< #{Seeding::MIN_ID}"
+      groups = TournamentMonitor.distribute_to_group(tournament.seedings.where(seeding_scope).order(:position).map(&:player), tournament.tournament_plan.ngroups)
+      groups
+      return groups["group#{group_no}"][seeding_index - 1].id
     else
       g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
       if g_no.present?
