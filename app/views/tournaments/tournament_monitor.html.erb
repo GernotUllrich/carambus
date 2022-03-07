@@ -85,7 +85,7 @@
       <%- end %>
     </div>
     <div class="bg-white dark:bg-black rounded shadow p-8">
-      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.andand.ngroups || 1) %>
+      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.andand.ngroups) %>
       <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
     </div>
   </div>
