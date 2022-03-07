@@ -24,8 +24,8 @@
   <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
 
     <div class="bg-white dark:bg-black rounded shadow p-8">
-      <p><%= @tournament.tournament_plan.andand.rulesystem %></p>
-      <p class="mt-4 mb-4"><%= @tournament.tournament_plan.andand.more_description %></p>
+      <p><%= @tournament.tournament_plan.rulesystem %></p>
+      <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
       <% if @tournament.tournament_monitor.present? %>
       <% else %>
         <%- unless @tournament.manual_assignment %>
