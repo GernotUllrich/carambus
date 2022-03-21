@@ -98,7 +98,7 @@
   <h2 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= @table.andand.name %></h2>
   <%- found = false %>
   <%- if @location.tournaments.present? %>
-    <%- @location.tournaments.joins(:tournament_monitor).each do |tournament| %>
+    <%- @location.tournaments.joins(:tournament_monitor).order(created_at: :desc).each do |tournament| %>
       <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-500 m-5 text-3vw"><%= tournament.title %></h1>
       <%= link_to t('home.index.results_so_far'), game_results_location_path(@location, tournament_id: tournament.id), method: :post, data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 text-2vw p-1 lg:mr-4 mr-0 lg:mt-4 mt-2 p-1", id: "game_results_#{tournament.id}", tabindex: 1 %>
       <div class="flex items-center mt-10 flex-row h-1/8 space-x-10">
