@@ -51,7 +51,7 @@ class TournamentsController < ApplicationController
       @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
       @tournament.seedings.create(
         @tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").map { |s| { player_id: s.player_id, balls_goal: s.balls_goal } }
-        )
+      )
     end
     @tournament.seedings.where("seedings.id >= #{@tournament.organizer.is_a?(Club) ? Seeding::MIN_ID : Seeding::MIN_ID}").each do |seeding|
       if @tournament.handicap_tournier
@@ -136,7 +136,7 @@ class TournamentsController < ApplicationController
     @table = Table.find(params[:table_id])
     TournamentMonitor.transaction do
       @tournament_monitor = @tournament.tournament_monitor
-      @table_monitor = TableMonitor.find_by_table_id(@table.id) || TableMonitor.create(table_id: @table.id)
+      @table_monitor = @table.table_monitor
       @table_monitor.update(tournament_monitor_id: @tournament_monitor.id)
     end
     # if @table_monitor.game.present? && @game != @table_monitor.game
@@ -218,7 +218,14 @@ class TournamentsController < ApplicationController
   # POST /tournaments
   def create
     @tournament = Tournament.new(tournament_params)
-
+    @league = League.find_by_id(params["league_id"])
+    if @league.present?
+      @tournament.organizer = @league.organizer
+      @tournament.single_or_league = "league"
+      @tournament.season = @league.season
+    else
+      @tournament.single_or_league = "single"
+    end
     if @tournament.save
       redirect_to @tournament, notice: "Tournament was successfully created."
     else
@@ -262,6 +269,6 @@ class TournamentsController < ApplicationController
                                        :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show,
                                        :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date,
                                        :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
-                                       :handicap_tournier, :organizer_id, :organizer_type, :manual_assignment)
+                                       :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment)
   end
 end
