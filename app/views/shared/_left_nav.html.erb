@@ -89,8 +89,10 @@
         <div data-target="dropdown.menu" class="z-20 hidden mt-2 lg:absolute lg:right-0 dropdown-menu">
           <div class="overflow-hidden bg-white dark:bg-black border rounded shadow-sm">
             <%= link_to I18n.t("home.index.league", :default => "League"), leagues_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= link_to I18n.t("home.index.party_tournaments", :default => "Party Tournaments"), party_tournaments_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
             <%= link_to I18n.t("home.index.league_teams", :default => "LeagueTeam"), league_teams_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
             <%= link_to I18n.t("home.index.league_parties", :default => "Parties"), parties_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= link_to I18n.t("home.index.party_games", :default => "Party Games"), party_games_path, class: 'border-b no-underline block px-6 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-black hover:bg-primary-100 transition ease-in-out duration-200 whitespace-no-wrap' %>
           </div>
         </div>
       </div>
@@ -139,8 +141,3 @@
     </div>
   </li>
 </ul>
-<%= nav_link_to "Leagues", leagues_path, class: 'nav-link' %>
-<%= nav_link_to "Party Tournaments", party_tournaments_path, class: 'nav-link' %>
-<%= nav_link_to "League Teams", league_teams_path, class: 'nav-link' %>
-<%= nav_link_to "Parties", parties_path, class: 'nav-link' %>
-<%= nav_link_to "Party Games", party_games_path, class: 'nav-link' %>

@@ -649,6 +649,8 @@ de:
       league: 'Liegen'
       league_teams: 'Mannschaften'
       league_parties: 'Ligawettkämpfe'
+      party_games: "Wettkampfspiele"
+      party_tournaments: "Turnierpaarungen"
       inning: 'Aufnahmen'
       disziplinen: Disziplinen
       discipline: 'Disziplin'

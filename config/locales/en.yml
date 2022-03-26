@@ -1024,6 +1024,8 @@ en:
       league: 'Leagues'
       league_teams: 'Teams'
       league_parties: 'League parties'
+      party_tournaments: "Party Tournaments"
+      party_games: "Party Games"
       gameparticipation: 'GameParticipation'
       inning: 'Inning'
       disziplinen: Disciplines
