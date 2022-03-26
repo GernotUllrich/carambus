@@ -26,7 +26,9 @@ class Region < ApplicationRecord
   has_many :player_rankings
   has_many :tournament_locations, as: :organizer, class_name: "Location"
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
+  has_many :organized_leagues, as: :organizer, class_name: "League"
   has_one :setting
+  has_many :leagues, as: :organizer, class_name: "League"
 
   COLUMN_NAMES = {
       "Logo" => "",

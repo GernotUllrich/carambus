@@ -1,0 +1,47 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Parties', parties_path %> > Party #<%= @party.id %></h1>
+      <%= link_to 'Edit', edit_party_path(@party), class: "btn btn-link" %>
+    </div>
+
+    <div class="bg-white rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Date</h5>
+        <%= @party.date %>
+      </div>
+            <div class="mb-4">
+        <h5>League</h5>
+        <%= link_to @party.league.name, league_path(@party.league) %>
+      </div>
+            <div class="mb-4">
+        <h5>Remarks</h5>
+        <%= @party.remarks %>
+      </div>
+            <div class="mb-4">
+        <h5>League team a</h5>
+        <%= link_to @party.league_team_a.name, league_team_path(@party.league_team_a) %>
+      </div>
+            <div class="mb-4">
+        <h5>League team b</h5>
+              <%= link_to @party.league_team_b.name, league_team_path(@party.league_team_b) %>
+      </div>
+            <div class="mb-4">
+        <h5>Ba</h5>
+        <%= link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}" %>
+      </div>
+            <div class="mb-4">
+        <h5>Day seqno</h5>
+        <%= @party.day_seqno %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @party.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Host league team</h5>
+        <%= link_to @party.host_league_team.name, league_team_path(@party.host_league_team) %>
+      </div>
+          </div>
+  </div>
+</div>

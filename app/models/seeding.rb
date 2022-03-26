@@ -11,6 +11,7 @@
 #  state                 :string
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
+#  league_team_id        :integer
 #  player_id             :integer
 #  playing_discipline_id :integer
 #  tournament_id         :integer
@@ -26,6 +27,7 @@ class Seeding < ApplicationRecord
   belongs_to :player, optional: true
   belongs_to :tournament, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
+  belongs_to :league_team, optional:true
 
   after_create :loggit
 

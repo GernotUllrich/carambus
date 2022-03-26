@@ -1,0 +1,31 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'League Teams', league_teams_path %> > League Team #<%= @league_team.id %></h1>
+      <%= link_to 'Edit', edit_league_team_path(@league_team), class: "btn btn-link" %>
+    </div>
+
+    <div class="bg-white rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @league_team.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Shortname</h5>
+        <%= @league_team.shortname %>
+      </div>
+            <div class="mb-4">
+        <h5>League</h5>
+        <%= link_to @league_team.league.name, league_path(@league_team.league) %>
+      </div>
+            <div class="mb-4">
+        <h5>Ba</h5>
+        <%= link_to @league_team.ba_id, "https://nbv.billardarea.de/cms_teams/show/#{@league_team.ba_id}" %>
+      </div>
+            <div class="mb-4">
+        <h5>Club</h5>
+        <%= link_to @league_team.club.shortname, club_path(@league_team.club) %>
+      </div>
+          </div>
+  </div>
+</div>

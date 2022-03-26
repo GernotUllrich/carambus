@@ -1,7 +1,7 @@
 <script>
 
 </script>
-<div class="container mx-auto my-8 px-4">
+<div data-controller="tournament" class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
     <div class="flex-col justify-between items-center mb-4">
       <%- if @tournament.single_or_league == "league" %>
@@ -19,23 +19,9 @@
           </thead>
           <tbody>
           <% @league.andand.parties.each do |party| %>
-            <tr class="mb-4">
-              <td>
-                <%= party.day_seqno %>
-              </td>
-              <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
-                <%= check_box_tag "party[#{party.id}]", "1", @tournament.party_ids.include?(party.id), data: { reflex: "change->TournamentReflex#change_change_party_seeding", id: @tournament.id } %>
-              <%- end %>
-              <td>
-                <div class="font-bold">
-                  <%= "#{party.league_team_a.name} - #{party.league_team_b.name}" %><br/>
-                </div>
-                <%- party.party_games.each_with_index do |party_game, ix| %>
-                  <%= check_box_tag "party_game[#{party_game.id}]", "1", @tournament.party_ids.include?(party.id), data: { reflex: "change->TournamentReflex#change_change_party_game_seeding", id: @tournament.id } %>&nbsp;<%= "#{ix + 1}: #{party_game.name}" %>
-                  <br/>
-                <%- end %>
-              </td>
-            </tr>
+          <tr id="party_record_<%= party.id %>" >
+            <%= render partial: "party_record", locals: {party: party, tournament: @tournament} %>
+          </tr>
           <%- end %>
           </tbody>
         </table>

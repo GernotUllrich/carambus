@@ -1,6 +1,6 @@
 class LocationsController < ApplicationController
   include FiltersHelper
-  before_action :set_location, only: [:scoreboard, :show, :edit, :update, :destroy, :add_tables_to]
+  before_action :set_location, only: [:scoreboard, :show, :edit, :update, :destroy, :new_league_tournament, :add_tables_to]
 
   # GET /locations
   def index
@@ -31,6 +31,7 @@ class LocationsController < ApplicationController
       @navbar = @footer = false
       @game = (Game.find(params[:terminate_game_id]) rescue nil) if session[:sb_state] == "tables" && params[:terminate_game_id].present?
       @game.destroy if @game.present? && @game.tournament.blank?
+      @game.table_monitor.reset_table_monitor if @game.present? && @game.tournament.present? && !@game.table_monitor.playing_game?
       @table = Table.find(params[:table_id]) if params[:table_id].present?
       case session[:sb_state]
       when "welcome"
@@ -178,6 +179,11 @@ class LocationsController < ApplicationController
     redirect_to locations_path
   end
 
+  def new_league_tournament
+    @league = League.find_by_id(params["league_id"])
+    @tournament = Tournament.new(single_or_league: "league", league: @league, region: (@league.organizer if @league.organizer.is_a?(Region)))
+  end
+
   # POST /locations
   def create
     @location = Location.new(location_params.merge(data: JSON.parse(location_params[:data])))
@@ -224,6 +230,6 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :organizer_type, :merge, :with)
+    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :season_id, :organizer_type, :merge, :with)
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_02_124619) do
+ActiveRecord::Schema.define(version: 2022_03_22_191515) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -225,6 +225,29 @@ ActiveRecord::Schema.define(version: 2021_11_02_124619) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "league_teams", force: :cascade do |t|
+    t.string "name"
+    t.string "shortname"
+    t.integer "league_id"
+    t.integer "ba_id"
+    t.integer "club_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "leagues", force: :cascade do |t|
+    t.string "name"
+    t.date "registration_until"
+    t.string "organizer_type"
+    t.integer "organizer_id"
+    t.integer "season_id"
+    t.integer "ba_id"
+    t.integer "ba_id2"
+    t.integer "discipline_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "location_synonyms", force: :cascade do |t|
     t.string "synonym"
     t.integer "location_id"
@@ -257,6 +280,38 @@ ActiveRecord::Schema.define(version: 2021_11_02_124619) do
     t.datetime "interacted_at"
     t.index ["account_id"], name: "index_notifications_on_account_id"
     t.index ["recipient_type", "recipient_id"], name: "index_notifications_on_recipient_type_and_recipient_id"
+  end
+
+  create_table "parties", force: :cascade do |t|
+    t.datetime "date"
+    t.integer "league_id"
+    t.text "remarks"
+    t.integer "league_team_a_id"
+    t.integer "league_team_b_id"
+    t.integer "ba_id"
+    t.integer "day_seqno"
+    t.text "data"
+    t.integer "host_league_team_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "party_games", force: :cascade do |t|
+    t.integer "party_id"
+    t.integer "seqno"
+    t.integer "player_a_id"
+    t.integer "player_b_id"
+    t.integer "tournament_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "party_tournaments", force: :cascade do |t|
+    t.integer "party_id"
+    t.integer "tournament_id"
+    t.integer "position"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "pay_charges", force: :cascade do |t|
@@ -400,6 +455,7 @@ ActiveRecord::Schema.define(version: 2021_11_02_124619) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "rank"
+    t.integer "league_team_id"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -540,6 +596,7 @@ ActiveRecord::Schema.define(version: 2021_11_02_124619) do
     t.boolean "admin_controlled", default: false, null: false
     t.boolean "manual_assignment", default: false
     t.boolean "gd_has_prio", default: false, null: false
+    t.integer "league_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

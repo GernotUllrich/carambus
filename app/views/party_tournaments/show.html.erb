@@ -1,0 +1,23 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Party Tournaments', party_tournaments_path %> > Party Tournament #<%= @party_tournament.id %></h1>
+      <%= link_to 'Edit', edit_party_tournament_path(@party_tournament), class: "btn btn-link" %>
+    </div>
+
+    <div class="bg-white rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Party</h5>
+        <%= @party_tournament.party_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament</h5>
+        <%= @party_tournament.tournament_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Position</h5>
+        <%= @party_tournament.position %>
+      </div>
+          </div>
+  </div>
+</div>

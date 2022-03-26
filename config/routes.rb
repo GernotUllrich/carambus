@@ -1,5 +1,10 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  resources :party_games
+  resources :parties
+  resources :league_teams
+  resources :party_tournaments
+  resources :leagues
   # mount ActionCable.server => '/cable' ## ul ## mounting is automatic with Rails 6
   # Jumpstart views
   if Rails.env.development? || Rails.env.test?
@@ -106,6 +111,7 @@ Rails.application.routes.draw do
         post :add_tables_to
         post :placement
         post :game_results
+        post :new_league_tournament
         get :game_results
         get :placement
         get :scoreboard

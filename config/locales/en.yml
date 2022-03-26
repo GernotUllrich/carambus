@@ -1019,7 +1019,11 @@ en:
       seasonparticipation: 'SeasonParticipation'
       player: 'Player'
       partien: Games
+      leagues: Leagues
       game: 'Game'
+      league: 'Leagues'
+      league_teams: 'Teams'
+      league_parties: 'League parties'
       gameparticipation: 'GameParticipation'
       inning: 'Inning'
       disziplinen: Disciplines

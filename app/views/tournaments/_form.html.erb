@@ -1,4 +1,4 @@
-<%- unless tournament.new_record? %>
+<%- unless @tournament.new_record? %>
   <p class="text-red-500">
     <%= t('tournaments.show.syncing_with_billard_area').html_safe %>
   </p>
@@ -8,19 +8,26 @@
   <p> <%= link_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "" %></p>
 <%- end %>
 <br>
-<%= form_with(model: tournament) do |form| %>
+<%= form_with(model: @tournament) do |form| %>
 
-  <%- loc_ids = Array(tournament.organizer.andand.tournament_locations.andand.map(&:id)) + Array(tournament.andand.region.andand.tournament_locations.andand.map(&:id)) +
-    Array(tournament.andand.region.andand.clubs.andand.map(&:tournament_locations).andand.flatten.andand.map(&:id))
+  <%- loc_ids = Array(@tournament.organizer.andand.tournament_locations.andand.joins(:tables).andand.map(&:id)) + Array(@tournament.andand.region.andand.tournament_locations.andand.joins(:tables).andand.map(&:id)) +
+    Array(@tournament.andand.region.andand.clubs.andand.map { |club| club.tournament_locations.andand.joins(:tables).to_a }.andand.flatten.andand.map(&:id).andand.uniq)
   %>
+  <%- if @league.present? %>
+    <div class="form-group">
+      <%= hidden_field_tag :league_id, @league.andand.id %>
+      <%= form.label :league %>
+      <%= "#{@league.name}" %>
+    </div>
+  <%- end %>
   <div class="form-group">
     <%= form.label :title %>
     <%= form.text_field :title, class: "border rounded border-gray-500" %>
   </div>
-  <%- if tournament.new_record? && tournament.organizer.present? %>
+  <%- if @tournament.new_record? && @tournament.organizer.present? %>
     <div class="form-group">
       <%= form.label :organizer %>
-      <%= tournament.organizer.name %>
+      <%= @tournament.organizer.name %>
       <%= form.hidden_field :organizer_id %>
       <%= form.hidden_field :organizer_type %>
     </div>
@@ -33,20 +40,20 @@
   <div class="form-group">
     <%= form.label :location %>
     <%= form.select :location_id,
-                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, tournament.tournament_location.andand.id),
+                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, @location.andand.id || @tournament.tournament_location.andand.id),
                     { :prompt => true }, class: "border rounded border-gray-500" %>
   </div>
 
-    <%- @disciplines = Discipline.all.order(:name).all %>
+  <%- @disciplines = Discipline.all.order(:name).all %>
 
-    <div class="form-group">
-      <%= form.label :discipline_id %>
-      <%= form.collection_select :discipline_id, @disciplines, :id, :name, { :selected => tournament.discipline_id, :prompt => true }, class: "border rounded border-gray-500" %>
-    </div>
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.collection_select :discipline_id, @disciplines, :id, :name, { :selected => @tournament.discipline_id, :prompt => true }, class: "border rounded border-gray-500" %>
+  </div>
 
   <div class="form-group">
     <%= form.label :player_class %>
-    <%= form.select :player_class, options_for_select(["I", "II", "III", "1", "2", "3", "4", "5", "6", "7"], tournament.player_class), { :selected => tournament.player_class, :prompt => true }, class: "border rounded border-gray-500" %>
+    <%= form.select :player_class, options_for_select(["I", "II", "III", "1", "2", "3", "4", "5", "6", "7"], @tournament.player_class), { :selected => @tournament.player_class, :prompt => true }, class: "border rounded border-gray-500" %>
   </div>
 
   <div class="form-group">
@@ -78,8 +85,7 @@
     <%= form.label :manual_assignment %>
     <%= form.check_box :manual_assignment, class: "border rounded border-gray-500" %>
   </div>
-
   <div class="form-group flex justify-between">
-    <%= form.button class: "btn btn-primary", class: "border rounded border-gray-500" %>
+    <%= form.button "Create Tournament", class: "btn btn-primary" %>
   </div>
 <% end %>

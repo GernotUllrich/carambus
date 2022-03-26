@@ -94,3 +94,53 @@ Plugin {
     }
   }
 }
+
+####### BCW
+Alles gut jetzt.
+
+Carambus ist von aussen erreichbar:
+
+	 http://bc-wedel.duckdns.org:3131
+
+Per ssh über
+
+	ssh -p 8910 www-data@bc-wedel.duckdns.org
+
+Gib mir deinen public key (~/.ssh/id_rsa.pub), dann ist der Zugang erreichbar über
+
+	ssh bcw
+
+In deiner ~/.ssh/config muss dann stehen:
+
+Host bcw
+  User www-data
+  Port 8910
+  Hostname 192.168.2.210
+
+Die Scoreboards (Tisch {n}) sind vom Server über
+
+	ssh bcw{n}
+
+erreichbar
+
+LG
+Gernot
+
+##################################
+vi /home/pi/.config/lxsession/LXDE-pi/autostart
+
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@xscreensaver --no-splash
+@xset s 0
+@xset s noblank
+@xset -dpms
+/usr/local/bin/start_scoreboard_delayed
+
+vi /usr/local/bin/start_scoreboard_delayed
+
+#!/usr/bin/env bash
+/usr/bin/chromium-browser --kiosk  --disable-restore-session-state http://192.168.2.210:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard?locale=de&sp_state=welcome
+
+
+chmod +x /usr/local/bin/start_scoreboard_delayed

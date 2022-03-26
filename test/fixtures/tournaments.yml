@@ -33,6 +33,7 @@
 #  updated_at                     :datetime         not null
 #  ba_id                          :integer
 #  discipline_id                  :integer
+#  league_id                      :integer
 #  location_id                    :integer
 #  organizer_id                   :integer
 #  region_id                      :integer

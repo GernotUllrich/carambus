@@ -1,16 +1,17 @@
 # frozen_string_literal: true
 
 class TournamentReflex < ApplicationReflex
+
   # Add Reflex methods in this file.
   #
   # All Reflex instances expose the following properties:
   #
-  #   - connection - the ActionCable connection
+  #   - connection - the Action  Cable connection
   #   - channel - the ActionCable channel
   #   - request - an ActionDispatch::Request proxy for the socket connection
   #   - session - the ActionDispatch::Session store for the current visitor
   #   - url - the URL of the page that triggered the reflex
-  #   - element - a Hash like object that represents the HTML element that triggered the reflex
+  #   - element - a Hash like object  that represents the HTML element that triggered the reflex
   #   - params - parameters from the element's closest form (if any)
   #
   # Example:
@@ -82,6 +83,51 @@ class TournamentReflex < ApplicationReflex
     val = element.attributes["value"].to_i
     val = nil if val <= 0
     tournament.update_attribute(:time_out_warm_up_follow_up_min, val)
+  end
+
+  def change_party_seeding
+    tournament = Tournament.find(element.dataset["id"])
+    checked = element.attributes["checked"]
+    party = Party.find(element.attributes["id"].match(/party_(\d+)/)[1].to_i)
+    if checked
+      party.party_games.each do |pg|
+        pg.update(tournament: tournament)
+      end
+    else
+      party.party_games.each do |pg|
+        pg.update(tournament: nil)
+      end
+    end
+    party_record_html = ApplicationController.render(
+      partial: "tournaments/party_record",
+      locals: { tournament: tournament, party: party }
+    )
+    cable_ready["tournament-stream"].inner_html(
+      selector: "#party_record_#{party.id}",
+      html: party_record_html
+    )
+    cable_ready.broadcast
+  end
+
+  def change_party_game_seeding
+    tournament = Tournament.find(element.dataset["id"])
+    checked = element.attributes["checked"]
+    party_game = PartyGame.find(element.attributes["id"].match(/party_game_(\d+)/)[1].to_i)
+    party = party_game.party
+    if checked
+      party_game.update(tournament: tournament)
+    else
+      party_game.update(tournament: nil)
+    end
+    party_record_html = ApplicationController.render(
+      partial: "tournaments/party_record",
+      locals: { tournament: tournament, party: party }
+    )
+    cable_ready["tournament-stream"].inner_html(
+      selector: "#party_record_#{party.id}",
+      html: party_record_html
+    )
+    cable_ready.broadcast
   end
 
   def change_seeding

@@ -23,7 +23,11 @@ class Discipline < ApplicationRecord
   has_many :tournaments
   has_many :player_classes
   has_many :player_rankings
+  has_many :leagues
   has_many :seeding_plays, class_name: "Seeding", :foreign_key => :playing_discipline_id
+
+  DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
+  DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
 
   MAJOR_DISCIPLINES = {
       "Pool" => {"table_kind" => ["Pool"]},

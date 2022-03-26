@@ -11,6 +11,7 @@
 #  state                 :string
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
+#  league_team_id        :integer
 #  player_id             :integer
 #  playing_discipline_id :integer
 #  tournament_id         :integer

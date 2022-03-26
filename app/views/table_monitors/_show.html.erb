@@ -87,12 +87,12 @@
         <%= render_svg "icons/warning-sign-svgrepo-com", styles: "flex fill-current lg:m-5 h-12 lg:h-24 w-12 lg:w-24", title: "e.g. reg:nordd wedel" %>
         <h1 class="text-3vw mb-5"><%= t('warning') %></h1>
         <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
-        <%- if table_monitor.tournament_monitor.blank? %>
+        <%- if (table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing_game?)) %>
           <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
           <%= link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless table_monitor.tournament_monitor.present?
+          <%- unless (table_monitor.tournament_monitor.present? && table_monitor.playing_game?)
                 #&& !table_monitor.end_result? %>
             <%= link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>

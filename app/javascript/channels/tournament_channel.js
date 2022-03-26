@@ -2,12 +2,16 @@ import consumer from "./consumer"
 import CableReady from 'cable_ready'
 
 consumer.subscriptions.create("TournamentChannel", {
+  initialized() {
+    console.log( "Tournament Channel initialized")
+  },
+
   connected() {
-    // Called when the subscription is ready for use on the server
+    console.log( "Tournament Channel connected")
   },
 
   disconnected() {
-    // Called when the subscription has been terminated by the server
+    console.log( "Tournament Channel disconnected")
   },
 
   received(data) {

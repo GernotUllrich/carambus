@@ -6,20 +6,6 @@ require 'net/http'
 
 include ApplicationHelper
 
-DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
-DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
-
-TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
-
-TABLE_KIND_DISCIPLINE_NAMES = {
-  "Pin Billards" => [],
-  "Biathlon" => [],
-  "5-Pin Billards" => [],
-  "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
-  "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
-  "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
-  "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"] }
-
 namespace :carambus do
 
   desc "eliminate location duplicates"
@@ -119,11 +105,52 @@ namespace :carambus do
 
   desc "Init Disciplines"
   task :init_disciplines => :environment do
-    TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
+    TableKind::TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
       tk = TableKind.find_by_name(tk_name) ||
         TableKind.create(name: tk_name)
       v.each do |dis_name|
         Discipline.create(name: dis_name, table_kind_id: tk.id) unless Discipline.find_by_name_and_table_kind_id(dis_name, tk.id).present?
+      end
+    end
+  end
+
+  desc "Scrape leagues"
+  task :scrape_leagues => :environment do
+      debug = true
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      (next unless season.id == 13) if debug
+      Region.all.each do |region|
+        (next unless region.shortname == "NBV") if debug
+        url = "https://#{region.shortname.downcase}.billardarea.de"
+        uri = URI(url + '/cms_leagues')
+        Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
+        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+        doc = Nokogiri::HTML(res.body)
+        tabs = doc.css("#tabs a")
+        tabs.each_with_index do |tab, ix|
+          tab_text = tab.text.strip
+          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
+            discipline = Discipline.find_by_name(discipline_name)
+            tab = "#tabs-#{ix + 1} a"
+            lines = doc.css(tab)
+            lines.each do |line|
+              name = line.text.strip
+              url = line.attribute("href").value
+              m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
+              ba_id = m[3] rescue nil
+              single_or_league = m[1] rescue nil
+              plan_or_show = m[2] rescue nil
+              if ba_id.present?
+                league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, discipline_id: discipline.andand.id, organizer: region, season: season)
+                league.update(name: name)
+                league.scrape_single_league(game_details: true)
+              end
+            end
+          else
+            break
+          end
+        end
       end
     end
   end
@@ -160,8 +187,8 @@ namespace :carambus do
         tabs = doc.css("#tabs a")
         tabs.each_with_index do |tab, ix|
           tab_text = tab.text.strip
-          if DE_DISCIPLINE_NAMES.include?(tab_text)
-            discipline_name = DISCIPLINE_NAMES[DE_DISCIPLINE_NAMES.index(tab_text)]
+          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
             discipline = Discipline.find_by_name(discipline_name)
             tab = "#tabs-#{ix + 1} a"
             lines = doc.css(tab)
@@ -256,8 +283,8 @@ namespace :carambus do
         tabs = doc.css("#tabs a")
         tabs.each_with_index do |tab, ix|
           tab_text = tab.text.strip
-          if DE_DISCIPLINE_NAMES.include?(tab_text)
-            discipline_name = DISCIPLINE_NAMES[DE_DISCIPLINE_NAMES.index(tab_text)]
+          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
             discipline_name = discipline_name.presence || "-"
             discipline = Discipline.find_by_name(discipline_name) || Discipline.create(name: discipline_name)
             tables = doc.css("#tabs-#{ix + 1} table")
@@ -309,7 +336,7 @@ namespace :carambus do
   desc "create local seed"
   task :create_local_seed => :environment do
     output = ""
-    void_keys = {"User" => ["terms_of_service"], "Account" => ["quantity", "plan", "card_token"]}
+    void_keys = { "User" => ["terms_of_service"], "Account" => ["quantity", "plan", "card_token"] }
     %w{User Account AccountUser Player Tournament Seeding Game GameParticipation TournamentMonitor TableMonitor TournamentLocal Location Table}.each do |classz|
       output << "#{classz.underscore}_id_map = {}\n"
       if classz == "Account"

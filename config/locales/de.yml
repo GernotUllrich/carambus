@@ -644,8 +644,11 @@ de:
       seasonparticipation: 'Clubzugehörigkeit'
       player: 'Spieler'
       partien: Partien
+      leagues: Liegen
       game: 'Partie'
-      gameparticipation: 'Spielpartner'
+      league: 'Liegen'
+      league_teams: 'Mannschaften'
+      league_parties: 'Ligawettkämpfe'
       inning: 'Aufnahmen'
       disziplinen: Disziplinen
       discipline: 'Disziplin'

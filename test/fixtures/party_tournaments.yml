@@ -1,0 +1,21 @@
+# == Schema Information
+#
+# Table name: party_tournaments
+#
+#  id            :bigint           not null, primary key
+#  position      :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  party_id      :integer
+#  tournament_id :integer
+#
+
+one:
+  party_id: 1
+  tournament_id: 1
+  position: 1
+
+two:
+  party_id: 1
+  tournament_id: 1
+  position: 1

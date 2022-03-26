@@ -31,5 +31,8 @@ module Carambus2App
     #
     # # Use default language as fallback if translation is missing
     config.i18n.fallbacks = true
+    config.generators do |g|
+      g.template_engine :erb
+    end
   end
 end

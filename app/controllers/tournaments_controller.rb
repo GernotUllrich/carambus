@@ -223,6 +223,7 @@ class TournamentsController < ApplicationController
       @tournament.organizer = @league.organizer
       @tournament.single_or_league = "league"
       @tournament.season = @league.season
+      @tournament.league = @league
     else
       @tournament.single_or_league = "single"
     end
@@ -254,6 +255,7 @@ class TournamentsController < ApplicationController
 
   def define_participants
     @seedings = @tournament.seedings
+    @league = @tournament.league
   end
 
   private

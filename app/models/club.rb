@@ -29,6 +29,7 @@ class Club < ApplicationRecord
   has_many :season_participations
   has_many :tournament_locations, as: :organizer, class_name: "Location"
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
+  has_many :league_teams
 
   attr_accessor :season_id
 

@@ -1,0 +1,65 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Parties</h1>
+
+    <% if @parties.any? %>
+      <%= link_to 'New Party', new_party_path, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @parties.any? %>
+    <div class="bg-white rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+        <tr>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :date, 'Date', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_id, 'League', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :remarks, 'Remarks', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_a_id, 'League team a', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_b_id, 'League team b', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :ba_id, 'Ba', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :day_seqno, 'Day seqno', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :data, 'Data', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :host_league_team_id, 'Host league team', class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @parties.each do |party| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100">
+            <td class="p-3"><%= party.date %></td>
+            <td class="p-3"><%= link_to party.league.name, league_path(party.league) %></td>
+            <td class="p-3"><%= party.remarks %></td>
+            <td class="p-3"><%= link_to party.league_team_a.name, league_team_path(party.league_team_a) %></td>
+            <td class="p-3"><%= link_to party.league_team_b.name, league_team_path(party.league_team_b) %></td>
+            <td class="p-3"><%= link_to party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{party.ba_id}" %></td>
+            <td class="p-3"><%= party.day_seqno %></td>
+            <td class="p-3"><%= party.data %></td>
+            <td class="p-3"><%= link_to party.host_league_team.name, league_team_path(party.host_league_team) %></td>
+
+            <td>
+              <%= link_to "View", party, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Party</p>
+        <%= link_to 'New Party', new_party_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

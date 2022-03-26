@@ -1,0 +1,57 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Party Games</h1>
+
+    <% if @party_games.any? %>
+      <%= link_to 'New Party Game', new_party_game_path, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @party_games.any? %>
+    <div class="bg-white rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno, 'Seqno', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id, 'Player a', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id, 'Player b', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :tournament_id, 'Tournament', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @party_games.each do |party_game| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100">
+                      <td class="p-3"><%= party_game.party_id %></td>
+                      <td class="p-3"><%= party_game.seqno %></td>
+                      <td class="p-3"><%= party_game.player_a_id %></td>
+                      <td class="p-3"><%= party_game.player_b_id %></td>
+                      <td class="p-3"><%= party_game.tournament_id %></td>
+          
+            <td>
+              <%= link_to "View", party_game, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Party Game</p>
+        <%= link_to 'New Party Game', new_party_game_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>
