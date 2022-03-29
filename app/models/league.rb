@@ -81,7 +81,7 @@ class League < ApplicationRecord
             team_a = league_teams.where(name:element.css("td")[3].text.strip()).first
             team_b = league_teams.where(name:element.css("td")[4].text.strip()).first
             host_team = league_teams.where(name:element.css("td")[6].text.strip()).first
-            party_data = { result: league_teams.where(name:element.css("td")[5].text.strip()).first }
+            party_data = { result: element.css("td")[5].text.strip() }
             party.update(date: date, league: self, day_seqno: day_seqno, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data)
             party.save!
             match_day_url = "/cms_leagues/matchday/#{party_ba_id}"
@@ -89,15 +89,26 @@ class League < ApplicationRecord
             res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
             if res.code == "200"
               doc_party = Nokogiri::HTML(res.body)
+              result = doc_party.css("#tabs-1 div b").first.text.gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
               tbl = doc_party.css("table.score_table").first
               rows = tbl.css("tr")[2..-2]
               (1..rows.count / 3).each_with_index do |_c, ix|
                 doc_game = Nokogiri::HTML(rows[ix * 3].inner_html.gsub("<br>", "::"))
+                doc_game2 = Nokogiri::HTML(rows[ix * 3 + 1].inner_html)
+                tds_2 = doc_game2.css("td")
+                column_count = tds_2.count/2
+                res_hash = {}
+                (1..column_count).each_with_index do |_c2, ix2|
+                  res_a = tds_2[0 + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
+                  res_b = tds_2[column_count + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
+                  res_hash[(res_a[-2]||"Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+                end
                 tds = doc_game.css("td")
+                game_name = tds[0].text.strip
                 player_a = evaluate_league_players(tds[1].text, league_players, team_a, ix)
                 player_b = evaluate_league_players(tds[2].text, league_players, team_b, ix)
                 party_game = PartyGame.find_by_seqno_and_party_id(ix + 1, party.id) || PartyGame.create(seqno: ix + 1, party: party)
-                party_game.update(player_a_id: player_a.id, player_b_id: player_b.id)
+                party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: {result: res_hash}, name: game_name)
               end
             end
           end

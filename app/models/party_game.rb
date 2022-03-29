@@ -3,6 +3,8 @@
 # Table name: party_games
 #
 #  id            :bigint           not null, primary key
+#  data          :text
+#  name          :string
 #  seqno         :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
