@@ -23,7 +23,7 @@
         <td class="p-3"><%= party_game.seqno %></td>
         <td class="p-3"><%= link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
         <td class="p-3"><%= link_to party_game.player_b.fullname, player_path(party_game.player_b) %></td>
-        <td class="p-3"><%= party_game.data.inspect %></td>
+        <td class="p-3"><%= party_game.data.to_json %></td>
         <td class="p-3"><%= party_game.tournament_id %></td>
 
         <td>

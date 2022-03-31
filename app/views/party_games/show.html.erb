@@ -8,7 +8,7 @@
     <div class="bg-white rounded shadow p-8">
       <div class="mb-4">
         <h5>Party</h5>
-        <%= @party_game.party_id %>
+        <%= link_to @party_game.party.name, party_path(@party_game.party) %>
       </div>
       <div class="mb-4">
         <h5>Seqno</h5>
@@ -16,11 +16,11 @@
       </div>
       <div class="mb-4">
         <h5>Player a</h5>
-        <%= @party_game.player_a_id %>
+        <%= link_to @party_game.player_a.fullname, player_path(@party_game.player_a) %>
       </div>
       <div class="mb-4">
         <h5>Player b</h5>
-        <%= @party_game.player_b_id %>
+        <%= link_to @party_game.player_b.fullname, player_path(@party_game.player_b) %>
       </div>
       <div class="mb-4">
         <h5>Data</h5>
