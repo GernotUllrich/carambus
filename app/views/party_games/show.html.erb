@@ -6,26 +6,30 @@
     </div>
 
     <div class="bg-white rounded shadow p-8">
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Party</h5>
         <%= @party_game.party_id %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Seqno</h5>
         <%= @party_game.seqno %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Player a</h5>
         <%= @party_game.player_a_id %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Player b</h5>
         <%= @party_game.player_b_id %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
+        <h5>Data</h5>
+        <%= @party_game.data.inspect %>
+      </div>
+      <div class="mb-4">
         <h5>Tournament</h5>
         <%= @party_game.tournament_id %>
       </div>
-          </div>
+    </div>
   </div>
 </div>
