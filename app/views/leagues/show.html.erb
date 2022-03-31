@@ -31,5 +31,9 @@
         <%= link_to @league.discipline.name, discipline_path(@league.discipline) %>
       </div>
           </div>
+    <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
+    <div id="table_wrapper">
+      <%= render partial: 'parties/parties_table', locals: {from_league: true} %>
+    </div>
   </div>
 </div>

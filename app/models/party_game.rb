@@ -19,7 +19,7 @@ class PartyGame < ApplicationRecord
   belongs_to :player_b, class_name: "Player"
   belongs_to :tournament, optional: true
 
-  def name(seqno)
-    "#{party.league_team_a.shortname}#{seqno} - #{party.league_team_b.shortname}#{seqno} / #{player_a.name} - #{player_b.name}"
+  def name
+    "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
   end
 end

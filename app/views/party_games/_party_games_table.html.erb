@@ -1,0 +1,34 @@
+<div class="bg-white rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <%- unless from_party %>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', class: 'text-gray-700' %></th>
+      <%- end %>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno, 'Seqno', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id, 'Player a', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id, 'Player b', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :tournament_id, 'Tournament', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @party_games.each do |party_game| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100">
+        <%- unless from_party %>
+          <td class="p-3"><%= link_to party_game.name, party_game_path(party_game) %></td>
+        <%- end %>
+        <td class="p-3"><%= party_game.seqno %></td>
+        <td class="p-3"><%= link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
+        <td class="p-3"><%= link_to party_game.player_b.fullname, player_path(party_game.player_b) %></td>
+        <td class="p-3"><%= party_game.tournament_id %></td>
+
+        <td>
+          <%= link_to "View", party_game, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
