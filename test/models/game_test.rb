@@ -9,7 +9,12 @@
 #  group_no      :integer
 #  roles         :text
 #  round_no      :integer
-#  seqno         :integer
+#
+#
+#
+#
+#
+# seqno         :integer
 #  started_at    :datetime
 #  table_no      :integer
 #  created_at    :datetime         not null
