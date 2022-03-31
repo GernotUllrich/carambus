@@ -8,7 +8,7 @@
   </div>
 
   <% if @party_games.any? %>
-    <%= render partial: 'party_games/party_games_table', locals: {from_party_game: true} %>
+    <%= render partial: 'party_games/party_games_table', locals: {from_party: false} %>
     <div class="bg-white rounded shadow table-responsive">
       <table class="table">
         <thead>
