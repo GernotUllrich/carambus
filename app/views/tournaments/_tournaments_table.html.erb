@@ -32,7 +32,7 @@
     </thead>
 
     <tbody>
-    <% @tournaments.includes(:discipline, :season, :organizer, ).each do |tournament| %>
+    <% @tournaments.includes(:discipline, :season ).each do |tournament| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
         <td class="p-3"><%= link_to(tournament.title, tournament_path(tournament)) %></td>
         <td class="p-3"><%= (link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present?) %></td>
