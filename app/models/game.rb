@@ -26,6 +26,8 @@ class Game < ApplicationRecord
   has_paper_trail
   serialize :data, Hash
 
+  serialize :roles, Array
+
   attr_accessor :new_game_data
   serialize :new_game_data, Hash
 
