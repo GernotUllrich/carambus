@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_08_071854) do
+ActiveRecord::Schema.define(version: 2022_04_08_131314) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -545,6 +545,7 @@ ActiveRecord::Schema.define(version: 2022_04_08_071854) do
     t.boolean "color_remains_with_set", default: true, null: false
     t.integer "team_size", default: 1, null: false
     t.boolean "allow_follow_up", default: true, null: false
+    t.boolean "allow_overflow"
   end
 
   create_table "tournament_plan_games", force: :cascade do |t|

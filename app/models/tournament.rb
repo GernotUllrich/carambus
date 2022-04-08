@@ -125,7 +125,7 @@ class Tournament < ApplicationRecord
           )
           tol.update(meth => value)
         else
-          update(meth => value)
+          write_attribute(meth, value)
         end
       end
     end

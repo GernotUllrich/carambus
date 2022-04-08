@@ -7,6 +7,7 @@
 #
 #  id                        :bigint           not null, primary key
 #  allow_follow_up           :boolean          default(TRUE), not null
+#  allow_overflow            :boolean
 #  balls_goal                :integer
 #  color_remains_with_set    :boolean          default(TRUE), not null
 #  data                      :text

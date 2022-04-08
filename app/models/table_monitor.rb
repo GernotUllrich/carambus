@@ -436,7 +436,7 @@ class TableMonitor < ApplicationRecord
                        'current_kickoff_player' => current_kickoff_player,
                        'current_left_player' => current_kickoff_player,
                        'current_left_color' => 'white',
-                       'allow_overflow' => tournament_monitor.andand.data["allow_overflow"],
+                       'allow_overflow' => tournament_monitor.andand.allow_overflow,
                        'kickoff_switches_with_set' => tournament_monitor.andand.kickoff_switches_with_set || tournament_monitor.andand.tournament.andand.kickoff_switches_with_set,
                        'allow_follow_up' => tournament_monitor.andand.allow_follow_up || tournament_monitor.andand.tournament.andand.allow_follow_up,
                        'sets_to_win' => tournament_monitor.andand.sets_to_win || tournament_monitor.andand.tournament.andand.sets_to_win,
