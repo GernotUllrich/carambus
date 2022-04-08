@@ -2,16 +2,19 @@
 #
 # Table name: players
 #
-#  id         :bigint           not null, primary key
-#  firstname  :string
-#  guest      :boolean          default(FALSE), not null
-#  lastname   :string
-#  nickname   :string
-#  title      :string
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  ba_id      :integer
-#  club_id    :integer
+#  id            :bigint           not null, primary key
+#  data          :text
+#  firstname     :string
+#  guest         :boolean          default(FALSE), not null
+#  lastname      :string
+#  nickname      :string
+#  title         :string
+#  type          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  ba_id         :integer
+#  club_id       :integer
+#  tournament_id :integer
 #
 # Indexes
 #

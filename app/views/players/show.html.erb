@@ -8,28 +8,38 @@
     <div class="bg-white dark:bg-black rounded shadow p-8">
       <div class="mb-4">
         <h5><%= t('player.ba_id') %></h5>
-        <%= link_to_if @player.andand.club.present?, @player.ba_id, "https://#{@player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{@player.club.ba_id}/#{@player.ba_id}" %>
+        <%- if @player.andand.club.present? %>
+          <%= link_to @player.ba_id, "https://#{@player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{@player.club.ba_id}/#{@player.ba_id}" %>
+        <%- end %>
       </div>
       <div class="mb-4">
         <h5><%= t('player.club_id') %></h5>
         <%= link_to @player.club.shortname, club_path(@player.club) if @player.andand.club.present? %>
       </div>
-      <div class="mb-4">
-        <h5><%= t('player.lastname') %></h5>
-        <%= @player.lastname %>
-      </div>
-      <div class="mb-4">
-        <h5><%= t('player.nickname') %></h5>
-        <%= @player.nickname %>
-      </div>
-      <div class="mb-4">
-        <h5><%= t('player.firstname') %></h5>
-        <%= @player.firstname %>
-      </div>
-      <div class="mb-4">
-        <h5><%= t('player.title') %></h5>
-        <%= @player.title %>
-      </div>
+      <%- if @player.is_a? Team %>
+
+        <div class="mb-4">
+          <h5><%= t('player.fullname') %></h5>
+          <%= @player.fullname %>
+        </div>
+      <%- else %>
+        <div class="mb-4">
+          <h5><%= t('player.lastname') %></h5>
+          <%= @player.lastname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.nickname') %></h5>
+          <%= @player.nickname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.firstname') %></h5>
+          <%= @player.firstname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.title') %></h5>
+          <%= @player.title %>
+        </div>
+      <%- end %>
     </div>
   </div>
 </div>

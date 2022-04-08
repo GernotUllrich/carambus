@@ -29,6 +29,9 @@
             <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.of", :default => "of") %></th>
             <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.hs", :default => "HS") %></th>
             <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.gd", :default => "GD") %></th>
+            <%- if tournament_monitor.andand.sets_to_play > 1 %>
+              <th rowspan="2"><%= I18n.t("tournament_monitors.current_games.sets", :default => "Sets") %></th>
+            <%- end %>
             <th class="noborder"/>
             <th colspan=5><%= I18n.t("tournament_monitors.current_games.current_inning", :default => "Current Inning") %></th>
           </tr>
@@ -39,7 +42,7 @@
           </tr>
           </thead>
           <tbody>
-          <% tournament_monitor.andand.table_monitors.joins(:table).andand.includes(game: {game_participations: :player}).andand.order("tables.name asc").andand.each do |tm| %>
+          <% tournament_monitor.andand.table_monitors.joins(:table).andand.includes(game: { game_participations: :player }).andand.order("tables.name asc").andand.each do |tm| %>
             <% if tm.game.present? %>
               <% tm.allow_change_tables = true %>
               <% tm.game.game_participations.includes(:player).order(:role).each_with_index do |gp, ix| %>
@@ -61,9 +64,9 @@
                         </div>
                     <% end %>
                   <% end %>
-                  <%- ev = gp.role == "playerb" ? (gp.game.table_monitor.data["switch_colors"].present? ? "" : "bg-yellow-500 dark:text-yellow-500 dark:bg-black") : (gp.game.table_monitor.data["switch_colors"].present? ? "bg-yellow-500 dark:text-yellow-500 dark:bg-black" : "") %>
+                  <%- ev = gp.role == "playerb" ? (gp.game.table_monitor.data["current_left_color"] == 'yellow' ? "" : "bg-yellow-500 dark:text-yellow-500 dark:bg-black") : (gp.game.table_monitor.data["current_left_color"] == 'yellow' ? "bg-yellow-500 dark:text-yellow-500 dark:bg-black" : "") %>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{ev} #{gp.role}\"".html_safe %>>
-                    <strong><%= gp.player.andand.lastname %><%= " *" if active_player %></strong>
+                    <strong><%= gp.player.andand.fullname %><%= " *" if active_player %></strong>
                   </td>
                   <td style="font-size:1.2em"<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                     <strong><%= tm.data[gp.role].andand["result"] %></strong>
@@ -80,6 +83,8 @@
                     <%= tm.data[gp.role].andand["hs"] %></td>
                   <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                     <%= tm.data[gp.role].andand["gd"] %></td>
+                  <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
+                    <%= tm.data["ba_results"].andand["Sets#{gp.role == 'playera' ? 1 : 2}"] %></td>
                   <td></td>
                   <% if tm.playing_game? %>
                     <% if active_player %>
@@ -88,7 +93,7 @@
                       </td>
                       <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>
                         <%= content_tag "div", class: "mr-1 min-w-1/10 flex items-center justify-center inline-block spacing-0 mt-5 rounded-full font-bold leading-none text-2vw focus:outline-none bg-gray-100 dark:bg-gray-800 hover:bg-gray-300 text-gray-400", title: "Add one to current Inning" do %>
-                          <%= number_field_tag(:set_balls, nil, data: { reflex: "change->TableMonitorReflex#set_balls", id: tm.id }, placeholder: "nnn", class:"w-16 border-gray-400 border-2 rounded-md") %>
+                          <%= number_field_tag(:set_balls, nil, data: { reflex: "change->TableMonitorReflex#set_balls", id: tm.id }, placeholder: "nnn", class: "w-16 border-gray-400 border-2 rounded-md") %>
                         <%- end %><br/>
                       </td>
                       <td<%= " class=\"last-line #{gp.role}\"".html_safe if ix == 1 %>>

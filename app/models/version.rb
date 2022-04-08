@@ -82,14 +82,19 @@ class Version < ApplicationRecord
             args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
-              obj = h['item_type'].constantize.where(id: h['item_id']).first
+              classz = h['item_type'].constantize
+              item_id = h['item_id']
+              obj = classz.where(id: item_id).first
               if obj.present?
                 obj.update(args)
               else
+                #TODO look for uniq keys in args only (refine except)
+                h['item_type'].constantize.where(args.except("id", "created_at", "updated_at")).where("id > 50000000").destroy_all
                 h['item_type'].constantize.create(args)
               end
             rescue StandardError => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"
+              return
             end
           when 'update'
             args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
@@ -109,7 +114,8 @@ class Version < ApplicationRecord
             end
           when 'destroy'
             begin
-              h['item_type'].constantize.find(h['item_id']).delete
+              obj = h['item_type'].constantize.where(id: h['item_id']).first
+              obj.andand.delete
             rescue StandardError => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"
             end

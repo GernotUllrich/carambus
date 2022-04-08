@@ -69,6 +69,49 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:gd_has_prio, val)
   end
 
+  def kickoff_switches_with_set
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:kickoff_switches_with_set, val)
+  end
+
+  def allow_follow_up
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:allow_follow_up, val)
+  end
+
+  def color_remains_with_set
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:color_remains_with_set, val)
+  end
+
+  def fixed_display_left
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"].to_s
+    val = nil unless val.present?
+    tournament.update_attribute(:fixed_display_left, val)
+  end
+
+  def sets_to_play
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"].to_i
+    tournament.update_attribute(:sets_to_play, val)
+  end
+
+  def sets_to_win
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"].to_i
+    tournament.update_attribute(:sets_to_win, val)
+  end
+
   def time_out_warm_up_first_min
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])
@@ -113,7 +156,8 @@ class TournamentReflex < ApplicationReflex
     tournament = Tournament.find(element.dataset["id"])
     checked = element.attributes["checked"]
     party_game = PartyGame.find(element.attributes["id"].match(/party_game_(\d+)/)[1].to_i)
-    party = party_game.party
+    @party = party_game.party
+    party = @party
     if checked
       party_game.update(tournament: tournament)
     else
@@ -131,22 +175,23 @@ class TournamentReflex < ApplicationReflex
   end
 
   def change_seeding
-    morph :nothing
+    #morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     checked = element.attributes["checked"]
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = nil
     if checked
-      seeding = tournament.seedings.create(player_id: player.id)
+      seeding = tournament.seedings.where(player_id: player.id).first || tournament.seedings.create(player_id: player.id)
     else
       tournament.seedings.where(player_id: player.id).destroy_all
     end
+    tournament.save!
     balls_goal_html = ApplicationController.render(
       partial: "tournaments/balls_goal",
       locals: { tournament: tournament, player: player, seeding: seeding }
     )
-    cable_ready["tournament-stream"].outer_html(
-      selector: "#balls-#{player.id}",
+    cable_ready["tournament-stream"].inner_html(
+      selector: "#balls-wrapper-#{player.id}",
       html: balls_goal_html
     )
     cable_ready.broadcast

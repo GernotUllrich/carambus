@@ -2,16 +2,19 @@
 #
 # Table name: players
 #
-#  id         :bigint           not null, primary key
-#  firstname  :string
-#  guest      :boolean          default(FALSE), not null
-#  lastname   :string
-#  nickname   :string
-#  title      :string
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  ba_id      :integer
-#  club_id    :integer
+#  id            :bigint           not null, primary key
+#  data          :text
+#  firstname     :string
+#  guest         :boolean          default(FALSE), not null
+#  lastname      :string
+#  nickname      :string
+#  title         :string
+#  type          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  ba_id         :integer
+#  club_id       :integer
+#  tournament_id :integer
 #
 # Indexes
 #
@@ -19,7 +22,7 @@
 #  index_players_on_club_id  (club_id)
 #
 class Player < ApplicationRecord
-  belongs_to :club
+  belongs_to :club, optional: true
   has_many :game_participations, dependent: :nullify
   has_many :seedings
   has_many :season_participations
@@ -29,6 +32,21 @@ class Player < ApplicationRecord
   has_many :party_b_games, foreign_key: :player_b_id, class_name: "PartyGame"
   has_one :admin_user, class_name: "User", foreign_key: "player_id"
   REFLECTION_KEYS = ["club", "game_participations", "seedings", "season_participations"]
+
+  serialize :data, Hash
+  #for teams:
+  #  data ordered by ba_id  then first player's data are copied into resp. fields of player record
+  #data:
+  {
+    "players" => [
+      {
+        "firstname" => 'Alfred',
+        "lastname" => 'Meyer',
+        "ba_id" => 12342,
+        "player_id" => 1234,
+      },
+    ]
+  }
 
   COLUMN_NAMES = { #TODO FILTERS
                    "Id" => "players.id",

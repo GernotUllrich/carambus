@@ -557,6 +557,8 @@ en:
     timer_halt_at: timer halt at
     table_id: table id
     nnn: nnn
+    game_finished: Game finished
+    set_finished: Set finished
     status:
       new_table_monitor: "Startup..."
       ready: "Free"
@@ -566,12 +568,11 @@ en:
       game_shootout_started: "Shoot Out"
       start_game: "Start Game"
       shootout_result: "Exchange Players after Shootout"
-      shootout_change_colors: "Change Colors"
       exchange_players: "Exchange"
       exchange_colors: "Exchange"
       playing_game: ""
       game_finished: "Partie finished"
-      game_show_result: "Partie finished - %{wait_check}"
+      game_show_result: "%{game_or_set_finished} - %{wait_check}"
       wait_check: "WAIT FOR CHECK"
       game_result_reported: "Results reported"
       tournament_endresult: "Tournament Result"
@@ -830,7 +831,15 @@ en:
         timeouts: '# timeouts'
         timeout: 'timeout (sec.)'
         handicap_tournier: handicap tournier
-
+        sets_to_play: 'Sets To Play:'
+        sets_to_win: 'Sets To Win:'
+        sets_to_play_win: "Sets to Play - to Win:"
+        team_size: 'Team Size:'
+        kickoff_switches_with_set: 'Kick-Off Switches between Sets:'
+        fixed_display_left: 'Display Left:'
+        color_remains_with_set: 'Color remains between Sets:'
+        allow_overflow: 'Allow Input overflow:'
+        allow_follow_up: 'Allow follow-up:'
     errors:
       models:
         account:
@@ -897,6 +906,7 @@ en:
       playera: PlayerA
       playerb: PlayerB
       points: Points
+      sets: Sets
       balls: Balls
       innings: Innings
       gd: GD
@@ -930,6 +940,7 @@ en:
       inning: Inning
       hs: HS
       gd: GD
+      sets: Sets
       current_inning: Current Inning
       inputs: inputs
       undo: '"undo"'
@@ -962,6 +973,9 @@ en:
       ba_state: 'BA State:'
       state: 'State:'
       final_tournament_mode: 'Final Tournament Mode:'
+      sets_to_play: 'Sets To Play:'
+      sets_to_win: 'Sets To Win:'
+      team_size: 'Team Size:'
       region: 'Region:'
       regions: 'Regional Organisations:'
       title: 'Title:'

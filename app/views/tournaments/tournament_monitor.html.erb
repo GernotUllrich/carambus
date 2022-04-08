@@ -19,7 +19,7 @@
     }
 </style>
 <%= render :partial => "show", locals: { drop_details: true, tournament: @tournament, subtitle: "Tournament Monitor" } %>
-<%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id< #{Seeding::MIN_ID}" %>
+<%- seeding_scope = @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id< #{Seeding::MIN_ID}" %>
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
 
@@ -58,22 +58,40 @@
         <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal, class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeout (Sek.)" %></span><span id="timeout"><%= number_field_tag :timeout, @tournament.timeout, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeout (Sek.)" %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeouts" %></span><span id="timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeouts" %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="timeouts"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="tournament_admin_controlled"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "GD has prio on inter-group-comparisons" %></span><span id="timeouts"><%= check_box_tag :gd_has_prio, "1", @tournament.gd_has_prio?, class: "border-2", data: { reflex: "change->TournamentReflex#gd_has_prio", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "GD has prio on inter-group-comparisons" %></span><span id="tournament_gd_has_prio"><%= check_box_tag :gd_has_prio, "1", @tournament.gd_has_prio?, class: "border-2", data: { reflex: "change->TournamentReflex#gd_has_prio", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="tournament_time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp Same Table (Min.)" %></span><span id="time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp Same Table (Min.)" %></span><span id="tournament_time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Der Anstoss wechselt zwischen den Sätzen" %></span><span id="tournament_kickoff_switches_with_set"><%= check_box_tag :kickoff_switches_with_set, "1", @tournament.kickoff_switches_with_set?, class: "border-2", data: { reflex: "change->TournamentReflex#kickoff_switches_with_set", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Erlaube einen Nachstoss" %></span><span id="allow_follow_up"><%= check_box_tag :allow_follow_up, "1", @tournament.allow_follow_up, class: "border-2", data: { reflex: "change->TournamentReflex#allow_follow_up", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-cen ter">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Die Ballfarbe bleibt zwischen den Sätzen" %></span><span id="tournament_color_remains_with_set"><%= check_box_tag :color_remains_with_set, "1", @tournament.color_remains_with_set?, class: "border-2", data: { reflex: "change->TournamentReflex#color_remains_with_set", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Darstellung linksseitig" %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "border-2", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Zahl der Sätze" %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5,5], [6,6], [7,7], ["no limit", 999]]), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
+      </div>
+      <div class="flex flex-row space-x-4 items-center">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Gewinnsätze" %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]]), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
       </div>
     </div>
 

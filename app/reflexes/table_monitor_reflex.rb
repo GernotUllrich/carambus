@@ -97,12 +97,20 @@ class TableMonitorReflex < ApplicationReflex
         case @table_monitor.data['current_inning']['active_player']
         when 'playera'
           @table_monitor.reset_timer!
-          @table_monitor.add_n_balls(1)
+          if @table_monitor.data["current_left_player"] == 'playerb'
+            @table_monitor.terminate_current_inning
+          else
+            @table_monitor.add_n_balls(1)
+          end
           @table_monitor.do_play
           @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
         when 'playerb'
           @table_monitor.reset_timer!
-          @table_monitor.terminate_current_inning
+          if @table_monitor.data["current_left_player"] == 'playerb'
+            @table_monitor.add_n_balls(1)
+          else
+            @table_monitor.terminate_current_inning
+          end
           @table_monitor.do_play
           @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
         else
@@ -129,12 +137,20 @@ class TableMonitorReflex < ApplicationReflex
       case @table_monitor.data['current_inning']['active_player']
       when 'playerb'
         @table_monitor.reset_timer!
-        @table_monitor.add_n_balls(1)
+        if @table_monitor.data['current_left_player'] == 'playera'
+          @table_monitor.add_n_balls(1)
+        else
+          @table_monitor.terminate_current_inning
+        end
         @table_monitor.do_play
         @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
       when 'playera'
         @table_monitor.reset_timer!
-        @table_monitor.terminate_current_inning
+        if @table_monitor.data['current_left_player'] == 'playerb'
+          @table_monitor.add_n_balls(1)
+        else
+          @table_monitor.terminate_current_inning
+        end
         @table_monitor.do_play
         @table_monitor.assign_attributes(panel_state: 'pointer_mode', current_element: 'pointer_mode')
       else
@@ -142,7 +158,7 @@ class TableMonitorReflex < ApplicationReflex
       end
     elsif @table_monitor.game_show_result? || @table_monitor.game_result_reported?
       @table_monitor.evaluate_result
-      # @table_monitor.event_game_result_accepted!
+      # @table_monitor.event_set_result_accepted!
       # @table_monitor.prepare_final_game_result
     elsif @table_monitor.game_finished?
       if @table_monitor.tournament_monitor.present?
@@ -169,7 +185,7 @@ class TableMonitorReflex < ApplicationReflex
       end
     elsif @table_monitor.game_show_result? || @table_monitor.game_result_reported?
       @table_monitor.evaluate_result
-      # @table_monitor.event_game_result_accepted!
+      # @table_monitor.event_set_result_accepted!
       # @table_monitor.prepare_final_game_result
     elsif @table_monitor.game_finished?
       @table_monitor.evaluate_result
@@ -195,10 +211,10 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.evaluate_result
       # @table_monitor.do_play
     elsif @table_monitor.playing_game?
-      @table_monitor.terminate_current_inning if @table_monitor.end_result?
+      @table_monitor.terminate_current_inning if @table_monitor.end_of_set?
     elsif @table_monitor.game_show_result? || @table_monitor.game_result_reported?
       @table_monitor.evaluate_result
-      # @table_monitor.event_game_result_accepted!
+      # @table_monitor.event_set_result_accepted!
       # @table_monitor.prepare_final_game_result
     elsif @table_monitor.game_finished?
       @table_monitor.evaluate_result
@@ -250,14 +266,6 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
     @table_monitor.switch_players
-    @table_monitor.save
-  end
-
-  def switch_colors
-    morph :nothing
-    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    @table_monitor.panel_state = 'inputs'
-    @table_monitor.switch_colors
     @table_monitor.save
   end
 
@@ -415,7 +423,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.event_shootout_finished!
     elsif @table_monitor.game_show_result? || @table_monitor.game_result_reported?
       @table_monitor.evaluate_result
-      # @table_monitor.event_game_result_accepted!
+      # @table_monitor.event_set_result_accepted!
       # @table_monitor.prepare_final_game_result
     elsif @table_monitor.game_finished?
       if @table_monitor.tournament_monitor.present?

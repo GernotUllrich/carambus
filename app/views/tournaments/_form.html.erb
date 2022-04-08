@@ -77,6 +77,46 @@
   </div>
 
   <div class="form-group">
+    <%= form.label :sets_to_win %>
+    <%= form.number_field :sets_to_win, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sets_to_play %>
+    <%= form.number_field :sets_to_play, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :team_size %>
+    <%= form.number_field :team_size, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :kickoff_switches_with_set %>
+    <%= form.check_box :kickoff_switches_with_set, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :allow_follow_up %>
+    <%= form.check_box :allow_follow_up, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :color_remains_with_set %>
+    <%= form.check_box :color_remains_with_set, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :allow_follow_up %>
+    <%= form.check_box :allow_follow_up, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :fixed_display_left %>
+    <%= form.select :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "form-control" %>
+  </div>
+
+  <div class="form-group">
     <%= form.label :handicap_tournier %>
     <%= form.check_box :handicap_tournier, class: "border rounded border-gray-500" %>
   </div>
@@ -86,6 +126,6 @@
     <%= form.check_box :manual_assignment, class: "border rounded border-gray-500" %>
   </div>
   <div class="form-group flex justify-between">
-    <%= form.button "Create Tournament", class: "btn btn-primary" %>
+    <%= form.button "Save Tournament", class: "btn btn-primary" %>
   </div>
 <% end %>

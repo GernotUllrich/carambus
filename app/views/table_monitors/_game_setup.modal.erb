@@ -67,7 +67,7 @@
           <div class="flex w-4/12"></div>
           <%- arr = time_counter.to_s.split(":") %>
           <%- tc = arr[-1].to_i + 60*arr[-2].to_i %>
-          <div class="flex w-4/12 font-bold text-6vw p-2"><%= tc.to_i == 0 ? "&nbsp;".html_safe : time_counter %></div>
+          <div class="flex w-4/12 font-bold text-8vw p-2"><%= tc.to_i == 0 ? "&nbsp;".html_safe : time_counter %></div>
           <div class="flex w-4/12"></div>
         </div>
         <div class="flex flex-row space-x-8">
@@ -91,7 +91,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-gray-200 flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
+      <div class="flex h-1/6 flex-row mt-0 space-x-8 items-center justify-center">
         <%= content_tag "div", class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary", data: { reflex: "click->TableMonitorReflex#warm_up_finished", id: table_monitor.id }, id: "continue", tabindex: 7 do %>
           <%= t('continue') %>
         <%- end %>

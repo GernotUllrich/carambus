@@ -67,6 +67,10 @@ class LocationsController < ApplicationController
         @players = Player.where(id: @guest_player_ids + (@club_player_ids - @guest_player_ids)).order("guest  desc nulls last", :lastname, :firstname)
         @player_names = @players.map { |p| "#{p.lastname}, #{p.firstname}" }
         @player_ids = @players.map(&:id)
+        @kickoff_switches_with_set = true
+        @color_remains_with_set = true
+        @allow_overflow = false
+        @allow_follow_up = true
         if @table.present?
           render "scoreboard_free_game"
           return

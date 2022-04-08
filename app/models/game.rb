@@ -25,6 +25,53 @@ class Game < ApplicationRecord
   MIN_ID = 50000000
   has_paper_trail
   serialize :data, Hash
+  #"data"=>
+  { "ba_results" =>
+      { "Gruppe" => 1,
+        "Partie" => 5,
+        "Spieler1" => 352853,
+        "Spieler2" => 121340,
+        "Points1" => 3,
+        "Points2" => 0,
+        "Sets1" => 2,
+        "Sets2" => 0,
+        "Ergebnis1" => 150,
+        "Ergebnis2" => 64,
+        "Aufnahmen1" => 22,
+        "Aufnahmen2" => 22,
+        "Höchstserie1" => 20,
+        "Höchstserie2" => 15,
+        "Tischnummer" => 2
+      },
+    "sets" =>
+      [
+        { "Gruppe" => 1,
+          "SetNo" => 1,
+          "Spieler1" => 352853,
+          "Spieler2" => 121340,
+          "Ergebnis1" => 75,
+          "Ergebnis2" => 32,
+          "Aufnahmen1" => 11,
+          "Aufnahmen2" => 11,
+          "Höchstserie1" => 20,
+          "Höchstserie2" => 15,
+          "Tischnummer" => 2
+        },
+        { "Gruppe" => 1,
+          "SetNo" => 2,
+          "Partie" => 5,
+          "Spieler1" => 352853,
+          "Spieler2" => 121340,
+          "Ergebnis1" => 75,
+          "Ergebnis2" => 32,
+          "Aufnahmen1" => 11,
+          "Aufnahmen2" => 11,
+          "Höchstserie1" => 20,
+          "Höchstserie2" => 15,
+          "Tischnummer" => 2
+        },
+      ]
+  }
 
   serialize :roles, Array
 

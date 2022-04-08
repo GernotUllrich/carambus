@@ -36,6 +36,7 @@ de:
       playera: PlayerA
       playerb: PlayerB
       points: Punkte
+      sets: Sätze
       balls: Bälle
       innings: Aufnahmen
       gd: GD
@@ -69,6 +70,7 @@ de:
       inning: Aufnahmen
       hs: HS
       gd: GD
+      sets: Sätze
       current_inning: Aktuelle Aufnahme
       inputs: Eingaben
       undo: Undo
@@ -312,6 +314,8 @@ de:
     timer_halt_at: Timer angehalten
     table_id: Tisch
     nnn: nnn
+    game_finished: Partie beendet
+    set_finished: Satz beendet
     status:
       new_table_monitor: "Startup..."
       ready: "Frei"
@@ -321,12 +325,11 @@ de:
       game_shootout_started: "Ausstossen"
       start_game: "Spiel starten"
       shootout_result: "Spielerwechsel"
-      shootout_change_colors: "Farbenwechsel"
       exchange_players: "Spieler tauschen"
       exchange_colors: "Farben tauschen"
       playing_game: ""
       game_finished: "Partie beendet"
-      game_show_result: "Partie beendet - %{wait_check}"
+      game_show_result: "%{game_or_set_finished} - %{wait_check}"
       wait_check: "CHECK ABWARTEN"
       game_result_reported: "Ergebnisse erfasst"
       ready_for_new_game: "Bereit für nächstes Spiel"
@@ -563,6 +566,15 @@ de:
         timeouts: '# Timeouts'
         timeout: 'Timeout (Sek.)'
         handicap_tournier: Handicap-Turnier
+        sets_to_play: 'Sätze:'
+        sets_to_win: 'Gewinnsätze:'
+        sets_to_play_win: "Sätze / Gewinnsätze"
+        team_size: 'Teamgrösse:'
+        kickoff_switches_with_set: 'Anstoss wechselt bei Satzwechsel:'
+        fixed_display_left: 'Linksseitige Darstellung:'
+        color_remains_with_set: 'Farbe bleibt bei Satzwechsel:'
+        allow_overflow: 'Eingabeüberlauf erlaubt:'
+        allow_follow_up: 'Nachstoss erlaubt:'
   tournaments:
     index:
       listing_tournaments: Liste der Turniere
@@ -589,6 +601,9 @@ de:
       ba_state: 'BA Status:'
       state: 'Status:'
       final_tournament_mode: 'Abschliessender Turnier Modus:'
+      sets_to_play: 'Sätze:'
+      sets_to_win: 'Gewinnsätze:'
+      team_size: 'Teamgrösse:'
       region: 'Regionalverband:'
       title: 'Titel:'
       player_class: 'Spielerklasse:'

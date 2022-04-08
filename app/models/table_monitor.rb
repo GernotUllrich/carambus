@@ -57,6 +57,44 @@ class TableMonitor < ApplicationRecord
   NNN = 'db' # store nnn in database table_monitor
 
   serialize :data, Hash
+  { "state" => "game_setup_started", # ["game_setup_started", "game_shootout_started", "playing_game", "game_show_result", "game_finished", "game_result_reported"]
+    "current_set" => 1,
+    "sets_to_win" => 2,
+    "sets_to_play" => 3,
+    "kickoff_switches_with_set" => true,
+    "fixed_display_left": nil,
+    "color_remains_with_set" => true,
+    "allow_overflow" => false,
+    "allow_follow_up" => true,
+    "current_kickoff_player" => "playera",
+    "current_left_player" => "playera",
+    "current_left_color" => "white",
+    "data" =>
+      { "innings_goal" => "20",
+        "playera" =>
+          { "result" => 0,
+            "innings" => 0,
+            "innings_list" => [],
+            "innings_redo_list" => [],
+            "hs" => 0,
+            "gd" => 0.0,
+            "balls_goal" => "100",
+            "tc" => 0,
+            "discipline" => "Freie Partie klein" },
+        "playerb" =>
+          { "result" => 0,
+            "innings" => 0,
+            "innings_list" => [],
+            "innings_redo_list" => [],
+            "hs" => 0,
+            "gd" => 0.0,
+            "balls_goal" => "100",
+            "tc" => 0,
+            "discipline" => "Freie Partie klein" },
+        "current_inning" => { "active_player" => "playera", "balls" => 0 },
+        "timeouts" => 0,
+        "timeout" => 0, }
+  }
 
   # TODO: I18n
 
@@ -97,7 +135,7 @@ class TableMonitor < ApplicationRecord
     event :event_game_show_result do
       transitions from: :playing_game, to: :game_show_result
     end
-    event :event_game_result_accepted do
+    event :event_set_result_accepted do
       transitions from: :game_show_result, to: :game_finished
     end
     event :event_game_result_reported do
@@ -121,8 +159,9 @@ class TableMonitor < ApplicationRecord
 
   def state_display(locale)
     @locale = locale || I18n.default_locale
+    @game_or_set = data['sets_to_play'].to_i > 1 ? I18n.t("table_monitor.set_finished") : I18n.t("table_monitor.game_finished")
     if state == 'game_show_result'
-      I18n.t('table_monitor.status.game_show_result',
+      I18n.t('table_monitor.status.game_show_result', game_or_set_finished: @game_or_set,
              wait_check: player_controlled? ? 'OK?' : I18n.t('table_monitor.status.wait_check'))
     else
       I18n.t("table_monitor.status.#{state}")
@@ -179,7 +218,7 @@ class TableMonitor < ApplicationRecord
 
   def update_every_n_seconds(n)
     TableMonitorJob.perform_later(self, n, data['current_inning']['active_player'],
-                                  data[data['current_inning']['active_player']]['innings_redo_list'][-1].to_i, data[data['current_inning']['active_player']]['innings'])
+                                  data[data['current_inning']['active_player']].andand['innings_redo_list'].andand[-1].to_i, data[data['current_inning']['active_player']].andand['innings'])
   end
 
   def player_a_on_table_before
@@ -260,15 +299,23 @@ class TableMonitor < ApplicationRecord
   end
 
   def render_last_innings(n, role)
+    player_ix = role == "playera" ? 1 : 2
     show_innings = Array(data[role].andand['innings_list'])
+    prefix = ""
+    if data["sets_to_play"].to_i > 1
+      # S1:0, S2:20
+      Array(data["sets"]).each_with_index do |set, ix|
+        prefix += "S#{ix+1}: #{set["Ergebnis#{player_ix}"]}, "
+      end
+    end
     ret = show_innings.dup
     Array(data[role].andand['innings_redo_list']).reverse.each_with_index do |i, ix|
       ret << (ix.zero? ? "<strong class=\"border-2 border-green-600 p-1\">#{i}</strong>" : i.to_s).to_s
     end
     if ret.length > n
-      "...#{ret[-n..].join('-')}".html_safe
+      "#{prefix}...#{ret[-n..].join('-')}".html_safe
     else
-      ret.join('-').html_safe
+      ("#{prefix}" + ret.join('-')).html_safe
     end
   end
 
@@ -334,16 +381,13 @@ class TableMonitor < ApplicationRecord
       ret_a = data['playerb'].dup
       ret_b = data['playera'].dup
       deep_merge_data!({
+                         'current_kickoff_player' => 'playera',
+                         'current_left_player' => 'playera',
+                         'current_left_color' => 'white',
                          'playera' => ret_a,
                          'playerb' => ret_b
                        })
     end
-  end
-
-  def switch_colors
-    deep_merge_data!({
-                       "switch_colors": !data['switch_colors'].present?
-                     })
   end
 
   def set_start_time
@@ -387,8 +431,16 @@ class TableMonitor < ApplicationRecord
 
   def initialize_game
     info = '+++ 7 - table_monitor#initialize_game'; DebugInfo.instance.update(info: info); Rails.logger.info info
+    current_kickoff_player = 'playera'
     deep_merge_data!({
-
+                       'current_kickoff_player' => current_kickoff_player,
+                       'current_left_player' => current_kickoff_player,
+                       'current_left_color' => 'white',
+                       'kickoff_switches_with_set' => tournament_monitor.andand.kickoff_switches_with_set || tournament_monitor.andand.tournament.andand.kickoff_switches_with_set,
+                       'allow_follow_up' => tournament_monitor.andand.allow_follow_up || tournament_monitor.andand.tournament.andand.allow_follow_up,
+                       'sets_to_win' => tournament_monitor.andand.sets_to_win || tournament_monitor.andand.tournament.andand.sets_to_win,
+                       'sets_to_play' => tournament_monitor.andand.sets_to_play || tournament_monitor.andand.tournament.andand.sets_to_play,
+                       'team_size' => tournament_monitor.andand.team_size || tournament_monitor.andand.tournament.andand.team_size,
                        'innings_goal' =>
                          tournament_monitor.andand.innings_goal ||
                            tournament_monitor.andand.tournament.andand.innings_goal,
@@ -427,14 +479,14 @@ class TableMonitor < ApplicationRecord
                              0
                        },
                        'current_inning' => {
-                         'active_player' => 'playera',
+                         'active_player' => current_kickoff_player,
                          'balls' => 0
                        }
                      })
     # self.panel_state = "pointer_mode"
     # self.current_element = "pointer_mode"
     # event_warmup_finished! #TODO  INTERMEDIATE SOLUTION UNTIL SHOOTOUT WORKS
-    data
+    data.except!("ba_results", "sets")
   end
 
   def display_name
@@ -455,7 +507,7 @@ class TableMonitor < ApplicationRecord
       current_role = data['current_inning']['active_player']
       data[current_role]['innings_redo_list'] = [0] if data[current_role]['innings_redo_list'].blank?
       to_play = data[current_role].andand['balls_goal'].to_i <= 0 ? 99_999 : data[current_role].andand['balls_goal'].to_i - (data[current_role].andand['result'].to_i + data[current_role]['innings_redo_list'][-1].to_i)
-      if n <= to_play
+      if n <= to_play || data["allow_overflow"].present?
         add = [n, to_play].min
         data[current_role]['innings_redo_list'][-1] =
           [(data[current_role]['innings_redo_list'][-1].to_i + add), 0].max
@@ -549,6 +601,10 @@ class TableMonitor < ApplicationRecord
                       current_element: element_to_panel_state[new_current_element] == new_panel_state ? new_current_element : TableMonitor::DEFAULT_ENTRY[panel_state])
   end
 
+  def more_sets?
+    data["sets_to_play"].to_i > 1 && (data["sets_to_win"].to_i > 1)
+  end
+
   def set_n_balls(n_balls, change_to_pointer_mode = false)
     @msg = nil
     if playing_game?
@@ -585,7 +641,7 @@ class TableMonitor < ApplicationRecord
       data[other_player]['innings_redo_list'] = [0] if data[current_role]['innings_redo_list'].empty?
       data_will_change!
       save
-      evaluate_result if data['current_inning']['active_player'] == 'playera'
+      evaluate_result
     else
       @msg = 'Game Finished - no more inputs allowed'
       nil
@@ -602,10 +658,12 @@ class TableMonitor < ApplicationRecord
     info = '+++ 10 - table_monitor#follow_up? table_monitor'
     DebugInfo.instance.update(info: info)
     Rails.logger.info info
+    left_player_id = data['current_left_player'] ? 'playerb' : 'playera'
+    right_player_id = data['current_left_player'] ? 'playera' : 'playerb'
     data.present? &&
-      ((data['current_inning'].andand['active_player'] == 'playerb') &&
-        (data['playera'].andand['balls_goal'].to_i.positive? && (data['playera'].andand['result'].to_i >= data['playera'].andand['balls_goal'].to_i) ||
-          (data['innings_goal'].to_i.positive? && data['playera'].andand['innings'].to_i >= data['innings_goal'].to_i))
+      ((data['current_inning'].andand['active_player'] == right_player_id) &&
+        (data[left_player_id].andand['balls_goal'].to_i.positive? && (data[left_player_id].andand['result'].to_i >= data[left_player_id].andand['balls_goal'].to_i) ||
+          (data['innings_goal'].to_i.positive? && data[left_player_id].andand['innings'].to_i >= data['innings_goal'].to_i))
       )
   end
 
@@ -632,14 +690,124 @@ class TableMonitor < ApplicationRecord
     Tournament.logger.info "#{e}, #{e.backtrace.join("\n")}"
   end
 
+  def save_current_set
+    if game.present?
+      game_set_result = {
+        'Gruppe' => game.group_no,
+        'Partie' => game.seqno,
+
+        'Spieler1' => game.game_participations.where(role: 'playera').first.player.andand.ba_id,
+        'Spieler2' => game.game_participations.where(role: 'playerb').first.player.andand.ba_id,
+        'Innings1' => data['playera']['innings_list'].dup,
+        'Innings2' => data['playerb']['innings_list'].dup,
+        'Ergebnis1' => data['playera']['result'].to_i,
+        'Ergebnis2' => data['playerb']['result'].to_i,
+        'Aufnahmen1' => data['playera']['innings'].to_i,
+        'Aufnahmen2' => data['playerb']['innings'].to_i,
+        'Höchstserie1' => data['playera']['hs'].to_i,
+        'Höchstserie2' => data['playerb']['hs'].to_i,
+        'Tischnummer' => game.table_no
+      }
+      ba_results = data["ba_results"] ||
+        {
+          'Gruppe' => game.group_no,
+          'Partie' => game.seqno,
+
+          'Spieler1' => game.game_participations.where(role: 'playera').first.player.andand.ba_id,
+          'Spieler2' => game.game_participations.where(role: 'playerb').first.player.andand.ba_id,
+          'Sets1' => 0,
+          'Sets2' => 0,
+          'Ergebnis1' => 0,
+          'Ergebnis2' => 0,
+          'Aufnahmen1' => 0,
+          'Aufnahmen2' => 0,
+          'Höchstserie1' => 0,
+          'Höchstserie2' => 0,
+          'Tischnummer' => game.table_no
+        }
+      ba_results['Sets1'] += 1 if game_set_result['Ergebnis1'] > game_set_result['Ergebnis2']
+      ba_results['Sets2'] += 1 if game_set_result['Ergebnis1'] < game_set_result['Ergebnis2']
+      ba_results['Ergebnis1'] += game_set_result['Ergebnis1']
+      ba_results['Ergebnis2'] += game_set_result['Ergebnis2']
+      ba_results['Aufnahmen1'] += game_set_result['Aufnahmen1']
+      ba_results['Aufnahmen2'] += game_set_result['Aufnahmen2']
+      ba_results['Höchstserie1'] = [ba_results['Höchstserie1'], game_set_result['Höchstserie1']].max
+      ba_results['Höchstserie2'] = [ba_results['Höchstserie2'], game_set_result['Höchstserie2']].max
+
+      sets = Array(data["sets"]).push(game_set_result)
+      deep_merge_data!('sets' => sets)
+      deep_merge_data!('ba_results' => ba_results)
+
+    else
+      Rails.logger.info '[prepare_final_game_result] ignored - no game'
+    end
+  end
+
+  def get_max_number_of_wins
+    [data['ba_results'].andand['Sets1'].to_i, data['ba_results'].andand['Sets2'].to_i].max
+  end
+
+  def switch_to_next_set
+    kickoff_switches_with_set = data['kickoff_switches_with_set']
+    current_kickoff_player = data['current_kickoff_player']
+    current_kickoff_player = kickoff_switches_with_set ? ((current_kickoff_player == "playera") ? "playerb" : "playera") : current_kickoff_player
+    options = {
+      'Gruppe' => game.group_no,
+      'Partie' => game.seqno,
+
+      'Spieler1' => game.game_participations.where(role: 'playera').first.player.andand.ba_id,
+      'Spieler2' => game.game_participations.where(role: 'playerb').first.player.andand.ba_id,
+      'Ergebnis1' => 0,
+      'Ergebnis2' => 0,
+      'Aufnahmen1' => 0,
+      'Aufnahmen2' => 0,
+      'Höchstserie1' => 0,
+      'Höchstserie2' => 0,
+      'Tischnummer' => game.table_no,
+      'current_kickoff_player' => current_kickoff_player,
+      "playera" =>
+        { "result" => 0,
+          "innings" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [],
+          "hs" => 0,
+          "gd" => "0.00" },
+      "playerb" =>
+        { "result" => 0,
+          "innings" => 0,
+          "innings_list" => [],
+          "innings_redo_list" => [],
+          "hs" => 0,
+          "gd" => "0.00" },
+      'current_inning' => {
+        'active_player' => current_kickoff_player,
+        'balls' => 0
+      }
+    }
+
+    deep_merge_data!(options)
+    update(state: 'playing_game')
+  end
+
   def evaluate_result
-    if (playing_game? || game_show_result? || game_finished? || game_result_reported?) && end_result?
+    if (playing_game? || game_show_result? || game_finished? || game_result_reported?) && end_of_set?
       if playing_game?
         event_game_show_result!
         save!
         return
       elsif game_show_result?
-        event_game_result_accepted!
+        if data["sets_to_play"].to_i > 1
+          save_current_set
+          max_number_of_wins = get_max_number_of_wins
+          if data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i
+            switch_to_next_set
+            return
+          else
+            event_set_result_accepted!
+          end
+        else
+          event_set_result_accepted!
+        end
       elsif game_finished?
         # Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
         event_game_result_reported!
@@ -673,21 +841,45 @@ class TableMonitor < ApplicationRecord
     @game.game_participations.create!(
       player: (options['player_b_id'].to_i.positive? ? Player.find(options['player_b_id']) : nil), role: 'playerb'
     )
-
+    kickoff_switches_with_set = options['kickoff_switches_with_set']
+    color_remains_with_set = options['color_remains_with_set']
+    fixed_display_left = options['fixed_display_left'].to_s
     result = {
       'timeouts' => options['timeouts'].to_i,
       'timeout' => options['timeout'].to_i,
+      'sets_to_play' => options['sets_to_play'].to_i,
+      'sets_to_win' => options['sets_to_win'].to_i,
+      'kickoff_switches_with_set' => kickoff_switches_with_set,
+      'allow_follow_up' => options['allow_follow_up'],
+      'color_remains_with_set' => color_remains_with_set,
+      'allow_overflow' => options['allow_overflow'],
+      'fixed_display_left' => fixed_display_left,
+      'current_kickoff_player' => "playera",
+      'current_left_player' => fixed_display_left.present? ? fixed_display_left : "playera",
+      'current_left_color' => fixed_display_left == "playerb" ? "yellow" : "white",
       'innings_goal' => options['innings_goal'],
       'playera' => {
         'balls_goal' => options['balls_goal_a'],
         'tc' => options['timeouts'].to_i,
-        'discipline' => options['discipline_a']
+        'discipline' => options['discipline_a'],
+        "result" => 0,
+        "innings" => 0,
+        "innings_list" => [],
+        "innings_redo_list" => [],
+        "hs" => 0,
+        "gd" => "0.00"
       },
       'playerb' => {
         'balls_goal' => options['balls_goal_b'],
         'tc' => options['timeouts'].to_i,
-        'discipline' => options['discipline_b']
-      }
+        'discipline' => options['discipline_b'],
+        "result" => 0,
+        "innings" => 0,
+        "innings_list" => [],
+        "innings_redo_list" => [],
+        "hs" => 0,
+        "gd" => "0.00"
+      },
     }
     initialize_game
     deep_merge_data!(result)
@@ -695,6 +887,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def revert_players
+    fixed_display_left = data['fixed_display_left']
     options = {
       'player_a_id' => game.game_participations.where(role: 'playerb').first.andand.player.andand.id,
       'player_b_id' => game.game_participations.where(role: 'playera').first.andand.player.andand.id,
@@ -704,7 +897,17 @@ class TableMonitor < ApplicationRecord
       'balls_goal_a' => data['playerb']['balls_goal'].to_i,
       'balls_goal_b' => data['playera']['balls_goal'].to_i,
       'discipline_a' => data['playerb']['discipline'],
-      'discipline_b' => data['playera']['discipline']
+      'discipline_b' => data['playera']['discipline'],
+      'sets_to_play' => data['sets_to_play'].to_i,
+      'sets_to_win' => data['sets_to_win'].to_i,
+      'kickoff_switches_with_set' => data['kickoff_switches_with_set'],
+      'allow_follow_up' => data['allow_follow_up'],
+      'color_remains_with_set' => data['color_remains_with_set'],
+      'allow_overflow' => data['allow_overflow'],
+      'fixed_display_left' => data['fixed_display_left'],
+      'current_kickoff_player' => "playera",
+      'current_left_player' => fixed_display_left.present? ? fixed_display_left : "playera",
+      'current_left_color' => fixed_display_left == "playerb" ? "yellow" : "white",
     }
     update(game_id: nil)
     start_game(options)
@@ -718,14 +921,14 @@ class TableMonitor < ApplicationRecord
     end
   end
 
-  def end_result?
+  def end_of_set?
     if data['playera']['balls_goal'].to_i.positive? && ((data['playera']['result'].to_i >= data['playera']['balls_goal'].to_i ||
       data['playerb']['result'].to_i >= data['playerb']['balls_goal'].to_i) &&
-      data['playera']['innings'] == data['playerb']['innings'])
+      (data['playera']['innings'] == data['playerb']['innings'] || !data["allow_follow_up"]))
       return true
     elsif ((data['innings_goal'].to_i.positive? && data['playera']['innings'].to_i >= data['innings_goal'].to_i) ||
       (data['innings_goal'].to_i.positive? && data['playera']['innings'].to_i >= data['innings_goal'].to_i)) &&
-      data['playera']['innings'] == data['playerb']['innings']
+      (data['playera']['innings'] == data['playerb']['innings'] || !data["allow_follow_up"])
       return true
     end
 

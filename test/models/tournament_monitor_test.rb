@@ -2,16 +2,23 @@
 #
 # Table name: tournament_monitors
 #
-#  id            :bigint           not null, primary key
-#  balls_goal    :integer
-#  data          :text
-#  innings_goal  :integer
-#  state         :string
-#  timeout       :integer          default(0), not null
-#  timeouts      :integer
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  tournament_id :integer
+#  id                        :bigint           not null, primary key
+#  allow_follow_up           :boolean          default(TRUE), not null
+#  balls_goal                :integer
+#  color_remains_with_set    :boolean          default(TRUE), not null
+#  data                      :text
+#  fixed_display_left        :string
+#  innings_goal              :integer
+#  kickoff_switches_with_set :boolean          default(TRUE), not null
+#  sets_to_play              :integer          default(1), not null
+#  sets_to_win               :integer          default(1), not null
+#  state                     :string
+#  team_size                 :integer          default(1), not null
+#  timeout                   :integer          default(0), not null
+#  timeouts                  :integer
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  tournament_id             :integer
 #
 # Foreign Keys
 #

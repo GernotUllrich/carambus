@@ -3,7 +3,7 @@
   <div class="container mx-auto my-8 px-4">
     <h2 class="text-center"><%= t("tournaments.tournament_monitor") %></h2>
     <h3 class="text-center"><%= link_to @tournament_monitor.tournament.title, tournament_path(@tournament_monitor.tournament) %></h3>
-    <div class="max-w-3xl mx-auto">
+    <div class="mx-auto">
 
       <%- if @tournament_monitor.andand.tournament.andand.tournament_plan.present? %>
         <div class="flex space-x-10 p-4 bg-white dark:bg-black">
@@ -18,8 +18,8 @@
               <% if tabmon.game.present? %>
                 <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
                 <br/>
-                <strong class="flex 1 text-black dark:text-white"><%= tabmon.game.game_participations.where(role: "playera").first.andand.player.andand.lastname %></strong>
-                <strong class="flex 1 text-yellow-500"><%= tabmon.game.game_participations.where(role: "playerb").first.andand.player.andand.lastname %></strong>
+                <strong class="flex 1 text-black dark:text-white"><%= tabmon.game.game_participations.where(role: "playera").first.andand.player.andand.fullname %></strong>
+                <strong class="flex 1 text-yellow-500"><%= tabmon.game.game_participations.where(role: "playerb").first.andand.player.andand.fullname %></strong>
                 <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
               <% end %>
             </div>
@@ -32,7 +32,7 @@
   </div>
 </div>
 <%- if @tournament_monitor.tournament.tournament_plan.present? && @tournament_monitor.data.present? %>
-  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
+  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
   <div class="px-3 lg:px-0">
     <div class="container mx-auto my-8 px-4">
       <div class="max-w-3xl mx-auto">

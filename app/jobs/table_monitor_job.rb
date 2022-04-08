@@ -43,6 +43,8 @@ class TableMonitorJob < ApplicationJob
     table_monitor.update_columns(timer_job_id: nil)
     #else
     #end
+  rescue Exception => e
+    Rails.logger.info "[TableMonitorJob#perform] #{e}"
   end
 
   private

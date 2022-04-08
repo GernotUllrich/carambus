@@ -37,7 +37,7 @@
 </div>
 <hr class="mt-4 mb-6">
 <div class="container mx-auto my-8 px-4">
-  <div class="max-w-2xl mx-auto">
+  <div class="mx-auto">
     <h2><%= I18n.t("tournaments.show.registrations") %></h2>
     <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">
       <table class="flex-1">
@@ -66,7 +66,7 @@
             <td>
               <%= link_to image_tag("down-icon.png"), down_seeding_path(seeding), method: :post %>
             </td>
-            <td><%= link_to("#{seeding.player.lastname}, #{seeding.player.firstname}", player_path(seeding.player)) %></td>
+            <td><%= link_to("#{seeding.player.fullname}", player_path(seeding.player)) %></td>
             <td><%= link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
             <%- diff = Season.current_season.name == "2021/2022" ? 2 : 1 %>
             <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || 999) %></td>

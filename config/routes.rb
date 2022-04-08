@@ -133,6 +133,8 @@ Rails.application.routes.draw do
         get :define_participants
         post :placement
         get :placement
+        get :new_team
+        post :add_team
       end
     end
     resources :tournament_plan_games

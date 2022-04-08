@@ -41,6 +41,13 @@
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.timeouts') %></h5><%= tournament.timeouts %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.timeout') %></h5><%= tournament.timeout %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.handicap_tournier') %></h5><%= tournament.handicap_tournier %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.sets_to_win') %></h5><%= tournament.sets_to_win %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.sets_to_play') %></h5><%= tournament.sets_to_play %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.team_size') %></h5><%= tournament.team_size %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.kickoff_switches_with_set') %></h5><%= tournament.kickoff_switches_with_set %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.allow_follow_up') %></h5><%= tournament.allow_follow_up %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.fixed_display_left') %></h5><%= tournament.fixed_display_left.presence || "Kick-Off Player" %></div>
+        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.color_remains_with_set') %></h5><%= tournament.color_remains_with_set %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= "Verantwortlich:" %></h5><%= (link_to tournament.organizer.andand.name, tournament.organizer.is_a?(Region) ? regions_path(tournament.organizer) : clubs_path(tournament.organizer)) if tournament.organizer.present? %></div>
       </div>
       </div>

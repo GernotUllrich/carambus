@@ -25,6 +25,7 @@
         "Cadre 35/2",
         "Cadre 52/2",
         "Einband klein",
+        "Eurokegel",
         "Biathlon",
         "5-Pin Billards"],
       "Half Match Billard": ["Cadre 57/2", "Cadre 38/2", "Dreiband halb", "Einband halb"],
@@ -146,7 +147,7 @@
     return true
   });
 
-  function  set_next_value(name_) {
+  function set_next_value(name_) {
     let name_stripped1 = name_.replace("_w", "");
     let player_select = "";
     let name_stripped = "";
@@ -264,7 +265,7 @@
   <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
 </div>
 <div class="fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-  <%= link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false)  do %>
+  <%= link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
     <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
 </div>
@@ -302,7 +303,13 @@
         </div>
       </div>
       <div style="text-shadow: 2px 2px #000000" class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
-        <div class="flex flex-col text-white">
+        <div>
+          <div id="set_params2" style="display: none" class="flex flex-row text-white">
+            <%= content_tag :div, id: "allow_follow_up", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+              <%= check_box_tag :allow_follow_up, "1", @allow_follow_up, class: "p-1 text-2vw mr-4" %>
+            <%- end %>
+            <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_follow_up") %></div>
+          </div>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1"><%= t("activerecord.attributes.tournament.timeout") %></div>
@@ -315,6 +322,67 @@
           <%= content_tag :div, id: "timeouts_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
             <%= select_tag :timeouts, options_for_select(["0", "1", "2", "3", "4", "5"], @timeouts), class: "p-1 text-2vw w-full" %>
           <%- end %>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="flex text-white">
+            <div class="mb-1"><%= t("activerecord.attributes.tournament.sets_to_play_win") %></div>
+          </div>
+          <div class="flex text-white">
+            <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
+              <select name="sets_to_play" id="sets_to_play" class="p-1 text-2vw w-full" onclick="document.getElementById('set_params').style.display='grid'; document.getElementById('set_params2').style.display='grid';">
+                <option value="0">-</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="999">no limit</option>
+              </select>
+            </div>
+            <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
+              <select name="sets_to_win" id="sets_to_win" class="p-1 text-2vw w-full" onclick="document.getElementById('set_params').style.display='grid'; document.getElementById('set_params2').style.display='grid';">
+                <option value="0">-</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="set_params" style="display: none; text-shadow: 2px 2px #000000" class="flex text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
+        <div class="flex flex-row text-white">
+          <%= content_tag :div, id: "kickoff_switches_with_set", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+            <%= check_box_tag :kickoff_switches_with_set, "1", @kickoff_switches_with_set, class: "p-1 text-2vw mr-4" %>
+          <%- end %>
+          <div class="mb-1"><%= t("activerecord.attributes.tournament.kickoff_switches_with_set") %></div>
+        </div>
+        <div class="flex flex-row text-white">
+          <%= content_tag :div, id: "color_remains_with_set", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+            <%= check_box_tag :color_remains_with_set, "1", @color_remains_with_set, class: "p-1 text-2vw mr-4" %>
+          <%- end %>
+          <div class="mb-1"><%= t("activerecord.attributes.tournament.color_remains_with_set") %></div>
+        </div>
+        <div class="flex flex-row text-white">
+          <%= content_tag :div, id: "allow_overflow", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+            <%= check_box_tag :allow_overflow, "1", @allow_overflow, class: "p-1 text-2vw mr-4" %>
+          <%- end %>
+          <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_overflow") %></div>
+        </div>
+        <div class="flex flex-col text-white">
+          <div class="flex text-white">
+            <div class="mb-1"><%= t("activerecord.attributes.tournament.fixed_display_left") %></div>
+          </div>
+          <div class="flex text-white">
+            <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
+              <select name="fixed_display_left" id="fixed_display_left" class="p-1 text-2vw w-full">
+                <option value="">Der Anstossende</option>
+                <option value="playera">Spieler A</option>
+                <option value="playerb">Spieler B</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -333,9 +401,9 @@
         </div>
         <div class="flex row-span-4 items-center">
           <div class="p-10 w-full text-center">
-<!--            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">-->
-<!--              <path d="M6.59 12.83L4.4 15c-.58.58-1.59 1-2.4 1H0v-2h2c.29 0 .8-.2 1-.41l2.17-2.18 1.42 1.42zM16 4V1l4 4-4 4V6h-2c-.29 0-.8.2-1 .41l-2.17 2.18L9.4 7.17 11.6 5c.58-.58 1.59-1 2.41-1h2zm0 10v-3l4 4-4 4v-3h-2c-.82 0-1.83-.42-2.41-1l-8.6-8.59C2.8 6.21 2.3 6 2 6H0V4h2c.82 0 1.83.42 2.41 1l8.6 8.59c.2.2.7.41.99.41h2z"/>-->
-<!--            </svg>-->
+            <!--            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">-->
+            <!--              <path d="M6.59 12.83L4.4 15c-.58.58-1.59 1-2.4 1H0v-2h2c.29 0 .8-.2 1-.41l2.17-2.18 1.42 1.42zM16 4V1l4 4-4 4V6h-2c-.29 0-.8.2-1 .41l-2.17 2.18L9.4 7.17 11.6 5c.58-.58 1.59-1 2.41-1h2zm0 10v-3l4 4-4 4v-3h-2c-.82 0-1.83-.42-2.41-1l-8.6-8.59C2.8 6.21 2.3 6 2 6H0V4h2c.82 0 1.83.42 2.41 1l8.6 8.59c.2.2.7.41.99.41h2z"/>-->
+            <!--            </svg>-->
           </div>
         </div>
         <div class="flex flex-col text-white">

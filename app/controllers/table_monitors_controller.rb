@@ -48,9 +48,18 @@ class TableMonitorsController < ApplicationController
   end
 
   def start_game
-    res = @table_monitor.start_game(params.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
-                                                 :balls_goal_a, :balls_goal_b, :innings_goal, :discipline_a,
-                                                 :discipline_b))
+    p = params.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
+                     :sets_to_play, :sets_to_win, :balls_goal_a,
+                     :balls_goal_b, :innings_goal, :discipline_a,
+                     :discipline_b, :kickoff_switches_with_set,
+                     :fixed_display_left, :color_remains_with_set,
+                     :allow_overflow, :allow_follow_up
+    )
+    p[:kickoff_switches_with_set] = (p[:kickoff_switches_with_set] == '1')
+    p[:color_remains_with_set] = (p[:color_remains_with_set] == '1')
+    p[:allow_overflow] = (p[:allow_overflow] == '1')
+    p[:allow_follow_up] = (p[:allow_follow_up] == '1')
+    res = @table_monitor.start_game(p)
     @navbar = false
     @footer = false
     if res

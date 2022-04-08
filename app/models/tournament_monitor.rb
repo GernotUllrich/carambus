@@ -1,19 +1,27 @@
+
 # frozen_string_literal: true
 
 # == Schema Information
 #
 # Table name: tournament_monitors
 #
-#  id            :bigint           not null, primary key
-#  balls_goal    :integer
-#  data          :text
-#  innings_goal  :integer
-#  state         :string
-#  timeout       :integer          default(0), not null
-#  timeouts      :integer
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  tournament_id :integer
+#  id                        :bigint           not null, primary key
+#  allow_follow_up           :boolean          default(TRUE), not null
+#  balls_goal                :integer
+#  color_remains_with_set    :boolean          default(TRUE), not null
+#  data                      :text
+#  fixed_display_left        :string
+#  innings_goal              :integer
+#  kickoff_switches_with_set :boolean          default(TRUE), not null
+#  sets_to_play              :integer          default(1), not null
+#  sets_to_win               :integer          default(1), not null
+#  state                     :string
+#  team_size                 :integer          default(1), not null
+#  timeout                   :integer          default(0), not null
+#  timeouts                  :integer
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  tournament_id             :integer
 #
 # Foreign Keys
 #
@@ -242,7 +250,7 @@ class TournamentMonitor < ApplicationRecord
           add_result_to(gp, rankings['endgames']['groups']['total'])
           rankings['endgames']['groups']["fg#{group_no}"] ||= {}
           add_result_to(gp, rankings['endgames']['groups']["fg#{group_no}"])
-        elsif (m = game.gname.match(/^(af|qf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
+        elsif (m = game.gname.match(/^(af|qf|vf|hf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?$/))
           level = m[1]
           group_no = m[2]
           add_result_to(gp, rankings['total'])
@@ -381,13 +389,22 @@ class TournamentMonitor < ApplicationRecord
 
   def reset_tournament_monitor
     Tournament.logger.info '[tmon-reset_tournament_monitor]...'
+    update(
+      sets_to_play: (tournament.andand.sets_to_play || 1),
+      sets_to_win: (tournament.andand.sets_to_win || 1),
+      team_size: (tournament.andand.team_size || 1),
+      kickoff_switches_with_set: tournament.andand.kickoff_switches_with_set,
+      allow_follow_up: tournament.andand.allow_follow_up,
+      fixed_display_left: (tournament.andand.fixed_display_left || ""),
+      color_remains_with_set: tournament.andand.color_remains_with_set,
+    )
     tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
     table_monitors.destroy_all
     update(data: {}) unless new_record?
     @tournament_plan ||= tournament.tournament_plan
     initialize_table_monitors unless tournament.manual_assignment
     @groups = TournamentMonitor.distribute_to_group(
-      tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups
+      tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").map(&:player), @tournament_plan.ngroups
     )
     @placements = {}
     current_round!(1)
@@ -591,7 +608,7 @@ class TournamentMonitor < ApplicationRecord
               end
             end
           end
-        elsif k.match(/(?:hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/)
+        elsif k.match(/(?:vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?/)
           r_no = executor_params[k].keys.select { |kk| kk =~ /r\d+/ }.first.match(/r(\d+)/)[1].to_i
           if current_round == r_no
             t_no = nil
@@ -708,7 +725,7 @@ class TournamentMonitor < ApplicationRecord
       subset = {}
       members = players.split(/\s*\+\s*/)
       members.each do |member|
-        g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+        g_no, _game_no, rk_no = member.match(/^(?:(?:fg|g)(\d+)|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
         rk =
           case member
           when /^fg/
@@ -730,7 +747,7 @@ class TournamentMonitor < ApplicationRecord
       groups
       return groups["group#{group_no}"][seeding_index - 1].id
     else
-      g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
+      g_no, _game_no, rk_no = rule_str.match(/^(?:(?:fg|g)(\d+)|vf|hf|af|qf|fin|p<\d+(?:\.\.|-)\d+>)(\d+)?\.rk(\d)$/)[1..3]
       if g_no.present?
         case rule_str
         when /^fg/
@@ -741,7 +758,7 @@ class TournamentMonitor < ApplicationRecord
                                     order: %i[points gd])[rk_no.to_i - 1].andand[0]
         end
       else
-        m = rule_str.match(/^(hf|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/)
+        m = rule_str.match(/^(vf|hf|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/)
         TournamentMonitor.ranking(data['rankings']['endgames']["#{m[1]}#{m[2]}"],
                                   order: %i[points gd])[rk_no.to_i - 1].andand[0]
       end

@@ -10,14 +10,18 @@ require 'net/http'
 #  accredation_end                :datetime
 #  admin_controlled               :boolean          default(FALSE), not null
 #  age_restriction                :string
+#  allow_follow_up                :boolean          default(TRUE), not null
 #  ba_state                       :string
 #  balls_goal                     :integer
+#  color_remains_with_set         :boolean          default(TRUE), not null
 #  data                           :text
 #  date                           :datetime
 #  end_date                       :datetime
+#  fixed_display_left             :string
 #  gd_has_prio                    :boolean          default(FALSE), not null
 #  handicap_tournier              :boolean
 #  innings_goal                   :integer
+#  kickoff_switches_with_set      :boolean          default(TRUE), not null
 #  last_ba_sync_date              :datetime
 #  location                       :text
 #  manual_assignment              :boolean          default(FALSE)
@@ -25,9 +29,12 @@ require 'net/http'
 #  organizer_type                 :string
 #  plan_or_show                   :string
 #  player_class                   :string
+#  sets_to_play                   :integer          default(1), not null
+#  sets_to_win                    :integer          default(1), not null
 #  shortname                      :string
 #  single_or_league               :string
 #  state                          :string
+#  team_size                      :integer          default(1), not null
 #  time_out_warm_up_first_min     :integer          default(5)
 #  time_out_warm_up_follow_up_min :integer          default(3)
 #  timeout                        :integer          default(45)
@@ -63,6 +70,7 @@ class Tournament < ApplicationRecord
   belongs_to :league, optional: true
   has_many :seedings, -> { order(position: :asc) }
   has_many :games, dependent: :destroy
+  has_many :teams, dependent: :destroy
   has_many :party_games, dependent: :destroy
   has_one :tournament_monitor
   has_one :setting
@@ -89,55 +97,20 @@ class Tournament < ApplicationRecord
     end
   end
 
-  def timeout
-    tournament_local.present? ? tournament_local.timeout : read_attribute(:timeout)
-  end
-
-  def timeout=(value)
-    if new_record?
-      write_attribute(:timeout, value)
-    else
-      tol = tournament_local.presence || create_tournament_local
-      tol.update(timeout: value)
+  [:timeouts,:timeouts, :gd_has_priority, :admin_controlled, :sets_to_play, :sets_to_win,
+   :team_size, :kickoff_switches_with_set, :allow_follow_up,
+   :fixed_display_left, :color_remains_with_set].each do |meth|
+    define_method(meth) do
+      tournament_local.present? ? tournament_local.send(meth) : read_attribute(meth)
     end
-  end
 
-  def timeouts
-    tournament_local.present? ? tournament_local.timeouts : read_attribute(:timeouts)
-  end
-
-  def timeouts=(value)
-    if new_record?
-      write_attribute(:timeouts, value)
-    else
-      tol = tournament_local.presence || create_tournament_local
-      tol.update(timeouts: value)
-    end
-  end
-
-  def gd_has_priority
-    tournament_local.present? ? tournament_local.gd_has_priority : read_attribute(:gd_has_priority)
-  end
-
-  def gd_has_priority=(value)
-    if new_record?
-      write_attribute(:gd_has_priority, value)
-    else
-      tol = tournament_local.presence || create_tournament_local
-      tol.update(gd_has_priority: value)
-    end
-  end
-
-  def admin_controlled
-    tournament_local.present? ? tournament_local.admin_controlled : read_attribute(:admin_controlled)
-  end
-
-  def admin_controlled=(value)
-    if new_record?
-      write_attribute(:admin_controlled, value)
-    else
-      tol = tournament_local.presence || create_tournament_local
-      tol.update(admin_controlled: value)
+    define_method("#{meth}=") do |value|
+      if new_record?
+        write_attribute(meth, value)
+      else
+        tol = tournament_local.presence || create_tournament_local
+        tol.update(meth => value)
+      end
     end
   end
 
@@ -482,6 +455,14 @@ class Tournament < ApplicationRecord
       table
     end
     update_columns(last_ba_sync_date: Time.now)
+  end
+
+  def deep_merge_data!(hash)
+    h = data.dup
+    h.deep_merge!(hash)
+    self.data_will_change!
+    self.data = JSON.parse(h.to_json)
+    save!
   end
 
   def reset_tournament
