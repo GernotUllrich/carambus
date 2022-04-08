@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
 
   include AASM
   has_paper_trail
+  MIN_ID = 50000000
 
   belongs_to :discipline, optional: true
   belongs_to :region, optional: true
@@ -97,19 +98,35 @@ class Tournament < ApplicationRecord
     end
   end
 
-  [:timeouts,:timeouts, :gd_has_priority, :admin_controlled, :sets_to_play, :sets_to_win,
+  [:timeouts, :timeout, :gd_has_priority, :admin_controlled, :sets_to_play, :sets_to_win,
    :team_size, :kickoff_switches_with_set, :allow_follow_up,
    :fixed_display_left, :color_remains_with_set].each do |meth|
     define_method(meth) do
-      tournament_local.present? ? tournament_local.send(meth) : read_attribute(meth)
+      (id < Tournament::MIN_ID && tournament_local.present?) ? tournament_local.send(meth) : read_attribute(meth)
     end
 
     define_method("#{meth}=") do |value|
       if new_record?
         write_attribute(meth, value)
       else
-        tol = tournament_local.presence || create_tournament_local
-        tol.update(meth => value)
+        if id < Tournament::MIN_ID
+          tol = tournament_local.presence || create_tournament_local(
+            timeouts: read_attribute(timeouts),
+            timeout: read_attribute(timeout),
+            gd_has_priority: read_attribute(gd_has_priority),
+            admin_controlled: read_attribute(admin_controlled),
+            sets_to_play: read_attribute(sets_to_play),
+            sets_to_win: read_attribute(sets_to_win),
+            team_size: read_attribute(team_size),
+            kickoff_switches_with_set: read_attribute(kickoff_switches_with_set),
+            allow_follow_up: read_attribute(allow_follow_up),
+            fixed_display_left: read_attribute(fixed_display_left),
+            color_remains_with_set: read_attribute(color_remains_with_set)
+          )
+          tol.update(meth => value)
+        else
+          update(meth => value)
+        end
       end
     end
   end
