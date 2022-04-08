@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 # == Schema Information
@@ -186,10 +185,17 @@ class TournamentMonitor < ApplicationRecord
 
   def update_game_participations(tabmon)
     game = tabmon.game
+    sets = nil
     rank = {}
     points = {}
-    ('a'..'b').each do |c|
-      rank["player#{c}"] = tabmon.data["player#{c}"]['result'].to_f / tabmon.data["player#{c}"]['balls_goal'].to_f * 100.0
+    if sets_to_play > 1
+      ('a'..'b').each do |c|
+        rank["player#{c}"] = tabmon.data["ba_results"]["Sets#{c == 'a' ? 1 : 2}"]
+      end
+    else
+      ('a'..'b').each do |c|
+        rank["player#{c}"] = tabmon.data["player#{c}"]['result'].to_f / tabmon.data["player#{c}"]['balls_goal'].to_f * 100.0
+      end
     end
     points['playera'] = if rank['playera'] > rank['playerb']
                           2
@@ -203,21 +209,43 @@ class TournamentMonitor < ApplicationRecord
                         end
     ('a'..'b').each do |c|
       gp = game.game_participations.where(role: "player#{c}").first
-      result = tabmon.data["player#{c}"]['result'].to_i
-      innings = tabmon.data["player#{c}"]['innings'].to_i
-      gd = format('%.2f', tabmon.data["player#{c}"]['result'].to_f / tabmon.data["player#{c}"]['innings'].to_i).to_f
-      hs = tabmon.data["player#{c}"]['hs'].to_i
-      results = {
-        "Gr.": game.gname,
-        "Ergebnis": result,
-        "Aufnahme": innings,
-        "GD": gd,
-        "HS": hs,
-        "gp_id": gp.id
-      }
-      gp.deep_merge_data!('results' => results)
-      gp.update(points: points["player#{c}"], result: result, innings: innings, gd: gd, hs: hs)
-      Tournament.logger.info("RESULT #{game.gname} points: #{points["player#{c}"]}, result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}")
+      if sets_to_play > 1
+        n = c == 'a' ? 1 : 2
+        result = tabmon.data["ba_results"]["Ergebnis#{n}"].to_i
+        innings = tabmon.data["ba_results"]["Aufnahmen#{n}"].to_i
+        gd = format('%.2f', result.to_f / innings).to_f
+        hs = tabmon.data["ba_results"]["Höchstserie#{n}"].to_i
+        sets = tabmon.data["ba_results"]["Sets#{n}"].to_i
+        results = {
+          "Gr.": game.gname,
+          "Ergebnis": result,
+          "Aufnahme": innings,
+          "GD": gd,
+          "HS": hs,
+          "Sets": sets,
+          "gp_id": gp.id
+        }
+        gp.deep_merge_data!('results' => results)
+        gp.update(points: points["player#{c}"], result: result, innings: innings, gd: gd, hs: hs, sets: sets)
+        Tournament.logger.info("RESULT #{game.gname} points: #{points["player#{c}"]}, result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
+      else
+        result = tabmon.data["player#{c}"]['result'].to_i
+        innings = tabmon.data["player#{c}"]['innings'].to_i
+        gd = format('%.2f', tabmon.data["player#{c}"]['result'].to_f / tabmon.data["player#{c}"]['innings'].to_i).to_f
+        hs = tabmon.data["player#{c}"]['hs'].to_i
+        results = {
+          "Gr.": game.gname,
+          "Ergebnis": result,
+          "Aufnahme": innings,
+          "GD": gd,
+          "HS": hs,
+          "gp_id": gp.id,
+          "Sets": 1
+        }
+        gp.deep_merge_data!('results' => results)
+        gp.update(points: points["player#{c}"], result: result, innings: innings, gd: gd, hs: hs, sets: sets)
+        Tournament.logger.info("RESULT #{game.gname} points: #{points["player#{c}"]}, result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
+      end
     end
   end
 

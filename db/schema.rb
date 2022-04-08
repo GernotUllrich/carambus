@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_08_131314) do
+ActiveRecord::Schema.define(version: 2022_04_08_142152) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -186,6 +186,7 @@ ActiveRecord::Schema.define(version: 2022_04_08_131314) do
     t.string "gname"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "sets"
     t.index ["game_id", "player_id", "role"], name: "index_game_participations_on_foreign_keys", unique: true
   end
 

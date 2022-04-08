@@ -11,6 +11,7 @@
 #  points     :integer
 #  result     :integer
 #  role       :string
+#  sets       :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  game_id    :integer
