@@ -84,14 +84,17 @@
       <div class="flex flex-row space-x-4 items-cen ter">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "Die Ballfarbe bleibt zwischen den Sätzen" %></span><span id="tournament_color_remains_with_set"><%= check_box_tag :color_remains_with_set, "1", @tournament.color_remains_with_set?, class: "border-2", data: { reflex: "change->TournamentReflex#color_remains_with_set", id: @tournament.id } %></span>
       </div>
+      <div class="flex flex-row space-x-4 items-cen ter">
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Kein exaktes Erreichen des Ballzieles notwendig" %></span><span id="tournament_allow_overflow"><%= check_box_tag :allow_overflow, "1", false, class: "border-2", data: { reflex: "change->TournamentReflex#allow_overflow", id: @tournament.id } %></span>
+      </div>
       <div class="flex flex-row space-x-4 items-center">
         <span class="w-1/2 text-right text-2vw"><%= label_tag "Darstellung linksseitig" %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "border-2", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Zahl der Sätze" %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5,5], [6,6], [7,7], ["no limit", 999]]), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Zahl der Sätze" %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5,5], [6,6], [7,7], ["no limit", 999]], @tournament.sets_to_play), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
       </div>
       <div class="flex flex-row space-x-4 items-center">
-        <span class="w-1/2 text-right text-2vw"><%= label_tag "Gewinnsätze" %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]]), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
+        <span class="w-1/2 text-right text-2vw"><%= label_tag "Gewinnsätze" %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]], @tournament.sets_to_win), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
       </div>
     </div>
 
