@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_29_152141) do
+ActiveRecord::Schema.define(version: 2022_04_08_071854) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -408,6 +408,9 @@ ActiveRecord::Schema.define(version: 2022_03_29_152141) do
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "guest", default: false, null: false
     t.string "nickname"
+    t.string "type"
+    t.text "data"
+    t.integer "tournament_id"
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
   end
@@ -516,6 +519,13 @@ ActiveRecord::Schema.define(version: 2022_03_29_152141) do
     t.integer "timeouts"
     t.boolean "admin_controlled"
     t.boolean "gd_has_prio"
+    t.integer "sets_to_win", default: 1, null: false
+    t.integer "sets_to_play", default: 1, null: false
+    t.integer "team_size", default: 1, null: false
+    t.boolean "kickoff_switches_with_set", default: true, null: false
+    t.string "fixed_display_left"
+    t.boolean "color_remains_with_set", default: true, null: false
+    t.boolean "allow_follow_up", default: true, null: false
   end
 
   create_table "tournament_monitors", force: :cascade do |t|
@@ -528,6 +538,13 @@ ActiveRecord::Schema.define(version: 2022_03_29_152141) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "timeouts"
     t.integer "timeout", default: 0, null: false
+    t.integer "sets_to_win", default: 1, null: false
+    t.integer "sets_to_play", default: 1, null: false
+    t.boolean "kickoff_switches_with_set", default: true, null: false
+    t.string "fixed_display_left"
+    t.boolean "color_remains_with_set", default: true, null: false
+    t.integer "team_size", default: 1, null: false
+    t.boolean "allow_follow_up", default: true, null: false
   end
 
   create_table "tournament_plan_games", force: :cascade do |t|
@@ -599,6 +616,13 @@ ActiveRecord::Schema.define(version: 2022_03_29_152141) do
     t.boolean "manual_assignment", default: false
     t.boolean "gd_has_prio", default: false, null: false
     t.integer "league_id"
+    t.integer "sets_to_win", default: 1, null: false
+    t.integer "sets_to_play", default: 1, null: false
+    t.integer "team_size", default: 1, null: false
+    t.boolean "kickoff_switches_with_set", default: true, null: false
+    t.string "fixed_display_left"
+    t.boolean "color_remains_with_set", default: true, null: false
+    t.boolean "allow_follow_up", default: true, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
