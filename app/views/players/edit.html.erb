@@ -7,7 +7,6 @@
 
       <div class="bg-white dark:bg-black rounded shadow p-8">
         <%= (render 'form', player: @player) unless @player.is_a? Team %>
-        <a class="btn btn-danger outline" data-remote="true" data-confirm="Are you sure?" rel="nofollow" data-method="delete" href=<%= player_path(@player) %>>Delete</a>
       </div>
     </div>
   </div>
