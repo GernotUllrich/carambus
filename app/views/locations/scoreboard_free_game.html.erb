@@ -286,19 +286,19 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
           <%= content_tag :div, id: "discipline_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :discipline, options_for_select(game_values_disciplines[table_kind.to_sym], "Eurokegel"), onchange: "propagate_discipline();", class: "p-1 text-2vw w-full" %>
+            <%= select_tag :discipline, options_for_select(game_values_disciplines[table_kind.to_sym], @discipline), onchange: "propagate_discipline();", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1"><%= t("game_participation.innings") %></div>
           <%= content_tag :div, id: "innings_goal_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :innings_goal, options_for_select([["20", 20], ["15", 15], ["no limit", 0], ["20", 20], ["25", 25], ["30", 30]], 0), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :innings_goal, options_for_select([["20", 20], ["15", 15], ["no limit", 0], ["20", 20], ["25", 25], ["30", 30]], (@innings_goal.presence || "20").to_i), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1"><%= t("game_participation.balls_goal") %></div>
           <%= content_tag :div, id: "balls_goal_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal, options_for_select(gm, (@balls_goal || "100").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal, options_for_select(gm, (@balls_goal || "80").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>
@@ -306,7 +306,7 @@
         <div>
           <div id="set_params2" style="display: none" class="flex flex-row text-white">
             <%= content_tag :div, id: "allow_follow_up", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-              <%= check_box_tag :allow_follow_up, "1", "0", class: "p-1 text-2vw mr-4" %>
+              <%= check_box_tag :allow_follow_up, "1", @allow_follow_up, class: "p-1 text-2vw mr-4" %>
             <%- end %>
             <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_follow_up") %></div>
           </div>
@@ -332,7 +332,7 @@
               <select name="sets_to_play" id="sets_to_play" class="p-1 text-2vw w-full" onclick="document.getElementById('set_params').style.display='grid'; document.getElementById('set_params2').style.display='grid';">
                 <option value="0">-</option>
                 <option value="2">2</option>
-                <option value="3" selected>3</option>
+                <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
                 <option value="6">6</option>
@@ -343,7 +343,7 @@
             <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
               <select name="sets_to_win" id="sets_to_win" class="p-1 text-2vw w-full" onclick="document.getElementById('set_params').style.display='grid'; document.getElementById('set_params2').style.display='grid';">
                 <option value="0">-</option>
-                <option value="2" selected>2</option>
+                <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
               </select>
@@ -366,7 +366,7 @@
         </div>
         <div class="flex flex-row text-white">
           <%= content_tag :div, id: "allow_overflow", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= check_box_tag :allow_overflow, "1", "0", class: "p-1 text-2vw mr-4" %>
+            <%= check_box_tag :allow_overflow, "1", @allow_overflow, class: "p-1 text-2vw mr-4" %>
           <%- end %>
           <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_overflow") %></div>
         </div>
@@ -396,7 +396,7 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
           <%= content_tag :div, id: "discipline_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :discipline_a, options_for_select(game_values_disciplines[table_kind.to_sym], "Eurokegel"), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :discipline_a, options_for_select(game_values_disciplines[table_kind.to_sym], @discipline_a), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex row-span-4 items-center">
@@ -409,7 +409,7 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
           <%= content_tag :div, id: "balls_goal_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 -4 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal_a, options_for_select(gm, (@balls_goal_a || "100").to_i), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal_a, options_for_select(gm, (@balls_goal_a || "80").to_i), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
@@ -421,13 +421,13 @@
         <div class="flex flex-col text-white">
           <div class="mb-1">Disziplin</div>
           <%= content_tag :div, id: "discipline_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :discipline_b, options_for_select(game_values_disciplines[table_kind.to_sym], "Eurokegel"), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :discipline_b, options_for_select(game_values_disciplines[table_kind.to_sym], @discipline_b), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
         <div class="flex flex-col text-white">
           <div class="mb-1">Ballziel</div>
           <%= content_tag :div, id: "balls_goal_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
-            <%= select_tag :balls_goal_b, options_for_select(gm, (@balls_goal_b || "100").to_i), class: "p-1 text-2vw w-full" %>
+            <%= select_tag :balls_goal_b, options_for_select(gm, (@balls_goal_b || "80").to_i), class: "p-1 text-2vw w-full" %>
           <%- end %>
         </div>
       </div>

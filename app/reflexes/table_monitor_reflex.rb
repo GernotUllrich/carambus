@@ -538,7 +538,7 @@ class TableMonitorReflex < ApplicationReflex
         timer_start_at: start_at,
         timer_finish_at: finish_at
       )
-      @table_monitor.update_every_n_seconds(2)
+      @table_monitor.update_every_n_seconds(10)
     else
       Time.now
     end

@@ -25,7 +25,6 @@
 class Player < ApplicationRecord
   belongs_to :club, optional: true
   has_many :game_participations, dependent: :nullify
-  has_many :seedings
   has_many :season_participations
   has_many :player_rankings
   has_many :seedings, dependent: :nullify
@@ -183,3 +182,31 @@ class Player < ApplicationRecord
     return (player || player_fixed), seeding, state_ix
   end
 end
+
+# {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,
+# 1, 2, 0, 2, 2, 2, 1], "innings_redo_list"=>[0], "hs"=>3, "gd"=>"1.39", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4, 4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3],
+#   "innings_redo_list"=>[], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playera", "balls"=>0}}, {"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list
+# "=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2, 1, 2, 0, 2, 2, 2, 1], "innings_redo_list"=>[1], "hs"=>3, "gd"=>"1.39", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4,
+#   4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3], "innings_redo_list"=>[], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playera", "balls"=>0}}], "updated_at"=>[Sat, 26 Mar 2022 11:32
+# :46 UTC +00:00, Sat, 26 Mar 2022 11:33:28 UTC +00:00], "timer_start_at"=>[Sat, 26 Mar 2022 11:32:46 UTC +00:00, Sat, 26 Mar 2022 11:33:28 UTC +00:00]}
+#
+# {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,
+#                                                                                          1, 2, 0, 2, 2, 2, 1], "innings_redo_list"=>[1], "hs"=>3, "gd"=>"1.39", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4, 4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3],
+#                                                                                                                                                                                                         "innings_redo_list"=>[], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playera", "balls"=>0}}, {"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list
+# "=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2, 1, 2, 0, 2, 2, 2, 1], "innings_redo_list"=>[2], "hs"=>3, "gd"=>"1.39", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4,
+#                                                                                                                                                                                                   4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3], "innings_redo_list"=>[], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playera", "balls"=>0}}], "updated_at"=>[Sat, 26 Mar 2022 11:33
+# :28 UTC +00:00, Sat, 26 Mar 2022 11:33:29 UTC +00:00], "timer_start_at"=>[Sat, 26 Mar 2022 11:33:28 UTC +00:00, Sat, 26 Mar 2022 11:33:29 UTC +00:00]}
+#
+#
+#
+#
+# {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,1, 2, 0, 2, 2, 2, 1], "innings_redo_list"=>[2], "hs"=>3, "gd"=>"1.39", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4, 4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3],"innings_redo_list"=>[], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playera", "balls"=>0}}, {"innings_goal"=>20, "playera"=>{"result"=>27, "innings"=>19, "innings_list
+# "=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2, 1, 2, 0, 2, 2, 2, 1, 2], "innings_redo_list"=>[], "hs"=>3, "gd"=>"1.42", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4, 4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3], "innings_redo_list"=>[0], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playerb", "balls"=>0}}], "updated_at"=>[Sat, 26 Mar 2022 11:33:29 UTC +00:00, Sat, 26 Mar 2022 11:33:29 UTC +00:00], "active_timer"=>["timeout", nil], "timer_start_at"=>[Sat, 26 Mar 2022 11:33:29 UTC +00:00, nil]}
+#
+#
+# {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>27, "innings"=>19, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,
+#                                                                                          1, 2, 0, 2, 2, 2, 1, 2], "innings_redo_list"=>[], "hs"=>3, "gd"=>"1.42", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>30, "innings"=>18, "innings_list"=>[3, 0, 3, 1, 1, 4, 4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3]
+#           , "innings_redo_list"=>[0], "hs"=>5, "gd"=>"1.67", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playerb", "balls"=>0}}, {"innings_goal"=>20, "playera"=>{"result"=>0, "innings"=>0, "innings_lis
+# t"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2, 1, 2, 0, 2, 2, 2, 1, 2], "innings_redo_list"=>[], "hs"=>0, "gd"=>"NaN", "balls_goal"=>40, "tc"=>0}, "playerb"=>{"result"=>0, "innings"=>0, "innings_list"=>[3, 0, 3, 1, 1, 4,
+#                                                                                                                                                                                                   4, 0, 0, 2, 1, 1, 1, 0, 5, 1, 0, 3], "innings_redo_list"=>[0], "hs"=>0, "gd"=>"NaN", "balls_goal"=>40, "tc"=>0}, "current_inning"=>{"active_player"=>"playerb", "balls"=>0}}], "updated_at"=>[Sat, 26 Mar 2022 12:33
+# :30 CET +01:00, Sat, 26 Mar 2022 12:33:45 CET +01:00]}

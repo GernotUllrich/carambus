@@ -25,7 +25,6 @@
 #  tournament_monitor_id :integer
 #
 class TableMonitor < ApplicationRecord
-  include CableReady::Broadcaster
 
   cattr_accessor :allow_change_tables
 
@@ -187,16 +186,7 @@ class TableMonitor < ApplicationRecord
         Tournament.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
         save
       else
-        # TableMonitorLaterJob.perform_later(self)
-        full_screen_html = ApplicationController.render(
-          partial: 'table_monitors/show',
-          locals: { table_monitor: reload, full_screen: true }
-        )
-        cable_ready['table-monitor-stream'].inner_html(
-          selector: "#full_screen_table_monitor_#{id}",
-          html: full_screen_html
-        )
-        cable_ready.broadcast
+        TableMonitorJob.perform_later(self)
       end
     end
   end
@@ -205,19 +195,11 @@ class TableMonitor < ApplicationRecord
     active_player = data['current_inning'].andand['active_player']
     nnn_val = data[active_player].andand['innings_redo_list'].andand[-1].to_i
     update(nnn: nnn_val)
-    full_screen_html = ApplicationController.render(
-      partial: 'table_monitors/show',
-      locals: { table_monitor: self, full_screen: true }
-    )
-    cable_ready['table-monitor-stream'].inner_html(
-      selector: "#full_screen_table_monitor_#{id}",
-      html: full_screen_html
-    )
-    cable_ready.broadcast
+    TableMonitorJob.perform_later(self)
   end
 
   def update_every_n_seconds(n)
-    TableMonitorJob.perform_later(self, n, data['current_inning']['active_player'],
+    TableMonitorClockJob.perform_later(self, n, data['current_inning']['active_player'],
                                   data[data['current_inning']['active_player']].andand['innings_redo_list'].andand[-1].to_i, data[data['current_inning']['active_player']].andand['innings'])
   end
 
@@ -249,7 +231,7 @@ class TableMonitor < ApplicationRecord
       timer_start_at: start_at,
       timer_finish_at: finish_at
     )
-    update_every_n_seconds(2)
+    update_every_n_seconds(10)
   end
 
   def render_innings_list(role)

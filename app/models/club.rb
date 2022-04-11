@@ -66,6 +66,20 @@ class Club < ApplicationRecord
                   "Founded" => "",
                   "Dbu entry" => "",
   }
+
+  def self.scrape_clubs(opts={})
+    player_details = opts[:player_details].presence
+    skip_r = true
+    skip_c = true
+    Region.order(:shortname).all.each do |region|
+      region.scrape_clubs(player_details: player_details)
+    end
+
+    #fix title
+    Player.where("title ~ 'Herr.'").update_all(title: 'Herr')
+    Player.where("title ~ 'Frau.'").update_all(title: 'Frau')
+  end
+
   #x clubs.ba_id regions.name clubs.name clubs.shortname
   def scrape_single_club(opts = {})
     season = opts[:season] || Season.last
@@ -106,7 +120,8 @@ class Club < ApplicationRecord
         logo: club_logo
     )
     if player_details
-      club_players.each do |player_ba_id|
+      known_players = players.map(&:ba_id)
+      (club_players - known_players).each do |player_ba_id|
         player = Player.find_by_ba_id(player_ba_id)
         skip_details = player.present? && !force_update
         player ||= players.new()
@@ -117,7 +132,7 @@ class Club < ApplicationRecord
           url = "https://#{region.shortname.downcase}.billardarea.de"
           player_details_url = "#{url}/cms_clubs/playerdetails/#{ba_id}/#{player.ba_id}"
           Rails.logger.info "reading #{player_details_url} - player details of player [#{player.ba_id}] on club #{shortname} [#{ba_id}]"
-          html_player_detail = open(player_details_url)
+          html_player_detail = URI.open(player_details_url)
           doc_player_detail = Nokogiri::HTML(html_player_detail)
           player_ba_id = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) legend+ .element .field").text.strip.to_i
           if player_ba_id == player.ba_id

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'csv'
 
 # == Schema Information
 #
@@ -352,11 +353,12 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def update_ranking
-    rankings = data['rankings']
+    tm = self
+    rankings = tm.data['rankings']
     executor_params = JSON.parse(tournament.tournament_plan.executor_params)
     rk_rules = executor_params['RK']
     rk_rules.each_with_index do |rule, ix|
-      player_id = player_id_from_ranking(rule)
+      player_id = tm.player_id_from_ranking(rule)
       rankings['total'][player_id.to_s]['rank'] = ix + 1
       tournament.seedings.where(seedings: { player_id: player_id }).first.andand.update(rank: ix + 1)
     end
