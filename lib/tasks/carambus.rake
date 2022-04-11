@@ -3,6 +3,7 @@ require "#{Rails.root}/app/helpers/application_helper"
 require 'open-uri'
 require 'uri'
 require 'net/http'
+require 'csv'
 
 include ApplicationHelper
 
@@ -11,6 +12,36 @@ namespace :carambus do
   desc "eliminate location duplicates"
   task :eliminate_location_duplicates => :environment do
 
+  end
+
+  desc "read regional player ids"
+  task :read_regional_player_ids => :environment do
+    players = CSV.parse(File.read("#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"), headers: false)
+    players.each do |player_str|
+      player_arr = player_str[0].split(";")
+      player_arr
+      player = Player.find_by_ba_id(player_arr[0])
+      player.andand.update(cc_id: player_arr[1])
+      player
+    end
+  end
+
+
+  desc "scrape regional club ids"
+  task :scrape_regional_club_ids => :environment do
+    url = "https://ndbv.club-cloud.de/verein-details.php?p=20-----1-100000-0"
+    Rails.logger.info "reading index page - to scrape regional club ids"
+    html = URI.open(url)
+    doc = Nokogiri::HTML(html)
+    clubs = doc.css("article .cc_bluelink")
+    clubs.each do |club|
+      url = club.attribute("href").value
+      params = url.match(/.*p=(.*)/).andand[1].split('-')
+      params
+      club_title = club.text
+      c = Club.where(region_id: 1, shortname: club_title).first
+      c.andand.update(cc_id: params[3].to_i)
+    end
   end
 
   desc "scrape regions"

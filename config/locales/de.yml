@@ -118,6 +118,7 @@ de:
       clubs: Clubs
     id: id
     ba_id: Link zur Billard Area
+    cc_id: Link zur Club Clud
     region_id: Regionalverband
     name: Name
     shortname: Kurzname

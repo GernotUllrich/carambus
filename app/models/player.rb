@@ -13,6 +13,7 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  ba_id         :integer
+#  cc_id         :integer
 #  club_id       :integer
 #  tournament_id :integer
 #
@@ -50,6 +51,8 @@ class Player < ApplicationRecord
 
   COLUMN_NAMES = { #TODO FILTERS
                    "Id" => "players.id",
+                   "BA_ID" => "players.ba_id",
+                   "CC_ID" => "players.cc_id",
                    "Nickname" => "players.nickname",
                    "Firstname" => "players.firstname",
                    "Lastname" => "players.lastname",

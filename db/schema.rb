@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_08_142152) do
+ActiveRecord::Schema.define(version: 2022_04_10_151425) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -133,6 +133,7 @@ ActiveRecord::Schema.define(version: 2022_04_08_142152) do
     t.string "dbu_entry"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "cc_id"
     t.index ["ba_id"], name: "index_clubs_on_ba_id", unique: true
     t.index ["ba_id"], name: "index_clubs_on_foreign_keys", unique: true
   end
@@ -412,6 +413,7 @@ ActiveRecord::Schema.define(version: 2022_04_08_142152) do
     t.string "type"
     t.text "data"
     t.integer "tournament_id"
+    t.integer "cc_id"
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
   end

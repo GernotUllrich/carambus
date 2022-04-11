@@ -460,7 +460,8 @@ en:
       club: Club
       clubs: Clubs
     id: id
-    ba_id: ba id
+    ba_id: Link to Billard Area
+    cc_id: Link to Club Cloud
     region_id: Region
     name: Name
     shortname: Shortname

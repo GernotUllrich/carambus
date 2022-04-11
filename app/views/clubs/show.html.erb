@@ -10,6 +10,9 @@
         <h5><%= t('club.ba_id') %></h5><%= link_to @club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}" %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5><%= t('club.cc_id') %></h5><%= link_to @club.cc_id, "https://ndbv.club-cloud.de/verein-details.php?p=20---#{@club.cc_id}--1-100000-0" %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%= t('club.region_id') %></h5><%= link_to @club.region.name, region_path(@club.region) if @club.region.present? %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
@@ -63,6 +66,27 @@
             <li><%= link_to location.name, location_path(location) %></li>
           <%- end %>
         </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="px-3 lg:px-0">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-xl justify-center mx-auto">
+      <h2><%= t('home.index.leagues') %></h2>
+      <div class="flex bg-white dark:bg-black">
+        <%- League.where(organizer_id: 1, organizer_type: "Region").each do |league| %>
+          <%- if league.league_teams.where(club: @club.id).count > 0 %>
+            <div class="p-4">
+              <h4><%= link_to league.name, league_path(league) %></h4>
+              <ul>
+                <%- league.league_teams.where(club: @club.id).order(name: :desc).uniq.each do |league_team| %>
+                  <li><%= link_to league_team.name, league_team_path(league_team) %></li>
+                <%- end %>
+              </ul>
+            </div>
+          <%- end %>
+        <%- end %>
       </div>
     </div>
   </div>

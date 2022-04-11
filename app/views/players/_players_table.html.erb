@@ -2,6 +2,7 @@
   <thead>
   <tr>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :ba_id, 'Ba', class: 'text-gray-700 dark:text-gray-200' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :cc_id, 'Cc', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "clubs.shortname", 'Club', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "regions.shortname", 'Region', class: 'text-gray-700 dark:text-gray-200' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname, t('player.lastname'), class: 'text-gray-700 dark:text-gray-200' %></th>
@@ -16,6 +17,7 @@
   <% @players.each do |player| %>
     <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
       <td class="p-3"><%= link_to_if player.andand.club.present?, player.ba_id, "https://#{player.club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{player.club.ba_id}/#{player.ba_id}" %></td>
+      <td class="p-3"><%= link_to_if player.andand.club.present?, player.cc_id, "https://ndbv.club-cloud.de/suche.php?p=20---#{player.cc_id}-#{player.cc_id}-2021/2011-1" %></td>
       <td class="p-3"><%= link_to player.club.shortname, club_path(player.club) if player.andand.club.present? %></td>
       <td class="p-3"><%= link_to player.club.region.shortname, region_path(player.club.region) if player.andand.club.andand.region.present? %></td>
       <td class="p-3"><%= player.lastname %></td>

@@ -6,7 +6,7 @@ class ClubsController < ApplicationController
   def index
     @clubs = Club.joins(:region).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @clubs = apply_filters(@clubs, Club::COLUMN_NAMES, "(regions.name ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search)")
+      @clubs = apply_filters(@clubs, Club::COLUMN_NAMES, "(regions.shortname ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search) or (clubs.cc_id = :isearch)")
     end
     @pagy, @clubs = pagy(@clubs)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.

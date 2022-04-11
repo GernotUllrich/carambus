@@ -16,6 +16,7 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  ba_id      :integer
+#  cc_id      :integer
 #  region_id  :integer
 #
 # Indexes

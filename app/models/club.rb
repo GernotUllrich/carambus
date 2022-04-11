@@ -16,6 +16,7 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  ba_id      :integer
+#  cc_id      :integer
 #  region_id  :integer
 #
 # Indexes
@@ -56,7 +57,8 @@ class Club < ApplicationRecord
   REFLECTION_KEYS = ["region", "players", "season_participations"]
   COLUMN_NAMES = {#TODO FILTERS
                   "BA_ID" => "clubs.ba_id",
-                  "Region" => "regions.name",
+                  "CC_ID" => "clubs.cc_id",
+                  "Region" => "regions.shortname",
                   "Name" => "clubs.name",
                   "Shortname" => "clubs.shortname",
                   "Homepage" => "",
