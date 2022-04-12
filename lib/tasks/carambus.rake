@@ -147,7 +147,7 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-      debug = true
+    debug = false #true
     Season.order(ba_id: :desc).limit(2).each do |season|
       (next unless season.id == 13) if debug
       Region.all.each do |region|

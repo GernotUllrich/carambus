@@ -332,7 +332,7 @@ de:
       game_finished: "Partie beendet"
       game_show_result: "%{game_or_set_finished} - %{wait_check}"
       wait_check: "CHECK ABWARTEN"
-      game_result_reported: "Ergebnisse erfasst"
+      game_result_reported: "Endergebnis erfasst"
       ready_for_new_game: "Bereit für nächstes Spiel"
   seeding:
     index:

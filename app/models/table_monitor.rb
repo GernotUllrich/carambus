@@ -179,13 +179,19 @@ class TableMonitor < ApplicationRecord
   end
 
   after_save do
+    debug = false #true
+    Rails.logger.info "tmas +----  :" if debug
     if previous_changes["id"].nil? && previous_changes.present?
+      Rails.logger.warn 'tmas +---- A: previous_changes["id"].nil? && previous_changes.present?' if debug
       Tournament.logger.warn "+++ after_commit table_monitor[#{id}] #{previous_changes.inspect}"
       reload.evaluate_panel_and_current
       if changes.present?
+        Rails.logger.warn 'tmas +---- B: changes.present?' if debug
+        Rails.logger.warn "tmas +---- B: #{changes.inspect}" if debug
         Tournament.logger.warn "+++ after_commit evaluate_panel_and_current table_monitor[#{id}] #{changes.inspect}"
         save
       else
+        Rails.logger.warn 'tmas +---- C: ! changes.present? => UBDATE JOB' if debug
         TableMonitorJob.perform_later(self)
       end
     end
@@ -200,7 +206,7 @@ class TableMonitor < ApplicationRecord
 
   def update_every_n_seconds(n)
     TableMonitorClockJob.perform_later(self, n, data['current_inning']['active_player'],
-                                  data[data['current_inning']['active_player']].andand['innings_redo_list'].andand[-1].to_i, data[data['current_inning']['active_player']].andand['innings'])
+                                       data[data['current_inning']['active_player']].andand['innings_redo_list'].andand[-1].to_i, data[data['current_inning']['active_player']].andand['innings'])
   end
 
   def player_a_on_table_before
@@ -287,7 +293,7 @@ class TableMonitor < ApplicationRecord
     if data["sets_to_play"].to_i > 1
       # S1:0, S2:20
       Array(data["sets"]).each_with_index do |set, ix|
-        prefix += "S#{ix+1}: #{set["Ergebnis#{player_ix}"]}, "
+        prefix += "S#{ix + 1}: #{set["Ergebnis#{player_ix}"]}, "
       end
     end
     ret = show_innings.dup
@@ -484,21 +490,28 @@ class TableMonitor < ApplicationRecord
   end
 
   def add_n_balls(n)
+
+    debug = false #true
+    Rails.logger.info('addn +++++  : ') if debug
     @msg = nil
     #noinspection RubyResolve
     if playing_game?
+      Rails.logger.info('addn +++++ A: playing_game?') if debug
       current_role = data['current_inning']['active_player']
       data[current_role]['innings_redo_list'] = [0] if data[current_role]['innings_redo_list'].blank?
       to_play = data[current_role].andand['balls_goal'].to_i <= 0 ? 99_999 : data[current_role].andand['balls_goal'].to_i - (data[current_role].andand['result'].to_i + data[current_role]['innings_redo_list'][-1].to_i)
       if n <= to_play || data["allow_overflow"].present?
+        Rails.logger.info('addn +++++ B: n <= to_play || data["allow_overflow"].present?') if debug
         add = [n, to_play].min
         data[current_role]['innings_redo_list'][-1] =
           [(data[current_role]['innings_redo_list'][-1].to_i + add), 0].max
         if add == to_play
+          Rails.logger.info('addn +++++ C: add == to_play') if debug
           data_will_change!
           save
           terminate_current_inning
         else
+          Rails.logger.info('addn +++++ D: add != to_play') if debug
           # data[current_role]["innings_redo_list"].pop if Array(data[current_role]["innings_redo_list"]).last.to_i > 10000
           data_will_change!
         end
@@ -507,10 +520,12 @@ class TableMonitor < ApplicationRecord
       #   panel_state: "pointer_mode",
       #   current_element: "pointer_mode")
     else
+      Rails.logger.info('addn +++++ E: ! playing_game?') if debug
       @msg = 'Game Finished - no more inputs allowed'
       nil
     end
   rescue StandardError => e
+    Rails.logger.info("addn +++++ F: #{e}") if debug
     Tournament.logger.info "#{e}, #{e.backtrace.to_a.join("\n")}"
   end
 
@@ -640,14 +655,15 @@ class TableMonitor < ApplicationRecord
   def follow_up?
     info = '+++ 10 - table_monitor#follow_up? table_monitor'
     DebugInfo.instance.update(info: info)
-    Rails.logger.info info
-    left_player_id = data['current_left_player'] ? 'playerb' : 'playera'
-    right_player_id = data['current_left_player'] ? 'playera' : 'playerb'
-    data.present? &&
+    left_player_id = data['fixed_display_left'].blank? ? data["current_kickoff_player"] : data["current_left_player"]
+    right_player_id = left_player_id == "playera" ? "playerb" : "playera"
+    ret = data.present? &&
       ((data['current_inning'].andand['active_player'] == right_player_id) &&
         (data[left_player_id].andand['balls_goal'].to_i.positive? && (data[left_player_id].andand['result'].to_i >= data[left_player_id].andand['balls_goal'].to_i) ||
           (data['innings_goal'].to_i.positive? && data[left_player_id].andand['innings'].to_i >= data['innings_goal'].to_i))
       )
+    Rails.logger.info info + " => " + ret.to_s
+    ret
   end
 
   def undo
@@ -773,37 +789,61 @@ class TableMonitor < ApplicationRecord
   end
 
   def evaluate_result
+    debug = false #true
+    Rails.logger.info("eval *****  : ") if debug
     if (playing_game? || game_show_result? || game_finished? || game_result_reported?) && end_of_set?
+      Rails.logger.info("eval ***** A: (playing_game? || game_show_result? || game_finished? || game_result_reported?) && end_of_set?") if debug
       if playing_game?
+        Rails.logger.info("eval ***** B: playing_game?") if debug
         event_game_show_result!
         save!
         return
       elsif game_show_result?
+        Rails.logger.info("eval ***** C: game_show_result?") if debug
         if data["sets_to_play"].to_i > 1
+          Rails.logger.info('eval ***** D: data["sets_to_play"].to_i > 1') if debug
           save_current_set
           max_number_of_wins = get_max_number_of_wins
           if data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i
+            Rails.logger.info('eval ***** E: data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i') if debug
             switch_to_next_set
             return
           else
+            Rails.logger.info('eval ***** F:  ! data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i') if debug
             event_set_result_accepted!
+            if game_finished?
+              Rails.logger.info('eval ***** X:  game_finished?') if debug
+              # Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
+              event_game_result_reported!
+            end
           end
         else
+          Rails.logger.info('eval ***** G:  ! data["sets_to_win"].to_i > 1 && max_number_of_wins < data["sets_to_win"].to_i') if debug
           event_set_result_accepted!
+          if game_finished?
+            Rails.logger.info('eval ***** X:  game_finished?') if debug
+            # Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
+            event_game_result_reported!
+          end
         end
       elsif game_finished?
+        Rails.logger.info('eval ***** H:  game_finished?') if debug
         # Tournament.logger.info "[table_monitor#evaluate_result] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
         event_game_result_reported!
       elsif tournament_monitor.blank? && game.present?
+        Rails.logger.info('eval ***** I:  tournament_monitor.blank? && game.present?') if debug
         revert_players
         update(state: 'playing_game')
         do_play
         return
       end
+      Rails.logger.info('eval ***** J:  before final return') if debug
       save!
       reload
       prepare_final_game_result
       tournament_monitor.andand.report_result(self)
+    else
+      Rails.logger.info('eval ***** K:  ! (playing_game? || game_show_result? || game_finished? || game_result_reported?) && end_of_set?') if debug
     end
   end
 

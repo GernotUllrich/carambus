@@ -309,6 +309,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(10)
     @table_monitor.do_play
+    @table_monitor.data_will_change!
     Rails.logger.info('[add_ten] ++++1++++')
     @table_monitor.save
   rescue StandardError => e
@@ -412,24 +413,32 @@ class TableMonitorReflex < ApplicationReflex
 
   def force_next_state
     morph :nothing
+    debug = false #true
+    Rails.logger.info('nxst +++++ A:') if debug
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
     if %i[game_setup_started game_warmup_a_started game_warmup_b_started].include?(@table_monitor.state.to_sym)
+      Rails.logger.info('nxst +++++ B: %i[game_setup_started game_warmup_a_started game_warmup_b_started].include?(@table_monitor.state.to_sym)') if debug
       @table_monitor.reset_timer!
       # noinspection RubyResolve
       @table_monitor.event_warmup_finished!
     elsif [:game_shootout_started].include?(@table_monitor.state.to_sym)
+      Rails.logger.info('nxst +++++ C: [:game_shootout_started].include?(@table_monitor.state.to_sym)') if debug
       @table_monitor.reset_timer!
       @table_monitor.event_shootout_finished!
     elsif @table_monitor.game_show_result? || @table_monitor.game_result_reported?
+      Rails.logger.info('nxst +++++ D: @table_monitor.game_show_result? || @table_monitor.game_result_reported?') if debug
       @table_monitor.evaluate_result
       # @table_monitor.event_set_result_accepted!
       # @table_monitor.prepare_final_game_result
     elsif @table_monitor.game_finished?
+      Rails.logger.info('nxst +++++ E: @table_monitor.game_finished?') if debug
       if @table_monitor.tournament_monitor.present?
+        Rails.logger.info('nxst +++++ F: @table_monitor.tournament_monitor.present?') if debug
         @table_monitor.evaluate_result
         # @table_monitor.tournament_monitor.report_result(@table_monitor)
       else
+        Rails.logger.info('nxst +++++ G: ! @table_monitor.tournament_monitor.present?') if debug
         # noinspection RubyResolve
         # Tournament.logger.info "[table_monitor_reflex#force_next_state] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
         @table_monitor.event_game_result_reported!
