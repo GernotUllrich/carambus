@@ -18,9 +18,9 @@ class League < ApplicationRecord
   has_many :league_teams
   has_many :parties
   has_many :tournaments
-  belongs_to :organizer, polymorphic: true
-  belongs_to :discipline
-  belongs_to :season
+  belongs_to :organizer, polymorphic: true, optional: true
+  belongs_to :discipline, optional: true
+  belongs_to :season, optional: true
 
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 

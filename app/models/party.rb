@@ -18,9 +18,9 @@
 class Party < ApplicationRecord
   belongs_to :league
   has_many :games
-  belongs_to :league_team_a, class_name: "LeagueTeam", foreign_key: :league_team_a_id
-  belongs_to :league_team_b, class_name: "LeagueTeam", foreign_key: :league_team_b_id
-  belongs_to :host_league_team, class_name: "LeagueTeam", foreign_key: :host_league_team_id
+  belongs_to :league_team_a, class_name: "LeagueTeam", foreign_key: :league_team_a_id, optional: true
+  belongs_to :league_team_b, class_name: "LeagueTeam", foreign_key: :league_team_b_id, optional: true
+  belongs_to :host_league_team, class_name: "LeagueTeam", foreign_key: :host_league_team_id, optional: true
   has_one :party_tournament
   has_many :party_games, -> { order("seqno") }
 

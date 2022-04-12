@@ -14,9 +14,9 @@
 #  tournament_id :integer
 #
 class PartyGame < ApplicationRecord
-  belongs_to :party
-  belongs_to :player_a, class_name: "Player"
-  belongs_to :player_b, class_name: "Player"
+  belongs_to :party, optional: true
+  belongs_to :player_a, class_name: "Player", optional: true
+  belongs_to :player_b, class_name: "Player", optional: true
   belongs_to :tournament, optional: true
 
   serialize :data, Hash

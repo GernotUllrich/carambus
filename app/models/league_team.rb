@@ -12,7 +12,7 @@
 #  league_id  :integer
 #
 class LeagueTeam < ApplicationRecord
-  belongs_to :league
-  belongs_to :club
+  belongs_to :league, optional: true
+  belongs_to :club, optional: true
   has_many :seedings
 end
