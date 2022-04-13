@@ -24,6 +24,39 @@ class League < ApplicationRecord
 
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
+  def self.scrape_leagues_by_region_and_season(region, season)
+    url = "https://#{region.shortname.downcase}.billardarea.de"
+    uri = URI(url + '/cms_leagues')
+    Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
+    res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+    doc = Nokogiri::HTML(res.body)
+    tabs = doc.css("#tabs a")
+    tabs.each_with_index do |tab, ix|
+      tab_text = tab.text.strip
+      if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+        discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
+        discipline = Discipline.find_by_name(discipline_name)
+        tab = "#tabs-#{ix + 1} a"
+        lines = doc.css(tab)
+        lines.each do |line|
+          name = line.text.strip
+          url = line.attribute("href").value
+          m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
+          ba_id = m[3] rescue nil
+          single_or_league = m[1] rescue nil
+          plan_or_show = m[2] rescue nil
+          if ba_id.present?
+            league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, discipline_id: discipline.andand.id, organizer: region, season: season)
+            league.update(name: name)
+            league.scrape_single_league(game_details: true)
+          end
+        end
+      else
+        Rails.logger.info "!!!!!!!!! ERROR: UNKNOWN DISCIPLINE: #{tab_text}"
+      end
+    end
+  end
+
   def scrape_single_league(opts = {})
     self.reset_league
     league_players = {}
@@ -78,9 +111,9 @@ class League < ApplicationRecord
             tds = element.css("td")
             day_seqno = element.css("td")[0].text.to_i
             date = DateTime.parse("#{element.css("td")[1].text} #{element.css("td")[2].text}")
-            team_a = league_teams.where(name:element.css("td")[3].text.strip()).first
-            team_b = league_teams.where(name:element.css("td")[4].text.strip()).first
-            host_team = league_teams.where(name:element.css("td")[6].text.strip()).first
+            team_a = league_teams.where(name: element.css("td")[3].text.strip()).first
+            team_b = league_teams.where(name: element.css("td")[4].text.strip()).first
+            host_team = league_teams.where(name: element.css("td")[6].text.strip()).first
             party_data = { result: element.css("td")[5].text.strip() }
             party.update(date: date, league: self, day_seqno: day_seqno, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data)
             party.save!
@@ -96,19 +129,19 @@ class League < ApplicationRecord
                 doc_game = Nokogiri::HTML(rows[ix * 3].inner_html.gsub("<br>", "::"))
                 doc_game2 = Nokogiri::HTML(rows[ix * 3 + 1].inner_html)
                 tds_2 = doc_game2.css("td")
-                column_count = tds_2.count/2
+                column_count = tds_2.count / 2
                 res_hash = {}
                 (1..column_count).each_with_index do |_c2, ix2|
                   res_a = tds_2[0 + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
                   res_b = tds_2[column_count + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
-                  res_hash[(res_a[-2]||"Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+                  res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
                 end
                 tds = doc_game.css("td")
                 game_name = tds[0].text.strip
                 player_a = evaluate_league_players(tds[1].text, league_players, team_a, ix)
                 player_b = evaluate_league_players(tds[2].text, league_players, team_b, ix)
                 party_game = PartyGame.find_by_seqno_and_party_id(ix + 1, party.id) || PartyGame.create(seqno: ix + 1, party: party)
-                party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: {result: res_hash}, name: game_name)
+                party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
               end
             end
           end
@@ -125,7 +158,6 @@ class League < ApplicationRecord
   end
 
   private
-
 
   def evaluate_league_players(name_str, league_players, team, ix)
     player = nil

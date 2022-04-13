@@ -147,41 +147,9 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-    debug = false #true
     Season.order(ba_id: :desc).limit(2).each do |season|
-      (next unless season.id == 13) if debug
       Region.all.each do |region|
-        (next unless region.shortname == "NBV") if debug
-        url = "https://#{region.shortname.downcase}.billardarea.de"
-        uri = URI(url + '/cms_leagues')
-        Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
-        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-        doc = Nokogiri::HTML(res.body)
-        tabs = doc.css("#tabs a")
-        tabs.each_with_index do |tab, ix|
-          tab_text = tab.text.strip
-          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
-            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
-            discipline = Discipline.find_by_name(discipline_name)
-            tab = "#tabs-#{ix + 1} a"
-            lines = doc.css(tab)
-            lines.each do |line|
-              name = line.text.strip
-              url = line.attribute("href").value
-              m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
-              ba_id = m[3] rescue nil
-              single_or_league = m[1] rescue nil
-              plan_or_show = m[2] rescue nil
-              if ba_id.present?
-                league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, discipline_id: discipline.andand.id, organizer: region, season: season)
-                league.update(name: name)
-                league.scrape_single_league(game_details: true)
-              end
-            end
-          else
-            break
-          end
-        end
+        League.scrape_leagues_by_region_and_season(region, season)
       end
     end
   end
