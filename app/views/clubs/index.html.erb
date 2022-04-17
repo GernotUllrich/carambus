@@ -4,7 +4,7 @@
       type: "GET",
       url: "/clubs?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
       success: function (response) {
-        var elem = document.getElementById("table_wrapper");
+          var elem = document.getElementById("table_wrapper");
         elem.innerHTML = response.body.innerHTML;
       },
       error: function (response) {

@@ -3,6 +3,8 @@ class TableMonitorJob < ApplicationJob
   queue_as :default
 
   def perform(*args)
+    debug = true
+    Rails.logger.info "perf +++++++ C: PERFORM JOB" if debug
     table_monitor = args[0]
 
     full_screen_html = ApplicationController.render(

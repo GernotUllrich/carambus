@@ -54,6 +54,7 @@
       active_player: table_monitor.data["current_inning"].andand["active_player"],
     }
   } %>
+  <%- Rails.logger.info "++++++ SHOW" %>
   <%- if full_screen %>
     <%- if table_monitor.setup_modal_should_be_open? %>
       <%= render partial: "table_monitors/game_setup",
@@ -168,6 +169,9 @@
                   </div>
                   <div class="text-2vw">
                     <%- to_play = left_player[:balls_goal].to_i - (left_player[:result].to_i + Array(table_monitor.data[left_player_id].andand["innings_redo_list"])[-1].to_i) %>
+                    <%- if table_monitor.follow_up? && left_player_active && options[:allow_follow_up] %>
+                      <div>Nachstoss</div>
+                    <%- end %>
                     <%- if left_player[:balls_goal].to_i > 0 && left_player_active && to_play <= 3 %>
                       pour <%= to_play %>
                     <%- end %>
@@ -255,6 +259,12 @@
               <%- if options[:sets_to_win].to_i > 1 %>
                 <div class="flex flex-1 items-center text-center text-2vw"><%= "#{options[:sets_to_win].to_i} Gewinnsätze" %></div>
               <%- end %>
+              <%- if options[:sets_to_play].to_i > 1 %>
+                <div class="flex flex-1 items-center text-center text-2vw"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
+              <%- end %>
+              <%- if !options[:allow_follow_up] %>
+                <div class="flex flex-1 items-center text-center text-2vw"><%= "Kein Nachstoss" %></div>
+              <%- end %>
             </div>
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 flex-row space-x-3 rounded-full">
@@ -310,8 +320,8 @@
                   </div>
                   <div class="text-2vw">
                     <%- to_play = right_player[:balls_goal].to_i > 0 ? right_player[:balls_goal].to_i - (right_player[:result].to_i + Array(table_monitor.data[right_player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
-                    <%- if table_monitor.follow_up? %>
-                      Nachstoss
+                    <%- if table_monitor.follow_up? && right_player_active && options[:allow_follow_up] %>
+                      <div>Nachstoss</div>
                     <%- end %>
                     <%- if right_player[:balls_goal].to_i > 0 && right_player_active && to_play <= 3 %>
                       pour <%= to_play %>
@@ -414,6 +424,9 @@
                 </div>
                 <div class="text-1vw">
                   <%- to_play = left_player[:balls_goal].to_i > 0 ? left_player[:balls_goal].to_i - (left_player[:result].to_i + Array(table_monitor.data[left_player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
+                  <%- if table_monitor.follow_up? && left_player_active && options[:allow_follow_up] %>
+                    <div>Nachstoss</div>
+                  <%- end %>
                   <%- if left_player[:balls_goal].to_i > 0 && left_player_active && to_play <= 3 %>
                     pour <%= to_play %>
                   <%- end %>
@@ -514,7 +527,7 @@
                 </div>
                 <div class="text-1vw">
                   <%- to_play = right_player[:balls_goal].to_i > 0 ? right_player[:balls_goal].to_i - (right_player[:result].to_i + Array(table_monitor.data[right_player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
-                  <%- if table_monitor.follow_up? %>
+                  <%- if table_monitor.follow_up? && options[:allow_follow_up] %>
                     Nachstoss
                   <%- end %>
                   <%- if right_player[:balls_goal].to_i > 0 && right_player_active && to_play <= 3 %>

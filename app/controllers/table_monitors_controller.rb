@@ -117,6 +117,8 @@ class TableMonitorsController < ApplicationController
     params.require(:table_monitor).permit(:tournament_monitor_id, :state, :name, :game_id, :next_game_id, :data,
                                           :ip_address, :player_a_id, :player_b_id, :balls_goal, :balls_goal_a,
                                           :balls_goal_b, :discipline, :discipline_a, :discipline_b, :innings_goal,
-                                          :timeout, :timeouts)
+                                          :timeout, :timeouts, :kickoff_switches_with_set,
+                                          :fixed_display_left, :color_remains_with_set,
+                                          :allow_overflow, :allow_follow_up)
   end
 end

@@ -22,13 +22,16 @@ class TableMonitorReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
   #
+  DEBUG = false
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
+      Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
       key(element.dataset[:id], i)
     end
   end
 
   def key(table_monitor_id, val)
+    Rails.logger.info "+++++++++++++++++>>> #{"key(#{table_monitor_id}, #{val})"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     if TableMonitor::NNN == 'db'
       table_monitor_id = element.andand.dataset[:id]
@@ -51,10 +54,12 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def nnn_del
+    Rails.logger.info "+++++++++++++++++>>> #{"nnn_del"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     key(element.andand.dataset[:id], 'c')
   end
 
   def nnn_enter
+    Rails.logger.info "+++++++++++++++++>>> #{"nnn_enter"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
@@ -70,6 +75,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def outside
+    Rails.logger.info "+++++++++++++++++>>> #{"outside"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
@@ -79,10 +85,12 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_pressed
+    Rails.logger.info "+++++++++++++++++>>> #{"key_pressed"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
   end
 
   def key_a
+    Rails.logger.info "+++++++++++++++++>>> #{"key_a"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
@@ -124,6 +132,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_b
+    Rails.logger.info "+++++++++++++++++>>> #{"key_b"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
@@ -175,6 +184,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_c
+    Rails.logger.info "+++++++++++++++++>>> #{"key_c"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
@@ -194,6 +204,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_d
+    Rails.logger.info "+++++++++++++++++>>> #{"key_dc"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
@@ -224,6 +235,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def undo
+    Rails.logger.info "+++++++++++++++++>>> #{"undo"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -232,6 +244,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def minus_one
+    Rails.logger.info "+++++++++++++++++>>> #{"minus_one"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -242,6 +255,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def minus_ten
+    Rails.logger.info "+++++++++++++++++>>> #{"minus_ten"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -252,6 +266,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def minus_five
+    Rails.logger.info "+++++++++++++++++>>> #{"minus_five"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -262,6 +277,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def switch_players
+    Rails.logger.info "+++++++++++++++++>>> #{"switch_players"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -270,6 +286,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def start_game
+    Rails.logger.info "+++++++++++++++++>>> #{"start_game"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
@@ -280,28 +297,26 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
-  def home; end
+  def home
+    Rails.logger.info "+++++++++++++++++>>> #{"home"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
   def add_one
+    Rails.logger.info "+++++++++++++++++>>> #{"add_one"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
     @table_monitor.current_element = 'add_one'
     @table_monitor.reset_timer!
-    Rails.logger.warn("[add_one] ++++A++++ #{JSON.pretty_generate(@table_monitor.attributes.delete_if do |k, _v|
-      k == 'data'
-    end)}")
     @table_monitor.add_n_balls(1)
     @table_monitor.do_play
-    Rails.logger.warn("[add_one] ++++B++++ #{JSON.pretty_generate(@table_monitor.attributes.delete_if do |k, _v|
-      k == 'data'
-    end)}")
     @table_monitor.save
   rescue StandardError => e
-    Rails.logger.info("[add_one] #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.info("[add_one] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
   end
 
   def add_ten
+    Rails.logger.info "+++++++++++++++++>>> #{"add_ten"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -310,13 +325,13 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.add_n_balls(10)
     @table_monitor.do_play
     @table_monitor.data_will_change!
-    Rails.logger.info('[add_ten] ++++1++++')
     @table_monitor.save
   rescue StandardError => e
-    Rails.logger.info("[add_ten] #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.info("[add_ten] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
   end
 
   def add_five
+    Rails.logger.info "+++++++++++++++++>>> #{"add_five"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -324,13 +339,13 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(5)
     @table_monitor.do_play
-    Rails.logger.info('[add_five] ++++1++++')
     @table_monitor.save
   rescue StandardError => e
-    Rails.logger.info("[add_five] #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.info("[add_five] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
   end
 
   def set_balls
+    Rails.logger.info "+++++++++++++++++>>> #{"set_balls"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'inputs'
@@ -340,6 +355,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def numbers
+    Rails.logger.info "+++++++++++++++++>>> #{"numbers"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
@@ -348,6 +364,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def up
+    Rails.logger.info "+++++++++++++++++>>> #{"up"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     t_no = @table_monitor.internal_name.match(/table(\d+)/).andand[1].to_i
@@ -372,10 +389,11 @@ class TableMonitorReflex < ApplicationReflex
     tm2.save
     @table_monitor.reload
   rescue StandardError => e
-    Rails.logger.info ";;; up #{e} #{e.backtrace.to_a.join("\n")}"
+    Rails.logger.info ";;; ERROR: up #{e} #{e.backtrace.to_a.join("\n")}"
   end
 
   def down
+    Rails.logger.info "+++++++++++++++++>>> #{"down"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     t_no = @table_monitor.internal_name.match(/table(\d+)/).andand[1].to_i
@@ -399,10 +417,11 @@ class TableMonitorReflex < ApplicationReflex
     tm2.save
     @table_monitor.reload
   rescue StandardError => e
-    Rails.logger.info ";;; down #{e} #{e.backtrace.to_a.join("\n")}"
+    Rails.logger.info ";;; down ERROR:  #{e} #{e.backtrace.to_a.join("\n")}"
   end
 
   def next_step
+    Rails.logger.info "+++++++++++++++++>>> #{"next_step"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
@@ -412,8 +431,9 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def force_next_state
+    Rails.logger.info "+++++++++++++++++>>> #{"force_next_state"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
-    debug = false #true
+    debug = true #true
     Rails.logger.info('nxst +++++ A:') if debug
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
@@ -449,6 +469,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def stop
+    Rails.logger.info "+++++++++++++++++>>> #{"stop"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
@@ -456,6 +477,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def warm_up_finished
+    Rails.logger.info "+++++++++++++++++>>> #{"warm_up_finished"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
@@ -465,18 +487,21 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def play_warm_up_a
+    Rails.logger.info "+++++++++++++++++>>> #{"play_warm_up_a"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     warmup_state_change('a')
     @table_monitor.save
   end
 
   def play_warm_up_b
+    Rails.logger.info "+++++++++++++++++>>> #{"play_warm_up_b"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     warmup_state_change('b')
     @table_monitor.save
   end
 
   def play
+    Rails.logger.info "+++++++++++++++++>>> #{"play"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = 'timer'
@@ -486,6 +511,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def pause
+    Rails.logger.info "+++++++++++++++++>>> #{"pause"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.assign_attributes(timer_halt_at: Time.now)
@@ -493,6 +519,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def timeout
+    Rails.logger.info "+++++++++++++++++>>> #{"timeout"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
@@ -515,12 +542,13 @@ class TableMonitorReflex < ApplicationReflex
       end
     end
   rescue StandardError => e
-    Rails.logger.info("[add_one] #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.info("[add_one] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
   end
 
   private
 
   def warmup_state_change(player)
+    Rails.logger.info "+++++++++++++++++>>> #{"warmup_state_change(#{player})"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     other_player = player == 'a' ? 'b' : 'a'
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
@@ -554,23 +582,43 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
-  def submit; end
+  def submit
+    Rails.logger.info "+++++++++++++++++>>> #{"submit"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def discipline; end
+  def discipline
+    Rails.logger.info "+++++++++++++++++>>> #{"discipline"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def innings; end
+  def innings
+    Rails.logger.info "+++++++++++++++++>>> #{"innings"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def balls_goal; end
+  def balls_goal
+    Rails.logger.info "+++++++++++++++++>>> #{"balls_goal"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def player_a_name; end
+  def player_a_name
+    Rails.logger.info "+++++++++++++++++>>> #{"player_a_name"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def discipline_a; end
+  def discipline_a
+    Rails.logger.info "+++++++++++++++++>>> #{"discipline_a"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def balls_goal_a; end
+  def balls_goal_a
+    Rails.logger.info "+++++++++++++++++>>> #{"balls_goal_a"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def player_b_name; end
+  def player_b_name
+    Rails.logger.info "+++++++++++++++++>>> #{"player_b_name"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def discipline_b; end
+  def discipline_b
+    Rails.logger.info "+++++++++++++++++>>> #{"discipline_b"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 
-  def balls_goal_b; end
+  def balls_goal_b
+    Rails.logger.info "+++++++++++++++++>>> #{"balls_goal_b"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+  end
 end

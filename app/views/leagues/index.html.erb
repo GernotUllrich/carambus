@@ -23,7 +23,7 @@
         </thead>
 
         <tbody>
-        <% @leagues.each do |league| %>
+        <% @leagues.includes(:region, :season).each do |league| %>
           <tr class="group border-t border-gray-400 hover:bg-gray-100">
                       <td class="p-3"><%= league.name %></td>
                       <td class="p-3"><%= league.registration_until %></td>
