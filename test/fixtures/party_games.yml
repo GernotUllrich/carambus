@@ -8,6 +8,7 @@
 #  seqno         :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
+#  discipline_id :integer
 #  party_id      :integer
 #  player_a_id   :integer
 #  player_b_id   :integer

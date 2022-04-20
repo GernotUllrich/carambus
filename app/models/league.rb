@@ -147,6 +147,7 @@ class League < ApplicationRecord
                 player_a = evaluate_league_players(tds[1].text, league_players, team_a, ix)
                 player_b = evaluate_league_players(tds[2].text, league_players, team_b, ix)
                 party_game = PartyGame.find_by_seqno_and_party_id(ix + 1, party.id) || PartyGame.create(seqno: ix + 1, party: party)
+                party_game.update_discipline_from_name
                 party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
               end
             end

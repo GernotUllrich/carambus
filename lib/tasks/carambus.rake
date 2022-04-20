@@ -145,6 +145,14 @@ namespace :carambus do
     end
   end
 
+  desc "update disciplines in party games"
+  task :update_disciplines_in_party_games => :environment do
+    PartyGame.all.each do |pg|
+      pg.update_discipline_from_name
+      pg.save
+    end
+  end
+
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
     Season.order(ba_id: :desc).limit(2).each do |season|

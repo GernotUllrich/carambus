@@ -8,6 +8,7 @@
 #  seqno         :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
+#  discipline_id :integer
 #  party_id      :integer
 #  player_a_id   :integer
 #  player_b_id   :integer
@@ -18,6 +19,7 @@ class PartyGame < ApplicationRecord
   belongs_to :player_a, class_name: "Player", optional: true
   belongs_to :player_b, class_name: "Player", optional: true
   belongs_to :tournament, optional: true
+  belongs_to :discipline, optional: true
 
   serialize :data, Hash
 
@@ -29,7 +31,20 @@ class PartyGame < ApplicationRecord
   #   data:
   #    {:result=>{"Ergebnis"=>"7 : 0"}},
   #
-  def name
-    "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
+  # def name
+  #   "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
+  # end
+
+  def update_discipline_from_name
+    name_str = read_attribute(:name)
+    m = name_str.match(/([^:]+)::([^:]+)(?:::(.*))?/)
+    if m.present?
+      discipline_str = m[2].strip
+      discipline = Discipline.find_by_name(discipline_str)
+      self.discipline = discipline
+    else
+      name_str
+    end
   end
+
 end
