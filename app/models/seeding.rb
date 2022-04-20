@@ -35,7 +35,7 @@ class Seeding < ApplicationRecord
 
   serialize :data, Hash
 
-  c
+  # data Snooker
   #   data:
   #    {"result"=>
   #      {"Gesamtrangliste"=>
