@@ -4,7 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '2.7.2'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
-gem 'rails', '~> 6.0.3', '>= 6.0.3.4'
+gem 'rails', '~> 6.1.5'
 # Use postgresql as the database for Active Record
 gem "pg"
 # Use Puma as the app server
@@ -85,6 +85,8 @@ gem "pg_search", "~> 2.3"
 gem "receipts", "~> 1.0.0"
 gem "ruby-oembed", "~> 0.14.0", require: "oembed"
 gem "turbolinks_render", "~> 0.9.12"
+gem "railroady"
+gem 'rails-erd', group: :development
 
 # We always want the latest versions of these gems, so no version numbers
 gem "omniauth", github: "omniauth/omniauth"

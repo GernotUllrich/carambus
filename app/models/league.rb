@@ -24,6 +24,17 @@ class League < ApplicationRecord
 
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
+  REFLECTION_KEYS = ["league_teams", "parties", "tournaments", "organizer", "discipline", "season"]
+  COLUMN_NAMES = {
+                  "Name"=>"leagues.name",
+                  "Organizer"=>"organizer.shortname",
+                  "Season"=>"season.name",
+                  "BA_ID"=>"leagues.ba_id",
+                  "CC_ID"=>"leagues.cc_id",
+                  "BA_ID2"=>"leagues.ba_id2",
+                  "Discipline"=>"discipline.name"
+  }
+
   def self.scrape_leagues_by_region_and_season(region, season)
     url = "https://#{region.shortname.downcase}.billardarea.de"
     uri = URI(url + '/cms_leagues')

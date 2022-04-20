@@ -3,6 +3,11 @@ class LeaguesController < ApplicationController
 
   # GET /leagues
   def index
+
+    @leagues = League.joins(:season).sort_by_params(params[:sort], sort_direction)
+    if @sSearch.present?
+      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(regions.shortname ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search) or (clubs.cc_id = :isearch)")
+    end
     @pagy, @leagues = pagy(League.sort_by_params(params[:sort], sort_direction))
 
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.

@@ -25,6 +25,28 @@ class Game < ApplicationRecord
   MIN_ID = 50000000
   has_paper_trail
   serialize :data, Hash
+
+  #data Snooker
+  #  data:
+  #    {"Gr."=>"Hauptrunde",
+  #     "#"=>"1",
+  #     "Heim"=>"Kondziella, Steffen",
+  #     "Gast"=>"Utech, Philip",
+  #     "Ergebnis"=>"2 : 5",
+  #     "HS"=>":"},
+
+  # data Dreiband gross
+  #   data:
+  #    {"Gr."=>"Runde 1",
+  #     "#"=>"1",
+  #     "Heim"=>"Weiß, Ferdinand",
+  #     "Gast"=>"Jonetat, Helmut",
+  #     "Punkte"=>"0 : 2",
+  #     "Ergebnis"=>"6 : 15",
+  #     "Aufnahme"=>"26 : 26",
+  #     "GD"=>"0,230 : 0,576",
+  #     "HS"=>"2 : 2"},
+
   #"data"=>
   { "ba_results" =>
       { "Gruppe" => 1,

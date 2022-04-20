@@ -21,6 +21,14 @@ class PartyGame < ApplicationRecord
 
   serialize :data, Hash
 
+  #data 14.1 endlos
+  #   data:
+  #    {:result=>{"Bälle:"=>"100 : 41", "Aufn.:"=>"25 : 24", "HS:"=>"22 : 7"}},
+
+  #data 10-Ball
+  #   data:
+  #    {:result=>{"Ergebnis"=>"7 : 0"}},
+  #
   def name
     "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
   end

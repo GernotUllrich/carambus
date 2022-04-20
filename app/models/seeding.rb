@@ -35,6 +35,51 @@ class Seeding < ApplicationRecord
 
   serialize :data, Hash
 
+  c
+  #   data:
+  #    {"result"=>
+  #      {"Gesamtrangliste"=>
+  #        {"#"=>"2",
+  #         "Name"=>"Kondziella, Steffen",
+  #         "Verein"=>"BC Break Lübeck",
+  #         "G"=>"0",
+  #         "V"=>"1",
+  #         "Quote"=>"0,00 %",
+  #         "Punkte"=>"0",
+  #         "Frames"=>"2 : 5",
+  #         "HB"=>"0",
+  #         "Rank"=>2}}}
+
+  #data 8-Ball
+  #   data:
+  #    {"result"=>
+  #      {"Gesamtrangliste"=>
+  #        {"#"=>"19",
+  #         "Name"=>"Albrecht, Steffen",
+  #         "Verein"=>"BV Q-Pub HH",
+  #         "G"=>"2",
+  #         "V"=>"2",
+  #         "Quote"=>"50,00 %",
+  #         "Sp.G"=>"12",
+  #         "Sp.V"=>"9",
+  #         "Sp.Quote"=>"57,14 %",
+  #         "Rank"=>19}}},
+
+  # data Dreiband groß
+  #   data:
+  #    {"result"=>
+  #      {"Gesamtrangliste"=>
+  #        {"#"=>"2",
+  #         "Name"=>"Weiß, Ferdinand",
+  #         "Verein"=>"BC Wedel",
+  #         "Punkte"=>"4",
+  #         "Bälle"=>"44",
+  #         "Aufn"=>"105",
+  #         "GD"=>"0,419",
+  #         "BED"=>"0,750",
+  #         "HS"=>"3",
+  #         "Rank"=>2}}},
+  #
   MIN_ID=50000000
 
   COLUMN_NAMES = {
