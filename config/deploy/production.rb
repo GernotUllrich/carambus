@@ -3,7 +3,7 @@
 # Defines a single server with a list of roles and multiple properties.
 # You can define all roles on a single server, or split them:
 
-server '172.24.1.53', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+#server '172.24.1.53', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # phat
 #server '192.168.178.79', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 #server '192.168.178.57', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 #server '192.168.2.231', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
@@ -15,7 +15,8 @@ server '172.24.1.53', user: 'www-data', roles: %w{app db web}, ssh_options: {por
 #server '192.168.178.91', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4w
 #server '192.168.178.60', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bcw
 #server '192.168.2.143', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
-#server 'bc-wedel.duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bc-wedel
+
+server 'bc-wedel.duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bc-wedel
 # server 'db.example.com', user: 'deploy', roles: %w{db}
 
 set :rbenv_path, '/var/www/.rbenv'
