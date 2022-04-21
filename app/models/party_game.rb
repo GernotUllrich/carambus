@@ -41,9 +41,9 @@ class PartyGame < ApplicationRecord
     if m.present?
       discipline_str = m[2].strip
       discipline = Discipline.find_by_name(discipline_str)
-      self.discipline = discipline
+      self.discipline_id = discipline.andand.id
     else
-      name_str
+      Rails.logger.info "ERROR unknown discipline name: \"#{name_str}\" in PartyGame[#{id}]"
     end
   end
 

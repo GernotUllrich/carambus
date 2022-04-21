@@ -26,13 +26,13 @@ class League < ApplicationRecord
 
   REFLECTION_KEYS = ["league_teams", "parties", "tournaments", "organizer", "discipline", "season"]
   COLUMN_NAMES = {
-                  "Name"=>"leagues.name",
-                  "Organizer"=>"organizer.shortname",
-                  "Season"=>"season.name",
-                  "BA_ID"=>"leagues.ba_id",
-                  "CC_ID"=>"leagues.cc_id",
-                  "BA_ID2"=>"leagues.ba_id2",
-                  "Discipline"=>"discipline.name"
+    "Name" => "leagues.name",
+    "Organizer" => "organizer.shortname",
+    "Season" => "season.name",
+    "BA_ID" => "leagues.ba_id",
+    "CC_ID" => "leagues.cc_id",
+    "BA_ID2" => "leagues.ba_id2",
+    "Discipline" => "discipline.name"
   }
 
   def self.scrape_leagues_by_region_and_season(region, season)
@@ -126,29 +126,46 @@ class League < ApplicationRecord
             match_day_url = "/cms_leagues/matchday/#{party_ba_id}"
             uri = URI(url + match_day_url)
             res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+            player_a = player_b = game_name = nil
+            res_hash = {}
             if res.code == "200"
               doc_party = Nokogiri::HTML(res.body)
-              result = doc_party.css("#tabs-1 div b").first.text.gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
-              tbl = doc_party.css("table.score_table").first
-              rows = tbl.css("tr")[2..-2]
-              (1..rows.count / 3).each_with_index do |_c, ix|
-                doc_game = Nokogiri::HTML(rows[ix * 3].inner_html.gsub("<br>", "::"))
-                doc_game2 = Nokogiri::HTML(rows[ix * 3 + 1].inner_html)
-                tds_2 = doc_game2.css("td")
-                column_count = tds_2.count / 2
-                res_hash = {}
-                (1..column_count).each_with_index do |_c2, ix2|
-                  res_a = tds_2[0 + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
-                  res_b = tds_2[column_count + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
-                  res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+              trs = doc_party.css("tr + tr")
+              ix = 0
+              trs.each do |tr|
+                next if tr.text.blank?
+                tds = tr.css('td[width="100"]')
+                if tds.count == 1
+                  ix = ix + 1
+                  game_name = Nokogiri::HTML(tds[0].inner_html.gsub("<br>", "::")).css("b").inner_html.strip
+                  tds_all = tr.css('td')
+                  player_a = evaluate_league_players(tds_all[1].inner_html.gsub("<br>", "::").strip, league_players, team_a)
+                  player_b = evaluate_league_players(tds_all[2].inner_html.gsub("<br>", "::").strip, league_players, team_b)
+
+                else
+                  if game_name.match(/Snooker/).present?
+                    tds_2 = tr.css('td').select do |td|
+                      td.text.present?
+                    end
+                    res_hash = {
+                      "Frames" => "#{tds_2[1].text.strip} : #{tds_2[5].text.strip}",
+                      "HB" => "#{tds_2[3].text.strip} : #{tds_2[7].text.strip}",
+                    }
+                  else
+                    tds_2 = tr.css('td')
+                    column_count = tds_2.count / 2
+                    res_hash = {}
+                    (1..column_count).each_with_index do |_c2, ix2|
+                      res_a = tds_2[0 + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
+                      res_b = tds_2[column_count + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
+                      res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+                    end
+                  end
+                  party_game = PartyGame.find_by_seqno_and_party_id(ix, party.id) || PartyGame.create(seqno: ix, party: party)
+                  party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
+                  party_game.update_discipline_from_name
+                  party_game.save
                 end
-                tds = doc_game.css("td")
-                game_name = tds[0].text.strip
-                player_a = evaluate_league_players(tds[1].text, league_players, team_a, ix)
-                player_b = evaluate_league_players(tds[2].text, league_players, team_b, ix)
-                party_game = PartyGame.find_by_seqno_and_party_id(ix + 1, party.id) || PartyGame.create(seqno: ix + 1, party: party)
-                party_game.update_discipline_from_name
-                party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
               end
             end
           end
@@ -166,10 +183,11 @@ class League < ApplicationRecord
 
   private
 
-  def evaluate_league_players(name_str, league_players, team, ix)
+  def evaluate_league_players(name_str, league_players, team)
     player = nil
     player_names = name_str.split("::")
-    player_names[0..0].each do |player_name_str|
+    players = []
+    player_names.each do |player_name_str|
       player_name = player_name_str.split(/\s+/)
       player_firstname = player_name[0..-2].join(" ")
       player_lastname = player_name[-1]
@@ -178,6 +196,17 @@ class League < ApplicationRecord
         player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true)
         league_players["#{player_firstname} #{player_lastname}"] = player
       end
+      players.push(player)
+    end
+    if players.count == 2
+      player = Team.create(data: { "players" => [{ "firstname" => players[0].firstname,
+                                                   "lastname" => players[0].lastname,
+                                                   "ba_id" => players[0].ba_id,
+                                                   "player_id" => players[0].id, },
+                                                 { "firstname" => players[1].firstname,
+                                                   "lastname" => players[1].lastname,
+                                                   "ba_id" => players[1].ba_id,
+                                                   "player_id" => players[1].id, }] })
     end
     return player
   end

@@ -6,6 +6,7 @@
         <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', class: 'text-gray-700' %></th>
       <%- end %>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno, 'Seqno', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id, 'Player a', class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id, 'Player b', class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :data, 'Data', class: 'text-gray-700' %></th>
@@ -21,6 +22,7 @@
           <td class="p-3"><%= link_to party_game.name, party_game_path(party_game) %></td>
         <%- end %>
         <td class="p-3"><%= party_game.seqno %></td>
+        <td class="p-3"><%= link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) %></td>
         <td class="p-3"><%= link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
         <td class="p-3"><%= link_to party_game.player_b.fullname, player_path(party_game.player_b) %></td>
         <td class="p-3"><%= party_game.data.inspect %></td>
