@@ -137,17 +137,22 @@ class League < ApplicationRecord
               if res.code == "200"
                 doc_party = Nokogiri::HTML(res.body)
                 if protest_link.present?
+                  winner_name_match = nil
+                  winner_name = protest = remarks = ""
                   fields = doc_party.css("#tabs-3 label + .field")
-                  protest = fields[1].andand.text.andand.strip.to_s
-                  winner_name = ""
-                  winner_name_match = fields[0].text.strip.match(/(.*) gewinnt zu Null. Keine Spiele werden gespeichert/)
-                  if winner_name_match.present?
-                    winner_name = winner_name_match[1]
-                  else
-                    raise "ScrapeError"
+                  if fields.present?
+                    protest = fields[1].andand.text.andand.strip.to_s
+                    winner_name_match = fields[0].text.strip.match(/(.*) gewinnt zu Null. Keine Spiele werden gespeichert/)
+                    if winner_name_match.present?
+                      winner_name = winner_name_match[1]
+                    end
                   end
-                  looser_team = team_a.name == winner_name ? team_b : team_a
-                  party.assign_attributes(no_show_team_id: looser_team.id, remarks: {protest: protest})
+                  fields = doc_party.css("#tabs-2 label + .field")
+                  remarks = fields.text.strip
+                  if winner_name.present?
+                    looser_team = team_a.name == winner_name ? team_b : team_a
+                    party.assign_attributes(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks })
+                  end
                 end
                 party_data = { result: element.css("td")[5].text.strip() }
                 party.assign_attributes(date: date, league: self, day_seqno: day_seqno, section: tab_text, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data)
