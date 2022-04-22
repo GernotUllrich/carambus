@@ -23,6 +23,7 @@ class League < ApplicationRecord
   belongs_to :season, optional: true
 
   DEBUG = true
+
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
   REFLECTION_KEYS = ["league_teams", "parties", "tournaments", "organizer", "discipline", "season"]
@@ -137,7 +138,7 @@ class League < ApplicationRecord
                 doc_party = Nokogiri::HTML(res.body)
                 if protest_link.present?
                   fields = doc_party.css("#tabs-3 label + .field")
-                  protest = fields[1].text.strip
+                  protest = fields[1].andand.text.andand.strip.to_s
                   winner_name = ""
                   winner_name_match = fields[0].text.strip.match(/(.*) gewinnt zu Null. Keine Spiele werden gespeichert/)
                   if winner_name_match.present?
