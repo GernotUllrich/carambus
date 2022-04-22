@@ -43,9 +43,11 @@ class League < ApplicationRecord
     Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
     res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
     doc = Nokogiri::HTML(res.body)
-    tabs = doc.css("#tabs a")
+    tabs = doc.css("#tabs li a")
     tabs.each_with_index do |tab, ix|
       dis_str = tab.text.strip()
+      dis_str = "Carambol Match Billard" if dis_str == "Karambol großes Billard"
+      dis_str = "Carambol Small Billard" if dis_str == "Karambol kleines Billard"
       discipline = Discipline.find_by_name(dis_str)
       tab = "#tabs-#{ix + 1} a"
       lines = doc.css(tab)
@@ -184,8 +186,8 @@ class League < ApplicationRecord
                       column_count = tds_2.count / 2
                       res_hash = {}
                       (1..column_count).each_with_index do |_c2, ix2|
-                        res_a = tds_2[0 + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
-                        res_b = tds_2[column_count + ix2].text.strip().gsub("\t", "").gsub(/\n+/, "::").squish.gsub(":: ::", "::").split(" :: ")
+                        res_a = tds_2[0 + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
+                        res_b = tds_2[column_count + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
                         res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
                       end
                     end

@@ -26,7 +26,6 @@ namespace :carambus do
     end
   end
 
-
   desc "scrape regional club ids"
   task :scrape_regional_club_ids => :environment do
     url = "https://ndbv.club-cloud.de/verein-details.php?p=20-----1-100000-0"
@@ -159,6 +158,13 @@ namespace :carambus do
       Region.all.each do |region|
         League.scrape_leagues_by_region_and_season(region, season)
       end
+    end
+  end
+
+  desc "Scrape DBU leagues"
+  task :scrape_dbu_leagues => :environment do
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      League.scrape_leagues_by_region_and_season(Region.find_by_shortname("portal"), season)
     end
   end
 
