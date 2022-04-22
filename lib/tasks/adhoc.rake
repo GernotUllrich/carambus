@@ -47,7 +47,7 @@ namespace :adhoc do
   end
 
   task :test_league8 => :environment do
-    League[8].scrape_single_league(game_details: true)
+    League[358].scrape_single_league(game_details: true)
   end
 
   task :clean_local => :environment do

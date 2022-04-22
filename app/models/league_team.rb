@@ -14,5 +14,6 @@
 class LeagueTeam < ApplicationRecord
   belongs_to :league, optional: true
   belongs_to :club, optional: true
+  has_many :no_show_parties, class_name: "Party", foreign_key: :no_show_team_id
   has_many :seedings
 end
