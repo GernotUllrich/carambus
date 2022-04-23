@@ -16,7 +16,7 @@ namespace :cc do
     region = Region.find_by_shortname(context.upcase)
     unless region.blank?
       regions_todo = [region.id]
-      regions_done = Region.get_regions_from_cc(context.downcase.strip).map(&:id)
+      regions_done = Region.get_regions_from_cc(region).map(&:id)
     else
       Rails.logger.info "ERROR CC [synchronize_region_structure] unknown context Region #{context}"
     end
@@ -30,7 +30,6 @@ namespace :cc do
     end
   end
 
-
   desc "synchronize branch structure"
   task :synchronize_branch_structure => :environment do
     branches_todo = []
@@ -39,7 +38,7 @@ namespace :cc do
     region = Region.find_by_shortname(context)
     unless region.blank?
       branches_todo = Branch.all.ids
-      branches_done = Branch.get_branches_from_cc(context.downcase.strip, region).map(&:id)
+      branches_done = Branch.get_branches_from_cc(region).map(&:id)
     else
       Rails.logger.info "ERROR CC [synchronize_branch_structure] unknown context Region #{region_shortname}"
       exit 1
@@ -54,4 +53,26 @@ namespace :cc do
     end
   end
 
+  desc "synchronize competition structure"
+  task :synchronize_competition_structure => :environment do
+    competitions_todo = []
+    competitions_done = []
+    context = ENV["REGION"] || "NBV"
+    region = Region.find_by_shortname(context)
+    unless region.blank?
+      competitions_todo = Competition.all.ids
+      competitions_done = Competition.get_competitions_from_cc(region).map(&:id)
+    else
+      Rails.logger.info "ERROR CC [synchronize_branch_structure] unknown context Region #{region_shortname}"
+      exit 1
+    end
+    competitions_still_todo = competitions_todo - competitions_done
+    unless competitions_still_todo.blank?
+      Rails.logger.error "ERROR CC [synchronize_branch_structure] branches with context #{context} not yet in CC: #{Branch.where(id: competitions_todo).map(&:name)}"
+    end
+    branches_overdone = competitions_done - competitions_todo
+    unless branches_overdone.blank?
+      Rails.logger.error "ERROR CC [synchronize_branch_structure] more branches with context #{context} than expected in CC: #{Branch.where(id: branches_overdone).map(&:name)}"
+    end
+  end
 end

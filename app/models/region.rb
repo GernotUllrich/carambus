@@ -29,6 +29,7 @@ class Region < ApplicationRecord
   has_many :organized_leagues, as: :organizer, class_name: "League"
   has_one :setting
   has_many :leagues, as: :organizer, class_name: "League"
+  has_one :region_cc
 
   COLUMN_NAMES = {
       "Logo" => "",
@@ -59,14 +60,45 @@ class Region < ApplicationRecord
     end
   end
 
+  def scrape_clubs(opts = {})
+    Rails.logger.info "region.scrape_clubs - opts=#{opts.inspect}"
+    if Rails.env != 'production' || opts[:from_background] || (!opts[:player_details] && clubs.count < 15)
+      player_details = opts[:player_details].presence
+      url = "https://#{self.shortname.downcase}.billardarea.de"
+      Rails.logger.info "reading #{url + '/cms_clubs'} - region clubs"
+      html = URI.open(url + '/cms_clubs')
+      doc = Nokogiri::HTML(html)
+      club_details = doc.css("td:nth-child(2) a").map { |d| d.attribute("href").value }
+      club_details.each do |club_detail|
+        club_ba_id = club_detail.match(/.*\/(\d+)$/).andand[1].to_i
+        club = Club.find_by_ba_id(club_ba_id)
+        # skip_c = false if club.present? && club.ba_id == 3119 && skip_c == true
+        # next if skip_c
+        if club.blank?
+          club = Club.new(ba_id: club_ba_id, region_id: self.id)
+        end
+        if player_details || club.new_record?
+          club.save!
+          Season.where("name ilike '%#{Date.today.year}%'").order(name: :desc).each do |season|
+            club.scrape_single_club(player_details: player_details, season: season, force_update: false)
+          end
+        end
+      end
+    else
+      Stalker.enqueue("scrape_clubs",
+                      opts.merge(region_id: self.id)
+      )
+    end
+  end
+
   def display_shortname
     shortname
   end
 
-  def self.get_regions_from_cc(context)
+  def self.get_regions_from_cc(region)
     regions = []
-    if URL_MAP[context.downcase].present?
-      url = URL_MAP[context.downcase] + "/admin/approvement/player/showClubList.php?"
+    if URL_MAP[region.shortname.downcase].present?
+      url = URL_MAP[region.shortname.downcase] + "/admin/approvement/player/showClubList.php?"
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -88,8 +120,9 @@ class Region < ApplicationRecord
           if region.name != name
             Rails.logger.warn "WARNING CC [get_regions_from_cc] Name of Region differs: CC: #{name} BA: #{region.name}"
           end
-          region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(cc_id: cc_id, region_id: region.id, context: context, shortname: shortname, name: name)
-          region_cc.assign_attributes(cc_id: cc_id, region_id: region.id, context: context, shortname: shortname, name: name)
+          args = {cc_id: cc_id, region_id: region.id, context: region.shortname.downcase, shortname: shortname, name: name}
+          region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(args)
+          region_cc.assign_attributes(args)
           region_cc.save
           regions.push(region)
         else

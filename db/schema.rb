@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_23_144621) do
+ActiveRecord::Schema.define(version: 2022_04_23_195748) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -153,6 +153,16 @@ ActiveRecord::Schema.define(version: 2022_04_23_144621) do
     t.integer "cc_id"
     t.index ["ba_id"], name: "index_clubs_on_ba_id", unique: true
     t.index ["ba_id"], name: "index_clubs_on_foreign_keys", unique: true
+  end
+
+  create_table "competition_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.string "context"
+    t.integer "branch_cc_id"
+    t.integer "discipline_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "countries", force: :cascade do |t|

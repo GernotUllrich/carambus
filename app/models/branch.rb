@@ -18,11 +18,11 @@
 #
 class Branch < Discipline
 
-  def self.get_branches_from_cc(context, region)
+  def self.get_branches_from_cc(region)
 
     branches = []
-    if Region::URL_MAP[context.downcase].present?
-      url = Region::URL_MAP[context.downcase] + "/admin/approvement/player/showClubList.php?"
+    if Region::URL_MAP[region.shortname.downcase].present?
+      url = Region::URL_MAP[region.shortname.downcase] + "/admin/approvement/player/showClubList.php?"
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -46,7 +46,7 @@ class Branch < Discipline
           Rails.logger.error "ERROR CC [get_branches_from_cc] No Branch with name #{name} in database"
           exit 1
         else
-          args = {cc_id: cc_id, region_cc_id: region_cc.id, discipline_id: branch.id, context: context, name: name}
+          args = {cc_id: cc_id, region_cc_id: region_cc.id, discipline_id: branch.id, context: region.shortname.downcase, name: name}
           branch_cc = BranchCc.find_by_cc_id(cc_id) || BranchCc.new(args)
           branch_cc.assign_attributes(args)
           branch_cc.save

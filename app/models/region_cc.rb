@@ -12,4 +12,6 @@
 #  region_id  :integer
 #
 class RegionCc < ApplicationRecord
+  belongs_to :region
+  has_many :branch_ccs
 end
