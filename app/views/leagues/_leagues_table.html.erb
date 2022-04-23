@@ -1,0 +1,35 @@
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :name, 'Name', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :organizer_id, 'Organizer', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :season_id, 'Season', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :ba_id, 'Ba', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @leagues.includes(:season).each do |league| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100">
+        <td class="p-3"><%= league.name %></td>
+        <td class="p-3"><%= league.organizer.shortname %></td>
+        <td class="p-3"><%= link_to league.season.name, season_path(league.season) %></td>
+        <td class="p-3"><%= link_to league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{league.ba_id}" %></td>
+        <td class="p-3"><%= link_to(league.discipline.andand.name, discipline_path(league.discipline)) if league.discipline.present? %></td>
+
+        <td>
+          <%= link_to "View", league, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

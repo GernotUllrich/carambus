@@ -2,7 +2,7 @@ class LeaguesController < ApplicationController
   before_action :set_league, only: [:show, :edit, :update, :destroy]
 
   # GET /leagues
-  def index
+  def xindex
 
 
     @pagy, @leagues = pagy(League.sort_by_params(params[:sort], sort_direction))
@@ -11,7 +11,26 @@ class LeaguesController < ApplicationController
     # Calling @leagues.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @leagues.load
   end
-
+  # GET /clubs
+  def index
+    @leagues = League.sort_by_params(params[:sort], sort_direction)
+    if @sSearch.present?
+      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(regions.shortname ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search) or (clubs.cc_id = :isearch)")
+    end
+    @pagy, @leagues = pagy(@leagues)
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    # Calling @leagues.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    @leagues.load
+    respond_to do |format|
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
+    end
+  end
   # GET /leagues/1
   def show
   end

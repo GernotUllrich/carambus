@@ -64,6 +64,7 @@ class Version < ApplicationRecord
     }#{
       "&player_details=#{player_details}" if player_details
     }")
+    Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     http = Net::HTTP.new(url.host, url.port)
 
     request2 = Net::HTTP::Get.new(url)

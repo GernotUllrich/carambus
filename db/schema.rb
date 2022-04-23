@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_22_084742) do
+ActiveRecord::Schema.define(version: 2022_04_23_144621) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -125,6 +125,16 @@ ActiveRecord::Schema.define(version: 2022_04_22_084742) do
     t.index ["user_id"], name: "index_api_tokens_on_user_id"
   end
 
+  create_table "branch_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "context"
+    t.integer "region_cc_id"
+    t.integer "discipline_id"
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "clubs", force: :cascade do |t|
     t.integer "ba_id"
     t.integer "region_id"
@@ -177,6 +187,7 @@ ActiveRecord::Schema.define(version: 2022_04_22_084742) do
     t.text "data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "type"
     t.index ["name", "table_kind_id"], name: "index_disciplines_on_foreign_keys", unique: true
     t.index ["name", "table_kind_id"], name: "index_disciplines_on_name_and_table_kind_id", unique: true
   end
@@ -426,6 +437,16 @@ ActiveRecord::Schema.define(version: 2022_04_22_084742) do
     t.integer "cc_id"
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
+  end
+
+  create_table "region_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "context"
+    t.integer "region_id"
+    t.string "shortname"
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "regions", force: :cascade do |t|

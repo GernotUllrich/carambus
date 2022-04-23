@@ -16,15 +16,6 @@
 #  index_disciplines_on_foreign_keys            (name,table_kind_id) UNIQUE
 #  index_disciplines_on_name_and_table_kind_id  (name,table_kind_id) UNIQUE
 #
+class Branch < Discipline
 
-one:
-  name: MyString
-  super_discipline_id: 1
-  table_kind_id: 1
-  data: MyText
-
-two:
-  name: MyString
-  super_discipline_id: 1
-  table_kind_id: 1
-  data: MyText
+end

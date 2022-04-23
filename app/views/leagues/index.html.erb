@@ -19,46 +19,24 @@
     <h1 class="h3">Leagues</h1>
 
     <% if @leagues.any? %>
-      <%= link_to 'New League', new_league_path, class: "btn btn-primary" %>
+      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <input oninput="searchClubs(this, true)" type="search" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block" %>
+          </div>
+        </div>
+      </div>
+      <%= link_to 'New League', new_league_path, class: "btn btn-primary" if current_user.andand.admin? %>
     <% end %>
   </div>
 
   <% if @leagues.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :name, 'Name', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :organizer_id, 'Organizer', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :season_id, 'Season', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :ba_id, 'Ba', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @leagues.includes(:season).each do |league| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-                      <td class="p-3"><%= league.name %></td>
-                      <td class="p-3"><%= league.organizer.shortname %></td>
-                      <td class="p-3"><%= link_to league.season.name, season_path(league.season) %></td>
-                      <td class="p-3"><%= link_to league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{league.ba_id}" %></td>
-                      <td class="p-3"><%= link_to(league.discipline.andand.name, discipline_path(league.discipline)) if league.discipline.present? %></td>
-
-            <td>
-              <%= link_to "View", league, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div id="table_wrapper">
+      <%= render partial: 'leagues_table' %>
     </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
 
   <% else %>
     <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">

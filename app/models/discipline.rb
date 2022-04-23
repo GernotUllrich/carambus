@@ -5,6 +5,7 @@
 #  id                  :bigint           not null, primary key
 #  data                :text
 #  name                :string
+#  type                :string
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  super_discipline_id :integer

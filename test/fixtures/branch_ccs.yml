@@ -1,0 +1,27 @@
+# == Schema Information
+#
+# Table name: branch_ccs
+#
+#  id            :bigint           not null, primary key
+#  context       :string
+#  name          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  cc_id         :integer
+#  discipline_id :integer
+#  region_cc_id  :integer
+#
+
+one:
+  cc_id: 1
+  context: MyString
+  region_cc_id: 1
+  discipline_id: 1
+  name: MyString
+
+two:
+  cc_id: 1
+  context: MyString
+  region_cc_id: 1
+  discipline_id: 1
+  name: MyString
