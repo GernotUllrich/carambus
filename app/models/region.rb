@@ -79,7 +79,7 @@ class Region < ApplicationRecord
       options = selector.css("option")
       options.each do |option|
         cc_id = option["value"].to_i
-        name_str = option.text
+        name_str = option.text.strip
         match = name_str.match(/(.*) \((.*)\)/)
         name = match[1]
         shortname = match[2]
@@ -88,7 +88,7 @@ class Region < ApplicationRecord
           if region.name != name
             Rails.logger.warn "WARNING CC [get_regions_from_cc] Name of Region differs: CC: #{name} BA: #{region.name}"
           end
-          region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.create(cc_id: cc_id, region_id: region.id, context: context, shortname: shortname, name: name)
+          region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(cc_id: cc_id, region_id: region.id, context: context, shortname: shortname, name: name)
           region_cc.assign_attributes(cc_id: cc_id, region_id: region.id, context: context, shortname: shortname, name: name)
           region_cc.save
           regions.push(region)
