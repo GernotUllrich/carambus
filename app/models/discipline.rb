@@ -18,8 +18,8 @@
 #
 class Discipline < ApplicationRecord
   has_many :discipline_tournament_plans
-  belongs_to :table_kind
-  belongs_to :super_discipline, foreign_key: :super_discipline_id, :class_name => "Discipline"
+  belongs_to :table_kind, optional: true
+  belongs_to :super_discipline, foreign_key: :super_discipline_id, :class_name => "Discipline", optional: true
   has_many :sub_disciplines, foreign_key: :super_discipline_id, :class_name => "Discipline"
   has_many :tournaments
   has_many :player_classes
