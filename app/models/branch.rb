@@ -50,7 +50,7 @@ class Branch < Discipline
           branch_cc = BranchCc.find_by_cc_id(cc_id) || BranchCc.new(args)
           branch_cc.assign_attributes(args)
           branch_cc.save
-          branches.push(region)
+          branches.push(branch)
         end
       end
     end
