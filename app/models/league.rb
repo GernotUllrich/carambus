@@ -7,12 +7,17 @@
 #  name               :string
 #  organizer_type     :string
 #  registration_until :date
+#  staffel_text       :string
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  ba_id              :integer
 #  discipline_id      :integer
 #  organizer_id       :integer
 #  season_id          :integer
+#
+# Indexes
+#
+#  index_leagues_on_ba_id_and_ba_id2  (ba_id,ba_id2) UNIQUE
 #
 class League < ApplicationRecord
   has_many :league_teams
@@ -37,6 +42,10 @@ class League < ApplicationRecord
     "Discipline" => "discipline.name"
   }
 
+  def name
+    "#{read_attribute(:name)}#{" #{staffel_text}" if staffel_text.present?}"
+  end
+
   def self.scrape_leagues_by_region_and_season(region, season)
     url = "https://#{region.shortname.downcase}.billardarea.de"
     uri = URI(url + '/cms_leagues')
@@ -59,27 +68,52 @@ class League < ApplicationRecord
         single_or_league = m[1] rescue nil
         plan_or_show = m[2] rescue nil
         if ba_id.present?
-          league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, organizer: region, season: season)
-          league.update(name: name, discipline: discipline)
-          league.scrape_single_league(game_details: true)
+
+          url = "https://#{region.shortname.downcase}.billardarea.de"
+          url_league = "/cms_leagues/plan/#{ba_id}"
+          uri = URI(url + url_league)
+          res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+          if res.code == "302"
+            res2 = Net::HTTP.post_form(URI.parse(res['location']), 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+          else
+            res2 = res
+          end
+          if res2.code == "200"
+            doc = Nokogiri::HTML(res2.body)
+            doc
+          end
+          ba_id2 = res['location'].match(/.*\/(\d+)\/(\d+)/).andand[2]
+          staffel_map = { ba_id2 => "" }
+          staffeln = doc.css('select[name="data[League][series_id]"]')
+          if staffeln.present?
+            options = staffeln.css("option")
+            options.each do |option|
+              staffel_map[option["value"].to_i] = option.text.strip
+            end
+          end
+          staffel_map.each_pair do |ba_id2, text|
+            args = {ba_id: ba_id, ba_id2: ba_id2, organizer: region, season: season, name: name, discipline: discipline}
+            league = League.find_by_ba_id_and_ba_id2(ba_id, ba_id2) || League.new(args)
+            league.assign_attributes(args)
+            league.save
+            league.scrape_single_league(game_details: true)
+          end
         end
       end
     end
   end
 
   def scrape_single_league(opts = {})
-    self.reset_league
     league_players = {}
     logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
     game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
     season = self.season
     organizer = self.organizer
     url = "https://#{organizer.shortname.downcase}.billardarea.de"
-    url_league = "/cms_leagues/plan/#{self.ba_id}"
+    url_league = "/cms_leagues/plan/#{self.ba_id}#{"/#{ba_id2}" if ba_id2.present?}"
     Rails.logger.info "reading #{url + url_league} - self \"#{self.name}\" season #{season.name}"
     uri = URI(url + url_league)
     res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-    ba_id2 = res['location'].match(/.*\/(\d+)\/(\d+)/).andand[2]
     if res.code == "302"
       res2 = Net::HTTP.post_form(URI.parse(res['location']), 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
     else
@@ -205,9 +239,6 @@ class League < ApplicationRecord
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: #{e}, #{e.backtrace.join("\n")}" if DEBUG
-  end
-
-  def reset_league
   end
 
   def self.logger

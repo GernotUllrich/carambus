@@ -7,12 +7,17 @@
 #  name               :string
 #  organizer_type     :string
 #  registration_until :date
+#  staffel_text       :string
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  ba_id              :integer
 #  discipline_id      :integer
 #  organizer_id       :integer
 #  season_id          :integer
+#
+# Indexes
+#
+#  index_leagues_on_ba_id_and_ba_id2  (ba_id,ba_id2) UNIQUE
 #
 require 'test_helper'
 
