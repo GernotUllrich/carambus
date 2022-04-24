@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_24_055056) do
+ActiveRecord::Schema.define(version: 2022_04_24_100025) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -133,6 +133,7 @@ ActiveRecord::Schema.define(version: 2022_04_24_055056) do
     t.string "name"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["region_cc_id", "cc_id", "context"], name: "index_branch_ccs_on_region_cc_id_and_cc_id_and_context", unique: true
   end
 
   create_table "clubs", force: :cascade do |t|
@@ -163,6 +164,7 @@ ActiveRecord::Schema.define(version: 2022_04_24_055056) do
     t.integer "discipline_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["branch_cc_id", "cc_id", "context"], name: "index_competition_ccs_on_branch_cc_id_and_cc_id_and_context", unique: true
   end
 
   create_table "countries", force: :cascade do |t|
@@ -458,6 +460,7 @@ ActiveRecord::Schema.define(version: 2022_04_24_055056) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "base_url"
+    t.index ["cc_id", "context"], name: "index_region_ccs_on_cc_id_and_context", unique: true
   end
 
   create_table "regions", force: :cascade do |t|
@@ -481,6 +484,7 @@ ActiveRecord::Schema.define(version: 2022_04_24_055056) do
     t.string "context"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["competition_cc_id", "cc_id", "context"], name: "index_season_ccs_on_competition_cc_id_and_cc_id_and_context", unique: true
   end
 
   create_table "season_participations", force: :cascade do |t|
