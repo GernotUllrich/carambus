@@ -11,5 +11,10 @@
 #  discipline_id :integer
 #  region_cc_id  :integer
 #
+# Indexes
+#
+#  index_branch_ccs_on_region_cc_id_and_cc_id_and_context  (region_cc_id,cc_id,context) UNIQUE
+#
 class BranchCc < ApplicationRecord
+  has_many :competition_ccs
 end

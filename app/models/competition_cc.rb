@@ -11,6 +11,10 @@
 #  cc_id         :integer
 #  discipline_id :integer
 #
+# Indexes
+#
+#  index_competition_ccs_on_branch_cc_id_and_cc_id_and_context  (branch_cc_id,cc_id,context) UNIQUE
+#
 class CompetitionCc < ApplicationRecord
   belongs_to :branch_cc
   belongs_to :discipline

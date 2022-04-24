@@ -95,41 +95,4 @@ class Region < ApplicationRecord
     shortname
   end
 
-  def self.get_regions_from_cc(region)
-    regions = []
-    if URL_MAP[region.shortname.downcase].present?
-      url = URL_MAP[region.shortname.downcase] + "/admin/approvement/player/showClubList.php?"
-      uri = URI(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      req = Net::HTTP::Get.new(uri.request_uri)
-      req["cookie"] = "PHPSESSID=9310db9a9970e8a02ed95ed8cd8e4309"
-      res = http.request(req)
-      res
-      doc = Nokogiri::HTML(res.body)
-      selector = doc.css('select[name="fedId"]')[0]
-      options = selector.css("option")
-      options.each do |option|
-        cc_id = option["value"].to_i
-        name_str = option.text.strip
-        match = name_str.match(/(.*) \((.*)\)/)
-        name = match[1]
-        shortname = match[2]
-        region = Region.find_by_shortname(shortname)
-        unless region.blank?
-          if region.name != name
-            Rails.logger.warn "WARNING CC [get_regions_from_cc] Name of Region differs: CC: #{name} BA: #{region.name}"
-          end
-          args = {cc_id: cc_id, region_id: region.id, context: region.shortname.downcase, shortname: shortname, name: name}
-          region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(args)
-          region_cc.assign_attributes(args)
-          region_cc.save
-          regions.push(region)
-        else
-          Rails.logger.error "ERROR CC [get_regions_from_cc] No Region with shortname #{shortname} in database"
-        end
-      end
-    end
-    return regions
-  end
 end
