@@ -16,7 +16,10 @@
 #  index_season_ccs_on_competition_cc_id_and_cc_id_and_context  (competition_cc_id,cc_id,context) UNIQUE
 #
 class SeasonCc < ApplicationRecord
+
   belongs_to :competition_cc
   belongs_to :season
+
+  has_paper_trail
 
 end

@@ -45,6 +45,10 @@ namespace :adhoc do
     Setting.key_delete(:admin_email)
 
   end
+  desc "test version update"
+  task :test_version_update => :environment do
+    Version.update_from_carambus_api(update_region_from_ba: 1, player_details: true)
+  end
 
   task :test_league8 => :environment do
     League[358].scrape_single_league(game_details: true)

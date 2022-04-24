@@ -17,5 +17,6 @@
 #
 class CompetitionCc < ApplicationRecord
   belongs_to :branch_cc
-  belongs_to :discipline
+  belongs_to :competition
+  has_many :season_ccs
 end

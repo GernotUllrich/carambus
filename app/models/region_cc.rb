@@ -17,6 +17,7 @@
 #  index_region_ccs_on_cc_id_and_context  (cc_id,context) UNIQUE
 #
 class RegionCc < ApplicationRecord
+
   belongs_to :region
   has_many :branch_ccs
 

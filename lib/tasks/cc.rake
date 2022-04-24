@@ -98,6 +98,38 @@ namespace :cc do
     end
   end
 
+  desc "synchronize league structure"
+  task :synchronize_league_structure => :environment do
+    ["2010/2011"].each do |season_name|
+      season = Season.find_by_name(season_name)
+      if season.blank?
+        raise ArgumentError, "unknown season name #{season_name}", caller
+      end
+      context = ENV["REGION"] || "NBV"
+      region = Region.find_by_shortname(context)
+      region_cc = region.region_cc
+      leagues_region_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: region.id).where("clubs.region_id = ?", region.id).uniq
+      dbu_region = Region.find_by_shortname("portal")
+      dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", id).uniq
+
+      unless region_cc.blank?
+        competition_cc_ids_todo = CompetitionCc.where(context: context.downcase).all.map(&:cc_id)
+        competition_cc_ids_done = region_cc.sync_seasons_in_competitions(season_name).map(&:cc_id)
+      else
+        raise_err_msg("synchronize_season_structure", "unknown context Region #{context}")
+      end
+      competition_cc_ids_still_todo = competition_cc_ids_todo - competition_cc_ids_done
+      unless competition_cc_ids_still_todo.blank?
+
+        Rails.logger.warn "REPORT! [synchronize_season_structure] Saison #{season_name} nicht definiert für Wettbewerbe #{CompetitionCc.where(cc_id: competition_cc_ids_still_todo).map{|ccc| "#{ccc.branch_cc.name} - #{ccc.name} (#{ccc.cc_id})"}}"
+      end
+      competition_cc_ids_overdone = competition_cc_ids_done - competition_cc_ids_todo
+      unless competition_cc_ids_overdone.blank?
+        raise_err_msg("synchronize_season_structure", "more competions_cc_ids with context #{context} than expected in CC: #{CompetitionCc.where(id: competition_cc_ids_overdone).map(&:cc_id)}")
+      end
+    end
+  end
+
   private
 
   def raise_err_msg(context, msg)

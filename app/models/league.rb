@@ -111,7 +111,7 @@ class League < ApplicationRecord
     organizer = self.organizer
     url = "https://#{organizer.shortname.downcase}.billardarea.de"
     url_league = "/cms_leagues/plan/#{self.ba_id}#{"/#{ba_id2}" if ba_id2.present?}"
-    Rails.logger.info "reading #{url + url_league} - self \"#{self.name}\" season #{season.name}"
+    Rails.logger.info "reading #{url + url_league} - \"#{self.name}\" season #{season.name}"
     uri = URI(url + url_league)
     res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
     if res.code == "302"

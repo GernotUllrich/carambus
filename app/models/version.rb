@@ -98,7 +98,7 @@ class Version < ApplicationRecord
               return
             end
           when 'update'
-            args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
+            args = h['object_changes'].present? ? Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }] : YAML.load(h["object"])
             args['data'] = YAML.load(args['data']) if args['data'].present?
             begin
               obj = h['item_type'].constantize.where(id: h['item_id']).first
@@ -107,8 +107,8 @@ class Version < ApplicationRecord
               else
                 obj = h['item_type'].constantize.new
                 obj.id = h['item_id']
+                obj.assign_attributes(args)
                 obj.save!
-                obj.update(args)
               end
             rescue StandardError => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"

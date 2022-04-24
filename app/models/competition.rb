@@ -18,6 +18,6 @@
 #
 class Competition < Discipline
 
-  has_many :competition_ccs
+  has_one :competition_cc
 
 end

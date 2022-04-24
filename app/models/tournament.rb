@@ -248,7 +248,7 @@ class Tournament < ApplicationRecord
     url = "https://#{region.shortname.downcase}.billardarea.de"
     if self.single_or_league == "single"
       url_tournament = "/cms_#{self.single_or_league}/show/#{self.ba_id}"
-      Rails.logger.info "reading #{url + url_tournament} - self \"#{self.title}\" season #{season.name}"
+      Rails.logger.info "reading #{url + url_tournament} - \"#{self.title}\" season #{season.name}"
       uri = URI(url + url_tournament)
       res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
       doc = Nokogiri::HTML(res.body)
