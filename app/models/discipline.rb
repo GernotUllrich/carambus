@@ -26,6 +26,8 @@ class Discipline < ApplicationRecord
   has_many :player_rankings
   has_many :leagues
   has_many :seeding_plays, class_name: "Seeding", :foreign_key => :playing_discipline_id
+  has_one :competition_cc, foreign_key: :discipline_id
+  has_one :branch_cc, foreign_key: :discipline_id
 
   DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
   DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
