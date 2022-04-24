@@ -17,6 +17,6 @@
 #
 class BranchCc < ApplicationRecord
   has_many :competition_ccs
-  belongs_to :branch
+  belongs_to :discipline
   belongs_to :region_cc
 end
