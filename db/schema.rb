@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_23_195748) do
+ActiveRecord::Schema.define(version: 2022_04_23_210340) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -470,6 +470,16 @@ ActiveRecord::Schema.define(version: 2022_04_23_195748) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["country_id"], name: "index_regions_on_country_id"
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
+  end
+
+  create_table "season_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.integer "season_id"
+    t.integer "competition_cc_id"
+    t.string "context"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "season_participations", force: :cascade do |t|
