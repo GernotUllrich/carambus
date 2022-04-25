@@ -36,8 +36,8 @@ namespace :adhoc do
 
   desc "test league scraping"
   task :test_league_scraping => :environment do
-    l = League.first
-    l.scrape_single_league
+    l = League.find_by_ba_id(776)
+    l.scrape_single_league(game_details: true)
   end
   desc "test settings"
   task :test_setting => :environment do

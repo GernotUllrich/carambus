@@ -114,13 +114,25 @@ class League < ApplicationRecord
     Rails.logger.info "reading #{url + url_league} - \"#{self.name}\" season #{season.name}"
     uri = URI(url + url_league)
     res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+
     if res.code == "302"
+      self.ba_id2 = res['location'].match(/.*\/(\d+)\/(\d+)/).andand[2].to_i
       res2 = Net::HTTP.post_form(URI.parse(res['location']), 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
     else
       res2 = res
     end
     if res2.code == "200"
       doc = Nokogiri::HTML(res2.body)
+      staffel_map = {}
+      staffeln = doc.css('select[name="data[League][series_id]"]')
+      if staffeln.present?
+        options = staffeln.css("option")
+        options.each do |option|
+          staffel_map[option["value"].to_i] = option.text.strip
+        end
+      end
+      self.staffel_text = staffel_map[self.ba_id2]
+      save!
       doc.css("#table-1 a").each do |element|
         league_team_ba_id = element.attributes["href"].value.match(/.*\/(\d+)/)[1].to_i
         shortname = element.text.strip()
