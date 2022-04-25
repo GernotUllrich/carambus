@@ -23,7 +23,8 @@ class RegionCc < ApplicationRecord
 
   PATH_MAP = {
     "showClubList" => "/admin/approvement/player/showClubList.php",
-    "showLeagueList" => "/admin/report/showLeagueList.php"
+    "showLeagueList" => "/admin/report/showLeagueList.php",
+    "showLeague" => "/admin/league/showLeague.php",
   }
 
   PHPSESSID = "9310db9a9970e8a02ed95ed8cd8e4309"
@@ -207,7 +208,7 @@ class RegionCc < ApplicationRecord
     return competition_ccs
   end
 
-  def sync_leagues(season_name)
+  def sync_leagues(season_name, opts = {})
 
     context = shortname.downcase
     season = Season.find_by_name(season_name)
@@ -230,20 +231,53 @@ class RegionCc < ApplicationRecord
             subBranchId: competition_cc.cc_id,
             seasonId: season_cc.cc_id
           )
-          doc
           selector = doc.css('select[name="leagueId"]')[0]
-          options = selector.css("option")
-          options.each do |option|
-            cc_id = option["value"].to_i
-            name_str = option.text.strip
-            league = League.where(season: season, name: name_str, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.discipline)
-            if league.present?
-              args = { cc_id: cc_id, context: context, name: s_name, season_id: season.id, competition_cc_id: competition_cc.id }
-              #     season_cc = SeasonCc.find_by_cc_id_and_competition_cc_id_and_context(cc_id, competition_cc.id, context) || SeasonCc.new(args)
-              #     season_cc.assign_attributes(args)
-              #     season_cc.save
-              #     competition_ccs.push(competition_cc)
-              #     break
+          if selector.present?
+            options = selector.css("option")
+            options.each do |option|
+              cc_id = option["value"].to_i
+              name_str = option.text.strip
+              league = League.find_by_cc_id(cc_id)
+              unless league.present?
+                name_str_match = name_str.gsub(" - ", " ").gsub(/(\d+). /, '\1.').match(/(.*)( (?:Nord|Süd|Nord\/Ost))$/)
+                if name_str_match
+                  l_name = name_str_match[1].strip
+                  s_name = name_str_match[2].strip.gsub("/", "-")
+                else
+                  l_name = name_str
+                  s_name = nil
+                end
+                if context == "nbv"
+                  l_name = l_name == "Regionalliga Pool" ? "Regionalliga" : l_name
+                end
+                league = League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.branch_cc.discipline).first
+                league.assign_attributes(cc_id: cc_id)
+              end
+              unless league.present?
+                Rails.logger.warn "REPORT! [sync_leagues] Name der Liga entspricht keiner BA Liga: CC: #{{ season_name: season.name, name: name_str, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.discipline }.inspect}"
+              else
+                args = { cc_id: cc_id, context: context, name: name_str, season_cc_id: season_cc.id, league_id: league.id }
+                league_cc = LeagueCc.find_by_cc_id_and_season_cc_id_and_context(cc_id, season_cc.id, context) || LeagueCc.new(args)
+                league_cc.assign_attributes(args)
+                res2, doc2 = post_cc(
+                  "showLeague",
+                  fedId: cc_id,
+                  branchId: branch_cc.cc_id,
+                  subBranchId: competition_cc.cc_id,
+                  seasonId: season_cc.cc_id,
+                  leagueId: league_cc.cc_id
+                )
+                lines = doc2.css("form tr.tableContent table tr")
+                res_arr = lines.map{|l| l.css("td").map(&:text)}
+                unless res_arr[4][0] == "Kürzel" && res_arr[5][0] == "Status"
+                  raise SystemCallError, "Format of showLeague canged ???", caller
+                end
+                league_cc.assign_attributes(shortname: res_arr[4][2].strip, status: res_arr[5][4].strip, report_form: res_arr[7][2].strip)
+                league_cc.save
+                league.assign_attributes(shortname: res_arr[4][2].strip)
+                league.save
+                leagues.push(league)
+              end
             end
           end
         end

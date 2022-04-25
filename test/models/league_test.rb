@@ -7,6 +7,7 @@
 #  name               :string
 #  organizer_type     :string
 #  registration_until :date
+#  shortname          :string
 #  staffel_text       :string
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
