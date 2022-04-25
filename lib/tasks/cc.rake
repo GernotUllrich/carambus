@@ -110,7 +110,7 @@ namespace :cc do
       region_cc = region.region_cc
       leagues_region_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: region.id).where("clubs.region_id = ?", region.id).uniq
       dbu_region = Region.find_by_shortname("portal")
-      dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", id).uniq
+      dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
 
       unless region_cc.blank?
         competition_cc_ids_todo = CompetitionCc.where(context: context.downcase).all.map(&:cc_id)
