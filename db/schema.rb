@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_25_072812) do
+ActiveRecord::Schema.define(version: 2022_04_25_141254) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -261,9 +261,14 @@ ActiveRecord::Schema.define(version: 2022_04_25_072812) do
     t.integer "cc_id"
     t.string "name"
     t.integer "season_cc_id"
+    t.integer "league_id"
     t.string "context"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "shortname"
+    t.string "status"
+    t.string "report_form"
+    t.string "report_form_data"
   end
 
   create_table "league_teams", force: :cascade do |t|
@@ -289,6 +294,7 @@ ActiveRecord::Schema.define(version: 2022_04_25_072812) do
     t.datetime "updated_at", precision: 6, null: false
     t.string "staffel_text"
     t.integer "cc_id"
+    t.string "shortname"
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
   end
 
