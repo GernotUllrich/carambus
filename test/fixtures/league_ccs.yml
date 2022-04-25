@@ -1,0 +1,24 @@
+# == Schema Information
+#
+# Table name: league_ccs
+#
+#  id           :bigint           not null, primary key
+#  context      :string
+#  name         :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  cc_id        :integer
+#  season_cc_id :integer
+#
+
+one:
+  cc_id: 1
+  name: MyString
+  season_cc_id: 1
+  context: MyString
+
+two:
+  cc_id: 1
+  name: MyString
+  season_cc_id: 1
+  context: MyString
