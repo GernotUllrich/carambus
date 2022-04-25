@@ -11,6 +11,7 @@
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  ba_id              :integer
+#  cc_id              :integer
 #  discipline_id      :integer
 #  organizer_id       :integer
 #  season_id          :integer
@@ -26,6 +27,7 @@ class League < ApplicationRecord
   belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
+  has_many :league_ccs #unique in context
 
   DEBUG = true
 

@@ -19,7 +19,6 @@ class SeasonCc < ApplicationRecord
 
   belongs_to :competition_cc
   belongs_to :season
-
-  has_paper_trail
+  has_many :league_ccs
 
 end

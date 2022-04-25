@@ -108,24 +108,24 @@ namespace :cc do
       context = ENV["REGION"] || "NBV"
       region = Region.find_by_shortname(context)
       region_cc = region.region_cc
-      leagues_region_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: region.id).where("clubs.region_id = ?", region.id).uniq
-      dbu_region = Region.find_by_shortname("portal")
-      dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
 
       unless region_cc.blank?
-        competition_cc_ids_todo = CompetitionCc.where(context: context.downcase).all.map(&:cc_id)
-        competition_cc_ids_done = region_cc.sync_seasons_in_competitions(season_name).map(&:cc_id)
+        leagues_region_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: region.id).where("clubs.region_id = ?", region.id).uniq
+        dbu_region = Region.find_by_shortname("portal")
+        dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
+        leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
+        leagues_done_ids = region_cc.sync_leagues(season_name).map(&:id)
       else
-        raise_err_msg("synchronize_season_structure", "unknown context Region #{context}")
+        raise_err_msg("synchronize_league_structure", "unknown context Region #{context}")
       end
-      competition_cc_ids_still_todo = competition_cc_ids_todo - competition_cc_ids_done
-      unless competition_cc_ids_still_todo.blank?
+      leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
+      unless leagues_still_todo_ids.blank?
 
-        Rails.logger.warn "REPORT! [synchronize_season_structure] Saison #{season_name} nicht definiert für Wettbewerbe #{CompetitionCc.where(cc_id: competition_cc_ids_still_todo).map{|ccc| "#{ccc.branch_cc.name} - #{ccc.name} (#{ccc.cc_id})"}}"
+        Rails.logger.warn "REPORT! [synchronize_league_structure] Ligen für Season #{season_name} nicht definiert in CC #{League.where(id: leagues_still_todo_ids).map{|league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}}"}}"
       end
-      competition_cc_ids_overdone = competition_cc_ids_done - competition_cc_ids_todo
-      unless competition_cc_ids_overdone.blank?
-        raise_err_msg("synchronize_season_structure", "more competions_cc_ids with context #{context} than expected in CC: #{CompetitionCc.where(id: competition_cc_ids_overdone).map(&:cc_id)}")
+        league_ids_overdone = leagues_done_ids - leagues_todo_ids
+      unless league_ids_overdone.blank?
+        raise_err_msg("synchronize_league_structure", "more league_ids with context #{context} than expected in CC: #{League.where(id: league_ids_overdone).map{|league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}}"}}")
       end
     end
   end

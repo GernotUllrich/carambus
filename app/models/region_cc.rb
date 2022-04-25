@@ -139,7 +139,7 @@ class RegionCc < ApplicationRecord
     context = shortname.downcase
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
-      res,doc = post_cc("showLeagueList", fedId: cc_id, branchId: branch_cc.cc_id)
+      res, doc = post_cc("showLeagueList", fedId: cc_id, branchId: branch_cc.cc_id)
       selector = doc.css('select[name="subBranchId"]')[0]
       options = selector.css("option")
       options.each do |option|
@@ -193,7 +193,7 @@ class RegionCc < ApplicationRecord
           match = name_str.match(/\s*(.*\/.*)\s*/)
           s_name = match[1]
           if s_name == season_name
-            args = {cc_id: cc_id, context: context, name: s_name, season_id: season.id, competition_cc_id: competition_cc.id}
+            args = { cc_id: cc_id, context: context, name: s_name, season_id: season.id, competition_cc_id: competition_cc.id }
             season_cc = SeasonCc.find_by_cc_id_and_competition_cc_id_and_context(cc_id, competition_cc.id, context) || SeasonCc.new(args)
             season_cc.assign_attributes(args)
             season_cc.save
@@ -214,40 +214,45 @@ class RegionCc < ApplicationRecord
     if season.blank?
       raise ArgumentError, "unknown season name #{season_name}", caller
     end
-    # DBU Ligen mit Beteiligung der Region
-    dbu_region = Region.find_by_shortname("portal")
-    dbu_leagues = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", id).uniq
 
-    league_ccs = []
+    dbu_region_id = Region.find_by_shortname("portal").id
+
+    leagues = []
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
-        res, doc = post_cc(
-          "showLeagueList",
-          fedId: cc_id,
-          branchId: branch_cc.cc_id,
-          subBranchId: competition_cc.cc_id
-        )
-        selector = doc.css('select[name="seasonId"]')[0]
-        options = selector.css("option")
-        options.each do |option|
-          cc_id = option["value"].to_i
-          name_str = option.text.strip
-          match = name_str.match(/\s*(.*\/.*)\s*/)
-          s_name = match[1]
-          if s_name == season_name
-            args = {cc_id: cc_id, context: context, name: s_name, season_id: season.id, competition_cc_id: competition_cc.id}
-            season_cc = SeasonCc.find_by_cc_id_and_competition_cc_id_and_context(cc_id, competition_cc.id, context) || SeasonCc.new(args)
-            season_cc.assign_attributes(args)
-            season_cc.save
-            competition_ccs.push(competition_cc)
-            break
+        competition_cc.season_ccs.each do |season_cc|
+          next unless season_cc.name == season_name
+          res, doc = post_cc(
+            "showLeagueList",
+            fedId: cc_id,
+            branchId: branch_cc.cc_id,
+            subBranchId: competition_cc.cc_id,
+            seasonId: season_cc.cc_id
+          )
+          doc
+          selector = doc.css('select[name="leagueId"]')[0]
+          options = selector.css("option")
+          options.each do |option|
+            cc_id = option["value"].to_i
+            name_str = option.text.strip
+            league = League.where(season: season, name: name_str, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.discipline)
+            if league.present?
+              args = { cc_id: cc_id, context: context, name: s_name, season_id: season.id, competition_cc_id: competition_cc.id }
+              #     season_cc = SeasonCc.find_by_cc_id_and_competition_cc_id_and_context(cc_id, competition_cc.id, context) || SeasonCc.new(args)
+              #     season_cc.assign_attributes(args)
+              #     season_cc.save
+              #     competition_ccs.push(competition_cc)
+              #     break
+            end
           end
         end
       end
     end
 
-    return competition_ccs
+    return leagues
+  rescue StandardError => e
+    e
   end
 
 end
