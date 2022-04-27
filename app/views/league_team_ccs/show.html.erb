@@ -1,0 +1,35 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'League Team Ccs', league_team_ccs_path %> > League Team Cc #<%= @league_team_cc.id %></h1>
+      <%= link_to 'Edit', edit_league_team_cc_path(@league_team_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class="bg-white rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @league_team_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @league_team_cc.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Shortname</h5>
+        <%= @league_team_cc.shortname %>
+      </div>
+            <div class="mb-4">
+        <h5>League cc</h5>
+        <%= @league_team_cc.league_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League team</h5>
+        <%= @league_team_cc.league_team_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @league_team_cc.data %>
+      </div>
+          </div>
+  </div>
+</div>

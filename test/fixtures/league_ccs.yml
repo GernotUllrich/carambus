@@ -3,6 +3,7 @@
 # Table name: league_ccs
 #
 #  id               :bigint           not null, primary key
+#  cc_id2           :integer
 #  context          :string
 #  name             :string
 #  report_form      :string
