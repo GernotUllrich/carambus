@@ -11,6 +11,7 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  ba_id               :integer
+#  cc_id               :integer
 #  host_league_team_id :integer
 #  league_id           :integer
 #  league_team_a_id    :integer

@@ -216,7 +216,8 @@ namespace :cc do
         dbu_region = Region.find_by_shortname("portal")
         parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
         parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
-        parties_done_ids = region_cc.sync_parties(season_name).map(&:id)
+        parties_done, party_ccs = region_cc.sync_parties(season_name)
+        parties_done_ids = parties_done.map(&:id)
       else
         raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
       end
@@ -232,7 +233,8 @@ namespace :cc do
             end
           end
         else
-          Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{season_name} nicht definiert in CC #{LeagueTeam.where(id: parties_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+          incomplete_leagues = League.joins(:parties).where(parties: {id: parties_still_todo_ids}).uniq
+          Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.map{|league| [league.name, league.branch.name]}}"
         end
       end
       parties_overdone_ids = parties_done_ids - parties_todo_ids

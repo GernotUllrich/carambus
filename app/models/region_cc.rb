@@ -444,4 +444,81 @@ class RegionCc < ApplicationRecord
     return done_clubs
   end
 
+  def sync_parties(season_name)
+    parties = []
+    party_ccs = []
+    # for all branches
+    BranchCc.where(context: context).each do |branch_cc|
+      branch_cc.competition_ccs.each do |competition_cc|
+        competition_cc.season_ccs.each do |season_cc|
+          season_cc.league_ccs.order(:cc_id).each do |league_cc|
+            next unless season_cc.name == season_name
+            res, doc = post_cc(
+              "admin_report_showLeague",
+              fedId: league_cc.fedId,
+              branchId: league_cc.branchId,
+              subBranchId: league_cc.subBranchId,
+              seasonId: league_cc.seasonId,
+              leagueId: league_cc.cc_id,
+            )
+            league = league_cc.league
+            doc.css("table > tr > td > table > tr > td > table").each do |table|
+              if table.css("> tr > th").andand[1].andand.text == "Spieltag"
+                table_found = table
+                table.css("tr").each do |line|
+                  tds = line.css("> td")
+                  next if tds.blank?
+                  text_arr = tds.map(&:text)
+                  day_seqno = text_arr[1].to_i
+                  cc_id = text_arr[2].to_i
+                  team_a_str = text_arr[3].split(" ").join(" ")
+                  team_a_cc = league_cc.league_team_ccs.where( name: team_a_str ).first
+                  unless team_a_cc.present?
+                    raise RuntimeError, "Team #{team_a_str} not found", caller
+                  end
+                  team_b_str = text_arr[4].split(" ").join(" ")
+                  team_b_cc = league_cc.league_team_ccs.where( name: team_b_str ).first
+                  unless team_b_cc.present?
+                    raise RuntimeError, "Team #{team_b_str} not found", caller
+                  end
+                  date_str = text_arr[5]
+                  result = text_arr[6]
+                  dummy = text_arr[7]
+                  host_str = text_arr[8]
+                  host_cc = league_cc.league_team_ccs.where( name: host_str ).first
+                  unless team_b_cc.present?
+                    raise RuntimeError, "Team #{host_str} not found", caller
+                  end
+                  time_str = text_arr[9]
+                  date = DateTime.parse("#{date_str} #{time_str}")
+                  reg_date_str = text_arr[10]
+                  reg_date = Date.parse(reg_date_str)
+                  party = league.parties.where(day_seqno: day_seqno, league_team_a: team_a_cc.league_team, league_team_b: team_b_cc.league_team).first
+                  unless team_b_cc.present?
+                    raise RuntimeError, "Party #{{day_seqno: day_seqno, team_a_cc_name: team_a_cc.name, team_b_cc_name: team_b_cc.name}} not found", caller
+                  end
+                  party.assign_attributes(cc_id: cc_id)
+                  party.save!
+                  args = { cc_id: cc_id,
+                           league_cc_id: league_cc.id,
+                           party_id: party.id,
+                           league_team_a_cc: team_a_cc,
+                           league_team_b_cc: team_b_cc,
+                           league_team_host_cc: host_cc,
+
+                  }
+                  party_cc = PartyCc.find_by_cc_id_and_league_cc_id(cc_id, league_cc.id) || PartyCc.new(args)
+                  party_cc.assign_attributes(args)
+                  party_cc.save!
+                  party_ccs.push(party_cc)
+                  parties.push(party)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    return parties, party_ccs
+  end
 end

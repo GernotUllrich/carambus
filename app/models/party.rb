@@ -11,6 +11,7 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  ba_id               :integer
+#  cc_id               :integer
 #  host_league_team_id :integer
 #  league_id           :integer
 #  league_team_a_id    :integer
@@ -25,9 +26,11 @@ class Party < ApplicationRecord
   belongs_to :host_league_team, class_name: "LeagueTeam", foreign_key: :host_league_team_id, optional: true
   belongs_to :no_show_team, class_name: "LeagueTeam", foreign_key: :no_show_team_id, optional: true
   has_one :party_tournament
+  has_one :party_cc
   has_many :party_games, -> { order("seqno") }
 
   serialize :data, Hash
+  serialize :remarks, Hash
 
   def name
     "#{league_team_a.name} - #{league_team_b.name}"
