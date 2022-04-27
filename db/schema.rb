@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_27_145031) do
+ActiveRecord::Schema.define(version: 2022_04_27_201111) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -359,6 +359,7 @@ ActiveRecord::Schema.define(version: 2022_04_27_145031) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "no_show_team_id"
     t.string "section"
+    t.integer "cc_id"
   end
 
   create_table "party_ccs", force: :cascade do |t|
@@ -367,8 +368,7 @@ ActiveRecord::Schema.define(version: 2022_04_27_145031) do
     t.integer "party_id"
     t.integer "league_team_a_cc_id"
     t.integer "league_team_b_cc_id"
-    t.string "league_team_host_cc_id"
-    t.string "integer"
+    t.integer "league_team_host_cc_id"
     t.integer "day_seqno"
     t.text "remarks"
     t.text "data"
