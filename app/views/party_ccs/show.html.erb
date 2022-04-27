@@ -1,0 +1,51 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= link_to 'Party Ccs', party_ccs_path %> > Party Cc #<%= @party_cc.id %></h1>
+      <%= link_to 'Edit', edit_party_cc_path(@party_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class="bg-white rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @party_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League cc</h5>
+        <%= @party_cc.league_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Party</h5>
+        <%= @party_cc.party_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League team a cc</h5>
+        <%= @party_cc.league_team_a_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League team b cc</h5>
+        <%= @party_cc.league_team_b_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League team host cc</h5>
+        <%= @party_cc.league_team_host_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Integer</h5>
+        <%= @party_cc.integer %>
+      </div>
+            <div class="mb-4">
+        <h5>Day seqno</h5>
+        <%= @party_cc.day_seqno %>
+      </div>
+            <div class="mb-4">
+        <h5>Remarks</h5>
+        <%= @party_cc.remarks %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @party_cc.data %>
+      </div>
+          </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+# == Schema Information
+#
+# Table name: party_ccs
+#
+#  id                     :bigint           not null, primary key
+#  data                   :text
+#  day_seqno              :integer
+#  integer                :string
+#  remarks                :text
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  cc_id                  :integer
+#  league_cc_id           :integer
+#  league_team_a_cc_id    :integer
+#  league_team_b_cc_id    :integer
+#  league_team_host_cc_id :string
+#  party_id               :integer
+#
+
+one:
+  cc_id: 1
+  league_cc_id: 1
+  party_id: 1
+  league_team_a_cc_id: 1
+  league_team_b_cc_id: 1
+  league_team_host_cc_id: MyString
+  integer: MyString
+  day_seqno: 1
+  remarks: MyText
+  data: MyText
+
+two:
+  cc_id: 1
+  league_cc_id: 1
+  party_id: 1
+  league_team_a_cc_id: 1
+  league_team_b_cc_id: 1
+  league_team_host_cc_id: MyString
+  integer: MyString
+  day_seqno: 1
+  remarks: MyText
+  data: MyText

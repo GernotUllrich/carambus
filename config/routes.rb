@@ -1,5 +1,7 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  resources :party_game_ccs
+  resources :party_ccs
   resources :league_team_ccs
   resources :league_ccs
   resources :season_ccs

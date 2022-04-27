@@ -1,0 +1,33 @@
+# == Schema Information
+#
+# Table name: party_game_ccs
+#
+#  id            :bigint           not null, primary key
+#  data          :text
+#  name          :string
+#  seqno         :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  cc_id         :integer
+#  discipline_id :integer
+#  player_a_id   :integer
+#  player_b_id   :integer
+#
+
+one:
+  cc_id: 1
+  seqno: 1
+  player_a_id: 1
+  player_b_id: 1
+  data: MyText
+  name: MyString
+  discipline_id: 1
+
+two:
+  cc_id: 1
+  seqno: 1
+  player_a_id: 1
+  player_b_id: 1
+  data: MyText
+  name: MyString
+  discipline_id: 1
