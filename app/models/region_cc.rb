@@ -382,6 +382,7 @@ class RegionCc < ApplicationRecord
                     Rails.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft entspricht keinem BA LigaTeam: CC: #{{ name: name_str, league_id: league_cc.league.id, club_id: club.id }.inspect}"
                   else
                     league_team.assign_attributes(cc_id: cc_id)
+                    league_team.save!
                     args = { cc_id: cc_id, name: name_str, league_cc_id: league_cc.id, league_team_id: league_team.id }
                     league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(cc_id, league_cc.id) || LeagueTeamCc.new(args)
                     league_team_cc.assign_attributes(args)
