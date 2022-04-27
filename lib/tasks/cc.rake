@@ -154,13 +154,14 @@ namespace :cc do
       region_cc = region.region_cc
 
       unless region_cc.blank?
-        league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: region.id }).where("clubs.region_id = ?", region.id).uniq
+        dbu_region = Region.find_by_shortname("portal")
+        league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
         league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
         league_teams_done_ids = region_cc.sync_league_teams(season_name).map(&:id)
       else
         raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
       end
-      league_teams_still_todo_ids = league_teams_todo_ids - league_teams_done_ids
+      league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
       unless league_teams_still_todo_ids.blank?
         if force_cc_update
           league_teams_still_todo_ids.each do |league_team_id|
