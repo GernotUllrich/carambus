@@ -20,6 +20,7 @@ class PartyGame < ApplicationRecord
   belongs_to :player_b, class_name: "Player", optional: true
   belongs_to :tournament, optional: true
   belongs_to :discipline, optional: true
+  has_one :party_game_cc
 
   serialize :data, Hash
 
