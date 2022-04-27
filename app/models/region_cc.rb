@@ -231,6 +231,7 @@ class RegionCc < ApplicationRecord
   def sync_leagues(season_name, opts = {})
 
     context = shortname.downcase
+    region = Region.find_by_shortname(context.upcase)
     season = Season.find_by_name(season_name)
     if season.blank?
       raise ArgumentError, "unknown season name #{season_name}", caller
@@ -270,7 +271,7 @@ class RegionCc < ApplicationRecord
                 if context == "nbv"
                   l_name = l_name == "Regionalliga Pool" ? "Regionalliga" : l_name
                 end
-                league = League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.branch_cc.discipline).first
+                league = League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: "Region", organizer_id: [region.id, dbu_region_id], discipline: competition_cc.discipline.super_discipline).first
                 league.assign_attributes(cc_id: cc_id)
               end
               unless league.present?
