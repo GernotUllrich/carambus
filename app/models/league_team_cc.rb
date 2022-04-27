@@ -18,7 +18,7 @@ class LeagueTeamCc < ApplicationRecord
 
   delegate :fedId,:branchId, :subBranchId, :leagueId, :staffelId, :seasonId, to: :league_cc
   alias_attribute :p, :cc_id
-  delegate_attributes :fedId, :branchId, :subBranchId, :season_id,  to: :league_cc
+  delegate :fedId, :branchId, :subBranchId, :season_id,  to: :league_cc
 
   def self.create_from_ba(league)
     raise NotImplementedError, "league_team creation not yet implemented", caller

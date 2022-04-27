@@ -17,5 +17,5 @@ class PartyGameCc < ApplicationRecord
   belongs_to :party_cc
   belongs_to :party_game
   delegate :discipline, to: :party_game
-  delegate_attributes :fedId, :branchId, :subBranchId, :season_id,  to: :party_cc
+  delegate :fedId, :branchId, :subBranchId, :season_id,  to: :party_cc
 end

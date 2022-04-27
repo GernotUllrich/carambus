@@ -24,6 +24,6 @@ class PartyCc < ApplicationRecord
   belongs_to :league_team
   has_many :party_game_ccs
   delegate :club, to: :league_team
-  delegate_attributes :fedId, :branchId, :subBranchId, :season_id, :leagueId,  to: :league_team_a_cc
+  delegate :fedId, :branchId, :subBranchId, :season_id, :leagueId,  to: :league_team_a_cc
 
 end
