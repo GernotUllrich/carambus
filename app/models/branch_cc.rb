@@ -19,4 +19,6 @@ class BranchCc < ApplicationRecord
   has_many :competition_ccs
   belongs_to :discipline
   belongs_to :region_cc
+  delegate :fedId, to: :region_cc
+  alias_attribute :branchId, :cc_id
 end

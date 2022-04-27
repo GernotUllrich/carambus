@@ -115,7 +115,7 @@ namespace :cc do
         dbu_region = Region.find_by_shortname("portal")
         dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
         leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
-        leagues_done_ids = region_cc.sync_leagues(season_name, force_cc_update: force_cc_update).map(&:id)
+        leagues_done_ids = region_cc.sync_leagues(season_name).map(&:id)
       else
         raise_err_msg("synchronize_league_structure", "unknown context Region #{context}")
       end
@@ -131,13 +131,71 @@ namespace :cc do
             end
           end
         else
-            Rails.logger.warn "REPORT! [synchronize_league_structure] Ligen für Season #{season_name} nicht definiert in CC #{League.where(id: leagues_still_todo_ids).map { |league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}" }}"
+          Rails.logger.warn "REPORT! [synchronize_league_structure] Ligen für Season #{season_name} nicht definiert in CC #{League.where(id: leagues_still_todo_ids).map { |league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}" }}"
         end
       end
       league_ids_overdone = leagues_done_ids - leagues_todo_ids
       unless league_ids_overdone.blank?
         raise_err_msg("synchronize_league_structure", "more league_ids with context #{context} than expected in CC: #{League.where(id: league_ids_overdone).map { |league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}" }}")
       end
+    end
+  end
+
+  desc "synchronize league_team structure"
+  task :synchronize_league_team_structure => :environment do
+    ["2010/2011"].each do |season_name|
+      season = Season.find_by_name(season_name)
+      if season.blank?
+        raise ArgumentError, "unknown season name #{season_name}", caller
+      end
+      context = (ENV["CC_REGION"] || "NBV").downcase
+      force_cc_update = ENV["CC_UPDATE"] == "true" || false
+      region = Region.find_by_shortname(context.upcase)
+      region_cc = region.region_cc
+
+      unless region_cc.blank?
+        league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: region.id }).where("clubs.region_id = ?", region.id).uniq
+        league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
+        league_teams_done_ids = region_cc.sync_league_teams(season_name).map(&:id)
+      else
+        raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
+      end
+      league_teams_still_todo_ids = league_teams_todo_ids - league_teams_done_ids
+      unless league_teams_still_todo_ids.blank?
+        if force_cc_update
+          league_teams_still_todo_ids.each do |league_team_id|
+            league_team = LeagueTeam[league_team_id]
+            unless league.blank?
+              league_team_cc = LeagueTeamCc.create_from_ba(league_team)
+            else
+              raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
+            end
+          end
+        else
+          Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{season_name} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+        end
+      end
+      league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
+      unless league_teams_overdone_ids.blank?
+        raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
+      end
+    end
+  end
+
+  desc "synchronize club structure"
+  task :synchronize_club_structure => :environment do
+    context = (ENV["CC_REGION"] || "NBV").downcase
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
+    clubs_todo_ids = Club.where(region: region).map(&:id)
+    clubs_done_ids = region_cc.sync_clubs(context).map(&:id)
+    club_ids_still_todo = clubs_todo_ids - clubs_done_ids
+    unless club_ids_still_todo.blank?
+      Rails.logger.warn "REPORT! [synchronize_club_structure] Club nicht definiert in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}"
+    end
+    club_ids_overdone = clubs_done_ids - clubs_todo_ids
+    unless club_ids_overdone.blank?
+      raise_err_msg("synchronize_club_structure", "more club_cc_ids with context than expected in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}")
     end
   end
 

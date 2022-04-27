@@ -19,4 +19,7 @@ class CompetitionCc < ApplicationRecord
   belongs_to :branch_cc
   belongs_to :discipline
   has_many :season_ccs
+
+  delegate :fedId,:branchId, to: :branch_cc
+  alias_attribute :subBranchId, :cc_id
 end

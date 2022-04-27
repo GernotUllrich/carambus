@@ -21,10 +21,30 @@ class RegionCc < ApplicationRecord
   belongs_to :region
   has_many :branch_ccs
 
+  alias_attribute :fedId, :cc_id
+
   PATH_MAP = {
-    "showClubList" => "/admin/approvement/player/showClubList.php",
+    #"showClubList" => "/admin/approvement/player/showClubList.php",
+    "createLeagueSave" => "/admin/league/createLeagueSave.php",
     "showLeagueList" => "/admin/report/showLeagueList.php",
     "showLeague" => "/admin/league/showLeague.php",
+    "admin_report_showLeague" => "/admin/report/showLeague.php",
+    "admin_report_showLeague_create_team" => "/admin/report/showLeague_create_team.php",
+    # teamCounter: 2
+    # fedId: 20
+    # leagueId: 32
+    # branchId: 6
+    # subBranchId: 1
+    # seasonId: 8
+    "spielbericht_anzeigen" => "/admin/reportbuilder2/spielbericht_anzeigen.php",
+    "showTeam" => "/admin/announcement/team/showTeam.php",
+    "editTeam" => "admin/announcement/team/editTeamCheck.php",
+    "showClubList" => "/admin/announcement/team/showClubList.php",
+    # fedId: 20
+    # branchId: 6
+    # subBranchId: 11
+    # sportDistrictId: *
+    # statusId: 1   (1 = active)
   }
 
   PHPSESSID = "9310db9a9970e8a02ed95ed8cd8e4309"
@@ -268,7 +288,7 @@ class RegionCc < ApplicationRecord
                   leagueId: league_cc.cc_id
                 )
                 lines = doc2.css("form tr.tableContent table tr")
-                res_arr = lines.map{|l| l.css("td").map(&:text)}
+                res_arr = lines.map { |l| l.css("td").map(&:text) }
                 unless res_arr[4][0] == "Kürzel" && res_arr[5][0] == "Status"
                   raise SystemCallError, "Format of showLeague canged ???", caller
                 end
@@ -287,6 +307,139 @@ class RegionCc < ApplicationRecord
     return leagues
   rescue StandardError => e
     e
+  end
+
+  def sync_league_teams(season_name, opts = {})
+
+    context = shortname.downcase
+    region = Region.find_by_shortname(context.upcase)
+    season = Season.find_by_name(season_name)
+    if season.blank?
+      raise ArgumentError, "unknown season name #{season_name}", caller
+    end
+
+    dbu_region_id = Region.find_by_shortname("portal").id
+
+    league_teams = []
+    league_teams_cc = []
+    # for all branches
+    BranchCc.where(context: context).each do |branch_cc|
+      branch_cc.competition_ccs.each do |competition_cc|
+        competition_cc.season_ccs.each do |season_cc|
+          season_cc.league_ccs.order(:cc_id).each do |league_cc|
+            next unless season_cc.name == season_name
+            res, doc = post_cc(
+              "admin_report_showLeague",
+              fedId: league_cc.fedId,
+              branchId: league_cc.branchId,
+              subBranchId: league_cc.subBranchId,
+              seasonId: league_cc.seasonId,
+              leagueId: league_cc.cc_id,
+            )
+            expected = league_cc.league.league_teams.joins(:club => :region).where(regions: { id: region.id })
+            league_teams_doc_cc = doc.css('table[name="teams"] tr.odd')
+            if league_teams_doc_cc.present?
+              league_teams_doc_cc.each do |league_team_doc_cc|
+                tds = league_team_doc_cc.css("td")
+                if tds.count == 2
+                  cc_id = tds[1].text.to_i
+                  name_str = tds[0].text.strip
+                else
+                  #TODO Ansicht mit SpielPlan
+                  cc_id = tds[2].text.to_i
+                  name_str = tds[1].text.strip
+                end
+                name_str = name_str.split(" ").join(" ")
+                league_team = LeagueTeam.find_by_cc_id(cc_id)
+                team_club_str = name_str
+                unless league_team.present?
+                  if name_str.match(/.*[ [[:space:]]]+\d+$/)
+                    team_club_str = (m = name_str.match(/(.*[^ [[:space:]]])[ [[:space:]]]*(\d+)$/))[1]
+                    team_seqno = m[2]
+                  end
+                  club = Club.where(region: region, shortname: team_club_str).first
+                  unless club.present?
+                    Rails.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{ shortname: team_club_str, region: region.shortname }.inspect}"
+                  else
+                    league_team = LeagueTeam.find_by_cc_id_and_league_id(cc_id, league_cc.league.id)
+                    league_team ||= LeagueTeam.
+                      joins(:league).
+                      joins(:club => :region).
+                      where(regions: { id: region.id }).
+                      where(name: name_str, #shortname? TODO
+                            league_id: league_cc.league.id,
+                            club_id: club.id).first
+                    league_team ||= LeagueTeam.
+                      joins(:league).
+                      joins(:club => :region).
+                      where(regions: { id: region.id }).
+                      where(name: team_club_str, #shortname? TODO
+                            league_id: league_cc.league.id,
+                            club_id: club.id).first
+                  end
+                  unless league_team.present?
+                    Rails.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft entspricht keinem BA LigaTeam: CC: #{{ name: name_str, league_id: league_cc.league.id, club_id: club.id }.inspect}"
+                  else
+                    league_team.assign_attributes(cc_id: cc_id)
+                    args = { cc_id: cc_id, name: name_str, league_cc_id: league_cc.id, league_team_id: league_team.id }
+                    league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(cc_id, league_cc.id) || LeagueTeamCc.new(args)
+                    league_team_cc.assign_attributes(args)
+                    league_team_cc.save!
+                    league_teams.push(league_team)
+                    league_teams_cc.push(league_team_cc)
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    return league_teams
+  rescue StandardError => e
+    e
+  end
+
+  def sync_clubs(context)
+    context ||= "nbv"
+    region = Region.find_by_shortname(context.upcase)
+    done_clubs = []
+    done_club_cc_ids = []
+    BranchCc.where(context: context).each do |branch_cc|
+      branch_cc.competition_ccs.each do |competition_cc|
+        res, doc = post_cc(
+          "showClubList",
+          sortKey: "NAME",
+          fedId: branch_cc.fedId,
+          branchId: branch_cc.cc_id,
+          subBranchId: competition_cc.cc_id,
+          sportDistrictId: "*",
+          statusId: 1,
+        )
+        clubs = doc.css('select[name="clubId"] option')
+        clubs.each do |club|
+          cc_id = club["value"].to_i
+          next if done_club_cc_ids.include?(cc_id)
+          name_str = club.text.strip
+          shortname = name_str.match(/\s*([^\(]*)\s*(?:\(.*)?/).andand[1].strip
+          c = Club.find_by_cc_id(cc_id)
+          unless c.present?
+            c = Club.where(shortname: shortname, region_id: region.id).first
+            unless c.present?
+              Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shorname}' found in region #{context}"
+            end
+          else
+            if c.shortname != shortname
+              Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shorname}' BA: #{c.shortname}"
+            end
+            done_club_cc_ids.push(cc_id)
+            done_clubs.push(c)
+          end
+        end
+      end
+    end
+    return done_clubs
   end
 
 end

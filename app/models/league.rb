@@ -49,6 +49,19 @@ class League < ApplicationRecord
     "#{read_attribute(:name)}#{" #{staffel_text}" if staffel_text.present?}"
   end
 
+  def branch
+    branch = discipline
+    while branch.super_discipline.present?
+      branch = branch.super_discipline
+    end
+    branch
+
+  end
+
+  def competition
+    Competition.where(super_discipline_id: discipline_id).where("name ilike '%Mannschaft%'").first
+  end
+
   def self.scrape_leagues_by_region_and_season(region, season)
     url = "https://#{region.shortname.downcase}.billardarea.de"
     uri = URI(url + '/cms_leagues')
