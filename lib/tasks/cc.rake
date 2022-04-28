@@ -150,7 +150,7 @@ namespace :cc do
     clubs_done_ids = region_cc.sync_clubs(context).map(&:id)
     club_ids_still_todo = clubs_todo_ids - clubs_done_ids
     unless club_ids_still_todo.blank?
-      Rails.logger.warn "REPORT! [synchronize_club_structure] Club nicht definiert in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}"
+      Rails.logger.warn "REPORT! [synchronize_club_structure] Club bislang nicht in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}"
     end
     club_ids_overdone = clubs_done_ids - clubs_todo_ids
     unless club_ids_overdone.blank?
