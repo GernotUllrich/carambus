@@ -50,6 +50,14 @@ class RegionCc < ApplicationRecord
     # seasonId: 8
     "spielbericht_anzeigen" => "/admin/reportbuilder2/spielbericht_anzeigen.php",
     "showTeam" => "/admin/announcement/team/showTeam.php",
+    # fedId: 20,
+    # branchId: 6,
+    # subBranchId: 1,
+    # sportDistrictId: *,
+    # clubId: 1004,
+    # originalBranchId: 6,
+    # seasonId: 1,
+    # teamId: 98
     "editTeam" => "admin/announcement/team/editTeamCheck.php",
     "showClubList" => "/admin/announcement/team/showClubList.php",
     # fedId: 20
@@ -453,6 +461,8 @@ class RegionCc < ApplicationRecord
             if c.shortname != shortname
               Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shorname}' BA: #{c.shortname}"
             end
+            c.assign_attributes(cc_id: cc_id)
+            c.save!
             done_club_cc_ids.push(cc_id)
             done_clubs.push(c)
           end
@@ -538,5 +548,23 @@ class RegionCc < ApplicationRecord
       end
     end
     return parties, party_ccs
+  end
+
+  def sync_team_players(league_team, context)
+    league_team_player_done = []
+    league_team_cc = league_team.league_team_cc
+    res, doc = post_cc(
+      "showTeam",
+      fedId: league_team_cc.fedId,
+      branchId: league_team_cc.branchId,
+      subBranchId: league_team_cc.subBranchId,
+      sportDistrictId: "*",
+      clubId: league_team_cc.club.cc_id,
+      originalBranchId: 6,
+      seasonId: league_team_cc.seasonId,
+      teamId: league_team_cc.cc_id
+    )
+    doc.css("table")
+    return league_team_player_done
   end
 end

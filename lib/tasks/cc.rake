@@ -233,13 +233,58 @@ namespace :cc do
             end
           end
         else
-          incomplete_leagues = League.joins(:parties).where(parties: {id: parties_still_todo_ids}).uniq
-          Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.map{|league| [league.name, league.branch.name]}}"
+          incomplete_leagues = League.joins(:parties).where(parties: { id: parties_still_todo_ids }).uniq
+          Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.map { |league| [league.name, league.branch.name] }}"
         end
       end
       parties_overdone_ids = parties_done_ids - parties_todo_ids
       unless parties_overdone_ids.blank?
         raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: parties_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
+      end
+    end
+  end
+
+  desc "synchronize team players structure"
+  task :synchronize_team_players_structure => :environment do
+    ["2010/2011"].each do |season_name|
+      season = Season.find_by_name(season_name)
+      if season.blank?
+        raise ArgumentError, "unknown season name #{season_name}", caller
+      end
+      context = (ENV["CC_REGION"] || "NBV").downcase
+      force_cc_update = ENV["CC_UPDATE"] == "true" || false
+      region = Region.find_by_shortname(context.upcase)
+      region_cc = region.region_cc
+
+      League.where(season: season, organizer_type: "Region", organizer_id: region.id).each do |league|
+        league_team_players = {}
+        league.parties.each do |party|
+          league_team_players[party.league_team_a_id]  ||= []
+          league_team_players[party.league_team_b_id]  ||= []
+          party.party_games.each do |party_game|
+            if !league_team_players[party.league_team_a_id].include?(party_game.player_a_id)
+              league_team_players[party.league_team_a_id].push(party_game.player_a_id)
+            end
+            if !league_team_players[party.league_team_b_id].include?(party_game.player_b_id)
+              league_team_players[party.league_team_b_id].push(party_game.player_b_id)
+            end
+          end
+        end
+        league_team_player_object_hash = {}
+        league_team_players.keys.each do |lt_id|
+          league_team = LeagueTeam[lt_id]
+          league_team_player_object_hash[league_team.id] ||= []
+          league_team_players[lt_id].each do |p_id|
+            player = Player[p_id]
+            league_team_player_object_hash[league_team.id].push(player)
+          end
+        end
+        league_team_player_object_hash.keys.each do |lt_id|
+          league_team = LeagueTeam[lt_id]
+          league_team_player_done = region_cc.sync_team_players(league_team, context)
+
+        end
+
       end
     end
   end

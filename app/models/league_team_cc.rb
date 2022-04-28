@@ -17,6 +17,7 @@ class LeagueTeamCc < ApplicationRecord
   belongs_to :league_team
 
   delegate :fedId,:branchId, :subBranchId, :leagueId, :staffelId, :seasonId, to: :league_cc
+  delegate :club, to: :league_team
   alias_attribute :p, :cc_id
   delegate :fedId, :branchId, :subBranchId, :season_id,  to: :league_cc
 

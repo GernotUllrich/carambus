@@ -29,7 +29,7 @@ class League < ApplicationRecord
   belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
-  has_many :league_ccs #unique in context
+  has_one :league_cc, -> { where(context: 'nbv') }
 
   DEBUG = true
 
