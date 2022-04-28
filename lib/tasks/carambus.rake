@@ -295,8 +295,8 @@ namespace :carambus do
                           if players.count == 1
                             players[0].update(ba_id: ba_id_player)
                           else
-                            player_ok = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).to_a
-                            player_tmp = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
+                            player_ok = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).first
+                            player_tmp = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").first
                             if player_ok.present? && player_tmp.present?
                               Player.merge_players(player_ok, player_tmp)
                             end
