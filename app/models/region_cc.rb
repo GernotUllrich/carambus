@@ -26,18 +26,18 @@ class RegionCc < ApplicationRecord
   PATH_MAP = {
     #"showClubList" => "/admin/approvement/player/showClubList.php",
     "createLeagueSave" => "/admin/league/createLeagueSave.php",
-  # fedId: 20
-  # branchId: 10
-  # subBranchId: 2
-  # seasonId: 11
-  # seasonId: 11
-  # leagueName: Oberliga Dreiband
-  # leagueShortName: OD
-  # reportId: 20
-  # prefix: 0
-  # staffelName:
-  # sportdistrictId: 0
-  # sbut:
+    # fedId: 20
+    # branchId: 10
+    # subBranchId: 2
+    # seasonId: 11
+    # seasonId: 11
+    # leagueName: Oberliga Dreiband
+    # leagueShortName: OD
+    # reportId: 20
+    # prefix: 0
+    # staffelName:
+    # sportdistrictId: 0
+    # sbut:
     "showLeagueList" => "/admin/report/showLeagueList.php",
     "showLeague" => "/admin/league/showLeague.php",
     "admin_report_showLeague" => "/admin/report/showLeague.php",
@@ -283,7 +283,13 @@ class RegionCc < ApplicationRecord
                 if context == "nbv"
                   l_name = l_name == "Regionalliga Pool" ? "Regionalliga" : l_name
                 end
-                league = League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: "Region", organizer_id: [region.id, dbu_region_id], discipline: competition_cc.discipline.super_discipline).first
+                league = nil
+                League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: "Region", organizer_id: [region.id, dbu_region_id]).each do |l|
+                  if l.branch == branch_cc.discipline
+                    league = l
+                    break
+                  end
+                end
                 league.assign_attributes(cc_id: cc_id)
               end
               unless league.present?
@@ -484,12 +490,12 @@ class RegionCc < ApplicationRecord
                   day_seqno = text_arr[1].to_i
                   cc_id = text_arr[2].to_i
                   team_a_str = text_arr[3].split(" ").join(" ")
-                  team_a_cc = league_cc.league_team_ccs.where( name: team_a_str ).first
+                  team_a_cc = league_cc.league_team_ccs.where(name: team_a_str).first
                   unless team_a_cc.present?
                     raise RuntimeError, "Team #{team_a_str} not found", caller
                   end
                   team_b_str = text_arr[4].split(" ").join(" ")
-                  team_b_cc = league_cc.league_team_ccs.where( name: team_b_str ).first
+                  team_b_cc = league_cc.league_team_ccs.where(name: team_b_str).first
                   unless team_b_cc.present?
                     raise RuntimeError, "Team #{team_b_str} not found", caller
                   end
@@ -497,7 +503,7 @@ class RegionCc < ApplicationRecord
                   result = text_arr[6]
                   dummy = text_arr[7]
                   host_str = text_arr[8]
-                  host_cc = league_cc.league_team_ccs.where( name: host_str ).first
+                  host_cc = league_cc.league_team_ccs.where(name: host_str).first
                   unless team_b_cc.present?
                     raise RuntimeError, "Team #{host_str} not found", caller
                   end
@@ -507,7 +513,7 @@ class RegionCc < ApplicationRecord
                   reg_date = Date.parse(reg_date_str)
                   party = league.parties.where(day_seqno: day_seqno, league_team_a: team_a_cc.league_team, league_team_b: team_b_cc.league_team).first
                   unless team_b_cc.present?
-                    raise RuntimeError, "Party #{{day_seqno: day_seqno, team_a_cc_name: team_a_cc.name, team_b_cc_name: team_b_cc.name}} not found", caller
+                    raise RuntimeError, "Party #{{ day_seqno: day_seqno, team_a_cc_name: team_a_cc.name, team_b_cc_name: team_b_cc.name }} not found", caller
                   end
                   party.assign_attributes(cc_id: cc_id)
                   party.save!
