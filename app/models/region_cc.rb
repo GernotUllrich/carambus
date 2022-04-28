@@ -23,6 +23,12 @@ class RegionCc < ApplicationRecord
 
   alias_attribute :fedId, :cc_id
 
+
+  STATUS_MAP = {
+    active: 1,
+    passive: 2
+  }
+
   PATH_MAP = {
     #"showClubList" => "/admin/approvement/player/showClubList.php",
     "createLeagueSave" => "/admin/league/createLeagueSave.php",
@@ -436,35 +442,37 @@ class RegionCc < ApplicationRecord
     done_club_cc_ids = []
     BranchCc.where(context: context).each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
-        res, doc = post_cc(
-          "showClubList",
-          sortKey: "NAME",
-          fedId: branch_cc.fedId,
-          branchId: branch_cc.cc_id,
-          subBranchId: competition_cc.cc_id,
-          sportDistrictId: "*",
-          statusId: 1,
-        )
-        clubs = doc.css('select[name="clubId"] option')
-        clubs.each do |club|
-          cc_id = club["value"].to_i
-          next if done_club_cc_ids.include?(cc_id)
-          name_str = club.text.strip
-          shortname = name_str.match(/\s*([^\(]*)\s*(?:\(.*)?/).andand[1].strip
-          c = Club.find_by_cc_id(cc_id)
-          unless c.present?
-            c = Club.where(shortname: shortname, region_id: region.id).first
+        [:active, :passive].each do |status|
+          res, doc = post_cc(
+            "showClubList",
+            sortKey: "NAME",
+            fedId: branch_cc.fedId,
+            branchId: branch_cc.cc_id,
+            subBranchId: competition_cc.cc_id,
+            sportDistrictId: "*",
+            statusId: STATUS_MAP[status],
+          )
+          clubs = doc.css('select[name="clubId"] option')
+          clubs.each do |club|
+            cc_id = club["value"].to_i
+            next if done_club_cc_ids.include?(cc_id)
+            name_str = club.text.strip
+            shortname = name_str.match(/\s*([^\(]*)\s*(?:\(.*)?/).andand[1].strip
+            c = Club.find_by_cc_id(cc_id)
             unless c.present?
-              Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shorname}' found in region #{context}"
+              c = Club.where(shortname: shortname, region_id: region.id).first
+              unless c.present?
+                Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shorname}' found in region #{context}"
+              end
+            else
+              if c.shortname != shortname
+                Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shorname}' BA: #{c.shortname}"
+              end
+              c.assign_attributes(cc_id: cc_id, status: status)
+              c.save!
+              done_club_cc_ids.push(cc_id)
+              done_clubs.push(c)
             end
-          else
-            if c.shortname != shortname
-              Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shorname}' BA: #{c.shortname}"
-            end
-            c.assign_attributes(cc_id: cc_id)
-            c.save!
-            done_club_cc_ids.push(cc_id)
-            done_clubs.push(c)
           end
         end
       end
