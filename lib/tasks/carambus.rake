@@ -284,7 +284,7 @@ namespace :carambus do
                           player_name = player_css.text.strip
                           uri_player = URI(url+url_player)
                           ba_id_player = url_player.match(/.*\/(\d+)$/).andand[1].andand.to_i
-                          next if Player.find_by_ba_id(ba_id).present?
+                          next if Player.find_by_ba_id(ba_id_player).present?
                           res_player = Net::HTTP.post_form(uri_player, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
                           doc_player = Nokogiri::HTML(res_player.body)
                           doc_player
