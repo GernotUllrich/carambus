@@ -229,6 +229,95 @@ namespace :carambus do
     end
   end
 
+  desc "Scrape League Teams"
+  task :scrape_league_teams => :environment do
+
+    Season.order(name: :desc).each do |season|
+      Region.all.each do |region|
+        #next unless region.shortname == "NBV"
+        url = "https://#{region.shortname.downcase}.billardarea.de"
+        uri = URI(url + '/cms_leagues')
+        Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} leagues in season #{season.name}"
+        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+        doc = Nokogiri::HTML(res.body)
+
+        tabs = doc.css("#tabs > ul > li > a")
+        tabs.each_with_index do |tab, ix|
+          tab_text = tab.text.strip
+          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
+            discipline = Discipline.find_by_name(discipline_name)
+            tab = "#tabs-#{ix + 1} a"
+            lines = doc.css(tab)
+            lines.each do |line|
+              name = line.text.strip
+              url2 = line.attribute("href").value
+              m = url2.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
+              ba_id = m[3] rescue nil
+              single_or_league = m[1] rescue nil
+              plan_or_show = m[2] rescue nil
+              if ba_id.present?
+                uri_league = URI(url + url2)
+                res2 = Net::HTTP.post_form(uri_league, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+                if res2.code == "302"
+                  ba_id2 = res2['location'].match(/.*\/(\d+)\/(\d+)/).andand[2].to_i
+                  res3 = Net::HTTP.post_form(URI.parse(res2['location']), 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+                else
+                  res3 = res
+                end
+                if res3.code == "200"
+                  doc = Nokogiri::HTML(res3.body)
+                  doc.css('#tabs-1 table > tr > td > a').each do |team|
+                    url_team = team["href"]
+                    team_name = team.text.strip
+                    uri_team = URI(url+url_team)
+                    res_team = Net::HTTP.post_form(uri_team, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+                    doc_team = Nokogiri::HTML(res_team.body)
+                    doc_team
+                    doc_team.css("table.matchday_table").each do |table|
+                      ths = table.css("> tr > th")
+                      if ths.present? && ths[0].text == "Name"
+                        table.css("> tr > td > a").each do |player_css|
+                          url_player = player_css["href"]
+                          club_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1].to_i
+                          club = Club[club_id]
+                          player_name = player_css.text.strip
+                          uri_player = URI(url+url_player)
+                          ba_id_player = url_player.match(/.*\/(\d+)$/).andand[1].andand.to_i
+                          next if Player.find_by_ba_id(ba_id).present?
+                          res_player = Net::HTTP.post_form(uri_player, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+                          doc_player = Nokogiri::HTML(res_player.body)
+                          doc_player
+                          elements = doc_player.css("#tabs-1 > fieldset > .element")
+                          name_str = elements[2].css("> .field").text.strip
+                          lastname, firstname = name_str.split(", ")
+                          players = Player.where(firstname: firstname, lastname: lastname).to_a
+                          if players.count == 1
+                            players[0].update(ba_id: ba_id_player)
+                          else
+                            player_ok = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).to_a
+                            player_tmp = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
+                            if player_ok.present? && player_tmp.present?
+                              Player.merge_players(player_ok, player_tmp)
+                            end
+                          end
+                        end
+                      end
+                    end
+                  end
+                end
+              else
+                ba_id
+              end
+            end
+          else
+            break
+          end
+        end
+      end
+    end
+  end
+
   desc "Init PlayerClass"
   task :init_player_classes => :environment do
 

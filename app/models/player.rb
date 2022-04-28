@@ -181,6 +181,17 @@ class Player < ApplicationRecord
     end
     return (player || player_fixed), seeding, state_ix
   end
+
+  def self.merge_players(player_ok, player_tmp)
+    GameParticipation.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
+    SeasonParticipation.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
+    PlayerRanking.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
+    Seeding.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
+    PartyGame.where(player_a_id:player_tmp.id).map{|o| o.update(player_a:player_ok)}
+    PartyGame.where(player_b_id:player_tmp.id).map{|o| o.update(player_b:player_ok)}
+    player_tmp.destroy
+    player_ok
+  end
 end
 
 # {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,
