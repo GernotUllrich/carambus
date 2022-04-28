@@ -462,11 +462,11 @@ class RegionCc < ApplicationRecord
             unless c.present?
               c = Club.where(shortname: shortname, region_id: region.id).first
               unless c.present?
-                Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shorname}' found in region #{context}"
+                Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shortname}' found in region #{context}"
               end
             else
               if c.shortname != shortname
-                Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shorname}' BA: #{c.shortname}"
+                Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shortname}' BA: #{c.shortname}"
               end
               c.assign_attributes(cc_id: cc_id, status: status)
               c.save!
