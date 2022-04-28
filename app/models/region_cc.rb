@@ -23,7 +23,6 @@ class RegionCc < ApplicationRecord
 
   alias_attribute :fedId, :cc_id
 
-
   STATUS_MAP = {
     active: 1,
     passive: 2
@@ -71,6 +70,18 @@ class RegionCc < ApplicationRecord
     # subBranchId: 11
     # sportDistrictId: *
     # statusId: 1   (1 = active)
+    "showLeague_show_teamplayer" => "/admin/report/showLeague_show_teamplayer.php",
+    # GET
+    # p: 187
+    "showLeague_add_teamplayer" => "/admin/report/showLeague_add_teamplayer.php"
+    # fedId: 20,
+    # leagueId: 34,
+    # staffelId: 0,
+    # branchId: 6,
+    # subBranchId: 1,
+    # seasonId: 8,
+    # p: 187,
+    # passnr: 221109,
   }
 
   PHPSESSID = "9310db9a9970e8a02ed95ed8cd8e4309"
@@ -561,18 +572,28 @@ class RegionCc < ApplicationRecord
   def sync_team_players(league_team, context)
     league_team_player_done = []
     league_team_cc = league_team.league_team_cc
-    res, doc = post_cc(
-      "showTeam",
-      fedId: league_team_cc.fedId,
-      branchId: league_team_cc.branchId,
-      subBranchId: league_team_cc.subBranchId,
-      sportDistrictId: "*",
-      clubId: league_team_cc.club.cc_id,
-      originalBranchId: 6,
-      seasonId: league_team_cc.seasonId,
-      teamId: league_team_cc.cc_id
-    )
-    doc.css("table")
+    if league_team.league_team_cc.present?
+      res, doc = get_cc(
+        "showLeague_show_teamplayer",
+        p: league_team_cc.p,
+      )
+      doc.css("tr.tableContent > td > table > tr > td > table").each do |table|
+        ths = table.css("> tr > th")
+        if ths.present? && ths[3].andand.text == "Pass-Nr."
+          table.css("> tr").each do |tr|
+            tds = tr.css("> td")
+            next if tds.blank?
+            cc_id = tds[3].text.to_i
+            ba_id = tds[4].text.to_i
+            player = Player.find_by_ba_id(ba_id) || Player.find_by_cc_id(cc_id)
+            if player.present?
+              league_team_player_done.push(player)
+            end
+          end
+        end
+      end
+    end
+
     return league_team_player_done
   end
 end

@@ -21,7 +21,7 @@ class LeagueCc < ApplicationRecord
   belongs_to :league
   has_many :league_team_ccs
   has_many :party_ccs
-  delegate :fedId, :branchId, :subBranchId, :seasonId, to: :season_cc
+  delegate :fedId, :branchId, :subBranchId, :seasonId, :region_cc, :branch_cc, :competition_cc, to: :season_cc
   alias_attribute :leagueId, :cc_id
   alias_attribute :staffelId, :cc_id2
 

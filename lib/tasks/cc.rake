@@ -259,8 +259,8 @@ namespace :cc do
       League.where(season: season, organizer_type: "Region", organizer_id: region.id).each do |league|
         league_team_players = {}
         league.parties.each do |party|
-          league_team_players[party.league_team_a_id]  ||= []
-          league_team_players[party.league_team_b_id]  ||= []
+          league_team_players[party.league_team_a_id] ||= []
+          league_team_players[party.league_team_b_id] ||= []
           party.party_games.each do |party_game|
             if !league_team_players[party.league_team_a_id].include?(party_game.player_a_id)
               league_team_players[party.league_team_a_id].push(party_game.player_a_id)
@@ -281,8 +281,34 @@ namespace :cc do
         end
         league_team_player_object_hash.keys.each do |lt_id|
           league_team = LeagueTeam[lt_id]
-          league_team_player_done = region_cc.sync_team_players(league_team, context)
-
+          league_team_cc = league_team.league_team_cc
+          if league_team_cc.present?
+            league_team_players_todo = league_team_player_object_hash[lt_id]
+            league_team_player_done = region_cc.sync_team_players(league_team, context)
+            league_team_player_still_todo = league_team_players_todo - league_team_player_done
+            league_team_player_still_todo.each do |player|
+              if force_cc_update
+                unless player.ba_id > 999000000 || player.ba_id.blank?
+                  res, doc = region_cc.post_cc(
+                    "showLeague_add_teamplayer",
+                    fedId: league_team_cc.fedId,
+                    leagueId: league_team_cc.leagueId,
+                    staffelId: 0,
+                    branchId: league_team_cc.branchId,
+                    subBranchId: league_team_cc.subBranchId,
+                    seasonId: league_team_cc.seasonId,
+                    p: league_team_cc.p,
+                    passnr: player.ba_id,
+                  )
+                  doc
+                else
+                  Rails.logger.info "REPORT! [synchronize_team_players_structure] BA-unbekannter Spieler #{player.fullname}(Player[#{player.id}]) aus LeagueTeam[#{league_team.id}] #{league_team.andand.name} in Liga[#{league_team.league.id}]#{league_team.league.name} nicht in CC"
+                end
+              end
+            end
+          else
+            Rails.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
+          end
         end
 
       end
