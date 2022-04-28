@@ -26,6 +26,18 @@ class RegionCc < ApplicationRecord
   PATH_MAP = {
     #"showClubList" => "/admin/approvement/player/showClubList.php",
     "createLeagueSave" => "/admin/league/createLeagueSave.php",
+  # fedId: 20
+  # branchId: 10
+  # subBranchId: 2
+  # seasonId: 11
+  # seasonId: 11
+  # leagueName: Oberliga Dreiband
+  # leagueShortName: OD
+  # reportId: 20
+  # prefix: 0
+  # staffelName:
+  # sportdistrictId: 0
+  # sbut:
     "showLeagueList" => "/admin/report/showLeagueList.php",
     "showLeague" => "/admin/league/showLeague.php",
     "admin_report_showLeague" => "/admin/report/showLeague.php",

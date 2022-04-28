@@ -13,6 +13,7 @@
         <thead>
           <tr>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :Ba_id, 'Ba', class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_cc_id, 'League cc', class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :party_id, 'Party', class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_a_cc_id, 'League team a cc', class: 'text-gray-700' %></th>
@@ -29,6 +30,7 @@
         <% @party_ccs.each do |party_cc| %>
           <tr class="group border-t border-gray-400 hover:bg-gray-100">
                       <td class="p-3"><%= party_cc.cc_id %></td>
+                      <td class="p-3"><%= link_to party_cc.party.andand.ba_id, "https://#{party_cc.party.league.organizer.shortname.downcase}.billardarea.de/cms_leagues/matchday/#{party_cc.party.ba_id}" %></td>
                       <td class="p-3"><%= party_cc.league_cc_id %></td>
                       <td class="p-3"><%= party_cc.party_id %></td>
                       <td class="p-3"><%= party_cc.league_team_a_cc_id %></td>

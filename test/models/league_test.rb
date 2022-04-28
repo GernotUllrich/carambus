@@ -9,6 +9,7 @@
 #  registration_until :date
 #  shortname          :string
 #  staffel_text       :string
+#  type               :string
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  ba_id              :integer

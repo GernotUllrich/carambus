@@ -1,0 +1,2 @@
+class Staffel < League
+end

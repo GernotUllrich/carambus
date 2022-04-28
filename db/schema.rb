@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_27_201111) do
+ActiveRecord::Schema.define(version: 2022_04_28_052629) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -308,6 +308,7 @@ ActiveRecord::Schema.define(version: 2022_04_27_201111) do
     t.string "staffel_text"
     t.integer "cc_id"
     t.string "shortname"
+    t.string "type"
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
   end
 
