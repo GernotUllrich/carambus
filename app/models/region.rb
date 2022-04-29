@@ -103,7 +103,7 @@ class Region < ApplicationRecord
             # try to update ba_id
             ret = players_same_name_arr[0]
             players_same_name_arr[0].update(ba_id: should_be_ba_id)
-          rescue PG::UniqueViolation => e
+          rescue PG::UniqueViolation, PG::DuplicateColumn => e
             Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
           end
         else
@@ -122,7 +122,7 @@ class Region < ApplicationRecord
                 end
               end
             end
-          rescue PG::UniqueViolation => e
+          rescue PG::UniqueViolation, PG::DuplicateColumn => e
             Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
           end
         end
