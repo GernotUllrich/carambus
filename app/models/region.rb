@@ -32,12 +32,12 @@ class Region < ApplicationRecord
   has_one :region_cc
 
   COLUMN_NAMES = {
-      "Logo" => "",
-      "Shortname (BA)" => "regions.shortname",
-      "Name" => "regions.name",
-      "Email" => "regions.email",
-      "Address" => "regions.address",
-      "Country" => "",
+    "Logo" => "",
+    "Shortname (BA)" => "regions.shortname",
+    "Name" => "regions.name",
+    "Email" => "regions.email",
+    "Address" => "regions.address",
+    "Country" => "",
   }
 
   URL_MAP = {
@@ -89,6 +89,52 @@ class Region < ApplicationRecord
                       opts.merge(region_id: self.id)
       )
     end
+  end
+
+  def fix_player_without_ba_id(firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
+    ret = nil
+    # players = Player.joins(party_a_games: { party: :league }).where(leagues: { season_id: 2, organizer_type: "Region, organizer_id: id" }).where(firstname: firstname, lastname: lastname).where("players.ba_id > 99900000").uniq
+    players = Player.where(firstname: firstname, lastname: lastname)
+    if players.present?
+      players.each do |player|
+        players_same_name_arr = Player.where(firstname: player.firstname, lastname: player.lastname).to_a
+        if players_same_name_arr.count == 1
+          begin
+            # try to update ba_id
+            ret = players_same_name_arr[0]
+            players_same_name_arr[0].update(ba_id: should_be_ba_id)
+          rescue PG::UniqueViolation => e
+            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
+          end
+        else
+          begin
+            player_ok_arr = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).to_a
+            player_tmp_arr = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
+            if player_ok_arr.count == 1 && player_tmp_arr.count >= 1
+              ret = Player.merge_players(player_ok_arr.first, player_tmp_arr.first)
+            else
+              Rails.logger.info "REPORT! [fix_players_without_ba_id] Kein Ersatz Record für Spieler gefunden: should_be_ba_id: #{should_be_ba_id} hier: #{lastname}, #{firstname}"
+              if should_be_ba_id.present?
+                begin
+                  ret = Player.create!(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id)
+                rescue Exception => e
+                  Rails.logger.info "REPORT! [fix_player_without_ba_id] #{e}, kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
+                end
+              end
+            end
+          rescue PG::UniqueViolation => e
+            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
+          end
+        end
+      end
+    else
+      begin
+        ret = Player.create(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id)
+      rescue Exception => e
+        Rails.logger.info "REPORT! [fix_player_without_ba_id] #{e}, kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
+      end
+    end
+    return ret
   end
 
   def display_shortname

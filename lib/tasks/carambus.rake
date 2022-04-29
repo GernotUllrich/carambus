@@ -5,6 +5,9 @@ require 'uri'
 require 'net/http'
 require 'csv'
 
+DE_DISCIPLINE_NAMES = ["Pool", "Snooker", "Kegel", "5 Kegel", "Karambol großes Billard", "Karambol kleines Billard", "Biathlon"]
+DISCIPLINE_NAMES = ["Pool", "Snooker", "Pin Billards", "5-Pin Billards", "Carambol Match Billard", "Carambol Small Billard", "Biathlon"]
+
 include ApplicationHelper
 
 namespace :carambus do
@@ -26,6 +29,30 @@ namespace :carambus do
     end
   end
 
+  desc "update disciplines in party games"
+  task :update_disciplines_in_party_games => :environment do
+    PartyGame.all.each do |pg|
+      pg.update_discipline_from_name
+      pg.save
+    end
+  end
+
+  desc "Scrape leagues"
+  task :scrape_leagues => :environment do
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      Region.all.each do |region|
+        League.scrape_leagues_by_region_and_season(region, season)
+      end
+    end
+  end
+
+  desc "Scrape DBU leagues"
+  task :scrape_dbu_leagues => :environment do
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      League.scrape_leagues_by_region_and_season(Region.find_by_shortname("portal"), season)
+    end
+  end
+
   desc "scrape regional club ids"
   task :scrape_regional_club_ids => :environment do
     url = "https://ndbv.club-cloud.de/verein-details.php?p=20-----1-100000-0"
@@ -35,12 +62,17 @@ namespace :carambus do
     clubs = doc.css("article .cc_bluelink")
     clubs.each do |club|
       url = club.attribute("href").value
-      params = url.match(/.*p=(.*)/).andand[1].split('-')
+      params = url.match(/.*p=(.*)/).andand[1].split(/-\|/)
       params
       club_title = club.text
       c = Club.where(region_id: 1, shortname: club_title).first
-      c.andand.update(cc_id: params[3].to_i)
+      c.update(cc_id: params[3].to_i) if c.present?
     end
+  end
+
+  desc "create countries"
+  task :create_countries => :environment do
+    Country.initdb
   end
 
   desc "scrape regions"
@@ -83,41 +115,29 @@ namespace :carambus do
       Season.update_seasons
     end
     Region.scrape_regions
-
   end
 
   desc "scrape clubs"
   task :scrape_clubs => :environment do
-
-    Season.where(ba_id: [12, 13]).order(name: :desc).each do |season|
-      Region.all.each do |region|
-        #if region.shortname.downcase == 'nbv'
-        #if ["BVNRW"].include?(region.shortname)
-        url = "https://#{region.shortname.downcase}.billardarea.de"
-        Rails.logger.info "reading #{url + '/cms_clubs'} - region clubs"
-        html = open(url + '/cms_clubs')
-        force = false
-        doc = Nokogiri::HTML(html)
-        club_details = doc.css("td:nth-child(2) a").map { |d| d.attribute("href").value }
-        club_details.each do |club_detail|
-          club_ba_id = club_detail.match(/.*\/(\d+)$/).andand[1].to_i
-          club = Club.find_by_ba_id(club_ba_id) || Club.new(ba_id: club_ba_id, region_id: region.id)
-          club.scrape_single_club(player_details: true, season: season, force_update: force)
-        end
-      end
-    end
-    #fix title
-    Player.where("title ~ 'Herr.'").update_all(title: 'Herr')
-    Player.where("title ~ 'Frau.'").update_all(title: 'Frau')
+    Club.scrape_clubs(player_details: true)
   end
 
   desc "scrape Players"
   task :scrape_players => :environment do
-    Player.includes(:club => :region).each do |player|
+    ids = []
+    fname = "#{Rails.root}/tmp/pids/XXX"
+    if File.exist?(fname)
+      ids = File.read(fname).split(/\s/)
+    end
+    done_ids = ids
+    Player.includes(:club => :region).where.not(id: ids).each do |player|
+      done_ids << player.id.to_s
+      write_ids(fname, done_ids) if (done_ids.count % 1000 == 0)
+      club = player.club
       url = "https://#{player.club.region.shortname.downcase}.billardarea.de"
       player_details_url = "#{url}/cms_clubs/playerdetails/#{club.ba_id}/#{player.ba_id}"
       Rails.logger.info "reading #{player_details_url} - player details of player [#{player.ba_id}] on club #{club.shortname} [#{club.ba_id}]"
-      html_player_detail = open(player_details_url)
+      html_player_detail = Uri.open(player_details_url)
       doc_player_detail = Nokogiri::HTML(html_player_detail)
       player_ba_id = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) legend+ .element .field").text.strip.to_i
       if player_ba_id == player.ba_id
@@ -126,6 +146,13 @@ namespace :carambus do
         player.update(title: player_title, lastname: player_lastname, firstname: player_firstname)
       end
     end
+    write_ids(fname, done_ids)
+  end
+
+  def write_ids(fname, done_ids)
+    f = File.new(fname, "w")
+    f.write(done_ids.map(&:to_s).join(" "))
+    f.close
   end
 
   desc "retrieve updates from API server"
@@ -135,11 +162,24 @@ namespace :carambus do
 
   desc "Init Disciplines"
   task :init_disciplines => :environment do
-    TableKind::TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
+
+    TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
+
+    TABLE_KIND_DISCIPLINE_NAMES = {
+      "Pin Billards" => [],
+      "Biathlon" => [],
+      "5-Pin Billards" => [],
+      "Pool" => ["9-Ball", "8-Ball", "14.1 endlos", "Blackball"],
+      "Small Billard" => ["Dreiband klein", "Freie Partie klein", "Einband klein", "Cadre 52/2", "Cadre 35/2", "Biathlon", "Nordcup", "Petit/Grand Prix"],
+      "Match Billard" => ["Dreiband groß", "Einband groß", "Freie Partie groß", "Cadre 71/2", "Cadre 47/2", "Cadre 47/1"],
+      "Half Match Billard" => ["Cadre 38/2", "Cadre 57/2"] }
+
+    TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
       tk = TableKind.find_by_name(tk_name) ||
         TableKind.create(name: tk_name)
       v.each do |dis_name|
-        Discipline.create(name: dis_name, table_kind_id: tk.id) unless Discipline.find_by_name_and_table_kind_id(dis_name, tk.id).present?
+        Discipline.find_by_name_and_table_kind_id(dis_name, tk.id) ||
+          Discipline.create(name: dis_name, table_kind_id: tk.id)
       end
     end
   end
@@ -168,6 +208,47 @@ namespace :carambus do
     end
   end
 
+  desc "Scrape leagues"
+  task :scrape_leagues_alternative => :environment do #TODO still necessary?
+    debug = false #true
+    Season.order(ba_id: :desc).limit(2).each do |season|
+      (next unless season.id == 13) if debug
+      Region.all.each do |region|
+        (next unless region.shortname == "NBV") if debug
+        url = "https://#{region.shortname.downcase}.billardarea.de"
+        uri = URI(url + '/cms_leagues')
+        Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
+        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+        doc = Nokogiri::HTML(res.body)
+        tabs = doc.css("#tabs a")
+        tabs.each_with_index do |tab, ix|
+          tab_text = tab.text.strip
+          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
+            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
+            discipline = Discipline.find_by_name(discipline_name)
+            tab = "#tabs-#{ix + 1} a"
+            lines = doc.css(tab)
+            lines.each do |line|
+              name = line.text.strip
+              url = line.attribute("href").value
+              m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
+              ba_id = m[3] rescue nil
+              single_or_league = m[1] rescue nil
+              plan_or_show = m[2] rescue nil
+              if ba_id.present?
+                league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, discipline_id: discipline.andand.id, organizer: region, season: season)
+                league.update(name: name)
+                league.scrape_single_league(game_details: true)
+              end
+            end
+          else
+            break
+          end
+        end
+      end
+    end
+  end
+
   desc "fix tournament discipline by name"
   task :fix_tournament_discipline_by_name => :environment do
     unknown_discipline = Discipline.find_by_name("-")
@@ -189,43 +270,8 @@ namespace :carambus do
   desc "Scrape Tournaments"
   task :scrape_tournaments => :environment do
 
-    Season.order(name: :desc).each do |season|
-      Region.all.each do |region|
-        #next unless region.shortname == "NBV"
-        url = "https://#{region.shortname.downcase}.billardarea.de"
-        uri = URI(url + '/cms_single')
-        Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"
-        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-        doc = Nokogiri::HTML(res.body)
-        tabs = doc.css("#tabs a")
-        tabs.each_with_index do |tab, ix|
-          tab_text = tab.text.strip
-          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
-            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
-            discipline = Discipline.find_by_name(discipline_name)
-            tab = "#tabs-#{ix + 1} a"
-            lines = doc.css(tab)
-            lines.each do |line|
-              name = line.text.strip
-              url = line.attribute("href").value
-              m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
-              ba_id = m[3] rescue nil
-              single_or_league = m[1] rescue nil
-              plan_or_show = m[2] rescue nil
-              if ba_id.present?
-                tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
-                tournament.scrape_single_tournament(game_details: true)
-                tournament.update(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
-                tournament.update_columns(last_ba_sync_date: Time.now)
-              else
-                ba_id
-              end
-            end
-          else
-            break
-          end
-        end
-      end
+    Season.order(name: :desc).to_a[0..1].each do |season|
+      season.scrape_tournaments
     end
   end
 
@@ -270,7 +316,7 @@ namespace :carambus do
                   doc.css('#tabs-1 table > tr > td > a').each do |team|
                     url_team = team["href"]
                     team_name = team.text.strip
-                    uri_team = URI(url+url_team)
+                    uri_team = URI(url + url_team)
                     res_team = Net::HTTP.post_form(uri_team, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
                     doc_team = Nokogiri::HTML(res_team.body)
                     doc_team
@@ -282,7 +328,7 @@ namespace :carambus do
                           club_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1].to_i
                           club = Club[club_id]
                           player_name = player_css.text.strip
-                          uri_player = URI(url+url_player)
+                          uri_player = URI(url + url_player)
                           ba_id_player = url_player.match(/.*\/(\d+)$/).andand[1].andand.to_i
                           next if Player.find_by_ba_id(ba_id_player).present?
                           res_player = Net::HTTP.post_form(uri_player, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
@@ -291,16 +337,7 @@ namespace :carambus do
                           elements = doc_player.css("#tabs-1 > fieldset > .element")
                           name_str = elements[2].css("> .field").text.strip
                           lastname, firstname = name_str.split(", ")
-                          players = Player.where(firstname: firstname, lastname: lastname).to_a
-                          if players.count == 1
-                            players[0].update(ba_id: ba_id_player)
-                          else
-                            player_ok = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).first
-                            player_tmp = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").first
-                            if player_ok.present? && player_tmp.present?
-                              Player.merge_players(player_ok, player_tmp)
-                            end
-                          end
+                          player = region.fix_player_without_ba_id(firstname, lastname, ba_id_player, club.id)
                         end
                       end
                     end
@@ -366,17 +403,19 @@ namespace :carambus do
   task :update_tournaments => :environment do
 
     logger = Logger.new("#{Rails.root}/log/scrape.log")
+    env_season_name = ENV['SEASON']
+    env_region_shortname = ENV['REGION']
 
     Season.order(ba_id: :desc).limit(2).each do |season|
       #Season.order(ba_id: :desc).each do |season|
-      #next unless season.name == "2013/2014"
+      next unless env_season_name.present? && season.name == env_season_name
       Region.all.each do |region|
         #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
         uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: 6040, ba_state: "").map(&:ba_id)
-        #next unless region.shortname == "NBV"
+        next unless env_region_shortname.present? && region.shortname == env_region_shortname
         url = "https://#{region.shortname.downcase}.billardarea.de"
         uri = URI(url + '/cms_single')
         Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"
@@ -667,9 +706,52 @@ namespace :carambus do
   rescue StandardError => e
     e
   end
+
+  desc "generate locations"
+  task :generate_locations => :environment do
+    Tournament.includes(:organizer, :region).order("tournaments.ba_id asc").each do |t|
+      @location = nil
+      @organizer = t.organizer || t.region
+      @address_a = t.location.andand.split("\n").andand.map(&:strip)
+      if @address_a.present?
+        @name = @address_a.shift
+        @address = @address_a.join("\n")
+        @location = Location.where(name: @name, address: @address, organizer: @organizer).first_or_create!
+      end
+      t.tournament_location = @location
+      t.save!
+    end
+  end
+  desc "scrape new tournaments"
+  task :scrape_new_tournaments => :environment do
+    itest = Tournament.order(:ba_id => :desc).first.ba_id
+    ip = 14
+    url = "https://nbv.billardarea.de"
+    dir = 1
+    while ip >= 0
+      itest = itest + dir * 2 ** ip
+      url_tournament = "/cms_single/show/#{itest}"
+      uri = URI(url + url_tournament)
+      res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{Season.last.ba_id}")
+      doc = Nokogiri::HTML(res.body)
+      valid_tournament = true
+      doc.css(".element").each do |element|
+        label = element.css("label").text.strip
+        value = Array(element.css(".field")).map(&:text).map(&:strip).join("\n")
+        if label == "Meisterschaft" && value.blank?
+          valid_tournament = false
+          break
+        end
+      end
+      ip -= 1
+      dir = valid_tournament ? 1 : -1
+    end
+    range = (Tournament.order(:ba_id => :desc).first.ba_id..(itest - 1))
+    Season.last.scrape_tournaments(range.to_a)
+  end
 end
 
-def scrape_single_tournament(tournament, opts = {})
-  tournament.scrape_single_tournament(opts = {})
+def scrape_single_tournament(tournament)
+  tournament.scrape_single_tournament(force_immediate_action: true)
 end
 

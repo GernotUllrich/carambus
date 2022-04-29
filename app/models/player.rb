@@ -192,6 +192,10 @@ class Player < ApplicationRecord
     player_tmp.destroy
     player_ok
   end
+
+  def self.fix_player_without_ba_id(region, firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
+    region.fix_player_without_ba_id(firstname, lastname, should_be_ba_id, should_be_club_id)
+  end
 end
 
 # {"data"=>[{"innings_goal"=>20, "playera"=>{"result"=>25, "innings"=>18, "innings_list"=>[1, 2, 0, 1, 2, 1, 1, 2, 3, 0, 2,
