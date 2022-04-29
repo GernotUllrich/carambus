@@ -93,7 +93,12 @@ class Region < ApplicationRecord
 
   def fix_player_without_ba_id(firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
     ret = nil
-    # players = Player.joins(party_a_games: { party: :league }).where(leagues: { season_id: 2, organizer_type: "Region, organizer_id: id" }).where(firstname: firstname, lastname: lastname).where("players.ba_id > 99900000").uniq
+    args = {firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id}
+    args.reject {|k,v| v.nil?}
+    players = Player.where(args)
+    if players.count == 1
+      return players[0]
+    end
     players = Player.where(firstname: firstname, lastname: lastname)
     if players.present?
       players.each do |player|

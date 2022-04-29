@@ -278,7 +278,7 @@ namespace :carambus do
   desc "Scrape League Teams"
   task :scrape_league_teams => :environment do
 
-    Season.order(name: :desc).each do |season|
+    Season.order(name: :asc).each do |season|
       Region.all.each do |region|
         #next unless region.shortname == "NBV"
         url = "https://#{region.shortname.downcase}.billardarea.de"
