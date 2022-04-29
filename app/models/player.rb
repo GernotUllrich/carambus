@@ -183,14 +183,16 @@ class Player < ApplicationRecord
   end
 
   def self.merge_players(player_ok, player_tmp)
-    GameParticipation.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
-    SeasonParticipation.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
-    PlayerRanking.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
-    Seeding.where(player_id:player_tmp.id).map{|o| o.update(player:player_ok)}
-    PartyGame.where(player_a_id:player_tmp.id).map{|o| o.update(player_a:player_ok)}
-    PartyGame.where(player_b_id:player_tmp.id).map{|o| o.update(player_b:player_ok)}
-    player_tmp.destroy
-    player_ok
+    Player.transaction do
+      GameParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+      SeasonParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+      PlayerRanking.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+      Seeding.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+      PartyGame.where(player_a_id: player_tmp.id).map { |o| o.update(player_a: player_ok) }
+      PartyGame.where(player_b_id: player_tmp.id).map { |o| o.update(player_b: player_ok) }
+      player_tmp.destroy
+      player_ok
+    end
   end
 
   def self.fix_player_without_ba_id(region, firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)

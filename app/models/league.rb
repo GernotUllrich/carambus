@@ -292,14 +292,16 @@ class League < ApplicationRecord
       players.push(player)
     end
     if players.count == 2
-      player = Team.create(data: { "players" => [{ "firstname" => players[0].firstname,
-                                                   "lastname" => players[0].lastname,
-                                                   "ba_id" => players[0].ba_id,
-                                                   "player_id" => players[0].id, },
-                                                 { "firstname" => players[1].firstname,
-                                                   "lastname" => players[1].lastname,
-                                                   "ba_id" => players[1].ba_id,
-                                                   "player_id" => players[1].id, }] })
+      args = {data: { "players" => [{ "firstname" => players[0].firstname,
+                                     "lastname" => players[0].lastname,
+                                     "ba_id" => players[0].ba_id,
+                                     "player_id" => players[0].id, },
+                                   { "firstname" => players[1].firstname,
+                                     "lastname" => players[1].lastname,
+                                     "ba_id" => players[1].ba_id,
+                                     "player_id" => players[1].id, }] }}
+
+      player = Team.where(args).first || Team.create(args)
     end
     return player
   end
