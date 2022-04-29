@@ -108,7 +108,7 @@ class Region < ApplicationRecord
           end
         else
           begin
-            player_ok_arr = Player.where(firstname: firstname, lastname: lastname, ba_id: ba_id_player).to_a
+            player_ok_arr = Player.where(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id).to_a
             player_tmp_arr = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
             if player_ok_arr.count == 1 && player_tmp_arr.count >= 1
               ret = Player.merge_players(player_ok_arr.first, player_tmp_arr.first)
