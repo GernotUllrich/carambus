@@ -325,19 +325,29 @@ namespace :carambus do
                       if ths.present? && ths[0].text == "Name"
                         table.css("> tr > td > a").each do |player_css|
                           url_player = player_css["href"]
-                          club_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1].to_i
-                          club = Club[club_id]
+                          club_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1].to_i
+                          club = Club.find_by_ba_id(club_ba_id)
+                          unless club.present?
+                            Rails.logger.info "REPORT! [scrape_league_teams] Unknown Club #{}"
+                          end
                           player_name = player_css.text.strip
                           uri_player = URI(url + url_player)
                           ba_id_player = url_player.match(/.*\/(\d+)$/).andand[1].andand.to_i
-                          next if Player.find_by_ba_id(ba_id_player).present?
+                          player = Player.find_by_ba_id(ba_id_player)
+                          if player.present? && club.present?
+                            player.assign_attributes(club_id: club.id)
+                            if player.club_id_changed?
+                              player.save!
+                              Rails.logger.info "REPORT! [scrape_league_teams] Player[#{player.id}] #{player.fullname} changed to Club #{club.name}: #{player.changes.inspect}"
+                            end
+                          end
                           res_player = Net::HTTP.post_form(uri_player, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
                           doc_player = Nokogiri::HTML(res_player.body)
                           doc_player
                           elements = doc_player.css("#tabs-1 > fieldset > .element")
                           name_str = elements[2].css("> .field").text.strip
                           lastname, firstname = name_str.split(", ")
-                          player = region.fix_player_without_ba_id(firstname, lastname, ba_id_player, club.id)
+                          player = region.fix_player_without_ba_id(firstname, lastname, ba_id_player, club.andand.id)
                         end
                       end
                     end
