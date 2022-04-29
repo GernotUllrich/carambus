@@ -123,7 +123,7 @@ class Region < ApplicationRecord
                 begin
                   ret = Player.create!(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id)
                 rescue Exception => e
-                  Rails.logger.info "REPORT! [fix_player_without_ba_id] #{e}, kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
+                  Rails.logger.info "REPORT! [fix_player_without_ba_id] (1) kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
                 end
               end
             end
@@ -136,7 +136,7 @@ class Region < ApplicationRecord
       begin
         ret = Player.create(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id)
       rescue Exception => e
-        Rails.logger.info "REPORT! [fix_player_without_ba_id] #{e}, kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
+        Rails.logger.info "REPORT! [fix_player_without_ba_id] (2) kann Spieler Record nicht anlegen: firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_id: #{should_be_club_id}"
       end
     end
     return ret
