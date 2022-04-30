@@ -134,7 +134,7 @@ class TournamentMonitor < ApplicationRecord
   end
 
   def all_table_monitors_finished?
-    !(table_monitors.map(&:state) & %w[game_setup_started game_warmup_a_started game_warmup_b_started
+    !(table_monitors.joins(:game).map(&:state) & %w[game_setup_started game_warmup_a_started game_warmup_b_started
                                        game_shootout_started playing_game game_finished game_show_result]).present?
   end
 
@@ -173,7 +173,7 @@ class TournamentMonitor < ApplicationRecord
     #     "GD": 1.56,
     #     "HS": 6
     # }
-    table_monitors.each do |tabmon|
+    table_monitors.joins(:game).each do |tabmon|
       game = tabmon.game
       next unless game.present?
 
@@ -646,7 +646,7 @@ class TournamentMonitor < ApplicationRecord
             tno_str, players = executor_params[k]["r#{r_no}"].to_a[0]
             Tournament.logger.info "+++012B k, r_no, tno_str, players = #{k}, #{r_no}, #{tno_str}, #{players}"
             if (mm = tno_str.match(/t(\d+)/))
-              t_no = mm[1]
+              t_no = mm[1].to_i
             elsif (mm = tno_str.match(/t-rand-(\d+)-(\d+)/))
               ordered_table_nos[tno_str] ||= (mm[1].to_i..mm[2].to_i).to_a.shuffle
               t_no = ordered_table_nos[tno_str].pop
