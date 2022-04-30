@@ -121,7 +121,13 @@
                       </td>
                     <% end %>
                   <% else %>
-                    <td colspan=6><%= link_to I18n.t("table_monitor.status.#{tm.state}", wait_check: tm.player_controlled? ? "OK?" : I18n.t("table_monitor.status.wait_check")), evaluate_result_table_monitor_path(tm), method: :post %></td>
+
+                    <%- if tm.state == 'game_show_result' %>
+                      <td colspan=6><%= link_to I18n.t('table_monitor.status.game_show_result', game_or_set_finished: @game_or_set,
+                                                       wait_check: tm.player_controlled? ? 'OK?' : I18n.t('table_monitor.status.wait_check')), evaluate_result_table_monitor_path(tm), method: :post %></td>
+                    <%- else %>
+                      <td colspan=6><%= link_to I18n.t("table_monitor.status.#{tm.state}", wait_check: tm.player_controlled? ? "OK?" : I18n.t("table_monitor.status.wait_check")), evaluate_result_table_monitor_path(tm), method: :post %></td>
+                    <%- end %>
                   <% end %>
                 </tr>
               <% end %>
