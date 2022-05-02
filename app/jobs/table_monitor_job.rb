@@ -15,7 +15,7 @@ class TableMonitorJob < ApplicationJob
       selector: "#full_screen_table_monitor_#{table_monitor.id}",
       html: full_screen_html
     )
-    if table_monitor.tournament_monitor.present?
+    if table_monitor.tournament_monitor.present? && false
       html_current_games = ApplicationController.render(
         partial: "tournament_monitors/current_games",
         locals: { tournament_monitor: table_monitor.tournament_monitor }
