@@ -16,7 +16,7 @@
     <tbody>
     <% @branch_ccs.each do |branch_cc| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100">
-        <td class="p-3"><%= branch_cc.cc_id %></td>
+        <td class="p-3"><%= link_to branch_cc.cc_id, branch_cc_path(branch_cc) %></td>
         <td class="p-3"><%= branch_cc.context %></td>
         <%- unless @region_cc.present? %>
           <td class="p-3"><%= link_to_if branch_cc.region_cc.region.present?, "#{branch_cc.region_cc.shortname}(#{branch_cc.region_cc_id})", region_cc_path(branch_cc.region_cc) %></td>

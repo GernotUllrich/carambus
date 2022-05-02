@@ -5,24 +5,24 @@
       <%= link_to 'Edit', edit_region_cc_path(@region_cc), class: "btn btn-link" %>
     </div>
 
-    <div class="bg-white rounded shadow p-8">
-            <div class="mb-4">
+    <div class="flex flex-wrap bg-white rounded shadow p-8">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
         <h5>Cc</h5>
         <%= @region_cc.cc_id %>
       </div>
-            <div class="mb-4">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
         <h5>Context</h5>
         <%= @region_cc.context %>
       </div>
-            <div class="mb-4">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
         <h5>Region</h5>
         <%= link_to "#{@region_cc.region.shortname}[#{@region_cc.region_id}]", region_path(@region_cc.region) %>
       </div>
-            <div class="mb-4">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
         <h5>Shortname</h5>
         <%= @region_cc.shortname %>
       </div>
-            <div class="mb-4">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
         <h5>Name</h5>
         <%= @region_cc.name %>
       </div>

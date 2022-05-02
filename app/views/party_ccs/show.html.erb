@@ -44,4 +44,11 @@
       </div>
           </div>
   </div>
+
+  <% if @party_game_ccs.any? %>
+    <h3> Party Games</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'party_game_ccs/party_game_ccs_table' %>
+    </div>
+  <% end %>
 </div>

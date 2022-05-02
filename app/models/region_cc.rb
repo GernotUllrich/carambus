@@ -6,6 +6,7 @@
 #  base_url   :string
 #  context    :string
 #  name       :string
+#  public_url :string
 #  shortname  :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -15,6 +16,7 @@
 # Indexes
 #
 #  index_region_ccs_on_cc_id_and_context  (cc_id,context) UNIQUE
+#  index_region_ccs_on_context            (context) UNIQUE
 #
 class RegionCc < ApplicationRecord
 
@@ -29,6 +31,7 @@ class RegionCc < ApplicationRecord
   }
 
   PATH_MAP = {
+    "home" => "",
     #"showClubList" => "/admin/approvement/player/showClubList.php",
     "createLeagueSave" => "/admin/league/createLeagueSave.php",
     # fedId: 20
@@ -46,6 +49,11 @@ class RegionCc < ApplicationRecord
     "showLeagueList" => "/admin/report/showLeagueList.php",
     "showLeague" => "/admin/league/showLeague.php",
     "admin_report_showLeague" => "/admin/report/showLeague.php",
+    # branchId: 6
+    # fedId: 20
+    # subBranchId: 1
+    # seasonId: 8
+    # leagueId: 34
     "admin_report_showLeague_create_team" => "/admin/report/showLeague_create_team.php",
     # teamCounter: 2
     # fedId: 20
@@ -176,10 +184,10 @@ class RegionCc < ApplicationRecord
     # 572-9-1-vo2:
   }
 
-  PHPSESSID = "907c2d6b8c1970683440b12f5d492c7c"
+  #PHPSESSID = "3e7da06b0149fe5ad787246fc7a0e2b4"
   BASE_URL = "https://e12112e2454d41f1824088919da39bc0.club-cloud.de"
 
-  def post_cc(action, options = {})
+  def post_cc(action, session_id, options = {})
     if PATH_MAP[action].present?
       url = base_url + PATH_MAP[action]
       Rails.logger.debug "[post_cc] POST #{action} with payload #{options}"
@@ -187,7 +195,7 @@ class RegionCc < ApplicationRecord
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       req = Net::HTTP::Post.new(uri.request_uri)
-      req["cookie"] = "PHPSESSID=#{PHPSESSID}"
+      req["cookie"] = "PHPSESSID=#{session_id}"
       req['Content-Type'] = 'application/x-www-form-urlencoded'
       req.set_form_data(options.reject { |k, v| v.blank? })
       res = http.request(req)
@@ -202,31 +210,35 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def get_cc(action, options = {})
+  def get_cc(action, session_id, options = {})
     if PATH_MAP[action].present?
       url = base_url + PATH_MAP[action]
-      Rails.logger.debug "[post_cc] POST #{action} with payload #{options}"
-      uri = URI(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      req = Net::HTTP::Get.new(uri.path)
-      req.set_form_data(options)
-      # instantiate a new Request object
-      req = Net::HTTP::Get.new(uri.path + "#{'?' unless uri.path.match(/\?$/)}" + req.body)
-      req["cookie"] = "PHPSESSID=#{PHPSESSID}"
-      res = http.request(req)
-      if res.message == "OK"
-        doc = Nokogiri::HTML(res.body)
-      else
-        doc = Nokogiri::HTML(res.message)
-      end
-      return [res, doc]
+      return get_cc_with_url(action, session_id, url, options)
     else
       raise ArgumentError, "Unknown Action", caller
     end
   end
 
-  def self.sync_regions(region)
+  def get_cc_with_url(action, session_id, url, options = {})
+    Rails.logger.debug "[post_cc] POST #{action} with payload #{options}"
+    uri = URI(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    req = Net::HTTP::Get.new(uri.path)
+    req.set_form_data(options)
+    # instantiate a new Request object
+    req = Net::HTTP::Get.new(uri.path + "#{'?' unless uri.path.match(/\?$/)}" + req.body)
+    req["cookie"] = "PHPSESSID=#{session_id}" if session_id.present?
+    res = http.request(req)
+    if res.message == "OK"
+      doc = Nokogiri::HTML(res.body)
+    else
+      doc = Nokogiri::HTML(res.message)
+    end
+    return [res, doc]
+  end
+
+  def self.sync_regions(sesion_id, region)
     regions = []
     res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc("showClubList")
     selector = doc.css('select[name="fedId"]')[0]
@@ -257,10 +269,10 @@ class RegionCc < ApplicationRecord
     return regions
   end
 
-  def sync_branches
+  def sync_branches(session_id)
     branches = []
     context = shortname.downcase
-    res, doc = get_cc("showClubList")
+    res, doc = get_cc("showClubList", sesion_id)
     selector = doc.css('select[name="branchId"]')[0]
     options = selector.css("option")
     options.each do |option|
@@ -284,12 +296,12 @@ class RegionCc < ApplicationRecord
     return branches
   end
 
-  def sync_competitions
+  def sync_competitions(session_id)
     competitions = []
     context = shortname.downcase
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
-      res, doc = post_cc("showLeagueList", fedId: cc_id, branchId: branch_cc.cc_id)
+      _, doc = post_cc("showLeagueList", session_id, fedId: cc_id, branchId: branch_cc.cc_id)
       selector = doc.css('select[name="subBranchId"]')[0]
       options = selector.css("option")
       options.each do |option|
@@ -318,7 +330,7 @@ class RegionCc < ApplicationRecord
     return competitions
   end
 
-  def sync_seasons_in_competitions(season_name)
+  def sync_seasons_in_competitions(session_id, season_name)
 
     context = shortname.downcase
     season = Season.find_by_name(season_name)
@@ -329,8 +341,9 @@ class RegionCc < ApplicationRecord
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
-        res, doc = post_cc(
+        _, doc = post_cc(
           "showLeagueList",
+          session_id,
           fedId: cc_id,
           branchId: branch_cc.cc_id,
           subBranchId: competition_cc.cc_id
@@ -357,7 +370,7 @@ class RegionCc < ApplicationRecord
     return competition_ccs
   end
 
-  def sync_leagues(season_name, opts = {})
+  def sync_leagues(session_id, season_name, opts = {})
 
     context = shortname.downcase
     region = Region.find_by_shortname(context.upcase)
@@ -374,8 +387,9 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           next unless season_cc.name == season_name
-          res, doc = post_cc(
+          _, doc = post_cc(
             "showLeagueList",
+            session_id,
             fedId: cc_id,
             branchId: branch_cc.cc_id,
             subBranchId: competition_cc.cc_id,
@@ -415,8 +429,9 @@ class RegionCc < ApplicationRecord
                 args = { cc_id: cc_id, context: context, name: name_str, season_cc_id: season_cc.id, league_id: league.id }
                 league_cc = LeagueCc.find_by_cc_id_and_season_cc_id_and_context(cc_id, season_cc.id, context) || LeagueCc.new(args)
                 league_cc.assign_attributes(args)
-                res2, doc2 = post_cc(
+                _, doc2 = post_cc(
                   "showLeague",
+                  session_id,
                   fedId: cc_id,
                   branchId: branch_cc.cc_id,
                   subBranchId: competition_cc.cc_id,
@@ -464,8 +479,9 @@ class RegionCc < ApplicationRecord
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next unless season_cc.name == season_name
-            res, doc = post_cc(
+            _, doc = post_cc(
               "admin_report_showLeague",
+              session_id,
               fedId: league_cc.fedId,
               branchId: league_cc.branchId,
               subBranchId: league_cc.subBranchId,
@@ -546,8 +562,9 @@ class RegionCc < ApplicationRecord
     BranchCc.where(context: context).each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
         [:active, :passive].each do |status|
-          res, doc = post_cc(
+          _, doc = post_cc(
             "showClubList",
+            session_id,
             sortKey: "NAME",
             fedId: branch_cc.fedId,
             branchId: branch_cc.cc_id,
@@ -592,8 +609,9 @@ class RegionCc < ApplicationRecord
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next unless season_cc.name == season_name
-            res, doc = post_cc(
+            _, doc = post_cc(
               "admin_report_showLeague",
+              session_id,
               fedId: league_cc.fedId,
               branchId: league_cc.branchId,
               subBranchId: league_cc.subBranchId,

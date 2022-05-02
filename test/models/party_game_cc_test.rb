@@ -10,6 +10,7 @@
 #  updated_at    :datetime         not null
 #  cc_id         :integer
 #  discipline_id :integer
+#  party_cc_id   :integer
 #  player_a_id   :integer
 #  player_b_id   :integer
 #

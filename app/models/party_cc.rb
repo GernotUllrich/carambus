@@ -24,7 +24,7 @@ class PartyCc < ApplicationRecord
   belongs_to :league_team_host_cc, class_name: 'LeagueTeamCc', foreign_key: :league_team_host_cc_id, optional: true
   belongs_to :party
   has_many :party_game_ccs
-  delegate :fedId, :branchId, :subBranchId, :season_id, :leagueId, to: :league_team_a_cc
+  delegate :fedId, :branchId, :subBranchId, :season_id, :leagueId, to: :league_cc
 
   def name
     "#{league_team_a_cc.name} - #{league_team_b_cc.name}"

@@ -1,7 +1,8 @@
 <%- if table_monitor.andand.reload.present? %>
   <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = table_monitor.get_progress_bar_status(18) %>
   <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
-  <%- options = {
+  <%- #noinspection RubyResolve
+      options = {
     id: table_monitor.id,
     name: table_monitor.name,
     game_name: table_monitor.game.andand.display_gname,
@@ -103,12 +104,13 @@
         <%= render_svg "icons/warning-sign-svgrepo-com", styles: "flex fill-current lg:m-5 h-12 lg:h-24 w-12 lg:w-24", title: "e.g. reg:nordd wedel" %>
         <h1 class="text-3vw mb-5"><%= t('warning') %></h1>
         <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
-        <%- if (table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing_game?)) %>
+        <%- #noinspection RubyResolve
+            if table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing_game?) %>
           <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
           <%= link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless (table_monitor.tournament_monitor.present? && table_monitor.playing_game?)
+          <%- unless table_monitor.tournament_monitor.present? && table_monitor.playing_game?
                 #&& !table_monitor.end_of_set? %>
             <%= link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
@@ -147,6 +149,8 @@
   <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
   <%- if full_screen %>
     <div class="fullscreen flex flex-col h-full bg-white dark:bg-black rounded shadow">
+      <%- showing_timer_a = (left_player_active && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
+      <%- showing_timer_b = (right_player_active && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
       <div class="flex h-5/6 bg-gray-200">
         <div class="w-2/5 <%= options[:current_left_color] == "yellow" ? "player_b dark:bg-black bg-yellow-500 dark:text-yellow-500" : "player_a bg-white dark:text-white bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6 bg-white dark:bg-black items-center">
@@ -196,7 +200,6 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_a touchstart->TableMonitorReflex#key_a", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "playera", style: "letter-spacing: -3px;", id: "left", tabindex: 1 do %>
                 <%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer_a = (left_player_active && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
               <%- if showing_timer_a.blank? %>
                 <div class="hide-on-display-only">
                   <div class="flex flex-1 flex-col">
@@ -245,7 +248,7 @@
           <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#force_next_state touchstart->TableMonitorReflex#force_next_state", id: options[:id] }, id: "game_state", class: "flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800" do %>
             <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
               <div class="h-5/6 p-4 text-8vw font-bold text-center"><%= options[:current_kickoff_player] == 'playera' ? left_player[:innings].to_i : right_player[:innings].to_i %></div>
-              <%- unless (table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:innings_goal].to_i == 0) %>
+              <%- unless table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:innings_goal].to_i == 0 %>
                 <div class="h-1/6 items-center text-2vw justify-center text-center"><%= t('of') %> <%= options[:innings_goal].to_i %></div>
               <%- end %>
             </div>
@@ -262,9 +265,9 @@
               <%- if options[:sets_to_play].to_i > 1 %>
                 <div class="flex flex-1 items-center text-center text-2vw"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
               <%- end %>
-              <%- if !options[:allow_follow_up] %>
-                <div class="flex flex-1 items-center text-center text-2vw"><%= "Kein Nachstoss" %></div>
-              <%- end %>
+              <%- unless options[:allow_follow_up] %>
+              <div class="flex flex-1 items-center text-center text-2vw"><%=  "Kein Nachstoss"  %></div>
+              <%-  end %>
             </div>
             <div class="flex flex-col items-center h-1/6">
               <div class="flex h-2/3 flex-row space-x-3 rounded-full">
@@ -332,7 +335,6 @@
               <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#key_b touchstart->TableMonitorReflex#key_b", id: options[:id] }, class: "flex h-4/6 text-center text-24vw justify-center items-center font-bold", title: "playerb", style: "letter-spacing: -3px;", id: "right", tabindex: 1 do %>
                 <%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %>
               <%- end %>
-              <%- showing_timer_b = (right_player_active && table_monitor.playing_game? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
               <%- if showing_timer_b.blank? %>
                 <div class="hide-on-display-only">
                   <div class="flex flex-1 flex-col">
@@ -358,7 +360,11 @@
           </div>
         </div>
       </div>
-      <%- showing_timer = showing_timer_a.blank? ? showing_timer_a : showing_timer_b.blank? ? showing_timer_b : "hidden" %>
+      <%- showing_timer = if showing_timer_a.blank?
+                            showing_timer_a
+                          else
+                            showing_timer_b.blank? ? showing_timer_b : "hidden"
+                          end %>
       <div class="show-on-display-only flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_new_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
         <div class="w-1/12 font-bold text-center text-4vw p-2"><%= time_counter %></div>
         <div class="flex flex-1 w-full justify-end mr-10 flex-row w-11/12">
@@ -463,9 +469,9 @@
           <div class="flex flex-col h-5/6 bg-gray-100 dark:bg-gray-800">
             <div class="flex flex-col h-2/6">
               <div class="h-4/6 text-4vw font-bold text-center"><%= left_player[:innings].to_i %></div>
-              <%- unless (table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:innings_goal].to_i == 0) %>
+              <%- unless table_monitor.tournament_monitor.andand.tournament.andand.handicap_tournier? || options[:innings_goal].to_i == 0 %>
 
-                <div class="h-2/6 items-center text-1-5vw justify-center text-center"><%= t("of") %> <%= options[:innings_goal].to_i %></div>
+              <div class="h-2/6 items-center text-1-5vw justify-center text-center"><%=   t("of")   %> <%= options[:innings_goal].to_i %></div>
               <%- end %>
             </div>
             <div class="flex flex-col h-3/6 bg-white dark:bg-black items-center ">

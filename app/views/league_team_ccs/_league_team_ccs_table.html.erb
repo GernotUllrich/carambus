@@ -17,7 +17,7 @@
     <tbody>
     <% @league_team_ccs.each do |league_team_cc| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100">
-        <td class="p-3"><%= league_team_cc.cc_id %></td>
+        <td class="p-3"><%= link_to league_team_cc.cc_id,league_team_cc_path(league_team_cc) %></td>
         <td class="p-3"><%= league_team_cc.name %></td>
         <td class="p-3"><%= league_team_cc.shortname %></td>
         <%- unless @league_cc.present? %>

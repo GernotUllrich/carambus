@@ -6,6 +6,7 @@
 #  base_url   :string
 #  context    :string
 #  name       :string
+#  public_url :string
 #  shortname  :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -15,6 +16,7 @@
 # Indexes
 #
 #  index_region_ccs_on_cc_id_and_context  (cc_id,context) UNIQUE
+#  index_region_ccs_on_context            (context) UNIQUE
 #
 require "test_helper"
 

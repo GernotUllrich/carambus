@@ -12,6 +12,7 @@ class PartyCcsController < ApplicationController
 
   # GET /party_ccs/1
   def show
+    @party_game_ccs = @party_cc.party_game_ccs
   end
 
   # GET /party_ccs/new

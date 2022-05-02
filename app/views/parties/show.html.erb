@@ -28,11 +28,11 @@
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5>Ba</h5>
-        <%= link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}" %>
+        <%= link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}", target: :_blank %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5>CC</h5>
-        <%= link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}", target: :_blank if @party.party_cc.present? %>
+        <%= link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", party_cc_path(@party.party_cc) if @party.party_cc.present? %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5>Day seqno</h5>

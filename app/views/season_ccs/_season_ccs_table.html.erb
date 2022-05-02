@@ -17,7 +17,7 @@
     <tbody>
     <% @season_ccs.each do |season_cc| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100">
-        <td class="p-3"><%= season_cc.cc_id %></td>
+        <td class="p-3"><%= link_to season_cc.cc_id, season_cc_path(season_cc) %></td>
         <td class="p-3"><%= season_cc.name %></td>
         <td class="p-3"><%= link_to "#{season_cc.season.name}[#{season_cc.season_id}]", season_path(season_cc.season) %></td>
         <%- unless @competition_cc.present? %>

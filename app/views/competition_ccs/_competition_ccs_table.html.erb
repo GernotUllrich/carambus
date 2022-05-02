@@ -16,7 +16,7 @@
     <tbody>
     <% @competition_ccs.each do |competition_cc| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100">
-        <td class="p-3"><%= competition_cc.cc_id %></td>
+        <td class="p-3"><%= link_to competition_cc.cc_id, competition_cc_path(competition_cc) %></td>
         <td class="p-3"><%= competition_cc.name %></td>
         <td class="p-3"><%= competition_cc.context %></td>
         <%- unless @competition_cc.present? %>

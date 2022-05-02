@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_28_052629) do
+ActiveRecord::Schema.define(version: 2022_05_02_132002) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -387,6 +387,7 @@ ActiveRecord::Schema.define(version: 2022_04_28_052629) do
     t.integer "discipline_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "party_cc_id"
   end
 
   create_table "party_games", force: :cascade do |t|
@@ -519,7 +520,9 @@ ActiveRecord::Schema.define(version: 2022_04_28_052629) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "base_url"
+    t.string "public_url"
     t.index ["cc_id", "context"], name: "index_region_ccs_on_cc_id_and_context", unique: true
+    t.index ["context"], name: "index_region_ccs_on_context", unique: true
   end
 
   create_table "regions", force: :cascade do |t|

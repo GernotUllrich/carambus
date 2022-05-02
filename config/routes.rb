@@ -45,7 +45,7 @@ Rails.application.routes.draw do
     end
   end
 
-  scope :api, defaults: {format: :json} do
+  scope :api, defaults: { format: :json } do
     scope :v1 do
       resource :auth
       resource :me, controller: :me
@@ -54,133 +54,134 @@ Rails.application.routes.draw do
     end
   end
 
-    # User account
-    devise_for :users, skip: :omniauth_callbacks,
-               controllers: {
-                 masquerades: "jumpstart/masquerades",
-                 omniauth_callbacks: "users/omniauth_callbacks",
-                 registrations: "users/registrations"
-               }
-    resources :seedings do
-      member do
-        post :up
-        post :down
-        get :up
-        get :down
-      end
+  # User account
+  devise_for :users, skip: :omniauth_callbacks,
+             controllers: {
+               masquerades: "jumpstart/masquerades",
+               omniauth_callbacks: "users/omniauth_callbacks",
+               registrations: "users/registrations"
+             }
+  resources :seedings do
+    member do
+      post :up
+      post :down
+      get :up
+      get :down
     end
-    resources :table_monitors do
-      member do
-        post :set_balls
-        post :add_one
-        post :add_ten
-        post :minus_one
-        post :minus_ten
-        post :next_step
-        get :next_step
-        post :start_game
-        get :start_game
-        post :evaluate_result
-        get :evaluate_result
-        post :undo
-        post :up
-        post :down
-        get :up
-        get :down
-        get :toggle_dark_mode
-      end
+  end
+  resources :table_monitors do
+    member do
+      post :set_balls
+      post :add_one
+      post :add_ten
+      post :minus_one
+      post :minus_ten
+      post :next_step
+      get :next_step
+      post :start_game
+      get :start_game
+      post :evaluate_result
+      get :evaluate_result
+      post :undo
+      post :up
+      post :down
+      get :up
+      get :down
+      get :toggle_dark_mode
     end
-    resources :settings do
-      collection do
-        get :club_settings
-        post :update_club_settings
-        get :tournament_settings
-        post :update_tournament_settings
-        post :manage_tournament
-      end
+  end
+  resources :settings do
+    collection do
+      get :club_settings
+      post :update_club_settings
+      get :tournament_settings
+      post :update_tournament_settings
+      post :manage_tournament
     end
+  end
 
-    resources :tournament_monitors do
-      member do
-        post :switch_players
-        post :update_games
-      end
+  resources :tournament_monitors do
+    member do
+      post :switch_players
+      post :update_games
     end
-    resources :discipline_tournament_plans
-    resources :users
-    resources :player_classes
-    resources :player_rankings
-    resources :player_tournament_participations
-    resources :locations do
-      collection do
-        post :merge
-      end
-      member do
-        post :add_tables_to
-        post :placement
-        post :game_results
-        post :new_league_tournament
-        get :game_results
-        get :placement
-        get :scoreboard
-      end
+  end
+  resources :discipline_tournament_plans
+  resources :users
+  resources :player_classes
+  resources :player_rankings
+  resources :player_tournament_participations
+  resources :locations do
+    collection do
+      post :merge
     end
-    resources :seasons
-    resources :table_kinds
-    resources :disciplines
-    resources :tournaments do
-      member do
-        post :order_by_ranking_or_handicap
-        post :select_modus
-        post :start
-        post :reset
-        get :finalize_modus
-        get :tournament_monitor
-        post :reload_from_ba
-        post :finish_seeding
-        get :define_participants
-        post :placement
-        get :placement
-        get :new_team
-        post :add_team
-      end
+    member do
+      post :add_tables_to
+      post :placement
+      post :game_results
+      post :new_league_tournament
+      get :game_results
+      get :placement
+      get :scoreboard
     end
-    resources :tournament_plan_games
-    resources :season_participations
-    resources :game_participations
-    resources :games
-    resources :tournament_plans
-    resources :tables
-      resources :seedings do
-      member do
-        post :down
-        post :up
-      end
+  end
+  resources :seasons
+  resources :table_kinds
+  resources :disciplines
+  resources :tournaments do
+    member do
+      post :order_by_ranking_or_handicap
+      post :select_modus
+      post :start
+      post :reset
+      get :finalize_modus
+      get :tournament_monitor
+      post :reload_from_ba
+      post :finish_seeding
+      get :define_participants
+      post :placement
+      get :placement
+      get :new_team
+      post :add_team
     end
+  end
+  resources :tournament_plan_games
+  resources :season_participations
+  resources :game_participations
+  resources :games
+  resources :tournament_plans
+  resources :tables
+  resources :seedings do
+    member do
+      post :down
+      post :up
+    end
+  end
 
-    resources :players do
-      member do
-        post :create_admin
-      end
+  resources :players do
+    member do
+      post :create_admin
     end
-    resources :clubs do
-      member do
-        get :get_club_details
-        post :reload_from_ba
-        post :reload_from_ba_with_player_details
-        post :new_club_tournament
-        post :new_club_location
-        post :new_club_guest
-      end
+  end
+  resources :clubs do
+    member do
+      get :get_club_details
+      post :reload_from_ba
+      post :reload_from_ba_with_player_details
+      post :new_club_tournament
+      post :new_club_location
+      post :new_club_guest
     end
-    resources :regions do
-      member do
-        get :get_club_selector
-        post :reload_from_ba
-        post :reload_from_ba_with_player_details
-      end
+  end
+  resources :regions do
+    member do
+      get :get_club_selector
+      post :reload_from_ba
+      post :reload_from_ba_with_player_details
+      get :migration_cc
     end
-    resources :countries
+  end
+  resources :countries
   resources :announcements, only: [:index]
   resources :api_tokens
   resources :accounts do
@@ -215,7 +216,7 @@ Rails.application.routes.draw do
   end
 
   namespace :action_text do
-    resources :embeds, only: [:create], constraints: {id: /[^\/]+/} do
+    resources :embeds, only: [:create], constraints: { id: /[^\/]+/ } do
       collection do
         get :patterns
       end

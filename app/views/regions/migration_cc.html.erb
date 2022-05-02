@@ -1,0 +1,22 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <h2>Migration Billard Area zur Club Cloud</h2>
+      <ul class="@apply list-disc list-outside font-bold h3">
+      <li><h3>Regionale Club Cloud für <%= @region.name %></h3>
+        <%- if @region.region_cc.present? %>
+        <%= link_to "#{@region.region_cc.shortname}(#{@region.region_cc.id})", region_cc_path(@region.region_cc) %>
+          <%- else %>
+        <p>Zunächst muss die Verbindung zur Club Cloud Instanz hergestellt werden (URL und fedId):</p>
+          <%- @region_cc = RegionCc.new(context: @region.shortname.downcase) %>
+          <p><%= link_to 'New Region Cc', "/region_ccs/new?context=#{@region.shortname.downcase}&region_id=#{@region.id}&name=#{@region.name}&shortname=#{@region.shortname}", class: "btn btn-primary" %></p>
+          <%- end %>
+      </li>
+      <li><h3>synchronize_season_structure</h3></li>
+      <li><h3>synchronize_league_structure</h3></li>
+      <li><h3>synchronize_region_structure</h3></li>
+      <li><h3>synchronize_league_team_structure</h3></li>
+      <li><h3>synchronize_party_structure</h3></li>
+      <li><h3>synchronize_team_players_structure</h3></li>
+    </ul>
+  </div>
+</div>

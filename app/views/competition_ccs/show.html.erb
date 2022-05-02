@@ -9,7 +9,7 @@
     <div class="bg-white rounded shadow p-8">
       <div class="mb-4">
         <h5>Cc</h5>
-        <%= @competition_cc.cc_id %>
+        <%= link_to @competition_cc.cc_id, competition_cc_path(@competition_cc) %>
       </div>
       <div class="mb-4">
         <h5>Name</h5>

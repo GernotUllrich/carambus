@@ -27,7 +27,7 @@ class LeagueCc < ApplicationRecord
   alias_attribute :leagueId, :cc_id
   alias_attribute :staffelId, :cc_id2
 
-  def self.create_from_ba(league)
+  def self.create_from_ba(session_id, league)
     region = league.organizer
     region_cc = region.region_cc
     competition = league.competition
@@ -38,6 +38,7 @@ class LeagueCc < ApplicationRecord
     league_cc.attributes
     _, doc = region_cc.post_cc(
       'createLeagueSave',
+      session_id,
       fedId: competition_cc.fedId,
       branchId: competition_cc.branchId,
       subBranchId: competition_cc.cc_id,
