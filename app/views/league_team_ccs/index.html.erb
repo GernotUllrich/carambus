@@ -8,44 +8,9 @@
   </div>
 
   <% if @league_team_ccs.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :name, 'Name', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :shortname, 'Shortname', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_cc_id, 'League cc', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_team_id, 'League team', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :data, 'Data', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @league_team_ccs.each do |league_team_cc| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-                      <td class="p-3"><%= league_team_cc.cc_id %></td>
-                      <td class="p-3"><%= league_team_cc.name %></td>
-                      <td class="p-3"><%= league_team_cc.shortname %></td>
-                      <td class="p-3"><%= league_team_cc.league_cc_id %></td>
-                      <td class="p-3"><%= league_team_cc.league_team_id %></td>
-                      <td class="p-3"><%= league_team_cc.data %></td>
-          
-            <td>
-              <%= link_to "View", league_team_cc, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div id="table_wrapper">
+      <%= render partial: 'league_team_ccs_table' %>
     </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
 
   <% else %>
     <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">

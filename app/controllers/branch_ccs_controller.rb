@@ -12,6 +12,7 @@ class BranchCcsController < ApplicationController
 
   # GET /branch_ccs/1
   def show
+    @competition_ccs = @branch_cc.competition_ccs
   end
 
   # GET /branch_ccs/new

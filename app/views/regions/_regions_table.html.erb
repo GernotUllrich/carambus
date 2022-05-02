@@ -32,7 +32,7 @@
   </table>
 </div>
 
-<% if @pagy.pages > 1 %>
+<% if @pagy.present && @pagy.pages > 1 %>
   <div class="text-center my-6">
     <%== pagy_nav(@pagy) %>
   </div>

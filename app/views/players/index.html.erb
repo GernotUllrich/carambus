@@ -33,17 +33,10 @@
   </div>
 
   <% if @players.any? %>
-    <div class="bg-white dark:bg-black rounded shadow table-responsive">
-      <div id="table_wrapper">
-        <%= render partial: 'players_table' %>
-      </div>
+    <div id="table_wrapper">
+      <%= render partial: 'players_table' %>
     </div>
 
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
 
   <% else %>
     <div class="bg-white dark:bg-black rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">

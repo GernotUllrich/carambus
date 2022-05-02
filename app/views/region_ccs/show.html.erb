@@ -16,7 +16,7 @@
       </div>
             <div class="mb-4">
         <h5>Region</h5>
-        <%= @region_cc.region_id %>
+        <%= link_to "#{@region_cc.region.shortname}[#{@region_cc.region_id}]", region_path(@region_cc.region) %>
       </div>
             <div class="mb-4">
         <h5>Shortname</h5>
@@ -28,4 +28,10 @@
       </div>
           </div>
   </div>
+  <% if @branch_ccs.any? %>
+    <h3> BranchCcs</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'branch_ccs/branch_ccs_table' %>
+    </div>
+  <% end %>
 </div>

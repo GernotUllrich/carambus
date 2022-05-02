@@ -8,7 +8,7 @@ module FiltersHelper
         if value.present?
           columns.each do |ext_name, int_name|
             if int_name.present?
-              #TODO FILTERS
+              # TODO FILTERS
               if int_name =~ / as /
                 term, tempname = int_name.split(" as ").map(&:strip)
                 #no search on virtual columns

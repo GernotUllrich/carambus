@@ -31,6 +31,10 @@
         <%= link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}" %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>CC</h5>
+        <%= link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}", target: :_blank if @party.party_cc.present? %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5>Day seqno</h5>
         <%= @party.day_seqno %>
       </div>
@@ -44,8 +48,12 @@
       </div>
     </div>
     <%- @party_games = PartyGame.where(party_id: @party.id).order(id: :asc) %>
-    <div id="table_wrapper">
-      <%= render partial: 'party_games/party_games_table', locals: { from_party: true } %>
-    </div>
+
+    <% if @party_games.any? %>
+      <h3>Party Games</h3>
+      <div id="table_wrapper">
+        <%= render partial: 'party_games/party_games_table', locals: { from_party: true } %>
+      </div>
+    <%- end %>
   </div>
 </div>

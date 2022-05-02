@@ -8,62 +8,12 @@
   </div>
 
   <% if @league_ccs.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-        <tr>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :ba_link, 'BA-Link', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_link, 'CC-Link', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :league_id, 'Liga(Carambus)', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :name, 'Name', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :shortname, 'Kürzel', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :status, 'Status', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season_cc_id, 'Season cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :context, 'Context', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :report_form, 'Spielbericht', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <% @league_ccs.each do |league_cc| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-            <td class="p-3"><%= link_to league_cc.cc_id, league_cc_path(league_cc) %></td>
-            <td class="p-3"><%= link_to "#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}", "https://#{league_cc.context}.billardarea.de/cms_leagues/plan/#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}" if league_cc.league.present? %></td>
-            <%= form_tag("#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"]}", id: "cc_link_#{league_cc.id}", :method => :post, :class => 'internal') do %>
-              <%= hidden_field_tag 'fedId', league_cc.fedId %>
-              <%= hidden_field_tag 'branchId', league_cc.branchId %>
-              <%= hidden_field_tag 'subBranchId', league_cc.subBranchId %>
-              <%= hidden_field_tag 'seasonId', league_cc.seasonId %>
-              <%= hidden_field_tag 'leagueId', league_cc.leagueId %>
-            <% end %>
-            <td class="p-3"><%= link_to("#{league_cc.link_name}", "#", onclick: "document.getElementById(\"#{"cc_link_#{league_cc.id}"}\").submit();", :title => 'Hover text for link') %></td>
-            <td class="p-3"><%= link_to league_cc.league.name, league_path(league_cc.league) if league_cc.league.present? %></td>
-            <td class="p-3"><%= league_cc.name %></td>
-            <td class="p-3"><%= league_cc.shortname %></td>
-            <td class="p-3"><%= league_cc.status %></td>
-            <td class="p-3"><%= league_cc.season_cc_id %></td>
-            <td class="p-3"><%= league_cc.context %></td>
-            <td class="p-3"><%= league_cc.report_form %></td>
-
-            <td>
-              <%= link_to "View", league_cc, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div id="table_wrapper">
+      <%= render partial: 'league_ccs_table' %>
     </div>
 
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
-
   <% else %>
-    <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+    <div class="bg-wite rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first League Cc</p>

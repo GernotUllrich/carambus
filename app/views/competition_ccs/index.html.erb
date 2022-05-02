@@ -8,42 +8,9 @@
   </div>
 
   <% if @competition_ccs.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @competition_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @competition_ccs, :name, 'Name', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @competition_ccs, :context, 'Context', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @competition_ccs, :branch_cc_id, 'Branch cc', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @competition_ccs, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @competition_ccs.each do |competition_cc| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-                      <td class="p-3"><%= competition_cc.cc_id %></td>
-                      <td class="p-3"><%= competition_cc.name %></td>
-                      <td class="p-3"><%= competition_cc.context %></td>
-                      <td class="p-3"><%= competition_cc.branch_cc_id %></td>
-                      <td class="p-3"><%= competition_cc.discipline_id %></td>
-          
-            <td>
-              <%= link_to "View", competition_cc, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div id="table_wrapper">
+      <%= render partial: 'competition_ccs_table' %>
     </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
 
   <% else %>
     <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">

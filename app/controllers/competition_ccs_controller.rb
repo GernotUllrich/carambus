@@ -12,6 +12,7 @@ class CompetitionCcsController < ApplicationController
 
   # GET /competition_ccs/1
   def show
+    @season_ccs = @competition_cc.season_ccs
   end
 
   # GET /competition_ccs/new

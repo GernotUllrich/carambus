@@ -14,6 +14,7 @@ class RegionCcsController < ApplicationController
 
   # GET /region_ccs/1
   def show
+    @branch_ccs = @region_cc.branch_ccs
   end
 
   # GET /region_ccs/new

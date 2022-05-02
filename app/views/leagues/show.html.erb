@@ -6,34 +6,42 @@
     </div>
 
     <div class="bg-white rounded shadow p-8">
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Name</h5>
         <%= @league.name %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Registration until</h5>
         <%= @league.registration_until %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Organizer</h5>
         <%= link_to @league.organizer.shortname, region_path(@league.organizer) %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Season</h5>
         <%= link_to @league.season.name, season_path(@league.season) %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Ba</h5>
         <%= link_to @league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{@league.ba_id}" %>
       </div>
-            <div class="mb-4">
+      <div class="mb-4">
+        <h5>CC</h5>
+        <%= link_to "#{@league.league_cc.name}(#{@league.league_cc.id})", league_cc_path(@league.league_cc) if @league.league_cc.present? %>
+      </div>
+      <div class="mb-4">
         <h5>Discipline</h5>
         <%= link_to @league.discipline.name, discipline_path(@league.discipline) %>
       </div>
-          </div>
-    <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
-    <div id="table_wrapper">
-      <%= render partial: 'parties/parties_table', locals: {from_league: true} %>
     </div>
+    <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
+
+    <% if @parties.any? %>
+      <h3> Parties</h3>
+      <div id="table_wrapper">
+        <%= render partial: 'parties/parties_table', locals: { from_league: true } %>
+      </div>
+    <%- end %>
   </div>
 </div>

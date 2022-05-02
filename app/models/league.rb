@@ -27,6 +27,8 @@ class League < ApplicationRecord
   has_many :parties
   has_many :tournaments
   belongs_to :organizer, polymorphic: true, optional: true
+  belongs_to :region, -> { where(leagues: { organizer_type: "Region" }) }, foreign_key: "organizer_id"
+
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
   has_one :league_cc, -> { where(context: 'nbv') }
@@ -35,7 +37,14 @@ class League < ApplicationRecord
 
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
-  REFLECTION_KEYS = ["league_teams", "parties", "tournaments", "organizer", "discipline", "season"]
+  REFLECTION_KEYS = ["league_teams",
+                     "parties",
+                     "tournaments",
+                     "organizer",
+                     "region",
+                     "discipline",
+                     "season",
+                     "league_cc"]
   COLUMN_NAMES = {
     "Name" => "leagues.name",
     "Organizer" => "organizer.shortname",

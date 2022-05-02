@@ -1,0 +1,40 @@
+<div class="bg-white rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @branch_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @branch_ccs, :context, 'Context', class: 'text-gray-700' %></th>
+      <%- unless @region_cc.present? %>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @branch_ccs, :region_cc_id, 'Region cc', class: 'text-gray-700' %></th>
+      <%- end %>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @branch_ccs, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @branch_ccs, :name, 'Name', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @branch_ccs.each do |branch_cc| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100">
+        <td class="p-3"><%= branch_cc.cc_id %></td>
+        <td class="p-3"><%= branch_cc.context %></td>
+        <%- unless @region_cc.present? %>
+          <td class="p-3"><%= link_to_if branch_cc.region_cc.region.present?, "#{branch_cc.region_cc.shortname}(#{branch_cc.region_cc_id})", region_cc_path(branch_cc.region_cc) %></td>
+        <%- end %>
+        <td class="p-3"><%= link_to_if branch_cc.discipline.present?, "#{branch_cc.discipline.name}[#{branch_cc.discipline_id}]", discipline_path(branch_cc.discipline) %></td>
+        <td class="p-3"><%= branch_cc.name %></td>
+
+        <td>
+          <%= link_to "View", branch_cc, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

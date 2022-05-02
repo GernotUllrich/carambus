@@ -440,10 +440,13 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="adhoc">
             <subtasks>
+              <RakeTaskImpl description="Melde Tournament" fullCommand="adhoc:test_add_tournament" id="test_add_tournament" />
               <RakeTaskImpl description="test league scraping" fullCommand="adhoc:test_league_scraping" id="test_league_scraping" />
               <RakeTaskImpl description="test settings" fullCommand="adhoc:test_setting" id="test_setting" />
+              <RakeTaskImpl description="test version update" fullCommand="adhoc:test_version_update" id="test_version_update" />
               <RakeTaskImpl description="" fullCommand="adhoc:clean_local" id="clean_local" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_accumulate_results" id="test_accumulate_results" />
+              <RakeTaskImpl description="" fullCommand="adhoc:test_league8" id="test_league8" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_player_id_from_ranking" id="test_player_id_from_ranking" />
             </subtasks>
           </RakeTaskImpl>
@@ -490,11 +493,13 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="carambus">
             <subtasks>
+              <RakeTaskImpl description="create countries" fullCommand="carambus:create_countries" id="create_countries" />
               <RakeTaskImpl description="create local seed" fullCommand="carambus:create_local_seed" id="create_local_seed" />
               <RakeTaskImpl description="daily update" fullCommand="carambus:daily_update" id="daily_update" />
               <RakeTaskImpl description="eliminate location duplicates" fullCommand="carambus:eliminate_location_duplicates" id="eliminate_location_duplicates" />
               <RakeTaskImpl description="fix game participations" fullCommand="carambus:fix_game_participations" id="fix_game_participations" />
               <RakeTaskImpl description="fix tournament discipline by name" fullCommand="carambus:fix_tournament_discipline_by_name" id="fix_tournament_discipline_by_name" />
+              <RakeTaskImpl description="generate locations" fullCommand="carambus:generate_locations" id="generate_locations" />
               <RakeTaskImpl description="Init Disciplines" fullCommand="carambus:init_disciplines" id="init_disciplines" />
               <RakeTaskImpl description="Init PlayerClass" fullCommand="carambus:init_player_classes" id="init_player_classes" />
               <RakeTaskImpl description="list of scaffolds" fullCommand="carambus:list_scaffolds" id="list_scaffolds" />
@@ -502,17 +507,36 @@
               <RakeTaskImpl description="remove duplicate season participations" fullCommand="carambus:remove_duplicate_season_participations" id="remove_duplicate_season_participations" />
               <RakeTaskImpl description="retrieve updates from API server" fullCommand="carambus:retrieve_updates" id="retrieve_updates" />
               <RakeTaskImpl description="scrape clubs" fullCommand="carambus:scrape_clubs" id="scrape_clubs" />
+              <RakeTaskImpl description="Scrape DBU leagues" fullCommand="carambus:scrape_dbu_leagues" id="scrape_dbu_leagues" />
+              <RakeTaskImpl description="Scrape League Teams" fullCommand="carambus:scrape_league_teams" id="scrape_league_teams" />
               <RakeTaskImpl description="Scrape leagues" fullCommand="carambus:scrape_leagues" id="scrape_leagues" />
+              <RakeTaskImpl description="Scrape leagues" fullCommand="carambus:scrape_leagues_alternative" id="scrape_leagues_alternative" />
+              <RakeTaskImpl description="scrape new tournaments" fullCommand="carambus:scrape_new_tournaments" id="scrape_new_tournaments" />
               <RakeTaskImpl description="scrape Players" fullCommand="carambus:scrape_players" id="scrape_players" />
               <RakeTaskImpl description="scrape regional club ids" fullCommand="carambus:scrape_regional_club_ids" id="scrape_regional_club_ids" />
               <RakeTaskImpl description="scrape regions" fullCommand="carambus:scrape_regions" id="scrape_regions" />
               <RakeTaskImpl description="Scrape Tournaments" fullCommand="carambus:scrape_tournaments" id="scrape_tournaments" />
               <RakeTaskImpl description="Scrape Tournament Details" fullCommand="carambus:scrape_tournaments_details" id="scrape_tournaments_details" />
               <RakeTaskImpl description="test scrape single tournament" fullCommand="carambus:single_scrape_tournaments_details" id="single_scrape_tournaments_details" />
+              <RakeTaskImpl description="update disciplines in party games" fullCommand="carambus:update_disciplines_in_party_games" id="update_disciplines_in_party_games" />
               <RakeTaskImpl description="update tournament_plan executor_params" fullCommand="carambus:update_executor_params" id="update_executor_params" />
               <RakeTaskImpl description="update ranking tables" fullCommand="carambus:update_ranking_tables" id="update_ranking_tables" />
               <RakeTaskImpl description="Update Seasons" fullCommand="carambus:update_seasons" id="update_seasons" />
               <RakeTaskImpl description="update tournaments" fullCommand="carambus:update_tournaments" id="update_tournaments" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl id="cc">
+            <subtasks>
+              <RakeTaskImpl description="Remove duplicate Players" fullCommand="cc:remove_duplicate_players" id="remove_duplicate_players" />
+              <RakeTaskImpl description="synchronize branch structure" fullCommand="cc:synchronize_branch_structure" id="synchronize_branch_structure" />
+              <RakeTaskImpl description="synchronize club structure" fullCommand="cc:synchronize_club_structure" id="synchronize_club_structure" />
+              <RakeTaskImpl description="synchronize competition structure" fullCommand="cc:synchronize_competition_structure" id="synchronize_competition_structure" />
+              <RakeTaskImpl description="synchronize league structure" fullCommand="cc:synchronize_league_structure" id="synchronize_league_structure" />
+              <RakeTaskImpl description="synchronize league_team structure" fullCommand="cc:synchronize_league_team_structure" id="synchronize_league_team_structure" />
+              <RakeTaskImpl description="synchronize party structure" fullCommand="cc:synchronize_party_structure" id="synchronize_party_structure" />
+              <RakeTaskImpl description="synchronize region structure" fullCommand="cc:synchronize_region_structure" id="synchronize_region_structure" />
+              <RakeTaskImpl description="synchronize season structure" fullCommand="cc:synchronize_season_structure" id="synchronize_season_structure" />
+              <RakeTaskImpl description="synchronize team players structure" fullCommand="cc:synchronize_team_players_structure" id="synchronize_team_players_structure" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl id="db">

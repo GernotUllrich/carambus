@@ -1,0 +1,36 @@
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :name, 'Name', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :shortname, 'Shortname', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :league_id, 'League', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :ba_id, 'Ba', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :club_id, 'Club', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @league_teams.each do |league_team| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100">
+        <td class="p-3"><%= league_team.name %></td>
+        <td class="p-3"><%= league_team.shortname %></td>
+        <td class="p-3"><%= link_to league_team.league.name, league_path(league_team.league) %></td>
+        <td class="p-3"><%= link_to league_team.ba_id, "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}" %></td>
+        <td class="p-3"><%= link_to league_team.club.shortname, club_path(league_team.club) %></td>
+
+        <td>
+          <%= link_to "View", league_team, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

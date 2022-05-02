@@ -182,16 +182,18 @@ class Player < ApplicationRecord
     return (player || player_fixed), seeding, state_ix
   end
 
-  def self.merge_players(player_ok, player_tmp)
-    Player.transaction do
-      GameParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
-      SeasonParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
-      PlayerRanking.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
-      Seeding.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
-      PartyGame.where(player_a_id: player_tmp.id).map { |o| o.update(player_a: player_ok) }
-      PartyGame.where(player_b_id: player_tmp.id).map { |o| o.update(player_b: player_ok) }
-      player_tmp.destroy
-      player_ok
+  def self.merge_players(player_ok, player_tmp_arr)
+    Array(player_tmp_arr).each do |player_tmp|
+      Player.transaction do
+        GameParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+        SeasonParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+        PlayerRanking.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+        Seeding.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
+        PartyGame.where(player_a_id: player_tmp.id).map { |o| o.update(player_a: player_ok) }
+        PartyGame.where(player_b_id: player_tmp.id).map { |o| o.update(player_b: player_ok) }
+        player_tmp.destroy
+        player_ok
+      end
     end
   end
 

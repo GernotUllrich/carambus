@@ -16,11 +16,11 @@
       </div>
             <div class="mb-4">
         <h5>Season</h5>
-        <%= @season_cc.season_id %>
+        <%= link_to "#{@season_cc.season.name}[#{@season_cc.season_id}]", season_path(@season_cc.season) %>
       </div>
             <div class="mb-4">
         <h5>Competition cc</h5>
-        <%= @season_cc.competition_cc_id %>
+        <%= link_to "#{@season_cc.competition_cc.name}(#{@season_cc.competition_cc_id})", competition_cc_path(@season_cc.competition_cc) %>
       </div>
             <div class="mb-4">
         <h5>Context</h5>
@@ -28,4 +28,11 @@
       </div>
           </div>
   </div>
+
+  <% if @league_ccs.any? %>
+    <h3> Leagues</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'league_ccs/league_ccs_table' %>
+    </div>
+  <% end %>
 </div>

@@ -12,6 +12,8 @@ class LeagueCcsController < ApplicationController
 
   # GET /league_ccs/1
   def show
+    @league_team_ccs = @league_cc.league_team_ccs
+    @party_ccs = @league_cc.party_ccs
   end
 
   # GET /league_ccs/new

@@ -1,56 +1,47 @@
+<script>
+  function searchLeagueTeams(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/league_teams?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+          var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
+      }
+    })
+  }
+</script>
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">League Teams</h1>
 
     <% if @league_teams.any? %>
-      <%= link_to 'New League Team', new_league_team_path, class: "btn btn-primary" %>
+      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <input oninput="searchLeagueTeams(this, true)" type="search" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block", title:"e.g. reg:nordd wedel" %>
+          </div>
+        </div>
+      </div>
+      <%= link_to( 'New League Team', new_league_team_path, class: "btn btn-primary") if current_user.andand.admin? %>
     <% end %>
   </div>
 
   <% if @league_teams.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :name, 'Name', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :shortname, 'Shortname', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :league_id, 'League', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :ba_id, 'Ba', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @league_teams, :club_id, 'Club', class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @league_teams.each do |league_team| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-                      <td class="p-3"><%= league_team.name %></td>
-                      <td class="p-3"><%= league_team.shortname %></td>
-                      <td class="p-3"><%= link_to league_team.league.name, league_path(league_team.league) %></td>
-                      <td class="p-3"><%= link_to league_team.ba_id, "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}" %></td>
-                      <td class="p-3"><%= link_to league_team.club.shortname, club_path(league_team.club) %></td>
-
-            <td>
-              <%= link_to "View", league_team, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
-    </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
+    <div id="table_wrapper">
+      <%= render partial: 'league_teams_table' %>
       </div>
-    <% end %>
-
   <% else %>
     <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first League Team</p>
-        <%= link_to 'New League Team', new_league_team_path, class: "btn btn-primary" %>
+        <%= link_to 'New League Team', new_league_team_path, class: "btn btn-primary" if current_user.andand.admin? %>
       </div>
     </div>
   <% end %>

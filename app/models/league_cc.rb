@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: league_ccs
@@ -34,15 +36,15 @@ class LeagueCc < ApplicationRecord
     season_cc = competition.competition_cc.season_ccs.where(name: league.season.name).first
     league_cc = LeagueCc.new(name: league.name, season_cc_id: season_cc.id, league_id: league.id, context: context)
     league_cc.attributes
-    res, doc = region_cc.post_cc(
-      "createLeagueSave",
+    _, doc = region_cc.post_cc(
+      'createLeagueSave',
       fedId: competition_cc.fedId,
       branchId: competition_cc.branchId,
       subBranchId: competition_cc.cc_id,
       seasonId: season_cc.cc_id,
       posId: 1,
       leagueName: league.name,
-      leagueShortName: league.name.split(" ").map{|w| w[0]}.join("").upcase,
+      leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
       prefix: 0,
       sportdistrictId: 0
     )

@@ -26,10 +26,10 @@
           <tr class="group border-t border-gray-400 hover:bg-gray-100">
                       <td class="p-3"><%= region_cc.cc_id %></td>
                       <td class="p-3"><%= region_cc.context %></td>
-                      <td class="p-3"><%= region_cc.region_id %></td>
+                      <td class="p-3"><%= link_to_if region_cc.region.present?, "#{region_cc.region.shortname}[#{region_cc.region_id}]", region_path(region_cc.region) %></td>
                       <td class="p-3"><%= region_cc.shortname %></td>
                       <td class="p-3"><%= region_cc.name %></td>
-          
+
             <td>
               <%= link_to "View", region_cc, class: "btn btn-link no-underline" %>
             </td>

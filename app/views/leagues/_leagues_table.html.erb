@@ -16,7 +16,7 @@
         <td class="p-3"><%= league.name %></td>
         <td class="p-3"><%= league.organizer.shortname %></td>
         <td class="p-3"><%= link_to league.season.name, season_path(league.season) %></td>
-        <td class="p-3"><%= link_to league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{league.ba_id}" %></td>
+        <td class="p-3"><%= link_to league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{league.ba_id}", target: :_blank %></td>
         <td class="p-3"><%= link_to(league.discipline.andand.name, discipline_path(league.discipline)) if league.discipline.present? %></td>
 
         <td>

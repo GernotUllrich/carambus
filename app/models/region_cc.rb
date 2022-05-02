@@ -73,7 +73,7 @@ class RegionCc < ApplicationRecord
     "showLeague_show_teamplayer" => "/admin/report/showLeague_show_teamplayer.php",
     # GET
     # p: 187
-    "showLeague_add_teamplayer" => "/admin/report/showLeague_add_teamplayer.php"
+    "showLeague_add_teamplayer" => "/admin/report/showLeague_add_teamplayer.php",
     # fedId: 20,
     # leagueId: 34,
     # staffelId: 0,
@@ -82,9 +82,101 @@ class RegionCc < ApplicationRecord
     # seasonId: 8,
     # p: 187,
     # passnr: 221109,
+    "spielbericht" => "/admin/bm_mw/spielbericht.php",
+    # errMsgNew:
+    # matchId: 572
+    # teamId: 189
+    # woher: 1
+    # firstEntry: 1
+    # memo: Die Partien von Florian Knipfer wurden aus der Wertung gestrichen, wegen Einsatz als Ersatz-Spieler in der Bundesliga !!
+    # protest:
+    # zuNullTeamId: 0
+    # wettbewerb: 1
+    # partienr: 4004
+    # saison:
+    # 572-1-1-1-pid1: 10130
+    # 572-1-1-1-pid2: 10353
+    # 572-1-1-sc1: 125
+    # 572-1-1-sc2: 70
+    # 572-1-1-in1: 46
+    # 572-1-1-in2: 45
+    # 572-1-1-br1: 13
+    # 572-1-1-br2: 10
+    # 572-1-1-vo1:
+    # 572-1-1-vo2:
+    # 572-2-1-1-pid1: 10243
+    # 572-2-1-1-pid2: 0
+    # 572-2-1-sc1: 0
+    # 572-2-1-sc2: 0
+    # 572-2-1-in1:
+    # 572-2-1-in2:
+    # 572-2-1-br1:
+    # 572-2-1-br2:
+    # 572-2-1-vo1:
+    # 572-2-1-vo2:
+    # 572-3-1-1-pid1: 0
+    # 572-3-1-1-pid2: 10121
+    # 572-3-1-sc1: 9
+    # 572-3-1-sc2: 4
+    # 572-3-1-in1:
+    # 572-3-1-in2:
+    # 572-3-1-br1:
+    # 572-3-1-br2:
+    # 572-3-1-vo1:
+    # 572-3-1-vo2:
+    # 572-4-1-1-pid1: 0
+    # 572-4-1-1-pid2: 10108
+    # 572-4-1-sc1: 2
+    # 572-4-1-sc2: 8
+    # 572-4-1-in1:
+    # 572-4-1-in2:
+    # 572-4-1-br1:
+    # 572-4-1-br2:
+    # 572-4-1-vo1:
+    # 572-4-1-vo2:
+    # 572-6-1-1-pid1: 0
+    # 572-6-1-1-pid2: 0
+    # 572-6-1-sc1: 8
+    # 572-6-1-sc2: 4
+    # 572-6-1-in1:
+    # 572-6-1-in2:
+    # 572-6-1-br1:
+    # 572-6-1-br2:
+    # 572-6-1-vo1:
+    # 572-6-1-vo2:
+    # 572-7-1-1-pid1: 0
+    # 572-7-1-1-pid2: 10108
+    # 572-7-1-sc1: 9
+    # 572-7-1-sc2: 6
+    # 572-7-1-in1:
+    # 572-7-1-in2:
+    # 572-7-1-br1:
+    # 572-7-1-br2:
+    # 572-7-1-vo1:
+    # 572-7-1-vo2:
+    # 572-8-1-1-pid1: 10130
+    # 572-8-1-1-pid2: 10121
+    # 572-8-1-sc1: 7
+    # 572-8-1-sc2: 5
+    # 572-8-1-in1:
+    # 572-8-1-in2:
+    # 572-8-1-br1:
+    # 572-8-1-br2:
+    # 572-8-1-vo1:
+    # 572-8-1-vo2:
+    # 572-9-1-1-pid1: 10243
+    # 572-9-1-1-pid2: 0
+    # 572-9-1-sc1:
+    # 572-9-1-sc2:
+    # 572-9-1-in1:
+    # 572-9-1-in2:
+    # 572-9-1-br1:
+    # 572-9-1-br2:
+    # 572-9-1-vo1:
+    # 572-9-1-vo2:
   }
 
-  PHPSESSID = "9310db9a9970e8a02ed95ed8cd8e4309"
+  PHPSESSID = "907c2d6b8c1970683440b12f5d492c7c"
   BASE_URL = "https://e12112e2454d41f1824088919da39bc0.club-cloud.de"
 
   def post_cc(action, options = {})

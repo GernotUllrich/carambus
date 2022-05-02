@@ -20,7 +20,7 @@
       </div>
             <div class="mb-4">
         <h5>League cc</h5>
-        <%= @league_team_cc.league_cc_id %>
+        <%= link_to "#{@league_team_cc.league_cc.name}(#{@league_team_cc.league_cc_id})", league_cc_path(@league_team_cc.league_cc) %>
       </div>
             <div class="mb-4">
         <h5>League team</h5>

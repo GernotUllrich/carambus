@@ -1,21 +1,12 @@
 class LeaguesController < ApplicationController
+  include FiltersHelper
   before_action :set_league, only: [:show, :edit, :update, :destroy]
 
   # GET /leagues
-  def xindex
-
-
-    @pagy, @leagues = pagy(League.sort_by_params(params[:sort], sort_direction))
-
-    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
-    # Calling @leagues.any? in the view will use the loaded records to check existence instead of making an extra DB call.
-    @leagues.load
-  end
-  # GET /clubs
   def index
-    @leagues = League.sort_by_params(params[:sort], sort_direction)
+    @leagues = League.includes(:organizer).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(regions.shortname ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search) or (clubs.cc_id = :isearch)")
+      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(leagues.name ilike :search)")
     end
     @pagy, @leagues = pagy(@leagues)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.

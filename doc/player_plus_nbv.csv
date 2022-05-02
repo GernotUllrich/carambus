@@ -1,0 +1,649 @@
+BAID;Firstname;Lastname;Club CCID;Club BAID;Club Shortname
+249057;Martin;Meier;1003;2181;1. PBT Lübeck
+367363;Levin;Günther;1004;2202;1. PBV Pinneberg
+367358;Thomas;Günther;1004;2202;1. PBV Pinneberg
+240495;Jan;Herz;1004;2202;1. PBV Pinneberg
+354252;Jörg;Kosanke;1004;2202;1. PBV Pinneberg
+350016;Alfred;Lewandowski;1004;2202;1. PBV Pinneberg
+366471;Michel;Witte;1005;2184;1. PSC Lüneburg
+353886;Jannick;Vieluf;1006;2185;ABC Wesseln
+175280;Hans-Werner;Kluth;1007;2194;BC Bergedorf
+175293;Hans-Eberhard;Schulz;1007;2194;BC Bergedorf
+352119;Jörg;Dreher;1008;2203;BC Break Lübeck
+221208;Steffen;Kondziella;1008;2203;BC Break Lübeck
+354192;Marcel;Schark;1008;2203;BC Break Lübeck
+225935;Florian;Türk;1009;2187;BC Queue Hamburg
+355549;Rainer;Christiansen;1009;2187;BC Queue Hamburg
+356150;Raphael André;Sturm;;3147;MTV Tostedt
+169399;Christian;Wülfert;;3147;MTV Tostedt
+351998;Dyke;Petersen;;3148;QSV Bredstedt
+999020827;Behrouz;Rasuli;1008;2203;BC Break Lübeck
+999020828;Maximilian;Wahl;1014;2197;Kieler Billard Union
+999020834;Hendrik;Henschke;;2191;1. BC Schwerin
+999020835;Jamal;Abazid;1005;2184;1. PSC Lüneburg
+223002;Udo;Verhufen;1002;2196;1. BU Flensburg
+999020836;Ismail;Ali;1020;2543;SC Hamburg
+999020837;Ramzi;Ben Ghaffar;1020;2543;SC Hamburg
+999020838;Rene;Kannengießer;1020;2543;SC Hamburg
+999020839;Michael;Giese;1011;2735;BG Hamburg
+999020840;Martin;Becker;1012;2736;BV Kiel
+999020841;Peter;Vogler;1011;2735;BG Hamburg
+167523;Christian;Fiebelkorn;1004;2202;1. PBV Pinneberg
+224592;Wilfried;Hort;;2186;BC Lucky Hohenwestedt
+999020952;Andreas;Boecker;1007;2194;BC Bergedorf
+999020966;Patrick;Sörje;1009;2187;BC Queue Hamburg
+999020974;Dennis;Brömme;1002;2196;1. BU Flensburg
+999020975;Erwin;Ernst;1011;2735;BG Hamburg
+999021085;Nadir;Paulovic;1011;2735;BG Hamburg
+999021086;Werner;Ernst;1011;2735;BG Hamburg
+999021092;Galeb;el Moussa;1014;2197;Kieler Billard Union
+999021101;Matthias;Corrigeux;1004;2202;1. PBV Pinneberg
+999021105;Marco;Lützen;1020;2543;SC Hamburg
+999021107;Susanne;Marr;1020;2543;SC Hamburg
+999021108;Jakub;Dziedzic;1010;1573;BC Wedel
+999021109;Justin;Rautenberg;1010;1573;BC Wedel
+224692;Torsten;Mehrens;1004;2202;1. PBV Pinneberg
+999021268;Wilfried;Jahn;;999001106;
+999021269;Gino;Weiß;1011;2735;BG Hamburg
+999021272;Daniel;Stein;1004;2202;1. PBV Pinneberg
+999021275;Simin;Hadi Sudarjani;;999001107;
+250777;Lukas;Witte;1004;2202;1. PBV Pinneberg
+999021276;Dennis;Waack;;2189;PBC Lübeck
+999021296;Daniel;Leube;1020;2543;SC Hamburg
+999021297;Bruno;Grigat;1020;2543;SC Hamburg
+999021449;Rudolf;Pezold;1011;2735;BG Hamburg
+999021450;Gino;Wiegand;1011;2735;BG Hamburg
+999021452;Maximilian;Bäcker;;2769;BV Q-Pub HH
+999021459;Apostolos;Papagiannis;1002;2196;1. BU Flensburg
+999021460;Marc-André;Schmidt;;2769;BV Q-Pub HH
+999021465;Thorsten;Kuhn;1020;2543;SC Hamburg
+999021466;Payam;Salman Tabrizi;1020;2543;SC Hamburg
+999021467;Shuo;Yang;1008;2203;BC Break Lübeck
+999021468;Fernando;Wiegand;1011;2735;BG Hamburg
+999021469;Tobias;Bewernick;1010;1573;BC Wedel
+169667;Marco;Spitzky;1009;2187;BC Queue Hamburg
+999021675;Dennis;Wilken;1008;2203;BC Break Lübeck
+999021685;Simon;Wright;1008;2203;BC Break Lübeck
+999021691;Björn;Walter;1020;2543;SC Hamburg
+999021692;Ashkan;Kamari;1010;1573;BC Wedel
+223007;Stefan;Stresing;;2191;1. BC Schwerin
+252191;Steffen;Buchholtz;1004;2202;1. PBV Pinneberg
+352437;Kevin;Behrmann;1004;2202;1. PBV Pinneberg
+224604;Robert;Lata;1005;2184;1. PSC Lüneburg
+355542;Tobias;Börger;1006;2185;ABC Wesseln
+247390;Ruslan;Wischnewski;1008;2203;BC Break Lübeck
+225929;Eva;Hasselwander;1009;2187;BC Queue Hamburg
+225930;Christian;Hinz;1009;2187;BC Queue Hamburg
+225931;Feramuz;Ilter;1009;2187;BC Queue Hamburg
+250866;Martin;Kramer;1009;2187;BC Queue Hamburg
+252054;Thomas;Pfannenstiel;1009;2187;BC Queue Hamburg
+253459;Hans-Ulrich;Klose;1009;2187;BC Queue Hamburg
+121273;Maximo;Aguirre;1010;1573;BC Wedel
+222393;Helmut;Steiger;1011;2735;BG Hamburg
+121283;Tim;Brockmöller;1012;2736;BV Kiel
+121317;Gunther;Mylius;1012;2736;BV Kiel
+117795;Jonas;Calefice;;3147;MTV Tostedt
+169590;Christoph;Kanclerski;1017;2198;PBC The Gamblers
+166341;Eric;Keller;1017;2198;PBC The Gamblers
+224375;Oliver;Wäninger;1017;2198;PBC The Gamblers
+175658;Bernd;Wiesner;1020;2543;SC Hamburg
+999022011;Erwin;Ernst;;999001157;
+999022012;Jean-Pierre;Guerin;;999001157;
+999022015;Marco;Pfob;;999001159;
+221423;Andreas;Wenig;1014;2197;Kieler Billard Union
+223013;Frank;Spengel;1004;2202;1. PBV Pinneberg
+169637;Dominik;Laubinger;1023;2193;SVT Neumünster
+226031;Alexander;Gensch;1014;2197;Kieler Billard Union
+999022027;Henning;Brütt;;999001160;
+999022029;Hendrik;Glax;1020;2543;SC Hamburg
+999022030;Isabell;Merz;1020;2543;SC Hamburg
+999022031;Linus;Richter;1017;2198;PBC The Gamblers
+999022032;Jaddilok;Sombathom;1020;2543;SC Hamburg
+999022033;M. Rassoul;Ahmadi;1017;2198;PBC The Gamblers
+999022034;Lars;Harms;1020;2543;SC Hamburg
+999022035;Gerd;Schwarck;1020;2543;SC Hamburg
+999022036;Christian;Hadas;1004;2202;1. PBV Pinneberg
+999022037;Hans;Bruhn;1012;2736;BV Kiel
+223041;Andreas;Fittschen;1004;2202;1. PBV Pinneberg
+999022696;Frank;Appelmann;;2191;1. BC Schwerin
+999022700;Zeljko;Jovicic;;999001159;
+999022707;Marvin;Arz;1007;2194;BC Bergedorf
+999022708;Tahsin;Aytac;1010;1573;BC Wedel
+999022709;Rusty;Egersbach;;2189;PBC Lübeck
+999022711;Tristan;Luck;1007;2194;BC Bergedorf
+999022713;Fatih;Alpyavuz;1011;2735;BG Hamburg
+999022716;Reynaldo;Elizaga;;2207;PBV-Players
+999022717;Dirk;Heyden;;999001185;
+999022724;Heinz;Wienberg;;2769;BV Q-Pub HH
+999022731;Dennis;Trepkau;;999001186;
+999022732;Niklas;Kaske;1020;2543;SC Hamburg
+999022733;Tobias;Kuppens Groot;1020;2543;SC Hamburg
+999022734;Jan;Kycler;1020;2543;SC Hamburg
+999022735;Ralf;Langenstück;1020;2543;SC Hamburg
+999022736;Manuel;Schott;1020;2543;SC Hamburg
+999022738;Thanh;Nguyen;1011;2735;BG Hamburg
+999022739;Jan;Friedrich;1020;2543;SC Hamburg
+999022744;Dieter;Zahn;1012;2736;BV Kiel
+999022745;Markus;Schneckenberger;1012;2736;BV Kiel
+999022746;Volker;Kath;;999001157;
+221924;Thorben;Geilert;;999001159;
+166342;Ralf;Becker;1017;2198;PBC The Gamblers
+169653;Olaf;Horn;1023;2193;SVT Neumünster
+221426;Jörn;Zwinckmann;1014;2197;Kieler Billard Union
+224683;Matthias;Scharbatke;1014;2197;Kieler Billard Union
+224636;Kai;Krebs;;999001184;
+999022339;Dana;Bär;;999001183;
+999022349;Jannick;Kröger;1017;2198;PBC The Gamblers
+999022371;Philip;Utech;1020;2543;SC Hamburg
+999022372;Abdul-Wahid;Akbari;;999001186;
+999022373;Sven;Bischof;1017;2198;PBC The Gamblers
+999022374;Roman;Gierschner;1020;2543;SC Hamburg
+224493;Alexey;Pavlov;1003;2181;1. PBT Lübeck
+223365;Dieter;Michel;1008;2203;BC Break Lübeck
+223751;Birger;Petersen;;999001184;
+224220;Volker;Focke;;999001183;
+223677;Merrick;Pastors;1002;2196;1. BU Flensburg
+223692;Sven;Weishaupt;1002;2196;1. BU Flensburg
+223246;Stefan;Thedens;1006;2185;ABC Wesseln
+223676;Frank;Nicolaisen;1002;2196;1. BU Flensburg
+223675;Simone;Nicolaisen;1002;2196;1. BU Flensburg
+227516;Lukas;Grose;1008;2203;BC Break Lübeck
+238966;Daniel;Gerkens;;2769;BV Q-Pub HH
+238873;Amir;Samiey-Farahani;;2769;BV Q-Pub HH
+239292;Jochen;Jensen;1002;2196;1. BU Flensburg
+171935;Thomas;Wisweh;1007;2194;BC Bergedorf
+239550;Andreas;Hecht;1006;2185;ABC Wesseln
+239019;Simon;Ossenbrüggen;1006;2185;ABC Wesseln
+999022377;Kerstin;Aronis;1020;2543;SC Hamburg
+999022378;Masoud;Sarbeland;1020;2543;SC Hamburg
+999022379;Helmut;Jonetat;1011;2735;BG Hamburg
+999022380;Walter;Schäfer;1011;2735;BG Hamburg
+999022381;Dennis;Schäfer;1011;2735;BG Hamburg
+999022382;Uwe;Wessendorf;;999001157;
+999022383;Ascan;Jencquel;1011;2735;BG Hamburg
+999022384;;;;999001187;
+117260;Dirk;Wagner;1008;2203;BC Break Lübeck
+999023010;Jochen;Buschmann;1010;1573;BC Wedel
+999023333;Roger;Liere;;999001241;
+999023334;Günter;Siebert;;999001242;
+999023386;Michael;Ernst;;999001292;Bremer BS
+999023675;Markus;Clausen;;999001464;Uetersener SG
+999023677;Zeljko;Jovicic;;999001466;PBV Queue Wandsbek
+999023678;Peter;Korff;;999001467;1. PBC Eckernförde
+999023719;Fred;Braun;1011;2735;BG Hamburg
+999023720;Roberto;Rosenbach;1011;2735;BG Hamburg
+999023721;Fränki;Schubert;1011;2735;BG Hamburg
+999023722;Simon;Schubert;1011;2735;BG Hamburg
+999023723;Jeffrey;Weiss;1011;2735;BG Hamburg
+999023724;Emmy;von Massow;1012;2736;BV Kiel
+999023785;Markus;Mettbach;1011;2735;BG Hamburg
+999023788;Lucas;Dördrechter;1010;1573;BC Wedel
+367797;Jesco;Köhler;1004;2202;1. PBV Pinneberg
+999023803;;3;1004;2202;1. PBV Pinneberg
+999023804;;HB;1002;2196;1. BU Flensburg
+999023805;;1;1021;2544;SCSC Kiel
+999023806;Uwe;Brodersen;1021;2544;SCSC Kiel
+999023790;Michael;Rippa;;3147;MTV Tostedt
+999023793;Holger von;Fehrn;;3147;MTV Tostedt
+999023796;Kai von;Weymarn;1004;2202;1. PBV Pinneberg
+999023798;;Freilos;1009;2187;BC Queue Hamburg
+368843;Ayoub;Bahktaoui;1024;999001499;Triangel Soltau
+368684;Mihovil;Kovacic;1009;2187;BC Queue Hamburg
+366679;Norbert;Pätzmann;1009;2187;BC Queue Hamburg
+999023807;;0;1002;2196;1. BU Flensburg
+368353;Martin;Gentzen;1003;2181;1. PBT Lübeck
+999023808;Jefferson Reinoso;Cevallos;1021;2544;SCSC Kiel
+999023809;;2;1020;2543;SC Hamburg
+999023810;Dawod;Warasta;1005;2184;1. PSC Lüneburg
+999023811;Mahmood Merati;Shirazy;1020;2543;SC Hamburg
+999023812;Bryan Reinoso;Cevallos;1021;2544;SCSC Kiel
+999023813;Stefan;Kutscheid;1004;2202;1. PBV Pinneberg
+999023814;Stefan;Paschelke;1021;2544;SCSC Kiel
+999023815;Carlo;Schmöller;1004;2202;1. PBV Pinneberg
+999023996;Allein Lopez;Zulueta;;2207;PBV-Players
+999023997;Humayun;Nikzad;1020;2543;SC Hamburg
+999023998;;TBD;1009;2187;BC Queue Hamburg
+999023999;;4;1003;2181;1. PBT Lübeck
+999024000;David La;Noutelle;1013;3134;Harburg Hurricanes
+999024002;Paul O';Connor;1004;2202;1. PBV Pinneberg
+354295;Philipp Olaf;Stadelmann-Schultz;1009;2187;BC Queue Hamburg
+350807;Thomas;#Büttner;;2207;PBV-Players
+353091;Heino;Klosek;;2207;PBV-Players
+351531;Marco;Lorenzen;;999001500;Bredstedter TSV
+225368;Stefan;Nagel;1014;2197;Kieler Billard Union
+999024010;Simin Hadi;Sudarjani;1013;3134;Harburg Hurricanes
+999024011;Mahmoud Abd Al;Rahim;1005;2184;1. PSC Lüneburg
+999024013;Soeren Hartner;Terp;1002;2196;1. BU Flensburg
+999024015;Esteban Ruiz;Valdes;;2189;PBC Lübeck
+999024017;Andreas von;Hippel;1002;2196;1. BU Flensburg
+999024025;Mark;Kolland;1008;2203;BC Break Lübeck
+999024026;Saeed Masood;Joyenda;1021;2544;SCSC Kiel
+999024036;Sami Mohammed Al;Mahayni;1009;2187;BC Queue Hamburg
+999024053;Sven;Pfitzner;1020;2543;SC Hamburg
+999024054;Hristomir;Hristov;1020;2543;SC Hamburg
+999024055;Jan;Klügel;1020;2543;SC Hamburg
+999024062;Marinus van der;Meer;;2769;BV Q-Pub HH
+999024070;Yusuf;Nawabi;1007;2194;BC Bergedorf
+999024071;Wei;Müller;1020;2543;SC Hamburg
+999024072;Dominik;Rossmann;;2191;1. BC Schwerin
+999024073;Julian Carlos;Treiber;1020;2543;SC Hamburg
+999024083;;Freilos;;999001527;
+999024086;Daniel;Royeck;1021;2544;SCSC Kiel
+999024087;Payam Salman;Tabrizi;1020;2543;SC Hamburg
+999024088;Christopher;Hild;1005;2184;1. PSC Lüneburg
+246526;Benjamin;Neuwerck;1002;2196;1. BU Flensburg
+168629;Matthias;Peschke;1013;3134;Harburg Hurricanes
+252419;Anas;Malesho;;999001464;Uetersener SG
+224598;Daniel;Stockfleth;;999001464;Uetersener SG
+224594;Ove;Oestreich;;999001464;Uetersener SG
+224617;Markus;Lobisch;;999001464;Uetersener SG
+250804;Kris;Heitmann;;999001464;Uetersener SG
+228294;Thies-Christoph;Jensen;;999001526;Thunder Flyer's Büsum
+242318;Torben;Smith;;999001526;Thunder Flyer's Büsum
+248691;Jan;Unteutsch;1004;2202;1. PBV Pinneberg
+250864;Henning;Bergmann;1009;2187;BC Queue Hamburg
+224576;Stefan;Behrens;1005;2184;1. PSC Lüneburg
+168586;Jan;Östreich;1013;3134;Harburg Hurricanes
+226145;Jutta;Lübberstedt;1013;3134;Harburg Hurricanes
+251080;Jerôme;Grasse;1013;3134;Harburg Hurricanes
+166337;Martin;Owens;;999001526;Thunder Flyer's Büsum
+243242;Thomas;Schnell;;999001526;Thunder Flyer's Büsum
+999024089;Arisol;Amirov;1021;2544;SCSC Kiel
+999024090;Sergej;Schisko;1021;2544;SCSC Kiel
+999024091;Hung;Lu;1011;2735;BG Hamburg
+999024092;Steven Mc;Vey;1009;2187;BC Queue Hamburg
+999024100;Kai von;Holdt;;999001466;PBV Queue Wandsbek
+999024111;Jan Hendrik;Schrape;1005;2184;1. PSC Lüneburg
+999024112;André;Stecher;1021;2544;SCSC Kiel
+999024128;Dirk;Fieron;1021;2544;SCSC Kiel
+999024129;Ramzi Ben;Ghaffar;1020;2543;SC Hamburg
+999024130;Stephan;Krämer;1020;2543;SC Hamburg
+224621;Jörg;Redmann;;2186;BC Lucky Hohenwestedt
+999024131;Torsten;Hirsch;1021;2544;SCSC Kiel
+239887;Fountoulokis;Stelios;1003;2181;1. PBT Lübeck
+999024132;Axel;Höpken;;999001292;Bremer BS
+224633;Dietmar;Kallies;;2186;BC Lucky Hohenwestedt
+244585;Bahne;Schnack-Dörscher;1006;2185;ABC Wesseln
+223036;Sven;Seefeldt;;999001466;PBV Queue Wandsbek
+223035;Oliver;Pompe;;999001466;PBV Queue Wandsbek
+223037;Carsten;Stemmer;;999001466;PBV Queue Wandsbek
+121638;Axel;Günther;;999001466;PBV Queue Wandsbek
+223019;Wolfram;Guse;;2205;BV Chalkers Rendsburg
+227140;Thorsten;Hansen;;2205;BV Chalkers Rendsburg
+227139;Volker;Kruse;;2205;BV Chalkers Rendsburg
+223072;Sönke;Benn;;2205;BV Chalkers Rendsburg
+244018;Nils;Rudloff;1008;2203;BC Break Lübeck
+225829;Holger;Kilian;1009;2187;BC Queue Hamburg
+246263;Hüseyin;Sabanov;1009;2187;BC Queue Hamburg
+151885;Jessica;Lücking;1009;2187;BC Queue Hamburg
+244956;Michael;Faika;1009;2187;BC Queue Hamburg
+224666;Rico;Godow;;2191;1. BC Schwerin
+245504;Johannes;Pick;;2769;BV Q-Pub HH
+101223;Nico;Friedrich;1005;2184;1. PSC Lüneburg
+222778;Stefan;Beulig;1002;2196;1. BU Flensburg
+999024144;Karl-Heinz;Giese;;2189;PBC Lübeck
+999024176;Robert;Ewert;1023;2193;SVT Neumünster
+227278;Jens;Pflückhahn;;999001466;PBV Queue Wandsbek
+999024177;Tobias;Ruppe;1008;2203;BC Break Lübeck
+227133;Corinna;Steffens;;2205;BV Chalkers Rendsburg
+221185;Oliver;Blanck;1008;2203;BC Break Lübeck
+223012;Mathias;Schmidt;1004;2202;1. PBV Pinneberg
+221467;Atilla;Koc;;999001530;Hamburg Flames
+227204;Frank;Facklam;;999001466;PBV Queue Wandsbek
+224637;Lars;Matzen;;999001465;BC Pool Devils Kiel
+224650;Dirk;Seifert;;999001465;BC Pool Devils Kiel
+227142;Jürgen;Rohlfs;;2205;BV Chalkers Rendsburg
+221006;Carsten;Brandt;;999001531;1. BC Trappenkamp
+221473;Henrik;Reinke;;999001530;Hamburg Flames
+221474;Dirk;Stutz;;999001530;Hamburg Flames
+169632;Guido;Schneemann;1023;2193;SVT Neumünster
+227077;Mehmet;Tütünen;;999001529;1. BV Parchim
+223250;Markus;Ohlfest;1006;2185;ABC Wesseln
+223219;Carolin;Rolf;1006;2185;ABC Wesseln
+227630;Daniel;Kowalcik;;999001528;1. PBC Büsum
+229442;Sascha;Paysen;1002;2196;1. BU Flensburg
+224654;Bodo;Zigann;;999001465;BC Pool Devils Kiel
+224071;Hüseyin;Can;1017;2198;PBC The Gamblers
+223387;Dirk;Wieckhorst;1006;2185;ABC Wesseln
+228930;Tobias;Ahlheim;1006;2185;ABC Wesseln
+999024178;Thomas;Liskow;1017;2198;PBC The Gamblers
+999024213;Hendrik;Jahnke;1020;2543;SC Hamburg
+999024214;Fehmi;Tosun;1020;2543;SC Hamburg
+999024215;Tobias Kuppens;Groot;1020;2543;SC Hamburg
+999024216;Georg-Andreas;Hahn;1021;2544;SCSC Kiel
+999024217;Simon;Ulrich;1021;2544;SCSC Kiel
+999024218;Maik;Ohlsen;1021;2544;SCSC Kiel
+999024219;Alexander;Timmermann;1020;2543;SC Hamburg
+999024220;Sascha von;Rolbeck;1008;2203;BC Break Lübeck
+224657;Benjamin;Scheibe;;2191;1. BC Schwerin
+999024221;Peter;Trapp;1008;2203;BC Break Lübeck
+221123;Torsten;Schneider;;2189;PBC Lübeck
+221186;Kai Uwe;Conrad;1008;2203;BC Break Lübeck
+223025;Feyyaz;Karaalp;;999001465;BC Pool Devils Kiel
+225840;Harald;Zimmermann;1009;2187;BC Queue Hamburg
+169638;Boris;Boje;1023;2193;SVT Neumünster
+227209;Olaf;Nagel;;999001466;PBV Queue Wandsbek
+224662;Arne;Wallstabe;;2191;1. BC Schwerin
+224649;Olaf;Riecken;;999001465;BC Pool Devils Kiel
+223528;Tim;Rathke;1003;2181;1. PBT Lübeck
+227628;Pascal;Peters;;999001528;1. PBC Büsum
+226694;Marko;Seiler;1005;2184;1. PSC Lüneburg
+224631;Marco;Wrobel;1005;2184;1. PSC Lüneburg
+221005;Waldemar;Seidel;;999001531;1. BC Trappenkamp
+221008;Frank;Wegner;;999001531;1. BC Trappenkamp
+224561;Frank;Binder;;999001530;Hamburg Flames
+169642;Andreas;Eichner;1023;2193;SVT Neumünster
+225837;Wolfgang;Schirmer;1009;2187;BC Queue Hamburg
+224572;Simon;Tunger;1009;2187;BC Queue Hamburg
+225232;Oliver;Maschitz;;999001467;1. PBC Eckernförde
+225237;Michael;Sprung;;999001467;1. PBC Eckernförde
+999024222;Matthias;Kruse;1005;2184;1. PSC Lüneburg
+999024223;Heino;Glax;1020;2543;SC Hamburg
+999024224;Steffen;Sammann;1008;2203;BC Break Lübeck
+999024225;Ali;Cakmak;1011;2735;BG Hamburg
+999024226;Reiner;Fahrenkrug;;999001292;Bremer BS
+999024238;Michael Van der;Werf;1009;2187;BC Queue Hamburg
+223016;Christian;Fong;;999001466;PBV Queue Wandsbek
+223030;Jan;Wolf;1007;2194;BC Bergedorf
+175270;Christian;Erdmann;1007;2194;BC Bergedorf
+221187;Yannick;Charigault;1008;2203;BC Break Lübeck
+223089;Burkhard;Reimer;1008;2203;BC Break Lübeck
+223071;Udo;Wybrands;1004;2202;1. PBV Pinneberg
+223028;Jan-Hendrik;#Schult;;999001465;BC Pool Devils Kiel
+223088;Rainer;Büll;;999001465;BC Pool Devils Kiel
+223027;Peter;Urban;;999001465;BC Pool Devils Kiel
+223075;Eckhard;Warsow;;2205;BV Chalkers Rendsburg
+999031109;Yufeng;Wei;1020;2543;SC Hamburg
+999031110;Eugen;Richter;1017;2198;PBC The Gamblers
+999031111;David Charlie;Hopp;1020;2543;SC Hamburg
+999031112;Dennis;Greinert;1021;2544;SCSC Kiel
+999031113;Markus;Sommer;1020;2543;SC Hamburg
+999031114;Ramin;Baghai;;999001530;Hamburg Flames
+227627;Thorben;Smith;;999001528;1. PBC Büsum
+229266;Bastian;Skel;1014;2197;Kieler Billard Union
+999033355;Sebastian;Thiel;1005;2184;1. PSC Lüneburg
+999027676;;Freilos;;999001824;
+999031624;Eike;Zeller;1023;2193;SVT Neumünster
+368825;Detlef;Schönfeldt;;2191;1. BC Schwerin
+999032099;Sebastian Lukas;Bartsch;1006;2185;ABC Wesseln
+999032111;Johann;Paulsen-Erbe;1006;2185;ABC Wesseln
+999032272;Maximilian;Eisersdorff;1020;2543;SC Hamburg
+999032273;Sebastian;Sy;1020;2543;SC Hamburg
+999033338;Daniel La;Noutelle;1013;3134;Harburg Hurricanes
+247168;Achim;Wehrmann;1005;2184;1. PSC Lüneburg
+251121;Artusch;Grigorjan;;2189;PBC Lübeck
+175268;Scherwin;Dabzad;1013;3134;Harburg Hurricanes
+250720;Jan Ole;Langer;;999001464;Uetersener SG
+249345;Christian;Bruhn;1006;2185;ABC Wesseln
+224546;Dirk;Marschewski;;2191;1. BC Schwerin
+247112;Clemens;Baasen;;2769;BV Q-Pub HH
+226695;Timo;Seiler;1005;2184;1. PSC Lüneburg
+221407;Joachim;Preul;1014;2197;Kieler Billard Union
+228655;Frank;Kirchhoff;;999001465;BC Pool Devils Kiel
+225950;René;Hollek;1009;2187;BC Queue Hamburg
+239521;Felix;Malcher;;999001530;Hamburg Flames
+231498;Thore;Kirchmann;;2189;PBC Lübeck
+231494;Youness;Moufakir;;2189;PBC Lübeck
+999037787;Markus;Kühn;;999001464;Uetersener SG
+999037788;Simon;Kröger;1005;2184;1. PSC Lüneburg
+999037789;Thomas;Glück;1007;2194;BC Bergedorf
+999037790;Matthias;Elsner;1005;2184;1. PSC Lüneburg
+999037791;Thorsten;Köhler;1004;2202;1. PBV Pinneberg
+999037792;Tim;Merten;1009;2187;BC Queue Hamburg
+999037793;Elena;Berkovitsch;1009;2187;BC Queue Hamburg
+999037794;Manuel;Nobels;;2769;BV Q-Pub HH
+999037795;Frank-Udo;Bartels;1007;2194;BC Bergedorf
+999037796;Jens-Heiko;Krumsieg;1007;2194;BC Bergedorf
+999037797;Dennis;Kähler;1004;2202;1. PBV Pinneberg
+999037798;Mathias;Wiesner;1004;2202;1. PBV Pinneberg
+999037799;Jens;Backes;;999001464;Uetersener SG
+999037800;Florian;Nowicki;1014;2197;Kieler Billard Union
+999037801;Christian;Köhler;1009;2187;BC Queue Hamburg
+999037802;Antonio;Spitaleri;1013;3134;Harburg Hurricanes
+999037803;Marco;Vagt;1013;3134;Harburg Hurricanes
+999037804;Milorad;Savic;1008;2203;BC Break Lübeck
+999037805;Oliver - Etienne;Warschkau;;2191;1. BC Schwerin
+999037806;Sebastian;Lövenich;1013;3134;Harburg Hurricanes
+999037807;Salah Aldin;Wafaei;1013;3134;Harburg Hurricanes
+999037808;Joshua;Hordan;1014;2197;Kieler Billard Union
+168705;Sascha;Ratz;1004;2202;1. PBV Pinneberg
+251175;Henning;Düffels;1007;2194;BC Bergedorf
+169644;Alan;Burnett;1002;2196;1. BU Flensburg
+168289;Lukas;Lehmkuhl;1013;3134;Harburg Hurricanes
+248971;Mirko;Albrecht;1003;2181;1. PBT Lübeck
+223010;William;Limpens;1004;2202;1. PBV Pinneberg
+168695;Makan;Rabiian;1004;2202;1. PBV Pinneberg
+225831;Michael;Lüders;1009;2187;BC Queue Hamburg
+248659;Christof;Michel;1002;2196;1. BU Flensburg
+223029;Siegfried;Zintel;1014;2197;Kieler Billard Union
+223015;Lars;Lykke;1009;2187;BC Queue Hamburg
+223009;Thorsten;Hojer;1004;2202;1. PBV Pinneberg
+171933;Winfried;Meyer;1007;2194;BC Bergedorf
+166336;Klaus;Lütje;1006;2185;ABC Wesseln
+353612;Adi;Lechner-Grünberg;;999001500;Bredstedter TSV
+229247;Klaus;Dittkrist;1013;3134;Harburg Hurricanes
+350171;Petra;Berbüsse;1007;2194;BC Bergedorf
+168602;Michael;Pala;;2207;PBV-Players
+252921;Mohamad;Darouich;1004;2202;1. PBV Pinneberg
+223011;Thomas;Lindloff;1004;2202;1. PBV Pinneberg
+248667;Carmine;Nanula;1007;2194;BC Bergedorf
+249338;Mohammad Asif;Nawabi;1007;2194;BC Bergedorf
+169621;Florian;Knipfer;1023;2193;SVT Neumünster
+221384;Matthias;Börm;1014;2197;Kieler Billard Union
+221402;Philippe;Neis;1014;2197;Kieler Billard Union
+221399;Alexander;Knecht;1014;2197;Kieler Billard Union
+250598;Lars;Cuber;1014;2197;Kieler Billard Union
+223024;Malte;Quedens;1014;2197;Kieler Billard Union
+227207;Khosrow;Maghsoodi;1009;2187;BC Queue Hamburg
+225827;Luhang;Huang;1009;2187;BC Queue Hamburg
+249630;Andreas;Nicht;1008;2203;BC Break Lübeck
+242311;Marvin;Fricke;1007;2194;BC Bergedorf
+221052;Heiko;Gerdau;;2186;BC Lucky Hohenwestedt
+227141;Guido;Brall;;2205;BV Chalkers Rendsburg
+221031;Torsten;Griese;;2186;BC Lucky Hohenwestedt
+350590;Tom Kristian;Gerdau;;2186;BC Lucky Hohenwestedt
+245925;Andrè;Ahlers;1009;2187;BC Queue Hamburg
+239517;Jerry;Ryan;1004;2202;1. PBV Pinneberg
+350661;Patrick;Lindemann;1006;2185;ABC Wesseln
+221406;Volker;Pohlmann;1014;2197;Kieler Billard Union
+223087;Tim;Stecher;1014;2197;Kieler Billard Union
+221405;Marco;Pohlmann;1014;2197;Kieler Billard Union
+166338;Peter;Owens;1006;2185;ABC Wesseln
+252584;Sascha;Jantzen;;2207;PBV-Players
+244283;Ernst August;Wieden;1004;2202;1. PBV Pinneberg
+243889;Dirk;Unteutsch;1004;2202;1. PBV Pinneberg
+350525;Paul;Krage;1004;2202;1. PBV Pinneberg
+351463;Joshua;Rinke;1009;2187;BC Queue Hamburg
+166332;Jörg;Hartung;1017;2198;PBC The Gamblers
+350093;Novo;Sarafimoski;1013;3134;Harburg Hurricanes
+168487;Behzad;Monajim;1013;3134;Harburg Hurricanes
+175267;Bijan;Dabzad;1013;3134;Harburg Hurricanes
+166343;Ingo;Patzer;1017;2198;PBC The Gamblers
+247967;Thomas;Marek;1004;2202;1. PBV Pinneberg
+230686;Axel;Strohmeyer;1004;2202;1. PBV Pinneberg
+225235;Hans-Dieter;Büssen;;999001467;1. PBC Eckernförde
+225240;Jan Oliver;Pittelkow;;999001125;
+224553;Andreas;Klein;;999001467;1. PBC Eckernförde
+225234;Torben;Arens;;999001467;1. PBC Eckernförde
+225229;Oliver;Brömer;;999001467;1. PBC Eckernförde
+225219;Sönke;Rehbehn;;999001467;1. PBC Eckernförde
+249851;Hans-Joachim;Bittag;1005;2184;1. PSC Lüneburg
+251981;Claudia;Paulick;1003;2181;1. PBT Lübeck
+253385;Leon;Beyer;1003;2181;1. PBT Lübeck
+251893;Jan-Lesko;Jäke;1014;2197;Kieler Billard Union
+251655;Sami Mohammed;Al Mahayni;1009;2187;BC Queue Hamburg
+246493;Konstantinos;Kalfidis;1009;2187;BC Queue Hamburg
+244955;Niko;Kalfidis;1009;2187;BC Queue Hamburg
+252842;Rick;Schöllhorn;1009;2187;BC Queue Hamburg
+252841;Michael;Schwedhelm;1009;2187;BC Queue Hamburg
+248480;Tobias;Heckeler;1009;2187;BC Queue Hamburg
+251529;Ulrich;Strahler;1013;3134;Harburg Hurricanes
+251669;Maximilian;Li;1013;3134;Harburg Hurricanes
+221379;René;Böttger;1014;2197;Kieler Billard Union
+221378;Detlef;Böttger;1014;2197;Kieler Billard Union
+253345;Oliver;#Ruscheweyh;1014;2197;Kieler Billard Union
+253347;Daniel;Kerwell;1014;2197;Kieler Billard Union
+228216;Jasper;Plückhahn;;999001185;
+166330;Dirk;Appeldorn;;999001160;
+252353;Anne;Häfner;;999001526;Thunder Flyer's Büsum
+252722;Anke;Buchholz;1006;2185;ABC Wesseln
+169674;Steffen;Albrecht;;2769;BV Q-Pub HH
+223017;Uwe;Mecklenburg;1004;2202;1. PBV Pinneberg
+248972;Benjamin;Krüger;1003;2181;1. PBT Lübeck
+246494;Reiner;Prohaska;1009;2187;BC Queue Hamburg
+169669;Thorsten;Hundertmark;1009;2187;BC Queue Hamburg
+224665;Christian;Sabottka;;2191;1. BC Schwerin
+239867;Toni;Gerstel;;2191;1. BC Schwerin
+224709;Sebastian;Kohl;1017;2198;PBC The Gamblers
+221468;Martin;Kohl;1017;2198;PBC The Gamblers
+225238;Kevin;Brammer;;999001125;
+223482;Thomas;Hilbert;;999001125;
+251737;Andreas;Goletzki;1003;2181;1. PBT Lübeck
+221204;Timm;Hönow;1008;2203;BC Break Lübeck
+175263;Wolfgang;Brügger;1007;2194;BC Bergedorf
+168180;Andreas;Krieger;1013;3134;Harburg Hurricanes
+244818;Uwe;Beiß;;999001080;
+167298;Friedemann;Bullerdiek;1013;3134;Harburg Hurricanes
+251086;Rogelio;Guerra-Chang;1013;3134;Harburg Hurricanes
+240716;Jan;Böhmecke;1009;2187;BC Queue Hamburg
+251852;Gert;Finnern;1009;2187;BC Queue Hamburg
+225825;Toshiyuki;Hatanka;1009;2187;BC Queue Hamburg
+243366;Sonja;Heisrath;1004;2202;1. PBV Pinneberg
+242316;Andreas;Pahlke;1009;2187;BC Queue Hamburg
+167951;Susanne;Inselmann;1002;2196;1. BU Flensburg
+231710;Jens;Eggerstedt;1004;2202;1. PBV Pinneberg
+228196;Marinus;van der Meer;;2769;BV Q-Pub HH
+166339;Charles Henry;Smith;;999001526;Thunder Flyer's Büsum
+221381;Marcel;Böttger;1014;2197;Kieler Billard Union
+221387;Sandra;Caspary;1014;2197;Kieler Billard Union
+250718;Jörg;Sebastiani;;999001464;Uetersener SG
+250806;Pascal;Spieler;;999001464;Uetersener SG
+175714;Desmond;Smith;1007;2194;BC Bergedorf
+226058;Marco;Nierzwicki;1004;2202;1. PBV Pinneberg
+167941;Sascha;Huth;1004;2202;1. PBV Pinneberg
+171812;Henning;Willett;1004;2202;1. PBV Pinneberg
+222694;Enlen;Doce;1004;2202;1. PBV Pinneberg
+166331;Martin;Bruhn;1017;2198;PBC The Gamblers
+225921;Esteban;Böhmecke;1009;2187;BC Queue Hamburg
+223005;Matthias;Kröpelin;;2191;1. BC Schwerin
+223031;Olaf;Pülz;;999001466;PBV Queue Wandsbek
+227400;Benedykt;Hinz;;999001466;PBV Queue Wandsbek
+227399;Richard;Hinz;;999001466;PBV Queue Wandsbek
+242313;Dennis;Kollar;1007;2194;BC Bergedorf
+244066;Jonas;Boomers;1014;2197;Kieler Billard Union
+230931;Carsten;Lemmerz;1014;2197;Kieler Billard Union
+244065;Thomas;Berszinski;1014;2197;Kieler Billard Union
+221377;Florian;Biehl;1014;2197;Kieler Billard Union
+242349;Katharina;Pukall;1003;2181;1. PBT Lübeck
+242321;Hans;Schnell;;999001526;Thunder Flyer's Büsum
+224571;Michael;Nast;;999001186;
+223386;Thorsten;Böge;1006;2185;ABC Wesseln
+244586;Tobias;Claussen;1006;2185;ABC Wesseln
+227625;Wolf;Kapretz;;999001160;
+168408;Steven;Mc Vey;1009;2187;BC Queue Hamburg
+224664;Kay;Rehn;;2191;1. BC Schwerin
+243417;Timo;Hertel;1014;2197;Kieler Billard Union
+227382;Christian;Rappen;;999001159;
+230890;Kevin;Bloh;;999001159;
+223023;Arnold;Meyer;;2205;BV Chalkers Rendsburg
+223021;Lars;Weihmann;;2205;BV Chalkers Rendsburg
+223020;Uwe;Hamann;;2205;BV Chalkers Rendsburg
+223043;Jörg;Karkossa;;999001184;
+224541;Sebastian;Süfke;1003;2181;1. PBT Lübeck
+221421;Sascha;Vukovic;1014;2197;Kieler Billard Union
+224693;Nejat;Angic;1009;2187;BC Queue Hamburg
+200094;Heiko;Blasch;;999001466;PBV Queue Wandsbek
+166333;Bert;Hippe;;999001528;1. PBC Büsum
+224492;Florian;Süfke;1009;2187;BC Queue Hamburg
+224600;Matthias;Lange;1005;2184;1. PSC Lüneburg
+224586;Sven;Gehrdau;1005;2184;1. PSC Lüneburg
+221927;Andreas;Prütz;;999001466;PBV Queue Wandsbek
+221400;Maurice;Kowalski;1014;2197;Kieler Billard Union
+224695;Malte;Sommer;1004;2202;1. PBV Pinneberg
+243251;Timmy;Mustafov;1004;2202;1. PBV Pinneberg
+225822;Bernd;Eickmeier;1009;2187;BC Queue Hamburg
+223026;Calvin;Hönig;1003;2181;1. PBT Lübeck
+224547;Axel;Behlau;;999001529;1. BV Parchim
+227076;Ines;Dräger;;999001158;
+227281;Michael;Radke;;999001466;PBV Queue Wandsbek
+138546;Verena;Borg;1017;2198;PBC The Gamblers
+223674;Dietmar;Morawski;1002;2196;1. BU Flensburg
+221408;Sergej;Reschka;1014;2197;Kieler Billard Union
+227590;Stefan;Begunk;;2189;PBC Lübeck
+223022;Thomas;Kruse;;2205;BV Chalkers Rendsburg
+367967;Spyridon;Tseronis;1009;2187;BC Queue Hamburg
+366672;Stylianos;Fountoulakis;1009;2187;BC Queue Hamburg
+167770;Björn;Hartlage;1014;2197;Kieler Billard Union
+223749;Joachim;Meyer;1014;2197;Kieler Billard Union
+227210;Henning;Petersen;1004;2202;1. PBV Pinneberg
+367356;Jan-Hendrik;Bitter;1004;2202;1. PBV Pinneberg
+366653;Milena;Borsum;;3148;QSV Bredstedt
+168893;Daniel;Schmidt;1005;2184;1. PSC Lüneburg
+368334;Günther;Martin;1005;2184;1. PSC Lüneburg
+247165;Ali;Heydari;1005;2184;1. PSC Lüneburg
+368031;Luke;Friester;1009;2187;BC Queue Hamburg
+166351;Torsten;Rickmann;1017;2198;PBC The Gamblers
+223091;Michael;Van der Werf;1009;2187;BC Queue Hamburg
+221179;Moritz;Thomas;1008;2203;BC Break Lübeck
+223042;Maciej;Klinner;;2189;PBC Lübeck
+226493;Jörg;Balschuweit;1003;2181;1. PBT Lübeck
+169678;Andreas;Müller;;2207;PBV-Players
+228391;Rene;Zulueta;;2207;PBV-Players
+227923;Martin;Schröder;1004;2202;1. PBV Pinneberg
+221401;Andreas;Matern;1014;2197;Kieler Billard Union
+228350;Christian;Arenz;1014;2197;Kieler Billard Union
+221420;Corina;Voigt;1014;2197;Kieler Billard Union
+223753;Holger;Rathjen;;999001184;
+223748;Lars;Jensen;;999001465;BC Pool Devils Kiel
+227619;Philipp;Mühling;1002;2196;1. BU Flensburg
+221034;Steven;Knarr;1017;2198;PBC The Gamblers
+221035;Lena;Knarr;1017;2198;PBC The Gamblers
+224750;Michaela;Lumbek;1017;2198;PBC The Gamblers
+226026;Roland;Beutel;1014;2197;Kieler Billard Union
+226030;Julia;Falk;1014;2197;Kieler Billard Union
+225233;Jan Eric;Raab;;999001125;
+225230;Eckart;Goldenstern;;999001467;1. PBC Eckernförde
+223483;Sascha;Würges;;999001467;1. PBC Eckernförde
+225231;Lars;Kielmann;;999001467;1. PBC Eckernförde
+221032;Peter;Bölck;;2186;BC Lucky Hohenwestedt
+221001;Manfred;Mauritz;;999001531;1. BC Trappenkamp
+221002;Ella;Mauritz;;999001531;1. BC Trappenkamp
+223671;Aron;Köhne;1002;2196;1. BU Flensburg
+221386;Volker;Burke-Oder;1014;2197;Kieler Billard Union
+221403;Andrea;Oder;1014;2197;Kieler Billard Union
+166357;Daniel Patrice;Heesch;1017;2198;PBC The Gamblers
+226514;Dierk;Franßen;1006;2185;ABC Wesseln
+223659;Kevin;Featherby;1002;2196;1. BU Flensburg
+223660;Sabrina;Featherby;1002;2196;1. BU Flensburg
+221925;Sven;Laue;1017;2198;PBC The Gamblers
+227284;Andreas;Senger;;999001466;PBV Queue Wandsbek
+230736;Daniel;Niemeyer;;2191;1. BC Schwerin
+221115;Selahattin;Demircik;1003;2181;1. PBT Lübeck
+224574;Erwin;Balzer;1005;2184;1. PSC Lüneburg
+231380;Jürgen;Tackmann;1004;2202;1. PBV Pinneberg
+231571;Andreas;Riecken;;999001530;Hamburg Flames
+230690;Tolga;Yasmut;1004;2202;1. PBV Pinneberg
+169629;Carolin;Annuschat;1023;2193;SVT Neumünster
+221116;Ralf;Böttcher;;2189;PBC Lübeck
+231497;Matthias;Milz;;2189;PBC Lübeck
+229173;Torben;Hahn;;999001464;Uetersener SG
+223526;Frank;Rollnik;1003;2181;1. PBT Lübeck
+221033;Andreas;Sommer;;2186;BC Lucky Hohenwestedt
+230993;Jörg;Böttcher;1003;2181;1. PBT Lübeck
+168645;Marco;Pfob;1004;2202;1. PBV Pinneberg
+224696;Sebastian;Kreutzfeldt;1004;2202;1. PBV Pinneberg
+224690;Andrea;Grahl;1004;2202;1. PBV Pinneberg
+225839;Oliver;Thiel;1009;2187;BC Queue Hamburg
+225833;Rainer;Nürnberg;1009;2187;BC Queue Hamburg
+229571;Steffen;Matthies;;2769;BV Q-Pub HH
+229448;Sven;Grywatz;;2769;BV Q-Pub HH
+227453;Richard;Rauch;1002;2196;1. BU Flensburg
+229114;Andreas;Mundt;1009;2187;BC Queue Hamburg
+225948;Marcello;Hamunilu;1009;2187;BC Queue Hamburg
+228606;Jan-Peter;Kuns;1017;2198;PBC The Gamblers
+239901;Mirco;Groß;;2189;PBC Lübeck
+230880;Bosse;Sommerfeld;1014;2197;Kieler Billard Union
+228088;Mathias;Lüdke;;2769;BV Q-Pub HH
+227032;Marcus;Reichert;1007;2194;BC Bergedorf
+229624;Raka;Kostic;;2207;PBV-Players
+169681;Nico;Rimpl;;2207;PBV-Players
