@@ -4,9 +4,9 @@ class LeaguesController < ApplicationController
 
   # GET /leagues
   def index
-    @leagues = League.includes(:organizer).sort_by_params(params[:sort], sort_direction)
+    @leagues = League.joins('INNER JOIN "regions" ON ("regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')').sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
-      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(leagues.name ilike :search)")
+      @leagues = apply_filters(@leagues, League::COLUMN_NAMES, "(leagues.name ilike :search) or (regions.shortname ilike :search)")
     end
     @pagy, @leagues = pagy(@leagues)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.

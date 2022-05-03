@@ -1,7 +1,7 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= link_to 'League Ccs', league_ccs_path %> > League Cc #<%= @league_cc.id %></h1>
+      <h1><%= link_to 'League Ccs', league_ccs_path %> > League Cc #<%= @league_cc.id %></h1>
       <%= link_to 'Edit', edit_league_cc_path(@league_cc), class: "btn btn-link" %>
     </div>
 
@@ -27,14 +27,14 @@
 
   <% if @league_team_ccs.any? %>
     <h3> League Teams</h3>
-    <div id="table_wrapper">
+    <div id="table_wrapper text-sm">
       <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
     </div>
   <% end %>
 
   <% if @party_ccs.any? %>
     <h3> Parties</h3>
-    <div id="table_wrapper">
+    <div id="table_wrapper text-base">
       <%= render partial: 'party_ccs/party_ccs_table' %>
     </div>
   <% end %>

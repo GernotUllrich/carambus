@@ -163,12 +163,9 @@ class LocationsController < ApplicationController
 
   def merge
     if params[:merge].present? && params[:with].present?
-      @merge_location = Location.find(params[:merge])
-      @with_location_ids = Location.where(id: params[:with].split(",").map(&:strip).map(&:to_i)).map(&:id)
-      if @merge_location.present? && @with_location_ids.present?
-        Tournament.where(location_id: @with_location_ids).update_all(location_id: @merge_location.id)
-        Location.where(id: @with_location_ids).destroy_all
-      end
+      merge_location = Location.find(params[:merge])
+      with_location_ids = Location.where(id: params[:with].split(",").map(&:strip).map(&:to_i)).map(&:id)
+      merge_location.merge_locations(with_location_ids)
     end
     redirect_to locations_path
   end

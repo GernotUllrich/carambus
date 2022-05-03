@@ -40,7 +40,7 @@
     <% if @parties.any? %>
       <h3> Parties</h3>
       <div id="table_wrapper">
-        <%= render partial: 'parties/parties_table', locals: { from_league: true } %>
+        <%= render partial: 'parties/parties_table', locals: { from_index: false } %>
       </div>
     <%- end %>
   </div>

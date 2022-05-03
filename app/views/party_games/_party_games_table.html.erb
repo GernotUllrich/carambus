@@ -22,7 +22,7 @@
           <td class="p-3"><%= link_to party_game.name, party_game_path(party_game) %></td>
         <%- end %>
         <td class="p-3"><%= party_game.seqno %></td>
-        <td class="p-3"><%= link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) %></td>
+        <td class="p-3"><%= link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) if party_game.discipline.present? %></td>
         <td class="p-3"><%= link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
         <td class="p-3"><%= link_to party_game.player_b.fullname, player_path(party_game.player_b) %></td>
         <td class="p-3"><%= party_game.data.inspect %></td>

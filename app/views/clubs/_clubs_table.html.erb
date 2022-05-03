@@ -2,7 +2,7 @@
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs" />
+      <th class="p-3 uppercase text-left text-xs"/>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :ba_id, "BA", class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :cc_id, "Cc", class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :region_id, "Region", class: 'text-gray-700 dark:text-gray-200' %></th>
@@ -27,7 +27,7 @@
         <td class="p-3"><%= link_to club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}" %></td>
         <td class="p-3"><%= link_to club.cc_id, "https://ndbv.club-cloud.de/verein-details.php?p=20---#{club.cc_id}--1-100000-0" if club.cc_id.present? %></td>
         <td class="p-3"><%= link_to club.region.shortname, region_path(club.region) %></td>
-        <td class="p-3"><%= link_to(club.name,club_path(club)) %></td>
+        <td class="p-3"><%= link_to(club.name, club_path(club)) %></td>
         <td class="p-3"><%= club.shortname %></td>
         <td class="p-3"><%= club.address.andand.gsub(/\n+/, "<br />").andand.html_safe %></td>
         <td class="p-3"><%= club.homepage == "http://" ? "" : (link_to club.homepage, club.homepage) %></td>
@@ -47,8 +47,9 @@
   </table>
 </div>
 
-<% if @pagy.pages > 1 %>
+<% if @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

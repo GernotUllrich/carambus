@@ -24,185 +24,222 @@ class RegionCc < ApplicationRecord
   has_many :branch_ccs
 
   alias_attribute :fedId, :cc_id
+  class_attribute :session_id
+
+  REPORT_LOGGER_FILE = "#{Rails.root}/log/report.log"
+  REPORT_LOGGER = Logger.new(REPORT_LOGGER_FILE)
+
+  DEBUG = true
 
   STATUS_MAP = {
     active: 1,
     passive: 2
   }
 
-  PATH_MAP = {
-    "home" => "",
-    #"showClubList" => "/admin/approvement/player/showClubList.php",
-    "createLeagueSave" => "/admin/league/createLeagueSave.php",
-    # fedId: 20
-    # branchId: 10
-    # subBranchId: 2
-    # seasonId: 11
-    # seasonId: 11
-    # leagueName: Oberliga Dreiband
-    # leagueShortName: OD
-    # reportId: 20
-    # prefix: 0
-    # staffelName:
-    # sportdistrictId: 0
-    # sbut:
-    "showLeagueList" => "/admin/report/showLeagueList.php",
-    "showLeague" => "/admin/league/showLeague.php",
-    "admin_report_showLeague" => "/admin/report/showLeague.php",
-    # branchId: 6
-    # fedId: 20
-    # subBranchId: 1
-    # seasonId: 8
-    # leagueId: 34
-    "admin_report_showLeague_create_team" => "/admin/report/showLeague_create_team.php",
-    # teamCounter: 2
-    # fedId: 20
-    # leagueId: 32
-    # branchId: 6
-    # subBranchId: 1
-    # seasonId: 8
-    "spielbericht_anzeigen" => "/admin/reportbuilder2/spielbericht_anzeigen.php",
-    "showTeam" => "/admin/announcement/team/showTeam.php",
-    # fedId: 20,
-    # branchId: 6,
-    # subBranchId: 1,
-    # sportDistrictId: *,
-    # clubId: 1004,
-    # originalBranchId: 6,
-    # seasonId: 1,
-    # teamId: 98
-    "editTeam" => "admin/announcement/team/editTeamCheck.php",
-    "showClubList" => "/admin/announcement/team/showClubList.php",
-    # fedId: 20
-    # branchId: 6
-    # subBranchId: 11
-    # sportDistrictId: *
-    # statusId: 1   (1 = active)
-    "showLeague_show_teamplayer" => "/admin/report/showLeague_show_teamplayer.php",
-    # GET
-    # p: 187
-    "showLeague_add_teamplayer" => "/admin/report/showLeague_add_teamplayer.php",
-    # fedId: 20,
-    # leagueId: 34,
-    # staffelId: 0,
-    # branchId: 6,
-    # subBranchId: 1,
-    # seasonId: 8,
-    # p: 187,
-    # passnr: 221109,
-    "spielbericht" => "/admin/bm_mw/spielbericht.php",
-    # errMsgNew:
-    # matchId: 572
-    # teamId: 189
-    # woher: 1
-    # firstEntry: 1
-    # memo: Die Partien von Florian Knipfer wurden aus der Wertung gestrichen, wegen Einsatz als Ersatz-Spieler in der Bundesliga !!
-    # protest:
-    # zuNullTeamId: 0
-    # wettbewerb: 1
-    # partienr: 4004
-    # saison:
-    # 572-1-1-1-pid1: 10130
-    # 572-1-1-1-pid2: 10353
-    # 572-1-1-sc1: 125
-    # 572-1-1-sc2: 70
-    # 572-1-1-in1: 46
-    # 572-1-1-in2: 45
-    # 572-1-1-br1: 13
-    # 572-1-1-br2: 10
-    # 572-1-1-vo1:
-    # 572-1-1-vo2:
-    # 572-2-1-1-pid1: 10243
-    # 572-2-1-1-pid2: 0
-    # 572-2-1-sc1: 0
-    # 572-2-1-sc2: 0
-    # 572-2-1-in1:
-    # 572-2-1-in2:
-    # 572-2-1-br1:
-    # 572-2-1-br2:
-    # 572-2-1-vo1:
-    # 572-2-1-vo2:
-    # 572-3-1-1-pid1: 0
-    # 572-3-1-1-pid2: 10121
-    # 572-3-1-sc1: 9
-    # 572-3-1-sc2: 4
-    # 572-3-1-in1:
-    # 572-3-1-in2:
-    # 572-3-1-br1:
-    # 572-3-1-br2:
-    # 572-3-1-vo1:
-    # 572-3-1-vo2:
-    # 572-4-1-1-pid1: 0
-    # 572-4-1-1-pid2: 10108
-    # 572-4-1-sc1: 2
-    # 572-4-1-sc2: 8
-    # 572-4-1-in1:
-    # 572-4-1-in2:
-    # 572-4-1-br1:
-    # 572-4-1-br2:
-    # 572-4-1-vo1:
-    # 572-4-1-vo2:
-    # 572-6-1-1-pid1: 0
-    # 572-6-1-1-pid2: 0
-    # 572-6-1-sc1: 8
-    # 572-6-1-sc2: 4
-    # 572-6-1-in1:
-    # 572-6-1-in2:
-    # 572-6-1-br1:
-    # 572-6-1-br2:
-    # 572-6-1-vo1:
-    # 572-6-1-vo2:
-    # 572-7-1-1-pid1: 0
-    # 572-7-1-1-pid2: 10108
-    # 572-7-1-sc1: 9
-    # 572-7-1-sc2: 6
-    # 572-7-1-in1:
-    # 572-7-1-in2:
-    # 572-7-1-br1:
-    # 572-7-1-br2:
-    # 572-7-1-vo1:
-    # 572-7-1-vo2:
-    # 572-8-1-1-pid1: 10130
-    # 572-8-1-1-pid2: 10121
-    # 572-8-1-sc1: 7
-    # 572-8-1-sc2: 5
-    # 572-8-1-in1:
-    # 572-8-1-in2:
-    # 572-8-1-br1:
-    # 572-8-1-br2:
-    # 572-8-1-vo1:
-    # 572-8-1-vo2:
-    # 572-9-1-1-pid1: 10243
-    # 572-9-1-1-pid2: 0
-    # 572-9-1-sc1:
-    # 572-9-1-sc2:
-    # 572-9-1-in1:
-    # 572-9-1-in2:
-    # 572-9-1-br1:
-    # 572-9-1-br2:
-    # 572-9-1-vo1:
-    # 572-9-1-vo2:
+  PATH_MAP = { #maps to path and read_only {true|false}|}
+               "home" => ["", true],
+               #"showClubList" => "/admin/approvement/player/showClubList.php",
+               "createLeagueSave" => ["/admin/league/createLeagueSave.php", true],
+               # fedId: 20
+               # branchId: 10
+               # subBranchId: 2
+               # seasonId: 11
+               # seasonId: 11
+               # leagueName: Oberliga Dreiband
+               # leagueShortName: OD
+               # reportId: 20
+               # prefix: 0
+               # staffelName:
+               # sportdistrictId: 0
+               # sbut:
+               "showLeagueList" => ["/admin/report/showLeagueList.php", true],
+               "showLeague" => ["/admin/league/showLeague.php", true],
+               "admin_report_showLeague" => ["/admin/report/showLeague.php", true],
+               # branchId: 6
+               # fedId: 20
+               # subBranchId: 1
+               # seasonId: 8
+               # leagueId: 34
+               "admin_report_showLeague_create_team" => ["/admin/report/showLeague_create_team.php", false],
+               # teamCounter: 2
+               # fedId: 20
+               # leagueId: 32
+               # branchId: 6
+               # subBranchId: 1
+               # seasonId: 8
+               "spielbericht_anzeigen" => ["/admin/reportbuilder2/spielbericht_anzeigen.php", true],
+               "showTeam" => ["/admin/announcement/team/showTeam.php", true],
+               # fedId: 20,
+               # branchId: 6,
+               # subBranchId: 1,
+               # sportDistrictId: *,
+               # clubId: 1004,
+               # originalBranchId: 6,
+               # seasonId: 1,
+               # teamId: 98
+               "editTeam" => ["admin/announcement/team/editTeamCheck.php", false],
+               "showClubList" => ["/admin/announcement/team/showClubList.php", true],
+               # fedId: 20
+               # branchId: 6
+               # subBranchId: 11
+               # sportDistrictId: *
+               # statusId: 1   (1 = active)
+               "showLeague_show_teamplayer" => ["/admin/report/showLeague_show_teamplayer.php", true],
+               # GET
+               # p: 187
+               "showLeague_add_teamplayer" => ["/admin/report/showLeague_add_teamplayer.php", false],
+               # fedId: 20,
+               # leagueId: 34,
+               # staffelId: 0,
+               # branchId: 6,
+               # subBranchId: 1,
+               # seasonId: 8,
+               # p: 187,
+               # passnr: 221109,
+               "spielbericht" => ["/admin/bm_mw/spielbericht.php", false],
+               # errMsgNew:
+               # matchId: 572
+               # teamId: 189
+               # woher: 1
+               # firstEntry: 1
+               # memo: Die Partien von Florian Knipfer wurden aus der Wertung gestrichen, wegen Einsatz als Ersatz-Spieler in der Bundesliga !!
+               # protest:
+               # zuNullTeamId: 0
+               # wettbewerb: 1
+               # partienr: 4004
+               # saison:
+               # 572-1-1-1-pid1: 10130
+               # 572-1-1-1-pid2: 10353
+               # 572-1-1-sc1: 125
+               # 572-1-1-sc2: 70
+               # 572-1-1-in1: 46
+               # 572-1-1-in2: 45
+               # 572-1-1-br1: 13
+               # 572-1-1-br2: 10
+               # 572-1-1-vo1:
+               # 572-1-1-vo2:
+               # 572-2-1-1-pid1: 10243
+               # 572-2-1-1-pid2: 0
+               # 572-2-1-sc1: 0
+               # 572-2-1-sc2: 0
+               # 572-2-1-in1:
+               # 572-2-1-in2:
+               # 572-2-1-br1:
+               # 572-2-1-br2:
+               # 572-2-1-vo1:
+               # 572-2-1-vo2:
+               # 572-3-1-1-pid1: 0
+               # 572-3-1-1-pid2: 10121
+               # 572-3-1-sc1: 9
+               # 572-3-1-sc2: 4
+               # 572-3-1-in1:
+               # 572-3-1-in2:
+               # 572-3-1-br1:
+               # 572-3-1-br2:
+               # 572-3-1-vo1:
+               # 572-3-1-vo2:
+               # 572-4-1-1-pid1: 0
+               # 572-4-1-1-pid2: 10108
+               # 572-4-1-sc1: 2
+               # 572-4-1-sc2: 8
+               # 572-4-1-in1:
+               # 572-4-1-in2:
+               # 572-4-1-br1:
+               # 572-4-1-br2:
+               # 572-4-1-vo1:
+               # 572-4-1-vo2:
+               # 572-6-1-1-pid1: 0
+               # 572-6-1-1-pid2: 0
+               # 572-6-1-sc1: 8
+               # 572-6-1-sc2: 4
+               # 572-6-1-in1:
+               # 572-6-1-in2:
+               # 572-6-1-br1:
+               # 572-6-1-br2:
+               # 572-6-1-vo1:
+               # 572-6-1-vo2:
+               # 572-7-1-1-pid1: 0
+               # 572-7-1-1-pid2: 10108
+               # 572-7-1-sc1: 9
+               # 572-7-1-sc2: 6
+               # 572-7-1-in1:
+               # 572-7-1-in2:
+               # 572-7-1-br1:
+               # 572-7-1-br2:
+               # 572-7-1-vo1:
+               # 572-7-1-vo2:
+               # 572-8-1-1-pid1: 10130
+               # 572-8-1-1-pid2: 10121
+               # 572-8-1-sc1: 7
+               # 572-8-1-sc2: 5
+               # 572-8-1-in1:
+               # 572-8-1-in2:
+               # 572-8-1-br1:
+               # 572-8-1-br2:
+               # 572-8-1-vo1:
+               # 572-8-1-vo2:
+               # 572-9-1-1-pid1: 10243
+               # 572-9-1-1-pid2: 0
+               # 572-9-1-sc1:
+               # 572-9-1-sc2:
+               # 572-9-1-in1:
+               # 572-9-1-in2:
+               # 572-9-1-br1:
+               # 572-9-1-br2:
+               # 572-9-1-vo1:
+               # 572-9-1-vo2:
   }
 
   #PHPSESSID = "3e7da06b0149fe5ad787246fc7a0e2b4"
   BASE_URL = "https://e12112e2454d41f1824088919da39bc0.club-cloud.de"
 
-  def post_cc(action, session_id, options = {})
-    if PATH_MAP[action].present?
-      url = base_url + PATH_MAP[action]
-      Rails.logger.debug "[post_cc] POST #{action} with payload #{options}"
-      uri = URI(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      req = Net::HTTP::Post.new(uri.request_uri)
-      req["cookie"] = "PHPSESSID=#{session_id}"
-      req['Content-Type'] = 'application/x-www-form-urlencoded'
-      req.set_form_data(options.reject { |k, v| v.blank? })
-      res = http.request(req)
-      if res.message == "OK"
-        doc = Nokogiri::HTML(res.body)
+  def self.logger
+    REPORT_LOGGER
+  end
+
+  def self.save_log(name)
+    FileUtils.mv(REPORT_LOGGER_FILE, "#{Rails.root}/log/#{name}.log")
+    REPORT_LOGGER.reopen
+  end
+
+  def fix(options = {})
+    armed = options.delete(:armed)
+    if options[:name].present?
+      if armed
+        RegionCc.logger.info "NOT_IMPLEMENTED fix region_name to \"#{options[:name]}\""
       else
-        doc = Nokogiri::HTML(res.message)
+        RegionCc.logger.info "WILL fix region_name to \"#{options[:name]}\""
+      end
+    else
+      raise ArgumentError
+    end
+  rescue Exceptions => e
+    e
+  end
+
+  def post_cc(action, session_id, options = {})
+    dry_run = options.delete(:armed).blank?
+    if PATH_MAP[action].present?
+      url = base_url + PATH_MAP[action][0]
+      if PATH_MAP[action][1] #read_only
+        Rails.logger.debug "[#{action}] #{"WILL" if dry_run} POST #{action} with payload #{options}" if DEBUG
+      else
+        RegionCc.logger.debug "[#{action}] POST with payload #{options}"
+      end
+      unless dry_run
+        uri = URI(url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        req = Net::HTTP::Post.new(uri.request_uri)
+        req["cookie"] = "PHPSESSID=#{session_id}"
+        req['Content-Type'] = 'application/x-www-form-urlencoded'
+        req.set_form_data(options.reject { |k, v| v.blank? })
+        res = http.request(req)
+        if res.message == "OK"
+          doc = Nokogiri::HTML(res.body)
+        else
+          doc = Nokogiri::HTML(res.message)
+        end
       end
       return [res, doc]
     else
@@ -212,7 +249,7 @@ class RegionCc < ApplicationRecord
 
   def get_cc(action, session_id, options = {})
     if PATH_MAP[action].present?
-      url = base_url + PATH_MAP[action]
+      url = base_url + PATH_MAP[action][0]
       return get_cc_with_url(action, session_id, url, options)
     else
       raise ArgumentError, "Unknown Action", caller
@@ -220,7 +257,7 @@ class RegionCc < ApplicationRecord
   end
 
   def get_cc_with_url(action, session_id, url, options = {})
-    Rails.logger.debug "[post_cc] POST #{action} with payload #{options}"
+    Rails.logger.debug "[post_cc] POST #{action} with payload #{options}" if DEBUG
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
@@ -238,33 +275,40 @@ class RegionCc < ApplicationRecord
     return [res, doc]
   end
 
-  def self.sync_regions(sesion_id, region)
+  def self.sync_regions(session_id, region, options = {})
+    armed = options[:armed].present?
     regions = []
-    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc("showClubList")
-    selector = doc.css('select[name="fedId"]')[0]
-    options = selector.css("option")
-    options.each do |option|
-      cc_id = option["value"].to_i
-      name_str = option.text.strip
-      match = name_str.match(/(.*) \((.*)\)/)
-      region_name = match[1]
-      shortname = match[2]
-      region = Region.find_by_shortname(shortname)
-      if region_name != region.name
-        Rails.logger.warn "REPORT! [sync_regions] Name des Regionalverbandes unterschiedlich: CC: #{region_name} BA: #{region.name}"
+    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc("showClubList", session_id)
+    if (msg = doc.css("input[name=\"errMsg\"]")[0].andand["value"]).present?
+      RegionCc.logger.error msg
+    else
+      selector = doc.css('select[name="fedId"]')[0]
+      options = selector.css("option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        name_str = option.text.strip
+        match = name_str.match(/(.*) \((.*)\)/)
+        region_name = match[1]
+        shortname = match[2]
+        region = Region.find_by_shortname(shortname)
+        args = {
+          cc_id: cc_id,
+          region_id: region.id,
+          context: region.shortname.downcase,
+          shortname: shortname,
+          name: region_name,
+          base_url: BASE_URL
+        }
+        region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(args)
+        region_cc.assign_attributes(args)
+        region_cc.save
+        regions.push(region)
+
+        if region_name != region.name
+          RegionCc.logger.warn "REPORT! [sync_regions] Name des Regionalverbandes unterschiedlich: CC: #{region_name} BA: #{region.name}"
+          region_cc.fix(name: region.name, armed: armed)
+        end
       end
-      args = {
-        cc_id: cc_id,
-        region_id: region.id,
-        context: region.shortname.downcase,
-        shortname: shortname,
-        name: region_name,
-        base_url: BASE_URL
-      }
-      region_cc = RegionCc.find_by_cc_id(cc_id) || RegionCc.new(args)
-      region_cc.assign_attributes(args)
-      region_cc.save
-      regions.push(region)
     end
     return regions
   end
@@ -272,7 +316,7 @@ class RegionCc < ApplicationRecord
   def sync_branches(session_id)
     branches = []
     context = shortname.downcase
-    res, doc = get_cc("showClubList", sesion_id)
+    res, doc = get_cc("showClubList", session_id)
     selector = doc.css('select[name="branchId"]')[0]
     options = selector.css("option")
     options.each do |option|
@@ -283,7 +327,7 @@ class RegionCc < ApplicationRecord
       branch = Branch.find_by_name(branch_name)
       if branch.blank?
         msg = "No Branch with name #{branch_name} in database"
-        Rails.logger.error "[get_branches_from_cc] #{msg}"
+        RegionCc.logger.error "[get_branches_from_cc] #{msg}"
         raise ArgumentError, msg, caller
       else
         args = { cc_id: cc_id, region_cc_id: id, discipline_id: branch.id, context: context, name: branch_name }
@@ -315,7 +359,7 @@ class RegionCc < ApplicationRecord
         competition = Competition.find_by_name(carambus_name)
         if competition.blank?
           msg = "No Competition with name #{carambus_name} in database"
-          Rails.logger.error "[sync_competitions] #{msg}"
+          RegionCc.logger.error "[sync_competitions] #{msg}"
           raise ArgumentError, msg, caller
         else
           args = { cc_id: cc_id, branch_cc_id: branch_cc.id, discipline_id: competition.id, context: context, name: name }
@@ -424,7 +468,7 @@ class RegionCc < ApplicationRecord
                 league.assign_attributes(cc_id: cc_id)
               end
               unless league.present?
-                Rails.logger.warn "REPORT! [sync_leagues] Name der Liga entspricht keiner BA Liga: CC: #{{ season_name: season.name, name: name_str, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.discipline }.inspect}"
+                RegionCc.logger.warn "REPORT! [sync_leagues] Name der Liga entspricht keiner BA Liga: CC: #{{ season_name: season.name, name: name_str, organizer_type: "Region", organizer_id: [self.id, dbu_region_id], discipline: competition_cc.discipline }.inspect}"
               else
                 args = { cc_id: cc_id, context: context, name: name_str, season_cc_id: season_cc.id, league_id: league.id }
                 league_cc = LeagueCc.find_by_cc_id_and_season_cc_id_and_context(cc_id, season_cc.id, context) || LeagueCc.new(args)
@@ -511,7 +555,7 @@ class RegionCc < ApplicationRecord
                   end
                   club = Club.where(region: region, shortname: team_club_str).first
                   unless club.present?
-                    Rails.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{ shortname: team_club_str, region: region.shortname }.inspect}"
+                    RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{ shortname: team_club_str, region: region.shortname }.inspect}"
                   else
                     league_team = LeagueTeam.find_by_cc_id_and_league_id(cc_id, league_cc.league.id)
                     league_team ||= LeagueTeam.
@@ -530,7 +574,7 @@ class RegionCc < ApplicationRecord
                             club_id: club.id).first
                   end
                   unless league_team.present?
-                    Rails.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft entspricht keinem BA LigaTeam: CC: #{{ name: name_str, league_id: league_cc.league.id, club_id: club.id }.inspect}"
+                    RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft entspricht keinem BA LigaTeam: CC: #{{ name: name_str, league_id: league_cc.league.id, club_id: club.id }.inspect}"
                   else
                     league_team.assign_attributes(cc_id: cc_id)
                     league_team.save!
@@ -582,11 +626,11 @@ class RegionCc < ApplicationRecord
             unless c.present?
               c = Club.where(shortname: shortname, region_id: region.id).first
               unless c.present?
-                Rails.logger.warn "REPORT! [sync_clubs] no club with name '#{shortname}' found in region #{context}"
+                RegionCc.logger.warn "REPORT! [sync_clubs] no club with name '#{shortname}' found in region #{context}"
               end
             else
               if c.shortname != shortname
-                Rails.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shortname}' BA: #{c.shortname}"
+                RegionCc.logger.warn "REPORT! [sync_clubs] name mismatch found - CC: '#{shortname}' BA: #{c.shortname}"
               end
               c.assign_attributes(cc_id: cc_id, status: status)
               c.save!

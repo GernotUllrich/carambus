@@ -8,10 +8,11 @@
   </div>
 
   <% if @parties.any? %>
-    <%= render partial: 'parties/parties_table', locals: {from_league: false} %>
+    <%= render partial: 'parties/parties_table', locals: {from_index: true} %>
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>

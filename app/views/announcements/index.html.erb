@@ -32,6 +32,7 @@
 
   <% if @pagy.pages > 1 %>
     <div class="text-center mt-8">
+      <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
       <%== pagy_nav(@pagy) %>
     </div>
   <% end %>

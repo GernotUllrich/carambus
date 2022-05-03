@@ -1,12 +1,15 @@
 class ClubsController < ApplicationController
   include FiltersHelper
+  protect_from_forgery except: :search
   before_action :set_club, only: [:new_club_tournament, :show, :edit, :update, :destroy, :get_club_details, :new_club_guest, :new_club_location, :reload_from_ba, :reload_from_ba_with_player_details]
 
   # GET /clubs
   def index
     @clubs = Club.joins(:region).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
+      @clubs_no_query = @clubs
       @clubs = apply_filters(@clubs, Club::COLUMN_NAMES, "(regions.shortname ilike :search) or (clubs.name ilike :search) or (clubs.address ilike :search) or (clubs.shortname ilike :search) or (clubs.email ilike :search) or (clubs.cc_id = :isearch)")
+      @clubs = @clubs_no_query if @clubs.count == 0
     end
     @pagy, @clubs = pagy(@clubs)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.

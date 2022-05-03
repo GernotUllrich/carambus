@@ -5,6 +5,7 @@
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :ba_link, 'BA-Link', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_link, 'CC-Link', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :league_id, 'Liga(Carambus)', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season, 'Saison', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :name, 'Name', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :shortname, 'Kürzel', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :status, 'Status', class: 'text-gray-700' %></th>
@@ -22,7 +23,7 @@
     <tr class="group border-t border-gray-400 hover:bg-gray-100">
       <td class="p-3"><%= link_to league_cc.cc_id, league_cc_path(league_cc) %></td>
       <td class="p-3"><%= link_to "#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}", "https://#{league_cc.context}.billardarea.de/cms_leagues/plan/#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}", target: :_blank if league_cc.league.present? %></td>
-      <%= form_tag("#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"]}", id: "cc_link_#{league_cc.id}", :method => :post, :class => 'internal', target: :_blank) do %>
+      <%= form_tag("#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"][0]}", id: "cc_link_#{league_cc.id}", :method => :post, :class => 'internal', target: :_blank) do %>
         <%= hidden_field_tag 'fedId', league_cc.fedId %>
         <%= hidden_field_tag 'branchId', league_cc.branchId %>
         <%= hidden_field_tag 'subBranchId', league_cc.subBranchId %>
@@ -31,6 +32,7 @@
       <% end %>
       <td class="p-3"><%= link_to("#{league_cc.link_name}", "#", onclick: "document.getElementById(\"#{"cc_link_#{league_cc.id}"}\").submit();", :title => 'Hover text for link') %></td>
       <td class="p-3"><%= link_to league_cc.league.name, league_path(league_cc.league) if league_cc.league.present? %></td>
+      <td class="p-3"><%= link_to "#{league_cc.season_cc.name} (#{league_cc.season_cc.branch_cc.name})", season_cc_path(league_cc.season_cc) if league_cc.season_cc.present? %></td>
       <td class="p-3"><%= league_cc.name %></td>
       <td class="p-3"><%= league_cc.shortname %></td>
       <td class="p-3"><%= league_cc.status %></td>
@@ -47,10 +49,9 @@
   <% end %>
   </tbody>
 </table>
-</div>
-
 <% if @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

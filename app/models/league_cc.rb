@@ -27,7 +27,7 @@ class LeagueCc < ApplicationRecord
   alias_attribute :leagueId, :cc_id
   alias_attribute :staffelId, :cc_id2
 
-  def self.create_from_ba(session_id, league)
+  def self.create_from_ba(session_id, league, force_update)
     region = league.organizer
     region_cc = region.region_cc
     competition = league.competition
@@ -47,7 +47,8 @@ class LeagueCc < ApplicationRecord
       leagueName: league.name,
       leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
       prefix: 0,
-      sportdistrictId: 0
+      sportdistrictId: 0,
+      armed: force_update
     )
     doc.to_s
   end

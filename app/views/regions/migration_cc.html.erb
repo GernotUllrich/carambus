@@ -1,22 +1,72 @@
 <div class="container mx-auto my-8 px-4">
-  <div class="max-w-3xl mx-auto">
+  <div class="mx-auto">
     <h2>Migration Billard Area zur Club Cloud</h2>
-      <ul class="@apply list-disc list-outside font-bold h3">
+    <ul class="@apply list-none">
+
+      <li><h3>Set Session Id</h3>
+        <%= form_tag set_session_id_region_path(@region) do %>
+          <%= text_field_tag "PHPSESSID", nil, class: "border-2", style: "width: 300px" %>
+          <%= submit_tag "set PHPSESSID", class: "btn btn-primary" %>
+        <%- end %>
+      </li>
       <li><h3>Regionale Club Cloud für <%= @region.name %></h3>
         <%- if @region.region_cc.present? %>
-        <%= link_to "#{@region.region_cc.shortname}(#{@region.region_cc.id})", region_cc_path(@region.region_cc) %>
-          <%- else %>
-        <p>Zunächst muss die Verbindung zur Club Cloud Instanz hergestellt werden (URL und fedId):</p>
+          <%= link_to "#{@region.region_cc.shortname}(#{@region.region_cc.id})", region_cc_path(@region.region_cc) %>
+          <%= link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+          <%= link_to "Fix", fix_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- else %>
+          <p>Zunächst muss die Verbindung zur Club Cloud Instanz hergestellt werden (URL und fedId):</p>
           <%- @region_cc = RegionCc.new(context: @region.shortname.downcase) %>
           <p><%= link_to 'New Region Cc', "/region_ccs/new?context=#{@region.shortname.downcase}&region_id=#{@region.id}&name=#{@region.name}&shortname=#{@region.shortname}", class: "btn btn-primary" %></p>
-          <%- end %>
+        <%- end %>
+        <%- if File.exist?("#{Rails.root}/log/region_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/region_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
       </li>
-      <li><h3>synchronize_season_structure</h3></li>
-      <li><h3>synchronize_league_structure</h3></li>
-      <li><h3>synchronize_region_structure</h3></li>
-      <li><h3>synchronize_league_team_structure</h3></li>
-      <li><h3>synchronize_party_structure</h3></li>
-      <li><h3>synchronize_team_players_structure</h3></li>
+      <li><h3>Synchronisation der Branch Struktur</h3></li>
+      <% if (@branch_ccs = @region.region_cc.branch_ccs).any? %>
+        <h3> BranchCcs</h3>
+        <div id="table_wrapper">
+          <%= render partial: 'branch_ccs/branch_ccs_table' %>
+        </div>
+        <%= link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/branch_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/branch_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+      <% end %>
+      <li><h3>Synchronisation der Competition Struktur</h3></li>
+      <% if (@competition_ccs = CompetitionCc.joins(:branch_cc => { :region_cc => :region }).where(regions: { id: @region.id })).any? %>
+        <h3> CompetitionCcs</h3>
+        <div id="table_wrapper">
+          <%= render partial: 'competition_ccs/competition_ccs_table' %>
+        </div>
+      <% end %>
+      <li><h3>Synchronisation der Season Struktur</h3></li>
+      <% if (@season_ccs = SeasonCc.joins(:competition_cc => { :branch_cc => { :region_cc => :region } }).where(regions: { id: @region.id })).any? %>
+        <h3> SeasonCcs</h3>
+        <div id="table_wrapper">
+          <%= render partial: 'season_ccs/season_ccs_table' %>
+        </div>
+      <% end %>
+      <li><h3>Synchronisation der Liga Struktur</h3></li>
+      <% if (@league_ccs = LeagueCc.joins(:season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
+        <h3> LeagueCcs</h3>
+        <div id="table_wrapper">
+          <%= render partial: 'league_ccs/league_ccs_table' %>
+        </div>
+      <% end %>
+      <li><h3>Synchronisation der Liga Mannschaften</h3></li>
+      <% if (@league_team_ccs = LeagueTeamCc.joins(:league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
+        <h3> LeagueTeamCcs</h3>
+        <div id="table_wrapper">
+          <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
+        </div>
+      <% end %>
+      <li><h3>Synchronisation der Spielpläne</h3></li>
+      <li><h3>Synchronisation der Spielberichte</h3></li>
     </ul>
   </div>
 </div>

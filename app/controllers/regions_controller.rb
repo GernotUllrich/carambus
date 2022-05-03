@@ -1,7 +1,13 @@
 class RegionsController < ApplicationController
   include FiltersHelper
   protect_from_forgery except: :search
-  before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details, :migration_cc]
+  before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details, :migration_cc, :set_session_id]
+
+  def set_session_id
+    RegionCc.session_id = params["PHPSESSID"]
+    flash[:notice] = "Session Id gesetzt."
+    redirect_to migration_cc_region_path(@region)
+  end
 
   # GET /regions
   def index

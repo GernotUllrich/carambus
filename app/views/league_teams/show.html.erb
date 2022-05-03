@@ -28,4 +28,10 @@
       </div>
           </div>
   </div>
+  <% if @parties.any? %>
+    <h3> Parties</h3>
+    <div id="table_wrapper text-base">
+      <%= render partial: 'parties/parties_table', locals: {from_index: false} %>
+    </div>
+  <% end %>
 </div>

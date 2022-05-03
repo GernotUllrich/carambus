@@ -20,11 +20,11 @@
       </div>
             <div class="mb-4">
         <h5>League cc</h5>
-        <%= link_to "#{@league_team_cc.league_cc.name}(#{@league_team_cc.league_cc_id})", league_cc_path(@league_team_cc.league_cc) %>
+        <%= link_to "#{@league_team_cc.league_cc.name}(#{@league_team_cc.league_cc.cc_id})", league_cc_path(@league_team_cc.league_cc) %>
       </div>
             <div class="mb-4">
         <h5>League team</h5>
-        <%= @league_team_cc.league_team_id %>
+        <%= link_to "#{@league_team_cc.league_team.name}[#{@league_team_cc.league_team_id}]", league_team_path(@league_team_cc.league_team) %>
       </div>
             <div class="mb-4">
         <h5>Data</h5>
@@ -32,4 +32,11 @@
       </div>
           </div>
   </div>
+
+  <% if @party_ccs.any? %>
+    <h3> Parties</h3>
+    <div id="table_wrapper text-base">
+      <%= render partial: 'party_ccs/party_ccs_table' %>
+    </div>
+  <% end %>
 </div>

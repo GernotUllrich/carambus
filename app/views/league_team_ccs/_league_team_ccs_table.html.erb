@@ -1,10 +1,11 @@
-<div class="bg-white rounded shadow table-responsive">
+<div class="bg-white dark:bg-black rounded shadow table-responsive">
   <table class="table">
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :name, 'Name', class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :shortname, 'Shortname', class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :branch, 'Sparte', class: 'text-gray-700' %></th>
       <%- unless @league_cc.present? %>
         <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_cc_id, 'League cc', class: 'text-gray-700' %></th>
       <%- end %>
@@ -21,7 +22,8 @@
         <td class="p-3"><%= league_team_cc.name %></td>
         <td class="p-3"><%= league_team_cc.shortname %></td>
         <%- unless @league_cc.present? %>
-          <td class="p-3"><%= link_to "#{league_team_cc.league_cc.name}(#{league_team_cc.league_cc_id})", league_cc_path(league_team_cc.league_cc) %></td>
+          <td class="p-3"><%= link_to "(#{league_team_cc.league_cc.branch_cc.name})", branch_cc_path(league_team_cc.league_cc.branch_cc) %></td>
+          <td class="p-3"><%= link_to "#{league_team_cc.league_cc.name}(#{league_team_cc.league_cc.cc_id})", league_cc_path(league_team_cc.league_cc) %></td>
         <%- end %>
         <td class="p-3"><%= link_to "#{league_team_cc.league_team.name}[#{league_team_cc.league_team_id}]", league_team_path(league_team_cc.league_team) %></td>
         <td class="p-3"><%= league_team_cc.data %></td>
@@ -37,6 +39,7 @@
 
 <% if @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%== @pagy.present? && pagy_nav(@pagy) %>
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

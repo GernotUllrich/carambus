@@ -1,4 +1,4 @@
-  # == Schema Information
+# == Schema Information
 #
 # Table name: locations
 #
@@ -27,11 +27,11 @@ class Location < ApplicationRecord
   serialize :data, Hash
 
   REFLECTION_KEYS = ["club", "organizer"]
-  COLUMN_NAMES = {#TODO FILTERS
-                  "Club" => "clubs.name",
-                  "Address" => "locations.address",
-                  "Name" => "locations.name",
-                  "Region" => "regions.shortname"
+  COLUMN_NAMES = { #TODO FILTERS
+                   "Club" => "clubs.name",
+                   "Address" => "locations.address",
+                   "Name" => "locations.name",
+                   "Region" => "regions.shortname"
   }
 
   before_save :add_md5
@@ -40,7 +40,27 @@ class Location < ApplicationRecord
     self.md5 ||= Digest::MD5.hexdigest(self.attributes.inspect)
   end
 
+  def self.merge_locations(location_ok_id, with_location_ids = [])
+    with_locations = Location.where(id: with_location_ids)
+    unless with_locations.count == with_location_ids.count
+      location_ok = Location[location_ok_id]
+      if location_ok.present?
+        location_ok.merge_locations(with_location_ids)
+      else
+        raise ArgumentError
+      end
+    else
+      raise ArgumentError
+    end
+  end
 
+  def merge_locations(with_location_ids = [])
+    Tournament.where(location_id: with_location_ids).update_all(location_id: id)
+    Table.where(location_id: with_location_ids).update_all(location_id: id)
+    Location.where(id: with_location_ids).destroy_all
+    Rails.logger.info("REPORT Location.merge_locations(#{id}, #{with_location_ids.inspect})")
+    reload
+  end
 
   def display_address
     "#{name}<br>#{address.split("\n").join("<br>")}".html_safe

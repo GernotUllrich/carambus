@@ -7,7 +7,12 @@ Rails.application.routes.draw do
   resources :season_ccs
   resources :competition_ccs
   resources :branch_ccs
-  resources :region_ccs
+  resources :region_ccs do
+    member do
+      get :check
+      post :fix
+    end
+  end
   resources :party_games
   resources :parties
   resources :league_teams
@@ -179,6 +184,7 @@ Rails.application.routes.draw do
       post :reload_from_ba
       post :reload_from_ba_with_player_details
       get :migration_cc
+      post :set_session_id
     end
   end
   resources :countries

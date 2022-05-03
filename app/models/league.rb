@@ -27,7 +27,7 @@ class League < ApplicationRecord
   has_many :parties
   has_many :tournaments
   belongs_to :organizer, polymorphic: true, optional: true
-  belongs_to :region, -> { where(leagues: { organizer_type: "Region" }) }, foreign_key: "organizer_id"
+  #belongs_to :region, -> { where(leagues: { organizer_type: "Region" }) }, foreign_key: "organizer_id"
 
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
@@ -118,11 +118,11 @@ class League < ApplicationRecord
             end
           end
           staffel_map.each_pair do |ba_id2, text|
-            args = {ba_id: ba_id, ba_id2: ba_id2, organizer: region, season: season, name: name, discipline: discipline}
+            args = { ba_id: ba_id, ba_id2: ba_id2, organizer: region, season: season, name: name, discipline: discipline }
             league = League.find_by_ba_id_and_ba_id2(ba_id, ba_id2) || League.new(args)
             league.assign_attributes(args)
             league.save
-            league.scrape_single_league(game_details: true)
+            league.scrape_single_league(game_details: false)
           end
         end
       end
@@ -158,7 +158,8 @@ class League < ApplicationRecord
         end
       end
       self.staffel_text = staffel_map[self.ba_id2]
-      save!
+      self.save!
+      league_teams_found = []
       doc.css("#table-1 a").each do |element|
         league_team_ba_id = element.attributes["href"].value.match(/.*\/(\d+)/)[1].to_i
         shortname = element.text.strip()
@@ -183,7 +184,43 @@ class League < ApplicationRecord
         end
 
         league_team.update(name: shortname, club: club, league: self)
-        league_team
+        league_teams_found.push(league_team)
+      end
+      league_teams_found.each do |league_team|
+        url_lt = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
+        Rails.logger.info "reading index page - to scrape league"
+        html_lt = open(url_lt)
+        doc_lt = Nokogiri::HTML(html_lt)
+        links = doc_lt.css(".element+ .matchday_table a")
+        links.map do |d|
+          [d["href"], d.text]
+        end.each do |arr|
+          url_player, name_str = arr
+          club_ba_id, player_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
+          club = Club.find_by_ba_id(club_ba_id)
+          html_player = open(url + url_player)
+          doc_player = Nokogiri::HTML(html_player)
+          elements = doc_player.css(".element")
+          player_ba_id = nil
+          firstname = lastname = nil
+          elements.each do |element|
+            if element.css("> label").text == "Spielernummer"
+              player_ba_id = element.css(".field").text.to_i
+            elsif element.css("> label").text == "Name"
+              lastname, firstname = element.css(".field").text.split(", ").map(&:strip).map(&:to_s)
+            end
+            args = {}
+            if player_ba_id.present? && lastname.present?
+              player = Player.where(firstname: firstname, lastname: lastname, club_id: club.andand.id).where("ba_id > 900000000").first
+              player ||= Player.where(firstname: firstname, lastname: lastname).where("ba_id > 900000000").first
+              if player.present?
+                player.andand.update(ba_id: player_ba_id)
+              end
+              break
+            end
+          end
+        end
+
       end
       if game_details
         doc.css("#tabs li a").each_with_index do |tab, ix|
@@ -301,14 +338,14 @@ class League < ApplicationRecord
       players.push(player)
     end
     if players.count == 2
-      args = {data: { "players" => [{ "firstname" => players[0].firstname,
-                                     "lastname" => players[0].lastname,
-                                     "ba_id" => players[0].ba_id,
-                                     "player_id" => players[0].id, },
-                                   { "firstname" => players[1].firstname,
-                                     "lastname" => players[1].lastname,
-                                     "ba_id" => players[1].ba_id,
-                                     "player_id" => players[1].id, }] }}
+      args = { data: { "players" => [{ "firstname" => players[0].firstname,
+                                       "lastname" => players[0].lastname,
+                                       "ba_id" => players[0].ba_id,
+                                       "player_id" => players[0].id, },
+                                     { "firstname" => players[1].firstname,
+                                       "lastname" => players[1].lastname,
+                                       "ba_id" => players[1].ba_id,
+                                       "player_id" => players[1].id, }] } }
 
       player = Team.where(args).first || Team.create(args)
     end

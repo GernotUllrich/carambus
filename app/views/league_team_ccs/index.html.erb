@@ -1,8 +1,33 @@
+<script>
+  function searchLeagueTeamCcs(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/league_team_ccs?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+          var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
+      }
+    })
+  }
+</script>
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">League Team Ccs</h1>
 
     <% if @league_team_ccs.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <input oninput="searchLeagueTeamCcs(this, true)" type="search" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block", title:"e.g. reg:nordd wedel" %>
+          </div>
+        </div>
+      </div>
       <%= link_to 'New League Team Cc', new_league_team_cc_path, class: "btn btn-primary" %>
     <% end %>
   </div>

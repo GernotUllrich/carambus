@@ -2,7 +2,7 @@
   <table class="table">
     <thead>
     <tr>
-      <%- unless from_league %>
+      <%- unless from_index %>
         <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_id, 'League', class: 'text-gray-700' %></th>
       <%- end %>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_a_id, 'League team a', class: 'text-gray-700' %></th>
@@ -18,7 +18,7 @@
     <tbody>
     <% @parties.each do |party| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100">
-        <%- unless from_league %>
+        <%- unless from_index %>
           <td class="p-3"><%= link_to party.league.name, league_path(party.league) %></td>
         <%- end %>
         <td class="p-3"><%= link_to party.league_team_a.name, league_team_path(party.league_team_a) %></td>

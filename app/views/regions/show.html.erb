@@ -18,9 +18,9 @@
         <%= @region.shortname %>
         (-> <%= link_to("Billard Area", "https://#{@region.shortname.downcase}.billardarea.de") %>)
         <%- if @region.region_cc.present? %>
-          (-> <%= link_to('Club Cloud', @region.region_cc.public_url.presence || @region.region_cc.base_url) %>)
+          (-> <%= link_to('Club Cloud', @region.region_cc.public_url.presence || @region.region_cc.base_url) %>, <%= link_to 'Migration Check', migration_cc_region_path(@region) %>)
         <%- else %>
-          (-> <%= link_to 'Migrate to Club Cloud', migrate_cc_region_path(@region) %> )
+          (-> <%= link_to 'Migrate to Club Cloud', migration_cc_region_path(@region) %> )
         <%- end %>
       </div>
       <div class="mb-4">

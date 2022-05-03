@@ -1,7 +1,19 @@
 class RegionCcsController < ApplicationController
-  before_action :set_region_cc, only: [:show, :edit, :update, :destroy]
+  before_action :set_region_cc, only: [:show, :edit, :update, :destroy, :fix, :check]
 
+  def fix
+    RegionCc.save_log("region_cc")
+    RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: true)
+    RegionCc.save_log("region_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
 
+  def check
+    RegionCc.save_log("region_cc")
+    RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: false)
+    RegionCc.save_log("region_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
 
   # GET /region_ccs
   def index

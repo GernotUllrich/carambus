@@ -1,8 +1,8 @@
 class RegionCcAction
-  def self.synchronize_region_structure(session_id)
+  def self.synchronize_region_structure(session_id, options = {})
     regions_todo = []
     regions_done = []
-    context = ENV["REGION"] || "NBV"
+    context = options.delete(:context) || "nbv"
     region = Region.find_by_shortname(context.upcase)
     unless region.blank?
       regions_todo = [region.id]
@@ -48,7 +48,7 @@ class RegionCcAction
     region_cc = region.region_cc
     unless region_cc.blank?
       competitions_todo = Competition.all.ids
-      competitions_done = region_cc.sync_competitions.map(&:id)
+      competitions_done = region_cc.sync_competitions(session_id).map(&:id)
     else
       raise_err_msg("synchronize_branch_structure", "unknown context Region #{context}")
     end
@@ -69,7 +69,7 @@ class RegionCcAction
       region_cc = region.region_cc
       unless region_cc.blank?
         competition_cc_ids_todo = CompetitionCc.where(context: context.downcase).all.map(&:cc_id)
-        competition_cc_ids_done = region_cc.sync_seasons_in_competitions(season_name).map(&:cc_id)
+        competition_cc_ids_done = region_cc.sync_seasons_in_competitions(session_id, season_name).map(&:cc_id)
       else
         raise_err_msg("synchronize_season_structure", "unknown context Region #{context}")
       end
@@ -101,23 +101,19 @@ class RegionCcAction
         dbu_region = Region.find_by_shortname("portal")
         dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
         leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
-        leagues_done_ids = region_cc.sync_leagues(season_name).map(&:id)
+        leagues_done_ids = region_cc.sync_leagues(session_id, season_name).map(&:id)
       else
         raise_err_msg("synchronize_league_structure", "unknown context Region #{context}")
       end
       leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
       unless leagues_still_todo_ids.blank?
-        if force_cc_update
-          leagues_still_todo_ids.each do |league_id|
-            league = League[league_id]
-            unless league.blank?
-              league_cc = LeagueCc.create_from_ba(league)
-            else
-              raise_err_msg("synchronize_league_structure", "no league with id #{league_id}")
-            end
+        leagues_still_todo_ids.each do |league_id|
+          league = League[league_id]
+          unless league.blank?
+            league_cc = LeagueCc.create_from_ba(session_id, league, force_cc_update)
+          else
+            raise_err_msg("synchronize_league_structure", "no league with id #{league_id}")
           end
-        else
-          Rails.logger.warn "REPORT! [synchronize_league_structure] Ligen für Season #{season_name} nicht definiert in CC #{League.where(id: leagues_still_todo_ids).map { |league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}" }}"
         end
       end
       league_ids_overdone = leagues_done_ids - leagues_todo_ids
@@ -334,24 +330,22 @@ class RegionCcAction
             league_team_player_done = region_cc.sync_team_players(league_team, context)
             league_team_player_still_todo = league_team_players_todo - league_team_player_done
             league_team_player_still_todo.each do |player|
-              if force_cc_update
-                unless player.ba_id > 999000000 || player.ba_id.blank?
-                  _, doc = region_cc.post_cc(
-                    "showLeague_add_teamplayer",
-                    session_id,
-                    fedId: league_team_cc.fedId,
-                    leagueId: league_team_cc.leagueId,
-                    staffelId: 0,
-                    branchId: league_team_cc.branchId,
-                    subBranchId: league_team_cc.subBranchId,
-                    seasonId: league_team_cc.seasonId,
-                    p: league_team_cc.p,
-                    passnr: player.ba_id,
-                    )
-                  doc
-                else
-                  Rails.logger.info "REPORT! [synchronize_team_players_structure] BA-unbekannter Spieler #{player.fullname}(Player[#{player.id}]) aus LeagueTeam[#{league_team.id}] #{league_team.andand.name} in Liga[#{league_team.league.id}]#{league_team.league.name} nicht in CC"
-                end
+              unless player.ba_id > 999000000 || player.ba_id.blank?
+                _, doc = region_cc.post_cc(
+                  "showLeague_add_teamplayer",
+                  session_id,
+                  fedId: league_team_cc.fedId,
+                  leagueId: league_team_cc.leagueId,
+                  staffelId: 0,
+                  branchId: league_team_cc.branchId,
+                  subBranchId: league_team_cc.subBranchId,
+                  seasonId: league_team_cc.seasonId,
+                  p: league_team_cc.p,
+                  passnr: player.ba_id,
+                  armed: force_cc_update
+                )
+                doc
+              else
               end
             end
           else

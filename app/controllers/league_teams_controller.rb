@@ -1,17 +1,32 @@
 class LeagueTeamsController < ApplicationController
+  include FiltersHelper
+  protect_from_forgery except: :search
   before_action :set_league_team, only: [:show, :edit, :update, :destroy]
 
   # GET /league_teams
   def index
-    @pagy, @league_teams = pagy(LeagueTeam.sort_by_params(params[:sort], sort_direction))
-
+    @league_teams = LeagueTeam.joins(:league).sort_by_params(params[:sort], sort_direction)
+    if @sSearch.present?
+      @league_teams = apply_filters(@league_teams, LeagueTeam::COLUMN_NAMES, "(league_teams.name ilike :search) or (league_teams.shortname ilike :search) or (leagues.name ilike :search)")
+    end
+    @pagy, @league_teams = pagy(@league_teams)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @league_teams.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @league_teams.load
+    respond_to do |format|
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
+    end
   end
 
   # GET /league_teams/1
   def show
+    @parties = Party.where(id: @league_team.parties_a.ids + @league_team.parties_b.ids)
   end
 
   # GET /league_teams/new

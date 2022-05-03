@@ -1,17 +1,34 @@
 class LeagueTeamCcsController < ApplicationController
+  include FiltersHelper
+  protect_from_forgery except: :search
   before_action :set_league_team_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /league_team_ccs
   def index
-    @pagy, @league_team_ccs = pagy(LeagueTeamCc.sort_by_params(params[:sort], sort_direction))
-
+    @league_team_ccs = LeagueTeamCc.joins(:league_team).joins(:league_cc => {:season_cc => { :competition_cc => :branch_cc }}).sort_by_params(params[:sort], sort_direction)
+    if @sSearch.present?
+      @league_team_ccs_no_query = @league_team_ccs
+      @league_team_ccs = apply_filters(@league_team_ccs, Club::COLUMN_NAMES, "(season_ccs.name ilike :search) or (league_ccs.cc_id = :isearch) or (league_team_ccs.cc_id = :isearch) or (league_team_ccs.shortname ilike :search) or (league_team_ccs.name ilike :search) or (league_teams.shortname ilike :search) or (league_teams.name ilike :search) or (league_ccs.name ilike :search) or (branch_ccs.name ilike :search)")
+      @league_team_ccs = @league_team_ccs_no_query if @league_team_ccs.count == 0
+    end
+    @pagy, @league_team_ccs = pagy(@league_team_ccs)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @league_team_ccs.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @league_team_ccs.load
+    respond_to do |format|
+      format.html {
+        if params[:table_only].present?
+          params.reject!{|k,v| k.to_s == "table_only"}
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
+    end
   end
 
   # GET /league_team_ccs/1
   def show
+    @party_ccs = PartyCc.where(id: @league_team_cc.party_a_ccs.ids + @league_team_cc.party_b_ccs.ids)
   end
 
   # GET /league_team_ccs/new

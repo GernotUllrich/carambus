@@ -33,7 +33,7 @@
                       <td class="p-3"><%= party_game_cc.data %></td>
                       <td class="p-3"><%= party_game_cc.name %></td>
                       <td class="p-3"><%= party_game_cc.discipline_id %></td>
-          
+
             <td>
               <%= link_to "View", party_game_cc, class: "btn btn-link no-underline" %>
             </td>
@@ -45,6 +45,7 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>
