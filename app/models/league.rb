@@ -73,19 +73,19 @@ class League < ApplicationRecord
   end
 
   def self.scrape_leagues_by_region_and_season(region, season)
-    url = "https://#{region.shortname.downcase}.billardarea.de"
-    uri = URI(url + '/cms_leagues')
-    Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
-    res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-    doc = Nokogiri::HTML(res.body)
-    tabs = doc.css("#tabs li a")
+    url_top = "https://#{region.shortname.downcase}.billardarea.de"
+    uri_top = URI(url_top + '/cms_leagues')
+    Rails.logger.info "reading #{url_top + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
+    res_top = Net::HTTP.post_form(uri_top, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+    doc_top = Nokogiri::HTML(res_top.body)
+    tabs = doc_top.css("#tabs li a")
     tabs.each_with_index do |tab, ix|
       dis_str = tab.text.strip()
       dis_str = "Carambol Match Billard" if dis_str == "Karambol großes Billard"
       dis_str = "Carambol Small Billard" if dis_str == "Karambol kleines Billard"
       discipline = Discipline.find_by_name(dis_str)
       tab = "#tabs-#{ix + 1} a"
-      lines = doc.css(tab)
+      lines = doc_top.css(tab)
       lines.each do |line|
         name = line.text.strip
         url = line.attribute("href").value

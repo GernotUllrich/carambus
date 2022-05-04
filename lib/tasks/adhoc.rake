@@ -108,6 +108,7 @@ namespace :adhoc do
     Version.update_from_carambus_api(update_region_from_ba: 1, player_details: true)
   end
 
+  desc 'test_league 8'
   task test_league8: :environment do
     #League[3464].scrape_single_league(game_details: true)
     region = Region[1]
