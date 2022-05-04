@@ -89,6 +89,7 @@ namespace :cc do
       duplicate_record_ids.count
     end
     Player.where("ba_id > 900000000").each do |p|
+      next if p.lastname == "Freilos"
       Player.where.not(id: p.id).where(firstname: p.firstname, lastname: p.lastname).each do |player_ok|
         Player.merge_players(player_ok, [p])
       end
