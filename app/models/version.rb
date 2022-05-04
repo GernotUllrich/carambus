@@ -93,8 +93,28 @@ class Version < ApplicationRecord
                 obj.update(args)
               else
                 #TODO look for uniq keys in args only (refine except)
-                h['item_type'].constantize.where(args.except("id", "created_at", "updated_at")).where("id > 50000000").destroy_all
-                h['item_type'].constantize.create(args)
+                h['item_type'].constantize.where(args.except("id", "created_at", "updated_at")).each.map do |o|
+                  o.delete
+                end
+                if h['item_type'] == "Seeding"
+                  h['item_type'].constantize.where(args.except("player_id", "tournament_id")).each.map do |o|
+                    o.delete
+                  end
+                  h['item_type'].constantize.where(args.except("id")).each.map do |o|
+                    o.delete
+                  end
+                end
+                obj = h['item_type'].constantize.new(args)
+                if obj.valid?
+                  obj.save
+                else
+                  obj = h['item_type'].constantize.find_by_id(args["id"])
+                  if obj.present?
+                    obj.uodate(args.except("id"))
+                  else
+                    args #what now?
+                  end
+                end
               end
             rescue StandardError => e
               Rails.logger.info "#{e} #{e.backtrace.inspect}"

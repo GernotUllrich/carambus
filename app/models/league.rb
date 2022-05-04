@@ -188,7 +188,7 @@ class League < ApplicationRecord
       end
       league_teams_found.each do |league_team|
         url_lt = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
-        Rails.logger.info "reading index page - to scrape league"
+        Rails.logger.info "reading index page league_team #{league_team.name} (#{league_team.ba_id}) to scrape league"
         html_lt = open(url_lt)
         doc_lt = Nokogiri::HTML(html_lt)
         links = doc_lt.css(".element+ .matchday_table a")
@@ -197,7 +197,7 @@ class League < ApplicationRecord
         end.each do |arr|
           url_player, name_str = arr
           club_ba_id, player_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
-          club = Club.find_by_ba_id(club_ba_id)
+          club = Club.find_by_ba_id(club_ba_id) # TODO find corresp. Club or create
           html_player = open(url + url_player)
           doc_player = Nokogiri::HTML(html_player)
           elements = doc_player.css(".element")

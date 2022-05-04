@@ -69,7 +69,7 @@ class Tournament < ApplicationRecord
   belongs_to :season
   belongs_to :tournament_plan, optional: true
   belongs_to :league, optional: true
-  has_many :seedings, -> { order(position: :asc) }
+  has_many :seedings, -> { order(position: :asc) }, dependent: :destroy
   has_many :games, dependent: :destroy
   has_many :teams, dependent: :destroy
   has_many :party_games, dependent: :destroy
@@ -84,6 +84,16 @@ class Tournament < ApplicationRecord
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
 
+=begin
+  data:
+    {:table_ids=>["2", "4"],
+     :balls_goal=>0,
+     :innings_goal=>15,
+     :timeout=>0,
+     :timeouts=>0,
+     :time_out_warm_up_first_min=>5,
+     :time_out_warm_up_follow_up_min=>3},
+=end
   serialize :data, Hash
 
   validates_each :data do |record, attr, _value|
@@ -298,92 +308,100 @@ class Tournament < ApplicationRecord
             if td.css("div").present?
               lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
               player, seeding, state_ix = Player.fix_from_shortnames(lastname, firstname, season, region, club_str, self, true)
-              # club = Club.where(region: region).where("name ilike ?", club_str).first ||
-              #   Club.where(region: region).where("shortname ilike ?", club_str).first
-              # if club.present?
-              #   season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname })
-              #   if season_participations.count == 1
-              #     season_participation = season_participations.first
-              #     player = season_participation.player
-              #     if season_participation.club_id == club.id
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-              #         Seeding.create(player_id: player.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     else
-              #       real_club = season_participations.first.club
-              #       logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
-              #       logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-              #       SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-              #         Seeding.create(player_id: player.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     end
-              #   elsif season_participations.count == 0
-              #     players = Player.where(firstname: firstname, lastname: lastname)
-              #     if players.count == 0
-              #       logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-              #       logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
-              #       player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-              #       player_fixed.update(ba_id: 999000000 + player_fixed.id)
-              #       SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-              #         SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-              #         Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     elsif players.count == 1
-              #       player_fixed = players.first
-              #       logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-              #       SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-              #         SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              #       logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-              #         Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     elsif players.count > 1
-              #       logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
-              #       logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
-              #       player_fixed = players.first
-              #       SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-              #         SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
-              #         Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     end
-              #   else
-              #     #(ambiguous clubs)
-              #     if season_participations.map(&:club_id).uniq.include?(club.id)
-              #       season_participation = season_participations.where(club_id: club.id).first
-              #       player = season_participation.player
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
-              #         Seeding.create(player_id: player.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     else
-              #       logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
-              #       fixed_season_participation = season_participations.last
-              #       fixed_club = fixed_season_participation.club
-              #       fixed_player = fixed_season_participation.player
-              #       logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
-              #       SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
-              #         SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-              #       seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
-              #         Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
-              #       state_ix = 0
-              #     end
-              #   end
-              # else
-              #   logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
-              #   fixed_club = region.clubs.create(name: club_str, shortname: club_str)
-              #   fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
-              #   fixed_club.update(ba_id: 999000000 + fixed_club.id)
-              #   fixed_player.update(ba_id: 999000000 + fixed_player.id)
-              #   SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
-              #
-              #   logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
-              #   logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
-              #   seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
-              #     Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
-              #   state_ix = 0
-              # end
+              club = Club.where(region: region).where("name ilike ?", club_str).first ||
+                Club.where(region: region).where("shortname ilike ?", club_str).first
+              if club.present?
+                season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname })
+                if season_participations.count == 1
+                  season_participation = season_participations.first
+                  player = season_participation.player
+                  if season_participation.club_id == club.id
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  else
+                    real_club = season_participations.first.club
+                    logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
+                    logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
+                    sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id) ||
+                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id)
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  end
+                elsif season_participations.count == 0
+                  players = Player.where(firstname: firstname, lastname: lastname)
+                  if players.count == 0
+                    logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
+                    logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
+                    player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
+                    player_fixed.update(ba_id: 999000000 + player_fixed.id)
+                    SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  elsif players.count == 1
+                    player_fixed = players.first
+                    logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
+                    SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                    logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  elsif players.count > 1
+                    logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }}] "
+                    logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.shortname} [#{c.ba_id}]" }.first}] "
+                    player_fixed = players.first
+                    SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, self.id) ||
+                      Seeding.create(player_id: player_fixed.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  end
+                else
+                  #(ambiguous clubs)
+                  if season_participations.map(&:club_id).uniq.include?(club.id)
+                    season_participation = season_participations.where(club_id: club.id).first
+                    player = season_participation.player
+                    seeding = Seeding.find_by_player_id_and_tournament_id(player.id, self.id) ||
+                      Seeding.create(player_id: player.id, tournament_id: self.id)
+                    state_ix = 0
+                  else
+                    logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
+                    fixed_season_participation = season_participations.last
+                    fixed_club = fixed_season_participation.club
+                    fixed_player = fixed_season_participation.player
+                    logger.info "[scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} and season #{season.name}"
+                    SeasonParticipation.find_by_player_id_and_season_id_and_club_id(fixed_player.id, season.id, fixed_club.id) ||
+                      SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
+                    seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
+                      Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
+                    seeding_ids.delete(seeding.id)
+                    state_ix = 0
+                  end
+                end
+              else
+                logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
+                fixed_club = region.clubs.create(name: club_str, shortname: club_str)
+                fixed_player = fixed_club.players.create(firstname: firstname, lastname: lastname)
+                fixed_club.update(ba_id: 999000000 + fixed_club.id)
+                fixed_player.update(ba_id: 999000000 + fixed_player.id)
+                SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id, club_id: fixed_club.id)
+
+                logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
+                logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
+                seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, self.id) ||
+                  Seeding.create(player_id: fixed_player.id, tournament_id: self.id)
+                seeding_ids.delete(seeding.id)
+                state_ix = 0
+              end
             else
               if td.text.strip =~ /X/
                 if seeding.present?
