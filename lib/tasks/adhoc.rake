@@ -42,55 +42,66 @@ namespace :adhoc do
 
   desc 'Spielerabgleich mit CC'
   task player_cc_matching: :environment do
-    f = Player
-          .joins(club: :region)
-          .joins(party_a_games: { party: { league: :season } })
-          .where(seasons: { id: 2 })
-          .where(regions: { id: 1 })
-          .order(:lastname)
-          .where('players.ba_id > 900000000').uniq.map do |p|
+    lines = []
+    season = Season[2]
+    Player
+      .joins(club: :region)
+      .joins(party_a_games: { party: { league: :season } })
+      .where(seasons: { id: 2 })
+      .where(regions: { id: 1 })
+      .where('players.ba_id < 900000000')
+      .order(:lastname).uniq.each do |p|
+      next if p.firstname.blank?
+      party_game_a_ids =
+        p.party_a_games
+         .joins(party: :league)
+         .where(leagues: { season_id: 2 }).ids
+      party_game_b_ids =
+        p.party_b_games
+         .joins(party: :league)
+         .where(leagues: { season_id: 2 }).ids
+      party_a_ids = Party.joins(:party_games).where(party_games: { id: party_game_a_ids }).map(&:id)
+      party_b_ids = Party.joins(:party_games).where(party_games: { id: party_game_b_ids }).map(&:id)
+      party_ids = Party.where(id: (party_a_ids + party_b_ids).uniq).ids
+      league_team_a_ids = LeagueTeam.joins(:parties_a).where(parties: { id: party_a_ids }).ids
+      league_team_b_ids = LeagueTeam.joins(:parties_b).where(parties: { id: party_b_ids }).ids
+      league_teams = LeagueTeam.where(id: (league_team_a_ids + league_team_b_ids).uniq)
+      league_teams.each do |league_team|
+        lines.push([p.lastname, p.firstname, league_team.league.discipline.andand.name, league_team.league.name, league_team.name, p.ba_id].join(";"))
+      end
+      f = lines.join("\n")
+      File.write("#{Rails.root}/tmp/#{season.name.gsub("\/", "-")}-players-no_pass-nr.csv", "#{%w{NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}")
 
-      [p.cc_id, p.ba_id, p.lastname, p.firstname, p.id,
-       p.party_a_games
-        .joins(party: :league)
-        .where(leagues: { season_id: 2 }).first.party.ba_id,
-       p.party_a_games
-        .joins(party: :league)
-        .where(leagues: { season_id: 2 }).first.party.league.discipline.andand.name].
-        join(";")
-    end.join("\n")
-    File.write("#{Rails.root}/tmp/players_no_dbu_id.csv", "#{%w{PASS_NR DBU-NR NACHNAME VORNAME PARTY-DBU-NR DISCIPLINE}.join(";")}\n#{f}")
-    f
-    # Player
-    #   .joins(club: :region)
-    #   .joins(party_a_games: { party: { league: :season } })
-    #   .where(seasons: { id: 2 })
-    #   .where(regions: { id: 1 })
-    #   .order(:lastname)
-    #   .where('players.ba_id > 900000000').uniq.each do |player|
-    #   example_game = player.party_a_games
-    #                        .joins(party: :league)
-    #                        .where(leagues: { season_id: 2 }).first
-    #   party = example_game.party
-    #   league_team = party.league_team_a
-    #   league = party.league
-    #   url = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
-    #   Rails.logger.info "reading index page - to scrape league"
-    #   html = open(url)
-    #   doc = Nokogiri::HTML(html)
-    #   links = doc.css("br+ .matchday_table a")
-    #   links.map{|d| [d["href"], d.text]}.each do |arr|
-    #     url, name_str = arr
-    #     club_ba_id, player_ba_id = url.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
-    #     club_ba_id
-    #     name_str
-    #     if "#{player.firstname} #{player.lastname}" == name_str
-    #       #found player
-    #       player.update(ba_id: player_ba_id, club_id: Club.find_by_ba_id(club_ba_id))
-    #     end
-    #   end
-    # end
-
+      # Player
+      #   .joins(club: :region)
+      #   .joins(party_a_games: { party: { league: :season } })
+      #   .where(seasons: { id: 2 })
+      #   .where(regions: { id: 1 })
+      #   .order(:lastname)
+      #   .where('players.ba_id > 900000000').uniq.each do |player|
+      #   example_game = player.party_a_games
+      #                        .joins(party: :league)
+      #                        .where(leagues: { season_id: 2 }).first
+      #   party = example_game.party
+      #   league_team = party.league_team_a
+      #   league = party.league
+      #   url = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
+      #   Rails.logger.info "reading index page - to scrape league"
+      #   html = open(url)
+      #   doc = Nokogiri::HTML(html)
+      #   links = doc.css("br+ .matchday_table a")
+      #   links.map{|d| [d["href"], d.text]}.each do |arr|
+      #     url, name_str = arr
+      #     club_ba_id, player_ba_id = url.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
+      #     club_ba_id
+      #     name_str
+      #     if "#{player.firstname} #{player.lastname}" == name_str
+      #       #found player
+      #       player.update(ba_id: player_ba_id, club_id: Club.find_by_ba_id(club_ba_id))
+      #     end
+      #   end
+      # end
+    end
   end
 
   desc 'test league scraping'
