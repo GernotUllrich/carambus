@@ -313,9 +313,10 @@ class RegionCc < ApplicationRecord
     return regions
   end
 
-  def sync_branches(session_id)
+  def sync_branches(session_id, options = {})
     branches = []
     context = shortname.downcase
+    armed = options.delete("armed")
     res, doc = get_cc("showClubList", session_id)
     selector = doc.css('select[name="branchId"]')[0]
     options = selector.css("option")

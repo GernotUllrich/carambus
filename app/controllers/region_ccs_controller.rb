@@ -1,5 +1,6 @@
 class RegionCcsController < ApplicationController
-  before_action :set_region_cc, only: [:show, :edit, :update, :destroy, :fix, :check]
+  before_action :set_region_cc, only: [:show, :edit, :update, :destroy, :fix, :check,
+                                       :fix_branch_cc, :check_branch_cc]
 
   def fix
     RegionCc.save_log("region_cc")
@@ -10,8 +11,36 @@ class RegionCcsController < ApplicationController
 
   def check
     RegionCc.save_log("region_cc")
-    RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: false)
+    unless @region_cc.region.blank?
+      regions_todo = [@region_cc.region]
+      regions_done = RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: false)
+    else
+      RegionCc.logger.info "REPORT unbekannter Regional-Context #{@region_c.name}"
+    end
+    regions_still_todo = regions_todo - regions_done
+    unless regions_still_todo.blank?
+      RegionCc.logger.info "REPORT regions with context #{@region_cc.name} not yet in CC: #{Region.where(id: regions_todo).map(&:name)}"
+    end
+    regions_overdone = regions_done - regions_todo
+    unless regions_overdone.blank?
+      RegionCc.logger.info "REPORT more regions with context #{@region_cc.name} than expected in CC: #{Region.where(id: regions_overdone).map(&:name)}"
+    end
+
     RegionCc.save_log("region_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def fix_branch_cc
+    RegionCc.save_log("branch_cc")
+    @region_cc.sync_branches(RegionCc.session_id, armed: true)
+    RegionCc.save_log("branch_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def check_branch_cc
+    RegionCc.save_log("branch_cc")
+    @region_cc.sync_branches(RegionCc.session_id, armed: false)
+    RegionCc.save_log("branch_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 

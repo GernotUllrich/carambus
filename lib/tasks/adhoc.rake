@@ -70,6 +70,7 @@ namespace :adhoc do
         lines.push([p.lastname, p.firstname, league_team.league.discipline.andand.name, league_team.league.name, league_team.name, p.ba_id].join(";"))
       end
       f = lines.join("\n")
+        f = "#{%w{NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}".encode("Windows-1252", crlf_newline: true)
       File.write("#{Rails.root}/tmp/#{season.name.gsub("\/", "-")}-players-no_pass-nr.csv", "#{%w{NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}")
 
       # Player

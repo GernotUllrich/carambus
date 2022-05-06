@@ -31,6 +31,24 @@ class Region < ApplicationRecord
   has_many :leagues, as: :organizer, class_name: "League"
   has_one :region_cc
 
+  REGION_SHORTNAMES = ["BBBV",
+                  "BBV",
+                  "BLMR",
+                  "BLVN",
+                  "BLVSA",
+                  # "BVB",
+                  "BVBW",
+                  "BVNR",
+                  "BVNRW",
+                  "BVRP",
+                  "BVS",
+                  "BVW",
+                  "HBU",
+                  "NBV",
+                  "portal",
+                  "SBV",
+                  "TBV"]
+
   COLUMN_NAMES = {
     "Logo" => "",
     "Shortname (BA)" => "regions.shortname",
@@ -55,7 +73,7 @@ class Region < ApplicationRecord
       region_name = region.attribute("alt").value
       region_shortname = region.attribute("name").value
       region_logo = url + region.attribute("onmouseover").value.gsub(/MM_swapImage\('#{region_shortname}','','(.*)',1\).*/, '\1')
-      r = Region.find_by_shortname(region_shortname) || Region.new
+      r = Region.where(shortname: Region::REGION_SHORTNAMES).find_by_shortname(region_shortname) || Region.new
       r.update(name: region_name, shortname: region_shortname, logo: region_logo, country: country_de)
     end
   end

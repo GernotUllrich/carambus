@@ -78,7 +78,7 @@
 <%- Season.order(name: :desc).limit(2).uniq.each do |season| %>
   <h3><%= t('home.index.season') %> <%= season.name %></h3>
   <div class="mb-1">Liga auswählen:
-  <%- leagues = @location.club.region.organized_leagues.where(season: season, discipline_id: @location.tables.map(&:table_kind).map{|tk| tk.discipline_ids}.flatten.uniq).order(name: :asc) %>
+  <%- leagues = @location.organizer.region.organized_leagues.where(season: season, discipline_id: @location.tables.map(&:table_kind).map{|tk| tk.discipline_ids}.flatten.uniq).order(name: :asc) %>
   <%= form_tag new_league_tournament_location_path(@location), method: :post do %>
     <%= select_tag :league_id, options_for_select(leagues.map{|league| ["#{league.name}(#{league.discipline.name})", league.id]}) %>
     <%= hidden_field_tag :season_id, season.id %>

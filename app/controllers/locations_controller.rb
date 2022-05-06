@@ -154,7 +154,9 @@ class LocationsController < ApplicationController
   # GET /locations/new
   def new
     @location = Location.new
-    @organizer = Club.find(params[:club_id]) || Region.find(params[:club_id])
+    if params[:club_id].present?
+      @organizer = Club.find(params[:club_id]) || Region.find(params[:club_id])
+    end
   end
 
   # GET /locations/1/edit
@@ -231,6 +233,10 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :season_id, :organizer_type, :merge, :with)
+    if params[:location][:club_id].present?
+      params[:location][:organizer_id] = params[:location][:club_id]
+      params[:location][:organizer_type] = "Club"
+    end
+    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :season_id, :organizer_type, :club_id, :merge, :with)
   end
 end

@@ -19,13 +19,28 @@ namespace :carambus do
 
   desc "read regional player ids"
   task :read_regional_player_ids => :environment do
-    players = CSV.parse(File.read("#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"), headers: false)
+    #file = "#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"
+    file = "#{Rails.root}/tmp/nbv_player_cc.csv"
+    str = File.read(file)
+    players = CSV.parse(str, headers: true)
     players.each do |player_str|
       player_arr = player_str[0].split(";")
       player_arr
-      player = Player.find_by_ba_id(player_arr[0])
-      player.andand.update(cc_id: player_arr[1])
-      player
+      player = Player.find_by_ba_id(player_arr[1].to_i)
+      if player.present?
+        unless player.cc_id == player_arr[0].to_i
+          if player.cc_id.blank?
+            player.update(cc_id: player_arr[0].to_i)
+            Rails.logger.info "REPORT UPDATED cc_id: #{player_arr[0].to_i} of player #{player.fullname}[#{player.id}]"
+          else
+            player.update(cc_id: player_arr[0].to_i)
+            Rails.logger.info "REPORT CHANGED!! cc_id from: #{player.cc_id} to #{player_arr[0].to_i} of player #{player.fullname}[#{player.id}]"
+          end
+        end
+      else
+        Player.create(firstname: player_arr[3], lastname: player_arr[2], cc_id: player_arr[0], ba_id: player_arr[1])
+        Rails.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
+      end
     end
   end
 
@@ -39,8 +54,13 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      Region.all.each do |region|
+    Season.order(ba_id: :desc).each do |season| #TODO if scraped completely .limit(2)
+      sh_names = Region::REGION_SHORTNAMES - ["BBBV",
+                                              "BBV",
+                                              "BLMR",
+                                              "BLVN",
+                                              "BLVSA"]
+      Region.where(shortname: sh_names).all.each do |region|
         League.scrape_leagues_by_region_and_season(region, season)
       end
     end
@@ -192,63 +212,6 @@ namespace :carambus do
     end
   end
 
-  desc "Scrape leagues"
-  task :scrape_leagues => :environment do
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      Region.all.each do |region|
-        League.scrape_leagues_by_region_and_season(region, season)
-      end
-    end
-  end
-
-  desc "Scrape DBU leagues"
-  task :scrape_dbu_leagues => :environment do
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      League.scrape_leagues_by_region_and_season(Region.find_by_shortname("portal"), season)
-    end
-  end
-
-  desc "Scrape leagues"
-  task :scrape_leagues_alternative => :environment do #TODO still necessary?
-    debug = false #true
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      (next unless season.id == 13) if debug
-      Region.all.each do |region|
-        (next unless region.shortname == "NBV") if debug
-        url = "https://#{region.shortname.downcase}.billardarea.de"
-        uri = URI(url + '/cms_leagues')
-        Rails.logger.info "reading #{url + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
-        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-        doc = Nokogiri::HTML(res.body)
-        tabs = doc.css("#tabs a")
-        tabs.each_with_index do |tab, ix|
-          tab_text = tab.text.strip
-          if Discipline::DE_DISCIPLINE_NAMES.include?(tab_text)
-            discipline_name = Discipline::DISCIPLINE_NAMES[Discipline::DE_DISCIPLINE_NAMES.index(tab_text)]
-            discipline = Discipline.find_by_name(discipline_name)
-            tab = "#tabs-#{ix + 1} a"
-            lines = doc.css(tab)
-            lines.each do |line|
-              name = line.text.strip
-              url = line.attribute("href").value
-              m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
-              ba_id = m[3] rescue nil
-              single_or_league = m[1] rescue nil
-              plan_or_show = m[2] rescue nil
-              if ba_id.present?
-                league = League.find_by_ba_id(ba_id) || League.create(ba_id: ba_id, discipline_id: discipline.andand.id, organizer: region, season: season)
-                league.update(name: name)
-                league.scrape_single_league(game_details: true)
-              end
-            end
-          else
-            break
-          end
-        end
-      end
-    end
-  end
-
   desc "fix tournament discipline by name"
   task :fix_tournament_discipline_by_name => :environment do
     unknown_discipline = Discipline.find_by_name("-")
@@ -279,7 +242,7 @@ namespace :carambus do
   task :scrape_league_teams => :environment do
 
     Season.order(name: :asc).each do |season|
-      Region.all.each do |region|
+      Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         #next unless region.shortname == "NBV"
         url = "https://#{region.shortname.downcase}.billardarea.de"
         uri = URI(url + '/cms_leagues')
@@ -374,7 +337,7 @@ namespace :carambus do
     logger = Logger.new("#{Rails.root}/log/scrape.log")
     on = false
     Season.where("ba_id > #{Season.find_by_name("2011/2012").id}").order(ba_id: :desc).each do |season|
-      Region.all.each do |region|
+      Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         #next unless region.shortname == "NBV" #TODO TEST
         season.tournaments.joins(:region).
           #where(ba_id: 13933).#TODO TEST
@@ -419,7 +382,7 @@ namespace :carambus do
     Season.order(ba_id: :desc).limit(2).each do |season|
       #Season.order(ba_id: :desc).each do |season|
       next unless env_season_name.present? && season.name == env_season_name
-      Region.all.each do |region|
+      Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
         #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
@@ -631,7 +594,7 @@ namespace :carambus do
       # for all regions
       # TEST
       #next unless season.name == "2018/2019"
-      Region.all.each do |region|
+      Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         # for all disciplines
         # TEST
         #next unless region.shortname == "NBV"

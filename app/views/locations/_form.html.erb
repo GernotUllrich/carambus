@@ -2,14 +2,16 @@
   <%= render "shared/error_messages", resource: form.object %>
 
   <div class="form-group">
-    <%= form.label :organizer_id %>
     <%- if @location.organizer.present? %>
       <strong><%= "#{@location.organizer_type}:  #{@location.organizer.name}" %></strong>
+      <%= form.label :organizer_id %>
       <%= form.hidden_field :organizer_id, value: @location.organizer_id %>
       <%= form.hidden_field :organizer_type, value: @location.organizer_type %>
     <%- elsif @region.present? %>
+      <%= form.label :club_id %>
       <%= form.select :club_id, options_for_select(@region.clubs.order(:shortname).map{|club| [club.shortname, club.id]}) %>
     <% else %>
+      <%= form.label :club_id %>
       <%= form.number_field :club_id, class: "form-control" %>
     <%- end %>
   </div>

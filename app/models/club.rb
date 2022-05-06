@@ -71,7 +71,7 @@ class Club < ApplicationRecord
     player_details = opts[:player_details].presence
     skip_r = true
     skip_c = true
-    Region.order(:shortname).all.each do |region|
+    Region.where(shortname: Region::REGION_SHORTNAMES).order(:shortname).all.each do |region|
       region.scrape_clubs(player_details: player_details)
     end
 

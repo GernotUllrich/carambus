@@ -39,7 +39,7 @@ class Season < ApplicationRecord
 
   def scrape_tournaments(ba_ids = [])
     season = self
-    Region.all.each do |region|
+    Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
       url = "https://#{region.shortname.downcase}.billardarea.de"
       uri = URI(url + '/cms_single')
       Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_02_132002) do
+ActiveRecord::Schema.define(version: 2022_05_05_041907) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -93,14 +93,7 @@ ActiveRecord::Schema.define(version: 2022_05_02_132002) do
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
     t.datetime "created_at", null: false
-    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
-  end
-
-  create_table "active_storage_variant_records", force: :cascade do |t|
-    t.integer "blob_id", null: false
-    t.string "variation_digest", null: false
-    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
   create_table "announcements", force: :cascade do |t|
@@ -330,6 +323,16 @@ ActiveRecord::Schema.define(version: 2022_05_02_132002) do
     t.index ["club_id"], name: "index_locations_on_club_id"
     t.index ["club_id"], name: "index_locations_on_foreign_keys"
     t.index ["md5"], name: "index_locations_on_md5", unique: true
+  end
+
+  create_table "meta_maps", force: :cascade do |t|
+    t.string "class_ba"
+    t.string "class_cc"
+    t.string "ba_base_url"
+    t.string "cc_base_url"
+    t.text "data"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -735,7 +738,6 @@ ActiveRecord::Schema.define(version: 2022_05_02_132002) do
     t.integer "location_id"
     t.integer "timeouts", default: 0, null: false
     t.boolean "admin_controlled", default: false, null: false
-    t.boolean "manual_assignment", default: false
     t.boolean "gd_has_prio", default: false, null: false
     t.integer "league_id"
     t.integer "sets_to_win", default: 1, null: false
@@ -745,6 +747,7 @@ ActiveRecord::Schema.define(version: 2022_05_02_132002) do
     t.string "fixed_display_left"
     t.boolean "color_remains_with_set", default: true, null: false
     t.boolean "allow_follow_up", default: true, null: false
+    t.boolean "manual_assignment", default: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
@@ -831,7 +834,6 @@ ActiveRecord::Schema.define(version: 2022_05_02_132002) do
   add_foreign_key "account_users", "accounts"
   add_foreign_key "account_users", "users"
   add_foreign_key "accounts", "users", column: "owner_id"
-  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "api_tokens", "users"
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"

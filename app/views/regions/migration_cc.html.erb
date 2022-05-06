@@ -24,49 +24,49 @@
           <pre><%= text %></pre>
         <%- end %>
       </li>
-      <li><h3>Synchronisation der Branch Struktur</h3></li>
+      <li><h3>Synchronisation Sparten </h3></li>
       <% if (@branch_ccs = @region.region_cc.branch_ccs).any? %>
         <h3> BranchCcs</h3>
         <div id="table_wrapper">
           <%= render partial: 'branch_ccs/branch_ccs_table' %>
         </div>
-        <%= link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
-        <%= link_to "Fix", fix_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%= link_to "Check", check_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/branch_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/branch_cc.log") %>
           <pre><%= text %></pre>
         <%- end %>
       <% end %>
-      <li><h3>Synchronisation der Competition Struktur</h3></li>
+      <li><h3>Synchronisation Competition Struktur</h3></li>
       <% if (@competition_ccs = CompetitionCc.joins(:branch_cc => { :region_cc => :region }).where(regions: { id: @region.id })).any? %>
         <h3> CompetitionCcs</h3>
         <div id="table_wrapper">
           <%= render partial: 'competition_ccs/competition_ccs_table' %>
         </div>
       <% end %>
-      <li><h3>Synchronisation der Season Struktur</h3></li>
+      <li><h3>Synchronisation Season</h3></li>
       <% if (@season_ccs = SeasonCc.joins(:competition_cc => { :branch_cc => { :region_cc => :region } }).where(regions: { id: @region.id })).any? %>
         <h3> SeasonCcs</h3>
         <div id="table_wrapper">
           <%= render partial: 'season_ccs/season_ccs_table' %>
         </div>
       <% end %>
-      <li><h3>Synchronisation der Liga Struktur</h3></li>
+      <li><h3>Synchronisation Liga</h3></li>
       <% if (@league_ccs = LeagueCc.joins(:season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
         <h3> LeagueCcs</h3>
         <div id="table_wrapper">
           <%= render partial: 'league_ccs/league_ccs_table' %>
         </div>
       <% end %>
-      <li><h3>Synchronisation der Liga Mannschaften</h3></li>
+      <li><h3>Synchronisation Liga Mannschaften</h3></li>
       <% if (@league_team_ccs = LeagueTeamCc.joins(:league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
         <h3> LeagueTeamCcs</h3>
         <div id="table_wrapper">
           <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
         </div>
       <% end %>
-      <li><h3>Synchronisation der Spielpläne</h3></li>
-      <li><h3>Synchronisation der Spielberichte</h3></li>
+      <li><h3>Synchronisation Spielpläne</h3></li>
+      <li><h3>Synchronisation Spielberichte</h3></li>
     </ul>
   </div>
 </div>

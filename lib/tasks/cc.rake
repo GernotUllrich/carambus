@@ -71,22 +71,24 @@ namespace :cc do
 
   desc "Remove duplicate Players"
   task :remove_duplicate_players => :environment do
-    session_id = ENV["PHPSESSID"]
-    columns_that_make_record_distinct = [:firstname, :lastname, :club_id, :type, :ba_id, :data]
-    distinct_ids = Player.select("MIN(id) as id").group(columns_that_make_record_distinct).map(&:id)
-    duplicate_record_ids = Player.where.not(id: distinct_ids).ids.to_set
-    while true
-      break if duplicate_record_ids.blank?
-      next_dup = Player[duplicate_record_ids.first]
-      args = next_dup.attributes.reject { |k, v| !columns_that_make_record_distinct.include?(k.to_sym) }
-      args.inspect
-      player_ids = Player.where(args).map(&:id)
-      player_ok = Player[player_ids[0]]
-      Player.where(id: player_ids[1..-1]).each do |player_tmp|
-        Player.merge_players(player_ok, player_tmp)
+    if false
+      session_id = ENV["PHPSESSID"]
+      columns_that_make_record_distinct = [:firstname, :lastname, :club_id, :type, :ba_id, :data]
+      distinct_ids = Player.select("MIN(id) as id").group(columns_that_make_record_distinct).map(&:id)
+      duplicate_record_ids = Player.where.not(id: distinct_ids).ids.to_set
+      while true
+        break if duplicate_record_ids.blank?
+        next_dup = Player[duplicate_record_ids.first]
+        args = next_dup.attributes.reject { |k, v| !columns_that_make_record_distinct.include?(k.to_sym) }
+        args.inspect
+        player_ids = Player.where(args).map(&:id)
+        player_ok = Player[player_ids[0]]
+        Player.where(id: player_ids[1..-1]).each do |player_tmp|
+          Player.merge_players(player_ok, player_tmp)
+        end
+        duplicate_record_ids.subtract(player_ids[1..-1])
+        duplicate_record_ids.count
       end
-      duplicate_record_ids.subtract(player_ids[1..-1])
-      duplicate_record_ids.count
     end
     Player.where("ba_id > 900000000").each do |p|
       next if p.lastname == "Freilos"
