@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_08_182622) do
+ActiveRecord::Schema.define(version: 2022_05_09_124048) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -245,7 +245,6 @@ ActiveRecord::Schema.define(version: 2022_05_08_182622) do
     t.integer "visitor_brett"
     t.integer "sets"
     t.integer "score"
-
     t.integer "ppg"
     t.integer "ppu"
     t.integer "ppv"
@@ -564,6 +563,7 @@ ActiveRecord::Schema.define(version: 2022_05_08_182622) do
     t.integer "tournament_id"
     t.integer "cc_id"
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
+    t.index ["cc_id"], name: "index_players_on_cc_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
   end
 

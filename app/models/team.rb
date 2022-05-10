@@ -22,6 +22,7 @@
 # Indexes
 #
 #  index_players_on_ba_id    (ba_id) UNIQUE
+#  index_players_on_cc_id    (cc_id) UNIQUE
 #  index_players_on_club_id  (club_id)
 #
 class Team < Player
