@@ -3,7 +3,7 @@ module TableMonitorsHelper
     rankings = TournamentMonitor.ranking(hash, opts)
     rankings = rankings.reverse if opts[:reverse]
     lines = rankings.map do |player, results|
-      "<tr>" + "#{"<td>#{results["rank"]}</td>" if opts[:order].include?(:rank)}" + "<td>#{Player[player].andand.lastname} #{Player[player].andand.firstname[0]}.</td><td>#{results["points"]}</td><td>#{results["result"]}</td><td>#{results["innings"]}</td><td>#{results["hs"]}</td><td>#{results["gd"]}</td><td>#{results["bed"]}</td>
+      "<tr>" + "#{"<td>#{results["rank"]}</td>" if opts[:order].include?(:rank)}" + "<td>#{Player[player].andand.lastname} #{Player[player].andand.firstname.andand[0]}.</td><td>#{results["points"]}</td><td>#{results["result"]}</td><td>#{results["innings"]}</td><td>#{results["hs"]}</td><td>#{results["gd"]}</td><td>#{results["bed"]}</td>
 </tr>"
     end.join("\n")
     return ("
