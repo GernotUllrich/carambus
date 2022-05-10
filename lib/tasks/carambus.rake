@@ -20,32 +20,52 @@ namespace :carambus do
   desc "read regional player ids"
   task :read_regional_player_ids => :environment do
     #file = "#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"
-    file = "#{Rails.root}/tmp/nbv_player_cc.csv"
+    #
+    # file = "#{Rails.root}/tmp/nbv_player_cc.csv"
+    file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-10_14-43-41.csv"
+    cc_ids_todo = Player.where.not(cc_id: nil).map(&:cc_id)
+    cc_ids_done = []
     str = File.read(file)
     players = CSV.parse(str, headers: true)
     players.each do |player_str|
       player_arr = player_str[0].split(";")
-      lno = player_arr[0].to_i
-      cc_id = player_arr[1].to_i
-      ba_id = player_arr[2].to_i
-      lastname = player_arr[3].strip
-      firstname = player_arr[4].strip
+      cc_id = player_arr[0].to_i
+      ba_id = player_arr[1].to_i
+      lastname = player_arr[2].strip
+      firstname = player_arr[3].strip
       player = Player.find_by_ba_id(ba_id)
       if player.present?
         unless player.cc_id == cc_id
           if player.cc_id.blank?
-            player.update(cc_id: cc_id)
-            Rails.logger.info "REPORT UPDATED cc_id: #{cc_id} of player #{player.fullname}[#{player.id}]"
+            begin
+              player.update(cc_id: cc_id)
+            rescue StandardError => e
+              #ccid already used else were?
+              p = Player.find_by_cc_id(cc_id)
+              RegionCc.logger.info "REPORT DUPLICATE PROBLEM passno #{cc_id}, #{lastname}, #{firstname} changed dbu-nr from #{p.ba_id} to #{ba_id}!!!"
+              next
+            end
+            RegionCc.logger.info "REPORT UPDATED cc_id: '#{cc_id}' of player #{player.fullname}[#{player.id}]"
           else
             player.update(cc_id: cc_id)
-            Rails.logger.info "REPORT CHANGED!! cc_id from: #{player.cc_id} to #{cc_id} of player #{player.fullname}[#{player.id}]"
+            RegionCc.logger.info "REPORT CHANGED!! cc_id from: '#{player.cc_id}' to '#{cc_id}' of player #{player.fullname}[#{player.id}]"
           end
         end
+        if player.lastname != lastname
+          RegionCc.logger.info "REPORT CHANGED FIRSTNAME: from '#{player.lastname}' to '#{lastname}'"
+        end
+        if player.lastname != lastname
+          RegionCc.logger.info "REPORT CHANGED LASTNAME: from '#{player.lastname}' to '#{lastname}'"
+        end
+        cc_ids_done.push(cc_id)
       else
         Player.create(firstname: firstname, lastname: lastname, cc_id: cc_id, ba_id: ba_id)
-        Rails.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
+        RegionCc.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
       end
+
     end
+    RegionCc.logger.info "REPORT some pass-no no more used: #{cc_ids_todo - cc_ids_done}"
+    RegionCc.logger.info "REPORT some new pass-nos: #{cc_ids_done - cc_ids_todo}"
   end
 
   desc "update disciplines in party games"
@@ -58,7 +78,8 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-    Season.order(ba_id: :desc).each do |season| #TODO if scraped completely .limit(2)
+    Season.order(ba_id: :desc).each do |season|
+      #TODO if scraped completely .limit(2)
       sh_names = Region::REGION_SHORTNAMES - ["BBBV",
                                               "BBV",
                                               "BLMR",
