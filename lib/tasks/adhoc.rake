@@ -43,23 +43,23 @@ namespace :adhoc do
   desc 'Spielerabgleich mit CC'
   task player_cc_matching: :environment do
     lines = []
-    season = Season[2]
+    season = Season[3]
     Player
       .joins(club: :region)
       .joins(party_a_games: { party: { league: :season } })
-      .where(seasons: { id: 2 })
-      .where(regions: { id: 1 })
+      .joins(party_b_games: { party: { league: :season } })
+      .where(seasons: { id: season.id })
       .where('players.ba_id < 900000000')
       .order(:lastname).uniq.each do |p|
       next if p.firstname.blank?
       party_game_a_ids =
         p.party_a_games
          .joins(party: :league)
-         .where(leagues: { season_id: 2 }).ids
+         .where(leagues: { season_id: season.id }).ids
       party_game_b_ids =
         p.party_b_games
          .joins(party: :league)
-         .where(leagues: { season_id: 2 }).ids
+         .where(leagues: { season_id: season.id }).ids
       party_a_ids = Party.joins(:party_games).where(party_games: { id: party_game_a_ids }).map(&:id)
       party_b_ids = Party.joins(:party_games).where(party_games: { id: party_game_b_ids }).map(&:id)
       party_ids = Party.where(id: (party_a_ids + party_b_ids).uniq).ids
@@ -67,11 +67,12 @@ namespace :adhoc do
       league_team_b_ids = LeagueTeam.joins(:parties_b).where(parties: { id: party_b_ids }).ids
       league_teams = LeagueTeam.where(id: (league_team_a_ids + league_team_b_ids).uniq)
       league_teams.each do |league_team|
-        lines.push([p.lastname, p.firstname, league_team.league.discipline.andand.name, league_team.league.name, league_team.name, p.ba_id].join(";"))
+        lines.push([p.cc_id, p.lastname, p.firstname, league_team.league.discipline.andand.name, league_team.league.name, league_team.name, p.ba_id].join(";"))
       end
       f = lines.join("\n")
-        f = "#{%w{NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}".encode("Windows-1252", crlf_newline: true)
-      File.write("#{Rails.root}/tmp/#{season.name.gsub("\/", "-")}-players-no_pass-nr.csv", "#{%w{NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}")
+        f = "#{%w{PASS-NR NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}"
+      #f = "#{%w{PASS-NR NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}".encode("Windows-1252", crlf_newline: true)
+      File.write("#{Rails.root}/tmp/#{season.name.gsub("\/", "-")}-players.csv", f)
 
       # Player
       #   .joins(club: :region)

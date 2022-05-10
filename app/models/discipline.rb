@@ -25,6 +25,8 @@ class Discipline < ApplicationRecord
   has_many :player_classes
   has_many :player_rankings
   has_many :leagues
+  has_many :game_plan_ccs
+  has_many :game_plan_row_ccs
   has_many :seeding_plays, class_name: "Seeding", :foreign_key => :playing_discipline_id
   has_one :competition_cc, foreign_key: :discipline_id
   has_one :branch_cc, foreign_key: :discipline_id

@@ -13,6 +13,7 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  cc_id            :integer
+#  game_plan_cc_id  :integer
 #  league_id        :integer
 #  season_cc_id     :integer
 #

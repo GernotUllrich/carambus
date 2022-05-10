@@ -59,6 +59,6 @@ class PartyCcsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def party_cc_params
-    params.require(:party_cc).permit(:cc_id, :league_cc_id, :party_id, :league_team_a_cc_id, :league_team_b_cc_id, :league_team_host_cc_id, :integer, :day_seqno, :remarks, :data)
+    params.require(:party_cc).permit(:cc_id, :group, :round, :time, :match_id, :register_at, :status, :league_cc_id, :party_id, :league_team_a_cc_id, :league_team_b_cc_id, :league_team_host_cc_id, :integer, :day_seqno, :remarks, :data)
   end
 end

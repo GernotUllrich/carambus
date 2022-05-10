@@ -25,20 +25,24 @@ namespace :carambus do
     players = CSV.parse(str, headers: true)
     players.each do |player_str|
       player_arr = player_str[0].split(";")
-      player_arr
-      player = Player.find_by_ba_id(player_arr[1].to_i)
+      lno = player_arr[0].to_i
+      cc_id = player_arr[1].to_i
+      ba_id = player_arr[2].to_i
+      lastname = player_arr[3].strip
+      firstname = player_arr[4].strip
+      player = Player.find_by_ba_id(ba_id)
       if player.present?
-        unless player.cc_id == player_arr[0].to_i
+        unless player.cc_id == cc_id
           if player.cc_id.blank?
-            player.update(cc_id: player_arr[0].to_i)
-            Rails.logger.info "REPORT UPDATED cc_id: #{player_arr[0].to_i} of player #{player.fullname}[#{player.id}]"
+            player.update(cc_id: cc_id)
+            Rails.logger.info "REPORT UPDATED cc_id: #{cc_id} of player #{player.fullname}[#{player.id}]"
           else
-            player.update(cc_id: player_arr[0].to_i)
-            Rails.logger.info "REPORT CHANGED!! cc_id from: #{player.cc_id} to #{player_arr[0].to_i} of player #{player.fullname}[#{player.id}]"
+            player.update(cc_id: cc_id)
+            Rails.logger.info "REPORT CHANGED!! cc_id from: #{player.cc_id} to #{cc_id} of player #{player.fullname}[#{player.id}]"
           end
         end
       else
-        Player.create(firstname: player_arr[3], lastname: player_arr[2], cc_id: player_arr[0], ba_id: player_arr[1])
+        Player.create(firstname: firstname, lastname: lastname, cc_id: cc_id, ba_id: ba_id)
         Rails.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
       end
     end

@@ -1,5 +1,7 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  resources :game_plan_ccs
+  resources :game_plan_row_ccs
   resources :meta_maps
   resources :party_game_ccs
   resources :party_ccs
@@ -14,6 +16,12 @@ Rails.application.routes.draw do
       post :fix
       get :check_branch_cc
       post :fix_branch_cc
+      get :check_party_cc
+      post :fix_party_cc
+      get :check_party_game_cc
+      post :fix_party_game_cc
+      get :check_league_cc
+      post :fix_league_cc
     end
   end
   resources :party_games

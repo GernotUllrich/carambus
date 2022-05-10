@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_05_041907) do
+ActiveRecord::Schema.define(version: 2022_05_08_182622) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -214,6 +214,47 @@ ActiveRecord::Schema.define(version: 2022_05_05_041907) do
     t.index ["game_id", "player_id", "role"], name: "index_game_participations_on_foreign_keys", unique: true
   end
 
+  create_table "game_plan_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.text "data"
+    t.integer "branch_cc_id"
+    t.integer "discipline_id"
+    t.integer "mp_won"
+    t.integer "mb_draw"
+    t.integer "mp_lost"
+    t.integer "znp"
+    t.integer "vorgabe"
+    t.boolean "plausi"
+    t.string "pez_partie"
+    t.string "bez_brett"
+    t.integer "rang_partie"
+    t.integer "rang_mgd"
+    t.integer "rang_kegel"
+    t.integer "ersatzspieler_regel"
+    t.integer "row_type_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "game_plan_row_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.integer "game_plan_id"
+    t.integer "discipline_id"
+    t.integer "home_brett"
+    t.integer "visitor_brett"
+    t.integer "sets"
+    t.integer "score"
+
+    t.integer "ppg"
+    t.integer "ppu"
+    t.integer "ppv"
+    t.integer "mpg"
+    t.integer "pmv"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "games", force: :cascade do |t|
     t.integer "tournament_id"
     t.text "roles"
@@ -263,6 +304,7 @@ ActiveRecord::Schema.define(version: 2022_05_05_041907) do
     t.string "report_form"
     t.string "report_form_data"
     t.integer "cc_id2"
+    t.integer "game_plan_cc_id"
   end
 
   create_table "league_team_ccs", force: :cascade do |t|
@@ -364,6 +406,11 @@ ActiveRecord::Schema.define(version: 2022_05_05_041907) do
     t.integer "no_show_team_id"
     t.string "section"
     t.integer "cc_id"
+    t.date "register_at"
+    t.string "group"
+    t.string "round"
+    t.integer "status"
+    t.datetime "time"
   end
 
   create_table "party_ccs", force: :cascade do |t|
@@ -378,6 +425,12 @@ ActiveRecord::Schema.define(version: 2022_05_05_041907) do
     t.text "data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.date "register_at"
+    t.string "group"
+    t.string "round"
+    t.integer "status"
+    t.datetime "time"
+    t.integer "match_id"
   end
 
   create_table "party_game_ccs", force: :cascade do |t|

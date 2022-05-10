@@ -1,0 +1,66 @@
+# == Schema Information
+#
+# Table name: game_plan_ccs
+#
+#  id                  :bigint           not null, primary key
+#  bez_brett           :string
+#  data                :text
+#  ersatzspieler_regel :integer
+#  mb_draw             :integer
+#  mp_lost             :integer
+#  mp_won              :integer
+#  name                :string
+#  pez_partie          :string
+#  plausi              :boolean
+#  rang_kegel          :integer
+#  rang_mgd            :integer
+#  rang_partie         :integer
+#  vorgabe             :integer
+#  znp                 :integer
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  branch_cc_id        :integer
+#  cc_id               :integer
+#  discipline_id       :integer
+#  row_type_id         :integer
+#
+
+one:
+  cc_id: 1
+  name: MyString
+  data: MyText
+  branch_cc_id: 1
+  discipline_id: 1
+  mp_won: 1
+  mb_draw: 1
+  mp_lost: 1
+  znp: 1
+  vorgabe: 1
+  plausi: false
+  pez_partie: MyString
+  bez_brett: MyString
+  rang_partie: 1
+  rang_mgd: 1
+  rang_kegel: 1
+  ersatzspieler_regel: 1
+  row_type_id: 1
+
+two:
+  cc_id: 1
+  name: MyString
+  data: MyText
+  branch_cc_id: 1
+  discipline_id: 1
+  mp_won: 1
+  mb_draw: 1
+  mp_lost: 1
+  znp: 1
+  vorgabe: 1
+  plausi: false
+  pez_partie: MyString
+  bez_brett: MyString
+  rang_partie: 1
+  rang_mgd: 1
+  rang_kegel: 1
+  ersatzspieler_regel: 1
+  row_type_id: 1

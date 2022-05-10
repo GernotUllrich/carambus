@@ -17,6 +17,7 @@
 #
 class BranchCc < ApplicationRecord
   has_many :competition_ccs
+  has_many :game_plan_ccs
   belongs_to :discipline
   belongs_to :region_cc
   delegate :fedId, to: :region_cc

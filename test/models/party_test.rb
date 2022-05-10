@@ -6,8 +6,13 @@
 #  data                :text
 #  date                :datetime
 #  day_seqno           :integer
+#  group               :string
+#  register_at         :date
 #  remarks             :text
+#  round               :string
 #  section             :string
+#  status              :integer
+#  time                :datetime
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  ba_id               :integer

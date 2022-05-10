@@ -15,14 +15,16 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  cc_id            :integer
+#  game_plan_cc_id  :integer
 #  league_id        :integer
 #  season_cc_id     :integer
 #
 class LeagueCc < ApplicationRecord
   belongs_to :season_cc
   belongs_to :league
+  belongs_to :game_plan_cc
   has_many :league_team_ccs
-  has_many :party_ccs
+  has_many :party_ccs, -> { order(cc_id: :asc) }, dependent: :destroy
   delegate :fedId, :branchId, :subBranchId, :seasonId, :region_cc, :branch_cc, :competition_cc, to: :season_cc
   alias_attribute :leagueId, :cc_id
   alias_attribute :staffelId, :cc_id2
@@ -30,12 +32,13 @@ class LeagueCc < ApplicationRecord
   def self.create_from_ba(session_id, league, force_update)
     region = league.organizer
     region_cc = region.region_cc
-    competition = league.competition
-    competition_cc = competition.competition_cc
+
+    competition = league.discipline || (Competition.where(name: "Mannschaft Karambol großes Billard").first if league.name=~ /Dreiband/) ||
+      (Competition.where(name: "Mannschaft Karambol kleines Billard").first if league.name=~ /Vierkampf/)
+    league_cc = league.league_cc
+    competition_cc = league_cc.season_cc.competition_cc
     context = league.organizer.shortname.downcase
-    season_cc = competition.competition_cc.season_ccs.where(name: league.season.name).first
-    league_cc = LeagueCc.new(name: league.name, season_cc_id: season_cc.id, league_id: league.id, context: context)
-    league_cc.attributes
+    season_cc = league_cc.season_cc
     _, doc = region_cc.post_cc(
       'createLeagueSave',
       session_id,
@@ -53,6 +56,10 @@ class LeagueCc < ApplicationRecord
     doc.to_s
   end
 
+  def self.create_league_plan_from_ba(session_id, league, force_update)
+
+  end
+
   def link_name
     fedId = season_cc.competition_cc.branch_cc.region_cc.cc_id
     branchId = season_cc.competition_cc.branch_cc.cc_id
@@ -67,5 +74,40 @@ class LeagueCc < ApplicationRecord
     subBranchId = season_cc.competition_cc.cc_id
     seasonId = season_cc.cc_id
     "#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"]}?fedId=#{fedId}&branchId=#{branchId}&subBranchId=#{subBranchId}&seasonId=#{seasonId}&leagueId=#{cc_id}"
+  end
+
+  def sync_single_league(session_id, options = {})
+    region_cc = Region.find_by_shortname(options[:context].upcase).region_cc
+    if league.present?
+      _, doc2 = region_cc.post_cc(
+        'showLeague',
+        session_id,
+        fedId: cc_id,
+        branchId: branch_cc.cc_id,
+        subBranchId: competition_cc.cc_id,
+        seasonId: season_cc.cc_id,
+        leagueId: cc_id
+      )
+      lines = doc2.css('form tr.tableContent table tr')
+      res_arr = lines.map { |l| l.css('td').map(&:text) }
+        game_plan_cc = GamePlanCc.find_by_name_and_branch_cc_id(res_arr[7][2].strip, branch_cc.id)
+      unless res_arr[4][0] == 'Kürzel' && res_arr[5][0] == 'Status'
+        raise SystemCallError, 'Format of showLeague canged ???', caller
+      end
+
+      assign_attributes(shortname: res_arr[4][2].strip, status: res_arr[5][4].strip,
+                                  report_form: res_arr[7][2].strip, game_plan_cc_id: game_plan_cc.id)
+      save
+      league.assign_attributes(shortname: res_arr[4][2].strip)
+      league.save
+
+    else
+      RegionCc.logger.warn "REPORT! [sync_leagues] Name der Liga entspricht keiner BA Liga: CC: #{{
+        season_name: season.name, name: name_str, organizer_type: 'Region', organizer_id: [id,
+                                                                                           dbu_region_id], discipline: competition_cc.discipline
+      }.inspect}"
+    end
+  rescue Exception => e
+    e.backtrace
   end
 end

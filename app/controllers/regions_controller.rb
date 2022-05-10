@@ -5,7 +5,12 @@ class RegionsController < ApplicationController
 
   def set_session_id
     RegionCc.session_id = params["PHPSESSID"]
-    flash[:notice] = "Session Id gesetzt."
+    cookies[:session_id] = RegionCc.session_id
+    @region = Region.find(params["region_id"])
+    cookies[:context] = @region.shortname.downcase
+    cookies[:season_name] = Season.find(params["season_id"]).name
+    cookies[:force_update] = params[:force_update]
+    flash[:notice] = "Parameter gesetzt."
     redirect_to migration_cc_region_path(@region)
   end
 
@@ -94,6 +99,6 @@ class RegionsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def region_params
-    params.require(:region).permit(:name, :shortname, :logo, :email, :address, :country_id)
+    params.require(:region).permit(:name, :shortname, :logo, :email, :address, :country_id, :season_name, :session_id, :context )
   end
 end

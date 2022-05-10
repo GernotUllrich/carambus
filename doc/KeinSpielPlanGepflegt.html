@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spielplan</title>
+    <link href="../../00styles/billardStyle.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript">
+      <!--
+      var sessId = '';
+
+      function getLeagueList() {
+        document.forms[0].action = "showLeagueList.php?" + sessId;
+        document.forms[0].submit();
+      }
+
+      function getLeague() {
+        document.forms[0].action = "showLeague.php?" + sessId;
+        document.forms[0].submit();
+      }
+
+      function showReport() {
+        document.forms[0].action = "showReportFromLeague.php?" + sessId;
+        document.forms[0].submit();
+      }
+
+      -->
+    </script>
+</head>
+<body>
+<br>
+<form accept-charset="UTF-8" method="post" name="cc">
+    <input name="teamCounter" type="hidden" value="2"><input name="fedId" type="hidden" value="20"><input name="leagueId"
+                                                                                                          type="hidden"
+                                                                                                          value="32"><input
+        name="branchId" type="hidden" value="6"><input name="subBranchId" type="hidden" value="1"><input name="seasonId"
+                                                                                                         type="hidden"
+                                                                                                         value="8">
+    <table cellpadding="0" cellspacing="0">
+        <tr>
+            <td nowrap width="20"></td>
+            <td>
+                <table cellpadding="5" cellspacing="1" width="100%">
+                    <tr class="tableCaption">
+                        <td>
+                            <table cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td><strong>SPIELTAG&Uuml;BERSICHT ANZEIGEN</strong></td>
+                                    <td align="right" valign="bottom">&nbsp;&nbsp;&nbsp;<a href="../verband.php?"><img
+                                            alt="" src="../../images/buttons/home.gif" title="HOME"></a>&nbsp;<a
+                                            href="../../login/logoff.php?"><img alt=""
+                                                                                src="../../images/buttons/logout.gif" title="Abmelden"></a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr class="tableContent">
+                        <td>
+                            <table cellpadding="5" cellspacing="1" width="100%">
+                                <tr>
+                                    <td width="10%">Verband</td>
+                                    <td nowrap width="2%"></td>
+                                    <td class="white" nowrap width="88%">Norddeutscher Billard-Verband e.V. (NBV)</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Wettbewerb</td>
+                                    <td nowrap width="20"></td>
+                                    <td class="white" nowrap width="100%"> Pool: Mannschaft</td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Liga <font size="-2">[Saison]</font>
+                                    </td>
+                                    <td nowrap width="20"></td>
+                                    <td class="white" nowrap width="100%">
+                                        <b>2. Bundesliga - Pool Nord</b> <font size="-2">[2010/2011]</font>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td valign="top">Mannschaften<br><br>
+                                        <button name="itbut" onclick="cc_create_team()" title="Neue Mannschaft anlegen">
+                                            <img alt="" src="../../images/buttons/create.gif"
+                                                 title="Neue Mannschaft anlegen"></button>&nbsp;
+                                    </td>
+                                    <td nowrap width="20"></td>
+                                    <td nowrap>
+                                        <table cellpadding="5" cellspacing="1" name="teams">
+                                            <tr>
+                                                <th class="colored" nowrap>Mannschaft</th>
+                                                <th class="colored">Technischer<br>Schl&uuml;ssel</th>
+                                            </tr>
+                                            <tr align="center" class="odd">
+                                                <td align="left" nowrap><a
+                                                        class="cc_bluelink"
+                                                        href="showLeague_show_team_player.php?p=167&amp;"
+                                                        title="Mannschaft BC Queue Hamburg 1 anzeigen">BC Queue Hamburg 1</a></td>
+                                                <td>167</td>
+                                            </tr>
+                                            <tr align="center" class="odd">
+                                                <td align="left" nowrap><a
+                                                        class="cc_bluelink"
+                                                        href="showLeague_show_team_player.php?p=168&amp;"
+                                                        title="Mannschaft SVT Neum&Atilde;nster 1 anzeigen">SVT Neum&uuml;nster 1</a></td>
+                                                <td>168</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Spieltage</td>
+                                    <td nowrap width="20"></td>
+                                    <td class="white" nowrap>Kein Spieltag gepflegt.<input name="matchId" type="hidden"
+                                                                                           value="">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td height="40px">
+                            <button name="back" onclick="getLeagueList()" title="Zur&uuml;ck"><img
+                                    alt="" src="../../images/buttons/back.gif" title="Zur&uuml;ck"></button>&nbsp;<button
+                                name="insBut" onclick="insertMatch()" title="Einzelne Spieltag-Zeile einf&uuml;gen"><img
+                                src="../../images/buttons/create.gif" title="Einzelne Spieltag-Zeile einf&uuml;gen">
+                        </button>&nbsp;<button name="importPlanBut" onclick="importPlan()"
+                                               title="Spielplan importieren"><img
+                                alt="" src="../../images/buttons/getVariant.gif" title="Spielplan importieren"></button>&nbsp;<script
+                                type="text/javascript">  function setSorting() {
+                          document.forms[0].action = 'setSorting.php?' + sessId;
+                          document.forms[0].submit();
+                        }
+
+                        function importPlan() {
+                          document.forms[0].action = 'importPlanStep1.php?' + sessId;
+                          document.forms[0].submit();
+                        }</script>
+                            <script type="text/javascript">function insertMatch() {
+                              if (confirm('Soll wirklich eine neue Spieltagzeile angelegt werden?') == false) {
+                                return;
+                              }
+                              document.forms[0].action = 'insertMatch.php?' + sessId;
+                              document.forms[0].submit();
+                            }
+
+                            function editManRang() {
+                              document.forms[0].action = 'editManRangCheck.php?' + sessId;
+                              document.forms[0].submit();
+                            }</script>
+                            <script type="text/javascript">function cc_create_team() {
+                              document.forms[0].action = 'showLeague_create_team.php?' + sessId;
+                              document.forms[0].submit();
+                            }</script>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>

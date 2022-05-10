@@ -17,6 +17,7 @@ class LeagueTeamCc < ApplicationRecord
   belongs_to :league_team
   has_many :party_a_ccs, class_name: "PartyCc", foreign_key: :league_team_a_cc_id
   has_many :party_b_ccs, class_name: "PartyCc", foreign_key: :league_team_b_cc_id
+  has_many :party_host_ccs, class_name: "PartyCc", foreign_key: :league_team_host_cc_id
 
   delegate :fedId,:branchId, :subBranchId, :leagueId, :staffelId, :seasonId, :region_cc, :branch_cc, :competition_cc, :season_cc, to: :league_cc
   delegate :club, to: :league_team

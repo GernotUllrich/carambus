@@ -2,7 +2,7 @@ class RegionCcAction
   def self.synchronize_region_structure(session_id, options = {})
     regions_todo = []
     regions_done = []
-    context = options.delete(:context) || "nbv"
+    context = options.delete(:context)
     region = Region.find_by_shortname(context.upcase)
     unless region.blank?
       regions_todo = [region.id]
@@ -17,6 +17,36 @@ class RegionCcAction
     regions_overdone = regions_done - regions_todo
     unless regions_overdone.blank?
       raise_err_msg("synchronize_region_structure", "more regions with context #{context} than expected in CC: #{Region.where(id: regions_overdone).map(&:name)}")
+    end
+  end
+
+  def self.sync_team_players_structure(session_id, options = {})
+    region = Region.find_by_shortname(options[:context].upcase)
+    region_cc = region.region_cc
+    if region_cc.present?
+      region_cc.sync_team_players_structure(session_id, options)
+    else
+      raise ArgumentError
+    end
+  end
+
+  def self.sync_game_reports_structure(session_id, options = {})
+    region = Region.find_by_shortname(options[:context].upcase)
+    region_cc = region.region_cc
+    if region_cc.present?
+      region_cc.sync_game_reports_structure(session_id, options)
+    else
+      raise ArgumentError
+    end
+  end
+
+  def self.sync_game_details(session_id, options = {})
+    region = Region.find_by_shortname(options[:context].upcase)
+    region_cc = region.region_cc
+    if region_cc.present?
+      region_cc.sync_game_details(session_id, options)
+    else
+      raise ArgumentError
     end
   end
 
@@ -85,42 +115,17 @@ class RegionCcAction
     end
   end
 
-  def synchronize_league_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      season = Season.find_by_name(season_name)
-      if season.blank?
-        raise ArgumentError, "unknown season name #{season_name}", caller
-      end
-      context = (ENV["CC_REGION"] || "NBV").downcase
-      force_cc_update = ENV["CC_UPDATE"] == "true" || false
-      region = Region.find_by_shortname(context.upcase)
-      region_cc = region.region_cc
+  def self.synchronize_league_structure(session_id, options = {})
+    region = Region.find_by_shortname(options[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.synchronize_league_structure(session_id, options)
+  end
 
-      unless region_cc.blank?
-        leagues_region_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: region.id).where("clubs.region_id = ?", region.id).uniq
-        dbu_region = Region.find_by_shortname("portal")
-        dbu_leagues_todo = League.joins(:league_teams => :club).where(season: season, organizer_type: "Region", organizer_id: dbu_region.id).where("clubs.region_id = ?", region.id).uniq
-        leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
-        leagues_done_ids = region_cc.sync_leagues(session_id, season_name).map(&:id)
-      else
-        raise_err_msg("synchronize_league_structure", "unknown context Region #{context}")
-      end
-      leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
-      unless leagues_still_todo_ids.blank?
-        leagues_still_todo_ids.each do |league_id|
-          league = League[league_id]
-          unless league.blank?
-            league_cc = LeagueCc.create_from_ba(session_id, league, force_cc_update)
-          else
-            raise_err_msg("synchronize_league_structure", "no league with id #{league_id}")
-          end
-        end
-      end
-      league_ids_overdone = leagues_done_ids - leagues_todo_ids
-      unless league_ids_overdone.blank?
-        raise_err_msg("synchronize_league_structure", "more league_ids with context #{context} than expected in CC: #{League.where(id: league_ids_overdone).map { |league| "#{league.name}[#{league.id}] - #{league.discipline.andand.name}" }}")
-      end
-    end
+  def self.synchronize_league_plan_structure(session_id, options = {})
+    region = Region.find_by_shortname(options[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.synchronize_league_plan_structure(session_id, options)
+
   end
 
   def synchronize_club_structure(session_id)
@@ -139,221 +144,126 @@ class RegionCcAction
     end
   end
 
-  def synchronize_league_team_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      season = Season.find_by_name(season_name)
-      if season.blank?
-        raise ArgumentError, "unknown season name #{season_name}", caller
-      end
-      context = (ENV["CC_REGION"] || "NBV").downcase
-      force_cc_update = ENV["CC_UPDATE"] == "true" || false
-      region = Region.find_by_shortname(context.upcase)
-      region_cc = region.region_cc
-
-      unless region_cc.blank?
-        dbu_region = Region.find_by_shortname("portal")
-        league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
-        league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
-        league_teams_done_ids = region_cc.sync_league_teams(season_name).map(&:id)
-      else
-        raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
-      end
-      league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
-      unless league_teams_still_todo_ids.blank?
-        if force_cc_update
-          league_teams_still_todo_ids.each do |league_team_id|
-            league_team = LeagueTeam[league_team_id]
-            unless league.blank?
-              league_team_cc = LeagueTeamCc.create_from_ba(league_team)
-            else
-              raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
-            end
-          end
-        else
-          Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{season_name} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
-        end
-      end
-      league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
-      unless league_teams_overdone_ids.blank?
-        raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
-      end
+  def self.synchronize_league_team_structure(session_id, options = {})
+    season_name = options[:season_name]
+    season = Season.find_by_name(options[:season_name])
+    if season.blank?
+      raise ArgumentError, "unknown season name #{season_name}", caller
     end
-  end
+    context = options[:context]
+    force_cc_update = options[:armed]
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
 
-  def synchronize_party_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      season = Season.find_by_name(season_name)
-      if season.blank?
-        raise ArgumentError, "unknown season name #{season_name}", caller
-      end
-      context = (ENV["CC_REGION"] || "NBV").downcase
-      force_cc_update = ENV["CC_UPDATE"] == "true" || false
-      region = Region.find_by_shortname(context.upcase)
-      region_cc = region.region_cc
+    unless region_cc.blank?
+      #dbu_region = Region.find_by_shortname("portal")
 
-      unless region_cc.blank?
-        dbu_region = Region.find_by_shortname("portal")
-        parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
-        parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
-        parties_done, party_ccs = region_cc.sync_parties(season_name)
-        parties_done_ids = parties_done.map(&:id)
-      else
-        raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
-      end
-      parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
-      unless parties_still_todo_ids.blank?
-        if force_cc_update
-          parties_still_todo_ids.each do |party_id|
-            party = Party[party_id]
-            unless party.blank?
-              party_cc = PartyCc.create_from_ba(session_id, party)
-            else
-              raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
-            end
-          end
-        else
-          incomplete_leagues = League.joins(:parties).where(parties: { id: parties_still_todo_ids }).uniq
-          Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.map { |league| [league.name, league.branch.name] }}"
-        end
-      end
-      parties_overdone_ids = parties_done_ids - parties_todo_ids
-      unless parties_overdone_ids.blank?
-        raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: parties_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
-      end
+      # no dbu !!! league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
+      league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id] }).where("clubs.region_id = ?", region.id).uniq
+      league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
+      league_teams_done, league_team_ccs = region_cc.sync_league_teams(session_id, season_name)
+        league_teams_done_ids = league_teams_done.map(&:id)
+    else
+      raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
     end
-  end
-
-  def synchronize_party_game_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      season = Season.find_by_name(season_name)
-      if season.blank?
-        raise ArgumentError, "unknown season name #{season_name}", caller
-      end
-      context = (ENV["CC_REGION"] || "NBV").downcase
-      force_cc_update = ENV["CC_UPDATE"] == "true" || false
-      region = Region.find_by_shortname(context.upcase)
-      region_cc = region.region_cc
-
-      BranchCc.where(context: context).each do |branch_cc|
-        branch_cc.competition_ccs.each do |competition_cc|
-          competition_cc.season_ccs.each do |season_cc|
-            next unless season_cc.name == season.name
-            season_cc.league_ccs.order(:cc_id).each do |league_cc|
-              league_cc.party_ccs.each do |party_cc|
-                #get Spielplan
-                _, doc = post_cc(
-                  "admin_report_showLeague",
-                  session_id,
-                  branchId: party_cc.branchId,
-                  fedId: party_cc.fedId,
-                  subBranchId: party_cc.subBranchId,
-                  seasonId: party_cc.seasonId,
-                  leagueId: party_cc.leagueId
-                )
-                doc.inspect
-              end
-            end
-          end
-        end
-      end
-      # unless region_cc.blank?
-      #   dbu_region = Region.find_by_shortname("portal")
-      #   parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
-      #   parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
-      #   parties_done, party_ccs = region_cc.sync_parties(season_name)
-      #   parties_done_ids = parties_done.map(&:id)
-      # else
-      #   raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
-      # end
-      # parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
-      # unless parties_still_todo_ids.blank?
-      #   if force_cc_update
-      #     parties_still_todo_ids.each do |party_id|
-      #       party = Party[party_id]
-      #       unless party.blank?
-      #         party_cc = PartyCc.create_from_ba(party)
-      #       else
-      #         raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
-      #       end
-      #     end
-      #   else
-      #     incomplete_leagues = League.joins(:parties).where(parties: { id: parties_still_todo_ids }).uniq
-      #     Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.map { |league| [league.name, league.branch.name] }}"
-      #   end
-      # end
-      # parties_overdone_ids = parties_done_ids - parties_todo_ids
-      # unless parties_overdone_ids.blank?
-      #   raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: parties_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
-      # end
-    end
-  end
-
-  def synchronize_team_players_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      season = Season.find_by_name(season_name)
-      if season.blank?
-        raise ArgumentError, "unknown season name #{season_name}", caller
-      end
-      context = (ENV["CC_REGION"] || "NBV").downcase
-      force_cc_update = ENV["CC_UPDATE"] == "true" || false
-      region = Region.find_by_shortname(context.upcase)
-      region_cc = region.region_cc
-
-      League.where(season: season, organizer_type: "Region", organizer_id: region.id).each do |league|
-        league_team_players = {}
-        league.parties.each do |party|
-          league_team_players[party.league_team_a_id] ||= []
-          league_team_players[party.league_team_b_id] ||= []
-          party.party_games.each do |party_game|
-            if !league_team_players[party.league_team_a_id].include?(party_game.player_a_id)
-              league_team_players[party.league_team_a_id].push(party_game.player_a_id)
-            end
-            if !league_team_players[party.league_team_b_id].include?(party_game.player_b_id)
-              league_team_players[party.league_team_b_id].push(party_game.player_b_id)
-            end
-          end
-        end
-        league_team_player_object_hash = {}
-        league_team_players.keys.each do |lt_id|
-          league_team = LeagueTeam[lt_id]
-          league_team_player_object_hash[league_team.id] ||= []
-          league_team_players[lt_id].each do |p_id|
-            player = Player[p_id]
-            league_team_player_object_hash[league_team.id].push(player)
-          end
-        end
-        league_team_player_object_hash.keys.each do |lt_id|
-          league_team = LeagueTeam[lt_id]
-          league_team_cc = league_team.league_team_cc
-          if league_team_cc.present?
-            league_team_players_todo = league_team_player_object_hash[lt_id]
-            league_team_player_done = region_cc.sync_team_players(league_team, context)
-            league_team_player_still_todo = league_team_players_todo - league_team_player_done
-            league_team_player_still_todo.each do |player|
-              unless player.ba_id > 999000000 || player.ba_id.blank?
-                _, doc = region_cc.post_cc(
-                  "showLeague_add_teamplayer",
-                  session_id,
-                  fedId: league_team_cc.fedId,
-                  leagueId: league_team_cc.leagueId,
-                  staffelId: 0,
-                  branchId: league_team_cc.branchId,
-                  subBranchId: league_team_cc.subBranchId,
-                  seasonId: league_team_cc.seasonId,
-                  p: league_team_cc.p,
-                  passnr: player.ba_id,
-                  armed: force_cc_update
-                )
-                doc
-              else
-              end
-            end
+    league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
+    unless league_teams_still_todo_ids.blank?
+      if force_cc_update
+        league_teams_still_todo_ids.each do |league_team_id|
+          league_team = LeagueTeam[league_team_id]
+          unless league.blank?
+            league_team_cc = LeagueTeamCc.create_from_ba(league_team)
           else
-            Rails.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
+            raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
           end
         end
-
+      else
+        Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{season_name} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+        RegionCc.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{season_name} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
       end
+    end
+    league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
+    unless league_teams_overdone_ids.blank?
+      raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
+    end
+  end
+
+  def self.synchronize_party_structure(session_id, options = {})
+    season = Season.find_by_name(options[:season_name])
+    if season.blank?
+      raise ArgumentError, "unknown season name #{season_name}", caller
+    end
+    season_name = season.name
+    context = (ENV["CC_REGION"] || "NBV").downcase
+    force_cc_update = options[:armed].presence || ENV["CC_UPDATE"] == "true" || false
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
+
+    unless region_cc.blank?
+      dbu_region = Region.find_by_shortname("portal")
+      parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
+      parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
+      parties_done, party_ccs = region_cc.sync_parties(session_id, season_name)
+      parties_done_ids = parties_done.map(&:id)
+    else
+      raise_err_msg("synchronize_party_structure", "unknown context Region #{context}")
+    end
+    parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
+    unless parties_still_todo_ids.blank?
+      if force_cc_update
+        parties_still_todo_ids.each do |party_id|
+          party = Party[party_id]
+          unless party.blank?
+            party_cc = PartyCc.create_from_ba(party)
+          else
+            raise_err_msg("synchronize_party_structure", "no party with id #{party_id}")
+          end
+        end
+      else
+        incomplete_leagues = League.joins(:parties).where(parties: { id: parties_still_todo_ids }).uniq
+        Rails.logger.warn "REPORT! [synchronize_league_team_structure] Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.select { |league| league.organizer_id == region.id && league.organizer_type == "Region" }.map { |league| [league.name, league.discipline.andand.name] }}"
+        RegionCc.logger.warn "REPORT! WARNING Einige Spielpläne für Season #{season_name} nicht definiert in CC für Ligen #{incomplete_leagues.select { |league| league.organizer_id == region.id && league.organizer_type == "Region" }.map { |league| [league.name, league.discipline.andand.name] }}"
+      end
+    end
+    parties_overdone_ids = parties_done_ids - parties_todo_ids
+    unless parties_overdone_ids.blank?
+      raise_err_msg("synchronize_party_structure", "more league_team_ids with context #{context} than expected in CC: #{Party.where(id: parties_overdone_ids).map { |party| "#{party.name}[#{party.id}]" }}")
+    end
+  end
+
+  def self.synchronize_party_game_structure(session_id, options = {})
+    season = Season.find_by_name(season_name)
+    if season.blank?
+      raise ArgumentError, "unknown season name #{season_name}", caller
+    end
+    context = (ENV["CC_REGION"] || "NBV").downcase
+    force_cc_update = options[:armed].presence || ENV["CC_UPDATE"] == "true" || false
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
+
+    unless region_cc.blank?
+      dbu_region = Region.find_by_shortname("portal")
+      parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
+      parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
+      parties_done = region_cc.sync_party_games(session_id, parties_todo_ids, season_name)
+      parties_done_ids = parties_done.map(&:id)
+    else
+      raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
+    end
+    parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
+    unless parties_still_todo_ids.blank?
+      parties_still_todo_ids.each do |party_id|
+        party = Party[party_id]
+        unless party.blank?
+          PartyGameCc.fix_party_games(party, armed: force_cc_update)
+        else
+          raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
+        end
+      end
+    end
+    parties_overdone_ids = parties_done_ids - parties_todo_ids
+    unless parties_overdone_ids.blank?
+      raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: parties_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
     end
   end
 
