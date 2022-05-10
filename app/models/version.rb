@@ -80,90 +80,94 @@ class Version < ApplicationRecord
       creates = []
       passes = 0
       while passes < 3 do
-        Setting.transaction do
-          last_version_id = Setting.key_get_value('last_version_id')
-          while vers.present?
-            h = vers.shift
-            last_version_id = h['id'].to_i
-            case h['event']
-            when 'create'
-              args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-              args['data'] = YAML.load(args['data']) if args['data'].present?
-              begin
-                classz = h['item_type'].constantize
-                item_id = h['item_id']
-                obj = classz.where(id: item_id).first
-                if obj.present?
-                  obj.update(args)
-                else
-                  #TODO look for uniq keys in args only (refine except)
-                  h['item_type'].constantize.where(args.except("id", "created_at", "updated_at")).each.map do |o|
-                    deletes.push([h['item_type'], args["id"]])
-                  end
-                  if h['item_type'] == "Seeding"
-                    h['item_type'].constantize.where(args.except("player_id", "tournament_id")).each.map do |o|
+        last_version_id = Setting.key_get_value('last_version_id')
+        while vers.present?
+          ix = 0
+          Setting.transaction do
+            while ix < 100
+              ix = ix +1
+              h = vers.shift
+              last_version_id = h['id'].to_i
+              case h['event']
+              when 'create'
+                args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
+                args['data'] = YAML.load(args['data']) if args['data'].present?
+                begin
+                  classz = h['item_type'].constantize
+                  item_id = h['item_id']
+                  obj = classz.where(id: item_id).first
+                  if obj.present?
+                    obj.update(args)
+                  else
+                    #TODO look for uniq keys in args only (refine except)
+                    h['item_type'].constantize.where(args.except("id", "created_at", "updated_at")).each.map do |o|
                       deletes.push([h['item_type'], args["id"]])
                     end
-                    h['item_type'].constantize.where(args.except("id")).each.map do |o|
-                      deletes.push([h['item_type'], args["id"]])
+                    if h['item_type'] == "Seeding"
+                      h['item_type'].constantize.where(args.except("player_id", "tournament_id")).each.map do |o|
+                        deletes.push([h['item_type'], args["id"]])
+                      end
+                      h['item_type'].constantize.where(args.except("id")).each.map do |o|
+                        deletes.push([h['item_type'], args["id"]])
+                      end
                     end
+                    obj = h['item_type'].constantize.new(args)
+                    creates.push([h['item_type'], args])
                   end
-                  obj = h['item_type'].constantize.new(args)
-                  creates.push([h['item_type'], args])
+                rescue StandardError => e
+                  Rails.logger.info "#{e} #{e.backtrace.inspect}"
+                  return
                 end
-              rescue StandardError => e
-                Rails.logger.info "#{e} #{e.backtrace.inspect}"
-                return
-              end
-            when 'update'
-              args = h['object_changes'].present? ? Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }] : YAML.load(h["object"])
-              args['data'] = YAML.load(args['data']) if args['data'].present?
-              begin
-                obj = h['item_type'].constantize.where(id: h['item_id']).first
-                if obj.present?
-                  obj.update(args)
-                else
-                  obj = h['item_type'].constantize.new
-                  obj.id = h['item_id']
-                  obj.assign_attributes(args)
-                  obj.save!
+              when 'update'
+                args = h['object_changes'].present? ? Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }] : YAML.load(h["object"])
+                args['data'] = YAML.load(args['data']) if args['data'].present?
+                begin
+                  obj = h['item_type'].constantize.where(id: h['item_id']).first
+                  if obj.present?
+                    obj.update(args)
+                  else
+                    obj = h['item_type'].constantize.new
+                    obj.id = h['item_id']
+                    obj.assign_attributes(args)
+                    obj.save!
+                  end
+                rescue StandardError => e
+                  Rails.logger.info "#{e} #{e.backtrace.inspect}"
                 end
-              rescue StandardError => e
-                Rails.logger.info "#{e} #{e.backtrace.inspect}"
+              when 'destroy'
+                begin
+                  obj = h['item_type'].constantize.where(id: h['item_id']).first
+                  obj.andand.delete
+                rescue StandardError => e
+                  Rails.logger.info "#{e} #{e.backtrace.inspect}"
+                end
+              else
+                # type code here
+                Rails.logger.info "FatalProtocolError"
+                Raise 'FatalProtocolError'
               end
-            when 'destroy'
-              begin
-                obj = h['item_type'].constantize.where(id: h['item_id']).first
-                obj.andand.delete
-              rescue StandardError => e
-                Rails.logger.info "#{e} #{e.backtrace.inspect}"
-              end
-            else
-              # type code here
-              Rails.logger.info "FatalProtocolError"
-              Raise 'FatalProtocolError'
             end
           end
+          if deletes.present?
+            todo = deletes.dup.to_set
+            deletes.each do |del|
+              del[0].constantize.where(id: del[1]).first.delete rescue nil
+              todo -= del
+            end
+            deletes = todo
+          end
+          if creates.present?
+            todo = creates.dup.to_set
+            creates.each do |crt|
+              crt[0].constantize.create(crt[1]) rescue nil
+              todo -= crt
+            end
+            creates = todo
+          end
+          break if deletes.blank? && creates.blank?
           #Version.sequence_reset
           Setting.key_set_value('last_version_id', last_version_id)
         end
-        if deletes.present?
-          todo = deletes.dup.to_set
-          deletes.each do |del|
-            del[0].constantize.where(id: del[1]).first.delete rescue nil
-            todo -= del
-          end
-          deletes = todo
-        end
-        if creates.present?
-          todo = creates.dup.to_set
-          creates.each do |crt|
-            crt[0].constantize.create(crt[1]) rescue nil
-            todo -= crt
-          end
-          creates = todo
-        end
-        break if deletes.blank? && creates.blank?
       end
     end
   end
