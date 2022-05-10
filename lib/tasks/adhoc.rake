@@ -43,12 +43,13 @@ namespace :adhoc do
   desc 'Spielerabgleich mit CC'
   task player_cc_matching: :environment do
     lines = []
-    season = Season[3]
+    season = Season[2]
     Player
       .joins(club: :region)
       .joins(party_a_games: { party: { league: :season } })
       .joins(party_b_games: { party: { league: :season } })
       .where(seasons: { id: season.id })
+      .where(regions: { id: 1 })
       .where('players.ba_id < 900000000')
       .order(:lastname).uniq.each do |p|
       next if p.firstname.blank?

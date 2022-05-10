@@ -16,15 +16,7 @@ class BranchCcsController < ApplicationController
     where(season_participations: {season_id: 2}).
     where(regions: {id: 1}).
     order(:lastname).
-    where("players.ba_id > 900000000").uniq.map do |p|
-    [p.cc_id, p.ba_id, p.lastname, p.firstname, p.id,
-     p.party_a_games.
-       joins(:party => :league).
-       where(leagues: {season_id: 2}).
-       first.andand.
-       party.andand.ba_id
-    ]
-  end.join(";").join("\n")
+    where("players.ba_id > 900000000").uniq.map{ |p| [p.cc_id, p.ba_id, p.lastname, p.firstname, p.id, p.party_a_games.joins(:party => :league).where(leagues: {season_id: 2}).first.andand.party.andand.ba_id].join(";") }.join("\n")
 
   f = Player.
     joins(:season_participations, {:club => :region}).
