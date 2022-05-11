@@ -99,7 +99,7 @@ class Version < ApplicationRecord
               (obj ||= classz.where(cc_id: args['cc_id']).first) if args['cc_id'].present?
             elsif h['item_type'] == "SeasonParticipation"
               obj = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
-              { player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id'] }
+
               obj.update(id: h['item_id'])
               next
             end
@@ -115,6 +115,13 @@ class Version < ApplicationRecord
               obj = classz.where(id: item_id).first
             end
             if obj.present?
+              if h['item_type'] == "SeasonParticipation"
+                oo = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
+                if oo.present?
+                  oo.update(id: h['item_id'])
+                  next
+                end
+              end
               obj.update(args)
             else
               h['item_type'].constantize.create(args)
@@ -131,6 +138,8 @@ class Version < ApplicationRecord
             if obj.present?
               obj.assign_attributes(args)
               if obj.valid?
+
+
                 obj.update(args)
               else
                 args = YAML.load(h["object"])
