@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_09_124048) do
+ActiveRecord::Schema.define(version: 2022_05_11_090257) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -638,6 +638,7 @@ ActiveRecord::Schema.define(version: 2022_05_09_124048) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "rank"
     t.integer "league_team_id"
+    t.index ["player_id", "tournament_id"], name: "index_seedings_on_player_id_and_tournament_id", unique: true
   end
 
   create_table "settings", force: :cascade do |t|

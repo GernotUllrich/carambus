@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: players
@@ -29,45 +31,45 @@ class Player < ApplicationRecord
   has_many :season_participations
   has_many :player_rankings
   has_many :seedings, dependent: :nullify
-  has_many :party_a_games, foreign_key: :player_a_id, class_name: "PartyGame"
-  has_many :party_b_games, foreign_key: :player_b_id, class_name: "PartyGame"
-  has_one :admin_user, class_name: "User", foreign_key: "player_id"
-  REFLECTION_KEYS = ["club", "game_participations", "seedings", "season_participations"]
+  has_many :party_a_games, foreign_key: :player_a_id, class_name: 'PartyGame'
+  has_many :party_b_games, foreign_key: :player_b_id, class_name: 'PartyGame'
+  has_one :admin_user, class_name: 'User', foreign_key: 'player_id'
+  REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
 
   serialize :data, Hash
-  #for teams:
+  # for teams:
   #  data ordered by ba_id  then first player's data are copied into resp. fields of player record
-  #data:
+  # data:
   {
-    "players" => [
+    'players' => [
       {
-        "firstname" => 'Alfred',
-        "lastname" => 'Meyer',
-        "ba_id" => 12342,
-        "player_id" => 1234,
-      },
+        'firstname' => 'Alfred',
+        'lastname' => 'Meyer',
+        'ba_id' => 12_342,
+        'player_id' => 1234
+      }
     ]
   }
 
-  COLUMN_NAMES = { #TODO FILTERS
-                   "Id" => "players.id",
-                   "BA_ID" => "players.ba_id",
-                   "CC_ID" => "players.cc_id",
-                   "Nickname" => "players.nickname",
-                   "Firstname" => "players.firstname",
-                   "Lastname" => "players.lastname",
-                   "Title" => "players.title",
-                   "Club" => "clubs.shortname",
-                   "Region" => "regions.shortname",
-                   "BaId" => "players.ba_id",
-  }
+  COLUMN_NAMES = { # TODO: FILTERS
+                   'Id' => 'players.id',
+                   'BA_ID' => 'players.ba_id',
+                   'CC_ID' => 'players.cc_id',
+                   'Nickname' => 'players.nickname',
+                   'Firstname' => 'players.firstname',
+                   'Lastname' => 'players.lastname',
+                   'Title' => 'players.title',
+                   'Club' => 'clubs.shortname',
+                   'Region' => 'regions.shortname',
+                   'BaId' => 'players.ba_id'
+  }.freeze
 
   def fullname
     "#{lastname}, #{firstname}"
   end
 
   def simple_firstname
-    nickname.presence || firstname.gsub("Dr.", "")
+    nickname.presence || firstname.gsub('Dr.', '')
   end
 
   def name
@@ -76,38 +78,40 @@ class Player < ApplicationRecord
 
   def self.fix_from_shortnames(lastname, firstname, season, region, club_str, tournament, allow_players_outside_ba)
     player = nil
-    club = Club.where(region: region).where("name ilike ?", club_str).first ||
-      Club.where(region: region).where("shortname ilike ?", club_str).first
+    club = Club.where(region: region).where('name ilike ?', club_str).first ||
+      Club.where(region: region).where('shortname ilike ?', club_str).first
     if club.present?
-      season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname })
+      season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(
+        seasons: { id: season.id }, players: { firstname: firstname, lastname: lastname }
+      )
       if season_participations.count == 1
         season_participation = season_participations.first
         player = season_participation.player
         if season_participation.club_id == club.id
-          if tournament.present?
-            seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-              Seeding.create(player_id: player.id, tournament_id: tournament.id)
-          end
-          state_ix = 0
         else
           real_club = season_participations.first.club
           logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
           logger.info "[scrape_tournaments] Inkonsistence - Fixed: Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], Region #{real_club.region.shortname}, season #{season.name}!"
-          SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id) unless SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, real_club.id)
-          if tournament.present?
-            seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
-              Seeding.create(player_id: player.id, tournament_id: tournament.id)
+          unless SeasonParticipation.find_by_player_id_and_season_id_and_club_id(
+            player.id, season.id, real_club.id
+          )
+            SeasonParticipation.create(player_id: player.id, season_id: season.id,
+                                       club_id: real_club.id)
           end
-          state_ix = 0
         end
-      elsif season_participations.count == 0
+        if tournament.present?
+          seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
+            Seeding.create(player_id: player.id, tournament_id: tournament.id)
+        end
+        state_ix = 0
+      elsif season_participations.count.zero?
         players = Player.where(firstname: firstname, lastname: lastname)
-        if players.count == 0
+        if players.count.zero?
           logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
           logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
           if allow_players_outside_ba
             player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-            player_fixed.update(ba_id: 999000000 + player_fixed.id)
+            player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
             SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
               SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
             if tournament.present?
@@ -128,8 +132,12 @@ class Player < ApplicationRecord
           end
           state_ix = 0
         elsif players.count > 1
-          logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map { |c| "#{c.andand.shortname} [#{c.andand.ba_id}]" }}] "
-          logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map { |c| "#{c.andand.shortname} [#{c.andand.ba_id}]" }.first}] "
+          logger.info "[scrape_tournaments] Inkonsistence - Fatal: Ambiguous: Player #{lastname}, #{firstname} not active everywhere but exists in Clubs [#{players.map(&:club).map do |c|
+            "#{c.andand.shortname} [#{c.andand.ba_id}]"
+          end }] "
+          logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Assume Player #{lastname}, #{firstname} is active in Clubs [#{players.map(&:club).map do |c|
+            "#{c.andand.shortname} [#{c.andand.ba_id}]"
+          end.first}] "
           player_fixed = players.first
           SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
             SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
@@ -140,7 +148,7 @@ class Player < ApplicationRecord
           state_ix = 0
         end
       else
-        #(ambiguous clubs)
+        # (ambiguous clubs)
         if season_participations.map(&:club_id).uniq.include?(club.id)
           season_participation = season_participations.where(club_id: club.id).first
           player = season_participation.player
@@ -148,7 +156,6 @@ class Player < ApplicationRecord
             seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
               Seeding.create(player_id: player.id, tournament_id: tournament.id)
           end
-          state_ix = 0
         else
           logger.info "[scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
           fixed_season_participation = season_participations.last
@@ -161,15 +168,15 @@ class Player < ApplicationRecord
             seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
               Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
           end
-          state_ix = 0
         end
+        state_ix = 0
       end
     else
       logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
       fixed_club = region.clubs.create(name: club_str, shortname: club_str)
       player_fixed = fixed_club.players.create(firstname: firstname, lastname: lastname)
-      fixed_club.update(ba_id: 999000000 + fixed_club.id)
-      player_fixed.update(ba_id: 999000000 + player_fixed.id)
+      fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
+      player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
       SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
 
       logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
@@ -180,7 +187,7 @@ class Player < ApplicationRecord
       end
       state_ix = 0
     end
-    return (player || player_fixed), seeding, state_ix
+    [(player || player_fixed), seeding, state_ix]
   end
 
   def self.merge_players(player_ok, player_tmp_arr)
@@ -195,6 +202,34 @@ class Player < ApplicationRecord
         player_tmp.destroy
         player_ok
       end
+    end
+  end
+
+  def xxx
+
+    Player.where("firstname ilike '%(%'").each do |p|
+      firstname = p.firstname.match(/(.*)\(.*/)[1]
+      p2 = Player.where(lastname: p.lastname, firstname: firstname).first
+      if p2.present?
+      puts  p2.andand.attributes.andand.inspect , p.attributes.inspect
+      end
+    end; nil
+    Player.where("lastname ilike 'von%'").each do |p|
+      name = p.name.match(/von\s+(.*)$/).andand[1].to_s
+      p2 = Player.where(lastname: name, firstname: "#{p.firstname} von").first
+      puts "--- will merge #{[p2.id, p2.fullname]} to #{[p.id, p.fullname]}}" if p2.present?
+    end
+  end
+
+  def mg(id1, id2)
+    p1 = Player[id1]
+    p2 = Player[id2]
+    if p1.ba_id.present?# && p2.ba_id > 999000000
+      cc_id = p1.cc_id || p2.cc_id
+      p2.season_participations.delete_all
+      p2.update(cc_id: nil)
+      Player.merge_players(p1, p2)
+      p1.update(cc_id: cc_id)
     end
   end
 
