@@ -134,7 +134,8 @@ class Version < ApplicationRecord
           args = h['object_changes'].present? ? Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }] : YAML.load(h["object"])
           args['data'] = YAML.load(args['data']) if args['data'].present?
           begin
-            obj = h['item_type'].constantize.where(id: h['item_id']).first
+            classz = h['item_type'].constantize
+            obj = classz.where(id: h['item_id']).first
             if obj.present?
               obj.assign_attributes(args)
               if obj.valid?
