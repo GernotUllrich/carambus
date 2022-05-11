@@ -129,7 +129,14 @@ class Version < ApplicationRecord
           begin
             obj = h['item_type'].constantize.where(id: h['item_id']).first
             if obj.present?
-              obj.update(args)
+              obj.assign_attributes(args)
+              if obj.valid?
+                obj.update(args)
+              else
+                args = YAML.load(h["object"])
+                args['data'] = YAML.load(args['data']) if args['data'].present?
+                obj.update(args)
+              end
             else
               obj = h['item_type'].constantize.new
               obj.id = h['item_id']
