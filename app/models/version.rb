@@ -138,8 +138,11 @@ class Version < ApplicationRecord
             if obj.present?
               obj.assign_attributes(args)
               if obj.valid?
-
-
+                oo = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
+                if oo.present? && oo.id != obj.id
+                  oo.update(id: h['item_id'])
+                  next
+                end
                 obj.update(args)
               else
                 args = YAML.load(h["object"])
