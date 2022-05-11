@@ -87,6 +87,7 @@ class Version < ApplicationRecord
         when 'create'
           args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
           args['data'] = YAML.load(args['data']) if args['data'].present?
+          Rails.logger.info "#{h['item_type']}[#{h['item_id']}]#{JSON.pretty_generate(args)}"
           begin
             classz = h['item_type'].constantize
             item_id = h['item_id']
@@ -95,13 +96,20 @@ class Version < ApplicationRecord
               obj = classz.where(game_id: args['game_id'], player_id: args['player_id'], role: args['role']).first
             elsif h['item_type'] == "Player"
               obj = classz.where(ba_id: args['ba_id']).first
-              obj ||= classz.where(cc_id: args['cc_id']).first
+              (obj ||= classz.where(cc_id: args['cc_id']).first) if args['cc_id'].present?
             elsif h['item_type'] == "SeasonParticipation"
               obj = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
+              { player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id'] }
+              obj.update(id: h['item_id'])
+              next
             end
             if obj.present?
+              Rails.logger.info "#{obj.attributes}"
               if obj.id != args['id'] && obj.id < 5000000
-                Raise ArgumentError "must merge in source first!!!"
+                Rails.logger.info "must merge #{h['item_type']}[#{obj.id}] in source first!!!"
+                puts "must merge #{h['item_type']}[#{obj.id}] in source first!!!"
+                return
+                #raise ArgumentError, "must merge in source first!!!"
               end
             else
               obj = classz.where(id: item_id).first
@@ -143,7 +151,7 @@ class Version < ApplicationRecord
         else
           # type code here
           Rails.logger.info "FatalProtocolError"
-          Raise 'FatalProtocolError'
+          raise 'FatalProtocolError'
           return
         end
         Setting.key_set_value('last_version_id', last_version_id)
