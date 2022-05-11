@@ -140,6 +140,8 @@ class Version < ApplicationRecord
             else
               obj = h['item_type'].constantize.new
               obj.id = h['item_id']
+              args = YAML.load(h["object"])
+              args['data'] = YAML.load(args['data']) if args['data'].present?
               obj.assign_attributes(args)
               obj.save!
             end
