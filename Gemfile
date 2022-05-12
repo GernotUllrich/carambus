@@ -112,6 +112,14 @@ gem 'stimulus_reflex' # , "~> 3.3"
 gem 'string-similarity'
 gem 'thor'
 
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'rack-mini-profiler'
+# For memory profiling
+gem 'memory_profiler'
+
+# For call-stack profiling flamegraphs
+gem 'stackprof'
+
 group :production do
   # Use unicorn as the app server
   gem 'unicorn'

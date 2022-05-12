@@ -43,9 +43,9 @@ class Version < ApplicationRecord
     SQL
 
     ActiveRecord::Base.connection.execute(sql).each do |query|
-      if query['query'] =~ /_ccs_id/
-        query['query'].gsub!("#{Tournament::MIN_ID}", "1")
-      end
+      # if query['query'] =~ /_ccs_id/
+      #   query['query'].gsub!("#{Tournament::MIN_ID}", "1")
+      # end
       ActiveRecord::Base.connection.execute(query['query'])
     end
   end

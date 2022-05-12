@@ -316,6 +316,7 @@ class RegionCc < ApplicationRecord
 
   def get_cc(action, session_id, options = {})
     if PATH_MAP[action].present?
+      options[:referer] ||= BASE_URL
       url = base_url + PATH_MAP[action][0]
       get_cc_with_url(action, session_id, url, options)
     else
@@ -643,7 +644,7 @@ class RegionCc < ApplicationRecord
   def self.sync_regions(session_id, region, options = {})
     armed = options[:armed].present?
     regions = []
-    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc('showClubList', session_id)
+    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc('showClubList', session_id, referer: BASE_URL)
     if (msg = doc.css('input[name="errMsg"]')[0].andand['value']).present?
       RegionCc.logger.error msg
     else
@@ -678,10 +679,10 @@ class RegionCc < ApplicationRecord
     regions
   end
 
-  def sync_branches(session_id, options = {})
+  def sync_branches(session_id, opts = {})
     branches = []
     context = shortname.downcase
-    armed = options.delete('armed')
+    armed = opts.delete('armed')
     res, doc = get_cc('showClubList', session_id)
     selector = doc.css('select[name="branchId"]')[0]
     options = selector.css('option')
