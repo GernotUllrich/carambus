@@ -117,6 +117,7 @@
     <orderEntry type="library" scope="PROVIDED" name="mail (v2.7.1, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="marcel (v1.0.2, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="matrix (v0.4.2, rbenv: 2.7.2) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="memory_profiler (v1.0.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="method_source (v1.0.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mini_magick (v4.11.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mini_mime (v1.1.2, rbenv: 2.7.2) [gem]" level="application" />
@@ -153,6 +154,7 @@
     <orderEntry type="library" scope="PROVIDED" name="racc (v1.6.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack (v2.2.3, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-livereload (v0.3.17, rbenv: 2.7.2) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rack-mini-profiler (v3.0.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-protection (v2.2.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-proxy (v0.7.2, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-test (v1.1.0, rbenv: 2.7.2) [gem]" level="application" />
@@ -197,6 +199,7 @@
     <orderEntry type="library" scope="PROVIDED" name="sprockets (v4.0.3, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="sprockets-rails (v3.4.2, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="sshkit (v1.21.2, rbenv: 2.7.2) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="stackprof (v0.2.19, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="standard (v1.10.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="stimulus_reflex (v3.4.1, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="string-similarity (v2.1.0, rbenv: 2.7.2) [gem]" level="application" />
@@ -292,6 +295,7 @@
         <option value="pay:views" />
         <option value="pg_search:migration:dmetaphone" />
         <option value="pg_search:migration:multisearch" />
+        <option value="rack_profiler:install" />
         <option value="resource" />
         <option value="responders:install" />
         <option value="responders_controller" />
@@ -374,6 +378,7 @@
         <option value="pay:views" />
         <option value="pg_search:migration:dmetaphone" />
         <option value="pg_search:migration:multisearch" />
+        <option value="rack_profiler:install" />
         <option value="resource" />
         <option value="responders:install" />
         <option value="responders_controller" />
@@ -440,13 +445,15 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="adhoc">
             <subtasks>
+              <RakeTaskImpl description="Spielerabgleich mit CC" fullCommand="adhoc:player_cc_matching" id="player_cc_matching" />
+              <RakeTaskImpl description="Sequence Reset" fullCommand="adhoc:sequence_reset" id="sequence_reset" />
               <RakeTaskImpl description="Melde Tournament" fullCommand="adhoc:test_add_tournament" id="test_add_tournament" />
+              <RakeTaskImpl description="test_league 8" fullCommand="adhoc:test_league8" id="test_league8" />
               <RakeTaskImpl description="test league scraping" fullCommand="adhoc:test_league_scraping" id="test_league_scraping" />
               <RakeTaskImpl description="test settings" fullCommand="adhoc:test_setting" id="test_setting" />
               <RakeTaskImpl description="test version update" fullCommand="adhoc:test_version_update" id="test_version_update" />
               <RakeTaskImpl description="" fullCommand="adhoc:clean_local" id="clean_local" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_accumulate_results" id="test_accumulate_results" />
-              <RakeTaskImpl description="" fullCommand="adhoc:test_league8" id="test_league8" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_player_id_from_ranking" id="test_player_id_from_ranking" />
             </subtasks>
           </RakeTaskImpl>
@@ -510,7 +517,6 @@
               <RakeTaskImpl description="Scrape DBU leagues" fullCommand="carambus:scrape_dbu_leagues" id="scrape_dbu_leagues" />
               <RakeTaskImpl description="Scrape League Teams" fullCommand="carambus:scrape_league_teams" id="scrape_league_teams" />
               <RakeTaskImpl description="Scrape leagues" fullCommand="carambus:scrape_leagues" id="scrape_leagues" />
-              <RakeTaskImpl description="Scrape leagues" fullCommand="carambus:scrape_leagues_alternative" id="scrape_leagues_alternative" />
               <RakeTaskImpl description="scrape new tournaments" fullCommand="carambus:scrape_new_tournaments" id="scrape_new_tournaments" />
               <RakeTaskImpl description="scrape Players" fullCommand="carambus:scrape_players" id="scrape_players" />
               <RakeTaskImpl description="scrape regional club ids" fullCommand="carambus:scrape_regional_club_ids" id="scrape_regional_club_ids" />
@@ -527,12 +533,17 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="cc">
             <subtasks>
+              <RakeTaskImpl description="get game report" fullCommand="cc:get_game_report" id="get_game_report" />
               <RakeTaskImpl description="Remove duplicate Players" fullCommand="cc:remove_duplicate_players" id="remove_duplicate_players" />
               <RakeTaskImpl description="synchronize branch structure" fullCommand="cc:synchronize_branch_structure" id="synchronize_branch_structure" />
               <RakeTaskImpl description="synchronize club structure" fullCommand="cc:synchronize_club_structure" id="synchronize_club_structure" />
               <RakeTaskImpl description="synchronize competition structure" fullCommand="cc:synchronize_competition_structure" id="synchronize_competition_structure" />
+              <RakeTaskImpl description="synchronize game details" fullCommand="cc:synchronize_game_details" id="synchronize_game_details" />
+              <RakeTaskImpl description="synchronize game reports structure" fullCommand="cc:synchronize_game_reports_structure" id="synchronize_game_reports_structure" />
+              <RakeTaskImpl description="synchronize league plan structure" fullCommand="cc:synchronize_league_plan_structure" id="synchronize_league_plan_structure" />
               <RakeTaskImpl description="synchronize league structure" fullCommand="cc:synchronize_league_structure" id="synchronize_league_structure" />
               <RakeTaskImpl description="synchronize league_team structure" fullCommand="cc:synchronize_league_team_structure" id="synchronize_league_team_structure" />
+              <RakeTaskImpl description="synchronize party game structure" fullCommand="cc:synchronize_party_game_structure" id="synchronize_party_game_structure" />
               <RakeTaskImpl description="synchronize party structure" fullCommand="cc:synchronize_party_structure" id="synchronize_party_structure" />
               <RakeTaskImpl description="synchronize region structure" fullCommand="cc:synchronize_region_structure" id="synchronize_region_structure" />
               <RakeTaskImpl description="synchronize season structure" fullCommand="cc:synchronize_season_structure" id="synchronize_season_structure" />
