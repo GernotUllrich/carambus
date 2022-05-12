@@ -1,6 +1,5 @@
 class BranchCcsController < ApplicationController
-  before_action :set_branch_cc, only: [:show, :edit, :update, :destroy]
-  before_action :set_branch_cc, only: [:fix, :check]
+  before_action :set_branch_cc, only: [:show, :edit, :update, :destroy, :fix, :check]
 
   def fix
     RegionCc.save_log("region_cc")
@@ -8,30 +7,6 @@ class BranchCcsController < ApplicationController
     RegionCc.save_log("region_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
-
-  Player.joins(:season_participations, {:club => :region}).joins(:party_a_games).where(season_participations: {season_id: 2}).where(regions: {id: 1}).order(:lastname).where("players.ba_id > 900000000").first.party_a_games.joins(:party => :league).where(leagues: {season_id: 2}).first.party
-  f = Player.
-    joins(:season_participations, {:club => :region}).
-    joins(:party_a_games => {:party => :league}).
-    where(season_participations: {season_id: 2}).
-    where(regions: {id: 1}).
-    order(:lastname).
-    where("players.ba_id > 900000000").uniq.map{ |p| [p.cc_id, p.ba_id, p.lastname, p.firstname, p.id, p.party_a_games.joins(:party => :league).where(leagues: {season_id: 2}).first.andand.party.andand.ba_id].join(";") }.join("\n")
-
-  f = Player.
-    joins(:season_participations, {:club => :region}).
-    joins(:party_a_games => {:party => :league}).
-    where(season_participations: {season_id: 2}).
-    where(regions: {id: 1}).
-    order(:lastname).
-    where("players.ba_id > 900000000").uniq.map{|p|[p.cc_id, p.ba_id, p.lastname, p.firstname, p.id,
-     p.party_a_games.
-       joins(:party => :league).
-       where(leagues: {season_id: 2}).count
-       # first.andand.
-       # party.andand.ba_id
-    ].join(";")}.join("\n")
-
 
   def check
     RegionCc.save_log("region_cc")
