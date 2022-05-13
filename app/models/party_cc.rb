@@ -36,7 +36,7 @@ class PartyCc < ApplicationRecord
     "#{league_team_a_cc.name} - #{league_team_b_cc.name}"
   end
 
-  def sync_game_details(session_id, context, season_name, force_update, options = {})
+  def sync_game_details(options = {})
     #get game report form
     party_cc = self
     lt_a_cc_id = party_cc.league_team_a_cc.cc_id
@@ -44,10 +44,8 @@ class PartyCc < ApplicationRecord
     match_id = party_cc.match_id
     region_cc = Region[1].region_cc
 
-    session_id = "e43cad006393b5e0f304a22cf09b7b01"
-
     res, doc = region_cc.post_cc("spielbericht",
-                                 session_id,
+                                 options[:session_id],
                                  sortKey: "NAME",
                                  branchid: 6,
                                  woher: 1,
@@ -59,7 +57,7 @@ class PartyCc < ApplicationRecord
                                  :referer => "/admin/bm_mw/vereine.php?")
 
     res2, doc2 = region_cc.post_cc("spielberichtCheck",
-                                   session_id,
+                                   options[:session_id],
                                    fedId: 20,
                                    branchId: 6,
                                    subBranchId: 1,

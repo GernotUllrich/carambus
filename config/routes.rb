@@ -16,12 +16,16 @@ Rails.application.routes.draw do
       post :fix
       get :check_branch_cc
       post :fix_branch_cc
+      get :check_competition_cc
+      post :fix_competition_cc
       get :check_party_cc
       post :fix_party_cc
       get :check_party_game_cc
       post :fix_party_game_cc
       get :check_league_cc
       post :fix_league_cc
+      get :check_season_cc
+      post :fix_season_cc
     end
   end
   resources :party_games
@@ -195,7 +199,7 @@ Rails.application.routes.draw do
       post :reload_from_ba
       post :reload_from_ba_with_player_details
       get :migration_cc
-      post :set_session_id
+      post :set_base_parameters
     end
   end
   resources :countries

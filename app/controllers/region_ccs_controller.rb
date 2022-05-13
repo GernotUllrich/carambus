@@ -1,90 +1,106 @@
 class RegionCcsController < ApplicationController
   before_action :set_region_cc, only: [:show, :edit, :update, :destroy, :fix, :check,
                                        :fix_branch_cc, :check_branch_cc,
+                                       :fix_competition_cc, :check_competition_cc,
+                                       :fix_season_cc, :check_season_cc,
                                        :fix_party_cc, :check_party_cc,
                                        :fix_league_cc, :check_league_cc,
   ]
 
   def fix
     RegionCc.save_log("region_cc")
-    RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: true)
+    RegionCcAction.synchronize_region_structure(@opts.merge(armed: true))
     RegionCc.save_log("region_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def check
     RegionCc.save_log("region_cc")
-    unless @region_cc.region.blank?
-      regions_todo = [@region_cc.region]
-      regions_done = RegionCc.sync_regions(RegionCc.session_id, @region_cc.region, armed: false)
-    else
-      RegionCc.logger.info "REPORT unbekannter Regional-Context #{@region_c.name}"
-    end
-    regions_still_todo = regions_todo - regions_done
-    unless regions_still_todo.blank?
-      RegionCc.logger.info "REPORT regions with context #{@region_cc.name} not yet in CC: #{Region.where(id: regions_todo).map(&:name)}"
-    end
-    regions_overdone = regions_done - regions_todo
-    unless regions_overdone.blank?
-      RegionCc.logger.info "REPORT more regions with context #{@region_cc.name} than expected in CC: #{Region.where(id: regions_overdone).map(&:name)}"
-    end
-
+    RegionCcAction.synchronize_region_structure(@opts.merge(armed: false))
     RegionCc.save_log("region_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def fix_branch_cc
     RegionCc.save_log("branch_cc")
-    @region_cc.sync_branches(RegionCc.session_id, armed: true)
+    RegionCcAction.synchronize_branch_structure(@opts.merge(armed: true))
     RegionCc.save_log("branch_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def check_branch_cc
     RegionCc.save_log("branch_cc")
-    @region_cc.sync_branches(RegionCc.session_id, armed: false)
+    RegionCcAction.synchronize_branch_structure(@opts.merge(armed: false))
     RegionCc.save_log("branch_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def fix_competition_cc
+    RegionCc.save_log("competition_cc")
+    RegionCcAction.synchronize_competition_structure(@opts.merge(armed: true))
+    RegionCc.save_log("competition_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def check_competition_cc
+    RegionCc.save_log("competition_cc")
+    RegionCcAction.synchronize_competition_structure(@opts.merge(armed: false))
+    RegionCc.save_log("competition_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def fix_season_cc
+    RegionCc.save_log("season_cc")
+    RegionCcAction.synchronize_season_structure(@opts.merge(armed: true))
+    RegionCc.save_log("season_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def check_season_cc
+    RegionCc.save_log("season_cc")
+    RegionCcAction.synchronize_season_structure(@opts.merge(armed: false))
+    RegionCc.save_log("season_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def fix_party_cc
     RegionCc.save_log("party_cc")
-    RegionCcAction.synchronize_party_structure(RegionCc.session_id, armed: true)
+    RegionCcActionAction.synchronize_party_structure(@opts.merge(armed: true))
     RegionCc.save_log("party_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def check_party_cc
     RegionCc.save_log("party_cc")
-    RegionCcAction.synchronize_party_structure(RegionCc.session_id, armed: false)
+    RegionCcActionAction.synchronize_party_structure(@opts.merge(armed: false))
     RegionCc.save_log("party_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def fix_party_game_cc
     RegionCc.save_log("party_game_cc")
-    RegionCcAction.synchronize_party_game_structure(RegionCc.session_id, armed: true, season_name: region_cc_params[:season_name])
+    RegionCcActionAction.synchronize_party_game_structure(@opts.merge(armed: true))
     RegionCc.save_log("party_game_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def check_party_game_cc
     RegionCc.save_log("party_game_cc")
-    RegionCcAction.synchronize_party_game_structure(RegionCc.session_id, armed: false, season_name: region_cc_params[:season_name])
+    RegionCcActionAction.synchronize_party_game_structure(@opts.merge(armed: false))
     RegionCc.save_log("party_game_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def fix_league_cc
     RegionCc.save_log("league_cc")
-    RegionCcAction.synchronize_league_structure(RegionCc.session_id, armed: true, season_name: region_cc_params[:season_name])
+    RegionCcAction.synchronize_league_structure(@opts.merge(armed: true))
     RegionCc.save_log("league_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 
   def check_league_cc
     RegionCc.save_log("league_cc")
-    RegionCcAction.synchronize_league_structure(RegionCc.session_id, armed: @force_update, context: @context, season_name: @season_name)
+    RegionCcAction.synchronize_league_structure(@opts.merge(armed: false))
     RegionCc.save_log("league_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
@@ -116,7 +132,7 @@ class RegionCcsController < ApplicationController
   def create
     @region_cc = RegionCc.new(region_cc_params)
     #get main page with given public
-    _, doc = RegionCc.new.get_cc_with_url("Home", nil, @region_cc.public_url)
+    _, doc = RegionCc.new.get_cc_with_url("Home", @region_cc.public_url)
     @region_cc.base_url = doc.css("a.cclogin")[0]["href"]
     @region_cc.cc_id = doc.css("a").select { |a| a["href"].match(/f=\d+$/) }.first["href"].match(/f=(\d+)$/)[1].to_i
     if @region_cc.save
@@ -149,12 +165,12 @@ class RegionCcsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_region_cc
-    get_from_session
+    get_base_options
     @region_cc = RegionCc.find(params[:id])
   end
 
-  def get_from_session
-    @session_id = session[:session_id]
+  def get_base_options
+    @session_id = cookies[:session_id]
     @context = cookies[:context]
     unless @context.present?
       cookies[:context] = @context = 'nbv'
@@ -164,6 +180,12 @@ class RegionCcsController < ApplicationController
       cookies[:season_name] = @season_name = Season.last.name
     end
     @force_update = cookies[:force_update]
+    @opts = {
+      season_name: @season_name,
+      armed: @force_update,
+      context: @context,
+      session_id: @session_id
+    }
   end
 
   # Only allow a trusted parameter "white list" through.

@@ -22,14 +22,14 @@
 class LeagueCc < ApplicationRecord
   belongs_to :season_cc
   belongs_to :league
-  belongs_to :game_plan_cc
+  belongs_to :game_plan_cc, optional: true
   has_many :league_team_ccs
   has_many :party_ccs, -> { order(cc_id: :asc) }, dependent: :destroy
   delegate :fedId, :branchId, :subBranchId, :seasonId, :region_cc, :branch_cc, :competition_cc, to: :season_cc
   alias_attribute :leagueId, :cc_id
   alias_attribute :staffelId, :cc_id2
 
-  def self.create_from_ba(session_id, league, force_update)
+  def self.create_from_ba(league, opts = {})
     region = league.organizer
     region_cc = region.region_cc
 
@@ -37,26 +37,26 @@ class LeagueCc < ApplicationRecord
       (Competition.where(name: "Mannschaft Karambol kleines Billard").first if league.name=~ /Vierkampf/)
     league_cc = league.league_cc
     competition_cc = league_cc.season_cc.competition_cc
-    context = league.organizer.shortname.downcase
+    context = opts[:context]
     season_cc = league_cc.season_cc
     _, doc = region_cc.post_cc(
       'createLeagueSave',
-      session_id,
-      fedId: competition_cc.fedId,
-      branchId: competition_cc.branchId,
-      subBranchId: competition_cc.cc_id,
-      seasonId: season_cc.cc_id,
-      posId: 1,
-      leagueName: league.name,
-      leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
-      prefix: 0,
-      sportdistrictId: 0,
-      armed: force_update
+      { fedId: competition_cc.fedId,
+        branchId: competition_cc.branchId,
+        subBranchId: competition_cc.cc_id,
+        seasonId: season_cc.cc_id,
+        posId: 1,
+        leagueName: league.name,
+        leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
+        prefix: 0,
+        sportdistrictId: 0,
+         },
+      opts
     )
     doc.to_s
   end
 
-  def self.create_league_plan_from_ba(session_id, league, force_update)
+  def self.create_league_plan_from_ba(league, opts = {})
 
   end
 
@@ -76,17 +76,17 @@ class LeagueCc < ApplicationRecord
     "#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"]}?fedId=#{fedId}&branchId=#{branchId}&subBranchId=#{subBranchId}&seasonId=#{seasonId}&leagueId=#{cc_id}"
   end
 
-  def sync_single_league(session_id, options = {})
-    region_cc = Region.find_by_shortname(options[:context].upcase).region_cc
+  def sync_single_league(opts = {})
+    region_cc = Region.find_by_shortname(opts[:context].upcase).region_cc
     if league.present?
       _, doc2 = region_cc.post_cc(
         'showLeague',
-        session_id,
-        fedId: cc_id,
-        branchId: branch_cc.cc_id,
-        subBranchId: competition_cc.cc_id,
-        seasonId: season_cc.cc_id,
-        leagueId: cc_id
+        { fedId: cc_id,
+          branchId: branch_cc.cc_id,
+          subBranchId: competition_cc.cc_id,
+          seasonId: season_cc.cc_id,
+          leagueId: cc_id },
+        opts
       )
       lines = doc2.css('form tr.tableContent table tr')
       res_arr = lines.map { |l| l.css('td').map(&:text) }
@@ -107,7 +107,7 @@ class LeagueCc < ApplicationRecord
                                                                                            dbu_region_id], discipline: competition_cc.discipline
       }.inspect}"
     end
-  rescue Exception => e
+  rescue StandardError => e
     e.backtrace
   end
 end

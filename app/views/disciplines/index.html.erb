@@ -24,8 +24,8 @@
         <% @disciplines.each do |discipline| %>
           <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
                       <td class="p-3"><%= discipline.name %></td>
-                      <td class="p-3"><%= link_to( discipline.super_discipline.name, discipline_path(discipline.super_discipline)) if discipline.super_discipline.present? %></td>
-                      <td class="p-3"><%= link_to( discipline.table_kind.name, table_kind_path(discipline.table_kind )) if discipline.table_kind.present? %></td>
+                      <td class="p-3"><%= link_to( discipline.super_discipline.andand.name, discipline_path(discipline.super_discipline)) if discipline.super_discipline.present? %></td>
+                      <td class="p-3"><%= link_to( discipline.table_kind.andand.name, table_kind_path(discipline.table_kind )) if discipline.table_kind.present? %></td>
                       <td class="p-3"><%= discipline.data %></td>
 
             <td>

@@ -25,7 +25,6 @@ class RegionCc < ApplicationRecord
   has_many :branch_ccs
 
   alias_attribute :fedId, :cc_id
-  class_attribute :session_id
 
   REPORT_LOGGER_FILE = "#{Rails.root}/log/report.log"
   REPORT_LOGGER = Logger.new(REPORT_LOGGER_FILE)
@@ -265,13 +264,13 @@ class RegionCc < ApplicationRecord
     REPORT_LOGGER.reopen
   end
 
-  def fix(options = {})
-    armed = options.delete(:armed)
-    if options[:name].present?
+  def fix(opts = {})
+    armed = opts.delete(:armed)
+    if opts[:name].present?
       if armed
-        RegionCc.logger.info "NOT_IMPLEMENTED fix region_name to \"#{options[:name]}\""
+        RegionCc.logger.info "NOT_IMPLEMENTED fix region_name to \"#{opts[:name]}\""
       else
-        RegionCc.logger.info "WILL fix region_name to \"#{options[:name]}\""
+        RegionCc.logger.info "WILL fix region_name to \"#{opts[:name]}\""
       end
     else
       raise ArgumentError
@@ -280,18 +279,18 @@ class RegionCc < ApplicationRecord
     e
   end
 
-  def post_cc(action, session_id, options = {})
-    dry_run = options.delete(:armed).blank?
-    referer = options.delete(:referer)
+  def post_cc(action, post_options = {}, opts = {})
+    dry_run = opts[:armed].blank?
+    referer = post_options.delete(:referer)
     referer = referer.present? ? base_url + referer : nil
     if PATH_MAP[action].present?
       url = base_url + PATH_MAP[action][0]
       read_only_action = PATH_MAP[action][1]
       if read_only_action
-        Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{options}" if DEBUG
+        Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}" if DEBUG
       else
         # read_only
-        RegionCc.logger.debug "[#{action}] #{'WILL' if dry_run} POST #{action} #{PATH_MAP[action][0]} with payload #{options}"
+        RegionCc.logger.debug "[#{action}] #{'WILL' if dry_run} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil; res = nil
       if !dry_run || read_only_action
@@ -299,10 +298,10 @@ class RegionCc < ApplicationRecord
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         req = Net::HTTP::Post.new(uri.request_uri)
-        req['cookie'] = "PHPSESSID=#{session_id}"
+        req['cookie'] = "PHPSESSID=#{opts[:session_id]}"
         req['Content-Type'] = 'application/x-www-form-urlencoded'
         req['referer'] = referer if referer.present?
-        req.set_form_data(options.reject { |_k, v| v.blank? })
+        req.set_form_data(post_options.reject { |_k, v| v.blank? })
         res = http.request(req)
         doc = if res.message == 'OK'
                 Nokogiri::HTML(res.body)
@@ -314,27 +313,27 @@ class RegionCc < ApplicationRecord
     return res, doc
   end
 
-  def get_cc(action, session_id, options = {})
+  def get_cc(action, get_options = {}, opts = {})
     if PATH_MAP[action].present?
-      options[:referer] ||= BASE_URL
+      get_options[:referer] ||= ""
       url = base_url + PATH_MAP[action][0]
-      get_cc_with_url(action, session_id, url, options)
+      get_cc_with_url(action, url, get_options, opts)
     else
       raise ArgumentError, 'Unknown Action', caller
     end
   end
 
-  def get_cc_with_url(action, session_id, url, options = {})
-    referer = base_url + options.delete(:referer)
-    Rails.logger.debug "[post_cc] POST #{action} with payload #{options}" if DEBUG
+  def get_cc_with_url(action, url, get_options = {}, opts = {})
+    referer = base_url + get_options.delete(:referer)
+    Rails.logger.debug "[post_cc] POST #{action} with payload #{get_options}" if DEBUG
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     req = Net::HTTP::Get.new(uri.path)
-    req.set_form_data(options)
+    req.set_form_data(get_options)
     # instantiate a new Request object
     req = Net::HTTP::Get.new(uri.path + ('?' unless uri.path.match(/\?$/)).to_s + req.body)
-    req['cookie'] = "PHPSESSID=#{session_id}" if session_id.present?
+    req['cookie'] = "PHPSESSID=#{opts[:session_id]}" if opts[:session_id].present?
     req['referer'] = referer if referer.present?
     res = http.request(req)
     doc = if res.message == 'OK'
@@ -345,8 +344,8 @@ class RegionCc < ApplicationRecord
     [res, doc]
   end
 
-  def synchronize_league_structure(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
+  def synchronize_league_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
     leagues_region_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
@@ -359,8 +358,10 @@ class RegionCc < ApplicationRecord
     # ).uniq
     # leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
     leagues_todo_ids = (leagues_region_todo.to_a).map(&:id)
-    leagues_done, errMsg = sync_leagues(session_id, season, options)
-    raise_err_msg('synchronize_league_structure', errMsg) if errMsg.present?
+    leagues_done, errMsg = sync_leagues(opts)
+    if errMsg.present?
+      raise_err_msg('synchronize_league_structure', errMsg)
+    end
     leagues_done_ids = leagues_done.map(&:id)
     leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
     unless leagues_still_todo_ids.blank?
@@ -369,23 +370,23 @@ class RegionCc < ApplicationRecord
         if league.blank?
           raise_err_msg('synchronize_league_structure', "no league with id #{league_id}")
         else
-          league_cc = LeagueCc.create_from_ba(session_id, league, force_cc_update)
+          league_cc = LeagueCc.create_from_ba(league, opts)
         end
       end
     end
     league_ids_overdone = leagues_done_ids - leagues_todo_ids
     unless league_ids_overdone.blank?
-      msg = "more league_ids with context #{options[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
+      msg = "more league_ids with context #{opts[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
         "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
       end }"
-      ReagionCc.logger.info msg
+      RegionCc.logger.info msg
       Rails.logger.info msg
     end
   end
 
-  def synchronize_league_plan_structure(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
-    force_update = options[:armed]
+  def synchronize_league_plan_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    force_update = opts[:armed]
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
     leagues_region_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
@@ -398,7 +399,7 @@ class RegionCc < ApplicationRecord
     # ).uniq
     # leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
     leagues_todo_ids = (leagues_region_todo.to_a).map(&:id)
-    leagues_done, errMsg = sync_league_plan(session_id, season, options)
+    leagues_done, errMsg = sync_league_plan(opts)
     raise_err_msg('synchronize_league_structure', errMsg) if errMsg.present?
     leagues_done_ids = leagues_done.map(&:id)
     leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
@@ -409,7 +410,7 @@ class RegionCc < ApplicationRecord
           raise_err_msg('synchronize_league_structure', "no league with id #{league_id}")
         else
           if force_update
-            league_cc = LeagueCc.create_league_plan_from_ba(session_id, league, force_update)
+            league_cc = LeagueCc.create_league_plan_from_ba(league, opts)
           else
             msg = "REPORT WOULD CREATE LeagueCc Plan from BA: #{league.attributes}"
             RegionCc.logger.info msg
@@ -420,7 +421,7 @@ class RegionCc < ApplicationRecord
     end
     league_ids_overdone = leagues_done_ids - leagues_todo_ids
     unless league_ids_overdone.blank?
-      msg = "more league_ids with context #{options[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
+      msg = "more league_ids with context #{opts[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
         "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
       end }"
       ReagionCc.logger.info msg
@@ -428,10 +429,10 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def sync_team_players_structure(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
-    raise ArgumentError, "unknown season name #{options[:season_name]}", caller if season.blank?
-    region_cc = Region.where(shortname: options[:context].upcase).first.region_cc
+  def sync_team_players_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    raise ArgumentError, "unknown season name #{opts[:season_name]}", caller if season.blank?
+    region_cc = Region.where(shortname: opts[:context].upcase).first.region_cc
     League.where(season: season, organizer_type: 'Region', organizer_id: region.id).each do |league|
       league_team_players = {}
       league.parties.each do |party|
@@ -460,24 +461,23 @@ class RegionCc < ApplicationRecord
         league_team_cc = league_team.league_team_cc
         if league_team_cc.present?
           league_team_players_todo = league_team_player_object_hash[lt_id]
-          league_team_player_done = region_cc.sync_team_players(session_id, league_team, context)
+          league_team_player_done = region_cc.sync_team_players(league_team, opts)
           league_team_player_still_todo = league_team_players_todo - league_team_player_done
           league_team_player_still_todo.each do |player|
             next if player.ba_id > 999_000_000 || player.ba_id.blank?
 
             _, doc = region_cc.post_cc(
               'showLeague_add_teamplayer',
-              session_id,
-              fedId: league_team_cc.fedId,
-              leagueId: league_team_cc.leagueId,
-              staffelId: 0,
-              branchId: league_team_cc.branchId,
-              subBranchId: league_team_cc.subBranchId,
-              seasonId: league_team_cc.seasonId,
-              p: league_team_cc.p,
-              passnr: player.ba_id,
-              armed: options[:armed],
-              referer: "/admin/bm_mw/spielberichtCheck.php?"
+              { fedId: league_team_cc.fedId,
+                leagueId: league_team_cc.leagueId,
+                staffelId: 0,
+                branchId: league_team_cc.branchId,
+                subBranchId: league_team_cc.subBranchId,
+                seasonId: league_team_cc.seasonId,
+                p: league_team_cc.p,
+                passnr: player.ba_id,
+                referer: "/admin/bm_mw/spielberichtCheck.php?" },
+              opts
             )
             doc
             err_msg = doc.css('input[name="errMsg"]')[0].andand['value']
@@ -492,9 +492,9 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def sync_game_reports_structure(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
-    region = Region.find_by_shortname(options[:context].upcase)
+  def sync_game_reports_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    region = Region.find_by_shortname(opts[:context].upcase)
 
     region_cc = region.region_cc
     region_cc.branch_ccs.each do |branch_cc|
@@ -502,8 +502,7 @@ class RegionCc < ApplicationRecord
       branch = branch_cc.discipline
       _, doc = region_cc.get_cc(
         "spielberichte",
-        session_id,
-        p: "#{branch_cc.fedId}-#{branch_cc.branchId}"
+        { p: "#{branch_cc.fedId}-#{branch_cc.branchId}" }, opts
       )
       doc.text
       tables = doc.css("form > table > tr > td > table > tr > td > table > tr > td > table")
@@ -523,8 +522,8 @@ class RegionCc < ApplicationRecord
 
           res2, doc2 = region_cc.get_cc(
             "spielbericht_anzeigen",
-            session_id,
-            p: "#{branch_cc.fedId}-#{branch_cc.branchId}-#{cc_id}-"
+            { p: "#{branch_cc.fedId}-#{branch_cc.branchId}-#{cc_id}-" },
+            opts
           )
           lines = []
           tables = doc2.css("form > table > tr > td > table > tr > td > table > tr > td > table > tr > td > table > tr > td > table")
@@ -550,17 +549,17 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def sync_game_details(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
-    region = Region.find_by_shortname(options[:context].upcase)
-    options[:done_ids] = []
+  def sync_game_details(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    region = Region.find_by_shortname(opts[:context].upcase)
+    opts[:done_ids] = []
     region_cc = region.region_cc
     region_cc.branch_ccs.each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
             next if branch_cc.name == "Pool"
-            league_cc.party_ccs.joins(:party).where.not(parties: { id: options[:done_ids] }).each do |party_cc|
+            league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
               party = party_cc.party
               Kernel.sleep(0.5)
               params = {
@@ -630,8 +629,8 @@ class RegionCc < ApplicationRecord
               end
               _res, doc = region_cc.post_cc(
                 "spielberichtSave",
-                session_id,
-                params.merge(armed: options[:armed], referer: "/admin/bm_mw/spielberichtCheck.php?")
+                params.merge(referer: "/admin/bm_mw/spielberichtCheck.php?"),
+                opts
               )
               doc.text
             end
@@ -641,16 +640,17 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def self.sync_regions(session_id, region, options = {})
-    armed = options[:armed].present?
+  def self.sync_regions(opts = {})
+    armed = opts[:armed].present?
     regions = []
-    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc('showClubList', session_id, referer: BASE_URL)
+    res, doc = RegionCc.new(base_url: RegionCc::BASE_URL).get_cc('showClubList', {}, opts)
     if (msg = doc.css('input[name="errMsg"]')[0].andand['value']).present?
       RegionCc.logger.error msg
+      return nil
     else
       selector = doc.css('select[name="fedId"]')[0]
-      options = selector.css('option')
-      options.each do |option|
+      options_tags = selector.css('option')
+      options_tags.each do |option|
         cc_id = option['value'].to_i
         name_str = option.text.strip
         match = name_str.match(/(.*) \((.*)\)/)
@@ -679,14 +679,14 @@ class RegionCc < ApplicationRecord
     regions
   end
 
-  def sync_branches(session_id, opts = {})
+  def sync_branches(opts = {})
     branches = []
     context = shortname.downcase
     armed = opts.delete('armed')
-    res, doc = get_cc('showClubList', session_id)
+    res, doc = get_cc('showClubList', {}, opts)
     selector = doc.css('select[name="branchId"]')[0]
-    options = selector.css('option')
-    options.each do |option|
+    option_tags = selector.css('option')
+    option_tags.each do |option|
       cc_id = option['value'].to_i
       name_str = option.text.strip
       match = name_str.match(/(.*)(:? \((.*)\))?/)
@@ -707,22 +707,22 @@ class RegionCc < ApplicationRecord
     branches
   end
 
-  def sync_competitions(session_id)
+  def sync_competitions(opts = {})
     competitions = []
-    context = shortname.downcase
+    context = opts[:context]
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
-      _, doc = post_cc('showLeagueList', session_id, fedId: cc_id, branchId: branch_cc.cc_id)
+      _, doc = post_cc('showLeagueList', { fedId: cc_id, branchId: branch_cc.cc_id }, opts)
       selector = doc.css('select[name="subBranchId"]')[0]
-      options = selector.css('option')
-      options.each do |option|
+      option_tags = selector.css('option')
+      option_tags.each do |option|
         cc_id = option['value'].to_i
         name_str = option.text.strip
         match = name_str.match(/(.*)(:? \((.*)\))?/)
         name = match[1]
         carambus_name = name == 'Mannschaft' ? "#{name} #{branch_cc.name}" : "Mannschaft #{name}"
-        carambus_name.gsub!('Großes Billard', 'Karambol großes Billard')
-        carambus_name.gsub!('Kleines Billard', 'Karambol kleines Billard')
+        carambus_name = carambus_name.gsub('Großes Billard', 'Karambol großes Billard')
+        carambus_name = carambus_name.gsub('Kleines Billard', 'Karambol kleines Billard')
         competition = Competition.find_by_name(carambus_name)
         if competition.blank?
           msg = "No Competition with name #{carambus_name} in database"
@@ -743,10 +743,10 @@ class RegionCc < ApplicationRecord
     competitions
   end
 
-  def sync_seasons_in_competitions(session_id, season_name)
+  def sync_seasons_in_competitions(opts)
     context = shortname.downcase
-    season = Season.find_by_name(season_name)
-    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+    season = Season.find_by_name(opts[:season_name])
+    raise ArgumentError, "unknown season name #{opts[:season_name]}", caller if season.blank?
 
     competition_ccs = []
     # for all branches
@@ -754,19 +754,19 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         _, doc = post_cc(
           'showLeagueList',
-          session_id,
-          fedId: cc_id,
-          branchId: branch_cc.cc_id,
-          subBranchId: competition_cc.cc_id
+          { fedId: cc_id,
+            branchId: branch_cc.cc_id,
+            subBranchId: competition_cc.cc_id },
+          opts
         )
         selector = doc.css('select[name="seasonId"]')[0]
-        options = selector.css('option')
-        options.each do |option|
+        option_tags = selector.css('option')
+        option_tags.each do |option|
           cc_id = option['value'].to_i
           name_str = option.text.strip
           match = name_str.match(%r{\s*(.*/.*)\s*})
           s_name = match[1]
-          next unless s_name == season_name
+          next unless s_name == opts[:season_name]
 
           args = { cc_id: cc_id, context: context, name: s_name, season_id: season.id,
                    competition_cc_id: competition_cc.id }
@@ -783,9 +783,10 @@ class RegionCc < ApplicationRecord
     competition_ccs
   end
 
-  def sync_leagues(session_id, season, opts = {})
+  def sync_leagues(opts = {})
     context = opts[:context]
     season_name = opts[:season_name]
+    season = Season.find_by_name(season_name)
     region = Region.find_by_shortname(context.upcase)
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
@@ -801,11 +802,11 @@ class RegionCc < ApplicationRecord
           # Get List of Leagues in CC
           _res, doc = post_cc(
             'showLeagueList',
-            session_id,
-            fedId: cc_id,
-            branchId: branch_cc.cc_id,
-            subBranchId: competition_cc.cc_id,
-            seasonId: season_cc.cc_id
+            { fedId: cc_id,
+              branchId: branch_cc.cc_id,
+              subBranchId: competition_cc.cc_id,
+              seasonId: season_cc.cc_id },
+            opts
           )
           if (msg = doc.css('input[name="errMsg"]')[0].andand['value']).present?
             RegionCc.logger.error msg
@@ -814,15 +815,15 @@ class RegionCc < ApplicationRecord
           selector = doc.css('select[name="leagueId"]')[0]
           next unless selector.present?
 
-          options = selector.css('option')
-          options.each do |option|
+          option_tags = selector.css('option')
+          option_tags.each do |option|
             cc_id = option['value'].to_i
             name_str = option.text.strip
             league_cc = nil
             league_ccs = LeagueCc.where(cc_id: cc_id)
             if (league_ccs.count == 1)
               league_cc = league_ccs.first
-            else
+            elsif league_ccs.count > 1
               msg = "REPORT! ERROR cc_id #{cc_id} not uniq"
               RegionCc.logger.info msg
               raise ArgumentError, msg
@@ -851,13 +852,19 @@ class RegionCc < ApplicationRecord
               end
             end
             if league.present?
-              league_cc.sync_single_league(session_id, opts)
-              league.assign_attributes(cc_id: cc_id)
-              league.save
-              league_map[league_cc.cc_id] = league
-              leagues.push(league)
+              if league_cc.present?
+                league_cc.sync_single_league(opts)
+                league.assign_attributes(cc_id: cc_id)
+                league.save
+                league_map[league_cc.cc_id] = league
+                leagues.push(league)
+              else
+                msg = "REPORT! ERROR no League for LeagueCc #{name_str} #{season_cc.name} branch: #{branch_cc.name}(#{branch_cc.cc_id}) competition: #{competition_cc.name}(#{competition_cc.cc_id})"
+                RegionCc.logger.info msg
+                Rails.logger.info msg
+              end
             else
-              msg = "REPORT! ERROR no League for LeagueCc #{league_cc.attributes}"
+              msg = "REPORT! ERROR no League for LeagueCc #{name_str} #{season_cc.name} branch: #{branch_cc.name}(#{branch_cc.cc_id}) competition: #{competition_cc.name}(#{competition_cc.cc_id})"
               RegionCc.logger.info msg
               Rails.logger.info msg
             end
@@ -871,8 +878,9 @@ class RegionCc < ApplicationRecord
     [[], e.to_s]
   end
 
-  def sync_league_teams(session_id, season_name, _opts = {})
-    context = shortname.downcase
+  def sync_league_teams(opts = {})
+    context = opts[:context]
+    season_name = opts[:season_name]
     region = Region.find_by_shortname(context.upcase)
     season = Season.find_by_name(season_name)
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
@@ -890,12 +898,12 @@ class RegionCc < ApplicationRecord
 
             _, doc = post_cc(
               'admin_report_showLeague',
-              session_id,
-              fedId: league_cc.fedId,
-              branchId: league_cc.branchId,
-              subBranchId: league_cc.subBranchId,
-              seasonId: league_cc.seasonId,
-              leagueId: league_cc.cc_id
+              { fedId: league_cc.fedId,
+                branchId: league_cc.branchId,
+                subBranchId: league_cc.subBranchId,
+                seasonId: league_cc.seasonId,
+                leagueId: league_cc.cc_id },
+              opts
             )
             expected = league_cc.league.league_teams.joins(club: :region).where(regions: { id: region.id })
             league_teams_doc_cc = doc.css('table[name="teams"] tr.odd')
@@ -971,7 +979,7 @@ class RegionCc < ApplicationRecord
     e
   end
 
-  def sync_league_plan(session_id, season, options = {})
+  def sync_league_plan(opts = {})
     leagues = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
       'clubs.region_id = ?', region.id
     ).uniq
@@ -988,14 +996,13 @@ class RegionCc < ApplicationRecord
       #party_ccs.map{|p| [p.day_seqno, p.league_team_a_cc.andand.name, p.league_team_b_cc.andand.name].join(";")}
       _, doc3 = post_cc(
         'massChangingCheck',
-        session_id,
-        fedId: league_cc.fedId,
-        leagueId: league_cc.leagueId,
-        branchId: league_cc.branchId,
-        subBranchId: league_cc.subBranchId,
-        seasonId: league_cc.seasonId,
-        staffelId: ''
-      )
+        { fedId: league_cc.fedId,
+          leagueId: league_cc.leagueId,
+          branchId: league_cc.branchId,
+          subBranchId: league_cc.subBranchId,
+          seasonId: league_cc.seasonId,
+          staffelId: '' },
+        opts)
       if (msg = doc3.css('input[name="errMsg"]')[0].andand['value']).present?
         RegionCc.logger.error msg
         return [leagues_done, msg]
@@ -1053,34 +1060,31 @@ class RegionCc < ApplicationRecord
             #
             # _, doc = post_cc(
             #   "massChangingCheckAuth",
-            #   session_id,
-            #   teamCounter: 10,
+            #   { teamCounter: 10,
             #   fedId: 20,
             #   leagueId: 36,
             #   branchId: 6,
             #   subBranchId: 1,
             #   seasonId: 8,
             #   editAll: "",
-            #   matchId: 759)
+            #   matchId: 759}, opts)
             # doc.text
             # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
             # _, doc = post_cc(
             #   'spielberichtCheck',
-            #   session_id,
-            #   a: 715,
+            #   {a: 715,
             #   b: 2,
             #   c: 111,
-            #   referer: "/admin/report/massChangingCheckAuth.php?"
+            #   referer: "/admin/report/massChangingCheckAuth.php?"}, opts
             # )
             # doc.text
             #
             # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/bm_mw/spielberichtCheck.php?a=759&b=2&c=210&
             # _, doc = get_cc(
             #   'spielberichtCheck',
-            #   session_id,
-            #   a: 715,
+            #  { a: 715,
             #   b: 2,
-            #   c: 111
+            #   c: 111 }, opts
             # )
             # doc.text
             leagues_done.push(league)
@@ -1095,7 +1099,7 @@ class RegionCc < ApplicationRecord
     [leagues_done, errMsg]
   end
 
-  def sync_clubs(context)
+  def sync_clubs(opts = {})
     context ||= 'nbv'
     region = Region.find_by_shortname(context.upcase)
     done_clubs = []
@@ -1105,13 +1109,13 @@ class RegionCc < ApplicationRecord
         %i[active passive].each do |status|
           _, doc = post_cc(
             'showClubList',
-            session_id,
-            sortKey: 'NAME',
-            fedId: branch_cc.fedId,
-            branchId: branch_cc.cc_id,
-            subBranchId: competition_cc.cc_id,
-            sportDistrictId: '*',
-            statusId: STATUS_MAP[status]
+            { sortKey: 'NAME',
+              fedId: branch_cc.fedId,
+              branchId: branch_cc.cc_id,
+              subBranchId: competition_cc.cc_id,
+              sportDistrictId: '*',
+              statusId: STATUS_MAP[status] },
+            opts
           )
           clubs = doc.css('select[name="clubId"] option')
           clubs.each do |club|
@@ -1142,7 +1146,7 @@ class RegionCc < ApplicationRecord
     done_clubs
   end
 
-  def sync_parties(session_id, season_name)
+  def sync_parties(opts)
     parties = []
     party_ccs = []
     # for all branches
@@ -1150,16 +1154,16 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
-            next unless season_cc.name == season_name
+            next unless season_cc.name == opts[:season_name]
 
             _, doc = post_cc(
               'admin_report_showLeague',
-              session_id,
-              fedId: league_cc.fedId,
-              branchId: league_cc.branchId,
-              subBranchId: league_cc.subBranchId,
-              seasonId: league_cc.seasonId,
-              leagueId: league_cc.cc_id
+              { fedId: league_cc.fedId,
+                branchId: league_cc.branchId,
+                subBranchId: league_cc.subBranchId,
+                seasonId: league_cc.seasonId,
+                leagueId: league_cc.cc_id },
+              opts
             )
             league = league_cc.league
             doc.css('table > tr > td > table > tr > td > table').each do |table|
@@ -1226,7 +1230,7 @@ class RegionCc < ApplicationRecord
     [parties, party_ccs]
   end
 
-  def sync_party_games(session_id, parties_todo_ids, _season_name)
+  def sync_party_games(parties_todo_ids, opts = {})
     parties_todo_ids.each do |id|
       party = Party[id]
       region = party.league.organizer
@@ -1235,25 +1239,25 @@ class RegionCc < ApplicationRecord
       party_cc.attributes
       _res, doc = region_cc.post_cc(
         'spielberichtCheck',
-        session_id,
-        errMsgNew: '',
-        fedId: 20,
-        branchId: 6,
-        subBranchId: 1,
-        wettbewerb: 1,
-        leagueId: 34,
-        seasonId: 8,
-        teamId: 185,
-        matchId: 571,
-        saison: 2010 / 2011,
-        partienr: 4003,
-        woher: 1,
-        woher2: 1,
-        editBut: ''
+        { errMsgNew: '',
+          fedId: 20,
+          branchId: 6,
+          subBranchId: 1,
+          wettbewerb: 1,
+          leagueId: 34,
+          seasonId: 8,
+          teamId: 185,
+          matchId: 571,
+          saison: 2010 / 2011,
+          partienr: 4003,
+          woher: 1,
+          woher2: 1,
+          editBut: '' },
+        opts
       # get Spielbericht
       # _res, doc = region_cc.post_cc(
-      #   "spielbericht", session_id,
-      #   errMsgNew: "",
+      #   "spielbericht",
+      #   { errMsgNew: "",
       #   matchId: party_cc.party_game_ccs.first.cc_id,
       #   teamId: 189
       #   woher: 1
@@ -1266,28 +1270,22 @@ class RegionCc < ApplicationRecord
       #   # sportkreis: "*",
       #   # saison: season_name,
       #   # partienr: party_cc.cc_id,
-      #   # seekBut: ""
+      #   # seekBut: ""}, opts
       )
-      # errMsgNew:
-      # matchId: 572
-      # teamId: 189
-      # woher: 1
-      # firstEntry: 1
-      doc
       err_msg = doc.present && doc.css('input[name="errMsg"]')[0].andand['value']
       raise ArgumentError, err_msg if err_msg.present? || doc.blank?
     end
   end
 
-  def sync_team_players(session_id, league_team, _context)
+  def sync_team_players(league_team, opts = {})
     league_team_player_done = []
     league_team_cc = league_team.league_team_cc
     if league_team.league_team_cc.present?
       res, doc = get_cc(
         'showLeague_show_teamplayer',
-        session_id,
-        p: league_team_cc.p,
-        referer: "/admin/report/showLeague_show_teamplayer.php?p=#{league_team_cc.p}&"
+        { p: league_team_cc.p,
+          referer: "/admin/report/showLeague_show_teamplayer.php?p=#{league_team_cc.p}&" },
+        opts
       )
       doc.css('tr.tableContent > td > table > tr > td > table').each do |table|
         ths = table.css('> tr > th')
@@ -1327,7 +1325,7 @@ class RegionCc < ApplicationRecord
   private
 
   def raise_err_msg(context, msg)
-    Rails.logger.error "[#{context}] #{msg}"
+    Rails.logger.error "[#{context}] #{msg} #{caller}"
     raise ArgumentError, msg, caller
   end
 

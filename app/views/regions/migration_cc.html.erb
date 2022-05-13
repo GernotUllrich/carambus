@@ -4,7 +4,7 @@
     <ul class="@apply list-none">
 
       <li><h3>Set global Parameters</h3>
-        <%= form_tag set_session_id_region_path(@region) do %>
+        <%= form_tag set_base_parameters_region_path(@region) do %>
           <%= text_field_tag "PHPSESSID", nil, class: "border-2", style: "width: 300px" %>
           <%= select_tag "season_id", options_for_select(Season.order(:name).all.map { |s| [s.name, s.id] }, (Season.find_by_name(cookies[:season_name]) || Season.last).id), class: "border-2", style: "width: 300px" %>
           <%= select_tag "region_id", options_for_select(Region.order(:shortname).all.map { |s| [s.name, s.id] }, Region.find_by_shortname(cookies[:context].andand.upcase || 'NBV').id), class: "border-2", style: "width: 300px" %>
@@ -47,6 +47,12 @@
             <%= render partial: 'competition_ccs/competition_ccs_table' %>
           </div>
         <% end %>
+        <%= link_to "Check", check_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/competition_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
         <li><h3>Synchronisation Season</h3></li>
         <% if (@season_ccs = SeasonCc.joins(:competition_cc => { :branch_cc => { :region_cc => :region } }).where(regions: { id: @region.id })).any? %>
           <h3> SeasonCcs</h3>
@@ -54,6 +60,12 @@
             <%= render partial: 'season_ccs/season_ccs_table' %>
           </div>
         <% end %>
+        <%= link_to "Check", check_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/season_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
         <li><h3>Synchronisation Liga</h3></li>
         <% if (@league_ccs = LeagueCc.joins(:season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
           <h3> LeagueCcs</h3>

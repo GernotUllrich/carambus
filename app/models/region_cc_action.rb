@@ -1,12 +1,12 @@
 class RegionCcAction
-  def self.synchronize_region_structure(session_id, options = {})
+  def self.synchronize_region_structure(opts = {})
     regions_todo = []
     regions_done = []
-    context = options.delete(:context)
+    context = opts[:context]
     region = Region.find_by_shortname(context.upcase)
     unless region.blank?
       regions_todo = [region.id]
-      regions_done = RegionCc.sync_regions(session_id, region).map(&:id)
+      regions_done = RegionCc.sync_regions(opts).map(&:id)
     else
       raise_err_msg("synchronize_region_structure", "unknown context Region #{context}")
     end
@@ -20,37 +20,37 @@ class RegionCcAction
     end
   end
 
-  def self.sync_team_players_structure(session_id, options = {})
-    region = Region.find_by_shortname(options[:context].upcase)
+  def self.sync_team_players_structure(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
     if region_cc.present?
-      region_cc.sync_team_players_structure(session_id, options)
+      region_cc.sync_team_players_structure(opts)
     else
       raise ArgumentError
     end
   end
 
-  def self.sync_game_reports_structure(session_id, options = {})
-    region = Region.find_by_shortname(options[:context].upcase)
+  def self.sync_game_reports_structure(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
     if region_cc.present?
-      region_cc.sync_game_reports_structure(session_id, options)
+      region_cc.sync_game_reports_structure(opts)
     else
       raise ArgumentError
     end
   end
 
-  def self.sync_game_details(session_id, options = {})
-    region = Region.find_by_shortname(options[:context].upcase)
+  def self.sync_game_details(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
     if region_cc.present?
-      region_cc.sync_game_details(session_id, options)
+      region_cc.sync_game_details(opts)
     else
       raise ArgumentError
     end
   end
 
-  def self.synchronize_branch_structure(session_id)
+  def self.synchronize_branch_structure(opts = {})
     branches_todo = []
     branches_done = []
     context = ENV["REGION"] || "NBV"
@@ -58,7 +58,7 @@ class RegionCcAction
     region_cc = region.region_cc
     unless region_cc.blank?
       branches_todo = Branch.all.ids
-      branches_done = region_cc.sync_branches(session_id).map(&:id)
+      branches_done = region_cc.sync_branches(opts).map(&:id)
     else
       raise_err_msg("synchronize_branch_structure", "unknown context Region #{context}")
     end
@@ -72,13 +72,13 @@ class RegionCcAction
     end
   end
 
-  def self.synchronize_competition_structure(session_id)
+  def self.synchronize_competition_structure(opts = {})
     context = ENV["REGION"] || "NBV"
     region = Region.find_by_shortname(context)
     region_cc = region.region_cc
     unless region_cc.blank?
       competitions_todo = Competition.all.ids
-      competitions_done = region_cc.sync_competitions(session_id).map(&:id)
+      competitions_done = region_cc.sync_competitions(opts).map(&:id)
     else
       raise_err_msg("synchronize_branch_structure", "unknown context Region #{context}")
     end
@@ -92,43 +92,41 @@ class RegionCcAction
     end
   end
 
-  def synchronize_season_structure(session_id)
-    ["2010/2011"].each do |season_name|
-      context = ENV["REGION"] || "NBV"
-      region = Region.find_by_shortname(context)
-      region_cc = region.region_cc
-      unless region_cc.blank?
-        competition_cc_ids_todo = CompetitionCc.where(context: context.downcase).all.map(&:cc_id)
-        competition_cc_ids_done = region_cc.sync_seasons_in_competitions(session_id, season_name).map(&:cc_id)
-      else
-        raise_err_msg("synchronize_season_structure", "unknown context Region #{context}")
-      end
-      competition_cc_ids_still_todo = competition_cc_ids_todo - competition_cc_ids_done
-      unless competition_cc_ids_still_todo.blank?
+  def self.synchronize_season_structure(opts = {})
+    context = opts[:context]
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
+    unless region_cc.blank?
+      competition_cc_ids_todo = CompetitionCc.where(context: context).all.map(&:cc_id)
+      competition_cc_ids_done = region_cc.sync_seasons_in_competitions(opts).map(&:cc_id)
+    else
+      raise_err_msg("synchronize_season_structure", "unknown context Region #{context}")
+    end
+    competition_cc_ids_still_todo = competition_cc_ids_todo - competition_cc_ids_done
+    unless competition_cc_ids_still_todo.blank?
 
-        Rails.logger.warn "REPORT! [synchronize_season_structure] Saison #{season_name} nicht definiert für Wettbewerbe #{CompetitionCc.where(cc_id: competition_cc_ids_still_todo).map { |ccc| "#{ccc.branch_cc.name} - #{ccc.name} (#{ccc.cc_id})" }}"
-      end
-      competition_cc_ids_overdone = competition_cc_ids_done - competition_cc_ids_todo
-      unless competition_cc_ids_overdone.blank?
-        raise_err_msg("synchronize_season_structure", "more competions_cc_ids with context #{context} than expected in CC: #{CompetitionCc.where(id: competition_cc_ids_overdone).map(&:cc_id)}")
-      end
+      Rails.logger.warn "REPORT! [synchronize_season_structure] Saison #{season_name} nicht definiert für Wettbewerbe #{CompetitionCc.where(cc_id: competition_cc_ids_still_todo).map { |ccc| "#{ccc.branch_cc.name} - #{ccc.name} (#{ccc.cc_id})" }}"
+    end
+    competition_cc_ids_overdone = competition_cc_ids_done - competition_cc_ids_todo
+    unless competition_cc_ids_overdone.blank?
+      raise_err_msg("synchronize_season_structure", "more competions_cc_ids with context #{context} than expected in CC: #{CompetitionCc.where(id: competition_cc_ids_overdone).map(&:cc_id)}")
     end
   end
 
-  def self.synchronize_league_structure(session_id, options = {})
-    region = Region.find_by_shortname(options[:context].upcase)
+  def self.synchronize_league_structure(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
-    region_cc.synchronize_league_structure(session_id, options)
+    region_cc.synchronize_league_structure(opts)
   end
 
-  def self.synchronize_league_plan_structure(session_id, options = {})
-    region = Region.find_by_shortname(options[:context].upcase)
+  def self.synchronize_league_plan_structure(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
-    region_cc.synchronize_league_plan_structure(session_id, options)
+    region_cc.synchronize_league_plan_structure(opts)
 
   end
 
-  def synchronize_club_structure(session_id)
+  def synchronize_club_structure(opts = {})
     context = (ENV["CC_REGION"] || "NBV").downcase
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
@@ -144,14 +142,14 @@ class RegionCcAction
     end
   end
 
-  def self.synchronize_league_team_structure(session_id, options = {})
-    season_name = options[:season_name]
-    season = Season.find_by_name(options[:season_name])
+  def self.synchronize_league_team_structure(opts = {})
+    season_name = opts[:season_name]
+    season = Season.find_by_name(opts[:season_name])
     if season.blank?
       raise ArgumentError, "unknown season name #{season_name}", caller
     end
-    context = options[:context]
-    force_cc_update = options[:armed]
+    context = opts[:context]
+    force_cc_update = opts[:armed]
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
 
@@ -161,8 +159,8 @@ class RegionCcAction
       # no dbu !!! league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
       league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id] }).where("clubs.region_id = ?", region.id).uniq
       league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
-      league_teams_done, league_team_ccs = region_cc.sync_league_teams(session_id, season_name)
-        league_teams_done_ids = league_teams_done.map(&:id)
+      league_teams_done, league_team_ccs = region_cc.sync_league_teams(opts)
+      league_teams_done_ids = league_teams_done.map(&:id)
     else
       raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
     end
@@ -188,14 +186,14 @@ class RegionCcAction
     end
   end
 
-  def self.synchronize_party_structure(session_id, options = {})
-    season = Season.find_by_name(options[:season_name])
+  def self.synchronize_party_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
     if season.blank?
       raise ArgumentError, "unknown season name #{season_name}", caller
     end
     season_name = season.name
     context = (ENV["CC_REGION"] || "NBV").downcase
-    force_cc_update = options[:armed].presence || ENV["CC_UPDATE"] == "true" || false
+    force_cc_update = opts[:armed].presence || ENV["CC_UPDATE"] == "true" || false
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
 
@@ -203,7 +201,7 @@ class RegionCcAction
       dbu_region = Region.find_by_shortname("portal")
       parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
       parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
-      parties_done, party_ccs = region_cc.sync_parties(session_id, season_name)
+      parties_done, party_ccs = region_cc.sync_parties(opts)
       parties_done_ids = parties_done.map(&:id)
     else
       raise_err_msg("synchronize_party_structure", "unknown context Region #{context}")
@@ -231,13 +229,13 @@ class RegionCcAction
     end
   end
 
-  def self.synchronize_party_game_structure(session_id, options = {})
+  def self.synchronize_party_game_structure(opts = {})
     season = Season.find_by_name(season_name)
     if season.blank?
       raise ArgumentError, "unknown season name #{season_name}", caller
     end
     context = (ENV["CC_REGION"] || "NBV").downcase
-    force_cc_update = options[:armed].presence || ENV["CC_UPDATE"] == "true" || false
+    force_cc_update = opts[:armed].presence || ENV["CC_UPDATE"] == "true" || false
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
 
@@ -245,7 +243,7 @@ class RegionCcAction
       dbu_region = Region.find_by_shortname("portal")
       parties_by_region_todo = Party.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
       parties_todo_ids = parties_by_region_todo.to_a.map(&:id)
-      parties_done = region_cc.sync_party_games(session_id, parties_todo_ids, season_name)
+      parties_done = region_cc.sync_party_games(parties_todo_ids, opts)
       parties_done_ids = parties_done.map(&:id)
     else
       raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
@@ -267,9 +265,7 @@ class RegionCcAction
     end
   end
 
-  private
-
-  def raise_err_msg(context, msg)
+  def self.raise_err_msg(context, msg)
     Rails.logger.error "[#{context}] #{msg}"
     raise ArgumentError, msg, caller
   end

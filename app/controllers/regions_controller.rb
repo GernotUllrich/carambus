@@ -1,16 +1,14 @@
 class RegionsController < ApplicationController
   include FiltersHelper
   protect_from_forgery except: :search
-  before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details, :migration_cc, :set_session_id]
+  before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details, :migration_cc, :set_base_parameters]
 
-  def set_session_id
-    RegionCc.session_id = params["PHPSESSID"]
-    cookies[:session_id] = RegionCc.session_id
-    @region = Region.find(params["region_id"])
+  def set_base_parameters
+    cookies[:session_id] = params["PHPSESSID"]
     cookies[:context] = @region.shortname.downcase
     cookies[:season_name] = Season.find(params["season_id"]).name
     cookies[:force_update] = params[:force_update]
-    flash[:notice] = "Parameter gesetzt."
+    flash[:notice] = "Session Id gesetzt."
     redirect_to migration_cc_region_path(@region)
   end
 
@@ -87,7 +85,6 @@ class RegionsController < ApplicationController
   end
 
   def migration_cc
-
   end
 
   private
