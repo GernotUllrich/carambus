@@ -50,7 +50,7 @@ namespace :cc do
 
   desc "get game report"
   # TODO wird nicht mehr gebraucht - siehe synchronize_party_game_structure
-  task :get_game_report => :environment do
+  task :get_game_plan => :environment do
     opts = get_base_opts_from_environment
     party_cc = PartyCc.where(cc_id: 6045).first
     res, doc = party_cc.sync_game_details(opts)
@@ -90,9 +90,9 @@ namespace :cc do
   end
 
   desc "synchronize game reports structure"
-  task :synchronize_game_reports_structure => :environment do
+  task :synchronize_game_plan_structure => :environment do
     opts = get_base_opts_from_environment
-    RegionCcAction.sync_game_reports_structure(opts)
+    RegionCcAction.synchronize_game_plan_structure(opts)
   end
 
   desc "synchronize game details"
@@ -131,10 +131,10 @@ namespace :cc do
   end
 
   def get_base_opts_from_environment
-    session_id = ENV["PHPSESSID"]
-    context = (ENV["CC_REGION"].andand.upcase || "NBV").downcase
-    season_name = ENV["CC_SEASON"]
-    force_update = ENV["CC_UPDATE"] == "true"
+    session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
+    context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
+    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
+    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update") ) == "true"
     return {session_id: session_id, armed: force_update, context: context, season_name: season_name}
   end
 end

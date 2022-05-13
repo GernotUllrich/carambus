@@ -5,6 +5,8 @@ class RegionCcsController < ApplicationController
                                        :fix_season_cc, :check_season_cc,
                                        :fix_party_cc, :check_party_cc,
                                        :fix_league_cc, :check_league_cc,
+                                       :fix_league_team_cc, :check_league_team_cc,
+                                       :fix_game_plan_cc, :check_game_plan_cc,
   ]
 
   def fix
@@ -102,6 +104,34 @@ class RegionCcsController < ApplicationController
     RegionCc.save_log("league_cc")
     RegionCcAction.synchronize_league_structure(@opts.merge(armed: false))
     RegionCc.save_log("league_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def fix_league_team_cc
+    RegionCc.save_log("league_team_cc")
+    RegionCcAction.synchronize_league_team_structure(@opts.merge(armed: true))
+    RegionCc.save_log("league_team_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def check_league_team_cc
+    RegionCc.save_log("league_team_cc")
+    RegionCcAction.synchronize_league_team_structure(@opts.merge(armed: false))
+    RegionCc.save_log("league_team_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def fix_game_plan_cc
+    RegionCc.save_log("game_plan_cc")
+    RegionCcAction.synchronize_game_plan_structure(@opts.merge(armed: true))
+    RegionCc.save_log("game_plan_cc")
+    redirect_to migration_cc_region_path(@region_cc.region)
+  end
+
+  def check_game_plan_cc
+    RegionCc.save_log("game_plan_cc")
+    RegionCcAction.synchronize_game_plan_structure(@opts.merge(armed: false))
+    RegionCc.save_log("game_plan_cc")
     redirect_to migration_cc_region_path(@region_cc.region)
   end
 

@@ -80,14 +80,34 @@
           <pre><%= text %></pre>
         <%- end %>
         <li><h3>Synchronisation Liga Mannschaften</h3></li>
-        <% if (@league_team_ccs = LeagueTeamCc.joins(:league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
+        <% if (@league_team_ccs = LeagueTeamCc.joins(:league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id }).order("season_ccs.name asc, league_team_ccs.cc_id asc")).any? %>
           <h3> LeagueTeamCcs</h3>
           <div id="table_wrapper">
-            <%= link_to "=> LeagueTeamCcs", league_team_ccs_path %>
-            <%#= render partial: 'league_team_ccs/league_team_ccs_table' %>
+            <%#= link_to "=> LeagueTeamCcs", league_team_ccs_path %>
+            <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
           </div>
         <% end %>
+        <%= link_to "Check", check_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/league_team_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/league_team_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
         <li><h3>Synchronisation Spielpläne</h3></li>
+        <%# if (@game_plan_ccs = GamePlanCc.joins(:league_ccs => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id }).order("season_ccs.name asc, game_plan_ccs.cc_id asc")).any? %>
+        <% if (@game_plan_ccs = GamePlanCc.all).any? %>
+          <h3> GamePlanCcs</h3>
+          <div id="table_wrapper">
+            <%= render partial: 'game_plan_ccs/game_plan_ccs_table' %>
+          </div>
+        <%- end %>
+        <%= link_to "Check", check_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= link_to "Fix", fix_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/game_plan_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/game_plan_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Spielbegegnungen (Parties)</h3></li>
         <% if (@party_ccs = PartyCc.joins(:league_team_a_cc => { :league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } } }).where(regions: { id: @region.id })).any? %>
           <h3> PartyCcs</h3>
           <div id="table_wrapper">

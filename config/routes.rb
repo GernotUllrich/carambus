@@ -24,8 +24,12 @@ Rails.application.routes.draw do
       post :fix_party_game_cc
       get :check_league_cc
       post :fix_league_cc
+      get :check_league_team_cc
+      post :fix_league_team_cc
       get :check_season_cc
       post :fix_season_cc
+      get :check_game_plan_cc
+      post :fix_game_plan_cc
     end
   end
   resources :party_games

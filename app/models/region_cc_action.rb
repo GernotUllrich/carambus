@@ -30,11 +30,11 @@ class RegionCcAction
     end
   end
 
-  def self.sync_game_reports_structure(opts = {})
+  def self.synchronize_game_plan_structure(opts = {})
     region = Region.find_by_shortname(opts[:context].upcase)
     region_cc = region.region_cc
     if region_cc.present?
-      region_cc.sync_game_reports_structure(opts)
+      region_cc.sync_game_plans(opts)
     else
       raise ArgumentError
     end
@@ -182,7 +182,7 @@ class RegionCcAction
     end
     league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
     unless league_teams_overdone_ids.blank?
-      raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
+      RegionCc.logger.warn "REPORT! [synchronize_league_team_structure] more league_team_ids #{league_teams_overdone_ids} with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
     end
   end
 

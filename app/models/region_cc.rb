@@ -492,13 +492,13 @@ class RegionCc < ApplicationRecord
     end
   end
 
-  def sync_game_reports_structure(opts = {})
+  def sync_game_plans(opts = {})
     season = Season.find_by_name(opts[:season_name])
     region = Region.find_by_shortname(opts[:context].upcase)
 
     region_cc = region.region_cc
     region_cc.branch_ccs.each do |branch_cc|
-      # get game_report definitions
+      # get game_plan definitions
       branch = branch_cc.discipline
       _, doc = region_cc.get_cc(
         "spielberichte",
