@@ -22,4 +22,5 @@ class BranchCc < ApplicationRecord
   belongs_to :region_cc
   delegate :fedId, to: :region_cc
   alias_attribute :branchId, :cc_id
+  has_paper_trail
 end

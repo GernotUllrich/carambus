@@ -28,6 +28,7 @@ class GamePlanCc < ApplicationRecord
   belongs_to :branch_cc
   belongs_to :discipline
   has_many :league_ccs
+  has_paper_trail
 
   serialize :data, Hash
 

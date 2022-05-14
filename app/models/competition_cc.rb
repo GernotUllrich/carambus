@@ -22,4 +22,5 @@ class CompetitionCc < ApplicationRecord
 
   delegate :fedId, :branchId, :region_cc, to: :branch_cc
   alias_attribute :subBranchId, :cc_id
+  has_paper_trail
 end

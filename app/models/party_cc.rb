@@ -35,6 +35,7 @@ class PartyCc < ApplicationRecord
   def name
     "#{league_team_a_cc.name} - #{league_team_b_cc.name}"
   end
+  has_paper_trail
 
   def sync_game_details(options = {})
     #get game report form
@@ -78,6 +79,7 @@ class PartyCc < ApplicationRecord
   end
 
   def self.create_from_ba(party)
+    raise "[PartyCc.create_from_ba] unexpected armed status #{party.attributes}" if opts[:armed]
 
   end
 end

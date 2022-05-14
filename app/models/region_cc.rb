@@ -36,6 +36,7 @@ class RegionCc < ApplicationRecord
     passive: 2
   }.freeze
 
+  has_paper_trail
   PATH_MAP = { # maps to path and read_only {true|false}|}
                'home' => ['', true],
                # "showClubList" => "/admin/approvement/player/showClubList.php",

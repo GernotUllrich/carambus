@@ -8,11 +8,39 @@ require 'csv'
 include ApplicationHelper
 
 namespace :cc do
+
+  desc "synchronize everything"
+  task :synchronize_region_structure => :environment do
+    opts = get_base_opts_from_environment
+    Season.order(name: :asc).each do |season|
+      opts[:season_name] = season.name
+      opts[:armed] = false
+      RegionCcAction.synchronize_region_structure(opts)
+      RegionCcAction.synchronize_club_structure(opts)
+      RegionCcAction.synchronize_branch_structure(opts)
+      RegionCcAction.synchronize_competition_structure(opts)
+      RegionCcAction.synchronize_season_structure(opts)
+      RegionCcAction.synchronize_league_structure(opts)
+      RegionCcAction.synchronize_league_plan_structure(opts)
+      RegionCcAction.synchronize_league_team_structure(opts)
+      RegionCcAction.synchronize_party_structure(opts)
+      RegionCcAction.sync_party_game_structure(opts)
+      RegionCcAction.sync_team_players_structure(opts)
+      RegionCcAction.synchronize_game_plan_structure(opts)
+      RegionCcAction.sync_game_details(opts)
+    end
+  end
+
   desc "synchronize region structure"
   task :synchronize_region_structure => :environment do
     opts = get_base_opts_from_environment
     RegionCcAction.synchronize_region_structure(opts)
+  end
 
+  desc "synchronize club structure"
+  task :synchronize_club_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_club_structure(opts)
   end
 
   desc "synchronize branch structure"
@@ -46,21 +74,6 @@ namespace :cc do
   task :synchronize_league_plan_structure => :environment do
     opts = get_base_opts_from_environment
     RegionCcAction.synchronize_league_plan_structure(opts)
-  end
-
-  desc "get game report"
-  # TODO wird nicht mehr gebraucht - siehe synchronize_party_game_structure
-  task :get_game_plan => :environment do
-    opts = get_base_opts_from_environment
-    party_cc = PartyCc.where(cc_id: 6045).first
-    res, doc = party_cc.sync_game_details(opts)
-  end
-
-  desc "synchronize club structure"
-  task :synchronize_club_structure => :environment do
-    opts = get_base_opts_from_environment
-    RegionCcAction.synchronize_club_structure(opts)
-
   end
 
   desc "synchronize league_team structure"
@@ -134,7 +147,7 @@ namespace :cc do
     session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
     context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
     season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
-    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update") ) == "true"
-    return {session_id: session_id, armed: force_update, context: context, season_name: season_name}
+    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update")) == "true"
+    return { session_id: session_id, armed: force_update, context: context, season_name: season_name }
   end
 end

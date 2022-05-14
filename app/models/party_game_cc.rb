@@ -19,6 +19,7 @@ class PartyGameCc < ApplicationRecord
   belongs_to :party_game
   delegate :discipline, to: :party_game
   delegate :fedId, :branchId, :subBranchId, :season_id,  to: :party_cc
+  has_paper_trail
 
   def self.fix_party_games(party, armed: force_cc_update)
     party_games_todo = party.party_games

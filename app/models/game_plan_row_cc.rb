@@ -20,4 +20,5 @@
 #
 class GamePlanRowCc < ApplicationRecord
   belongs_to :discipline
+  has_paper_trail
 end
