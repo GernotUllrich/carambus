@@ -61,7 +61,7 @@ class League < ApplicationRecord
 
   def branch
     branch = discipline
-    while branch.super_discipline.present?
+    while branch.andand.super_discipline.present?
       branch = branch.super_discipline
     end
     branch

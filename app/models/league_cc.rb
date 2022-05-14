@@ -36,27 +36,31 @@ class LeagueCc < ApplicationRecord
     region = league.organizer
     region_cc = region.region_cc
 
-    competition = league.discipline || (Competition.where(name: "Mannschaft Karambol großes Billard").first if league.name=~ /Dreiband/) ||
-      (Competition.where(name: "Mannschaft Karambol kleines Billard").first if league.name=~ /Vierkampf/)
+    competition = league.discipline || (Competition.where(name: "Mannschaft Karambol großes Billard").first if league.name =~ /Dreiband/) ||
+      (Competition.where(name: "Mannschaft Karambol kleines Billard").first if league.name =~ /Vierkampf/)
     league_cc = league.league_cc
-    competition_cc = league_cc.season_cc.competition_cc
-    context = opts[:context]
-    season_cc = league_cc.season_cc
-    _, doc = region_cc.post_cc(
-      'createLeagueSave',
-      { fedId: competition_cc.fedId,
-        branchId: competition_cc.branchId,
-        subBranchId: competition_cc.cc_id,
-        seasonId: season_cc.cc_id,
-        posId: 1,
-        leagueName: league.name,
-        leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
-        prefix: 0,
-        sportdistrictId: 0,
-         },
-      opts
-    )
-    doc.to_s
+    if league_cc.present?
+      competition_cc = league_cc.season_cc.competition_cc
+      context = opts[:context]
+      season_cc = league_cc.season_cc
+      _, doc = region_cc.post_cc(
+        'createLeagueSave',
+        { fedId: competition_cc.fedId,
+          branchId: competition_cc.branchId,
+          subBranchId: competition_cc.cc_id,
+          seasonId: season_cc.cc_id,
+          posId: 1,
+          leagueName: league.name,
+          leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
+          prefix: 0,
+          sportdistrictId: 0,
+        },
+        opts
+      )
+      doc.to_s
+    else
+      RegionCc.logger.info "REPORT Liga #{league.name} #{league.season.name} #{league.discipline.andand.name} nicht in Club Cloud!"
+    end
   end
 
   def self.create_league_plan_from_ba(league, opts = {})
@@ -93,13 +97,13 @@ class LeagueCc < ApplicationRecord
       )
       lines = doc2.css('form tr.tableContent table tr')
       res_arr = lines.map { |l| l.css('td').map(&:text) }
-        game_plan_cc = GamePlanCc.find_by_name_and_branch_cc_id(res_arr[7][2].strip, branch_cc.id)
+      game_plan_cc = GamePlanCc.find_by_name_and_branch_cc_id(res_arr[7][2].strip, branch_cc.id)
       unless res_arr[4][0] == 'Kürzel' && res_arr[5][0] == 'Status'
         raise SystemCallError, 'Format of showLeague canged ???', caller
       end
 
       assign_attributes(shortname: res_arr[4][2].strip, status: res_arr[5][4].strip,
-                                  report_form: res_arr[7][2].strip, game_plan_cc_id: game_plan_cc.id)
+                        report_form: res_arr[7][2].strip, game_plan_cc_id: game_plan_cc.id) if game_plan_cc.present?
       save
       league.assign_attributes(shortname: res_arr[4][2].strip)
       league.save

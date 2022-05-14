@@ -1,4 +1,41 @@
 class RegionCcAction
+
+  def self.get_base_opts_from_environment
+    session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
+    context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
+    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
+    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
+    return { session_id: session_id, armed: force_update, context: context, season_name: season_name }
+  end
+
+  def self.remove_local_objects(opts)
+    if opts[:armed]
+      RegionCc.where("id > 50000000").delete_all
+      BranchCc.where("id > 50000000").delete_all
+      CompetitionCc.where("id > 50000000").delete_all
+      GamePlanCc.where("id > 50000000").delete_all
+      GamePlanRowCc.where("id > 50000000").delete_all
+      LeagueCc.where("id > 50000000").delete_all
+      LeagueTeamCc.where("id > 50000000").delete_all
+      PartyCc.where("id > 50000000").delete_all
+      PartyGameCc.where("id > 50000000").delete_all
+      SeasonCc.where("id > 50000000").delete_all
+    else
+      RegionCc.logger.info "REPORT WARNING !!! WILL delete
+RegionCc[#{RegionCc.where("id > 50000000").ids}]
+BranchCc[#{BranchCc.where("id > 50000000").ids}]
+CompetitionCc[#{CompetitionCc.where("id > 50000000").ids}]
+GamePlanCc[#{GamePlanCc.where("id > 50000000").ids}]
+GamePlanRowCc[#{GamePlanRowCc.where("id > 50000000").ids}]
+LeagueCc[#{LeagueCc.where("id > 50000000").ids}]
+LeagueTeamCc[#{LeagueTeamCc.where("id > 50000000").ids}]
+PartyCc[#{PartyCc.where("id > 50000000").ids}]
+PartyGameCc[#{PartyGameCc.where("id > 50000000").ids}]
+SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
+"
+    end
+  end
+
   def self.synchronize_region_structure(opts = {})
     regions_todo = []
     regions_done = []
@@ -126,12 +163,12 @@ class RegionCcAction
 
   end
 
-  def synchronize_club_structure(opts = {})
+  def self.synchronize_club_structure(opts = {})
     context = (ENV["CC_REGION"] || "NBV").downcase
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
     clubs_todo_ids = Club.where(region: region).map(&:id)
-    clubs_done_ids = region_cc.sync_clubs(context).map(&:id)
+    clubs_done_ids = region_cc.sync_clubs(opts).map(&:id)
     club_ids_still_todo = clubs_todo_ids - clubs_done_ids
     unless club_ids_still_todo.blank?
       Rails.logger.warn "REPORT! [synchronize_club_structure] Club bislang nicht in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}"
@@ -181,7 +218,7 @@ class RegionCcAction
     end
     league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
     unless league_teams_overdone_ids.blank?
-      raise_err_msg("synchronize_league_team_structure", "more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}")
+      RegionCc.logger.info "REPORT [synchronize_league_team_structure] more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
     end
   end
 

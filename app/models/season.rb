@@ -19,6 +19,7 @@ class Season < ApplicationRecord
   has_many :season_participations
   has_many :player_rankings
   has_many :season_ccs
+  has_many :leagues
   REFLECTION_KEYS = ["tournaments", "season_participations"]
 
   def self.current_season

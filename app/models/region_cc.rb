@@ -303,6 +303,7 @@ class RegionCc < ApplicationRecord
         req['Content-Type'] = 'application/x-www-form-urlencoded'
         req['referer'] = referer if referer.present?
         req.set_form_data(post_options.reject { |_k, v| v.blank? })
+        sleep(2)
         res = http.request(req)
         doc = if res.message == 'OK'
                 Nokogiri::HTML(res.body)
@@ -832,10 +833,11 @@ class RegionCc < ApplicationRecord
             league = League.find_by_cc_id(cc_id)
             unless league.present?
               name_str_match = name_str.gsub(' - ', ' ').gsub(/(\d+). /,
-                                                              '\1.').match(%r{(.*)( (?:Nord|Süd|Nord/Ost))$})
+                                                              '\1.').match(%r{(.*)( (?:A|B|Staffel A|Staffel B|Nord|Süd|Nord/Ost))$})
               if name_str_match
                 l_name = name_str_match[1].strip
                 s_name = name_str_match[2].strip.gsub('/', '-')
+                s_name = "Staffel #{s_name}" if s_name =~ /A|B/
               else
                 l_name = name_str
                 s_name = nil
@@ -844,7 +846,7 @@ class RegionCc < ApplicationRecord
                 l_name = l_name == 'Regionalliga Pool' ? 'Regionalliga' : l_name
               end
               league = nil
-              League.where(season: season, name: l_name, staffel_text: s_name, organizer_type: 'Region',
+              League.where(season: season, name: [l_name, "#{l_name} #{branch_cc.discipline.name}", "#{l_name} Ligen #{branch_cc.discipline.name}"], staffel_text: s_name, organizer_type: 'Region',
                            organizer_id: [region.id, dbu_region_id]).each do |l|
                 if l.branch == branch_cc.discipline
                   league = l
@@ -853,14 +855,17 @@ class RegionCc < ApplicationRecord
               end
             end
             if league.present?
+              if league_cc.blank?
+                league_cc = LeagueCc.create(cc_id: cc_id, name: "#{league.name}#{" #{league.staffel_text}" if league.staffel_text.present?}", season_cc_id: season_cc.id, league_id: league.id, context: league.organizer.shortname.downcase, shortname: "#{league.name.gsub("Kreis", "Kreis ").gsub("lig", " lig")}#{" #{league.staffel_text}"}".split(" ").map { |w| w[0].upcase }.join(""))
+              end
               if league_cc.present?
                 league_cc.sync_single_league(opts)
-                league.assign_attributes(cc_id: cc_id)
+                league.reload.assign_attributes(cc_id: cc_id)
                 league.save
                 league_map[league_cc.cc_id] = league
                 leagues.push(league)
               else
-                msg = "REPORT! ERROR no League for LeagueCc #{name_str} #{season_cc.name} branch: #{branch_cc.name}(#{branch_cc.cc_id}) competition: #{competition_cc.name}(#{competition_cc.cc_id})"
+                msg = "REPORT! ERROR no LeagueCc #{name_str} #{season_cc.name} branch: #{branch_cc.name}(#{branch_cc.cc_id}) competition: #{competition_cc.name}(#{competition_cc.cc_id})"
                 RegionCc.logger.info msg
                 Rails.logger.info msg
               end
@@ -981,6 +986,8 @@ class RegionCc < ApplicationRecord
   end
 
   def sync_league_plan(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    region = Region.find_by_shortname(opts[:context].upcase)
     leagues = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
       'clubs.region_id = ?', region.id
     ).uniq
@@ -1090,7 +1097,7 @@ class RegionCc < ApplicationRecord
             # doc.text
             leagues_done.push(league)
           else
-            msg = "REPORT ERROR party with cc_id: #{args[:cc_id]}, host: #{LeagueTeamCc[args[:league_team_host_cc_id]].name}, day_seqno: #{args[:day_seqno]} - arguments #{args.inspect} not in database"
+            msg = "REPORT ERROR party with cc_id: #{args[:cc_id]}, host: #{LeagueTeamCc[args[:league_team_host_cc_id]].andand.name}, day_seqno: #{args[:day_seqno]} - arguments #{args.inspect} not in database"
             RegionCc.logger.info msg
             Rails.logger.info msg
           end

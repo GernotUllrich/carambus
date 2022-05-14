@@ -10,25 +10,32 @@ include ApplicationHelper
 namespace :cc do
 
   desc "synchronize everything"
-  task :synchronize_region_structure => :environment do
+  task :synchronize_everything => :environment do
     opts = get_base_opts_from_environment
-    Season.order(name: :asc).each do |season|
+    Season.where.not(name: "2009/2010").order(name: :asc).each_with_index do |season, ix|
       opts[:season_name] = season.name
-      opts[:armed] = false
-      RegionCcAction.synchronize_region_structure(opts)
-      RegionCcAction.synchronize_club_structure(opts)
-      RegionCcAction.synchronize_branch_structure(opts)
-      RegionCcAction.synchronize_competition_structure(opts)
-      RegionCcAction.synchronize_season_structure(opts)
+      opts[:armed] = true
+      RegionCcAction.remove_local_objects(opts) if ix == 0
+      # RegionCcAction.synchronize_region_structure(opts) if ix == 0
+      # RegionCcAction.synchronize_club_structure(opts) if ix == 0
+      # RegionCcAction.synchronize_branch_structure(opts) if ix == 0
+      # RegionCcAction.synchronize_competition_structure(opts) if ix == 0
+      # RegionCcAction.synchronize_season_structure(opts) if ix > 4
       RegionCcAction.synchronize_league_structure(opts)
-      RegionCcAction.synchronize_league_plan_structure(opts)
       RegionCcAction.synchronize_league_team_structure(opts)
-      RegionCcAction.synchronize_party_structure(opts)
-      RegionCcAction.sync_party_game_structure(opts)
-      RegionCcAction.sync_team_players_structure(opts)
-      RegionCcAction.synchronize_game_plan_structure(opts)
-      RegionCcAction.sync_game_details(opts)
+      # RegionCcAction.synchronize_league_plan_structure(opts)
+      # RegionCcAction.synchronize_party_structure(opts)
+      # RegionCcAction.sync_party_game_structure(opts)
+      # RegionCcAction.sync_team_players_structure(opts)
+      # RegionCcAction.synchronize_game_plan_structure(opts)
+      # RegionCcAction.sync_game_details(opts)
     end
+  end
+
+  desc "remove local objects"
+  task :remove_local_objects => :environment do
+    opts = get_base_opts_from_environment.merge(armed: true)
+    RegionCcAction.remove_local_objects(opts)
   end
 
   desc "synchronize region structure"
@@ -144,10 +151,6 @@ namespace :cc do
   end
 
   def get_base_opts_from_environment
-    session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
-    context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
-    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
-    force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update")) == "true"
-    return { session_id: session_id, armed: force_update, context: context, season_name: season_name }
+    RegionCcAction.get_base_opts_from_environment
   end
 end
