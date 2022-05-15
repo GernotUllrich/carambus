@@ -19,16 +19,17 @@ namespace :cc do
       # RegionCcAction.synchronize_region_structure(opts) if ix == 0
       # RegionCcAction.synchronize_club_structure(opts) if ix == 0
       # RegionCcAction.synchronize_branch_structure(opts) if ix == 0
+      RegionCcAction.synchronize_game_plan_structure(opts) if ix == 0
       # RegionCcAction.synchronize_competition_structure(opts) if ix == 0
-      # RegionCcAction.synchronize_season_structure(opts) if ix > 4
+      # RegionCcAction.synchronize_season_structure(opts)
       # RegionCcAction.synchronize_league_structure(opts)
       # RegionCcAction.synchronize_league_team_structure(opts)
-      # RegionCcAction.synchronize_league_plan_structure(opts)
       # RegionCcAction.synchronize_party_structure(opts)
-      # RegionCcAction.sync_party_game_structure(opts)
       # RegionCcAction.sync_team_players_structure(opts)
-      # RegionCcAction.synchronize_game_plan_structure(opts)
       # RegionCcAction.sync_game_details(opts)
+
+      # ### TODO done by synchronize_league_plan_structure! RegionCcAction.synchronize_party_structure(opts)
+      # #### TODO what's this?  RegionCcAction.sync_party_game_structure(opts)
     end
   end
 
