@@ -452,44 +452,48 @@ class RegionCc < ApplicationRecord
       league_team_player_object_hash = {}
       league_team_players.each_key do |lt_id|
         league_team = LeagueTeam[lt_id]
-        league_team_player_object_hash[league_team.id] ||= []
-        league_team_players[lt_id].each do |p_id|
-          player = Player[p_id]
-          league_team_player_object_hash[league_team.id].push(player)
+        if league_team.present?
+          league_team_player_object_hash[league_team.id] ||= []
+          league_team_players[lt_id].each do |p_id|
+            player = Player[p_id]
+            league_team_player_object_hash[league_team.id].push(player)
+          end
         end
       end
       league_team_player_object_hash.each_key do |lt_id|
         league_team = LeagueTeam[lt_id]
-        league_team_cc = league_team.league_team_cc
-        if league_team_cc.present?
+        if league_team.present?
+          league_team_cc = league_team.league_team_cc
+          if league_team_cc.present?
 
-          league_team_players_todo = league_team_player_object_hash[lt_id]
-          league_team_player_done = region_cc.sync_team_players(league_team, opts)
-          league_team_player_still_todo = league_team_players_todo - league_team_player_done
-          league_team_player_still_todo.each do |player|
-            next if player.ba_id.blank? || player.ba_id.to_i > 999000000
+            league_team_players_todo = league_team_player_object_hash[lt_id]
+            league_team_player_done = region_cc.sync_team_players(league_team, opts)
+            league_team_player_still_todo = league_team_players_todo - league_team_player_done
+            league_team_player_still_todo.each do |player|
+              next if player.ba_id.blank? || player.ba_id.to_i > 999000000
 
-            _, doc = region_cc.post_cc(
-              'showLeague_add_teamplayer',
-              { fedId: league_team_cc.fedId,
-                leagueId: league_team_cc.leagueId,
-                staffelId: 0,
-                branchId: league_team_cc.branchId,
-                subBranchId: league_team_cc.subBranchId,
-                seasonId: league_team_cc.seasonId,
-                p: league_team_cc.p,
-                passnr: player.ba_id,
-                referer: "/admin/bm_mw/spielberichtCheck.php?" },
-              opts
-            )
-            doc
-            err_msg = doc.css('input[name="errMsg"]')[0].andand['value']
-            if err_msg.present?
-              Rails.logger.info "REPORT! ERROR LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} not in CC!"
+              _, doc = region_cc.post_cc(
+                'showLeague_add_teamplayer',
+                { fedId: league_team_cc.fedId,
+                  leagueId: league_team_cc.leagueId,
+                  staffelId: 0,
+                  branchId: league_team_cc.branchId,
+                  subBranchId: league_team_cc.subBranchId,
+                  seasonId: league_team_cc.seasonId,
+                  p: league_team_cc.p,
+                  passnr: player.ba_id,
+                  referer: "/admin/bm_mw/spielberichtCheck.php?" },
+                opts
+              )
+              doc
+              err_msg = doc.css('input[name="errMsg"]')[0].andand['value']
+              if err_msg.present?
+                Rails.logger.info "REPORT! ERROR LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} not in CC!"
+              end
             end
+          else
+            Rails.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
           end
-        else
-          Rails.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
         end
       end
     end
