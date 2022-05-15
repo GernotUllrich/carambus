@@ -205,7 +205,7 @@ SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
       if force_cc_update
         league_teams_still_todo_ids.each do |league_team_id|
           league_team = LeagueTeam[league_team_id]
-          unless league.blank?
+          if !league_team.blank?
             league_team_cc = LeagueTeamCc.create_from_ba(league_team)
           else
             raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")

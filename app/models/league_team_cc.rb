@@ -25,9 +25,9 @@ class LeagueTeamCc < ApplicationRecord
   delegate :fedId, :branchId, :subBranchId, :season_id,  to: :league_cc
 
   has_paper_trail
-  def self.create_from_ba(league)
-    raise "[LeagueTeanc.create_from_ba] unexpected armed status #{league.attributes}" if opts[:armed]
-    raise NotImplementedError, "league_team creation not yet implemented", caller
+  def self.create_from_ba(league_team)
+    RegionCc.logger.info "REPORT [LeagueTeamCc.create_from_ba] WOULD CREATE MISSING LeagueTeam from #{league_team.attributes}"
+    #raise NotImplementedError, "league_team creation not yet implemented", caller
   end
 
 end

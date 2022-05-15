@@ -21,7 +21,7 @@ namespace :cc do
       # RegionCcAction.synchronize_branch_structure(opts) if ix == 0
       # RegionCcAction.synchronize_competition_structure(opts) if ix == 0
       # RegionCcAction.synchronize_season_structure(opts) if ix > 4
-      RegionCcAction.synchronize_league_structure(opts)
+      # RegionCcAction.synchronize_league_structure(opts)
       # RegionCcAction.synchronize_league_team_structure(opts)
       # RegionCcAction.synchronize_league_plan_structure(opts)
       # RegionCcAction.synchronize_party_structure(opts)

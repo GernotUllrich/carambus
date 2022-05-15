@@ -956,7 +956,7 @@ class RegionCc < ApplicationRecord
                                          club_id: club.id).first
               else
                 RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{
-                  shortname: team_club_str, region: region.shortname
+                  name: team_club_str, cc_id: cc_id, region: region.shortname
                 }.inspect}"
               end
               if league_team.present?
@@ -970,7 +970,7 @@ class RegionCc < ApplicationRecord
                 league_teams.push(league_team)
                 league_team_ccs.push(league_team_cc)
               else
-                RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} entspricht keinem BA LigaTeam: CC: #{{
+                RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
                   name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
                 }.inspect}"
               end
@@ -999,112 +999,116 @@ class RegionCc < ApplicationRecord
       parties = league.parties
       # read spielplan
       #
-      party_ccs = league_cc.party_ccs
-      #Abgleich:
-      #parties.map{|p| [p.day_seqno, p.league_team_a.name, p.league_team_b.name].join(";")}
-      #party_ccs.map{|p| [p.day_seqno, p.league_team_a_cc.andand.name, p.league_team_b_cc.andand.name].join(";")}
-      _, doc3 = post_cc(
-        'massChangingCheck',
-        { fedId: league_cc.fedId,
-          leagueId: league_cc.leagueId,
-          branchId: league_cc.branchId,
-          subBranchId: league_cc.subBranchId,
-          seasonId: league_cc.seasonId,
-          staffelId: '' },
-        opts)
-      if (msg = doc3.css('input[name="errMsg"]')[0].andand['value']).present?
-        RegionCc.logger.error msg
-        return [leagues_done, msg]
-      end
-      party_match_id = nil
-      tables = doc3.css('form > table > tr > td > table > tr > td > table > tr > td > table') #TODO why is an Array returned???
-      tables.each do |table|
-        next unless table.css('> tr > th')[0].andand.text == 'Spieltag'
+      if league_cc.present?
+        party_ccs = league_cc.party_ccs
+        #Abgleich:
+        #parties.map{|p| [p.day_seqno, p.league_team_a.name, p.league_team_b.name].join(";")}
+        #party_ccs.map{|p| [p.day_seqno, p.league_team_a_cc.andand.name, p.league_team_b_cc.andand.name].join(";")}
+        _, doc3 = post_cc(
+          'massChangingCheck',
+          { fedId: league_cc.fedId,
+            leagueId: league_cc.leagueId,
+            branchId: league_cc.branchId,
+            subBranchId: league_cc.subBranchId,
+            seasonId: league_cc.seasonId,
+            staffelId: '' },
+          opts)
+        if (msg = doc3.css('input[name="errMsg"]')[0].andand['value']).present?
+          RegionCc.logger.error msg
+          return [leagues_done, msg]
+        end
+        party_match_id = nil
+        tables = doc3.css('form > table > tr > td > table > tr > td > table > tr > td > table') #TODO why is an Array returned???
+        tables.each do |table|
+          next unless table.css('> tr > th')[0].andand.text == 'Spieltag'
 
-        table.css('> tr').each_with_index do |tr, ix|
-          tds = tr.css('> td')
-          next if tds.blank?
+          table.css('> tr').each_with_index do |tr, ix|
+            tds = tr.css('> td')
+            next if tds.blank?
 
-          party_match_id = tds[0].css('> input')[0]['name'].match(/spieltagNr(\d+)$/)[1].to_i
-          selectors = tds.css('> select')
-          party_day_seqno = tds.css('> input')[0]['value']
-          party_group = tds.css('> input')[1]['value']
-          party_cc_id = tds.css('> input')[2]['value'].to_i
-          party_round = tds.css('> input')[3]['value']
-          party_team_a_cc_id = selectors[0].css('option[selected=selected]')[0]['value'].to_i
-          party_team_b_cc_id = selectors[1].css('option[selected=selected]')[0]['value'].to_i
-          # party_date = Date.parse(tds.css("input")[4]["value"])
-          party_active_cell = tds.css('> input')[5]
-          party_active = nil
-          party_active ||= party_active_cell['value'].presence.to_i
-          party_res_a = tds.css('> input')[6]['value']
-          party_res_b = tds.css('> input')[7]['value']
-          party_team_host_cc_id = selectors[2].css('option[selected=selected]')[0]['value'].to_i
-          party_time = DateTime.parse("#{tds.css('> input')[4]['value']} #{tds.css('> input')[8]['value'] if tds.css('> input')[8]['value'] =~ /:/}")
-          party_register = Date.parse(tds.css('> input')[9]['value'])
+            party_match_id = tds[0].css('> input')[0]['name'].match(/spieltagNr(\d+)$/)[1].to_i
+            selectors = tds.css('> select')
+            party_day_seqno = tds.css('> input')[0]['value']
+            party_group = tds.css('> input')[1]['value']
+            party_cc_id = tds.css('> input')[2]['value'].to_i
+            party_round = tds.css('> input')[3]['value']
+            party_team_a_cc_id = selectors[0].css('option[selected=selected]')[0]['value'].to_i
+            party_team_b_cc_id = selectors[1].css('option[selected=selected]')[0]['value'].to_i
+            # party_date = Date.parse(tds.css("input")[4]["value"])
+            party_active_cell = tds.css('> input')[5]
+            party_active = nil
+            party_active ||= party_active_cell['value'].presence.to_i
+            party_res_a = tds.css('> input')[6]['value']
+            party_res_b = tds.css('> input')[7]['value']
+            party_team_host_cc_id = selectors[2].css('option[selected=selected]')[0]['value'].to_i
+            party_time = DateTime.parse("#{tds.css('> input')[4]['value']} #{tds.css('> input')[8]['value'] if tds.css('> input')[8]['value'] =~ /:/}")
+            party_register = Date.parse(tds.css('> input')[9]['value'])
 
-          party = parties.joins('INNER JOIN "league_teams" as "league_team_a" on "league_team_a"."id" = "parties"."league_team_a_id"').
-            joins('INNER JOIN "league_teams" as "league_team_b" on "league_team_b"."id" = "parties"."league_team_b_id"').
-            where('league_team_a.cc_id = ?', party_team_a_cc_id).
-            where('league_team_b.cc_id = ?', party_team_b_cc_id).first
-          args = { cc_id: party_cc_id,
-                   group: party_group,
-                   round: party_round,
-                   time: party_time,
-                   match_id: party_match_id,
-                   register_at: party_register,
-                   status: party_active,
-                   league_cc_id: league_cc.id,
-                   party_id: party.andand.id,
-                   league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first.andand.id,
-                   league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first.andand.id,
-                   league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first.andand.id,
-                   day_seqno: party_day_seqno,
-                   data: { :result => "#{party_res_a}:#{party_res_b}" }
-          }
-          if party.present?
-            party_cc = party_ccs.where(cc_id: party_cc_id).first || PartyCc.new(args)
-            party_cc.assign_attributes(args)
-            party_cc.save
-            #
-            # _, doc = post_cc(
-            #   "massChangingCheckAuth",
-            #   { teamCounter: 10,
-            #   fedId: 20,
-            #   leagueId: 36,
-            #   branchId: 6,
-            #   subBranchId: 1,
-            #   seasonId: 8,
-            #   editAll: "",
-            #   matchId: 759}, opts)
-            # doc.text
-            # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
-            # _, doc = post_cc(
-            #   'spielberichtCheck',
-            #   {a: 715,
-            #   b: 2,
-            #   c: 111,
-            #   referer: "/admin/report/massChangingCheckAuth.php?"}, opts
-            # )
-            # doc.text
-            #
-            # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/bm_mw/spielberichtCheck.php?a=759&b=2&c=210&
-            # _, doc = get_cc(
-            #   'spielberichtCheck',
-            #  { a: 715,
-            #   b: 2,
-            #   c: 111 }, opts
-            # )
-            # doc.text
-            unless leagues_done.include?(league)
-              leagues_done.push(league)
+            party = parties.joins('INNER JOIN "league_teams" as "league_team_a" on "league_team_a"."id" = "parties"."league_team_a_id"').
+              joins('INNER JOIN "league_teams" as "league_team_b" on "league_team_b"."id" = "parties"."league_team_b_id"').
+              where('league_team_a.cc_id = ?', party_team_a_cc_id).
+              where('league_team_b.cc_id = ?', party_team_b_cc_id).first
+            args = { cc_id: party_cc_id,
+                     group: party_group,
+                     round: party_round,
+                     time: party_time,
+                     match_id: party_match_id,
+                     register_at: party_register,
+                     status: party_active,
+                     league_cc_id: league_cc.id,
+                     party_id: party.andand.id,
+                     league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first.andand.id,
+                     league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first.andand.id,
+                     league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first.andand.id,
+                     day_seqno: party_day_seqno,
+                     data: { :result => "#{party_res_a}:#{party_res_b}" }
+            }
+            if party.present?
+              party_cc = party_ccs.where(cc_id: party_cc_id).first || PartyCc.new(args)
+              party_cc.assign_attributes(args)
+              party_cc.save
+              #
+              # _, doc = post_cc(
+              #   "massChangingCheckAuth",
+              #   { teamCounter: 10,
+              #   fedId: 20,
+              #   leagueId: 36,
+              #   branchId: 6,
+              #   subBranchId: 1,
+              #   seasonId: 8,
+              #   editAll: "",
+              #   matchId: 759}, opts)
+              # doc.text
+              # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
+              # _, doc = post_cc(
+              #   'spielberichtCheck',
+              #   {a: 715,
+              #   b: 2,
+              #   c: 111,
+              #   referer: "/admin/report/massChangingCheckAuth.php?"}, opts
+              # )
+              # doc.text
+              #
+              # #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/bm_mw/spielberichtCheck.php?a=759&b=2&c=210&
+              # _, doc = get_cc(
+              #   'spielberichtCheck',
+              #  { a: 715,
+              #   b: 2,
+              #   c: 111 }, opts
+              # )
+              # doc.text
+              unless leagues_done.include?(league)
+                leagues_done.push(league)
+              end
+            else
+              msg = "REPORT ERROR party with cc_id: #{args[:cc_id]}, host: #{LeagueTeamCc[args[:league_team_host_cc_id]].andand.name}, day_seqno: #{args[:day_seqno]} - arguments #{args.inspect} not in database"
+              RegionCc.logger.info msg
+              Rails.logger.info msg
             end
-          else
-            msg = "REPORT ERROR party with cc_id: #{args[:cc_id]}, host: #{LeagueTeamCc[args[:league_team_host_cc_id]].andand.name}, day_seqno: #{args[:day_seqno]} - arguments #{args.inspect} not in database"
-            RegionCc.logger.info msg
-            Rails.logger.info msg
           end
         end
+      else
+        RegionCc.logger.info "REPORT [sync_league_plan] Liga nicht in CC: #{league.attributes}"
       end
     end
     [leagues_done, errMsg]
