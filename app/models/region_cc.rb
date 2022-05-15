@@ -303,7 +303,7 @@ class RegionCc < ApplicationRecord
         req['Content-Type'] = 'application/x-www-form-urlencoded'
         req['referer'] = referer if referer.present?
         req.set_form_data(post_options.reject { |_k, v| v.blank? })
-        sleep(2)
+        sleep(1)
         res = http.request(req)
         doc = if res.message == 'OK'
                 Nokogiri::HTML(res.body)
@@ -462,11 +462,12 @@ class RegionCc < ApplicationRecord
         league_team = LeagueTeam[lt_id]
         league_team_cc = league_team.league_team_cc
         if league_team_cc.present?
+
           league_team_players_todo = league_team_player_object_hash[lt_id]
           league_team_player_done = region_cc.sync_team_players(league_team, opts)
           league_team_player_still_todo = league_team_players_todo - league_team_player_done
           league_team_player_still_todo.each do |player|
-            next if player.ba_id > 999000000 || player.ba_id.blank?
+            next if player.ba_id.blank? || player.ba_id.to_i > 999000000
 
             _, doc = region_cc.post_cc(
               'showLeague_add_teamplayer',
