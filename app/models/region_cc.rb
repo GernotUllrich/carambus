@@ -466,7 +466,7 @@ class RegionCc < ApplicationRecord
           league_team_player_done = region_cc.sync_team_players(league_team, opts)
           league_team_player_still_todo = league_team_players_todo - league_team_player_done
           league_team_player_still_todo.each do |player|
-            next if player.ba_id > 999_000_000 || player.ba_id.blank?
+            next if player.ba_id > 999000000 || player.ba_id.blank?
 
             _, doc = region_cc.post_cc(
               'showLeague_add_teamplayer',
@@ -1312,17 +1312,17 @@ class RegionCc < ApplicationRecord
 
           cc_id = tds[3].text.to_i
           ba_id = tds[4].text.to_i
-          player = Player.find_by_ba_id(ba_id) || Player.find_by_cc_id(cc_id)
+          # player = Player.find_by_ba_id(ba_id) || Player.find_by_cc_id(cc_id)
           player = Player.find_by_ba_id(ba_id)
           unless player.present?
-            player = Player.find_by_ba_id(cc_id)
+            player = Player.find_by_cc_id(cc_id)
             if player.blank?
               RegionCc.logger.info "REPORT ERROR Kein Spieler #{tds[1].text}, #{tds[2].text} mit PASS-NR #{cc_id} oder DBU-NR #{ba_id} in DB"
             elsif player.ba_id != ba_id
               RegionCc.logger.info "REPORT ERROR Spieler #{tds[1].text}, #{tds[2].text} hat andere DBU-NR #{player.ba_id} in DB als in CC #{ba_id}"
             end
           else
-            player = Player.find_by_ba_id(cc_id)
+            player = Player.find_by_cc_id(cc_id)
             if player.blank?
               RegionCc.logger.info "REPORT ERROR Kein Spieler #{tds[1].text}, #{tds[2].text} mit PASS-NR #{cc_id} oder DBU-NR #{ba_id} in DB"
             elsif player.ba_id != ba_id
