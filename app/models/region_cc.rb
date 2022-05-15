@@ -971,7 +971,7 @@ class RegionCc < ApplicationRecord
                 league_team_ccs.push(league_team_cc)
               else
                 RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} entspricht keinem BA LigaTeam: CC: #{{
-                  name: name_str, league_id: league_cc.league.id, club_id: club.andand.id
+                  name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
                 }.inspect}"
               end
             end
@@ -994,6 +994,7 @@ class RegionCc < ApplicationRecord
     leagues_done = []
     errMsg = nil
     leagues.each do |league|
+      #next unless league.league_cc.andand.branch_cc.andand.name == "Snooker" #TODO DEBUG REMOVE ME
       league_cc = league.league_cc
       parties = league.parties
       # read spielplan
@@ -1095,7 +1096,9 @@ class RegionCc < ApplicationRecord
             #   c: 111 }, opts
             # )
             # doc.text
-            leagues_done.push(league)
+            unless leagues_done.include?(league)
+              leagues_done.push(league)
+            end
           else
             msg = "REPORT ERROR party with cc_id: #{args[:cc_id]}, host: #{LeagueTeamCc[args[:league_team_host_cc_id]].andand.name}, day_seqno: #{args[:day_seqno]} - arguments #{args.inspect} not in database"
             RegionCc.logger.info msg

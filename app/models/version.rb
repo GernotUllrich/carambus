@@ -86,7 +86,11 @@ class Version < ApplicationRecord
         case h['event']
         when 'create'
           args = Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }]
-          args['data'] = YAML.load(args['data']) if args['data'].present?
+          if h['item_type'] == "PartyCc" #TODO what's going on here?
+            args['data'] = eval(args['data']) if args['data'].present? && args['data'].is_a?(String)
+          else
+            args['data'] = YAML.load(args['data']) if args['data'].present?
+          end
           Rails.logger.info "#{h['item_type']}[#{h['item_id']}]#{JSON.pretty_generate(args)}"
           begin
             classz = h['item_type'].constantize
@@ -132,7 +136,11 @@ class Version < ApplicationRecord
           end
         when 'update'
           args = h['object_changes'].present? ? Hash[YAML.load(h['object_changes']).to_a.map { |v| [v[0], v[1][1]] }] : YAML.load(h["object"])
-          args['data'] = YAML.load(args['data']) if args['data'].present?
+          if h['item_type'] == "PartyCc" #TODO what's going on here?
+            args['data'] = eval(args['data']) if args['data'].present? && args['data'].is_a?(String)
+          else
+            args['data'] = YAML.load(args['data']) if args['data'].present?
+          end
           begin
             classz = h['item_type'].constantize
             obj = classz.where(id: h['item_id']).first

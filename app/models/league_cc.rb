@@ -32,7 +32,8 @@ class LeagueCc < ApplicationRecord
   has_paper_trail
 
   def self.create_from_ba(league, opts = {})
-    raise "[LeagueCc.create_from_ba] unexpected armed status #{league.attributes}" if opts[:armed]
+    RegionCc.logger.info  "REPORT [LeagueCc.create_from_ba] MUST CREATE MISSING #{league.attributes}"
+    return
     region = league.organizer
     region_cc = region.region_cc
 
@@ -64,7 +65,7 @@ class LeagueCc < ApplicationRecord
   end
 
   def self.create_league_plan_from_ba(league, opts = {})
-    raise "[LeaguePlanCc.create_from_ba] unexpected armed status #{league.attributes}" if opts[:armed]
+    RegionCc.logger.info "REPORT [LeaguePlanCc.create_from_ba] WOULD CREATE for #{league.attributes}"
   end
 
   def link_name
