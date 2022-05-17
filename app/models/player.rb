@@ -105,7 +105,7 @@ class Player < ApplicationRecord
         end
         state_ix = 0
       elsif season_participations.count.zero?
-        players = Player.where(firstname: firstname, lastname: lastname)
+        players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
         if players.count.zero?
           logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
           logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
@@ -209,14 +209,14 @@ class Player < ApplicationRecord
 
     Player.where("firstname ilike '%(%'").each do |p|
       firstname = p.firstname.match(/(.*)\(.*/)[1]
-      p2 = Player.where(lastname: p.lastname, firstname: firstname).first
+      p2 = Player.where(type: nil).where(lastname: p.lastname, firstname: firstname).first
       if p2.present?
-      puts  p2.andand.attributes.andand.inspect , p.attributes.inspect
+        puts p2.andand.attributes.andand.inspect, p.attributes.inspect
       end
     end; nil
-    Player.where("lastname ilike 'von%'").each do |p|
+    Player.where(type: nil).where("lastname ilike 'von%'").each do |p|
       name = p.name.match(/von\s+(.*)$/).andand[1].to_s
-      p2 = Player.where(lastname: name, firstname: "#{p.firstname} von").first
+      p2 = Player.where(type: nil).where(lastname: name, firstname: "#{p.firstname} von").first
       puts "--- will merge #{[p2.id, p2.fullname]} to #{[p.id, p.fullname]}}" if p2.present?
     end
   end
@@ -224,7 +224,7 @@ class Player < ApplicationRecord
   def mg(id1, id2)
     p1 = Player[id1]
     p2 = Player[id2]
-    if p1.ba_id.present?# && p2.ba_id > 999000000
+    if p1.ba_id.present? # && p2.ba_id > 999000000
       cc_id = p1.cc_id || p2.cc_id
       p2.season_participations.delete_all
       p2.update(cc_id: nil)

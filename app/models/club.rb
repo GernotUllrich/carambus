@@ -26,7 +26,7 @@
 #
 class Club < ApplicationRecord
   belongs_to :region
-  has_many :players
+  has_many :players, -> { where(type: nil) }
   has_many :season_participations
   has_many :tournament_locations, as: :organizer, class_name: "Location"
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
@@ -55,19 +55,19 @@ class Club < ApplicationRecord
   ]
 
   REFLECTION_KEYS = ["region", "players", "season_participations"]
-  COLUMN_NAMES = {#TODO FILTERS
-                  "BA_ID" => "clubs.ba_id",
-                  "CC_ID" => "clubs.cc_id",
-                  "Region" => "regions.shortname",
-                  "Name" => "clubs.name",
-                  "Shortname" => "clubs.shortname",
-                  "Homepage" => "",
-                  "Status" => "",
-                  "Founded" => "",
-                  "Dbu entry" => "",
+  COLUMN_NAMES = { #TODO FILTERS
+                   "BA_ID" => "clubs.ba_id",
+                   "CC_ID" => "clubs.cc_id",
+                   "Region" => "regions.shortname",
+                   "Name" => "clubs.name",
+                   "Shortname" => "clubs.shortname",
+                   "Homepage" => "",
+                   "Status" => "",
+                   "Founded" => "",
+                   "Dbu entry" => "",
   }
 
-  def self.scrape_clubs(opts={})
+  def self.scrape_clubs(opts = {})
     player_details = opts[:player_details].presence
     skip_r = true
     skip_c = true
@@ -76,8 +76,8 @@ class Club < ApplicationRecord
     end
 
     #fix title
-    Player.where("title ~ 'Herr.'").update_all(title: 'Herr')
-    Player.where("title ~ 'Frau.'").update_all(title: 'Frau')
+    Player.where(type: nil).where("title ~ 'Herr.'").update_all(title: 'Herr')
+    Player.where(type: nil).where("title ~ 'Frau.'").update_all(title: 'Frau')
   end
 
   #x clubs.ba_id regions.name clubs.name clubs.shortname
@@ -107,17 +107,17 @@ class Club < ApplicationRecord
     club_founded = doc_detail.css(".right fieldset:nth-child(2) .element").text.strip
     club_dbu_entry = doc_detail.css(".right fieldset~ fieldset+ fieldset .element").text.strip
     update(
-        name: club_name,
-        shortname: club_shortname,
-        homepage: club_homepage,
-        email: club_email,
-        address: club_address,
-        priceinfo: club_priceinfo,
-        status: club_status,
-        founded: club_founded,
-        dbu_entry: club_dbu_entry,
-        region: region,
-        logo: club_logo
+      name: club_name,
+      shortname: club_shortname,
+      homepage: club_homepage,
+      email: club_email,
+      address: club_address,
+      priceinfo: club_priceinfo,
+      status: club_status,
+      founded: club_founded,
+      dbu_entry: club_dbu_entry,
+      region: region,
+      logo: club_logo
     )
     if player_details
       known_players = players.map(&:ba_id)
@@ -127,7 +127,7 @@ class Club < ApplicationRecord
         player ||= players.new()
         player.update(ba_id: player_ba_id)
         sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, id) ||
-            SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: id)
+          SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: id)
         unless skip_details
           url = "https://#{region.shortname.downcase}.billardarea.de"
           player_details_url = "#{url}/cms_clubs/playerdetails/#{ba_id}/#{player.ba_id}"

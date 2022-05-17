@@ -565,7 +565,7 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
-            next if branch_cc.name == "Pool"
+            next unless branch_cc.name == "Snooker"
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
               party = party_cc.party
               Kernel.sleep(0.5)
@@ -1318,16 +1318,16 @@ class RegionCc < ApplicationRecord
           cc_id = tds[3].text.to_i
           ba_id = tds[4].text.to_i
           # player = Player.find_by_ba_id(ba_id) || Player.find_by_cc_id(cc_id)
-          player = Player.find_by_ba_id(ba_id)
+          player = Player.where(type: nil).find_by_ba_id(ba_id)
           unless player.present?
-            player = Player.find_by_cc_id(cc_id)
+            player = Player.where(type: nil).find_by_cc_id(cc_id)
             if player.blank?
               RegionCc.logger.info "REPORT ERROR Kein Spieler #{tds[1].text}, #{tds[2].text} mit PASS-NR #{cc_id} oder DBU-NR #{ba_id} in DB"
             elsif player.ba_id != ba_id
               RegionCc.logger.info "REPORT ERROR Spieler #{tds[1].text}, #{tds[2].text} hat andere DBU-NR #{player.ba_id} in DB als in CC #{ba_id}"
             end
           else
-            player = Player.find_by_cc_id(cc_id)
+            player = Player.where(type: nil).find_by_cc_id(cc_id)
             if player.blank?
               RegionCc.logger.info "REPORT ERROR Kein Spieler #{tds[1].text}, #{tds[2].text} mit PASS-NR #{cc_id} oder DBU-NR #{ba_id} in DB"
             elsif player.ba_id != ba_id

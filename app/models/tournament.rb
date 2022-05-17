@@ -332,7 +332,7 @@ class Tournament < ApplicationRecord
                     state_ix = 0
                   end
                 elsif season_participations.count == 0
-                  players = Player.where(firstname: firstname, lastname: lastname)
+                  players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
                   if players.count == 0
                     logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
                     logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"

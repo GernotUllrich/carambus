@@ -109,7 +109,7 @@ namespace :adhoc do
 
   desc 'test league scraping'
   task test_league_scraping: :environment do
-    l = League.find_by_ba_id(776)
+    l = League.find_by_ba_id(2944)  #TODO carefull ba_id is not uniq for League -> Staffel
     l.scrape_single_league(game_details: true)
   end
   desc 'test settings'

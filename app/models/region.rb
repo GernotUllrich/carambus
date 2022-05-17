@@ -32,22 +32,22 @@ class Region < ApplicationRecord
   has_one :region_cc
 
   REGION_SHORTNAMES = ["BBBV",
-                  "BBV",
-                  "BLMR",
-                  "BLVN",
-                  "BLVSA",
-                  # "BVB",
-                  "BVBW",
-                  "BVNR",
-                  "BVNRW",
-                  "BVRP",
-                  "BVS",
-                  "BVW",
-                  "HBU",
-                  "NBV",
-                  "portal",
-                  "SBV",
-                  "TBV"]
+                       "BBV",
+                       "BLMR",
+                       "BLVN",
+                       "BLVSA",
+                       # "BVB",
+                       "BVBW",
+                       "BVNR",
+                       "BVNRW",
+                       "BVRP",
+                       "BVS",
+                       "BVW",
+                       "HBU",
+                       "NBV",
+                       "portal",
+                       "SBV",
+                       "TBV"]
 
   COLUMN_NAMES = {
     "Logo" => "",
@@ -111,28 +111,28 @@ class Region < ApplicationRecord
 
   def fix_player_without_ba_id(firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
     ret = nil
-    args = {firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id}
-    args.reject {|k,v| v.nil?}
-    players = Player.where(args)
+    args = { firstname: firstname, lastname: lastname, ba_id: should_be_ba_id, club_id: should_be_club_id }
+    args.reject { |k, v| v.nil? }
+    players = Player.where(type: nil).where(args)
     if players.count == 1
       return players[0]
     end
-    players = Player.where(firstname: firstname, lastname: lastname)
+    players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
     if players.present?
       players.each do |player|
-        players_same_name_arr = Player.where(firstname: player.firstname, lastname: player.lastname).to_a
+        players_same_name_arr = Player.where(type: nil).where(firstname: player.firstname, lastname: player.lastname).to_a
         if players_same_name_arr.count == 1
           begin
             # try to update ba_id
             ret = players_same_name_arr[0]
             players_same_name_arr[0].update(ba_id: should_be_ba_id)
           rescue ActiveRecord::RecordNotUnique, PG::UniqueViolation, PG::DuplicateColumn => e
-            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
+            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).andand.fullname} hier: #{lastname}, #{firstname}"
           end
         else
           begin
-            player_ok_arr = Player.where(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id).to_a
-            player_tmp_arr = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
+            player_ok_arr = Player.where(type: nil).where(firstname: firstname, lastname: lastname, ba_id: should_be_ba_id).to_a
+            player_tmp_arr = Player.where(type: nil).where(firstname: firstname, lastname: lastname).where("ba_id > 999000000").to_a
             if player_ok_arr.count == 1 && player_tmp_arr.count >= 1
               ret = Player.merge_players(player_ok_arr.first, player_tmp_arr.first)
             else
@@ -146,7 +146,7 @@ class Region < ApplicationRecord
               end
             end
           rescue ActiveRecord::RecordNotUnique, PG::UniqueViolation, PG::DuplicateColumn => e
-            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).fullname} hier: #{lastname}, #{firstname}"
+            Rails.logger.info "REPORT! [fix_players_without_ba_id] Spieler mit anderem Namen und gleicher ba_id (#{should_be_ba_id}) gefunden: #{Player.find_by_ba_id(should_be_ba_id).andand.fullname} hier: #{lastname}, #{firstname}"
           end
         end
       end

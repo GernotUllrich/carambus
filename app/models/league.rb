@@ -211,8 +211,8 @@ class League < ApplicationRecord
             end
             args = {}
             if player_ba_id.present? && lastname.present?
-              player = Player.where(firstname: firstname, lastname: lastname, club_id: club.andand.id).where("ba_id > 900000000").first
-              player ||= Player.where(firstname: firstname, lastname: lastname).where("ba_id > 900000000").first
+              player = Player.where(type: nil, firstname: firstname, lastname: lastname, club_id: club.andand.id).where("ba_id > 900000000").first
+              player ||= Player.where(type: nil, firstname: firstname, lastname: lastname).where("ba_id > 900000000").first
               if player.present?
                 player.andand.update(ba_id: player_ba_id)
               end

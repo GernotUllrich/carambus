@@ -369,7 +369,7 @@ namespace :carambus do
           where(region_id: region.id).all.each do |tournament|
           on = on || tournament.ba_id == 12421
           if on
-            scrape_single_tournament(tournament, logger: logger)
+            scrape_single_tournament(tournament)
             tournament.update_columns(last_ba_sync_date: Time.now)
           end
         end
@@ -458,7 +458,7 @@ namespace :carambus do
                     tournament ||=
                       Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
                     tournament.update(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
-                    scrape_single_tournament(tournament, logger: logger)
+                    scrape_single_tournament(tournament)
                     tournament.update_columns(last_ba_sync_date: Time.now)
                   else
                     ba_id
