@@ -566,6 +566,7 @@ class RegionCc < ApplicationRecord
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
             next unless branch_cc.name == "Snooker"
+            next unless season_cc.name == "2014/2015"
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
               party = party_cc.party
               Kernel.sleep(0.5)
@@ -599,6 +600,12 @@ class RegionCc < ApplicationRecord
 
                 # 2:0 => 1:0, 1:0
                 # 2:1 => 1:0, 0:1, 1:0
+                if pg.player_a.cc_id.blank?
+                  RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_a.fullname}[#{pg.player_a.id} -  ba_id: #{pg.player_a.ba_id}, team: #{pg.party.league_team_a.name}]"
+                end
+                if pg.player_b.cc_id.blank?
+                  RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_b.fullname}[#{pg.player_b.id} -  ba_id: #{pg.player_b.ba_id}, team: #{pg.party.league_team_b.name}]"
+                end
                 add_pg = {
                   "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
                   "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }

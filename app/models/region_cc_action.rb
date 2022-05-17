@@ -227,8 +227,8 @@ SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
     if season.blank?
       raise ArgumentError, "unknown season name #{opts[:season_name]}", caller
     end
-    context = (ENV["CC_REGION"] || "NBV").downcase
-    force_cc_update = opts[:armed].presence || ENV["CC_UPDATE"] == "true" || false
+    context = opts[:context]
+    force_cc_update = opts[:armed]
     region = Region.find_by_shortname(context.upcase)
     region_cc = region.region_cc
 

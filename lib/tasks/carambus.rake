@@ -22,7 +22,8 @@ namespace :carambus do
     #file = "#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"
     #
     # file = "#{Rails.root}/tmp/nbv_player_cc.csv"
-    file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-10_14-43-41.csv"
+    #file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-10_14-43-41.csv"
+    file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-17_11-29-54.csv"
     cc_ids_todo = Player.where.not(cc_id: nil).map(&:cc_id)
     cc_ids_done = []
     str = File.read(file)
@@ -52,10 +53,12 @@ namespace :carambus do
           end
         end
         if player.lastname != lastname
-          RegionCc.logger.info "REPORT CHANGED FIRSTNAME: from '#{player.lastname}' to '#{lastname}'"
-        end
-        if player.lastname != lastname
           RegionCc.logger.info "REPORT CHANGED LASTNAME: from '#{player.lastname}' to '#{lastname}'"
+          player.update(lastname: lastname)
+        end
+        if player.firstname != firstname
+          RegionCc.logger.info "REPORT CHANGED FIRSTNAME: from '#{player.firstname}' to '#{firstname}'"
+          player.update(firstname: firstname)
         end
         cc_ids_done.push(cc_id)
       else
@@ -64,7 +67,7 @@ namespace :carambus do
       end
 
     end
-    RegionCc.logger.info "REPORT some pass-no no more used: #{cc_ids_todo - cc_ids_done}"
+    RegionCc.logger.info "REPORT some pass-no not used anymore: #{cc_ids_todo - cc_ids_done}"
     RegionCc.logger.info "REPORT some new pass-nos: #{cc_ids_done - cc_ids_todo}"
   end
 
