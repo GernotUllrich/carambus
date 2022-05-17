@@ -19,10 +19,6 @@ namespace :carambus do
 
   desc "read regional player ids"
   task :read_regional_player_ids => :environment do
-    #file = "#{Rails.root}/doc/20220302_Stammdaten-NBV-MITGLIEDER.csv"
-    #
-    # file = "#{Rails.root}/tmp/nbv_player_cc.csv"
-    #file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-10_14-43-41.csv"
     file = "#{Rails.root}/doc/Export-Mitglieder_2022-05-17_11-29-54.csv"
     cc_ids_todo = Player.where.not(cc_id: nil).map(&:cc_id)
     cc_ids_done = []
