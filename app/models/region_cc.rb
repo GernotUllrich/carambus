@@ -1060,6 +1060,7 @@ class RegionCc < ApplicationRecord
 
             party = parties.joins('INNER JOIN "league_teams" as "league_team_a" on "league_team_a"."id" = "parties"."league_team_a_id"').
               joins('INNER JOIN "league_teams" as "league_team_b" on "league_team_b"."id" = "parties"."league_team_b_id"').
+              where(round: party_round).
               where('league_team_a.cc_id = ?', party_team_a_cc_id).
               where('league_team_b.cc_id = ?', party_team_b_cc_id).first
             args = { cc_id: party_cc_id,
