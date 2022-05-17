@@ -567,6 +567,7 @@ class RegionCc < ApplicationRecord
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
             next unless branch_cc.name == "Snooker"
             next unless season_cc.name == "2014/2015"
+            next unless league_cc.name == "Verbandsliga Snooker"
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
               party = party_cc.party
               Kernel.sleep(0.5)
@@ -1006,6 +1007,7 @@ class RegionCc < ApplicationRecord
     leagues_done = []
     errMsg = nil
     leagues.each do |league|
+      next unless league.id == 3560
       #next unless league.league_cc.andand.branch_cc.andand.name == "Snooker" #TODO DEBUG REMOVE ME
       league_cc = league.league_cc
       parties = league.parties
@@ -1182,6 +1184,7 @@ class RegionCc < ApplicationRecord
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next unless season_cc.name == opts[:season_name]
+            next unless league_cc.id == 177
 
             _, doc = post_cc(
               'admin_report_showLeague',
