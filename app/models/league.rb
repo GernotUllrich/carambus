@@ -198,7 +198,7 @@ class League < ApplicationRecord
           url_player, name_str = arr
           club_ba_id, player_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
           club = Club.find_by_ba_id(club_ba_id) # TODO find corresp. Club or create
-          html_player = open(url + url_player)
+          html_player = URI.open(url + url_player)
           doc_player = Nokogiri::HTML(html_player)
           elements = doc_player.css(".element")
           player_ba_id = nil
