@@ -189,7 +189,7 @@ class League < ApplicationRecord
       league_teams_found.each do |league_team|
         url_lt = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
         Rails.logger.info "reading index page league_team #{league_team.name} (#{league_team.ba_id}) to scrape league"
-        html_lt = open(url_lt)
+        html_lt = URI.open(url_lt)
         doc_lt = Nokogiri::HTML(html_lt)
         links = doc_lt.css(".element+ .matchday_table a")
         links.map do |d|
@@ -260,13 +260,16 @@ class League < ApplicationRecord
                   end
                   fields = doc_party.css("#tabs-2 label + .field")
                   remarks = fields.text.strip
+                  party.remarks_will_change!
                   if winner_name.present?
                     looser_team = team_a.name == winner_name ? team_b : team_a
-                    party.assign_attributes(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks })
+                    party.assign_attributes(party.attributes.merge(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks }))
+                  else
+                    party.assign_attributes(party.attributes.merge(remarks: { protest: protest, remarks: remarks }))
                   end
                 end
                 party_data = { result: element.css("td")[5].text.strip() }
-                party.assign_attributes(date: date, league: self, day_seqno: day_seqno, section: tab_text, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data)
+                party.assign_attributes(party.attributes.merge(date: date, league: self, day_seqno: day_seqno, section: tab_text, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data))
                 party.save!
 
                 trs = doc_party.css("tr + tr")
