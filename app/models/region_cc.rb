@@ -40,7 +40,7 @@ class RegionCc < ApplicationRecord
   PATH_MAP = { # maps to path and read_only {true|false}|}
                'home' => ['', true],
                # "showClubList" => "/admin/approvement/player/showClubList.php",
-               'createLeagueSave' => ['/admin/league/createLeagueSave.php', true],
+               'createLeagueSave' => ['/admin/league/createLeagueSave.php', false],
                # fedId: 20
                # branchId: 10
                # subBranchId: 2
@@ -472,27 +472,32 @@ class RegionCc < ApplicationRecord
             league_team_player_still_todo.each do |player|
               next if player.ba_id.blank? || player.ba_id.to_i > 999000000
 
-              _, doc = region_cc.post_cc(
-                'showLeague_add_teamplayer',
-                { fedId: league_team_cc.fedId,
-                  leagueId: league_team_cc.leagueId,
-                  staffelId: 0,
-                  branchId: league_team_cc.branchId,
-                  subBranchId: league_team_cc.subBranchId,
-                  seasonId: league_team_cc.seasonId,
-                  p: league_team_cc.p,
-                  passnr: player.ba_id,
-                  referer: "/admin/bm_mw/spielberichtCheck.php?" },
-                opts
-              )
-              doc
-              err_msg = doc.css('input[name="errMsg"]')[0].andand['value']
-              if err_msg.present?
-                Rails.logger.info "REPORT! ERROR LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} not in CC!"
+              args = { fedId: league_team_cc.fedId,
+                       leagueId: league_team_cc.leagueId,
+                       staffelId: 0,
+                       branchId: league_team_cc.branchId,
+                       subBranchId: league_team_cc.subBranchId,
+                       seasonId: league_team_cc.seasonId,
+                       p: league_team_cc.p,
+                       passnr: player.ba_id,
+                       referer: "/admin/bm_mw/spielberichtCheck.php?" }
+              if false
+                _, doc = region_cc.post_cc(
+                  'showLeague_add_teamplayer',
+                  args,
+                  opts
+                )
+                doc
+                err_msg = doc.css('input[name="errMsg"]')[0].andand['value']
+                if err_msg.present?
+                  RegionCc.logger.info "REPORT! ERROR LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} not in CC!"
+                end
+              else
+                RegionCc.logger.info "REPORT! [sync_team_players_structure] WOULD ADD LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} with 'showLeague_add_teamplayer' and payload #{args}"
               end
             end
           else
-            Rails.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
+            RegionCc.logger.info "REPORT! [synchronize_team_players_structure] LeagueTeam #{league_team.andand.name} in Liga #{league_team.league.andand.name} nicht in CC"
           end
         end
       end
@@ -642,12 +647,17 @@ class RegionCc < ApplicationRecord
                 pg_line_ix += 1
                 break if pg_line_ix > game_lines.count
               end
-              _res, doc = region_cc.post_cc(
-                "spielberichtSave",
-                params.merge(referer: "/admin/bm_mw/spielberichtCheck.php?"),
-                opts
-              )
-              doc.text
+              args = params.merge(referer: "/admin/bm_mw/spielberichtCheck.php?")
+              if false
+                _res, doc = region_cc.post_cc(
+                  "spielberichtSave",
+                  args,
+                  opts
+                )
+                doc.text
+              else
+                RegionCc.logger.info "REPORT [sync_game_details] WOULD ENTER Game Report il League #{league_cc.attributes }  and Part #{party_cc.attributes} with 'spielberichtSave' and payload #{args}"
+              end
             end
           end
         end

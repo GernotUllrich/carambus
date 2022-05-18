@@ -44,21 +44,26 @@ class LeagueCc < ApplicationRecord
       competition_cc = league_cc.season_cc.competition_cc
       context = opts[:context]
       season_cc = league_cc.season_cc
-      _, doc = region_cc.post_cc(
-        'createLeagueSave',
-        { fedId: competition_cc.fedId,
-          branchId: competition_cc.branchId,
-          subBranchId: competition_cc.cc_id,
-          seasonId: season_cc.cc_id,
-          posId: 1,
-          leagueName: league.name,
-          leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
-          prefix: 0,
-          sportdistrictId: 0,
-        },
-        opts
-      )
-      doc.to_s
+      args = { fedId: competition_cc.fedId,
+               branchId: competition_cc.branchId,
+               subBranchId: competition_cc.cc_id,
+               seasonId: season_cc.cc_id,
+               posId: 1,
+               leagueName: league.name,
+               leagueShortName: league.name.split(' ').map { |w| w[0] }.join('').upcase,
+               prefix: 0,
+               sportdistrictId: 0,
+      }
+      if false
+        _, doc = region_cc.post_cc(
+          'createLeagueSave',
+          args,
+          opts
+        )
+        doc.to_s
+      else
+        RegionCc.logger.info "REPORT [create_from_ba| WOULD CREATE League #{league.name} #{league.season.name} #{league.discipline.andand.name} with 'createLeagueSave' and payload #{args}"
+      end
     else
       RegionCc.logger.info "REPORT Liga #{league.name} #{league.season.name} #{league.discipline.andand.name} nicht in Club Cloud!"
     end
