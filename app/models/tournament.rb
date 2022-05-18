@@ -307,7 +307,7 @@ class Tournament < ApplicationRecord
           table.css("td").each do |td|
             if td.css("div").present?
               lastname, firstname, club_str = td.css("div").text.strip.match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..-1].map(&:strip)
-              player, seeding, state_ix = Player.fix_from_shortnames(lastname, firstname, season, region, club_str, self, true)
+              player, seeding, state_ix = Player.fix_from_shortnames(lastname, firstname, season, region, club_str, self, true, true)
               club = Club.where(region: region).where("name ilike ?", club_str).first ||
                 Club.where(region: region).where("shortname ilike ?", club_str).first
               if club.present?

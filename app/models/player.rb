@@ -76,7 +76,7 @@ class Player < ApplicationRecord
     fullname
   end
 
-  def self.fix_from_shortnames(lastname, firstname, season, region, club_str, tournament, allow_players_outside_ba)
+  def self.fix_from_shortnames(lastname, firstname, season, region, club_str, tournament, allow_players_outside_ba, allow_creates)
     player = nil
     club = Club.where(region: region).where('name ilike ?', club_str).first ||
       Club.where(region: region).where('shortname ilike ?', club_str).first
@@ -110,13 +110,15 @@ class Player < ApplicationRecord
           logger.info "[scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
           logger.info "[scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
           if allow_players_outside_ba
-            player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
-            player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
-            SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
-              SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-            if tournament.present?
-              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-                Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+            if allow_creates
+              player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
+              player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
+              SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+                SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+              if tournament.present?
+                seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                  Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+              end
             end
           end
           state_ix = 0
@@ -174,18 +176,20 @@ class Player < ApplicationRecord
     else
       logger.info "[scrape_tournaments] Inkonsistence - fatal: Club #{club_str}, region #{region.shortname} not found!! Typo?"
       fixed_club = region.clubs.create(name: club_str, shortname: club_str)
-      player_fixed = fixed_club.players.create(firstname: firstname, lastname: lastname)
-      fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
-      player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
-      SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
+      if allow_creates
+        player_fixed = fixed_club.players.create(firstname: firstname, lastname: lastname)
+        fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
+        player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
+        SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
 
-      logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
-      logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
-      if tournament.present?
-        seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
-          Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+        logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
+        logger.info "[scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
+        if tournament.present?
+          seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+            Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id)
+        end
+        state_ix = 0
       end
-      state_ix = 0
     end
     [(player || player_fixed), seeding, state_ix]
   end

@@ -91,6 +91,7 @@ class Version < ApplicationRecord
           else
             args['data'] = YAML.load(args['data']) if args['data'].present?
           end
+          args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
           Rails.logger.info "#{h['item_type']}[#{h['item_id']}]#{JSON.pretty_generate(args)}"
           begin
             classz = h['item_type'].constantize
@@ -99,12 +100,12 @@ class Version < ApplicationRecord
             if h['item_type'] == "GameParticipations"
               obj = classz.where(game_id: args['game_id'], player_id: args['player_id'], role: args['role']).first
             elsif h['item_type'] == "Player"
-              obj = classz.where(ba_id: args['ba_id']).first
+              obj = classz.where(type: nil).where(ba_id: args['ba_id']).first
               (obj ||= classz.where(cc_id: args['cc_id']).first) if args['cc_id'].present?
             elsif h['item_type'] == "SeasonParticipation"
               obj = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
 
-              obj.update(id: h['item_id'])
+              obj.andand.update(id: h['item_id'])
               next
             end
             if obj.present?
@@ -141,6 +142,7 @@ class Version < ApplicationRecord
           else
             args['data'] = YAML.load(args['data']) if args['data'].present?
           end
+          args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
           begin
             classz = h['item_type'].constantize
             obj = classz.where(id: h['item_id']).first
@@ -158,6 +160,7 @@ class Version < ApplicationRecord
               else
                 args = YAML.load(h["object"])
                 args['data'] = YAML.load(args['data']) if args['data'].present?
+                args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
                 obj.update(args)
               end
             else
@@ -165,6 +168,7 @@ class Version < ApplicationRecord
               obj.id = h['item_id']
               args = YAML.load(h["object"])
               args['data'] = YAML.load(args['data']) if args['data'].present?
+              args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
               obj.assign_attributes(args)
               obj.save!
             end

@@ -260,12 +260,14 @@ class League < ApplicationRecord
                   end
                   fields = doc_party.css("#tabs-2 label + .field")
                   remarks = fields.text.strip
-                  party.remarks_will_change!
-                  if winner_name.present?
-                    looser_team = team_a.name == winner_name ? team_b : team_a
-                    party.assign_attributes(party.attributes.merge(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks }))
-                  else
-                    party.assign_attributes(party.attributes.merge(remarks: { protest: protest, remarks: remarks }))
+                  if party.remarks[:protest] != protest || party.remarks[:remarks] != remarks
+                    party.remarks_will_change!
+                    if winner_name.present?
+                      looser_team = team_a.name == winner_name ? team_b : team_a
+                      party.assign_attributes(party.attributes.merge(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks }))
+                    else
+                      party.assign_attributes(party.attributes.merge(remarks: { protest: protest, remarks: remarks }))
+                    end
                   end
                 end
                 party_data = { result: element.css("td")[5].text.strip() }
@@ -331,14 +333,40 @@ class League < ApplicationRecord
     players = []
     player_names.each do |player_name_str|
       player_name = player_name_str.split(/\s+/)
-      player_firstname = player_name[0..-2].join(" ")
-      player_lastname = player_name[-1]
-      player = league_players["#{player_firstname} #{player_lastname}"]
-      if player.blank?
-        player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true)
-        league_players["#{player_firstname} #{player_lastname}"] = player
+      words_firstname = player_name[0..-2]
+      words_lastname = Array(player_name[-1])
+      player = nil
+      while words_firstname.count > 0
+        player_firstname = words_firstname.join(" ")
+        player_lastname = words_lastname.join(" ")
+        player = league_players["#{player_firstname} #{player_lastname}"]
+        if player.blank?
+          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true, false)
+          league_players["#{player_firstname} #{player_lastname}"] = player
+        end
+        if player.present?
+          players.push(player)
+          break
+        else
+          take_last_word_from_firstname = words_firstname.pop
+          words_lastname.unshift(take_last_word_from_firstname)
+        end
       end
-      players.push(player)
+      if player.blank?
+        player_name = player_name_str.split(/\s+/)
+        words_firstname = player_name[0..-2]
+        words_lastname = Array(player_name[-1])
+        player_firstname = words_firstname.join(" ")
+        player_lastname = words_lastname.join(" ")
+        player = league_players["#{player_firstname} #{player_lastname}"]
+        if player.blank?
+          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true, true)
+          league_players["#{player_firstname} #{player_lastname}"] = player
+          if player.present?
+            players.push(player)
+          end
+        end
+      end
     end
     if players.count == 2
       args = { data: { "players" => [{ "firstname" => players[0].firstname,
