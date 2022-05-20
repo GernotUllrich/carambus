@@ -303,7 +303,7 @@ class RegionCc < ApplicationRecord
         req['Content-Type'] = 'application/x-www-form-urlencoded'
         req['referer'] = referer if referer.present?
         req.set_form_data(post_options.reject { |_k, v| v.blank? })
-        sleep(1)
+        sleep(0.5)
         res = http.request(req)
         doc = if res.message == 'OK'
                 Nokogiri::HTML(res.body)
@@ -576,13 +576,19 @@ class RegionCc < ApplicationRecord
             next if branch_cc.name == "Snooker" # TODO TEST REMOVE ME
             next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
-            league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
+            league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).uniq.each do |party_cc|
+              next unless league_cc.league_id == 3475
+              #next unless party_cc.match_id == 1142
               party = party_cc.party
-              Kernel.sleep(0.5)
+              # next unless party.ba_id == 81118
+              #Kernel.sleep(0.5)
+              if party.no_show_team_id.present?
+                zuNullTeam = party.no_show_team_id == party.league_team_a.id ? party.league_team_b.id : party.league_team_a.id
+              end
               params = {
-                'memo' => "#{party.remarks.andand["remarks"]}".encode(Encoding::ISO_8859_1),
-                'protest' => "#{party.remarks.andand["protest"]}".encode(Encoding::ISO_8859_1),
-                'zuNullTeamId' => (LeagueTeamCc[party.no_show_team_id] if party.no_show_team_id.present?).andand.cc_id.to_i,
+                'memo' => "#{party.remarks.andand.deep_stringify_keys.andand["remarks"]}".encode(Encoding::ISO_8859_1),
+                'protest' => "#{party.remarks.andand.deep_stringify_keys.andand["protest"]}".encode(Encoding::ISO_8859_1),
+                'zuNullTeamId' => (LeagueTeam[zuNullTeam] if party.no_show_team_id.present?).andand.cc_id.to_i,
                 'saveBut' => "",
                 'woher' => 1,
                 'matchId' => party_cc.match_id,
@@ -597,139 +603,185 @@ class RegionCc < ApplicationRecord
                 "15-reds" => "Snooker",
 
               }
-              game_lines = party_cc.league_cc.game_plan_cc.data["games"]
-              pg_line_ix = 0
-              party.party_games.each_with_index do |pg, ix|
-                while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]])) do
-                  pg_line_ix += 1
+              if params['zuNullTeamId'].to_i > 0
+                if params['protest'].blank?
+                  params.merge!('protest' => ":: zu Null Ergebnis.".encode(Encoding::ISO_8859_1))
                 end
-                sc_ = pg.data[:result][pg.data[:result].keys[0]].split(":").map(&:strip).map(&:to_i)
-                in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].split(":").map(&:strip).map(&:to_i) : []
-                br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].split(":").map(&:strip).map(&:to_i) : []
+              elsif params["protest"].present?
+                if party.data[:result] =~ /:0/
+                  params.merge!('zuNullTeamId' => party.league_team_a.league_team_cc.cc_id)
+                elsif party.data[:result] =~ /0:/
+                  params.merge!('zuNullTeamId' => party.league_team_b.league_team_cc.cc_id)
+                end
+              else
+                game_lines = party_cc.league_cc.game_plan_cc.data["games"]
+                pg_line_ix = 0
+                party.party_games.each_with_index do |pg, ix|
+                  while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]])) do
+                    pg_line_ix += 1
+                  end
+                  sc_ = pg.data[:result][pg.data[:result].keys[0]].split(":").map(&:strip).map(&:to_i)
+                  in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].split(":").map(&:strip).map(&:to_i) : []
+                  br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].split(":").map(&:strip).map(&:to_i) : []
 
-                # 2:0 => 1:0, 1:0
-                # 2:1 => 1:0, 0:1, 1:0
-                player_a_noshow = player_b_noshow = false
-                if pg.player_a.cc_id.blank?
-                  if pg.player_a.lastname == "Freilos"
-                    player_a_noshow = true
-                  else
-                    player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_a.firstname, lastname: pg.player_a.lastname).first
-                    if player.present?
-                      pg.update(player_a_id: player.id)
-                      pg.reload
+                  # 2:0 => 1:0, 1:0
+                  # 2:1 => 1:0, 0:1, 1:0
+                  player_a_noshow = player_b_noshow = false
+                  if pg.player_a.cc_id.blank?
+                    if pg.player_a.lastname == "Freilos"
+                      player_a_noshow = true
                     else
-                      #TODO THIS IS DUPLICATE CODE !!!
-                      words_firstname = pg.player_a.firstname.split(/\s+/)
-                      words_lastname = Array(pg.player_a.lastname)
-                      player = nil
-                      while words_firstname.count > 0
-                        player_firstname = words_firstname.join(" ")
-                        player_lastname = words_lastname.join(" ")
-                        if player.blank?
-                          player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
-                        end
-                        if player.present?
-                          break
-                        else
-                          take_last_word_from_firstname = words_firstname.pop
-                          words_lastname.unshift(take_last_word_from_firstname)
-                        end
-                      end
+                      player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_a.firstname, lastname: pg.player_a.lastname).first
                       if player.present?
                         pg.update(player_a_id: player.id)
                         pg.reload
                       else
-                        RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_a.fullname}[#{pg.player_a.id} -  ba_id: #{pg.player_a.ba_id}, team: #{pg.party.league_team_a.name}]"
+                        #TODO THIS IS DUPLICATE CODE !!!
+                        words_firstname = pg.player_a.firstname.split(/\s+/)
+                        words_lastname = Array(pg.player_a.lastname)
+                        player = nil
+                        while words_firstname.count > 0
+                          player_firstname = words_firstname.join(" ")
+                          player_lastname = words_lastname.join(" ")
+                          if player.blank?
+                            player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
+                          end
+                          if player.present?
+                            break
+                          else
+                            take_last_word_from_firstname = words_firstname.pop
+                            words_lastname.unshift(take_last_word_from_firstname)
+                          end
+                        end
+                        if player.present?
+                          pg.update(player_a_id: player.id)
+                          pg.reload
+                        else
+                          RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_a.fullname}[#{pg.player_a.id} -  ba_id: #{pg.player_a.ba_id}, team: #{pg.party.league_team_a.name}]"
+                        end
                       end
                     end
                   end
-                end
-                if pg.player_b.cc_id.blank?
-                  if pg.player_b.lastname == "Freilos"
-                    player_b_noshow = true
-                  else
-                    player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_b.firstname, lastname: pg.player_b.lastname).first
-                    if player.present?
-                      pg.update(player_b_id: player.id)
-                      pg.reload
+                  if pg.player_b.cc_id.blank?
+                    if pg.player_b.lastname == "Freilos"
+                      player_b_noshow = true
                     else
-                      words_firstname = pg.player_b.firstname.split(/\s+/)
-                      words_lastname = Array(pg.player_b.lastname)
-                      player = nil
-                      while words_firstname.count > 0
-                        player_firstname = words_firstname.join(" ")
-                        player_lastname = words_lastname.join(" ")
-                        if player.blank?
-                          player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
-                        end
-                        if player.present?
-                          break
-                        else
-                          take_last_word_from_firstname = words_firstname.pop
-                          words_lastname.unshift(take_last_word_from_firstname)
-                        end
-                      end
+                      player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_b.firstname, lastname: pg.player_b.lastname).first
                       if player.present?
                         pg.update(player_b_id: player.id)
                         pg.reload
                       else
-                        RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_b.fullname}[#{pg.player_b.id} -  ba_id: #{pg.player_b.ba_id}, team: #{pg.party.league_team_b.name}]"
+                        words_firstname = pg.player_b.firstname.split(/\s+/)
+                        words_lastname = Array(pg.player_b.lastname)
+                        player = nil
+                        while words_firstname.count > 0
+                          player_firstname = words_firstname.join(" ")
+                          player_lastname = words_lastname.join(" ")
+                          if player.blank?
+                            player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
+                          end
+                          if player.present?
+                            break
+                          else
+                            take_last_word_from_firstname = words_firstname.pop
+                            words_lastname.unshift(take_last_word_from_firstname)
+                          end
+                        end
+                        if player.present?
+                          pg.update(player_b_id: player.id)
+                          pg.reload
+                        else
+                          RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_b.fullname}[#{pg.player_b.id} -  ba_id: #{pg.player_b.ba_id}, team: #{pg.party.league_team_b.name}]"
+                        end
                       end
                     end
                   end
+                  add_pg = {
+                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
+                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }
+                  if branch_cc.name == "Pool"
+                    if player_a_noshow && player_b_noshow && pg.party.data[:result] =~ /0:0/
+                      RegionCc.logger.info "REPORT keine Ergebnisse - noch nicht gespielt? wer ist Gewinner?"
+                    else
+                      if player_a_noshow
+                        if pg.party.data[:result] =~ /0:/
+                          # team a nicht angetreten
+                          if party.remarks.andand.deep_stringify_keys.andand["protest"].blank?
+                            if party.remarks.andand.deep_stringify_keys.andand["remarks"].blank?
+                              add_pg.merge!("memo" => ":: Mannschaft #{party.league_team_a.name} nicht angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                              add_pg.merge!("protest" => ":: Mannschaft #{party.league_team_b.name} gewinnt mit einem zu Null Ergebnis. [Es werden keine Spiele gespeichert.]".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                              add_pg.merge!('zuNullTeamId' => party.league_team_b.league_team_cc.cc_id)
+                            else
+                              RegionCc.logger.info "manual check"
+                            end
+                          else
+                            RegionCc.logger.info "manual check"
+                          end
+                        end
+                        unless add_pg['zuNullTeamId'].to_i > 0
+                          if sc_[1].to_i > 0
+                            add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence)
+                          else
+                            add_pg.merge!("memo" => ":: Mannschaft #{party.league_team_a.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                            add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
+                          end
+                        end
+                      elsif player_b_noshow
+
+                        if pg.party.data[:result] =~ /:0/
+                          # team b nicht angetreten
+                          if party.remarks.andand.deep_stringify_keys.andand["protest"].blank?
+                            if party.remarks.andand.deep_stringify_keys.andand["remarks"].blank?
+                              add_pg.merge!("memo" => ":: Mannschaft #{party.league_team_b.name} nicht angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                              add_pg.merge!("protest" => ":: Mannschaft #{party.league_team_a.name} gewinnt mit einem zu Null Ergebnis. [Es werden keine Spiele gespeichert.]".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                              add_pg.merge!('zuNullTeamId' => party.league_team_a.league_team_cc.cc_id)
+                            else
+                              RegionCc.logger.info "manual check"
+                            end
+                          else
+                            RegionCc.logger.info "manual check"
+                          end
+                        end
+                        unless add_pg['zuNullTeamId'].to_i > 0
+                          if sc_[0].to_i > 0
+                            add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence)
+                          else
+                            add_pg.merge!("memo" => ":: Mannschaft #{party.league_team_b.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                            add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
+                          end
+                        end
+                      else
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence) if sc_[0].present?
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence) if sc_[1].present?
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in1" => in_[0].presence) if in_[0].present?
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in2" => in_[1].presence) if in_[1].present?
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br1" => br_[0].presence) if br_[0].present?
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br2" => br_[1].presence) if br_[1].present?
+                      end
+                    end
+                  elsif branch_cc.name == "Snooker"
+                    c1 = sc_[0]; c2 = sc_[1]
+                    n_games = c1 + c2
+                    (1..n_games).each do |ii|
+                      if c1 >= c2
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 1) unless player_a_noshow
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 0)
+                        c1 = c1 - 1
+                      else
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 0)
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 1) unless player_b_noshow
+                        c2 = c2 - 1
+                      end
+                      if ii == n_games
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br1" => in_[0].presence) if in_[0].present? && !player_a_noshow
+                        add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br2" => in_[1].presence) if in_[1].present? && !player_b_noshow
+                      end
+                    end
+                  end
+                  params.merge!(add_pg)
+                  pg_line_ix += 1
+                  break if pg_line_ix > game_lines.count || params['zuNullTeamId'].to_i > 0
                 end
-                add_pg = {
-                  "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
-                  "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }
-                if branch_cc.name == "Pool"
-                  if player_a_noshow && player_b_noshow
-                    RegionCc.logger.info "REPORT keine Ergebnisse - wer ist Gewinner?"
-                  end
-                  if player_a_noshow
-                    if sc_[1].to_i > 0
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence)
-                    else
-                      add_pg.merge!("memo" => "by prgm: Mannschaft #{party.league_team_a.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
-                    end
-                  elsif player_b_noshow
-                    if sc_[0].to_i > 0
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence)
-                    else
-                      add_pg.merge!("memo" => "by prgm: Mannschaft #{party.league_team_b.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
-                    end
-                  else
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence) if sc_[0].present?
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence) if sc_[1].present?
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in1" => in_[0].presence) if in_[0].present?
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in2" => in_[1].presence) if in_[1].present?
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br1" => br_[0].presence) if br_[0].present?
-                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br2" => br_[1].presence) if br_[1].present?
-                  end
-                elsif branch_cc.name == "Snooker"
-                  c1 = sc_[0]; c2 = sc_[1]
-                  n_games = c1 + c2
-                  (1..n_games).each do |ii|
-                    if c1 >= c2
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 1) unless player_a_noshow
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 0)
-                      c1 = c1 - 1
-                    else
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 0)
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 1) unless player_b_noshow
-                      c2 = c2 - 1
-                    end
-                    if ii == n_games
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br1" => in_[0].presence) if in_[0].present? && !player_a_noshow
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br2" => in_[1].presence) if in_[1].present? && !player_b_noshow
-                    end
-                  end
-                end
-                params.merge!(add_pg)
-                pg_line_ix += 1
-                break if pg_line_ix > game_lines.count
               end
               args = params.merge(referer: "/admin/bm_mw/spielberichtCheck.php?")
               if true
@@ -1044,6 +1096,7 @@ class RegionCc < ApplicationRecord
               if name_str.match(/.*[ [[:space:]]]+\d+$/)
                 team_club_str = (m = name_str.match(/(.*[^ [[:space:]]])[ [[:space:]]]*(\d+)$/))[1]
                 team_seqno = m[2]
+                team_club_str = team_club_str.gsub("`", "'")
               end
               club = Club.where(region: region, shortname: team_club_str).first
               if club.present?
