@@ -121,17 +121,17 @@ class Tournament < ApplicationRecord
       else
         if id < Tournament::MIN_ID
           tol = tournament_local.presence || create_tournament_local(
-            timeouts: read_attribute(timeouts),
-            timeout: read_attribute(timeout),
-            gd_has_prio: read_attribute(gd_has_prio),
-            admin_controlled: read_attribute(admin_controlled),
-            sets_to_play: read_attribute(sets_to_play) || 1,
-            sets_to_win: read_attribute(sets_to_win).presence || 1,
-            team_size: read_attribute(team_size).presence || 1,
-            kickoff_switches_with_set: read_attribute(kickoff_switches_with_set),
-            allow_follow_up: read_attribute(allow_follow_up),
-            fixed_display_left: read_attribute(fixed_display_left),
-            color_remains_with_set: read_attribute(color_remains_with_set)
+            timeouts: read_attribute(timeouts).to_i,
+            timeout: read_attribute(timeout).to_i,
+            gd_has_prio: (read_attribute(gd_has_prio).present? ? false : true),
+            admin_controlled: (read_attribute(admin_controlled).present? ? false : true),
+            sets_to_play: (read_attribute(sets_to_play) || 1),
+            sets_to_win: (read_attribute(sets_to_win).presence || 1),
+            team_size: (read_attribute(team_size).presence || 1),
+            kickoff_switches_with_set: (read_attribute(kickoff_switches_with_set).present? ? false : true),
+            allow_follow_up: (read_attribute(allow_follow_up).present? ? false : true),
+            fixed_display_left: (read_attribute(fixed_display_left).present? ? false : true),
+            color_remains_with_set: (read_attribute(color_remains_with_set).present? ? false : true)
           )
           tol.update(meth => value)
         else
