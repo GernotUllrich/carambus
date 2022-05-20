@@ -5,7 +5,11 @@ class RegionCcAction
     context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
     season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
-    return { session_id: session_id, armed: force_update, context: context, season_name: season_name }
+    exclude_season_names = ["2009/2010", "2010/2011", "2011/2012",
+                            "2019/2020", "2020/2021", "2021/2022"]
+    exclude_league_ba_ids = [3465, 3466, 3467, 3468, 3470, 3469,   6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
+
+    return { session_id: session_id, armed: force_update, context: context, season_name: season_name, exclude_season_names: exclude_season_names, exclude_league_ba_ids: exclude_league_ba_ids }
   end
 
   def self.remove_local_objects(opts)
@@ -193,7 +197,7 @@ SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
       #dbu_region = Region.find_by_shortname("portal")
 
       # no dbu !!! league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region.id] }).where("clubs.region_id = ?", region.id).uniq
-      league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id] }).where("clubs.region_id = ?", region.id).uniq
+      league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id] }).where("clubs.region_id = ?", region.id).where.not(league: {ba_id: opts[:exclude_league_ba_ids]}).uniq
       league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
       league_teams_done, league_team_ccs = region_cc.sync_league_teams(opts)
       league_teams_done_ids = league_teams_done.map(&:id)

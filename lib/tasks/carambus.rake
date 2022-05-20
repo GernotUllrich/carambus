@@ -77,13 +77,14 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-    Season.order(ba_id: :desc).each do |season|
+    Season.order(ba_id: :asc).each do |season|
       #TODO if scraped completely .limit(2)
       sh_names = Region::REGION_SHORTNAMES - ["BBBV",
                                               "BBV",
                                               "BLMR",
                                               "BLVN",
                                               "BLVSA"]
+      sh_names = ["NBV"]
       Region.where(shortname: sh_names).all.each do |region|
         League.scrape_leagues_by_region_and_season(region, season)
       end

@@ -393,7 +393,7 @@ class RegionCc < ApplicationRecord
 
     leagues_region_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
       'clubs.region_id = ?', region.id
-    ).uniq
+    ).where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] }).uniq
     # TODO forget DBU leagues for now
     # dbu_region = Region.find_by_shortname('portal')
     # dbu_leagues_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: dbu_region.id).where(
@@ -411,6 +411,7 @@ class RegionCc < ApplicationRecord
         if league.blank?
           raise_err_msg('synchronize_league_structure', "no league with id #{league_id}")
         else
+          next if league.discipline_id.blank? # TODO TEST RENOVE ME
           if force_update
             league_cc = LeagueCc.create_league_plan_from_ba(league, opts)
           else
@@ -436,6 +437,8 @@ class RegionCc < ApplicationRecord
     raise ArgumentError, "unknown season name #{opts[:season_name]}", caller if season.blank?
     region_cc = Region.where(shortname: opts[:context].upcase).first.region_cc
     League.where(season: season, organizer_type: 'Region', organizer_id: region.id).each do |league|
+      next if opts[:exclude_league_ba_ids].include?(league.ba_id)
+      next if league.discipline_id.blank? #TODO TEST REMOVE ME
       league_team_players = {}
       league.parties.each do |party|
         league_team_players[party.league_team_a_id] ||= []
@@ -493,7 +496,7 @@ class RegionCc < ApplicationRecord
                   RegionCc.logger.info "REPORT! ERROR LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} not in CC!"
                 end
               else
-                RegionCc.logger.info "REPORT! [sync_team_players_structure] WOULD ADD LeagueTeam #{league_team.andand.name} Player #{player.fullname} DBU-NR=#{player.ba_id} with 'showLeague_add_teamplayer' and payload #{args}"
+                RegionCc.logger.info "REPORT! #{league.season.name}, #{league.name}, LeagueTeam: #{league_team.andand.name} Player: #{player.fullname} DBU-NR=#{player.ba_id} fehlt!!"
               end
             end
           else
@@ -568,17 +571,17 @@ class RegionCc < ApplicationRecord
     region_cc = region.region_cc
     region_cc.branch_ccs.each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
-        competition_cc.season_ccs.each do |season_cc|
+        competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
-            next unless branch_cc.name == "Snooker"
-            next unless season_cc.name == "2014/2015"
-            next unless league_cc.name == "Verbandsliga Snooker"
+            next if branch_cc.name == "Snooker" # TODO TEST REMOVE ME
+            next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
+            next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).each do |party_cc|
               party = party_cc.party
               Kernel.sleep(0.5)
               params = {
-                'memo' => "#{party.remarks.andand["remarks"]}",
-                'protest' => "#{party.remarks.andand["protest"]}",
+                'memo' => "#{party.remarks.andand["remarks"]}".encode(Encoding::ISO_8859_1),
+                'protest' => "#{party.remarks.andand["protest"]}".encode(Encoding::ISO_8859_1),
                 'zuNullTeamId' => (LeagueTeamCc[party.no_show_team_id] if party.no_show_team_id.present?).andand.cc_id.to_i,
                 'saveBut' => "",
                 'woher' => 1,
@@ -606,40 +609,121 @@ class RegionCc < ApplicationRecord
 
                 # 2:0 => 1:0, 1:0
                 # 2:1 => 1:0, 0:1, 1:0
+                player_a_noshow = player_b_noshow = false
                 if pg.player_a.cc_id.blank?
-                  RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_a.fullname}[#{pg.player_a.id} -  ba_id: #{pg.player_a.ba_id}, team: #{pg.party.league_team_a.name}]"
+                  if pg.player_a.lastname == "Freilos"
+                    player_a_noshow = true
+                  else
+                    player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_a.firstname, lastname: pg.player_a.lastname).first
+                    if player.present?
+                      pg.update(player_a_id: player.id)
+                      pg.reload
+                    else
+                      #TODO THIS IS DUPLICATE CODE !!!
+                      words_firstname = pg.player_a.firstname.split(/\s+/)
+                      words_lastname = Array(pg.player_a.lastname)
+                      player = nil
+                      while words_firstname.count > 0
+                        player_firstname = words_firstname.join(" ")
+                        player_lastname = words_lastname.join(" ")
+                        if player.blank?
+                          player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
+                        end
+                        if player.present?
+                          break
+                        else
+                          take_last_word_from_firstname = words_firstname.pop
+                          words_lastname.unshift(take_last_word_from_firstname)
+                        end
+                      end
+                      if player.present?
+                        pg.update(player_a_id: player.id)
+                        pg.reload
+                      else
+                        RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_a.fullname}[#{pg.player_a.id} -  ba_id: #{pg.player_a.ba_id}, team: #{pg.party.league_team_a.name}]"
+                      end
+                    end
+                  end
                 end
                 if pg.player_b.cc_id.blank?
-                  RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_b.fullname}[#{pg.player_b.id} -  ba_id: #{pg.player_b.ba_id}, team: #{pg.party.league_team_b.name}]"
+                  if pg.player_b.lastname == "Freilos"
+                    player_b_noshow = true
+                  else
+                    player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_b.firstname, lastname: pg.player_b.lastname).first
+                    if player.present?
+                      pg.update(player_b_id: player.id)
+                      pg.reload
+                    else
+                      words_firstname = pg.player_b.firstname.split(/\s+/)
+                      words_lastname = Array(pg.player_b.lastname)
+                      player = nil
+                      while words_firstname.count > 0
+                        player_firstname = words_firstname.join(" ")
+                        player_lastname = words_lastname.join(" ")
+                        if player.blank?
+                          player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: player_firstname, lastname: player_lastname).first
+                        end
+                        if player.present?
+                          break
+                        else
+                          take_last_word_from_firstname = words_firstname.pop
+                          words_lastname.unshift(take_last_word_from_firstname)
+                        end
+                      end
+                      if player.present?
+                        pg.update(player_b_id: player.id)
+                        pg.reload
+                      else
+                        RegionCc.logger.info "REPORT! Spieler hat keine PASS-NR: #{pg.player_b.fullname}[#{pg.player_b.id} -  ba_id: #{pg.player_b.ba_id}, team: #{pg.party.league_team_b.name}]"
+                      end
+                    end
+                  end
                 end
                 add_pg = {
                   "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
                   "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }
                 if branch_cc.name == "Pool"
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence) if sc_[0].present?
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence) if sc_[1].present?
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in1" => in_[0].presence) if in_[0].present?
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in2" => in_[1].presence) if in_[1].present?
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br1" => br_[0].presence) if br_[0].present?
-                  add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br2" => br_[1].presence) if br_[1].present?
+                  if player_a_noshow && player_b_noshow
+                    RegionCc.logger.info "REPORT keine Ergebnisse - wer ist Gewinner?"
+                  end
+                  if player_a_noshow
+                    if sc_[1].to_i > 0
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence)
+                    else
+                      add_pg.merge!("memo" => "by prgm: Mannschaft #{party.league_team_a.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
+                    end
+                  elsif player_b_noshow
+                    if sc_[0].to_i > 0
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence)
+                    else
+                      add_pg.merge!("memo" => "by prgm: Mannschaft #{party.league_team_b.name} nicht vollständig angetreten".encode(Encoding::ISO_8859_1)) unless params["memo"].present?
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
+                    end
+                  else
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc1" => sc_[0].presence) if sc_[0].present?
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => sc_[1].presence) if sc_[1].present?
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in1" => in_[0].presence) if in_[0].present?
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-in2" => in_[1].presence) if in_[1].present?
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br1" => br_[0].presence) if br_[0].present?
+                    add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-br2" => br_[1].presence) if br_[1].present?
+                  end
                 elsif branch_cc.name == "Snooker"
                   c1 = sc_[0]; c2 = sc_[1]
                   n_games = c1 + c2
                   (1..n_games).each do |ii|
                     if c1 >= c2
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 1)
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 1) unless player_a_noshow
                       add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 0)
                       c1 = c1 - 1
                     else
                       add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc1" => 0)
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 1)
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-sc2" => 1) unless player_b_noshow
                       c2 = c2 - 1
                     end
                     if ii == n_games
-                      # add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-in1" => in_[0].presence) if in_[0].present?
-                      # add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-in2" => in_[1].presence) if in_[1].present?
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br1" => in_[0].presence) if in_[0].present?
-                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br2" => in_[1].presence) if in_[1].present?
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br1" => in_[0].presence) if in_[0].present? && !player_a_noshow
+                      add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-#{ii}-br2" => in_[1].presence) if in_[1].present? && !player_b_noshow
                     end
                   end
                 end
@@ -648,7 +732,7 @@ class RegionCc < ApplicationRecord
                 break if pg_line_ix > game_lines.count
               end
               args = params.merge(referer: "/admin/bm_mw/spielberichtCheck.php?")
-              if false
+              if true
                 _res, doc = region_cc.post_cc(
                   "spielberichtSave",
                   args,
@@ -822,7 +906,7 @@ class RegionCc < ApplicationRecord
     leagues = []
     BranchCc.where(context: context).each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
-        competition_cc.season_ccs.each do |season_cc|
+        competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
           next unless season_cc.name == season_name
           # Get List of Leagues in CC
           _res, doc = post_cc(
@@ -923,6 +1007,7 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
+            next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             next unless season_cc.name == season_name
 
             _, doc = post_cc(
@@ -1013,12 +1098,12 @@ class RegionCc < ApplicationRecord
     region = Region.find_by_shortname(opts[:context].upcase)
     leagues = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
       'clubs.region_id = ?', region.id
-    ).uniq
+    ).where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] }).uniq
     leagues_done = []
     errMsg = nil
     leagues.each do |league|
-      next unless league.id == 3560
-      #next unless league.league_cc.andand.branch_cc.andand.name == "Snooker" #TODO DEBUG REMOVE ME
+      next if opts[:exclude_league_ba_ids].include?(league.ba_id)
+      next if league.discipline_id.blank? # TODO TEST REMOVE ME
       league_cc = league.league_cc
       parties = league.parties
       # read spielplan
