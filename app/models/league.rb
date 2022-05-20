@@ -241,6 +241,7 @@ class League < ApplicationRecord
               protest_link = Nokogiri::HTML(protest_link_html.inner_html).css("a").attribute("href").andand.value.to_s
 
               match_day_url = "/cms_leagues/matchday/#{party_ba_id}"
+              ## next unless party_ba_id.to_i == 81009
               uri = URI(url + match_day_url)
               res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
               player_a = player_b = game_name = nil
@@ -255,19 +256,16 @@ class League < ApplicationRecord
                     protest = fields[1].andand.text.andand.strip.to_s
                     winner_name_match = fields[0].text.strip.match(/(.*) gewinnt zu Null. Keine Spiele werden gespeichert/)
                     if winner_name_match.present?
-                      winner_name = winner_name_match[1]
+                      winner_name = winner_name_match[1].strip
                     end
                   end
                   fields = doc_party.css("#tabs-2 label + .field")
                   remarks = fields.text.strip
-                  if party.remarks[:protest] != protest || party.remarks[:remarks] != remarks
-                    party.remarks_will_change!
-                    if winner_name.present?
-                      looser_team = team_a.name == winner_name ? team_b : team_a
-                      party.assign_attributes(party.attributes.merge(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks }))
-                    else
-                      party.assign_attributes(party.attributes.merge(remarks: { protest: protest, remarks: remarks }))
-                    end
+                  if winner_name.present?
+                    looser_team = team_a.name == winner_name ? team_b : team_a
+                    party.assign_attributes(party.attributes.merge(no_show_team_id: looser_team.id, remarks: { protest: protest, remarks: remarks }))
+                  else
+                    party.assign_attributes(party.attributes.merge(remarks: { protest: protest, remarks: remarks }))
                   end
                 end
                 party_data = { result: element.css("td")[5].text.strip() }
