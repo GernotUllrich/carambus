@@ -108,7 +108,7 @@ class Tournament < ApplicationRecord
     end
   end
 
-  [:timeouts, :timeout, :gd_has_priority, :admin_controlled, :sets_to_play, :sets_to_win,
+  [:timeouts, :timeout, :gd_has_prio, :admin_controlled, :sets_to_play, :sets_to_win,
    :team_size, :kickoff_switches_with_set, :allow_follow_up,
    :fixed_display_left, :color_remains_with_set].each do |meth|
     define_method(meth) do
@@ -123,7 +123,7 @@ class Tournament < ApplicationRecord
           tol = tournament_local.presence || create_tournament_local(
             timeouts: read_attribute(timeouts),
             timeout: read_attribute(timeout),
-            gd_has_priority: read_attribute(gd_has_priority),
+            gd_has_prio: read_attribute(gd_has_prio),
             admin_controlled: read_attribute(admin_controlled),
             sets_to_play: read_attribute(sets_to_play),
             sets_to_win: read_attribute(sets_to_win),
