@@ -421,9 +421,9 @@ class TournamentMonitor < ApplicationRecord
   def reset_tournament_monitor
     Tournament.logger.info '[tmon-reset_tournament_monitor]...'
     update(
-      sets_to_play: (tournament.andand.sets_to_play || 1),
-      sets_to_win: (tournament.andand.sets_to_win || 1),
-      team_size: (tournament.andand.team_size || 1),
+      sets_to_play: (tournament.andand.sets_to_play.presence || 1),
+      sets_to_win: (tournament.andand.sets_to_win.presence || 1),
+      team_size: (tournament.andand.team_size.presence || 1),
       kickoff_switches_with_set: tournament.andand.kickoff_switches_with_set,
       allow_follow_up: tournament.andand.allow_follow_up,
       fixed_display_left: (tournament.andand.fixed_display_left || ""),

@@ -521,7 +521,7 @@ class TableMonitor < ApplicationRecord
                        'allow_follow_up' => tournament_monitor.andand.allow_follow_up || tournament_monitor.andand.tournament.andand.allow_follow_up,
                        'sets_to_win' => tournament_monitor.andand.sets_to_win || tournament_monitor.andand.tournament.andand.sets_to_win,
                        'sets_to_play' => tournament_monitor.andand.sets_to_play || tournament_monitor.andand.tournament.andand.sets_to_play,
-                       'team_size' => tournament_monitor.andand.team_size || tournament_monitor.andand.tournament.andand.team_size,
+                       'team_size' => (tournament_monitor.andand.team_size || tournament_monitor.andand.tournament.andand.team_size).presence || 1,
                        'innings_goal' =>
                          tournament_monitor.andand.innings_goal ||
                            tournament_monitor.andand.tournament.andand.innings_goal,

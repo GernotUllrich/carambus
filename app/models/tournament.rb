@@ -127,7 +127,7 @@ class Tournament < ApplicationRecord
             admin_controlled: read_attribute(admin_controlled),
             sets_to_play: read_attribute(sets_to_play) || 1,
             sets_to_win: read_attribute(sets_to_win).presence || 1,
-            team_size: read_attribute(team_size),
+            team_size: read_attribute(team_size).presence || 1,
             kickoff_switches_with_set: read_attribute(kickoff_switches_with_set),
             allow_follow_up: read_attribute(allow_follow_up),
             fixed_display_left: read_attribute(fixed_display_left),
