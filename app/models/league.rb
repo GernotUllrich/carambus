@@ -340,7 +340,7 @@ class League < ApplicationRecord
         player_lastname = words_lastname.join(" ")
         player = league_players["#{player_firstname} #{player_lastname}"]
         if player.blank?
-          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true, false)
+          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.andand.club.andand.shortname.to_s, nil, true, false)
           league_players["#{player_firstname} #{player_lastname}"] = player
         end
         if player.present?
@@ -359,7 +359,7 @@ class League < ApplicationRecord
         player_lastname = words_lastname.join(" ")
         player = league_players["#{player_firstname} #{player_lastname}"]
         if player.blank?
-          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.club.shortname, nil, true, true)
+          player, seeding, state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer, team.andand.club.andand.shortname.to_s, nil, true, true)
           league_players["#{player_firstname} #{player_lastname}"] = player
           if player.present?
             players.push(player)
