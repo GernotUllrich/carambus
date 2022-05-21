@@ -191,7 +191,8 @@ class League < ApplicationRecord
         Rails.logger.info "reading index page league_team #{league_team.name} (#{league_team.ba_id}) to scrape league"
         html_lt = URI.open(url_lt)
         doc_lt = Nokogiri::HTML(html_lt)
-        links = doc_lt.css(".element+ .matchday_table a")
+        tables = doc_lt.css("table.matchday_table")
+        links = tables[0].css("a")
         links.map do |d|
           [d["href"], d.text]
         end.each do |arr|

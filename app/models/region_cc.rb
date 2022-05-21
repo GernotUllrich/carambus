@@ -577,8 +577,8 @@ class RegionCc < ApplicationRecord
             next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).uniq.each do |party_cc|
-              next unless league_cc.league_id == 3475
-              #next unless party_cc.match_id == 1142
+              next unless league_cc.league_id == 3480
+              next unless party_cc.match_id == 3028
               party = party_cc.party
               # next unless party.ba_id == 81118
               #Kernel.sleep(0.5)
@@ -703,7 +703,7 @@ class RegionCc < ApplicationRecord
                     if player_a_noshow && player_b_noshow && pg.party.data[:result] =~ /0:0/
                       RegionCc.logger.info "REPORT keine Ergebnisse - noch nicht gespielt? wer ist Gewinner?"
                     else
-                      if player_a_noshow
+                      if player_a_noshow && sc_[0].to_i == 0
                         if pg.party.data[:result] =~ /0:/
                           # team a nicht angetreten
                           if party.remarks.andand.deep_stringify_keys.andand["protest"].blank?
@@ -726,7 +726,7 @@ class RegionCc < ApplicationRecord
                             add_pg.merge!("#{party_cc.match_id}-#{pg_line_ix}-1-sc2" => (game_lines[pg_line_ix] =~ /14/ ? 125 : 7))
                           end
                         end
-                      elsif player_b_noshow
+                      elsif player_b_noshow && sc_[1].to_i == 0
 
                         if pg.party.data[:result] =~ /:0/
                           # team b nicht angetreten

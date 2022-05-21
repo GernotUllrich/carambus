@@ -5,11 +5,11 @@ class RegionCcAction
     context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
     season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
-    exclude_season_names = ["2009/2010", "2010/2011", "2011/2012",
+    exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013",
                             "2019/2020", "2020/2021", "2021/2022"]
     # TODO ba_ids!!! exclude_league_ba_ids = [6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
     #exclude_league_ba_ids = [1827,1824, 6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
-    exclude_league_ba_ids = [1827, 1824, 1825, 1828, 1830, 1829, 6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
+    exclude_league_ba_ids = [1827, 1824, 1825, 1828, 1830, 1829, 2341, 2339, 2335, 2342, 2343, 2336,   6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
 
     return { session_id: session_id, armed: force_update, context: context, season_name: season_name, exclude_season_names: exclude_season_names, exclude_league_ba_ids: exclude_league_ba_ids }
   end
