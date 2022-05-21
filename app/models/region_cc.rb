@@ -577,11 +577,11 @@ class RegionCc < ApplicationRecord
             next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).uniq.each do |party_cc|
-              next unless league_cc.league_id == 3480
-              next unless party_cc.match_id == 3028
+              # next unless league_cc.league_id == 3480
+              # next unless party_cc.match_id == 3028
               party = party_cc.party
               # next unless party.ba_id == 81118
-              #Kernel.sleep(0.5)
+              # Kernel.sleep(0.5)
               if party.no_show_team_id.present?
                 zuNullTeam = party.no_show_team_id == party.league_team_a.id ? party.league_team_b.id : party.league_team_a.id
               end

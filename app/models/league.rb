@@ -224,8 +224,8 @@ class League < ApplicationRecord
 
       end
       if game_details
-        doc.css("#tabs li a").each_with_index do |tab, ix|
-          next if ix == 0
+        doc.css("#tabs li a").each_with_index do |tab, ixt|
+          next if ixt == 0
           tab_tag = tab.attribute("href").value
           tab_text = tab.text.gsub("Spielplan ", "")
           doc.css("#{tab_tag} tr").each do |element|
