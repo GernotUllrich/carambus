@@ -270,7 +270,9 @@ class League < ApplicationRecord
                   end
                 end
                 party_data = { result: element.css("td")[5].text.strip() }
-                party.assign_attributes(party.attributes.merge(date: date, league: self, day_seqno: day_seqno, section: tab_text, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data))
+                round = "1"
+                round = "2" if tab_text == "Rückrunde"
+                party.assign_attributes(party.attributes.merge(date: date, league: self, day_seqno: day_seqno, section: tab_text, round: round, league_team_a: team_a, league_team_b: team_b, host_league_team: host_team, data: party_data))
                 party.save!
 
                 trs = doc_party.css("tr + tr")
