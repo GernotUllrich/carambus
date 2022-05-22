@@ -574,10 +574,11 @@ class RegionCc < ApplicationRecord
         competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
             next if branch_cc.name == "Snooker" # TODO TEST REMOVE ME
-            next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
+            next if branch_cc.name == "Pool" # TODO TEST REMOVE ME
+            #next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             league_cc.party_ccs.joins(:party).where.not(parties: { id: opts[:done_ids] }).uniq.each do |party_cc|
-              # next unless league_cc.league_id == 3480
+              #next unless league_cc.league_id == 3512
               # next unless party_cc.match_id == 3028
               party = party_cc.party
               # next unless party.ba_id == 81118
@@ -1157,6 +1158,7 @@ class RegionCc < ApplicationRecord
     leagues.each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? # TODO TEST REMOVE ME
+      next unless  league.id == 3490
       league_cc = league.league_cc
       parties = league.parties
       # read spielplan
