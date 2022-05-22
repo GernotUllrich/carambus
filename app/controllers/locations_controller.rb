@@ -133,7 +133,7 @@ class LocationsController < ApplicationController
       #   end
       # end
       info = "+++ 3l - locations_controller#placement"; DebugInfo.instance.update(info: info); Rails.logger.info info
-      @games = @tournament.games.joins(:game_participations => :player).where(game_participations: { role: "playera" }).to_a.sort_by { |game| game.game_participations.where(role: "playera").first.player.lastname + game.game_participations.where(role: "playerb").first.player.lastname }.select { |game| game.data.blank? || game.data["ba_results"].blank? }
+      @games = @tournament.games.joins(:game_participations => :player).where(game_participations: { role: "playera" }).to_a.sort_by { |game| game.game_participations.where(role: "playera").first.player.andand.lastname.to_s + game.game_participations.where(role: "playerb").first.player.andand.lastname.to_s }.select { |game| game.data.blank? || game.data["ba_results"].blank? }
       @pairs = []
       @games.map do |game|
         gpa = game.game_participations.where(role: "playera").first; playera = gpa.andand.player
