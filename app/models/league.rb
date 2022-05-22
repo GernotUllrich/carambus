@@ -72,7 +72,7 @@ class League < ApplicationRecord
     Competition.where(super_discipline_id: discipline_id).where("name ilike '%Mannschaft%'").first
   end
 
-  def self.scrape_leagues_by_region_and_season(region, season)
+  def self.scrape_leagues_by_region_and_season(region, season, opts={})
     url_top = "https://#{region.shortname.downcase}.billardarea.de"
     uri_top = URI(url_top + '/cms_leagues')
     Rails.logger.info "reading #{url_top + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
@@ -81,8 +81,8 @@ class League < ApplicationRecord
     tabs = doc_top.css("#tabs li a")
     tabs.each_with_index do |tab, ix|
       dis_str = tab.text.strip()
-      dis_str = "Carambol Match Billard" if dis_str == "Karambol großes Billard"
-      dis_str = "Carambol Small Billard" if dis_str == "Karambol kleines Billard"
+      #dis_str = "Carambol Match Billard" if dis_str == "Karambol großes Billard"
+      #dis_str = "Carambol Small Billard" if dis_str == "Karambol kleines Billard"
       discipline = Discipline.find_by_name(dis_str)
       tab = "#tabs-#{ix + 1} a"
       lines = doc_top.css(tab)
@@ -122,7 +122,7 @@ class League < ApplicationRecord
             league = League.find_by_ba_id_and_ba_id2(ba_id, ba_id2) || League.new(args)
             league.assign_attributes(args)
             league.save
-            league.scrape_single_league(game_details: false)
+            league.scrape_single_league(opts.merge(game_details: false))
           end
         end
       end
@@ -130,6 +130,7 @@ class League < ApplicationRecord
   end
 
   def scrape_single_league(opts = {})
+    next if opts[:skip_league_details]
     league_players = {}
     logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
     game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true

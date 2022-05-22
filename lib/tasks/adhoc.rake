@@ -127,7 +127,7 @@ namespace :adhoc do
     #League[3464].scrape_single_league(game_details: true)
     region = Region[1]
     season = Season[2]
-    League.scrape_leagues_by_region_and_season(region, season)
+    League.scrape_leagues_by_region_and_season(region, season, game_details: false, skip_league_details: false)
   end
 
   task clean_local: :environment do

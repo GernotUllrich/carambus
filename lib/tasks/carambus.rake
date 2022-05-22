@@ -86,7 +86,7 @@ namespace :carambus do
                                               "BLVSA"]
       sh_names = ["NBV"]
       Region.where(shortname: sh_names).all.each do |region|
-        League.scrape_leagues_by_region_and_season(region, season)
+        League.scrape_leagues_by_region_and_season(region, season, game_details: false, skip_league_details: false)
       end
     end
   end
