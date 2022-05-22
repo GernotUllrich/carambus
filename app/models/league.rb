@@ -130,7 +130,7 @@ class League < ApplicationRecord
   end
 
   def scrape_single_league(opts = {})
-    next if opts[:skip_league_details]
+    return if opts[:skip_league_details]
     league_players = {}
     logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
     game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
