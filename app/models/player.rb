@@ -197,6 +197,9 @@ class Player < ApplicationRecord
   def self.merge_players(player_ok, player_tmp_arr)
     Array(player_tmp_arr).each do |player_tmp|
       Player.transaction do
+        if player_ok.club.blank? && player_tmp.club.present?
+          player_ok.update(club_id: player_tmp.club_id)
+        end
         GameParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
         SeasonParticipation.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
         PlayerRanking.where(player_id: player_tmp.id).map { |o| o.update(player: player_ok) }
