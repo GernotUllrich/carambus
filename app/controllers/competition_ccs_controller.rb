@@ -1,4 +1,5 @@
 class CompetitionCcsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_competition_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /competition_ccs

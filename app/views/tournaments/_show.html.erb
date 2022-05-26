@@ -4,7 +4,7 @@
       <h1 class="h3"><%= link_to t('home.index.tournaments'), tournaments_path %> &gt; <%= tournament.title %>
         - <%= tournament.organizer.shortname %> - <%= tournament.season.name %></h1>
       <h3><%= subtitle %></h3>
-      <%= link_to('Edit', edit_tournament_path(tournament), class: "btn btn-link") if current_user.andand.admin? %>
+      <%= link_to('Edit', edit_tournament_path(tournament), class: "btn btn-link") %>
     </div>
     <%- unless local_assigns[:drop_details].present? %>
       <div class="flex flex-wrap space-y-5 bg-white dark:bg-black rounded shadow p-8">

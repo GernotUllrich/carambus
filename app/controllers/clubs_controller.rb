@@ -1,6 +1,7 @@
 class ClubsController < ApplicationController
   include FiltersHelper
   protect_from_forgery except: :search
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_club, only: [:new_club_tournament, :show, :edit, :update, :destroy, :get_club_details, :new_club_guest, :new_club_location, :reload_from_ba, :reload_from_ba_with_player_details]
 
   # GET /clubs

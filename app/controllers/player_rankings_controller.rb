@@ -1,5 +1,6 @@
 class PlayerRankingsController < ApplicationController
   include FiltersHelper
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_player_ranking, only: [:show, :edit, :update, :destroy]
 
   # GET /player_rankings

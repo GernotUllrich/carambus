@@ -3,7 +3,7 @@
     <h1 class="h3">Games</h1>
 
     <% if @games.any? %>
-      <%= link_to 'New Game', new_game_path, class: "btn btn-primary" if current_user.andand.admin? %>
+      <%= link_to 'New Game', new_game_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 

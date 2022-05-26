@@ -1,5 +1,6 @@
 class SeedingsController < ApplicationController
   include FiltersHelper
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_seeding, only: [:show, :edit, :update, :destroy, :up, :down]
 
   # GET /seedings

@@ -1,4 +1,5 @@
 class RegionCcsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_region_cc, only: [:show, :edit, :update, :destroy, :fix, :check,
                                        :fix_branch_cc, :check_branch_cc,
                                        :fix_competition_cc, :check_competition_cc,

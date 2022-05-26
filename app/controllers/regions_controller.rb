@@ -1,6 +1,7 @@
 class RegionsController < ApplicationController
   include FiltersHelper
   protect_from_forgery except: :search
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_region, only: [:show, :edit, :update, :destroy, :reload_from_ba, :reload_from_ba_with_player_details, :migration_cc, :set_base_parameters]
 
   def set_base_parameters

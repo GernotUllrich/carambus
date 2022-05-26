@@ -38,6 +38,13 @@ class ApplicationController < ActionController::Base
   protected
 
 
+  def admin_only_check
+    unless current_user.andand.admin?
+      redirect_to root_path, alert: "Admin Only - ask gernot.ullrich@gmx.de for permission"
+      return false
+    end
+  end
+
   def switch_locale(&action)
     locale = params[:locale] || I18n.default_locale
     I18n.with_locale(locale, &action)

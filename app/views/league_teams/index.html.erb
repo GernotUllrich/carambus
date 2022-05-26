@@ -41,7 +41,7 @@
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first League Team</p>
-        <%= link_to 'New League Team', new_league_team_path, class: "btn btn-primary" if current_user.andand.admin? %>
+        <%= link_to 'New League Team', new_league_team_path, class: "btn btn-primary" %>
       </div>
     </div>
   <% end %>

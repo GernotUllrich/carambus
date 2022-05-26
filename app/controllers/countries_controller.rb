@@ -1,4 +1,5 @@
 class CountriesController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_country, only: [:show, :edit, :update, :destroy]
 
   # GET /countries

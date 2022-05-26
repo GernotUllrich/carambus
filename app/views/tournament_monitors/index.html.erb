@@ -7,28 +7,28 @@
     <div class="bg-white dark:bg-black rounded shadow table-responsive">
       <table class="table">
         <thead>
-          <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :tournament_id, 'Tournament', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :innings_goal, 'Innings goal', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeouts, '# Timeouts', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeout, 'Timeout  (sek)', class: 'text-gray-700 dark:text-gray-200' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
-          </tr>
+        <tr>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :tournament_id, 'Tournament', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :data, 'Data', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :state, 'State', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :innings_goal, 'Innings goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :balls_goal, 'Balls goal', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeouts, '# Timeouts', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeout, 'Timeout  (sek)', class: 'text-gray-700 dark:text-gray-200' %></th>
+          <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
+        </tr>
         </thead>
 
         <tbody>
         <% @tournament_monitors.each do |tournament_monitor| %>
           <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:bg-gray-800">
-                      <td class="p-3"><%= link_to tournament_monitor.tournament_id, tournament_path(tournament_monitor.tournament) %></td>
-                      <td class="p-3"><%= tournament_monitor.data %></td>
-                      <td class="p-3"><%= tournament_monitor.state %></td>
-                      <td class="p-3"><%= tournament_monitor.innings_goal %></td>
-                      <td class="p-3"><%= tournament_monitor.balls_goal %></td>
-                      <td class="p-3"><%= tournament_monitor.timeouts %></td>
-                      <td class="p-3"><%= tournament_monitor.timeout %></td>
+            <td class="p-3"><%= link_to tournament_monitor.tournament_id, tournament_path(tournament_monitor.tournament) %></td>
+            <td class="p-3"><%= tournament_monitor.data %></td>
+            <td class="p-3"><%= tournament_monitor.state %></td>
+            <td class="p-3"><%= tournament_monitor.innings_goal %></td>
+            <td class="p-3"><%= tournament_monitor.balls_goal %></td>
+            <td class="p-3"><%= tournament_monitor.timeouts %></td>
+            <td class="p-3"><%= tournament_monitor.timeout %></td>
 
             <td>
               <%= link_to t('view'), tournament_monitor, class: "btn btn-link no-underline" %>
@@ -41,7 +41,7 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>
@@ -56,34 +56,40 @@
     </div>
   <% end %>
 </div>
-<h2><%= I18n.t("tournament_monitors.index.tournamentmonitorversions", :default => "TournamentMonitor::Versions") %></h2>
-<p><%= I18n.t("tournament_monitors.index.this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10", :default => "This table is displaying TournamentMonitor::Version which is its own versions table. Only last 10.") %></p>
-<table cellpadding=10 border=1>
-  <thead>
-  <tr>
-    <th><%= I18n.t("tournament_monitors.index.id", :default => "ID") %></th>
-    <th><%= I18n.t("tournament_monitors.index.event_name", :default => "Event Name") %></th>
-    <th><%= I18n.t("tournament_monitors.index.whodunnit", :default => "whodunnit") %></th>
-    <th><%= I18n.t("tournament_monitors.index.when", :default => "When") %></th>
-    <th><%= I18n.t("tournament_monitors.index.object_after_changes", :default => "Object (after Changes)") %></th>
-    <!--    <th><%= I18n.t("tournament_monitors.index.object_changes", :default => "Object Changes") %></th>-->
-    <th><%= I18n.t("tournament_monitors.index.object_diffs", :default => "Object Diffs") %></th>
-  </tr>
-  </thead>
-  <tbody>
-  <% if PaperTrail::Version.all.any? %>
-    <% PaperTrail::Version.all.last(600).reverse.each do |version| %>
-      <tr>
-        <td><%= version.id %></td>
-        <td><%= version.event %></td>
-        <td><%= User.find(version.whodunnit).email rescue nil%></td>
-        <td><%= version.created_at %></td>
-        <td><pre><%= version.item_type %><br/><%= version.object %></pre></td>
-        <!--        <td><pre><%#= JSON.pretty_generate(version.changeset) %></pre></td>-->
-        <% h = version.changeset; h.keys.each {|k| v = h[k]; h[k] = v[1].is_a?(Hash) ? [hash_diff(v[0], v[1]), hash_diff(v[1], v[0])]: v} %>
-        <td><pre><%= JSON.pretty_generate(h) %></pre></td>
-      </tr>
+<%- if current_user.andand.admin? %>
+  <h2><%= I18n.t("tournament_monitors.index.tournamentmonitorversions", :default => "TournamentMonitor::Versions") %></h2>
+  <p><%= I18n.t("tournament_monitors.index.this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10", :default => "This table is displaying TournamentMonitor::Version which is its own versions table. Only last 10.") %></p>
+  <table cellpadding=10 border=1>
+    <thead>
+    <tr>
+      <th><%= I18n.t("tournament_monitors.index.id", :default => "ID") %></th>
+      <th><%= I18n.t("tournament_monitors.index.event_name", :default => "Event Name") %></th>
+      <th><%= I18n.t("tournament_monitors.index.whodunnit", :default => "whodunnit") %></th>
+      <th><%= I18n.t("tournament_monitors.index.when", :default => "When") %></th>
+      <th><%= I18n.t("tournament_monitors.index.object_after_changes", :default => "Object (after Changes)") %></th>
+      <!--    <th><%= I18n.t("tournament_monitors.index.object_changes", :default => "Object Changes") %></th>-->
+      <th><%= I18n.t("tournament_monitors.index.object_diffs", :default => "Object Diffs") %></th>
+    </tr>
+    </thead>
+    <tbody>
+    <% if PaperTrail::Version.all.any? %>
+      <% PaperTrail::Version.all.last(600).reverse.each do |version| %>
+        <tr>
+          <td><%= version.id %></td>
+          <td><%= version.event %></td>
+          <td><%= User.find(version.whodunnit).email rescue nil %></td>
+          <td><%= version.created_at %></td>
+          <td>
+            <pre><%= version.item_type %><br/><%= version.object %></pre>
+          </td>
+          <!--        <td><pre><%#= JSON.pretty_generate(version.changeset) %></pre></td>-->
+          <% h = version.changeset; h.keys.each { |k| v = h[k]; h[k] = v[1].is_a?(Hash) ? [hash_diff(v[0], v[1]), hash_diff(v[1], v[0])] : v } %>
+          <td>
+            <pre><%= JSON.pretty_generate(h) %></pre>
+          </td>
+        </tr>
+      <% end %>
     <% end %>
-  <% end %>
-  </tbody>
-</table>
+    </tbody>
+  </table>
+<%- end %>

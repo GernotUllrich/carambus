@@ -1,4 +1,5 @@
 class TablesController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_table, only: [:show, :edit, :update, :destroy]
 
   # GET /tables

@@ -3,7 +3,7 @@
     <h1 class="h3">Seasons</h1>
 
     <% if @seasons.any? %>
-      <%= link_to 'New Season', new_season_path, class: "btn btn-primary" if current_user.andand.admin? %>
+      <%= link_to 'New Season', new_season_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 

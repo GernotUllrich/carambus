@@ -1,5 +1,6 @@
 class PlayersController < ApplicationController
   include FiltersHelper
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_player, only: [:show, :edit, :update, :destroy]
 
   # GET /players

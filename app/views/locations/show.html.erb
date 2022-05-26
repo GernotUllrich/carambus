@@ -2,8 +2,8 @@
   <div class="max-w-3xl mx-auto">
     <div data-controller="clipboard" data-clipboard-success-content="<%= t('copied') %>>" class="flex justify-between items-center mb-4">
       <h1 class="h3"><%= link_to 'Locations', locations_path %> > Location #<%= @location.id %></h1>
-      <%= link_to('Edit', edit_location_path(@location), class: "btn btn-link") if current_user.andand.admin? %>
-      <%= link_to('scoreboard', "/locations/#{@location.md5}/scoreboard?sb_state=welcome", class: "btn btn-link") if current_user.andand.admin? %>
+      <%= link_to('Edit', edit_location_path(@location), class: "btn btn-link") %>
+      <%= link_to('scoreboard', "/locations/#{@location.md5}/scoreboard?sb_state=welcome", class: "btn btn-link") %>
       <button
         class="btn"
         data-clipboard-text="<%= scoreboard_location_url(@location.md5, sp_state: "welcome") %>"

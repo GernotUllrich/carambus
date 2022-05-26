@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <h1 class="h3"><%= link_to 'Tournament Plans', tournament_plans_path %> > Tournament Plan
         #<%= @tournament_plan.id %></h1>
-      <%= link_to('Edit', edit_tournament_plan_path(@tournament_plan), class: "btn btn-link") if current_user.andand.admin? %>
+      <%= link_to('Edit', edit_tournament_plan_path(@tournament_plan), class: "btn btn-link") %>
     </div>
 
     <div class="bg-white dark:bg-black rounded shadow p-8">
