@@ -26,7 +26,7 @@ class LeagueTeamCc < ApplicationRecord
 
   has_paper_trail
   def self.create_from_ba(league_team)
-    RegionCc.logger.info "REPORT MISSING LeagueTeam #{league_team.league.season.name} #{league_team.name} in Liga #{league_team.league.name}"
+    RegionCc.logger.info "REPORT MISSING LeagueTeam #{league_team.league.season.name} #{league_team.league.discipline.andand.name} #{league_team.name} in Liga #{league_team.league.name}"
     #raise NotImplementedError, "league_team creation not yet implemented", caller
   end
 

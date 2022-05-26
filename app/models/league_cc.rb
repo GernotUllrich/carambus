@@ -32,7 +32,7 @@ class LeagueCc < ApplicationRecord
   has_paper_trail
 
   def self.create_from_ba(league, opts = {})
-    RegionCc.logger.info  "REPORT [LeagueCc.create_from_ba] MUST CREATE MISSING #{league.attributes}"
+    RegionCc.logger.info  "REPORT [LeagueCc.create_from_ba] MUST CREATE MISSING League #{league.season.name} #{league.discipline.andand.name} #{league.name}"
     return
     region = league.organizer
     region_cc = region.region_cc
