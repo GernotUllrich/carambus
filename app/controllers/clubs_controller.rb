@@ -24,6 +24,9 @@ class ClubsController < ApplicationController
           render("index")
         end }
     end
+  rescue StandardError => e
+    Rails.logger.error "ERROR: #{e}\n#{e.backtrace.join("\n")}"
+    render("index")
   end
 
   # GET /clubs/1
