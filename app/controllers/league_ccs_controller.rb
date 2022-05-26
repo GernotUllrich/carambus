@@ -1,5 +1,4 @@
 class LeagueCcsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_league_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /league_ccs

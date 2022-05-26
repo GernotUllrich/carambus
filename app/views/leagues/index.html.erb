@@ -1,4 +1,4 @@
-  <script>
+<script>
   function searchLeagues(selectObj, tableOnly) {
     Rails.ajax({
       type: "GET",
@@ -29,7 +29,7 @@
           </div>
         </div>
       </div>
-      <%= link_to 'New League', new_league_path, class: "btn btn-primary"  %>
+      <%= link_to 'New League', new_league_path, class: "btn btn-primary" if current_user.andand.admin? %>
     <% end %>
   </div>
 
@@ -43,7 +43,7 @@
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first League</p>
-        <%= link_to 'New League', new_league_path, class: "btn btn-primary"  %>
+        <%= link_to 'New League', new_league_path, class: "btn btn-primary" if current_user.andand.admin? %>
       </div>
     </div>
   <% end %>

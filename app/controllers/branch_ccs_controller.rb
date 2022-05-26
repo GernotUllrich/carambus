@@ -1,5 +1,4 @@
 class BranchCcsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_branch_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /branch_ccs

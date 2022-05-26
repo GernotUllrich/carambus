@@ -82,7 +82,7 @@
   <%= form_tag new_league_tournament_location_path(@location), method: :post do %>
     <%= select_tag :league_id, options_for_select(leagues.map{|league| ["#{league.name}(#{league.discipline.name})", league.id]}) %>
     <%= hidden_field_tag :season_id, season.id %>
-    <%= submit_tag t('tournaments.index.new_tournament'), class: "btn btn-primary"  %>
+    <%= submit_tag t('tournaments.index.new_tournament'), class: "btn btn-primary" %>
   <%- end %>
   </div>
   <%- @tournaments = Tournament.where(location_id: @location.id, season_id: season.id).order(id: :desc) %>

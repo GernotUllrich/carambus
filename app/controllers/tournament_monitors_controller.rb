@@ -1,5 +1,4 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_tournament_monitor, only: [:show, :edit, :update, :destroy, :update_games, :switch_players]
 
   def switch_players

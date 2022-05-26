@@ -9,18 +9,18 @@
           <%= select_tag "season_id", options_for_select(Season.order(:name).all.map { |s| [s.name, s.id] }, (Season.find_by_name(cookies[:season_name]) || Season.last).id), class: "border-2", style: "width: 300px" %>
           <%= select_tag "region_id", options_for_select(Region.order(:shortname).all.map { |s| [s.name, s.id] }, Region.find_by_shortname(cookies[:context].andand.upcase || 'NBV').id), class: "border-2", style: "width: 300px" %>
           <%= select_tag "force_update", options_for_select([["read-only", 0], ["updates enabled", 1]], cookies[:force_update]), class: "border-2", style: "width: 300px" %>
-          <%= submit_tag "SAVE", class: "btn btn-primary"  %>
+          <%= submit_tag "SAVE", class: "btn btn-primary" %>
         <%- end %>
       </li>
       <li><h3>Regionale Club Cloud für <%= @region.name %></h3>
         <%- if @region.region_cc.present? %>
           <%= link_to "#{@region.region_cc.shortname}(#{@region.region_cc.id})", region_cc_path(@region.region_cc) %>
-          <%= link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+          <%= link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
           <%= link_to "Fix", fix_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- else %>
           <p>Zunächst muss die Verbindung zur Club Cloud Instanz hergestellt werden (URL und fedId):</p>
           <%- @region_cc = RegionCc.new(context: @region.shortname.downcase) %>
-          <p><%= link_to 'New Region Cc', "/region_ccs/new?context=#{@region.shortname.downcase}&region_id=#{@region.id}&name=#{@region.name}&shortname=#{@region.shortname}", class: "btn btn-primary"  %></p>
+          <p><%= link_to 'New Region Cc', "/region_ccs/new?context=#{@region.shortname.downcase}&region_id=#{@region.id}&name=#{@region.name}&shortname=#{@region.shortname}", class: "btn btn-primary" %></p>
         <%- end %>
         <%- if File.exist?("#{Rails.root}/log/region_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/region_cc.log") %>
@@ -34,7 +34,7 @@
             <%= render partial: 'branch_ccs/branch_ccs_table' %>
           </div>
         <% end %>
-        <%= link_to "Check", check_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/branch_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/branch_cc.log") %>
@@ -47,7 +47,7 @@
             <%= render partial: 'competition_ccs/competition_ccs_table' %>
           </div>
         <% end %>
-        <%= link_to "Check", check_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/competition_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
@@ -60,7 +60,7 @@
             <%= render partial: 'season_ccs/season_ccs_table' %>
           </div>
         <% end %>
-        <%= link_to "Check", check_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/season_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
@@ -73,7 +73,7 @@
             <%= render partial: 'league_ccs/league_ccs_table' %>
           </div>
         <% end %>
-        <%= link_to "Check", check_league_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_league_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_league_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/league_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/league_cc.log") %>
@@ -87,7 +87,7 @@
             <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
           </div>
         <% end %>
-        <%= link_to "Check", check_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/league_team_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/league_team_cc.log") %>
@@ -101,7 +101,7 @@
             <%= render partial: 'game_plan_ccs/game_plan_ccs_table' %>
           </div>
         <%- end %>
-        <%= link_to "Check", check_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/game_plan_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/game_plan_cc.log") %>
@@ -114,7 +114,7 @@
             <%= link_to "=> PartyCcs", party_ccs_path %>
           </div>
         <% end %>
-        <%= link_to "Check", check_party_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_party_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/party_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/party_cc.log") %>
@@ -127,7 +127,7 @@
             <%= link_to "=> PartyGameCcs", party_game_ccs_path %>
           </div>
         <% end %>
-        <%= link_to "Check", check_party_game_cc_region_cc_path(@region.region_cc), class: "btn btn-primary"  %>
+        <%= link_to "Check", check_party_game_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
         <%= link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
         <%- if File.exist?("#{Rails.root}/log/party_game_cc.log") %>
           <%- text = File.read("#{Rails.root}/log/party_game_cc.log") %>

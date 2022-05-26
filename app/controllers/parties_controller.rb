@@ -1,5 +1,4 @@
 class PartiesController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_party, only: [:show, :edit, :update, :destroy]
 
   # GET /parties

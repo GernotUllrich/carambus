@@ -1,5 +1,4 @@
 class TableKindsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_table_kind, only: [:show, :edit, :update, :destroy]
 
   # GET /table_kinds

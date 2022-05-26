@@ -1,5 +1,4 @@
 class SeasonCcsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_season_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /season_ccs

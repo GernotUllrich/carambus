@@ -3,7 +3,7 @@
     <h1 class="h3">Party Tournaments</h1>
 
     <% if @party_tournaments.any? %>
-      <%= link_to 'New Party Tournament', new_party_tournament_path, class: "btn btn-primary"  %>
+      <%= link_to 'New Party Tournament', new_party_tournament_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 
@@ -47,7 +47,7 @@
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first Party Tournament</p>
-        <%= link_to 'New Party Tournament', new_party_tournament_path, class: "btn btn-primary"  %>
+        <%= link_to 'New Party Tournament', new_party_tournament_path, class: "btn btn-primary" %>
       </div>
     </div>
   <% end %>

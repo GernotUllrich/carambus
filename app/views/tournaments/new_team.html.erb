@@ -8,7 +8,7 @@
         <%- (1..@tournament.team_size).each do |n|%>
           <%= label_tag "Player#{n} BaID:" %><%= number_field_tag "player_#{n}_ba_id", nil, placeholder: "player #{n} BA ID" %>
         <%- end %>
-        <%= submit_tag "Add Team to Seedings List", class: "btn btn-primary"  %>
+        <%= submit_tag "Add Team to Seedings List", class: "btn btn-primary" %>
       <% end %>
     </div>
   </div>

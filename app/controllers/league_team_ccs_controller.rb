@@ -1,5 +1,4 @@
 class LeagueTeamCcsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   include FiltersHelper
   protect_from_forgery except: :search
   before_action :set_league_team_cc, only: [:show, :edit, :update, :destroy]

@@ -1,5 +1,4 @@
 class VersionsController < ApplicationController
-  before_action :authenticate_user!
   before_action :set_version, only: [:show, :edit, :update, :destroy]
 
   # GET /versions

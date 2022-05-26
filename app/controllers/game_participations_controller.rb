@@ -1,5 +1,4 @@
 class GameParticipationsController < ApplicationController
-  before_action :admin_only_check, except: [:show, :index]
   before_action :set_game_participation, only: [:show, :edit, :update, :destroy]
 
   # GET /game_participations
