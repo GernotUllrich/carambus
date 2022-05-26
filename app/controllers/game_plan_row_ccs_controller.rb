@@ -1,4 +1,5 @@
 class GamePlanRowCcsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_game_plan_row_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /game_plan_row_ccs

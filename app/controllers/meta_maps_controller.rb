@@ -1,4 +1,5 @@
 class MetaMapsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_meta_map, only: [:show, :edit, :update, :destroy]
 
   # GET /meta_maps

@@ -71,7 +71,7 @@ namespace :adhoc do
         lines.push([p.cc_id, p.lastname, p.firstname, league_team.league.discipline.andand.name, league_team.league.name, league_team.name, p.ba_id].join(";"))
       end
       f = lines.join("\n")
-        f = "#{%w{PASS-NR NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}"
+      f = "#{%w{PASS-NR NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}"
       #f = "#{%w{PASS-NR NACHNAME VORNAME SPARTE LIGA MANNSCHAFT DBU-NR}.join(";")}\n#{f}".encode("Windows-1252", crlf_newline: true)
       File.write("#{Rails.root}/tmp/#{season.name.gsub("\/", "-")}-players.csv", f)
 
@@ -149,4 +149,65 @@ namespace :adhoc do
     tm = TournamentMonitor[50_000_026]
     tm.accumulate_results
   end
+
+  task ba_search_player: :environment do
+    url = "https://admin.billardarea.de/sms_community_search/show/"
+    res, doc = RegionCc.post_ba_with_url(url)
+  end
+
+  task player_lists_ezm: :environment do
+    ids = Player.joins(:club, :game_participations => { :game => { tournament: [:season, :region] } }).
+      where(regions: { id: 1 }).
+      order("seasons.id, date").
+      where("players.ba_id < 999000000").
+      where(clubs: { region_id: 1 }, cc_id: nil).
+      uniq.
+      map { |p| [p.id, p.ba_id, p.fullname, p.club.andand.shortname, p.club.andand.region.shortname, p.cc_id] }.
+      sort_by { |a| a[2] }.
+      map { |a| a[0] }
+
+    str = ([["MyId", "DBU-ID", "Nachname", "Vorname", "Saison", "Einzelmeisterschaft", "Club", "Region", "PASS-NR"].join(";")] +
+      Player.select("*", "players.id as p_id", "players.ba_id as p_ba_id", "tournaments.title as t_title", "seasons.name as s_name").joins(:club, :game_participations => { :game => { tournament: [:season, :region] } }).
+      where(regions: { id: 1 }).
+      order("seasons.id, date").
+      where("players.ba_id < 999000000").
+      where(clubs: { region_id: 1 }, cc_id: nil).
+      where(players: { id: ids }).
+      map { |p| [p.p_id, p.p_ba_id, p.lastname, p.firstname, p.s_name, p.t_title, p.club.andand.shortname, p.club.andand.region.shortname, p.cc_id].join(";") }.
+      uniq).join("\n")
+    File.write("/Users/gullrich/NBV-Kai/Player_EZ_NO_PASS_NR_EZM.csv", str)
+
+    ids = Player.joins(:club, :game_participations => { :game => { tournament: [:season, :region] } }).
+      where(regions: { id: 1 }).
+      order("seasons.id, date").
+      where("players.ba_id > 999000000").
+      where(clubs: { region_id: 1 }, cc_id: nil).
+      uniq.
+      map { |p| [p.id, p.ba_id, p.fullname, p.club.andand.shortname, p.club.andand.region.shortname, p.cc_id] }.
+      sort_by { |a| a[2] }.
+      map { |a| a[0] }
+
+    str = ([["MyId", "DBU-ID", "Nachname", "Vorname", "Saison", "Einzelmeisterschaft", "Club", "Region", "PASS-NR"].join(";")] +
+      Player.select("*", "players.id as p_id", "players.ba_id as p_ba_id", "tournaments.title as t_title", "seasons.name as s_name").joins(:club, :game_participations => { :game => { tournament: [:season, :region] } }).
+      where(regions: { id: 1 }).
+      order("seasons.id, date").
+      where("players.ba_id > 999000000").
+      where(clubs: { region_id: 1 }, cc_id: nil).
+      where(players: { id: ids }).
+      map { |p| [p.p_id, p.p_ba_id, p.lastname, p.firstname, p.s_name, p.t_title, p.club.andand.shortname, p.club.andand.region.shortname, p.cc_id].join(";") }.
+      uniq).join("\n")
+    File.write("/Users/gullrich/NBV-Kai/Player_EZ_NO_PASS_NO_DBU_EZM.csv", str)
+
+    str = ([["Saison", "Einzelmeisterschaft", "BA_ID", "Modus", "Sparte", "Datum"].join(";")] +
+      Tournament.
+      joins(:region).
+      where(regions: {id: 1}).
+      order(:season_id, :date).
+      map{|t| [t.season.name, t.title, t.ba_id, t.modus.andand.gsub(";", "-"), t.discipline.andand.root.name, t.date.to_s].join(";")}
+    ).join("\n")
+
+    File.write("/Users/gullrich/NBV-Kai/Einzelmeisterschaften.csv", str)
+
+  end
+
 end

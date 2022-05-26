@@ -3,7 +3,7 @@
     <h1 class="h3">Game Plan Row Ccs</h1>
 
     <% if @game_plan_row_ccs.any? %>
-      <%= link_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, class: "btn btn-primary" %>
+      <%= link_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, class: "btn btn-primary"  %>
     <% end %>
   </div>
 
@@ -43,7 +43,7 @@
                       <td class="p-3"><%= game_plan_row_cc.ppv %></td>
                       <td class="p-3"><%= game_plan_row_cc.mpg %></td>
                       <td class="p-3"><%= game_plan_row_cc.pmv %></td>
-          
+
             <td>
               <%= link_to "View", game_plan_row_cc, class: "btn btn-link no-underline" %>
             </td>
@@ -64,7 +64,7 @@
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first Game Plan Row Cc</p>
-        <%= link_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, class: "btn btn-primary" %>
+        <%= link_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, class: "btn btn-primary"  %>
       </div>
     </div>
   <% end %>

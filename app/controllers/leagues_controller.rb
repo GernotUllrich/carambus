@@ -1,4 +1,5 @@
 class LeaguesController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   include FiltersHelper
   before_action :set_league, only: [:show, :edit, :update, :destroy]
 

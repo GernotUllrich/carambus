@@ -1,4 +1,5 @@
 class LocationsController < ApplicationController
+  before_action :admin_only_check, except: [:scoreboard, :show, :index, :game_results, :placement]
   include FiltersHelper
   before_action :set_location, only: [:scoreboard, :show, :edit, :update, :destroy, :new_league_tournament, :add_tables_to]
 

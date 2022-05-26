@@ -1,4 +1,5 @@
 class PartyGamesController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_party_game, only: [:show, :edit, :update, :destroy]
 
   # GET /party_games

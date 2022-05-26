@@ -20,7 +20,7 @@
                 <br/>
                 <strong class="flex 1 text-black dark:text-white"><%= tabmon.game.game_participations.where(role: "playera").first.andand.player.andand.fullname %></strong>
                 <strong class="flex 1 text-yellow-500"><%= tabmon.game.game_participations.where(role: "playerb").first.andand.player.andand.fullname %></strong>
-                <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
+                <%= button_to I18n.t("tournament_monitors.show.switch_players", :default => "Switch Players"), switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary"  %>
               <% end %>
             </div>
           <% end %>

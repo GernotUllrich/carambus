@@ -3,7 +3,8 @@
     <h1 class="h3">Branch Ccs</h1>
 
     <% if @branch_ccs.any? %>
-      <%= link_to 'New Branch Cc', new_branch_cc_path, class: "btn btn-primary" %>
+      <%= link_to 'New Branch Cc', new_branch_cc_path, class: "btn btn-primary"  %>
+      %>
     <% end %>
   </div>
 
@@ -17,6 +18,7 @@
       <div class="flex-1 text-center">
         <p class="h3 mb-4">Create your first Branch Cc</p>
         <%= link_to 'New Branch Cc', new_branch_cc_path, class: "btn btn-primary" %>
+        %>
       </div>
     </div>
   <% end %>

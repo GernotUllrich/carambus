@@ -1,8 +1,9 @@
 class TournamentsController < ApplicationController
+  before_action :authenticate_user!, except: [:show, :index]
   include FiltersHelper
   before_action :set_tournament, only: [:show, :edit, :update, :destroy, :order_by_ranking_or_handicap, :finish_seeding, :edit_games, :reload_from_ba, :switch_players, :new_team, :finalize_modus, :select_modus, :tournament_monitor, :reset, :start, :define_participants, :add_team, :placement]
 
-  # GET /tournaments
+  # GET /tournamentsw
   def index
     @tournaments = Tournament.joins(:season, :discipline).sort_by_params(@sSearch, sort_direction)
     if @sSearch.present?

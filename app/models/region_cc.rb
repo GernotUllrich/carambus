@@ -346,6 +346,36 @@ class RegionCc < ApplicationRecord
     [res, doc]
   end
 
+  def self.post_ba_with_url(url, get_options = {}, opts = {})
+    opts[:billardarea] = "9b54f95869485692cb6ba69ec0843bdc"
+    url = "https://admin.billardarea.de/sms_community_search/show/"
+    post_options = {
+      "data[Contact][action]" => "search",
+      "data[Contact][value]" => "",
+      "text" => "",
+      "id" => "",
+      "data[Contact][lastname]" => "Riedelsheimer",
+      "data[Contact][firstname]" => "",
+      "add_step2" => "Suchen"
+    }
+
+    uri = URI(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    req = Net::HTTP::Post.new(uri.request_uri)
+    req['cookie'] = "PHPSESSID=#{opts[:session_id]}"
+    req['Content-Type'] = 'application/x-www-form-urlencoded'
+    req['referer'] = url
+    req.set_form_data(post_options.reject { |_k, v| v.blank? })
+    res = http.request(req)
+    doc = if res.message == 'OK'
+            Nokogiri::HTML(res.body)
+          else
+            Nokogiri::HTML(res.message)
+          end
+    [res, doc]
+  end
+
   def synchronize_league_structure(opts = {})
     season = Season.find_by_name(opts[:season_name])
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
@@ -1158,7 +1188,7 @@ class RegionCc < ApplicationRecord
     leagues.each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? # TODO TEST REMOVE ME
-      next unless  league.id == 3490
+      next unless league.id == 3490
       league_cc = league.league_cc
       parties = league.parties
       # read spielplan

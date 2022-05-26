@@ -1,4 +1,5 @@
 class SeasonParticipationsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
 
   include FiltersHelper
   before_action :set_season_participation, only: [:show, :edit, :update, :destroy]

@@ -1,4 +1,5 @@
 class PartyCcsController < ApplicationController
+  before_action :admin_only_check, except: [:show, :index]
   before_action :set_party_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /party_ccs
