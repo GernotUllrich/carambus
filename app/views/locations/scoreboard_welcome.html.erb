@@ -62,6 +62,17 @@
     return true
   });
 </script>
+<style>
+    #info {
+        height: 40px;
+        position: fixed;
+        bottom:0;
+        width:200px;
+        color: white;
+        opacity: 1;
+    }
+</style>
+<div id="info">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)} from #{File.ctime("#{Rails.root}/REVISION")}" : `git show --pretty=%H -q`.truncate(11) %></div>
 <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
   <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
 </div>
