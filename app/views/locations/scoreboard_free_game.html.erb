@@ -314,66 +314,72 @@
         <div class="">Spieler B</div>
       </div>
       <div class="flex justify-between w-full text-2vw">
-        <div class="flex justify-center flex-row w-full">
-          <div class="flex-col">
-            <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player__balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('', #{k})", ontouch: "set_checked_balls('', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
+        <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-1" do %>
+          <div class="flex flex-row w-full">
+            <div class="flex-col">
+              <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player__balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('', #{k})", ontouch: "set_checked_balls('', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
+            <div class="flex-col">
+              <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player__balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('', #{k})", ontouch: "set_checked_balls('', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
           </div>
-          <div class="flex-col">
-            <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player__balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('', #{k})", ontouch: "set_checked_balls('', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
+        <%- end %>
+        <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-1" do %>
+          <div class="flex flex-row w-full">
+            <div class="flex-col">
+              <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player_a_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('a', #{k})", ontouch: "set_checked_balls('a', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('a', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
+            <div class="flex-col">
+              <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player_a_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('a', #{k})", ontouch: "set_checked_balls('a', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('a', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
           </div>
-        </div>
-        <div class="flex flex-row w-full">
-          <div class="flex-col">
-            <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player_a_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('a', #{k})", ontouch: "set_checked_balls('a', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('a', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
+        <%- end %>
+        <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-1" do %>
+          <div class="flex flex-row w-full">
+            <div class="flex-col">
+              <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player_b_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('b', #{k})", ontouch: "set_checked_balls('b', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('b', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
+            <div class="flex-col">
+              <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
+                <div class="flex mb-2 p-4">
+                  <div class=""><%= radio_button_tag :player_b_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('b', #{k})", ontouch: "set_checked_balls('b', #{k})" %></div>
+                  <div class="pl-3" onclick="set_checked_balls('b', <%= k %>)">
+                    <%= "#{k > 0 ? k : "unl."}" %></div>
+                </div>
+              <%- end %>
+            </div>
           </div>
-          <div class="flex-col">
-            <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player_a_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('a', #{k})", ontouch: "set_checked_balls('a', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('a', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
-          </div>
-        </div>
-        <div class="flex flex-row w-full">
-          <div class="flex-col">
-            <%- [10, 20, 30, 40, 50, 60, 75, 80].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player_b_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('b', #{k})", ontouch: "set_checked_balls('b', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('b', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
-          </div>
-          <div class="flex-col">
-            <%- [100, 120, 150, 200, 250, 300, 400, 0].each do |k| %>
-              <div class="flex mb-2 p-4">
-                <div class=""><%= radio_button_tag :player_b_balls, k, k == 80, class: "mr-4 text-4vw", onclick: "set_checked_balls('b', #{k})", ontouch: "set_checked_balls('b', #{k})" %></div>
-                <div class="pl-3" onclick="set_checked_balls('b', <%= k %>)">
-                  <%= "#{k > 0 ? k : "unl."}" %></div>
-              </div>
-            <%- end %>
-          </div>
-        </div>
+        <%- end %>
       </div>
     </div>
   </div>
@@ -485,7 +491,8 @@
         </div>
         <div class="flex flex-col text-white">
           <div class="flex w-full mb-1 text-2vw">
-            <div class="flex h-full pb-1"><%= link_to t("game_participation.balls_goal"), "javascript:balls_mode('')", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %></div><div class="flex pb-1"><%= image_tag "neu.png" %></div>
+            <div class="flex h-full pb-1"><%= link_to t("game_participation.balls_goal"), "javascript:balls_mode('')", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %></div>
+            <div class="flex pb-1"><%= image_tag "neu.png" %></div>
           </div>
           <%= content_tag :div, id: "balls_goal_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
             <%= select_tag :balls_goal, options_for_select(gm, (@balls_goal || "80").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>
