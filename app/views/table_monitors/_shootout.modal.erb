@@ -4,8 +4,10 @@
       <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
       <div class="flex h-1/2 flex-row items-center text-black space-x-4 m-4 mb-8">
         <%- left_player_id = table_monitor.data["current_left_color"] == 'yellow' ? 1 : 0 %>
-        <%- right_player_id = table_monitor.data["current_left_color"] == 'yellow'? 0 : 1 %>
-        <div class="flex-auto text-3vw <%= table_monitor.data["current_left_color"] == 'white' ? "" : "bg-yellow-500" %> items-center text-center font-semibold"><%= table_monitor.tournament_monitor_id.present? ? gps[left_player_id].andand.player.andand.fullname : gps[left_player_id].andand.player.andand.simple_firstname || "Spieler A" %></div>
+        <%- right_player_id = table_monitor.data["current_left_color"] == 'yellow' ? 0 : 1 %>
+        <%- left_player_name = table_monitor.tournament_monitor_id.present? ? gps[left_player_id].andand.player.andand.fullname : gps[left_player_id].andand.player.andand.simple_firstname || "Spieler A" %>
+        <%- right_player_name = table_monitor.tournament_monitor_id.present? ? gps[right_player_id].andand.player.andand.fullname : gps[right_player_id].andand.player.andand.simple_firstname || "Spieler B" %>
+        <div class="flex-auto text-3vw <%= table_monitor.data["current_left_color"] == 'white' ? "" : "bg-yellow-500" %> items-center text-center font-semibold"><%= left_player_name %></div>
         <div class="flex-auto items-center bg-white text-2vw text-center font-bold">
           <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
             <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-4 mr-0 hover:text-black text-gray-400 inline-block", title: "toggle dark mode" %>
@@ -20,20 +22,22 @@
         <div class="flex-auto text-3vw <%= table_monitor.data["current_left_color"] == 'yellow' ? "" : "bg-yellow-500 " %> items-center text-center font-semibold"><%= table_monitor.tournament_monitor_id.present? ? gps[right_player_id].andand.player.andand.fullname : gps[right_player_id].andand.player.andand.simple_firstname || "Spieler B" %></div>
       </div>
     </div>
-    <div class="flex h-1/3 flex-row w-full space-x-4">
-      <h3 class="flex-1 text-right text-black">
-        <%= t('table_monitor.status.shootout_result') %>:
-      </h3>
-      <div class="flex-1">
-        <%= content_tag "div", class: "btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#switch_players", id: table_monitor.id }, id: "change", tabindex: 6 do %>
-          <%= t('table_monitor.status.exchange_players') %>
-        <%- end %>
+    <%- unless left_player_name == "Spieler A"  &&  right_player_name == "Spieler B"%>
+      <div class="flex h-1/3 flex-row w-full space-x-4">
+        <h3 class="test-3vw flex-1 text-right text-black">
+          <%= t('table_monitor.status.shootout_result') %><br/>(Links steht Weiss und stösst an!)
+        </h3>
+        <div class="flex-1">
+          <%= content_tag "div", class: "text-2vw btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#switch_players", id: table_monitor.id }, id: "change", tabindex: 6 do %>
+            <%= "Ändern: #{right_player_name} stößt an!" %>
+          <%- end %>
+        </div>
       </div>
-    </div>
+    <%- end %>
     <div class="flex h-1/3 mt-4 flex-col space-x-4">
       <div class="flex flex-1 justify-center ">
-        <%= content_tag "div", class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
-          <%= t('table_monitor.status.start_game') %>
+        <%= content_tag "div", class: "text-2vw focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary", data: { turbolinks: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
+          <%= "Los geht's - #{left_player_name} stösst an" %>
         <%- end %>
       </div>
     </div>

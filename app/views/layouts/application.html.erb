@@ -32,7 +32,7 @@
     <%= yield :head %>
   </head>
 
-  <body data-controller="radiolabel" class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-200 dark:bg-gray-800 dark:bg-black" style="<%= "background-color: #336633" if request.path =~ /\/location/ && Current.user == User.scoreboard %>">
+  <body data-controller="radiolabel" class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-200 dark:bg-gray-800 dark:bg-black" style="<%= "background-color: #336633" unless @navbar %>">
     <div class="main">
       <%= render partial: "shared/flash" %>
       <%= render partial: "shared/navbar" if @navbar%>

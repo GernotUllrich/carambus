@@ -4,10 +4,10 @@
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs">Logo</th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :name, 'Name', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :shortname, 'Shortname', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :email, 'Email', class: 'text-gray-700 dark:text-gray-200' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :address, 'Address', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :name, 'Name(*)', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :shortname, 'Shortname(*)', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :email, 'Email(*)', class: 'text-gray-700 dark:text-gray-200' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :address, 'Address(*)', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :country_id, 'Country', class: 'text-gray-700 dark:text-gray-200' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-200 w-20"><%= t('actions') %></th>
     </tr>

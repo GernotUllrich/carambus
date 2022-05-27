@@ -64,8 +64,8 @@ class LocationsController < ApplicationController
         @club = @location.club || (@location.organizer.is_a?(Club) ? @location.organizer : nil)
         @club_player_ids = @club.players.select("players.id").joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).map(&:id)
         @guest_player_ids = @club.players.select("players.id").where("players.guest IS TRUE").map(&:id) - @club_player_ids
-        @players = Player.where(id: @guest_player_ids + (@club_player_ids - @guest_player_ids)).order("guest  desc nulls last", :lastname, :firstname)
-        @player_names = @players.map { |p| "#{p.lastname}, #{p.firstname}" }
+        @players = Player.where(id: @guest_player_ids + (@club_player_ids - @guest_player_ids)).order("guest  desc nulls last", :firstname, :lastname)
+        @player_names = @players.map { |p| "#{p.firstname} #{p.lastname}" }
         @player_ids = @players.map(&:id)
         @kickoff_switches_with_set = true
         @color_remains_with_set = true
