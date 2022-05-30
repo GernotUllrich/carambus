@@ -62,7 +62,7 @@
       <%= button_to t('club.new_club_location'), new_club_location_club_path(@club), class: "btn btn-flat btn-primary" %>
       <div class="flex space-x-20 p-4 justify-center bg-white dark:bg-black">
         <ul>
-          <%- Location.where(organizer: @club.id).order(name: :desc).uniq.each do |location| %>
+          <%- Location.where(club_id: @club.id).order(name: :desc).uniq.each do |location| %>
             <li><%= link_to location.name, location_path(location) %></li>
           <%- end %>
         </ul>

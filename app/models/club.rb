@@ -28,7 +28,7 @@ class Club < ApplicationRecord
   belongs_to :region
   has_many :players, -> { where(type: nil) }
   has_many :season_participations
-  has_many :tournament_locations, as: :organizer, class_name: "Location"
+  has_many :locations
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
   has_many :league_teams
 
@@ -61,6 +61,7 @@ class Club < ApplicationRecord
                    "Region" => "regions.shortname",
                    "Name" => "clubs.name",
                    "Shortname" => "clubs.shortname",
+                   "Address" => "clubs.address",
                    "Homepage" => "",
                    "Status" => "",
                    "Founded" => "",

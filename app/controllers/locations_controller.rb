@@ -4,7 +4,7 @@ class LocationsController < ApplicationController
 
   # GET /locations
   def index
-    @locations = Location.sort_by_params(params[:sort], sort_direction)
+    @locations = Location.includes(:club, :region).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
       @locations = apply_filters(@locations, Location::COLUMN_NAMES, "(locations.name ilike :search) or (locations.address ilike :search)")
     end
@@ -61,10 +61,10 @@ class LocationsController < ApplicationController
             @table_monitor.assign_game(@game)
           end
         end
-        @club = @location.club || (@location.organizer.is_a?(Club) ? @location.organizer : nil)
-        @club_player_ids = @club.players.select("players.id").joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).map(&:id)
-        @guest_player_ids = @club.players.select("players.id").where("players.guest IS TRUE").map(&:id) - @club_player_ids
-        @players = Player.where(id: @guest_player_ids + (@club_player_ids - @guest_player_ids)).order("guest  desc nulls last", :firstname, :lastname)
+        @club = @location.club.presence
+        @club_player_ids = (@club.players.select("players.id").joins(season_participations: :season).where("seasons.id = ?", Season.current_season.id).map(&:id)) if @club.present?
+        @guest_player_ids = (@club.players.select("players.id").where("players.guest IS TRUE").map(&:id) - @club_player_ids) if @club.present?
+        @players = Player.where(id: @guest_player_ids + (@club_player_ids.to_a - @guest_player_ids.to_a)).order("guest  desc nulls last", :firstname, :lastname)
         @player_names = @players.map { |p| "#{p.firstname} #{p.lastname}" }
         @player_ids = @players.map(&:id)
         @kickoff_switches_with_set = true
@@ -155,7 +155,10 @@ class LocationsController < ApplicationController
   def new
     @location = Location.new
     if params[:club_id].present?
-      @organizer = Club.find(params[:club_id]) || Region.find(params[:club_id])
+      @club = Club.find(params[:club_id])
+    end
+    if params[:region_id].present?
+      @region = Region.find(params[:region_id])
     end
   end
 
@@ -233,10 +236,6 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    if params[:location][:club_id].present?
-      params[:location][:organizer_id] = params[:location][:club_id]
-      params[:location][:organizer_type] = "Club"
-    end
-    params.require(:location).permit(:club_id, :address, :data, :name, :organizer_id, :season_id, :organizer_type, :club_id, :merge, :with)
+    params.require(:location).permit(:club_id, :region_id, :address, :data, :name, :season_id, :club_id, :merge, :with)
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_20_141255) do
+ActiveRecord::Schema.define(version: 2022_05_28_163626) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -352,7 +352,6 @@ ActiveRecord::Schema.define(version: 2022_05_20_141255) do
   end
 
   create_table "locations", force: :cascade do |t|
-    t.integer "club_id"
     t.text "address"
     t.text "data"
     t.string "name"
@@ -361,8 +360,8 @@ ActiveRecord::Schema.define(version: 2022_05_20_141255) do
     t.string "organizer_type"
     t.integer "organizer_id"
     t.string "md5", null: false
-    t.index ["club_id"], name: "index_locations_on_club_id"
-    t.index ["club_id"], name: "index_locations_on_foreign_keys"
+    t.integer "club_id"
+    t.integer "region_id"
     t.index ["md5"], name: "index_locations_on_md5", unique: true
   end
 

@@ -10,14 +10,11 @@
 #  organizer_type :string
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
-#  club_id        :integer
 #  organizer_id   :integer
 #
 # Indexes
 #
-#  index_locations_on_club_id       (club_id)
-#  index_locations_on_foreign_keys  (club_id)
-#  index_locations_on_md5           (md5) UNIQUE
+#  index_locations_on_md5  (md5) UNIQUE
 #
 require 'test_helper'
 

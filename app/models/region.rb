@@ -24,7 +24,7 @@ class Region < ApplicationRecord
   has_many :clubs
   has_many :tournaments
   has_many :player_rankings
-  has_many :tournament_locations, as: :organizer, class_name: "Location"
+  has_many :locations
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
   has_many :organized_leagues, as: :organizer, class_name: "League"
   has_one :setting
