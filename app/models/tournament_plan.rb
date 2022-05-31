@@ -2980,7 +2980,7 @@ class TournamentPlan < ApplicationRecord
       g_perms = (1..group_sizes[gix]).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.map { |perm| perm.join(' - ') }
       g_params = {
         "pl": group_sizes[gix],
-        "rs": ' eae_ma ',
+        "rs": 'eae_ma',
         "sq": g_perms
       }
       executor_params["g#{gix + 1}"] = g_params
@@ -2989,7 +2989,8 @@ class TournamentPlan < ApplicationRecord
       executor_class: ' ',
       executor_params: executor_params.to_json,
       ngroups: group_sizes.length,
-      nrepeats: 1
+      nrepeats: 1,
+      tables: 1
     )
     plan
   end
