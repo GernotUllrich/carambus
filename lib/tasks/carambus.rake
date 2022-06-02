@@ -58,8 +58,16 @@ namespace :carambus do
         end
         cc_ids_done.push(cc_id)
       else
-        Player.create(firstname: firstname, lastname: lastname, cc_id: cc_id, ba_id: ba_id)
-        RegionCc.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
+        players = Player.where(firstname: firstname, lastname: lastname).where("ba_id > 999000000")
+        if players.count == 1
+          player = players.first
+          player.update(cc_id: cc_id, ba_id: ba_id)
+          RegionCc.logger.info "REPORT UPDATED cc_id: '#{cc_id}', ba_id: #{ba_id} of player #{player.fullname}[#{player.id}]"
+          cc_ids_done.push(cc_id)
+        else
+          Player.create(firstname: firstname, lastname: lastname, cc_id: cc_id, ba_id: ba_id)
+          RegionCc.logger.info "REPORT CREATED new Player #{player_arr.inspect}"
+        end
       end
 
     end
@@ -79,14 +87,9 @@ namespace :carambus do
   task :scrape_leagues => :environment do
     Season.order(ba_id: :asc).each do |season|
       #TODO if scraped completely .limit(2)
-      sh_names = Region::REGION_SHORTNAMES - ["BBBV",
-                                              "BBV",
-                                              "BLMR",
-                                              "BLVN",
-                                              "BLVSA"]
       sh_names = ["NBV"]
       Region.where(shortname: sh_names).all.each do |region|
-        League.scrape_leagues_by_region_and_season(region, season, game_details: false, skip_league_details: false)
+        League.scrape_leagues_by_region_and_season(region, season, game_details: false, skip_league_details: true)
       end
     end
   end
@@ -126,7 +129,7 @@ namespace :carambus do
     country_de = Country.find_by_code("DE")
     url = "https://portal.billardarea.de"
     Rails.logger.info "reading index page - to scrape regions"
-    html = open(url)
+    html = URI.open(url)
     doc = Nokogiri::HTML(html)
     regions = doc.css(".img_bw")
     regions.each do |region|
@@ -164,7 +167,7 @@ namespace :carambus do
 
   desc "scrape clubs"
   task :scrape_clubs => :environment do
-    Club.scrape_clubs(player_details: true)
+    Club.scrape_clubs(from_background: true, player_details: true)
   end
 
   desc "scrape Players"
@@ -722,7 +725,7 @@ namespace :carambus do
   end
   desc "scrape new tournaments"
   task :scrape_new_tournaments => :environment do
-    itest = Tournament.order(:ba_id => :desc).first.ba_id
+    itest = Tournament.where.not(ba_id:nil).order(:ba_id => :desc).first.ba_id
     ip = 14
     url = "https://nbv.billardarea.de"
     dir = 1
@@ -744,7 +747,7 @@ namespace :carambus do
       ip -= 1
       dir = valid_tournament ? 1 : -1
     end
-    range = (Tournament.order(:ba_id => :desc).first.ba_id..(itest - 1))
+    range = (Tournament.where.not(ba_id:nil).order(:ba_id => :desc).first.ba_id..(itest - 1))
     Season.last.scrape_tournaments(range.to_a)
   end
 end

@@ -790,6 +790,7 @@ ActiveRecord::Schema.define(version: 2022_05_28_163626) do
     t.integer "location_id"
     t.integer "timeouts", default: 0, null: false
     t.boolean "admin_controlled", default: false, null: false
+    t.boolean "manual_assignment", default: false
     t.boolean "gd_has_prio", default: false, null: false
     t.integer "league_id"
     t.integer "sets_to_win", default: 1, null: false
@@ -799,7 +800,6 @@ ActiveRecord::Schema.define(version: 2022_05_28_163626) do
     t.string "fixed_display_left"
     t.boolean "color_remains_with_set", default: true, null: false
     t.boolean "allow_follow_up", default: true, null: false
-    t.boolean "manual_assignment", default: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

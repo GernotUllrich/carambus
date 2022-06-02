@@ -69,11 +69,8 @@ class Club < ApplicationRecord
   }
 
   def self.scrape_clubs(opts = {})
-    player_details = opts[:player_details].presence
-    skip_r = true
-    skip_c = true
     Region.where(shortname: Region::REGION_SHORTNAMES).order(:shortname).all.each do |region|
-      region.scrape_clubs(player_details: player_details)
+      region.scrape_clubs(opts)
     end
 
     #fix title
@@ -101,7 +98,7 @@ class Club < ApplicationRecord
     club_homepage = doc_detail.css("\#tabs-1 a:nth-child(1)").text.strip
     club_players = doc_detail.css("\#clubs_table a").map { |d| d.attribute("href").value.match(/.*\/(\d+)$/).andand[1].to_i }
 
-    club_email = doc_detail.css("\#tabs-1").children[1].children[9].andand.text.andand.strip.andand.gsub(/.*;< (.*) >.*/, '\1').andand.gsub(/[\t\r\n]/, "").andand.gsub("Email", "").andand.reverse
+    club_email = doc_detail.css("\#tabs-1").children[1].children[9].andand.text.andand.strip.andand.gsub(/.*;< (.*) >.*/, '\1').andand.gsub(/[\t\r\n]/, "").andand.gsub("Email", "").andand.reverse rescue ""
     club_priceinfo = doc_detail.css("pre").inner_html
     club_address = doc_detail.css(".left fieldset:nth-child(3) .element").inner_html
     club_status = doc_detail.css(".right fieldset:nth-child(1) .element").children

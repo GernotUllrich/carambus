@@ -7,9 +7,11 @@
 #  data           :text
 #  md5            :string           not null
 #  name           :string
+#  organizer_type :string
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  club_id        :integer
+#  organizer_id   :integer
 #  region_id      :integer
 #
 # Indexes

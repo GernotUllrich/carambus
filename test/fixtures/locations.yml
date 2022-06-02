@@ -10,7 +10,9 @@
 #  organizer_type :string
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
+#  club_id        :integer
 #  organizer_id   :integer
+#  region_id      :integer
 #
 # Indexes
 #
