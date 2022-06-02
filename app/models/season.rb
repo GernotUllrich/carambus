@@ -64,7 +64,7 @@ class Season < ApplicationRecord
             plan_or_show = m[2] rescue nil
             if ba_id.present? && (ba_ids.blank? || ba_ids.include?(ba_id))
               tournament = Tournament.find_by_ba_id(ba_id) || Tournament.create(ba_id: ba_id, discipline_id: Discipline.find_by_name("-"))
-              tournament.update(title: name, region_id: region.id, discipline_id: discipline.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
+              tournament.update(title: name, region_id: region.id, discipline_id: discipline.andand.id, season_id: season.id, plan_or_show: plan_or_show, single_or_league: single_or_league, organizer: region)
               tournament.scrape_single_tournament(game_details: true)
               tournament.update_columns(last_ba_sync_date: Time.now)
             else
