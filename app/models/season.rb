@@ -41,6 +41,7 @@ class Season < ApplicationRecord
   def scrape_tournaments(ba_ids = [])
     season = self
     Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
+      next unless region.shortname == "SBV"
       url = "https://#{region.shortname.downcase}.billardarea.de"
       uri = URI(url + '/cms_single')
       Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"
@@ -58,7 +59,7 @@ class Season < ApplicationRecord
             name = line.text.strip
             url = line.attribute("href").value
             m = url.match(/\/cms_(single|leagues)\/(plan|show)\/(\d+)$/)
-            ba_id = m[3] rescue nil
+            ba_id = m[3].to_i rescue nil
             single_or_league = m[1] rescue nil
             plan_or_show = m[2] rescue nil
             if ba_id.present? && (ba_ids.blank? || ba_ids.include?(ba_id))
