@@ -255,6 +255,7 @@ class Tournament < ApplicationRecord
     game_details = opts.keys.include?(:game_details) ? opts[:game_details] : true
     season = self.season
     region = self.region
+    region ||= self.organizer
     url = "https://#{region.shortname.downcase}.billardarea.de"
     if self.single_or_league == "single"
       url_tournament = "/cms_#{self.single_or_league}/show/#{self.ba_id}"
