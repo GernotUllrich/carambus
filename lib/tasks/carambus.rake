@@ -409,7 +409,7 @@ namespace :carambus do
 
     Season.order(ba_id: :desc).limit(3).each do |season|
       next if env_season_name.present? && season.name != env_season_name
-      Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
+      Region.where(shortname: Region::REGION_SHORTNAMES).order(shortname: :asc).all.each do |region|
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
         uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids).map(&:ba_id)
         next if env_region_shortname.present? && region.shortname != env_region_shortname
