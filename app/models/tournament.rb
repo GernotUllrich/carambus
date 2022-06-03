@@ -289,7 +289,7 @@ class Tournament < ApplicationRecord
           if discipline.blank? && value.present?
             discipline = Discipline.create(name: value)
           end
-          self.discipline_id = discipline.andand.id || Discipline.find_by_name("-").id
+          self.discipline_id = (discipline || Discipline.find_by_name("-")).andand.id
         else
           self.update_attribute(mappings[label], value)
         end
