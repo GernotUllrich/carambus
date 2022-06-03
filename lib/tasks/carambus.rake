@@ -407,16 +407,12 @@ namespace :carambus do
     env_season_name = ENV['SEASON']
     env_region_shortname = ENV['REGION']
 
-    Season.order(ba_id: :desc).limit(2).each do |season|
-      #Season.order(ba_id: :desc).each do |season|
-      next unless env_season_name.present? && season.name == env_season_name
+    Season.order(ba_id: :desc).limit(3).each do |season|
+      next if env_season_name.present? && season.name != env_season_name
       Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
-        #next unless region.id == 12
         region_ba_ids = region.tournaments.where(season_id: season.id).map(&:ba_id)
-        #uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids, ba_state: "").where("date < ?", Time.now - 1.day).where("date > ?", Time.now - 2.month).map(&:ba_id)
         uncompleted_region_ba_ids = region.tournaments.where(ba_id: region_ba_ids).map(&:ba_id)
-        #uncompleted_region_ba_ids = region.tournaments.where(ba_id: 6040, ba_state: "").map(&:ba_id)
-        next unless env_region_shortname.present? && region.shortname == env_region_shortname
+        next if env_region_shortname.present? && region.shortname != env_region_shortname
         url = "https://#{region.shortname.downcase}.billardarea.de"
         uri = URI(url + '/cms_single')
         Rails.logger.info "reading #{url + '/cms_single'} - region #{region.shortname} single tournaments season #{season.name}"
@@ -459,7 +455,7 @@ namespace :carambus do
                       tournament.update(discipline: discipline)
                     end
                     tournament ||=
-                      Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline)
+                      Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline, organizer: region)
                     tournament.update(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
                     scrape_single_tournament(tournament)
                     tournament.update_columns(last_ba_sync_date: Time.now)
@@ -752,7 +748,7 @@ namespace :carambus do
   end
 end
 
-def scrape_single_tournament(tournament)
-  tournament.scrape_single_tournament(force_immediate_action: true)
+def scrape_single_tournament(tournament, opts = {})
+  tournament.scrape_single_tournament(opts.merge(force_immediate_action: true))
 end
 
