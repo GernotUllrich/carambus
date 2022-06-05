@@ -1065,6 +1065,7 @@ class RegionCc < ApplicationRecord
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             next unless season_cc.name == season_name
+            next unless league_cc.league.ba_id == 6204
 
             _, doc = post_cc(
               'admin_report_showLeague',
@@ -1096,7 +1097,7 @@ class RegionCc < ApplicationRecord
                 "BG Hamburg 3" => "BG Hamburg 2",
                 "BG Hamburg 4" => "BG Hamburg 3",
               }
-              name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/
+              name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/ && name_str =~ /BG Hamburg [234]/
               league_team = LeagueTeam.find_by_cc_id(cc_id)
               team_club_str = name_str
               if league_team.present?
