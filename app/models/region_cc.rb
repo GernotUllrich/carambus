@@ -439,7 +439,7 @@ class RegionCc < ApplicationRecord
     League.where(season: season, organizer_type: 'Region', organizer_id: region.id).each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? #TODO TEST REMOVE ME
-      # next unless league.ba_id == 4869
+      next unless league.ba_id == 6204
       league_team_players = {}
       league.parties.each do |party|
         league_team_players[party.league_team_a_id] ||= []
@@ -1140,8 +1140,8 @@ class RegionCc < ApplicationRecord
                                                                              league_cc.id) || LeagueTeamCc.new(args)
                 league_team_cc.assign_attributes(args)
                 league_team_cc.save!
-                league_teams.push(league_team)
-                league_team_ccs.push(league_team_cc)
+                league_teams.push(league_team) unless league_teams.include?(league_team)
+                league_team_ccs.push(league_team_cc) unless league_team_ccs.include?(league_team_cc)
               else
                 RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
                   name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
