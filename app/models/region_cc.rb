@@ -1154,7 +1154,7 @@ class RegionCc < ApplicationRecord
 
     return [league_teams, league_team_ccs]
   rescue StandardError => e
-    e
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
   end
 
   def sync_league_plan(opts = {})

@@ -23,10 +23,10 @@ namespace :cc do
       # RegionCcAction.synchronize_competition_structure(opts) if ix == 0
       # RegionCcAction.synchronize_season_structure(opts)
       # RegionCcAction.synchronize_league_structure(opts)
-      RegionCcAction.synchronize_league_team_structure(opts)
+      # RegionCcAction.synchronize_league_team_structure(opts)
       # RegionCcAction.synchronize_league_plan_structure(opts) #if season.name == "2014/2015"
-      # RegionCcAction.sync_team_players_structure(opts)
-      #RegionCcAction.sync_game_details(opts) #if season.name == "2014/2015"
+      RegionCcAction.sync_team_players_structure(opts)
+      # RegionCcAction.sync_game_details(opts) #if season.name == "2014/2015"
 
       # ### TODO done by synchronize_league_plan_structure! RegionCcAction.synchronize_party_structure(opts)
       # #### TODO what's this?  RegionCcAction.sync_party_game_structure(opts)
