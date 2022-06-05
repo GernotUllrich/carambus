@@ -439,6 +439,7 @@ class RegionCc < ApplicationRecord
     League.where(season: season, organizer_type: 'Region', organizer_id: region.id).each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? #TODO TEST REMOVE ME
+      # next unless league.ba_id == 4869
       league_team_players = {}
       league.parties.each do |party|
         league_team_players[party.league_team_a_id] ||= []
@@ -573,6 +574,7 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
+            next unless [4885].include?(league_cc.league.ba_id)
             next if branch_cc.name == "Snooker" # TODO TEST REMOVE ME
             next if branch_cc.name == "Pool" # TODO TEST REMOVE ME
             #next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
@@ -961,6 +963,7 @@ class RegionCc < ApplicationRecord
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
           next unless season_cc.name == season_name
+          next if branch_cc.name == "Pool" || branch_cc.name == "Snooker"
           # Get List of Leagues in CC
           _res, doc = post_cc(
             'showLeagueList',
@@ -1006,7 +1009,7 @@ class RegionCc < ApplicationRecord
                 l_name = l_name == 'Regionalliga Pool' ? 'Regionalliga' : l_name
               end
               league = nil
-              League.where(season: season, name: [l_name, "#{l_name} #{branch_cc.discipline.name}", "#{l_name} Ligen #{branch_cc.discipline.name}"], staffel_text: s_name, organizer_type: 'Region',
+              League.where(season: season, name: [l_name, "#{l_name.gsub("2er Teams", "2er-Teams")}", "#{l_name.gsub("3er Team", "3'er Team")}", "#{l_name.gsub("2er", "2'er")}", "#{l_name} #{branch_cc.discipline.name}", "#{l_name} Ligen #{branch_cc.discipline.name}"], staffel_text: s_name, organizer_type: 'Region',
                            organizer_id: [region.id, dbu_region_id]).each do |l|
                 if l.branch == branch_cc.discipline
                   league = l
@@ -1083,10 +1086,17 @@ class RegionCc < ApplicationRecord
                 name_str = tds[0].text.strip
               else
                 # TODO: Ansicht mit SpielPlan
-                cc_id = tds[2].text.to_i
+                link = tds[1].css("a")[0]["href"]
+                cc_id = link.match(/.*p=(\d+)/).andand[1]
                 name_str = tds[1].text.strip
               end
               name_str = name_str.split(' ').join(' ')
+              bgh_map = {
+                "BG Hamburg 2" => "BG Hamburg",
+                "BG Hamburg 3" => "BG Hamburg 2",
+                "BG Hamburg 4" => "BG Hamburg 3",
+              }
+              name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/
               league_team = LeagueTeam.find_by_cc_id(cc_id)
               team_club_str = name_str
               if league_team.present?
@@ -1157,8 +1167,6 @@ class RegionCc < ApplicationRecord
     errMsg = nil
     leagues.each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
-      next if league.discipline_id.blank? # TODO TEST REMOVE ME
-      next unless  league.id == 3490
       league_cc = league.league_cc
       parties = league.parties
       # read spielplan
