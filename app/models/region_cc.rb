@@ -623,9 +623,9 @@ class RegionCc < ApplicationRecord
                   while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]])) do
                     pg_line_ix += 1
                   end
-                  sc_ = pg.data[:result][pg.data[:result].keys[0]].split(":").map(&:strip).map(&:to_i)
-                  in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].split(":").map(&:strip).map(&:to_i) : []
-                  br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].split(":").map(&:strip).map(&:to_i) : []
+                  sc_ = pg.data[:result][pg.data[:result].keys[0]].gsub("Bälle (x0.00):", "").split(":").map(&:strip).map(&:to_i)
+                  in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].gsub("Aufn. (x0.00):", "").split(":").map(&:strip).map(&:to_i) : []
+                  br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].gsub("HS:", "").split(":").map(&:strip).map(&:to_i) : []
 
                   # 2:0 => 1:0, 1:0
                   # 2:1 => 1:0, 0:1, 1:0
