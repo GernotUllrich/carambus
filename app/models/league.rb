@@ -244,7 +244,6 @@ class League < ApplicationRecord
               protest_link = Nokogiri::HTML(protest_link_html.inner_html).css("a").attribute("href").andand.value.to_s
 
               match_day_url = "/cms_leagues/matchday/#{party_ba_id}"
-              next unless party_ba_id.to_i == 248527
               uri = URI(url + match_day_url)
               res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
               player_a = player_b = game_name = nil
@@ -279,6 +278,7 @@ class League < ApplicationRecord
 
                 trs = doc_party.css("tr + tr")
                 ix = 0
+                game_count = party.party_games.count
                 trs.each do |tr|
                   next if tr.text.blank?
                   tds = tr.css('td[width="100"]')
@@ -299,6 +299,7 @@ class League < ApplicationRecord
                         "HB" => "#{tds_2[3].text.strip} : #{tds_2[7].andand.text.andand.strip.to_i}",
                       }
                     else
+                      next unless game_count > 0
                       tds_2 = tr.css('td')
                       column_count = tds_2.count / 2
                       res_hash = {}
@@ -307,6 +308,7 @@ class League < ApplicationRecord
                         res_b = tds_2[column_count + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
                         res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
                       end
+                      game_count = game_count - 1
                     end
                     party_game = PartyGame.find_by_seqno_and_party_id(ix, party.id) || PartyGame.create(seqno: ix, party: party)
                     party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
