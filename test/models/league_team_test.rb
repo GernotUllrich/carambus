@@ -8,7 +8,6 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  ba_id      :integer
-#  cc_id      :integer
 #  club_id    :integer
 #  league_id  :integer
 #

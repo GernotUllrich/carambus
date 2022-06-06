@@ -439,7 +439,7 @@ class RegionCc < ApplicationRecord
     League.where(season: season, organizer_type: 'Region', organizer_id: region.id).each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? #TODO TEST REMOVE ME
-      next unless league.ba_id == 6204
+      # next unless league.ba_id == 4869
       league_team_players = {}
       league.parties.each do |party|
         league_team_players[party.league_team_a_id] ||= []
@@ -1060,12 +1060,12 @@ class RegionCc < ApplicationRecord
     league_team_ccs = []
     # for all branches
     BranchCc.where(context: context).each do |branch_cc|
+      next unless branch_cc.name == "Karambol"
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.each do |season_cc|
           season_cc.league_ccs.order(:cc_id).each do |league_cc|
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             next unless season_cc.name == season_name
-            next unless league_cc.league.ba_id == 6204
 
             _, doc = post_cc(
               'admin_report_showLeague',
@@ -1092,18 +1092,14 @@ class RegionCc < ApplicationRecord
                 name_str = tds[1].text.strip
               end
               name_str = name_str.split(' ').join(' ')
+              name_str_cc = name_str
               bgh_map = {
                 "BG Hamburg 2" => "BG Hamburg",
                 "BG Hamburg 3" => "BG Hamburg 2",
                 "BG Hamburg 4" => "BG Hamburg 3",
               }
               name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/ && name_str =~ /BG Hamburg [234]/
-              league_team = LeagueTeam.find_by_cc_id(cc_id)
               team_club_str = name_str
-              if league_team.present?
-                league_team_ccs.push(league_team.league_team_cc) if league_team.league_team_cc.present?
-                league_teams.push(league_team)
-              end
 
               if name_str.match(/.*[ [[:space:]]]+\d+$/)
                 team_club_str = (m = name_str.match(/(.*[^ [[:space:]]])[ [[:space:]]]*(\d+)$/))[1]
@@ -1112,7 +1108,7 @@ class RegionCc < ApplicationRecord
               end
               club = Club.where(region: region, shortname: team_club_str).first
               if club.present?
-                league_team = LeagueTeam.find_by_cc_id_and_league_id(cc_id, league_cc.league.id)
+                league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: {id: league_cc.league_id}).first
                 league_team ||= LeagueTeam
                                   .joins(:league)
                                   .joins(club: :region)
@@ -1133,9 +1129,7 @@ class RegionCc < ApplicationRecord
                 }.inspect}"
               end
               if league_team.present?
-                league_team.assign_attributes(cc_id: cc_id)
-                league_team.save!
-                args = { cc_id: cc_id, name: name_str, league_cc_id: league_cc.id, league_team_id: league_team.id }
+                args = { cc_id: cc_id, name: name_str_cc, league_cc_id: league_cc.id, league_team_id: league_team.id }
                 league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(cc_id,
                                                                              league_cc.id) || LeagueTeamCc.new(args)
                 league_team_cc.assign_attributes(args)
@@ -1219,9 +1213,9 @@ class RegionCc < ApplicationRecord
 
             party = parties.joins('INNER JOIN "league_teams" as "league_team_a" on "league_team_a"."id" = "parties"."league_team_a_id"').
               joins('INNER JOIN "league_teams" as "league_team_b" on "league_team_b"."id" = "parties"."league_team_b_id"').
-              where(round: party_round).
-              where('league_team_a.cc_id = ?', party_team_a_cc_id).
-              where('league_team_b.cc_id = ?', party_team_b_cc_id).first
+              joins('INNER JOIN "league_team_ccs" as "league_team_cc_a" on "league_team_cc_a"."league_team_id" = "league_team_a"."id"').
+              joins('INNER JOIN "league_team_ccs" as "league_team_cc_b" on "league_team_cc_b"."league_team_id" = "league_team_b"."id"').
+              where(round: party_round).first
             args = { cc_id: party_cc_id,
                      group: party_group,
                      round: party_round,
