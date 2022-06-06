@@ -604,6 +604,8 @@ class RegionCc < ApplicationRecord
               discipline_synonyms = {
                 "14/1e" => "14.1 endlos",
                 "15-reds" => "Snooker",
+                "Dreiband (gr)" => "Dreiband groß",
+                "Dreiband (kl)" => "Dreiband klein",
 
               }
               if params['zuNullTeamId'].to_i > 0
@@ -702,7 +704,7 @@ class RegionCc < ApplicationRecord
                   add_pg = {
                     "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
                     "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }
-                  if branch_cc.name == "Pool"
+                  if branch_cc.name == "Pool" || branch_cc.name == "Karambol"
                     if player_a_noshow && player_b_noshow && pg.party.data[:result] =~ /0:0/
                       RegionCc.logger.info "REPORT keine Ergebnisse - noch nicht gespielt? wer ist Gewinner?"
                     else
@@ -1215,6 +1217,8 @@ class RegionCc < ApplicationRecord
               joins('INNER JOIN "league_teams" as "league_team_b" on "league_team_b"."id" = "parties"."league_team_b_id"').
               joins('INNER JOIN "league_team_ccs" as "league_team_cc_a" on "league_team_cc_a"."league_team_id" = "league_team_a"."id"').
               joins('INNER JOIN "league_team_ccs" as "league_team_cc_b" on "league_team_cc_b"."league_team_id" = "league_team_b"."id"').
+              where('league_team_cc_a.cc_id = ?', party_team_a_cc_id).
+              where('league_team_cc_b.cc_id = ?', party_team_b_cc_id).
               where(round: party_round).first
             args = { cc_id: party_cc_id,
                      group: party_group,

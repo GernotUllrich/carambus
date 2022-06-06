@@ -213,7 +213,8 @@ class League < ApplicationRecord
             end
             args = {}
             if player_ba_id.present? && lastname.present?
-              player = Player.where(type: nil, firstname: firstname, lastname: lastname, club_id: club.andand.id).where("ba_id > 900000000").first
+              player = Player.find_by_ba_id(player_ba_id)
+              player ||= Player.where(type: nil, firstname: firstname, lastname: lastname, club_id: club.andand.id).where("ba_id > 900000000").first
               player ||= Player.where(type: nil, firstname: firstname, lastname: lastname).where("ba_id > 900000000").first
               if player.present?
                 player.andand.update(ba_id: player_ba_id)
@@ -243,7 +244,7 @@ class League < ApplicationRecord
               protest_link = Nokogiri::HTML(protest_link_html.inner_html).css("a").attribute("href").andand.value.to_s
 
               match_day_url = "/cms_leagues/matchday/#{party_ba_id}"
-              ## next unless party_ba_id.to_i == 81009
+              next unless party_ba_id.to_i == 248527
               uri = URI(url + match_day_url)
               res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
               player_a = player_b = game_name = nil
