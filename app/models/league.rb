@@ -72,7 +72,7 @@ class League < ApplicationRecord
     Competition.where(super_discipline_id: discipline_id).where("name ilike '%Mannschaft%'").first
   end
 
-  def self.scrape_leagues_by_region_and_season(region, season, opts={})
+  def self.scrape_leagues_by_region_and_season(region, season, opts = {})
     url_top = "https://#{region.shortname.downcase}.billardarea.de"
     uri_top = URI(url_top + '/cms_leagues')
     Rails.logger.info "reading #{url_top + '/cms_leagues'} - region #{region.shortname} league tournaments season #{season.name}"
@@ -278,11 +278,12 @@ class League < ApplicationRecord
 
                 trs = doc_party.css("tr + tr")
                 ix = 0
-                game_count = party.party_games.count
+                game_count = 0
                 trs.each do |tr|
                   next if tr.text.blank?
                   tds = tr.css('td[width="100"]')
                   if tds.count == 1
+                    game_count = 1
                     ix = ix + 1
                     game_name = Nokogiri::HTML(tds[0].inner_html.gsub("<br>", "::")).css("b").inner_html.strip
                     tds_all = tr.css('td')
@@ -299,16 +300,19 @@ class League < ApplicationRecord
                         "HB" => "#{tds_2[3].text.strip} : #{tds_2[7].andand.text.andand.strip.to_i}",
                       }
                     else
-                      next unless game_count > 0
-                      tds_2 = tr.css('td')
-                      column_count = tds_2.count / 2
-                      res_hash = {}
-                      (1..column_count).each_with_index do |_c2, ix2|
-                        res_a = tds_2[0 + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
-                        res_b = tds_2[column_count + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
-                        res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+                      if game_count > 0
+                        tds_2 = tr.css('td')
+                        column_count = tds_2.count / 2
+                        res_hash = {}
+                        (1..column_count).each_with_index do |_c2, ix2|
+                          res_a = tds_2[0 + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
+                          res_b = tds_2[column_count + ix2].inner_html.gsub("<br>", " :: ").strip().gsub("\t", "").gsub(/\n+/, " :: ").squish.gsub(/::(?: ::)+/, "::").split(" :: ")
+                          res_hash[(res_a[-2] || "Ergebnis")] = "#{res_a[-1]} : #{res_b[-1]}"
+                        end
+                        game_count = game_count - 1
+                      else
+                        next
                       end
-                      game_count = game_count - 1
                     end
                     party_game = PartyGame.find_by_seqno_and_party_id(ix, party.id) || PartyGame.create(seqno: ix, party: party)
                     party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
