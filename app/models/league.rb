@@ -325,9 +325,22 @@ class League < ApplicationRecord
           end
         end
       end
+      self.fix_seqnos if opts[:fix_seqnos]
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: #{e}, #{e.backtrace.join("\n")}" if DEBUG
+  end
+
+  def fix_seqnos
+    seqno = 0
+    date = nil
+    parties.order(:date, :id).each do |party|
+      if party.date != date
+        seqno = seqno + 1
+        date = party.date
+      end
+      party.update(day_seqno: seqno)
+    end
   end
 
   def self.logger
