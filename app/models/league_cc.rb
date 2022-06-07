@@ -73,6 +73,12 @@ class LeagueCc < ApplicationRecord
     RegionCc.logger.info "REPORT [LeaguePlanCc.create_from_ba] WOULD CREATE for #{league.attributes}"
   end
 
+  def create_game_plan
+    #SPIELTAG; PARTIE; RUNDE; MANNSCHAFT1 (Schlüssel); MANNSCHAFT2 (Schlüssel); TERMIN (TT.MM.JJJJ); GASTGEBER (Schlüssel); BEGINN (hh:mm); ANZEIGE-DATUM (TT.MM.JJJJ)
+    league = self.league
+    parties = league.parties
+  end
+
   def link_name
     fedId = season_cc.competition_cc.branch_cc.region_cc.cc_id
     branchId = season_cc.competition_cc.branch_cc.cc_id

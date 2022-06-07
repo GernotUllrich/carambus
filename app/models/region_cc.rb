@@ -1165,7 +1165,7 @@ class RegionCc < ApplicationRecord
                       }
                       name_str = mm3btb_map[season_cc.name][name_str] if league_cc.name =~ /NDMM Dreiband TB/ && mm3btb_map[season_cc.name].andand[name_str].present?
                       if club.present?
-                        league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: { id: league_cc.league_id }).first
+                        league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: team_cc_id }).where(leagues: { id: league_cc.league_id }).first
                         league_team ||= LeagueTeam
                                           .joins(:league)
                                           .joins(club: :region)
@@ -1182,12 +1182,12 @@ class RegionCc < ApplicationRecord
                                                  club_id: club.id).first
                       else
                         RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{
-                          name: team_club_str, cc_id: cc_id, region: region.shortname
+                          name: team_club_str, cc_id: club_cc_id, region: region.shortname
                         }.inspect}"
                       end
                       if league_team.present?
-                        args = { cc_id: cc_id, name: name_str_cc, league_cc_id: league_cc.id, league_team_id: league_team.id }
-                        league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(cc_id,
+                        args = { cc_id: team_cc_id, name: name_str_cc, league_cc_id: league_cc.id, league_team_id: league_team.id }
+                        league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(team_cc_id,
                                                                                      league_cc.id) || LeagueTeamCc.new(args)
                         league_team_cc.assign_attributes(args)
                         league_team_cc.save!
@@ -1195,7 +1195,7 @@ class RegionCc < ApplicationRecord
                         league_team_ccs.push(league_team_cc) unless league_team_ccs.include?(league_team_cc)
                       else
                         RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
-                          name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
+                          name: name_str, cc_id: team_cc_id, league_id: league_cc.league.id, club_id: club.andand.id
                         }.inspect}"
                       end
                     else
