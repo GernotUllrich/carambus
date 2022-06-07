@@ -5,8 +5,9 @@ class RegionCcAction
     context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
     season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
-    exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013", "2013/2014", "2014/2015", "2015/2016",
-                            "2019/2020", "2020/2021"]
+    # exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013", "2013/2014", "2014/2015", "2015/2016",
+    #                         "2019/2020", "2020/2021"]
+    exclude_season_names = []
     # TODO ba_ids!!! exclude_league_ba_ids = [6840,6857,2422,3086,3079,3466,3474,4132,4146,4818,4836,5446,5441,6179,6177,7504,7515,2597,2952,3626,4238,4867,5491,6210,6900,7563,3111,3627,4239,4884,5497,6214,6933,7583,8252,8172,8197,8247]
     pool_ba_ids = [1150, 1151, 1152, 1153, 1154, 1155, 1155, 776, 780, 1154, 1827, 1824, 1825, 1828, 1830, 1829, 2341, 2339, 2335, 2342, 2343, 2336, 2946, 2945, 2942, 2943, 2939, 2947, 2947, 3622, 3620, 3621, 3617, 3623, 3614, 3623, 4225, 4224, 4235, 4236, 4232, 4237, 4237, 4874, 4873, 4882, 4883, 4879, 4866, 4866, 5506, 5494, 5512, 5513, 5502, 5502, 5509, 6207, 6203, 6223, 6224, 6209, 6217, 6217, 6898, 6886, 6907, 6908, 6887, 6904, 6904, 7577, 7568, 7581, 7582, 7569, 7565, 7565, 8261, 8263, 8264, 8256, 8255, 8252]
     snooker_ba_ids = [1158, 1157, 779, 1833, 1832, 2337, 2944, 3613, 3727, 4229, 4243, 4877, 4870, 5505, 5508, 6208, 6219, 6899, 6905, 6903, 7578, 7580, 7566, 8262, 8240, 8247, 8246]
@@ -184,6 +185,47 @@ SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
     unless club_ids_overdone.blank?
       raise_err_msg("synchronize_club_structure", "more club_cc_ids with context than expected in CC: #{Club.where(id: club_ids_still_todo).map { |ccc| "#{ccc.name}[#{ccc.id}]" }}")
     end
+  end
+
+  def self.synchronize_league_team_structure_new(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    if season.blank?
+      raise ArgumentError, "unknown season name #{opts[:season_name]}", caller
+    end
+    context = opts[:context]
+    force_cc_update = opts[:armed]
+    region = Region.find_by_shortname(context.upcase)
+    region_cc = region.region_cc
+
+    unless region_cc.blank?
+      league_teams_by_region_todo = LeagueTeam.joins(:league => { :league_teams => :club }).where(league: { season: season, organizer_type: "Region", organizer_id: [region.id] }).where("clubs.region_id = ?", region.id).where.not(league: { ba_id: opts[:exclude_league_ba_ids] }).uniq
+      league_teams_todo_ids = league_teams_by_region_todo.to_a.map(&:id)
+      league_teams_done, league_team_ccs = region_cc.sync_league_teams_new(opts)
+      league_teams_done_ids = league_teams_done.map(&:id)
+    else
+      raise_err_msg("synchronize_league_team_structure", "unknown context Region #{context}")
+    end
+    league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
+    unless league_teams_still_todo_ids.blank?
+      if force_cc_update
+        league_teams_still_todo_ids.each do |league_team_id|
+          league_team = LeagueTeam[league_team_id]
+          if !league_team.blank?
+            league_team_cc = LeagueTeamCc.create_from_ba(league_team)
+          else
+            raise_err_msg("synchronize_league_team_structure", "no league_team with id #{league_id}")
+          end
+        end
+      else
+        Rails.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+        RegionCc.logger.warn "REPORT! [synchronize_league_team_structure] LigaTeams für Season #{opts[:season_name]} nicht definiert in CC #{LeagueTeam.where(id: league_teams_still_todo_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+      end
+    end
+    league_teams_overdone_ids = league_teams_done_ids - league_teams_todo_ids
+    unless league_teams_overdone_ids.blank?
+      RegionCc.logger.info "REPORT [synchronize_league_team_structure] more league_team_ids with context #{context} than expected in CC: #{LeagueTeam.where(id: league_teams_overdone_ids).map { |league_team| "#{league_team.name}[#{league_team.id}] - in Liga #{league_team.league.name} #{league_team.league.discipline.andand.name}" }}"
+    end
+
   end
 
   def self.synchronize_league_team_structure(opts = {})

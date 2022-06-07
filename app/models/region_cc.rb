@@ -99,6 +99,14 @@ class RegionCc < ApplicationRecord
                # seasonId: 8,
                # p: 187,
                # passnr: 221109,
+               'showAnnounceList' => ['/admin/announcement/team/showAnnounceList.php', true],
+               # fedId: 20
+               # branchId: 10
+               # subBranchId: 2
+               # sportDistrictId: *
+               # clubId: 1011
+               # originalBranchId: 10
+               # seasonId: 45
                'spielbericht' => ['/admin/bm_mw/spielbericht.php', true],
                # errMsgNew:
                # matchId: 572
@@ -1049,6 +1057,165 @@ class RegionCc < ApplicationRecord
     [[], e.to_s]
   end
 
+  def sync_league_teams_new(opts = {})
+    context = opts[:context]
+    season_name = opts[:season_name]
+    region = Region.find_by_shortname(context.upcase)
+    season = Season.find_by_name(season_name)
+    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+
+    dbu_region_id = Region.find_by_shortname('portal').id
+
+    league_teams = []
+    league_team_ccs = []
+    # for all branches
+    BranchCc.where(context: context).each do |branch_cc|
+      next unless branch_cc.name == "Karambol"
+      branch_cc.competition_ccs.each do |competition_cc|
+
+        competition_cc.season_ccs.each do |season_cc|
+          season_cc.league_ccs.order(:cc_id).each do |league_cc|
+
+            next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
+            next unless season_cc.name == season_name
+            next unless league_cc.name =~ /NDMM Dreiband/
+            #get club list
+            _, doc_club = post_cc(
+              'showClubList',
+              { fedId: league_cc.fedId,
+                branchId: league_cc.branchId,
+                subBranchId: league_cc.subBranchId,
+                sportDistrictId: '*',
+                statusId: 1 },
+              opts
+            )
+            selector = doc_club.css('select[name="clubId"]')[0]
+            options_tags = selector.css('option')
+            options_tags.each do |option|
+              clubstr = option.text.match(/(.*) \(\d+\)/).andand[1].strip
+              club_cc_id = option['value'].to_i
+              club = Club.find_by_cc_id(club_cc_id)
+              unless club.present?
+                club = Club.find_by_shortname(clubstr)
+                if club.present?
+                  club.update(cc_id: club_cc_id)
+                end
+              end
+              unless club.present?
+                RegionCc.logger.info "REPORT UNKNOWN CLUB #{clubstr} with cc_id: #{club_cc_id}"
+              else
+
+                _, doc_teams = post_cc(
+                  'showAnnounceList',
+                  {
+                    fedId: league_cc.fedId,
+                    branchId: league_cc.branchId,
+                    subBranchId: league_cc.subBranchId,
+                    sportDistrictId: '*',
+                    clubId: club_cc_id,
+                    originalBranchId: league_cc.branchId,
+                    seasonId: season_cc.cc_id
+                  },
+                  opts
+                )
+                selector_team = doc_teams.css('select[name="teamId"]')[0]
+                if selector_team.present?
+                  options_tags_team = selector_team.css('option')
+                  options_tags_team.each do |option_team|
+                    team_cc_id = option_team['value'].to_i
+                    name_str = option_team.text.match(/(\d+) \((.*)\)/)
+                    if name_str.present?
+                      league_name = name_str[2].strip
+                      next unless league_name == league_cc.name
+                      team_seqno = name_str[1].to_i
+                      name_str = "#{club.shortname} #{team_seqno}"
+                      name_str = name_str.split(' ').join(' ')
+                      name_str_cc = name_str
+                      bgh_map = {
+                        "BG Hamburg 2" => "BG Hamburg",
+                        "BG Hamburg 3" => "BG Hamburg 2",
+                        "BG Hamburg 4" => "BG Hamburg 3",
+                      }
+                      name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/ && name_str =~ /BG Hamburg [234]/
+                      mm3btb_map = {
+                        "2014/2015" => {
+                          "BV Kiel 1" => "BV Kiel",
+                          "BG Hamburg 2" => "BG Hamburg",
+                          "BC Wedel 2" => "BC Wedel",
+                          "BC Wedel 3" => "BC Wedel 2"
+                        },
+                        "2015/2016" => {
+                          "BV Kiel 2" => "BV Kiel",
+                          "BC Wedel 3" => "BC Wedel"
+                        },
+                        "2016/2017" => {
+                          "BG Hamburg 2" => "BG Hamburg",
+                          "BC Wedel 3" => "BC Wedel",
+                          "BC Wedel 4" => "BC Wedel 2"
+                        },
+                        "2017/2018" => {
+                          "BG Hamburg 2" => "BG Hamburg",
+                          "BC Wedel 3" => "BC Wedel",
+                        },
+                        "2018/2019" => {
+                          "BG Hamburg 2" => "BG Hamburg",
+                          "BG Hamburg 3" => "BG Hamburg 2",
+                          "BC Wedel 3" => "BC Wedel",
+                        },
+                      }
+                      name_str = mm3btb_map[season_cc.name][name_str] if league_cc.name =~ /NDMM Dreiband TB/ && mm3btb_map[season_cc.name].andand[name_str].present?
+                      if club.present?
+                        league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: { id: league_cc.league_id }).first
+                        league_team ||= LeagueTeam
+                                          .joins(:league)
+                                          .joins(club: :region)
+                                          .where(regions: { id: region.id })
+                                          .where(name: name_str, # shortname? TODO
+                                                 league_id: league_cc.league.id,
+                                                 club_id: club.id).first
+                        league_team ||= LeagueTeam
+                                          .joins(:league)
+                                          .joins(club: :region)
+                                          .where(regions: { id: region.id })
+                                          .where(name: club.shortname, # shortname? TODO
+                                                 league_id: league_cc.league.id,
+                                                 club_id: club.id).first
+                      else
+                        RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{
+                          name: team_club_str, cc_id: cc_id, region: region.shortname
+                        }.inspect}"
+                      end
+                      if league_team.present?
+                        args = { cc_id: cc_id, name: name_str_cc, league_cc_id: league_cc.id, league_team_id: league_team.id }
+                        league_team_cc = LeagueTeamCc.find_by_cc_id_and_league_cc_id(cc_id,
+                                                                                     league_cc.id) || LeagueTeamCc.new(args)
+                        league_team_cc.assign_attributes(args)
+                        league_team_cc.save!
+                        league_teams.push(league_team) unless league_teams.include?(league_team)
+                        league_team_ccs.push(league_team_cc) unless league_team_ccs.include?(league_team_cc)
+                      else
+                        RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
+                          name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
+                        }.inspect}"
+                      end
+                    else
+                      RegionCc.logger.info "REPORT CANNOT PARSE TEAM INFO #{name_str} with cc_id: #{team_cc_id}"
+                    end
+
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    return [league_teams, league_team_ccs]
+  rescue StandardError => e
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
+  end
+
   def sync_league_teams(opts = {})
     context = opts[:context]
     season_name = opts[:season_name]
@@ -1138,7 +1305,7 @@ class RegionCc < ApplicationRecord
               end
               club = Club.where(region: region, shortname: team_club_str).first
               if club.present?
-                league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: {id: league_cc.league_id}).first
+                league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: { id: league_cc.league_id }).first
                 league_team ||= LeagueTeam
                                   .joins(:league)
                                   .joins(club: :region)
@@ -1248,8 +1415,8 @@ class RegionCc < ApplicationRecord
               joins('INNER JOIN "league_team_ccs" as "league_team_cc_b" on "league_team_cc_b"."league_team_id" = "league_team_b"."id"').
               where('league_team_cc_a.cc_id = ?', party_team_a_cc_id).
               where('league_team_cc_b.cc_id = ?', party_team_b_cc_id).
-              where.not(parties: {id: party_done_ids}).first
-              #where(day_seqno: party_day_seqno).first
+              where.not(parties: { id: party_done_ids }).first
+            #where(day_seqno: party_day_seqno).first
             args = { cc_id: party_cc_id,
                      group: party_group,
                      round: party_round,
@@ -1258,7 +1425,7 @@ class RegionCc < ApplicationRecord
                      register_at: party_register,
                      status: party_active,
                      league_cc_id: league_cc.id,
-                       party_id: party.andand.id,
+                     party_id: party.andand.id,
                      league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first.andand.id,
                      league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first.andand.id,
                      league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first.andand.id,
