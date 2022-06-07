@@ -77,6 +77,23 @@ class LeagueCc < ApplicationRecord
     #SPIELTAG; PARTIE; RUNDE; MANNSCHAFT1 (Schlüssel); MANNSCHAFT2 (Schlüssel); TERMIN (TT.MM.JJJJ); GASTGEBER (Schlüssel); BEGINN (hh:mm); ANZEIGE-DATUM (TT.MM.JJJJ)
     league = self.league
     parties = league.parties
+    csv = []
+    s_no = 5000
+    parties.order(:day_seqno, :date).each do |p|
+      s_no += 1
+      csv.push([
+                 p.day_seqno,
+                 s_no,
+                 p.round,
+                 p.league_team_a.league_team_cc.cc_id,
+                 p.league_team_b.league_team_cc.cc_id,
+                 p.date.strftime("%d.%m.%Y"),
+                 p.host_league_team.league_team_cc.cc_id,
+                 p.date.strftime("%H:%M"),
+                 p.date.strftime("%d.%m.%Y")
+               ].join(";"))
+    end
+    return csv.join("\n")
   end
 
   def link_name

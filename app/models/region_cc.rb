@@ -1164,6 +1164,24 @@ class RegionCc < ApplicationRecord
                         },
                       }
                       name_str = mm3btb_map[season_cc.name][name_str] if league_cc.name =~ /NDMM Dreiband TB/ && mm3btb_map[season_cc.name].andand[name_str].present?
+                      mm3bmb_map = {
+                        "2015/2016" => {
+                          "BG Hamburg 2" => "BG Hamburg",
+                          "BG Hamburg 3" => "BG Hamburg 2",
+                          "BC Wedel 3" => "BC Wedel",
+                          "BC Wedel 4" => "BC Wedel 2",
+                        },
+                        "2016/2017" => {
+                          "BC Bergedorf 1" => "BC Bergedorf",
+                          "BC Wedel 3" => "BC Wedel",
+                        },
+
+                        "2018/2019" => {
+                          "BC Wedel 3" => "BC Wedel",
+                          "BG Hamburg 4" => "BG Hamburg",
+                        },
+                      }
+                      name_str = mm3bmb_map[season_cc.name][name_str] if league_cc.name =~ /NDMM Dreiband MB/ && mm3bmb_map[season_cc.name].andand[name_str].present?
                       if club.present?
                         league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: team_cc_id }).where(leagues: { id: league_cc.league_id }).first
                         league_team ||= LeagueTeam
@@ -1194,7 +1212,7 @@ class RegionCc < ApplicationRecord
                         league_teams.push(league_team) unless league_teams.include?(league_team)
                         league_team_ccs.push(league_team_cc) unless league_team_ccs.include?(league_team_cc)
                       else
-                        RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
+                        RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{club.andand.shortname} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
                           name: name_str, cc_id: team_cc_id, league_id: league_cc.league.id, club_id: club.andand.id
                         }.inspect}"
                       end
