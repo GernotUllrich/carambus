@@ -573,8 +573,8 @@ class RegionCc < ApplicationRecord
     region_cc.branch_ccs.each do |branch_cc|
       branch_cc.competition_ccs.each do |competition_cc|
         competition_cc.season_ccs.where.not(name: opts[:exclude_season_names]).each do |season_cc|
+          next unless season_cc.name == season.name
           season_cc.league_ccs.order(cc_id: :asc).each do |league_cc|
-            next unless [4885].include?(league_cc.league.ba_id)
             next if branch_cc.name == "Snooker" # TODO TEST REMOVE ME
             next if branch_cc.name == "Pool" # TODO TEST REMOVE ME
             #next if league_cc.league.discipline_id.blank? # TODO TEST REMOVE ME
@@ -619,7 +619,7 @@ class RegionCc < ApplicationRecord
                   params.merge!('zuNullTeamId' => party.league_team_b.league_team_cc.cc_id)
                 end
               else
-                game_lines = party_cc.league_cc.game_plan_cc.data["games"]
+                game_lines = league_cc.game_plan_cc.data["games"]
                 pg_line_ix = 0
                 party.party_games.each_with_index do |pg, ix|
                   while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]])) do
@@ -1101,6 +1101,34 @@ class RegionCc < ApplicationRecord
                 "BG Hamburg 4" => "BG Hamburg 3",
               }
               name_str = bgh_map[name_str] if league_cc.name =~ /2er Team/ && name_str =~ /BG Hamburg [234]/
+              mm3btb_map = {
+                "2014/2015" => {
+                  "BV Kiel 1" => "BV Kiel",
+                  "BG Hamburg 2" => "BG Hamburg",
+                  "BC Wedel 2" => "BC Wedel",
+                  "BC Wedel 3" => "BC Wedel 2"
+                },
+                "2015/2016" => {
+                  "BV Kiel 2" => "BV Kiel",
+                  "BC Wedel 3" => "BC Wedel"
+                },
+                "2016/2017" => {
+                  "BG Hamburg 2" => "BG Hamburg",
+                  "BC Wedel 3" => "BC Wedel",
+                  "BC Wedel 4" => "BC Wedel 2"
+                },
+                "2017/2018" => {
+                  "BG Hamburg 2" => "BG Hamburg",
+                  "BC Wedel 3" => "BC Wedel",
+                },
+                "2018/2019" => {
+                  "BG Hamburg 2" => "BG Hamburg",
+                  "BG Hamburg 3" => "BG Hamburg 2",
+                  "BC Wedel 3" => "BC Wedel",
+                },
+              }
+              name_str = mm3btb_map[season_cc.name][name_str] if league_cc.name =~ /NDMM Dreiband TB/ && mm3btb_map[season_cc.name].andand[name_str].present?
+
               team_club_str = name_str
 
               if name_str.match(/.*[ [[:space:]]]+\d+$/)
@@ -1187,6 +1215,7 @@ class RegionCc < ApplicationRecord
           return [leagues_done, msg]
         end
         party_match_id = nil
+        party_done_ids = []
         tables = doc3.css('form > table > tr > td > table > tr > td > table > tr > td > table') #TODO why is an Array returned???
         tables.each do |table|
           next unless table.css('> tr > th')[0].andand.text == 'Spieltag'
@@ -1197,7 +1226,7 @@ class RegionCc < ApplicationRecord
 
             party_match_id = tds[0].css('> input')[0]['name'].match(/spieltagNr(\d+)$/)[1].to_i
             selectors = tds.css('> select')
-            party_day_seqno = tds.css('> input')[0]['value']
+            party_day_seqno = tds.css('> input')[0]['value'].to_i
             party_group = tds.css('> input')[1]['value']
             party_cc_id = tds.css('> input')[2]['value'].to_i
             party_round = tds.css('> input')[3]['value']
@@ -1219,7 +1248,8 @@ class RegionCc < ApplicationRecord
               joins('INNER JOIN "league_team_ccs" as "league_team_cc_b" on "league_team_cc_b"."league_team_id" = "league_team_b"."id"').
               where('league_team_cc_a.cc_id = ?', party_team_a_cc_id).
               where('league_team_cc_b.cc_id = ?', party_team_b_cc_id).
-              where(round: party_round).first
+              where.not(parties: {id: party_done_ids}).first
+              #where(day_seqno: party_day_seqno).first
             args = { cc_id: party_cc_id,
                      group: party_group,
                      round: party_round,
@@ -1228,7 +1258,7 @@ class RegionCc < ApplicationRecord
                      register_at: party_register,
                      status: party_active,
                      league_cc_id: league_cc.id,
-                     party_id: party.andand.id,
+                       party_id: party.andand.id,
                      league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first.andand.id,
                      league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first.andand.id,
                      league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first.andand.id,
@@ -1239,6 +1269,7 @@ class RegionCc < ApplicationRecord
               party_cc = party_ccs.where(cc_id: party_cc_id).first || PartyCc.new(args)
               party_cc.assign_attributes(args)
               party_cc.save
+              party_done_ids.push(party.id)
               #
               # _, doc = post_cc(
               #   "massChangingCheckAuth",
