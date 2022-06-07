@@ -812,6 +812,8 @@ class RegionCc < ApplicationRecord
         end
       end
     end
+  rescue StandardError => e
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
   end
 
   def self.sync_regions(opts = {})
