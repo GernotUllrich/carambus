@@ -19,11 +19,11 @@ namespace :cc do
       # RegionCcAction.synchronize_# Region_structure(opts) if ix == 0
       # RegionCcAction.synchronize_club_structure(opts) if ix == 0
       # RegionCcAction.synchronize_branch_structure(opts) if ix == 0
-      # RegionCcAction.synchronize_game_plan_structure(opts) if ix == 0
+      RegionCcAction.synchronize_game_plan_structure(opts) if ix == 0
       # RegionCcAction.synchronize_competition_structure(opts) if ix == 0
       # RegionCcAction.synchronize_season_structure(opts)
       # RegionCcAction.synchronize_league_structure(opts)
-      RegionCcAction.synchronize_league_team_structure_new(opts)
+      # RegionCcAction.synchronize_league_team_structure_new(opts)
       #RegionCcAction.synchronize_league_team_structure(opts)
       # RegionCcAction.synchronize_league_plan_structure(opts) #if season.name == "2014/2015"
       # RegionCcAction.sync_team_players_structure(opts)
