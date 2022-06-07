@@ -493,7 +493,7 @@ class RegionCc < ApplicationRecord
                        p: league_team_cc.p,
                        passnr: player.ba_id,
                        referer: "/admin/bm_mw/spielberichtCheck.php?" }
-              if false
+              if true
                 _, doc = region_cc.post_cc(
                   'showLeague_add_teamplayer',
                   args,
