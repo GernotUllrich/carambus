@@ -22,8 +22,8 @@ class RegionCcAction
       joins(:discipline).
       where(organizer_id:[1, 17]).
       where("disciplines.name ilike '%Karambol%'").
-      where.not("leagues.name ilike '%NDMM Dreiband MB%'").
-      map(&:ba_id)
+      # where.not("leagues.name ilike '%NDMM Dreiband MB%'").
+      map(&:ba_id) - [1826]
     exclude_league_ba_ids = pool_ba_ids + snooker_ba_ids + karambol_ba_ids
 
       return { session_id: session_id, armed: force_update, context: context, season_name: season_name, exclude_season_names: exclude_season_names, exclude_league_ba_ids: exclude_league_ba_ids }

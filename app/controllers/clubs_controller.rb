@@ -35,7 +35,7 @@ class ClubsController < ApplicationController
   end
 
   def new_club_location
-    @location = @club.tournament_locations.build
+    @location = @club.locations.build
     render "locations/new"
   end
 

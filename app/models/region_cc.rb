@@ -616,7 +616,9 @@ class RegionCc < ApplicationRecord
                 "15-reds" => "Snooker",
                 "Dreiband (gr)" => "Dreiband groß",
                 "Dreiband (kl)" => "Dreiband klein",
-
+                "Einband (kl)" => "Einband klein",
+                "Freie Partie (kl)" => "Freie Partie klein",
+                "Cadre 35/2" => "Cadre 52/2",
               }
               if params['zuNullTeamId'].to_i > 0
                 if params['protest'].blank?
@@ -642,8 +644,8 @@ class RegionCc < ApplicationRecord
                   # 2:0 => 1:0, 1:0
                   # 2:1 => 1:0, 0:1, 1:0
                   player_a_noshow = player_b_noshow = false
-                  if pg.player_a.cc_id.blank?
-                    if pg.player_a.lastname == "Freilos"
+                  if pg.player_a.andand.cc_id.blank?
+                    if pg.player_a.blank? || pg.player_a.lastname == "Freilos"
                       player_a_noshow = true
                     else
                       player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_a.firstname, lastname: pg.player_a.lastname).first
@@ -677,8 +679,8 @@ class RegionCc < ApplicationRecord
                       end
                     end
                   end
-                  if pg.player_b.cc_id.blank?
-                    if pg.player_b.lastname == "Freilos"
+                  if pg.player_b.andand.cc_id.blank?
+                    if pg.player_b.blank? || pg.player_b.lastname == "Freilos"
                       player_b_noshow = true
                     else
                       player = Player.where(type: nil).where.not(cc_id: nil).where(firstname: pg.player_b.firstname, lastname: pg.player_b.lastname).first
@@ -712,8 +714,8 @@ class RegionCc < ApplicationRecord
                     end
                   end
                   add_pg = {
-                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.cc_id.to_i,
-                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.cc_id.to_i }
+                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid1" => pg.player_a.andand.cc_id.to_i,
+                    "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.andand.cc_id.to_i }
                   if branch_cc.name == "Pool" || branch_cc.name == "Karambol"
                     if player_a_noshow && player_b_noshow && pg.party.data[:result] =~ /0:0/
                       RegionCc.logger.info "REPORT keine Ergebnisse - noch nicht gespielt? wer ist Gewinner?"

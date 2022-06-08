@@ -10,8 +10,8 @@
 <br>
 <%= form_with(model: @tournament) do |form| %>
 
-  <%- loc_ids = Array(@tournament.organizer.andand.tournament_locations.andand.joins(:tables).andand.map(&:id)) + Array(@tournament.andand.region.andand.tournament_locations.andand.joins(:tables).andand.map(&:id)) +
-    Array(@tournament.andand.region.andand.clubs.andand.map { |club| club.tournament_locations.andand.joins(:tables).to_a }.andand.flatten.andand.map(&:id).andand.uniq)
+  <%- loc_ids = Array(@tournament.organizer.andand.locations.andand.joins(:tables).andand.map(&:id)) + Array(@tournament.andand.region.andand.locations.andand.joins(:tables).andand.map(&:id)) +
+    Array(@tournament.andand.region.andand.clubs.andand.map { |club| club.locations.andand.joins(:tables).to_a }.andand.flatten.andand.map(&:id).andand.uniq)
   %>
   <%- if @league.present? %>
     <div class="form-group">
