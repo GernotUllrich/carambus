@@ -484,7 +484,7 @@ class RegionCc < ApplicationRecord
             league_team_player_done = region_cc.sync_team_players(league_team, opts)
             league_team_player_still_todo = league_team_players_todo - league_team_player_done
             league_team_player_still_todo.each do |player|
-              next if player.ba_id.blank? || player.ba_id.to_i > 999000000
+              next if player.andand.ba_id.blank? || player.ba_id.to_i > 999000000
 
               args = { fedId: league_team_cc.fedId,
                        leagueId: league_team_cc.leagueId,
