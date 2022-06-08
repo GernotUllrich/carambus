@@ -358,9 +358,11 @@ class RegionCc < ApplicationRecord
     season = Season.find_by_name(opts[:season_name])
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
-    leagues_region_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: region.id).where(
-      'clubs.region_id = ?', region.id
-    ).uniq
+    leagues_region_todo = League.
+      joins(league_teams: :club).
+      where(season: season, organizer_type: 'Region', organizer_id: region.id).
+      where.not(leagues: {ba_id: opts[:exclude_league_ba_ids]}).
+      where('clubs.region_id = ?', region.id).uniq
     # TODO forget DBU leagues for now
     # dbu_region = Region.find_by_shortname('portal')
     # dbu_leagues_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: dbu_region.id).where(
@@ -566,7 +568,7 @@ class RegionCc < ApplicationRecord
               end
             end
             lines
-            game_plan_cc.deep_merge_data!({ "games" => lines })
+            game_plan_cc.deep_merge_data!({ "games" => lines }) unless game_plan_cc.data["games"] == lines
           end
         end
       end
@@ -1030,6 +1032,7 @@ class RegionCc < ApplicationRecord
               end
             end
             if league.present?
+              next if opts[:exclude_league_ba_ids].include?(league.ba_id)
               if league_cc.blank?
                 league_cc = LeagueCc.create(cc_id: cc_id, name: "#{league.name}#{" #{league.staffel_text}" if league.staffel_text.present?}", season_cc_id: season_cc.id, league_id: league.id, context: league.organizer.shortname.downcase, shortname: "#{league.name.gsub("Kreis", "Kreis ").gsub("lig", " lig")}#{" #{league.staffel_text}"}".split(" ").map { |w| w[0].upcase }.join(""))
               end
