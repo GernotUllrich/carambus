@@ -1083,7 +1083,6 @@ class RegionCc < ApplicationRecord
 
             next if opts[:exclude_league_ba_ids].include?(league_cc.league.ba_id)
             next unless season_cc.name == season_name
-            next unless league_cc.name =~ /NDMM Dreiband/
             #get club list
             _, doc_club = post_cc(
               'showClubList',
