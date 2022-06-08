@@ -198,7 +198,7 @@ class League < ApplicationRecord
           [d["href"], d.text]
         end.each do |arr|
           url_player, name_str = arr
-          club_ba_id, player_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].map(&:to_i)
+          club_ba_id, player_ba_id = url_player.match(/.*\/(\d+)\/(\d+)$/).andand[1..2].andand.map(&:to_i)
           club = Club.find_by_ba_id(club_ba_id) # TODO find corresp. Club or create
           html_player = URI.open(url + url_player)
           doc_player = Nokogiri::HTML(html_player)
@@ -315,7 +315,7 @@ class League < ApplicationRecord
                       end
                     end
                     party_game = PartyGame.find_by_seqno_and_party_id(ix, party.id) || PartyGame.create(seqno: ix, party: party)
-                    party_game.update(player_a_id: player_a.id, player_b_id: player_b.id, data: { result: res_hash }, name: game_name)
+                    party_game.update(player_a_id: player_a.andand.id, player_b_id: player_b.andand.id, data: { result: res_hash }, name: game_name)
                     party_game.update_discipline_from_name
                     party_game.save
                   end
