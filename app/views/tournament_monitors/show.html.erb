@@ -20,9 +20,9 @@
                 <br/>
                 <%- player_a = tabmon.game.game_participations.where(role: "playera").first.andand.player %>
                 <%- player_b = tabmon.game.game_participations.where(role: "playerb").first.andand.player %>
-                <strong class="flex 1 text-black dark:text-white"><%= playera.andand.fullname %></strong>
-                <strong class="flex 1 text-yellow-500"><%= playerb.andand.fullname %></strong>
-                <%= button_to "#{playerb.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
+                <strong class="flex 1 text-black dark:text-white"><%= player_a.andand.fullname %></strong>
+                <strong class="flex 1 text-yellow-500"><%= player_b.andand.fullname %></strong>
+                <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
               <% end %>
             </div>
           <% end %>
