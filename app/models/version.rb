@@ -105,7 +105,7 @@ class Version < ApplicationRecord
             elsif h['item_type'] == "SeasonParticipation"
               obj = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
 
-              obj.andand.update(id: h['item_id'])
+              obj.andand.update_columns(id: h['item_id'])
               next
             end
             if obj.present?
@@ -123,11 +123,18 @@ class Version < ApplicationRecord
               if h['item_type'] == "SeasonParticipation"
                 oo = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
                 if oo.present?
-                  oo.update(id: h['item_id'])
+                  oo.update_columns(id: h['item_id'])
                   next
                 end
               end
-              obj.update(args)
+              args.each do |k,v|
+                obj.write_attribute(k, v)
+              end
+              if obj.valid?
+                obj.update_columns(args)
+              else
+                raise StandardError, msg: "tryiung to update from invalid record"
+              end
             else
               h['item_type'].constantize.create(args)
             end
@@ -147,21 +154,23 @@ class Version < ApplicationRecord
             classz = h['item_type'].constantize
             obj = classz.where(id: h['item_id']).first
             if obj.present?
-              obj.assign_attributes(args)
+              args.each do |k,v|
+                obj.write_attribute(k, v)
+              end
               if obj.valid?
                 if h['item_type'] == "SeasonParticipation"
                   oo = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
                   if oo.present? && oo.id != obj.id
-                    oo.update(id: h['item_id'])
+                    oo.update_columns(id: h['item_id'])
                     next
                   end
                 end
-                obj.update(args)
+                obj.update_columns(args)
               else
                 args = YAML.load(h["object"])
                 args['data'] = YAML.load(args['data']) if args['data'].present?
                 args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
-                obj.update(args)
+                obj.update_columns(args)
               end
             else
               obj = h['item_type'].constantize.new
@@ -169,7 +178,10 @@ class Version < ApplicationRecord
               args = YAML.load(h["object"])
               args['data'] = YAML.load(args['data']) if args['data'].present?
               args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
-              obj.assign_attributes(args)
+
+              args.each do |k,v|
+                obj.write_attribute(k, v)
+              end
               obj.save!
             end
           rescue StandardError => e
