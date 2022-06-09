@@ -41,7 +41,7 @@
         <td class="p-3"><%= tournament.date.andand.to_date %></td>
         <td class="p-3"><%= tournament.accredation_end.andand.to_date %></td>
         <td class="p-3"><%= link_to tournament.tournament_location.display_address, location_path(tournament.tournament_location) if tournament.tournament_location.present? %></td>
-        <td class="p-3"><%= link_to(tournament.ba_id, "https://#{tournament.region.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") if tournament.ba_id.present? %></td>
+        <td class="p-3"><%= link_to(tournament.ba_id, "https://#{tournament.organizer.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}") if tournament.ba_id.present? %></td>
         <td class="p-3"><%= link_to(tournament.season.name, season_path(tournament.season)) %></td>
         <td class="p-3"><%= link_to(tournament.organizer.shortname, @organizer) %></td>
         <td class="p-3"><%= tournament.end_date %></td>

@@ -12,7 +12,7 @@
       </div>
             <div class="mb-4">
         <h5>Tournament</h5>
-        <%= link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) + " (BA #{link_to(@seeding.tournament.ba_id, "https://#{@seeding.tournament.region.shortname.downcase}.billardarea.de/cms_#{@seeding.tournament.single_or_league}/#{@seeding.tournament.plan_or_show}/#{@seeding.tournament.ba_id}")})".html_safe %>
+        <%= link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) + " (BA #{link_to(@seeding.tournament.ba_id, "https://#{@seeding.tournament.organizer.shortname.downcase}.billardarea.de/cms_#{@seeding.tournament.single_or_league}/#{@seeding.tournament.plan_or_show}/#{@seeding.tournament.ba_id}")})".html_safe %>
       </div>
             <div class="mb-4">
         <h5>Ba state</h5>

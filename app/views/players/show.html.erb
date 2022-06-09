@@ -86,7 +86,7 @@
           <% @player.seedings.where("seedings.id < #{Seeding::MIN_ID}").joins(:tournament => :season).joins(:tournament => :region).includes(:tournament => :discipline).order("seasons.name desc", "tournaments.title asc").each do |seeding| %>
             <tr class="flex flex-row with-full">
               <td class="flex w-1/6"><%= link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
-              <td class="flex w-1/6"><%= link_to seeding.tournament.region.shortname, region_path(seeding.tournament.region) %></td>
+              <td class="flex w-1/6"><%= link_to seeding.tournament.organizer.shortname, region_path(seeding.tournament.organizer) %></td>
               <!--    <td><%#= link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
               <td class="flex w-1/6"><%= link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
               <td class="flex w-1/2"><%= link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
