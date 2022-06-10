@@ -24,4 +24,5 @@ class SeasonCc < ApplicationRecord
   delegate :fedId,:branchId, :subBranchId, :region_cc, :branch_cc, to: :competition_cc
   alias_attribute :seasonId, :cc_id
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 end

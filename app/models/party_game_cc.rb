@@ -20,6 +20,7 @@ class PartyGameCc < ApplicationRecord
   delegate :discipline, to: :party_game
   delegate :fedId, :branchId, :subBranchId, :season_id,  to: :party_cc
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   def self.fix_party_games(party, armed: force_cc_update)
     party_games_todo = party.party_games

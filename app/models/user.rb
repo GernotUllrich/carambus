@@ -95,6 +95,7 @@ class User < ApplicationRecord
   attr_accessor :player_ba_id
 
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   def self.scoreboard
     SCOREBOARD_USER

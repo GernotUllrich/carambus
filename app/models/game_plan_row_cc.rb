@@ -21,4 +21,5 @@
 class GamePlanRowCc < ApplicationRecord
   belongs_to :discipline
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 end

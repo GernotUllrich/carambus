@@ -9,6 +9,8 @@
 #
 class DebugInfo < ApplicationRecord
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
+
   @@debug_info = DebugInfo.first || DebugInfo.create!
   def self.instance
     ret = @@debug_info

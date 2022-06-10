@@ -37,6 +37,7 @@ class RegionCc < ApplicationRecord
   }.freeze
 
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
   PATH_MAP = { # maps to path and read_only {true|false}|}
                'home' => ['', true],
                # "showClubList" => "/admin/approvement/player/showClubList.php",

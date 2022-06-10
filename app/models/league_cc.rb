@@ -30,6 +30,7 @@ class LeagueCc < ApplicationRecord
   alias_attribute :staffelId, :cc_id2
 
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   def self.create_from_ba(league, opts = {})
     RegionCc.logger.info  "REPORT [LeagueCc.create_from_ba] MUST CREATE MISSING League #{league.season.name} #{league.discipline.andand.name} #{league.name}"

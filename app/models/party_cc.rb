@@ -36,6 +36,7 @@ class PartyCc < ApplicationRecord
     "#{league_team_a_cc.name} - #{league_team_b_cc.name}"
   end
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   def sync_game_details(options = {})
     #get game report form

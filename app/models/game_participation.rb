@@ -26,6 +26,7 @@ class GameParticipation < ApplicationRecord
   belongs_to :player, optional: true
   belongs_to :game
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   after_update do
     table_monitor = game.andand.table_monitor

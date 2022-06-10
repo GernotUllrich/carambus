@@ -227,6 +227,9 @@
         <div class="w-1/5 bg-grey">
           <div class="flex flex-col h-1/6 bg-white dark:bg-gray-800">
             <div class="bg-white dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
+              <%= link_to table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
+                <%= render_svg "icons/refresh", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-4 mr-0 dark:text-gray-300 text-gray-300 inline-block", title: "toggle dark mode" %>
+              <% end %>
               <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
                 <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-4 mr-0 dark:text-gray-300 text-gray-300 inline-block", title: "toggle dark mode" %>
               <% end %>

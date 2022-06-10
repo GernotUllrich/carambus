@@ -26,6 +26,7 @@ class TournamentPlan < ApplicationRecord
   validates :tables, presence: true
 
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
   #noinspection RubyLiteralArrayInspection
   RULES = {
     "T01": {

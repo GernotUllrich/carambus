@@ -34,6 +34,7 @@ class TournamentMonitor < ApplicationRecord
 
   include AASM
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   belongs_to :tournament
   has_many :table_monitors, dependent: :nullify
@@ -41,6 +42,8 @@ class TournamentMonitor < ApplicationRecord
   serialize :data, Hash
 
   before_save :log_state_change
+  before_save :set_paper_trail_whodunnit
+
 
   def log_state_change
     return unless state_changed?
@@ -338,7 +341,7 @@ class TournamentMonitor < ApplicationRecord
             tournament.finish_tournament!
             # noinspection RubyResolve
             tournament.have_results_published!
-            tournament.tournament_monitor.andand.table_monitors.andand.destroy_all
+            #tournament.tournament_monitor.andand.table_monitors.andand.destroy_all
           else
             # noinspection RubyResolve
             start_playing_finals!
@@ -430,7 +433,7 @@ class TournamentMonitor < ApplicationRecord
       color_remains_with_set: tournament.andand.color_remains_with_set,
     )
     tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
-    table_monitors.destroy_all
+    #table_monitors.destroy_all
     update(data: {}) unless new_record?
     @tournament_plan ||= tournament.tournament_plan
     initialize_table_monitors unless tournament.manual_assignment

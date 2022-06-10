@@ -35,6 +35,7 @@ class TableMonitor < ApplicationRecord
   belongs_to :game, optional: true
   has_one :table, dependent: :nullify
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   before_create :on_create
   before_save :log_state_change
@@ -60,27 +61,24 @@ class TableMonitor < ApplicationRecord
 
   after_save do
     debug = DEBUG
-    Rails.logger.info "tmas +++++++  :" if debug
-    if previous_changes["id"].nil? && previous_changes.present?
-      #Rails.logger.info "tmas +++++++ A: after_commit table_monitor[#{id}] Previous Changes: #{previous_changes.inspect}"
+    Rails.logger.info "tmas +++++++ previous_changes[\"id\"]= #{previous_changes.andand["id"].inspect}  :" if debug
+    if previous_changes.present? && previous_changes["id"].nil?
       previous_changes.keys.each do |key|
         Rails.logger.info "tmas +++++++ A: #{key}: #{deep_diff(previous_changes[key][0], previous_changes[key][1])}" if debug
       end
       reload.evaluate_panel_and_current
       if changes.present?
-        #Rails.logger.info "tmas +++++++ B: [#{id}] Changes: #{changes.inspect}" if debug
         changes.keys.each do |key|
           Rails.logger.info "tmas +++++++ B: #{key}: #{deep_diff(changes[key][0], changes[key][1])}" if debug
         end
         save
       else
-        #Rails.logger.warn "tmas +++++++ B: Previous Changes: #{previous_changes.inspect}" if debug
         previous_changes.keys.each do |key|
           Rails.logger.info "tmas +++++++ C: #{key}: #{deep_diff(previous_changes[key][0], previous_changes[key][1])}" if debug
         end
         Rails.logger.warn "tmas +++++++ C: SUBMIT JOB #{caller.grep(/app/).join("\n")}" if debug
-        TableMonitorJob.perform_later(self)
       end
+      TableMonitorJob.perform_later(self)
     end
   end
 

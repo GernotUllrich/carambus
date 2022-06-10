@@ -18,6 +18,9 @@
           <div class="flex-auto mt-5 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
           <div class="flex-auto mt-5 text-2vw text-center"><%= table_monitor.game.andand.gname.andand.split(":").andand[0].andand.gsub("group", "Gruppe ") %></div>
           <div class="flex-auto items-center bg-white text-2vw text-center font-bold">
+            <%= link_to table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
+              <%= render_svg "icons/refresh", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-4 mr-0 text-gray-400 inline-block", title: "toggle dark mode" %>
+            <% end %>
             <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
               <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-4 mr-0 text-gray-400 inline-block", title: "toggle dark mode" %>
             <% end %>

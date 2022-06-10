@@ -4,7 +4,9 @@ class TableMonitorJob < ApplicationJob
 
   def perform(*args)
     debug = true
-    Rails.logger.info "perf +++++++ C: PERFORM JOB" if debug
+    info = "perf +++++++ C: PERFORM JOB #{Time.now}"
+    Rails.logger.info info if debug
+    DebugInfo.instance.update(info: info) if debug
     table_monitor = args[0]
 
     full_screen_html = ApplicationController.render(

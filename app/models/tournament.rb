@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
 
   include AASM
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
   MIN_ID = 50000000
 
   belongs_to :discipline, optional: true

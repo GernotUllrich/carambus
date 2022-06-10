@@ -24,6 +24,7 @@ class Game < ApplicationRecord
 
   MIN_ID = 50000000
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
   serialize :data, Hash
 
   #data Snooker

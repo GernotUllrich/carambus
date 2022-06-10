@@ -29,6 +29,7 @@ class GamePlanCc < ApplicationRecord
   belongs_to :discipline
   has_many :league_ccs
   has_paper_trail
+  before_save :set_paper_trail_whodunnit
 
   serialize :data, Hash
 
