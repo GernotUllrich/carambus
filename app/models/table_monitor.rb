@@ -791,7 +791,7 @@ class TableMonitor < ApplicationRecord
         (kickoff_player_has_balls_goal && has_reached_balls_goal ||
           (innings_goal_exists && kickoff_player_has_reached_innings_goal))
       )
-    Rails.logger.info("+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))")
+    Rails.logger.info("+++++ FOLLOW_UP? returns #{ret}: (active_player_is_follow_up_player:#{active_player_is_follow_up_player} && (kickoff_player_has_balls_goal:#{kickoff_player_has_balls_goal} && has_reached_balls_goal:#{has_reached_balls_goal} || (innings_goal_exists:#{innings_goal_exists} && kickoff_player_has_reached_innings_goal:#{kickoff_player_has_reached_innings_goal}))") if DEBUG
     ret
   rescue StandardError => e
     Rails.logger.info "--------------------->>> #{"numbers"} <<<------------------------------------------" if DEBUG
