@@ -10,16 +10,16 @@
         <div class="flex-auto text-3vw <%= table_monitor.data["current_left_color"] == 'white' ? "" : "bg-yellow-500" %> items-center text-center font-semibold"><%= left_player_name %></div>
         <div class="flex-auto items-center bg-white text-2vw text-center font-bold">
           <%= link_to table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
-            <%= render_svg "icons/refresh", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-4 mr-0 hover:text-black text-gray-400 inline-block", title: "toggle dark mode" %>
+            <%= render_svg "icons/refresh", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-3 mr-0 hover:text-black text-gray-400 inline-block", title: "toggle dark mode" %>
           <% end %>
           <%= link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbolinks" => false do %>
-            <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-4 mr-0 hover:text-black text-gray-400 inline-block", title: "toggle dark mode" %>
+            <%= render_svg "icons/adjust", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg mb-4 lg:m-3 mr-0 hover:text-black text-gray-400 inline-block", title: "toggle dark mode" %>
           <% end %>
           <%= link_to scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-            <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-4 mb-4 mr-0 hover:text-black text-gray-400 inline-block", title: "home" %>
+            <%= render_svg "icons/home", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg lg:m-3 mb-4 mr-0 hover:text-black text-gray-400 inline-block", title: "home" %>
           <% end %>
           <%= link_to "#", :onclick => "warning_mode()", :"data-turbolinks" => false do %>
-            <%= render_svg "icons/backspace", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-4 hover:text-black text-gray-400 inline-block", title: "back" %>
+            <%= render_svg "icons/backspace", styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg mb-4 lg:m-3 hover:text-black text-gray-400 inline-block", title: "back" %>
           <% end %>
         </div>
         <div class="flex-auto text-3vw <%= table_monitor.data["current_left_color"] == 'yellow' ? "" : "bg-yellow-500 " %> items-center text-center font-semibold"><%= table_monitor.tournament_monitor_id.present? ? gps[right_player_id].andand.player.andand.fullname : gps[right_player_id].andand.player.andand.simple_firstname || "Spieler B" %></div>
