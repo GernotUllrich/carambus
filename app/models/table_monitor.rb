@@ -500,6 +500,8 @@ class TableMonitor < ApplicationRecord
         DebugInfo.instance.update(info: info); Rails.logger.info info if DEBUG
         # noinspection RubyResolve
         start_new_game!
+        sleep 2
+        update(ip_address: "#{Time.now.to_i}")
       end
     end
   rescue StandardError => e
