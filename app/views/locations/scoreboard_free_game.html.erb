@@ -300,6 +300,11 @@
     }
   }
 </script>
+<%- if Date.today.to_s == "2022-06-19" %>
+  <%- @discipline = @discipline_a = @discipline_b = "Dreiband klein" %>
+  <%- @balls_goal = @balls_goal_a = @balls_goal_b = 25 %>
+  <%- @innings_goal = 30 %>
+<%- end %>
 <div class="hidden opacity-60 fixed inset-0 z-100 bg-black" id="modal-balls-bg"></div>
 <div class="hidden relative inset-0 z-110 outline-none focus:outline-none justify-center items-center mt-50" id="modal-balls">
   <div id="balls_modal_setup__2" class="border-2 border-white rounded-lg shadow-lg relative flex flex-col w-3/6 dark:bg-black bg-white outline-none focus:outline-none mt-50">
