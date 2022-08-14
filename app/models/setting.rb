@@ -106,7 +106,7 @@ class Setting < ApplicationRecord
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request = Net::HTTP::Post.new(url)
       request["content-type"] = 'application/json'
-      request.body = "{\"client_id\":\"cCr6hh6iGG0c6518jNhrTQE2QyCpIlfU\",\"client_secret\":\"fOxSsvvc7MxRtAI2EeRi8309sycFIHEUvRQ00mY_i-vg3MJoo85Tl2AUcifM5aRQ\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"
+      request.body = "{\"client_id\":\"aqAJY7zNMsw0jiThccQyKOO1WyjKP0AC\",\"client_secret\":\"7PN4bsl0tikD8fylkoOY_j2RudtlayXVCI0SlPzG2Tfr7ewLUETiEYHFwVL9Rk1Q\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"
       response = http.request(request)
       if response.message == "OK"
         resp = JSON.parse(response.read_body)

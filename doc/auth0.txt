@@ -1,0 +1,12 @@
+Die Carambus API wird mit Hilfe der Auth0 authorization abgesichert.
+
+Die Verwaltung der Keys läuft über die Website auth0.com
+Login über den Github Login
+
+Rails ZugriffsCode über
+https://manage.auth0.com/dashboard/eu/dev-r4djmvaa/apis/5fe87ec735acfb004efede63/test
+
+In der Client App ist dafür Setting.get_carambus_api_token entsprechend zu aktualisieren
+Dort werden temporäre Tokens für den Zugriff zur API geholt, die in dem Setting Record gesichert werden
+
+Bei abgelaufenem "carambus_api_token_expire_at" wird automatisch ein neuer Token geholt.
