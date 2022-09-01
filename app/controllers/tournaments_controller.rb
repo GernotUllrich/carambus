@@ -46,7 +46,7 @@ class TournamentsController < ApplicationController
 
   def order_by_ranking_or_handicap
     hash = {}
-    unless @tournament.organizer.is_a?(Club)
+    unless @tournament.organizer.is_a?(Club) || @tournament.id >= Seeding::MIN_ID
       #restore seedings from ba
       @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
       @tournament.seedings.create(
