@@ -507,7 +507,7 @@ class Tournament < ApplicationRecord
     # called from state machine only
     # use direct only for testing purposes
     tournament_monitor.andand.destroy
-    unless organizer.is_a? Club
+    unless organizer.is_a? Club || id >= Seeding::MIN_ID
       seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
     end
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
