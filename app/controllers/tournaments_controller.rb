@@ -86,7 +86,9 @@ class TournamentsController < ApplicationController
   end
 
   def reload_from_ba
-    @tournament.seedings.where("id >= #{Seeding::MIN_ID}").destroy_all
+    unless @tournament.organizer.is_a?(Club) || (@tournament.id >= Seeding::MIN_ID)
+      @tournament.seedings.where("id >= #{Seeding::MIN_ID}").destroy_all
+    end
     @tournament.games.where("id >= #{Seeding::MIN_ID}").destroy_all
     Version.update_from_carambus_api(update_tournament_from_ba: @tournament.id)
     redirect_back(fallback_location: tournament_path(@tournament))
