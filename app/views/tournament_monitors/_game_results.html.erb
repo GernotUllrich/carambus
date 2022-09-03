@@ -1,3 +1,5 @@
+<%- tournament_monitor = local_assigns[:tournament_monitor] %>
+<%- edit_games_modus = local_assigns[:edit_games_modus] %>
 <h2><%= t('game_results') %></h2>
 <%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
 <div class="flex space-x-20 p-4 bg-white dark:bg-black">
@@ -25,8 +27,8 @@
       </thead>
       <tbody>
       <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
-        <% tournament_monitor.tournament.games.includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 }.each do |game| %>
-          <% playing_game = game.table_monitor.andand.playing_game? %>
+        <% tournament_monitor.tournament.games.where("games.id >= ?", Seeding::MIN_ID ).includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 }.each do |game| %>
+            <% playing_game = game.table_monitor.andand.playing_game? %>
           <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
           <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
           <%- if playera.present? && playerb.present? %>
@@ -52,6 +54,12 @@
                 <td><%= gpb.andand.gd %></td>
                 <td><%= edit_games_modus && playing_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3) : gpa.andand.hs %></td>
                 <td><%= edit_games_modus && playing_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3) : gpb.andand.hs %></td>
+                <%- if  tournament_monitor.tournament.handicap_tournier? %>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                <%- end %>
               </tr>
             <%- end %>
           <%- end %>
