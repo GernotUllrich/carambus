@@ -17,6 +17,10 @@
         <th colspan=2><%= I18n.t("tournament_monitors.game_results.innings", :default => "Innings") %></th>
         <th colspan=2><%= I18n.t("tournament_monitors.game_results.gd", :default => "GD") %></th>
         <th colspan=2><%= I18n.t("tournament_monitors.game_results.hs", :default => "HS") %></th>
+        <%- if  tournament_monitor.tournament.handicap_tournier? %>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls_goal", :default => "GD") %></th>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls_goal_percent", :default => "HS") %></th>
+        <%- end %>
       </tr>
       </thead>
       <tbody>
