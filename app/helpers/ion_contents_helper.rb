@@ -1,0 +1,2 @@
+module IonContentsHelper
+end

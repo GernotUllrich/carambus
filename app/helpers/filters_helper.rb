@@ -14,7 +14,7 @@ module FiltersHelper
                 #no search on virtual columns
                 #query = query.where("(#{tempname} ilike :search)", search: "%#{value}%")
               elsif ext_name =~ /^#{key.strip}/i
-                if (int_name =~ /id$/ || %w{players points sets cc_id balls innings hs sp_g sp_v g v}.include?(int_name.split("\.").last))
+                if (int_name =~ /id$/ || %w{players points sets ba_id ba2_id cc_id balls innings hs sp_g sp_v g v}.include?(int_name.split("\.").last))
                   query = query.where("(#{int_name} = :isearch)", isearch: value.to_i)
                 else
                   query = query.where("(#{int_name} ilike :search)", search: "%#{value}%")

@@ -1,5 +1,8 @@
 # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
+  resources :ion_modules
+  resources :ion_contents
+  resources :wordles
   resources :game_plan_ccs
   resources :game_plan_row_ccs
   resources :meta_maps

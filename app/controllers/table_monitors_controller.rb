@@ -70,8 +70,9 @@ class TableMonitorsController < ApplicationController
   end
 
   def evaluate_result
+    @tournament_monitor = @table_monitor.tournament_monitor
     @table_monitor.evaluate_result
-    redirect_to tournament_monitor_path(@table_monitor.tournament_monitor)
+    redirect_to tournament_monitor_path(@tournament_monitor)
   end
 
   # GET /table_monitors/1/edit

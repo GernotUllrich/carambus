@@ -14,6 +14,7 @@ require 'net/http'
 #  ba_state                       :string
 #  balls_goal                     :integer
 #  color_remains_with_set         :boolean          default(TRUE), not null
+#  continuous_placements          :boolean          default(FALSE), not null
 #  data                           :text
 #  date                           :datetime
 #  end_date                       :datetime
@@ -100,7 +101,7 @@ class Tournament < ApplicationRecord
   validates_each :data do |record, attr, _value|
     table_ids = Array(record.send(attr)[:table_ids])
     if table_ids.present?
-      incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i && !record.manual_assignment
+      incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i && !record.manual_assignment && record.tournament_plan.andand.tables.to_i < 999
       heterogen = Table.where(id: table_ids).all.map(&:location_id).uniq.length > 1
       inconsistent = table_ids != table_ids.uniq
       record.errors.add(attr, I18n.t('table_assignments_incomplete')) if incomplete
@@ -113,7 +114,7 @@ class Tournament < ApplicationRecord
    :team_size, :kickoff_switches_with_set, :allow_follow_up,
    :fixed_display_left, :color_remains_with_set].each do |meth|
     define_method(meth) do
-      (id < Tournament::MIN_ID && tournament_local.present?) ? tournament_local.send(meth) : read_attribute(meth)
+      (id.present? && id < Tournament::MIN_ID && tournament_local.present?) ? tournament_local.send(meth) : read_attribute(meth)
     end
 
     define_method("#{meth}=") do |value|

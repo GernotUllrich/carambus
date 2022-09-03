@@ -13,23 +13,30 @@ class TournamentMonitorsController < ApplicationController
   end
 
   def update_games
-    params["game_id"].each_with_index do |game_id,ix|
+    params["game_id"].each_with_index do |game_id, ix|
       game = @tournament_monitor.tournament.games.where("id >= #{Game::MIN_ID}").includes(:table_monitor).find(game_id)
       if game.present?
+
         table_monitor = game.table_monitor
-        table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i
-        table_monitor.data["playerb"]["result"] = params["resultb"][ix].to_i
-        table_monitor.data["playera"]["innings"] = params["inningsa"][ix].to_i
-        table_monitor.data["playerb"]["innings"] = params["inningsb"][ix].to_i
-        table_monitor.data["playera"]["hs"] = params["hsa"][ix].to_i
-        table_monitor.data["playerb"]["hs"] = params["hsb"][ix].to_i
-        table_monitor.data["playera"]["gd"] = sprintf("%.2f", table_monitor.data["playera"]["result"].to_f / table_monitor.data["playera"]["innings"])
-        table_monitor.data["playerb"]["gd"] = sprintf("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
-        table_monitor.data_will_change!
-        table_monitor.save
-        game.update(ended_at: Time.now)
-        @tournament_monitor.update_game_participations(table_monitor)
-        table_monitor.evaluate_result
+        if params["resulta"][ix].to_i <= table_monitor.data["playera"]["balls_goal"].to_i &&
+          params["resultb"][ix].to_i <= table_monitor.data["playerb"]["balls_goal"].to_i &&
+          params["inningsa"][ix].to_i <= table_monitor.data["innings_goal"].to_i &&
+          params["inningsb"][ix].to_i <= table_monitor.data["innings_goal"].to_i &&
+          (params["resulta"][ix].to_i > 0 || params["resultb"][ix].to_i > 0)
+          table_monitor.data["playera"]["result"] = params["resulta"][ix].to_i
+          table_monitor.data["playerb"]["result"] = params["resultb"][ix].to_i
+          table_monitor.data["playera"]["innings"] = params["inningsa"][ix].to_i
+          table_monitor.data["playerb"]["innings"] = params["inningsb"][ix].to_i
+          table_monitor.data["playera"]["hs"] = params["hsa"][ix].to_i
+          table_monitor.data["playerb"]["hs"] = params["hsb"][ix].to_i
+          table_monitor.data["playera"]["gd"] = sprintf("%.2f", table_monitor.data["playera"]["result"].to_f / table_monitor.data["playera"]["innings"])
+          table_monitor.data["playerb"]["gd"] = sprintf("%.2f", table_monitor.data["playerb"]["result"].to_f / table_monitor.data["playerb"]["innings"])
+          table_monitor.data_will_change!
+          table_monitor.save
+          game.update(ended_at: Time.now)
+          @tournament_monitor.update_game_participations(table_monitor)
+          table_monitor.evaluate_result
+        end
       end
     end
     redirect_back(fallback_location: tournament_monitor_path(@tournament_monitor))

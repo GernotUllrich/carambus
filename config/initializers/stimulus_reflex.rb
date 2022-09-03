@@ -27,3 +27,7 @@ StimulusReflex.configure do |config|
   # config.middleware.use FirstRackMiddleware
   # config.middleware.use SecondRackMiddleware
 end
+  StimulusReflex.configure do |config|
+    config.on_failed_sanity_checks = :warn
+  end
+

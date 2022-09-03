@@ -157,7 +157,7 @@ class TableMonitor < ApplicationRecord
                   to: :game_setup_started, after_enter: [:initialize_game]
     end
     event :result_accepted do
-      transitions from: %i[playing_game game_result_reported ready_for_new_game], to: :ready_for_new_game
+      transitions from: %i[playing_game game_show_result game_result_reported ready_for_new_game], to: :ready_for_new_game
     end
     event :event_play_warm_up_a do
       transitions from: %i[game_setup_started game_warmup_b_started game_warmup_a_started],
@@ -500,7 +500,7 @@ class TableMonitor < ApplicationRecord
         DebugInfo.instance.update(info: info); Rails.logger.info info if DEBUG
         # noinspection RubyResolve
         start_new_game!
-        sleep 2
+        sleep 0.5
         update(ip_address: "#{Time.now.to_i}")
       end
     end

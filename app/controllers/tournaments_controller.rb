@@ -113,7 +113,9 @@ class TournamentsController < ApplicationController
       where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) }).
       where(players: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count).uniq.to_a
     @default_plan = TournamentPlan.default_plan(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count)
+    @ko_plan = TournamentPlan.ko_plan(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count)
     @alternatives_other_disciplines |= [@default_plan]
+    @alternatives_other_disciplines |= [@ko_plan]
     @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @default_plan.ngroups)
   end
 
@@ -213,6 +215,7 @@ class TournamentsController < ApplicationController
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
                                               kickoff_switches_with_set: params[:kickoff_switches_with_set],
                                               color_remains_with_set: params[:color_remains_with_set],
+                                              allow_overflow: params[:allow_overflow].present?,
                                               allow_follow_up: params[:allow_follow_up].present?,
                                               fixed_display_left: params[:fixed_display_left].to_s)
       end
@@ -300,14 +303,14 @@ class TournamentsController < ApplicationController
         end
       end
     end
-    team_players.sort_by!{|p| p.ba_id}
+    team_players.sort_by! { |p| p.ba_id }
     team = Team.find_or_create_by!(tournament_id: @tournament.id, firstname: team_players[0].firstname, lastname: team_players[0].lastname)
-    ary = team_players.map{|pl| {
+    ary = team_players.map { |pl| {
       "firstname" => pl.firstname,
       "lastname" => pl.lastname,
       "player_id" => pl.id,
       "ba_id" => pl.ba_id,
-    }}
+    } }
     team.deep_merge_data!("players" => ary)
     @tournament.reload
     redirect_to define_participants_tournament_path(@tournament)
@@ -326,7 +329,7 @@ class TournamentsController < ApplicationController
                                        :location, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show,
                                        :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date,
                                        :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
-                                       :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment,
+                                       :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with_set, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up)
   end

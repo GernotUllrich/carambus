@@ -62,6 +62,13 @@ class TournamentReflex < ApplicationReflex
     tournament.update_attribute(:admin_controlled, val)
   end
 
+  def continuous_placements
+    morph :nothing
+    tournament = Tournament.find(element.dataset["id"])
+    val = element.attributes["value"] == "1"
+    tournament.update_attribute(:continuous_placements, val)
+  end
+
   def gd_has_prio
     morph :nothing
     tournament = Tournament.find(element.dataset["id"])

@@ -617,15 +617,15 @@ namespace :carambus do
     Season.order(ba_id: :asc).each do |season|
       # for all regions
       # TEST
-      #next unless season.name == "2018/2019"
+      next unless season.name == "2021/2022"
       Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         # for all disciplines
         # TEST
-        #next unless region.shortname == "NBV"
+        next unless region.shortname == "NBV"
         Discipline.all.each do |discipline|
           # for all relevant tournaments
           # TEST
-          next unless discipline.root.name == "Carambol"
+          next unless discipline.root.name == "Karambol"
           players = {}
           Tournament.where(season: season, organizer_type: "Region", organizer_id: region.id, discipline: discipline).each do |tournament|
             # for all participants

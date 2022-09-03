@@ -41,6 +41,8 @@ de:
       innings: Aufnahmen
       gd: GD
       hs: HS
+      balls_goal: BG
+      balls_goal_percent: BG_PCT
     rankings:
       tournament_results: Turnierergebnisse
       group_rankings: Gruppenergebnisse

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_06_062215) do
+ActiveRecord::Schema.define(version: 2022_06_29_154937) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -281,6 +281,32 @@ ActiveRecord::Schema.define(version: 2022_06_06_062215) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["game_id", "sequence_number"], name: "index_innings_on_foreign_keys", unique: true
     t.index ["game_id", "sequence_number"], name: "index_innings_on_game_id_and_sequence_number", unique: true
+  end
+
+  create_table "ion_contents", force: :cascade do |t|
+    t.integer "page_id"
+    t.string "title"
+    t.text "html"
+    t.string "level"
+    t.datetime "scraped_at"
+    t.datetime "deep_scraped_at"
+    t.integer "ion_content_id"
+    t.text "data"
+    t.integer "position"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "hidden", default: false, null: false
+  end
+
+  create_table "ion_modules", force: :cascade do |t|
+    t.string "module_id"
+    t.integer "ion_content_id"
+    t.string "module_type"
+    t.integer "position"
+    t.text "html"
+    t.text "data"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "kvc_settings", force: :cascade do |t|
@@ -799,6 +825,7 @@ ActiveRecord::Schema.define(version: 2022_06_06_062215) do
     t.string "fixed_display_left"
     t.boolean "color_remains_with_set", default: true, null: false
     t.boolean "allow_follow_up", default: true, null: false
+    t.boolean "continuous_placements", default: false, null: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
@@ -878,6 +905,15 @@ ActiveRecord::Schema.define(version: 2022_06_06_062215) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
+  create_table "wordles", force: :cascade do |t|
+    t.text "words"
+    t.text "hints"
+    t.text "data"
+    t.integer "seqno"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   add_foreign_key "account_invitations", "accounts"

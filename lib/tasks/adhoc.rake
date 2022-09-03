@@ -8,6 +8,32 @@ namespace :adhoc do
     Version.sequence_reset
   end
 
+  desc 'Scrape NDBV Website'
+  task scrape_ndbv_de: :environment do
+    IonContent.scrape_website
+  end
+
+  desc 'List module_type frequencies'
+  task list_module_types: :environment do
+    IonModule.list_module_types
+  end
+
+  desc 'Scrape NDBV Website Images'
+  task scrape_ndbv_de_images: :environment do
+    IonContent.scrape_images
+  end
+
+  desc 'Scrape NDBV Down loads'
+  task scrape_downloads: :environment do
+    IonContent.scrape_downloads
+  end
+
+  desc 'populate_tables'
+  task populate_tables: :environment do
+    tm = TournamentMonitor[50000002]
+    tm.populate_tables
+  end
+
   desc 'Melde Tournament'
   task test_add_tournament: :environment do
     url = 'https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/announcement/tournament/editTournamentSave.php'
@@ -137,6 +163,10 @@ namespace :adhoc do
     GameParticipation.where('id > 50000000').destroy_all
     Account.where('id > 50000000').destroy_all
     User.where('id > 50000000').destroy_all
+  end
+
+  task test_ko_plans: :environment do
+    TournamentPlan.ko(20)
   end
 
   task test_player_id_from_ranking: :environment do

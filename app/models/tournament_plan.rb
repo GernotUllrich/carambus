@@ -2996,6 +2996,75 @@ class TournamentPlan < ApplicationRecord
     plan
   end
 
+  def self.ko_plan(nplayers)
+    return nil if nplayers < 2 || nplayers > 64
+    plan = TournamentPlan.find_by_name("KO_#{nplayers}")
+    plan ||= TournamentPlan.new(
+      name: "KO_#{nplayers}",
+      players: nplayers
+    )
+    rk = []
+    gk = 0
+    games_for_level = (0..10).map { |k| 2 ** k }
+    complete_games = games_for_level.find_all { |i| i <= nplayers }
+    cl = complete_games.count - 1
+    incomplete_pairs = nplayers - games_for_level[cl]
+    seq = [[1]]
+    (1..cl).each do |m|
+      seq[m] = seq[m - 1].map { |k| [k, 0] }.flatten
+      (2 ** (m - 1) + 1..2 ** m).to_a.reverse.each_with_index { |n, ix| dx = seq[m].index(ix + 1); seq[m][dx + 1] = n }
+    end
+    hash = {}
+    (1..(cl)).to_a.reverse.each do |lev|
+      games = []
+      rk_sub = []
+      seq[lev].each.with_index do |n, ix|
+        games[ix / 2] ||= []
+        # sl is seedingslist
+        games[ix / 2].push(lev == cl ? "sl.rk#{n}" : rf("#{2 ** lev}f#{ix + 1}.rk1"))
+        rk_sub.unshift(rf("#{2 ** (lev)}f#{ix + 1}.rk2")) if lev < cl
+      end
+      rk.unshift(rk_sub) if lev < cl
+      gn = 1
+      hash.merge!(games.inject({}) { |memo, a|
+        memo[rf("#{2 ** (lev - 1)}f#{gn}")] = { "r1" => { "t-rand*" => a } }
+        gk += 1
+        gn += 1
+        memo
+      })
+    end
+    rk.unshift("fin.rk2")
+    rk.unshift("fin.rk1")
+    rk_sub = []
+    ((games_for_level[cl] + 1)..nplayers).to_a.each_with_index do |r, ix|
+      sq = games_for_level[cl] - ix
+      dx = (seq[cl].index(sq) / 2) + 1
+      dxr = seq[cl].index(sq) % 2
+      repl = hash[rf("#{2 ** (cl - 1)}f#{dx}")]["r1"]["t-rand*"][dxr]
+      hash[rf("#{2 ** (cl - 1)}f#{dx}")]["r1"]["t-rand*"][dxr] = rf("#{2 ** (cl)}f#{ix + 1}.rk1")
+      rk_sub.push(rf("#{2 ** (cl)}f#{ix + 1}.rk2"))
+      a = [repl, "sl.rk#{r}"]
+      hash[rf("#{2 ** (cl)}f#{ix + 1}")] = { "r1" => { "t-rand*" => a } }
+      gk += 1
+    end
+    rk.push(rk_sub)
+    hash.merge!("GK" => gk)
+    hash.merge!("RK" => rk)
+    plan.update(
+      executor_class: ' ',
+      executor_params: hash.to_json,
+      ngroups: 1,
+      nrepeats: 1,
+      tables: 999
+    )
+    plan
+  end
+
+  # rule filter
+  def self.rf(rule)
+    rule.gsub("64", "sixfour").gsub("32", "threetwo").gsub("4f", "qf").gsub("2f", "hf").gsub("1f1", "fin").gsub("sixfour", "64").gsub("threetwo", "32")
+  end
+
   def self.group_sizes_from(nplayers)
     ngroups = nplayers / 8
     ngroups += 1 if ngroups.odd?

@@ -1,0 +1,40 @@
+# == Schema Information
+#
+# Table name: ion_contents
+#
+#  id              :bigint           not null, primary key
+#  data            :text
+#  deep_scraped_at :datetime
+#  hidden          :boolean          default(FALSE), not null
+#  html            :text
+#  level           :string
+#  position        :integer
+#  scraped_at      :datetime
+#  title           :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  ion_content_id  :integer
+#  page_id         :integer
+#
+
+one:
+  page_id: 1
+  title: MyString
+  html: MyText
+  level: MyString
+  scraped_at: 2022-06-28 15:33:54
+  deep_scraped_at: 2022-06-28 15:33:54
+  ion_content_id: 1
+  data: MyText
+  position: 1
+
+two:
+  page_id: 1
+  title: MyString
+  html: MyText
+  level: MyString
+  scraped_at: 2022-06-28 15:33:54
+  deep_scraped_at: 2022-06-28 15:33:54
+  ion_content_id: 1
+  data: MyText
+  position: 1

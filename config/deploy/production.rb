@@ -14,9 +14,10 @@
 #server '192.168.178.81', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bw
 #server '192.168.178.91', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4w
 #server '192.168.178.60', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bcw
-#server '192.168.2.143', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
+server '192.168.2.210', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
 
-server 'bc-wedel.duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bc-wedel
+#server 'bc-wedel.duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bc-wedel
+# server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
 # server 'db.example.com', user: 'deploy', roles: %w{db}
 
 set :rbenv_path, '/var/www/.rbenv'

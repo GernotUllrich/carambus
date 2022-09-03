@@ -4,7 +4,8 @@
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :name, 'Name', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :organizer_id, 'Organizer', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :season_id, 'Season', class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :ba_id, 'Ba', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :ba_id, 'Ba_id', class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :ba_id2, 'Ba_id2', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
@@ -16,7 +17,8 @@
         <td class="p-3"><%= league.name %></td>
         <td class="p-3"><%= league.organizer.shortname %></td>
         <td class="p-3"><%= link_to league.season.name, season_path(league.season) %></td>
-        <td class="p-3"><%= link_to league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{league.ba_id}", target: :_blank %></td>
+        <td class="p-3"><%= link_to league.ba_id, "https://#{league.organizer.shortname.downcase}.billardarea.de/cms_leagues/plan/#{league.ba_id}/#{league.ba_id2}", target: :_blank %></td>
+        <td class="p-3"><%= link_to league.ba_id2, "https://#{league.organizer.shortname.downcase}.billardarea.de/cms_leagues/plan/#{league.ba_id}/#{league.ba_id2}", target: :_blank %></td>
         <td class="p-3"><%= link_to(league.discipline.andand.name, discipline_path(league.discipline)) if league.discipline.present? %></td>
 
         <td>

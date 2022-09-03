@@ -10,6 +10,7 @@
 #  ba_state                       :string
 #  balls_goal                     :integer
 #  color_remains_with_set         :boolean          default(TRUE), not null
+#  continuous_placements          :boolean          default(FALSE), not null
 #  data                           :text
 #  date                           :datetime
 #  end_date                       :datetime
