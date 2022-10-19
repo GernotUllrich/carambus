@@ -20,7 +20,7 @@
 #  innings_goal                   :integer
 #  kickoff_switches_with_set      :boolean          default(TRUE), not null
 #  last_ba_sync_date              :datetime
-#  location                       :text
+#  location_text                  :text
 #  manual_assignment              :boolean          default(FALSE)
 #  modus                          :string
 #  organizer_type                 :string
@@ -40,6 +40,7 @@
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null
 #  ba_id                          :integer
+#  cc_id                          :integer
 #  discipline_id                  :integer
 #  league_id                      :integer
 #  location_id                    :integer

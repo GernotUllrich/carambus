@@ -22,6 +22,46 @@ require 'net/http'
 #  index_versions_on_item_type_and_item_id  (item_type,item_id)
 #
 class Version < ApplicationRecord
+
+  def self.list_sequence
+    sql = <<-SQL
+SELECT 'SELECT NEXTVAL(' ||
+       quote_literal(quote_ident(PGT.schemaname) || '.' || quote_ident(S.relname)) ' ) FROM ' ||
+       quote_ident(PGT.schemaname)|| '.'||quote_ident(T.relname)|| ';' as query
+FROM pg_class AS S,
+     pg_depend AS D,
+     pg_class AS T,
+     pg_attribute AS C,
+     pg_tables AS PGT
+WHERE S.relkind = 'S'
+    AND S.oid = D.objid
+    AND D.refobjid = T.oid
+    AND D.refobjid = C.attrelid
+    AND D.refobjsubid = C.attnum
+    AND T.relname = PGT.tablename
+ORDER BY S.relname;
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql).each do |query|
+      ActiveRecord::Base.connection.execute(query['query'])
+    end
+  end
+
+  def self.get_max_ids
+    tables = File.read("#{Rails.root}/db/schema.rb").split("\n").select{|l| l =~ /create_table/ }.map do |line|
+      line.match(/\"(.*)\"/)[1]
+    end
+    localized_tables = []
+    out = []
+    tables.each do |line|
+      class_name = line.camelcase.singularize
+      max_id = class_name.constantize.order(:id).last.id rescue nil
+      localized_tables.push(class_name) if max_id.to_i > Setting::MIN_ID
+      out.push("#{line}: #{max_id}")
+    end
+    [out, localized_tables]
+  end
+
   def self.sequence_reset
     sql = <<~SQL
       SELECT 'SELECT SETVAL(' ||

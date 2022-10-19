@@ -1,0 +1,30 @@
+# == Schema Information
+#
+# Table name: championship_type_ccs
+#
+#  id           :bigint           not null, primary key
+#  context      :string
+#  name         :string
+#  shortname    :string
+#  status       :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  branch_cc_id :integer
+#  cc_id        :integer
+#
+
+one:
+  cc_id: 1
+  name: MyString
+  shortname: MyString
+  context: MyString
+  branch_cc_id: 1
+  status: MyString
+
+two:
+  cc_id: 1
+  name: MyString
+  shortname: MyString
+  context: MyString
+  branch_cc_id: 1
+  status: MyString

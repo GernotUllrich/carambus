@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_29_154937) do
+ActiveRecord::Schema.define(version: 2022_10_15_192522) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -129,6 +129,30 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.index ["region_cc_id", "cc_id", "context"], name: "index_branch_ccs_on_region_cc_id_and_cc_id_and_context", unique: true
   end
 
+  create_table "category_ccs", force: :cascade do |t|
+    t.string "context"
+    t.integer "max_age"
+    t.integer "min_age"
+    t.string "name"
+    t.string "sex"
+    t.string "status"
+    t.integer "cc_id"
+    t.integer "branch_cc_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "championship_type_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.string "shortname"
+    t.string "context"
+    t.integer "branch_cc_id"
+    t.string "status"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "clubs", force: :cascade do |t|
     t.integer "ba_id"
     t.integer "region_id"
@@ -170,6 +194,16 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
 
   create_table "debug_infos", force: :cascade do |t|
     t.string "info"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "discipline_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.integer "discipline_id"
+    t.integer "branch_cc_id"
+    t.string "context"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -265,6 +299,18 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.integer "round_no"
     t.datetime "started_at"
     t.datetime "ended_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "group_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.string "context"
+    t.string "display"
+    t.string "status"
+    t.integer "branch_cc_id"
+    t.text "data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -618,6 +664,31 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
   end
 
+  create_table "registration_ccs", force: :cascade do |t|
+    t.integer "registration_list_cc_id"
+    t.integer "player_id"
+    t.string "status"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["player_id", "registration_list_cc_id"], name: "index_registration_ccs_on_player_id_and_registration_list_cc_id", unique: true
+  end
+
+  create_table "registration_list_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "context"
+    t.string "name"
+    t.integer "branch_cc_id"
+    t.integer "season_id"
+    t.integer "discipline_id"
+    t.integer "category_cc_id"
+    t.datetime "deadline"
+    t.datetime "qualifying_date"
+    t.text "data"
+    t.string "status"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "season_ccs", force: :cascade do |t|
     t.integer "cc_id"
     t.string "name"
@@ -714,6 +785,40 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.integer "table_monitor_id"
   end
 
+  create_table "tournament_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "context"
+    t.string "name"
+    t.string "shortname"
+    t.string "status"
+    t.integer "branch_cc_id"
+    t.string "season"
+    t.integer "registration_list_cc_id"
+    t.integer "registration_rule"
+    t.integer "discipline_id"
+    t.integer "championship_type_cc_id"
+    t.integer "category_cc_id"
+    t.integer "group_cc_id"
+    t.datetime "tournament_start"
+    t.integer "tournament_series_cc_id"
+    t.datetime "tournament_end"
+    t.time "starting_at"
+    t.integer "league_climber_quote"
+    t.decimal "entry_fee", precision: 6, scale: 2
+    t.integer "max_players"
+    t.integer "location_id"
+    t.string "location_text"
+    t.text "description"
+    t.string "poster"
+    t.string "tender"
+    t.string "flowchart"
+    t.string "ranking_list"
+    t.string "successor_list"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "tournament_id"
+  end
+
   create_table "tournament_locals", force: :cascade do |t|
     t.integer "tournament_id"
     t.integer "timeout"
@@ -772,6 +877,28 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "tournament_series_ccs", force: :cascade do |t|
+    t.integer "cc_id"
+    t.string "name"
+    t.integer "branch_cc_id"
+    t.string "season"
+    t.integer "valuation"
+    t.integer "series_valuation"
+    t.integer "no_tournaments"
+    t.string "point_formula"
+    t.integer "min_points"
+    t.integer "point_fraction"
+    t.decimal "price_money", precision: 9, scale: 2
+    t.string "currency"
+    t.string "club_id"
+    t.integer "show_jackpot"
+    t.decimal "jackpot", precision: 9, scale: 2
+    t.string "status"
+    t.text "data"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "tournament_tables", force: :cascade do |t|
     t.integer "tournament_id"
     t.integer "table_id"
@@ -788,7 +915,7 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.string "age_restriction"
     t.datetime "date"
     t.datetime "accredation_end"
-    t.text "location"
+    t.text "location_text"
     t.integer "ba_id"
     t.integer "season_id"
     t.integer "region_id"
@@ -815,7 +942,6 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.integer "location_id"
     t.integer "timeouts", default: 0, null: false
     t.boolean "admin_controlled", default: false, null: false
-    t.boolean "manual_assignment", default: false
     t.boolean "gd_has_prio", default: false, null: false
     t.integer "league_id"
     t.integer "sets_to_win", default: 1, null: false
@@ -826,6 +952,8 @@ ActiveRecord::Schema.define(version: 2022_06_29_154937) do
     t.boolean "color_remains_with_set", default: true, null: false
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "continuous_placements", default: false, null: false
+    t.boolean "manual_assignment", default: false
+    t.integer "cc_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end

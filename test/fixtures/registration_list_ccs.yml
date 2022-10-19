@@ -1,0 +1,45 @@
+# == Schema Information
+#
+# Table name: registration_list_ccs
+#
+#  id              :bigint           not null, primary key
+#  context         :string
+#  data            :text
+#  deadline        :datetime
+#  name            :string
+#  qualifying_date :datetime
+#  status          :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  branch_cc_id    :integer
+#  category_cc_id  :integer
+#  cc_id           :integer
+#  discipline_id   :integer
+#  season_id       :integer
+#
+
+one:
+  cc_id: 1
+  context: MyString
+  name: MyString
+  branch_cc_id: 1
+  season_id: 1
+  discipline_id: 1
+  category_cc_id: 1
+  deadline: 2022-09-23 21:44:22
+  qualifying_date: 2022-09-23 21:44:22
+  data: MyText
+  status: MyString
+
+two:
+  cc_id: 1
+  context: MyString
+  name: MyString
+  branch_cc_id: 1
+  season_id: 1
+  discipline_id: 1
+  category_cc_id: 1
+  deadline: 2022-09-23 21:44:22
+  qualifying_date: 2022-09-23 21:44:22
+  data: MyText
+  status: MyString

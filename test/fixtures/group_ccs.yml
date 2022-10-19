@@ -1,0 +1,33 @@
+# == Schema Information
+#
+# Table name: group_ccs
+#
+#  id           :bigint           not null, primary key
+#  context      :string
+#  data         :text
+#  display      :string
+#  name         :string
+#  status       :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  branch_cc_id :integer
+#  cc_id        :integer
+#
+
+one:
+  cc_id: 1
+  name: MyString
+  context: MyString
+  display: MyString
+  status: MyString
+  branch_cc_id: 1
+  data: MyText
+
+two:
+  cc_id: 1
+  name: MyString
+  context: MyString
+  display: MyString
+  status: MyString
+  branch_cc_id: 1
+  data: MyText

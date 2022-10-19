@@ -3,30 +3,68 @@ class RegionCcAction
   def self.get_base_opts_from_environment
     session_id = ENV["PHPSESSID"].presence || Setting.key_get_value("session_id")
     context = (ENV["CC_REGION"].andand.upcase.presence || Setting.key_get_value("context") || "NBV").downcase
-    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value("season_name")
+    season_name = ENV["CC_SEASON"].presence || Setting.key_get_value(:season_name)
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
     # exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013", "2013/2014", "2014/2015", "2015/2016",
     #                         "2019/2020", "2020/2021"]
-    exclude_season_names = []
+    exclude_season_names = [
+      "2009/2010",
+      "2010/2011",
+      "2011/2012",
+      "2012/2013",
+      "2013/2014",
+      "2014/2015",
+      "2015/2016",
+      "2016/2017",
+      "2017/2018",
+      "2018/2019",
+      "2019/2020",
+      "2020/2021",
+      "2021/2022",
+    #"2022/2023,"
+    ]
     pool_ba_ids = League.
       joins(:discipline).
-      where(organizer_id:[1, 17]).
+      where(organizer_id: [1, 17]).
       where("disciplines.name ilike '%Pool%'").
       map(&:ba_id)
     snooker_ba_ids = League.
       joins(:discipline).
-      where(organizer_id:[1, 17]).
+      where(organizer_id: [1, 17]).
       where("disciplines.name ilike '%Snooker%'").
       map(&:ba_id)
     karambol_ba_ids = League.
       joins(:discipline).
-      where(organizer_id:[1, 17]).
+      where(organizer_id: [1, 17]).
       where("disciplines.name ilike '%Karambol%'").
       # where.not("leagues.name ilike '%NDMM Dreiband MB%'").
       map(&:ba_id) - [1826]
     exclude_league_ba_ids = pool_ba_ids + snooker_ba_ids + karambol_ba_ids
+    pool_ba_ids = TournamentCc.
+      joins(:tournament).
+      joins(:branch_cc).
+      where(season: exclude_season_names).
+      where(tournaments: { organizer_id: [1, 17] }).
+      where("branch_ccs.name ilike '%Pool%'").
+      map(&:tournament).map(&:ba_id)
+    snooker_ba_ids = TournamentCc.
+      joins(:tournament).
+      joins(:branch_cc).
+      where(season: exclude_season_names).
+      where(tournaments: { organizer_id: [1, 17] }).
+      where("branch_ccs.name ilike '%Snooker%'").
+      map(&:tournament).map(&:ba_id)
+    karambol_ba_ids = TournamentCc.
+      joins(:tournament).
+      joins(:branch_cc).
+      where(season: exclude_season_names).
+      where(tournaments: { organizer_id: [1, 17] }).
+      where("branch_ccs.name ilike '%Karambol%'").
+      # where.not("leagues.name ilike '%NDMM Dreiband MB%'").
+      map(&:tournament).map(&:ba_id)
+    exclude_tournament_ba_ids = pool_ba_ids + snooker_ba_ids + karambol_ba_ids
 
-      return { session_id: session_id, armed: force_update, context: context, season_name: season_name, exclude_season_names: exclude_season_names, exclude_league_ba_ids: exclude_league_ba_ids }
+    return { session_id: session_id, armed: force_update, context: context, season_name: season_name, exclude_season_names: exclude_season_names, exclude_league_ba_ids: exclude_league_ba_ids, exclude_tournament_ba_ids: exclude_tournament_ba_ids }
   end
 
   def self.remove_local_objects(opts)
@@ -41,6 +79,13 @@ class RegionCcAction
       PartyCc.where("id > 50000000").delete_all
       PartyGameCc.where("id > 50000000").delete_all
       SeasonCc.where("id > 50000000").delete_all
+      ChampionshipTypeCc.where("id > 50000000").delete_all
+      CategoryCc.where("id > 50000000").delete_all
+      GroupCc.where("id > 50000000").delete_all
+      RegistrationListCc.where("id > 50000000").delete_all
+      RegistrationCc.where("id > 50000000").delete_all
+      TournamentCc.where("id > 50000000").delete_all
+
     else
       RegionCc.logger.info "REPORT WARNING !!! WILL delete
 RegionCc[#{RegionCc.where("id > 50000000").ids}]
@@ -53,6 +98,12 @@ LeagueTeamCc[#{LeagueTeamCc.where("id > 50000000").ids}]
 PartyCc[#{PartyCc.where("id > 50000000").ids}]
 PartyGameCc[#{PartyGameCc.where("id > 50000000").ids}]
 SeasonCc[#{SeasonCc.where("id > 50000000").ids}]
+ChampionshipTypeCc[#{ChampionshipTypeCc.where("id > 50000000").ids}]
+CategoryCc[#{CategoryCc.where("id > 50000000").ids}]
+GroupCc[#{GroupCc.where("id > 50000000").ids}]
+RegistrationListCc[#{RegistrationListCc.where("id > 50000000").ids}]
+RegistrationCc[#{RegistrationCc.where("id > 50000000").ids}]
+TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
 "
     end
   end

@@ -1,0 +1,2 @@
+module RegistrationCcsHelper
+end

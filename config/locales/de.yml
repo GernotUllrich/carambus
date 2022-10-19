@@ -552,6 +552,7 @@ de:
         rankings: Ranglisten
         games: Spiele
         ba_id: Ba-Id
+        cc_id: Cc-Id
         ba_state: BA-Status
         state: Status
         region: Regionalverband

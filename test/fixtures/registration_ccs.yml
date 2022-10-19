@@ -1,0 +1,25 @@
+# == Schema Information
+#
+# Table name: registration_ccs
+#
+#  id                      :bigint           not null, primary key
+#  status                  :string
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  player_id               :integer
+#  registration_list_cc_id :integer
+#
+# Indexes
+#
+#  index_registration_ccs_on_player_id_and_registration_list_cc_id  (player_id,registration_list_cc_id) UNIQUE
+#
+
+one:
+  registration_list_cc_id: 1
+  player_id: 1
+  status: MyString
+
+two:
+  registration_list_cc_id: 1
+  player_id: 1
+  status: MyString

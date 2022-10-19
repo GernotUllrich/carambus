@@ -1,0 +1,63 @@
+# == Schema Information
+#
+# Table name: tournament_series_ccs
+#
+#  id               :bigint           not null, primary key
+#  currency         :string
+#  data             :text
+#  jackpot          :decimal(9, 2)
+#  min_points       :integer
+#  name             :string
+#  no_tournaments   :integer
+#  point_formula    :string
+#  point_fraction   :integer
+#  price_money      :decimal(9, 2)
+#  season           :string
+#  series_valuation :integer
+#  show_jackpot     :integer
+#  status           :string
+#  valuation        :integer
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  branch_cc_id     :integer
+#  cc_id            :integer
+#  club_id          :string
+#
+
+one:
+  cc_id: 1
+  name: MyString
+  branch_cc_id: 1
+  season: MyString
+  valuation: 1
+  series_valuation: 1
+  no_tournaments: 1
+  point_formula: MyString
+  min_points: 1
+  point_fraction: 1
+  price_money: 9.99
+  currency: MyString
+  club_id: MyString
+  show_jackpot: 1
+  jackpot: 9.99
+  status: MyString
+  data: MyText
+
+two:
+  cc_id: 1
+  name: MyString
+  branch_cc_id: 1
+  season: MyString
+  valuation: 1
+  series_valuation: 1
+  no_tournaments: 1
+  point_formula: MyString
+  min_points: 1
+  point_fraction: 1
+  price_money: 9.99
+  currency: MyString
+  club_id: MyString
+  show_jackpot: 1
+  jackpot: 9.99
+  status: MyString
+  data: MyText

@@ -815,6 +815,7 @@ en:
         rankings: rankings
         games: games
         ba_id: BA Id
+        cc_id: CC Id
         ba_state: BA-State
         state: State
         region: Region

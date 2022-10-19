@@ -126,6 +126,7 @@
     <orderEntry type="library" scope="PROVIDED" name="momentjs-rails (v2.29.1.1, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="msgpack (v1.5.1, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="multi_json (v1.15.0, rbenv: 2.7.2) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="multipart-post (v2.2.3, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="name_of_person (v1.1.1, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nenv (v0.3.0, rbenv: 2.7.2) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="net-scp (v3.0.0, rbenv: 2.7.2) [gem]" level="application" />
@@ -445,7 +446,12 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="adhoc">
             <subtasks>
+              <RakeTaskImpl description="List module_type frequencies" fullCommand="adhoc:list_module_types" id="list_module_types" />
               <RakeTaskImpl description="Spielerabgleich mit CC" fullCommand="adhoc:player_cc_matching" id="player_cc_matching" />
+              <RakeTaskImpl description="populate_tables" fullCommand="adhoc:populate_tables" id="populate_tables" />
+              <RakeTaskImpl description="Scrape NDBV Down loads" fullCommand="adhoc:scrape_downloads" id="scrape_downloads" />
+              <RakeTaskImpl description="Scrape NDBV Website" fullCommand="adhoc:scrape_ndbv_de" id="scrape_ndbv_de" />
+              <RakeTaskImpl description="Scrape NDBV Website Images" fullCommand="adhoc:scrape_ndbv_de_images" id="scrape_ndbv_de_images" />
               <RakeTaskImpl description="Sequence Reset" fullCommand="adhoc:sequence_reset" id="sequence_reset" />
               <RakeTaskImpl description="Melde Tournament" fullCommand="adhoc:test_add_tournament" id="test_add_tournament" />
               <RakeTaskImpl description="test_league 8" fullCommand="adhoc:test_league8" id="test_league8" />
@@ -454,6 +460,7 @@
               <RakeTaskImpl description="test version update" fullCommand="adhoc:test_version_update" id="test_version_update" />
               <RakeTaskImpl description="" fullCommand="adhoc:clean_local" id="clean_local" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_accumulate_results" id="test_accumulate_results" />
+              <RakeTaskImpl description="" fullCommand="adhoc:test_ko_plans" id="test_ko_plans" />
               <RakeTaskImpl description="" fullCommand="adhoc:test_player_id_from_ranking" id="test_player_id_from_ranking" />
             </subtasks>
           </RakeTaskImpl>
@@ -533,21 +540,31 @@
           </RakeTaskImpl>
           <RakeTaskImpl id="cc">
             <subtasks>
-              <RakeTaskImpl description="get game report" fullCommand="cc:get_game_report" id="get_game_report" />
+              <RakeTaskImpl description="release registration list structure" fullCommand="cc:release_registration_list_structure" id="release_registration_list_structure" />
               <RakeTaskImpl description="Remove duplicate Players" fullCommand="cc:remove_duplicate_players" id="remove_duplicate_players" />
+              <RakeTaskImpl description="remove local objects" fullCommand="cc:remove_local_objects" id="remove_local_objects" />
               <RakeTaskImpl description="synchronize branch structure" fullCommand="cc:synchronize_branch_structure" id="synchronize_branch_structure" />
+              <RakeTaskImpl description="synchronize category structure" fullCommand="cc:synchronize_category_structure" id="synchronize_category_structure" />
+              <RakeTaskImpl description="synchronize championship type structure" fullCommand="cc:synchronize_championship_type_structure" id="synchronize_championship_type_structure" />
               <RakeTaskImpl description="synchronize club structure" fullCommand="cc:synchronize_club_structure" id="synchronize_club_structure" />
               <RakeTaskImpl description="synchronize competition structure" fullCommand="cc:synchronize_competition_structure" id="synchronize_competition_structure" />
+              <RakeTaskImpl description="synchronize discipline structure" fullCommand="cc:synchronize_discipline_structure" id="synchronize_discipline_structure" />
+              <RakeTaskImpl description="synchronize everything" fullCommand="cc:synchronize_everything" id="synchronize_everything" />
               <RakeTaskImpl description="synchronize game details" fullCommand="cc:synchronize_game_details" id="synchronize_game_details" />
-              <RakeTaskImpl description="synchronize game reports structure" fullCommand="cc:synchronize_game_reports_structure" id="synchronize_game_reports_structure" />
+              <RakeTaskImpl description="synchronize game reports structure" fullCommand="cc:synchronize_game_plan_structure" id="synchronize_game_plan_structure" />
+              <RakeTaskImpl description="synchronize group structure" fullCommand="cc:synchronize_group_structure" id="synchronize_group_structure" />
               <RakeTaskImpl description="synchronize league plan structure" fullCommand="cc:synchronize_league_plan_structure" id="synchronize_league_plan_structure" />
               <RakeTaskImpl description="synchronize league structure" fullCommand="cc:synchronize_league_structure" id="synchronize_league_structure" />
               <RakeTaskImpl description="synchronize league_team structure" fullCommand="cc:synchronize_league_team_structure" id="synchronize_league_team_structure" />
               <RakeTaskImpl description="synchronize party game structure" fullCommand="cc:synchronize_party_game_structure" id="synchronize_party_game_structure" />
               <RakeTaskImpl description="synchronize party structure" fullCommand="cc:synchronize_party_structure" id="synchronize_party_structure" />
               <RakeTaskImpl description="synchronize region structure" fullCommand="cc:synchronize_region_structure" id="synchronize_region_structure" />
+              <RakeTaskImpl description="synchronize registration list structure" fullCommand="cc:synchronize_registration_list_structure" id="synchronize_registration_list_structure" />
               <RakeTaskImpl description="synchronize season structure" fullCommand="cc:synchronize_season_structure" id="synchronize_season_structure" />
               <RakeTaskImpl description="synchronize team players structure" fullCommand="cc:synchronize_team_players_structure" id="synchronize_team_players_structure" />
+              <RakeTaskImpl description="synchronize tournament series structure" fullCommand="cc:synchronize_tournament_series_structure" id="synchronize_tournament_series_structure" />
+              <RakeTaskImpl description="synchronize tournament structure" fullCommand="cc:synchronize_tournament_structure" id="synchronize_tournament_structure" />
+              <RakeTaskImpl description="upload tournament results" fullCommand="cc:upload_tournament_results" id="upload_tournament_results" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl id="db">

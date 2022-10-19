@@ -15,6 +15,7 @@ namespace :cc do
     Season.where.not(name: opts[:exclude_season_names]).order(name: :asc).each_with_index do |season, ix|
       opts[:season_name] = season.name
       opts[:armed] = true
+      opts[:update_from_cc] = false
       RegionCcAction.remove_local_objects(opts) if ix == 0
       # RegionCcAction.synchronize_region_structure(opts) if ix == 0
       # RegionCcAction.synchronize_club_structure(opts) if ix == 0
@@ -27,7 +28,13 @@ namespace :cc do
       #######RegionCcAction.synchronize_league_team_structure(opts)
       # RegionCcAction.synchronize_league_plan_structure(opts) #if season.name == "2014/2015"
       # RegionCcAction.sync_team_players_structure(opts)
-      RegionCcAction.sync_game_details(opts) #if season.name == "2014/2015"
+      # RegionCcAction.sync_game_details(opts) #if season.name == "2014/2015"
+      RegionCcAction.synchronize_category_structure(opts) if ix == 0
+      RegionCcAction.synchronize_group_structure(opts) if ix == 0
+      RegionCcAction.synchronize_championship_type_structure(opts) if ix == 0
+      RegionCcAction.synchronize_tournament_series_structure(opts)
+      RegionCcAction.synchronize_registration_list_structure(opts)
+      RegionCcAction.synchronize_tournament_structure(opts)
 
       # ### TODO done by synchronize_league_plan_structure! RegionCcAction.synchronize_party_structure(opts)
       # #### TODO what's this?  RegionCcAction.sync_party_game_structure(opts)
@@ -115,6 +122,79 @@ namespace :cc do
   task :synchronize_game_plan_structure => :environment do
     opts = get_base_opts_from_environment
     RegionCcAction.synchronize_game_plan_structure(opts)
+  end
+
+  desc "synchronize category structure"
+  task :synchronize_category_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_category_structure(opts)
+  end
+
+  desc "synchronize group structure"
+  task :synchronize_group_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_group_structure(opts)
+  end
+
+  desc "synchronize discipline structure"
+  task :synchronize_discipline_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_discipline_structure(opts)
+  end
+
+  desc "synchronize championship type structure"
+  task :synchronize_championship_type_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_championship_type_structure(opts)
+  end
+
+  desc "synchronize registration list structure"
+  task :synchronize_registration_list_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_registration_list_structure(opts)
+  end
+
+  desc "release registration list structure"
+  task :release_registration_list_structure => :environment do
+    opts = get_base_opts_from_environment
+    opts.merge!(branch_cc_cc_id: 10)
+    RegionCcAction.synchronize_registration_list_structure(opts.merge(release: true))
+  end
+
+  desc "synchronize tournament series structure"
+  task :synchronize_tournament_series_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_tournament_series_structure(opts)
+  end
+
+  desc "synchronize tournament structure"
+  task :synchronize_tournament_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.synchronize_tournament_structure(opts.merge(update_from_cc: false))
+  end
+
+  desc "scrape cc tournament structure"
+  task :scrape_cc_tournament_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.scrape_cc_tournament_structure(opts.merge(update_from_cc: false))
+  end
+
+  desc "fix tournament structure"
+  task :fix_tournament_structure => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.fix_tournament_structure(opts)
+  end
+
+  desc "upload tournament results"
+  task :upload_tournament_results => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.upload_tournament_results(opts)
+  end
+
+  desc "delete tournament results"
+  task :delete_tournament_results => :environment do
+    opts = get_base_opts_from_environment
+    RegionCcAction.delete_tournament_results(opts)
   end
 
   desc "synchronize game details"

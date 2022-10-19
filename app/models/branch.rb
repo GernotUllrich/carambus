@@ -17,4 +17,5 @@
 #  index_disciplines_on_name_and_table_kind_id  (name,table_kind_id) UNIQUE
 #
 class Branch < Discipline
+
 end

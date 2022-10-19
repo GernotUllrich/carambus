@@ -85,11 +85,21 @@ namespace :carambus do
 
   desc "Scrape leagues"
   task :scrape_leagues => :environment do
-    Season.order(ba_id: :asc).each do |season|
-      #TODO if scraped completely .limit(2)
-      sh_names = ["NBV"]
-      Region.where(shortname: sh_names).all.each do |region|
-        League.scrape_leagues_by_region_and_season(region, season, game_details: false, skip_league_details: true)
+    League.set_scraping(0, nil)
+    League.set_scraping(1, nil)
+    League.set_scraping(2, true)
+    sh_names = ["BBV", "NBV", 'BVB', "BBBV", "BVNRW", "portal", "HBU"]
+    Season.order(ba_id: :desc).each do |season|
+      Region.where.not(shortname: sh_names).all.each do |region|
+        #Region.where(shortname: "BVBW").all.each do |region|
+        Rails.logger.info "===== #{region.shortname}"
+        League.set_scraping(0, season.id == 7 && region.shortname == "BLVN")
+
+        #TODO if scraped completely .limit(2)
+        if League.scraping[0]
+          Rails.logger.info "===== scraping #{region.shortname}"
+          League.scrape_leagues_by_region_and_season(region, season, game_details: true, skip_league_details: false)
+        end
       end
     end
   end
@@ -185,7 +195,7 @@ namespace :carambus do
       url = "https://#{player.club.region.shortname.downcase}.billardarea.de"
       player_details_url = "#{url}/cms_clubs/playerdetails/#{club.ba_id}/#{player.ba_id}"
       Rails.logger.info "reading #{player_details_url} - player details of player [#{player.ba_id}] on club #{club.shortname} [#{club.ba_id}]"
-      html_player_detail = Uri.open(player_details_url)
+      html_player_detail = URI.open(player_details_url)
       doc_player_detail = Nokogiri::HTML(html_player_detail)
       player_ba_id = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) legend+ .element .field").text.strip.to_i
       if player_ba_id == player.ba_id
@@ -456,6 +466,7 @@ namespace :carambus do
                     end
                     tournament ||=
                       Tournament.create(ba_id: ba_id, title: name, region_id: region.id, season_id: season.id, discipline: discipline, organizer: region)
+                    next unless season.id == tournament.season_id
                     tournament.update(plan_or_show: plan_or_show, single_or_league: single_or_league, ba_state: tournament_ba_closed ? "X" : "")
                     scrape_single_tournament(tournament)
                     tournament.update_columns(last_ba_sync_date: Time.now)
@@ -473,47 +484,48 @@ namespace :carambus do
 
   desc "create local seed"
   task :create_local_seed => :environment do
-    output = ""
+    output = []
     void_keys = { "User" => ["terms_of_service"], "Account" => ["quantity", "plan", "card_token"] }
-    %w{User Account AccountUser Player Tournament Seeding Game GameParticipation TournamentMonitor TableMonitor TournamentLocal Location Table}.each do |classz|
-      output << "#{classz.underscore}_id_map = {}\n"
+    table_max_ids, local_tables = Version.get_max_ids
+    local_tables.each do |classz|
+      output.push("#{classz.underscore}_id_map = {}")
       if classz == "Account"
-        output << "#+++Account+++\n"
-        output << "#---User---\n"
-        output << "h1 = JSON.pretty_generate(user_id_map)\n"
+        output.push("#+++Account+++")
+        output.push("#---User---")
+        output.push("h1 = JSON.pretty_generate(user_id_map)")
       elsif classz == "AccountUser"
-        output << "#+++AccountUser+++\n"
-        output << "#---Account---\n"
-        output << "h1 = JSON.pretty_generate(account_id_map)\n"
-        output << "#---User---\n"
-        output << "h2 = JSON.pretty_generate(user_id_map)\n"
+        output.push("#+++AccountUser+++")
+        output.push("#---Account---")
+        output.push("h1 = JSON.pretty_generate(account_id_map)")
+        output.push("#---User---")
+        output.push("h2 = JSON.pretty_generate(user_id_map)")
       elsif classz == "TournamentMonitor\n"
-        output << "#+++TournamentMonitor+++\n"
-        output << "#---Tournament---\n"
-        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+        output.push("#+++TournamentMonitor+++")
+        output.push("#---Tournament---")
+        output.push("h1 = JSON.pretty_generate(tournament_id_map)")
       elsif classz == "Game"
-        output << "#---Tournament---\n"
-        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
+        output.push("#---Tournament---")
+        output.push("h1 = JSON.pretty_generate(tournament_id_map)")
       elsif classz == "Location"
       elsif classz == "table"
-        output << "#---Location---\n"
-        output << "h1 = JSON.pretty_generate(location_id_map)\n"
+        output.push("#---Location---")
+        output.push("h1 = JSON.pretty_generate(location_id_map)")
       elsif classz == "GameParticipation"
-        output << "#+++GameParticipation+++\n"
-        output << "#---Player---\n"
-        output << "h1 = JSON.pretty_generate(player_id_map)\n"
-        output << "#---Game---\n"
-        output << "h2 = JSON.pretty_generate(game_id_map)\n"
+        output.push("#+++GameParticipation+++")
+        output.push("#---Player---")
+        output.push("h1 = JSON.pretty_generate(player_id_map)")
+        output.push("#---Game---")
+        output.push("h2 = JSON.pretty_generate(game_id_map)")
       elsif classz == "Seeding"
-        output << "#+++Seeding+++\n"
-        output << "#---Tournament---\n"
-        output << "h1 = JSON.pretty_generate(tournament_id_map)\n"
-        output << "#---Player---\n"
-        output << "h2 = JSON.pretty_generate(player_id_map)\n"
+        output.push("#+++Seeding+++")
+        output.push("#---Tournament---")
+        output.push("h1 = JSON.pretty_generate(tournament_id_map)")
+        output.push("#---Player---")
+        output.push("h2 = JSON.pretty_generate(player_id_map)")
       elsif classz == "TableMonitor"
-        output << "#+++TableMonitor+++\n"
-        output << "#---TournamentMonitor---\n"
-        output << "h1 = JSON.pretty_generate(tournament_monitor_id_map)\n"
+        output.push("#+++TableMonitor+++")
+        output.push("#---TournamentMonitor---")
+        output.push("h1 = JSON.pretty_generate(tournament_monitor_id_map)")
       elsif classz == "User"
       end
       classz.constantize.where("id >= 50000000").order(:id).all.each do |obj|
@@ -522,78 +534,150 @@ namespace :carambus do
         attrs = obj.serializable_hash.delete_if { |key, value| (hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')
         time_keys.each do |key|
           if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
-            output << "#{key} = Time.at(#{obj.send("#{key}").to_f})\n"
+            output.push("#{key} = Time.at(#{obj.send("#{key}").to_f})")
             attrs += ", #{key}: #{key}"
           end
         end
-        output << "obj_was = #{classz.constantize}.where(#{attrs}).first\n"
-        output << "if obj_was.blank?\n"
+        output.push("obj_was = #{classz.constantize}.where(#{attrs}).first")
+        output.push("if obj_was.blank?")
         attrs_no_id = obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')
-        output << "  obj_was = #{classz.constantize}.where(#{attrs_no_id}).first\n"
-        output << "  if obj_was.blank?\n"
-        output << "    obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')})\n"
+        output.push("  obj_was = #{classz.constantize}.where(#{attrs_no_id}).first")
+        output.push("  if obj_was.blank?")
+        output.push("    obj = #{classz.constantize}.new(#{obj.serializable_hash.delete_if { |key, value| (["id"] + hash_keys + time_keys + void_keys[classz].to_a).include?(key) }.to_s.gsub(/[{}]/, '')})")
         if classz == "Account"
-          output << "    obj.owner_id = user_id_map[#{obj.owner_id}] if user_id_map[#{obj.owner_id}].present?\n" if obj.owner_id.present?
-          output << "    obj.plan = nil\n"
-          output << "    obj.quantity = nil\n"
-          output << "    obj.card_token = nil\n"
+          output.push("    obj.owner_id = user_id_map[#{obj.owner_id}] if user_id_map[#{obj.owner_id}].present?") if obj.owner_id.present?
+          output.push("    obj.plan = nil")
+          output.push("    obj.quantity = nil")
+          output.push("    obj.card_token = nil")
         elsif classz == "AccountUser"
-          output << "    obj.account_id = account_id_map[#{obj.account_id}] if account_id_map[#{obj.account_id}].present?\n" if obj.account_id.present?
-          output << "    obj.user_id = user_id_map[#{obj.user_id}] if user_id_map[#{obj.user_id}].present?\n" if obj.user_id.present?
+          output.push("    obj.account_id = account_id_map[#{obj.account_id}] if account_id_map[#{obj.account_id}].present?") if obj.account_id.present?
+          output.push("    obj.user_id = user_id_map[#{obj.user_id}] if user_id_map[#{obj.user_id}].present?") if obj.user_id.present?
         elsif classz == "TournamentMonitor"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
+          output.push("    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?") if obj.tournament_id.present?
         elsif classz == "Game"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
+          output.push("    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?") if obj.tournament_id.present?
         elsif classz == "GameParticipation"
-          output << "    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?\n" if obj.game_id.present?
+          output.push("    obj.game_id = game_id_map[#{obj.game_id}] if game_id_map[#{obj.game_id}].present?") if obj.game_id.present?
         elsif classz == "Table"
-          output << "    obj.location_id = location_id_map[#{obj.location_id}] if location_id_map[#{obj.location_id}].present?\n" if obj.location_id.present?
+          output.push("    obj.location_id = location_id_map[#{obj.location_id}] if location_id_map[#{obj.location_id}].present?") if obj.location_id.present?
         elsif classz == "Seeding"
-          output << "    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?\n" if obj.tournament_id.present?
-          output << "    obj.player_id = player_id_map[#{obj.player_id}] if player_id_map[#{obj.player_id}].present?\n"
+          output.push("    obj.tournament_id = tournament_id_map[#{obj.tournament_id}] if tournament_id_map[#{obj.tournament_id}].present?") if obj.tournament_id.present?
+          output.push("    obj.player_id = player_id_map[#{obj.player_id}] if player_id_map[#{obj.player_id}].present?")
         elsif classz == "TableMonitor"
-          output << "    obj.tournament_monitor_id = tournament_monitor_id_map[#{obj.tournament_monitor_id}] if tournament_monitor_id_map[#{obj.tournament_monitor_id}].present?\n" if obj.tournament_monitor_id.present?
-          output << "    obj.game_id = game_id_map[#{obj.id}] if game_id_map[#{obj.game_id}].present?\n" if obj.game_id.present?
+          output.push("    obj.tournament_monitor_id = tournament_monitor_id_map[#{obj.tournament_monitor_id}] if tournament_monitor_id_map[#{obj.tournament_monitor_id}].present?") if obj.tournament_monitor_id.present?
+          output.push("    obj.game_id = game_id_map[#{obj.id}] if game_id_map[#{obj.game_id}].present?") if obj.game_id.present?
         elsif classz == "User"
-          output << "    obj.password = \"******\"\n"
-          output << "    obj.terms_of_service = true\n"
+          output.push("    obj.password = \"******\"")
+          output.push("    obj.terms_of_service = true")
         end
         hash_keys.each do |key|
           if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
-            output << "    #{key} = #{obj.send("#{key}").inspect}\n"
-            output << "    obj.#{key} = #{key}\n"
+            output.push("    #{key} = #{obj.send("#{key}").inspect}")
+            output.push("    obj.#{key} = #{key}")
           end
         end
         time_keys.each do |key|
           if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
-            output << "    #{key} = Time.at(#{obj.send("#{key}").to_f})\n"
+            output.push("    #{key} = Time.at(#{obj.send("#{key}").to_f})")
           end
         end
-        output << "    begin\n"
-        output << "      obj.save!\n"
+        output.push("    begin")
+        output.push("      obj.save!")
         if classz == "User"
-          output << "      obj.update_column(:encrypted_password, \"#{obj.encrypted_password}\")\n"
+          output.push("      obj.update_column(:encrypted_password, \"#{obj.encrypted_password}\")")
         end
-        output << "      id = obj.id\n"
-        output << "      #{classz.underscore}_id_map[#{obj.id}] = id\n"
+        output.push("      id = obj.id")
+        output.push("      #{classz.underscore}_id_map[#{obj.id}] = id")
         time_keys.each do |key|
           if obj.respond_to?(:"#{key}") && obj.send(:"#{key}").present?
-            output << "      obj.update_column(:\"#{key}\", #{key})\n"
+            output.push("      obj.update_column(:\"#{key}\", #{key})")
           end
         end
-        output << "    rescue StandardError => e\n"
-        output << "    end\n"
-        output << "  else\n"
+        output.push("    rescue StandardError => e")
+        output.push("    end")
+        output.push("  else")
 
-        output << "    id = obj_was.id\n"
-        output << "    #{classz.underscore}_id_map[#{obj.id}] = id\n"
+        output.push("    id = obj_was.id")
+        output.push("    #{classz.underscore}_id_map[#{obj.id}] = id")
 
-        output << "  end\n"
-        output << "end\n"
+        output.push("  end")
+        output.push("end")
       end
     end
     f = File.new("#{Rails.root}/db/seeds.rb", "w")
-    f.write(output)
+    f.write(output.join("\n"))
+    f.close
+  end
+
+  desc "filter local changes from sql dump"
+  task :filter_local_changes_from_sql_dump => :environment do
+    config = YAML.load_file("#{Rails.root}/config/database.yml")
+    database = config[Rails.env]["database"]
+    unless ENV["SKIP_PG_DUMP"].present?
+      puts "======== make a pg_dump of #{database} =========="
+      `pg_dump #{database} > #{Rails.root}/#{database}.sql`
+    end
+    in_copy_users_or_tournaments = false
+    priority_tables = []
+    File.open("#{Rails.root}/#{database}.sql", "r").each_line do |line|
+      if line.match(/^COPY/)
+        if line.match(/^COPY public.users /)
+          in_copy_users_or_tournaments = true
+        elsif line.match(/^COPY public.tournaments /)
+          in_copy_users_or_tournaments = true
+        else
+          in_copy_users_or_tournaments = false
+        end
+        if in_copy_users_or_tournaments
+          priority_tables.push line
+        end
+      elsif line.match(/^\\\./)
+        if in_copy_users_or_tournaments
+          priority_tables.push line
+          in_copy_users_or_tournaments = false
+        end
+      else
+        if in_copy_users_or_tournaments
+          if line.match(/^(\d+)\t/).andand[1].to_i > Setting::MIN_ID
+            priority_tables.push line
+          end
+        end
+      end
+    end
+
+    f = File.new("#{Rails.root}/#{database}_50000000.sql", "w")
+    first_copy = true
+    in_copy_mode = false
+    File.open("#{Rails.root}/#{database}.sql", "r").each_line do |line|
+      if line.match(/^COPY/)
+        in_copy_mode = true
+        if first_copy
+          f.write(priority_tables.join("") + "\n")
+          first_copy = false
+        end
+        if line.match(/^COPY public.users /)
+          in_copy_users_or_tournaments = true
+        elsif line.match(/^COPY public.tournaments /)
+          in_copy_users_or_tournaments = true
+        else
+          in_copy_users_or_tournaments = false
+        end
+        if !in_copy_users_or_tournaments
+          f.puts line
+        end
+      elsif line.match(/^\\\./)
+        in_copy_mode = false
+        f.puts line
+      else
+        if in_copy_mode
+          if !in_copy_users_or_tournaments && line.match(/^(\d+)\t/).andand[1].to_i > Setting::MIN_ID
+            f.puts line
+          end
+        else
+          f.puts line
+        end
+      end
+    end
     f.close
   end
 
@@ -617,11 +701,11 @@ namespace :carambus do
     Season.order(ba_id: :asc).each do |season|
       # for all regions
       # TEST
-      next unless season.name == "2021/2022"
+      next unless season.name == "2018/2019"
       Region.where(shortname: Region::REGION_SHORTNAMES).all.each do |region|
         # for all disciplines
         # TEST
-        next unless region.shortname == "NBV"
+        #next unless region.shortname == "NBV"
         Discipline.all.each do |discipline|
           # for all relevant tournaments
           # TEST
@@ -715,13 +799,13 @@ namespace :carambus do
         @address = @address_a.join("\n")
         @location = Location.where(name: @name, address: @address, organizer: @organizer).first_or_create!
       end
-      t.tournament_location = @location
+      t.location = @location
       t.save!
     end
   end
   desc "scrape new tournaments"
   task :scrape_new_tournaments => :environment do
-    itest = Tournament.where.not(ba_id:nil).order(:ba_id => :desc).first.ba_id
+    itest = Tournament.where.not(ba_id: nil).order(:ba_id => :desc).first.ba_id
     ip = 14
     url = "https://nbv.billardarea.de"
     dir = 1
@@ -743,7 +827,7 @@ namespace :carambus do
       ip -= 1
       dir = valid_tournament ? 1 : -1
     end
-    range = (Tournament.where.not(ba_id:nil).order(:ba_id => :desc).first.ba_id..(itest - 1))
+    range = (Tournament.where.not(ba_id: nil).order(:ba_id => :desc).first.ba_id..(itest - 1))
     Season.last.scrape_tournaments(range.to_a)
   end
 end

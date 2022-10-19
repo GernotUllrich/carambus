@@ -26,15 +26,16 @@ class Setting < ApplicationRecord
   serialize :data, Hash
   attr_reader :key
   attr_reader :value
-  belongs_to :region
-  belongs_to :club
-  belongs_to :tournament
+  belongs_to :region, optional: true
+  belongs_to :club, optional: true
+  belongs_to :tournament, optional: true
 
   before_save do
     Rails.logger.info "!!!!!!!" + JSON.pretty_generate(self.attributes)
   end
 
   SETTING = Setting.first || Setting.create!
+  MIN_ID = 50000000
 
   include AASM
 
@@ -46,6 +47,33 @@ class Setting < ApplicationRecord
 
   def self.instance
     SETTING
+  end
+
+  def self.login
+    opts = RegionCcAction.get_base_opts_from_environment
+    region = Region.find_by(shortname: opts[:context].upcase)
+    region_cc = region.region_cc
+    args = {
+      username: "gernot.ullrich@gmx.de",
+      userpassword: "eb4c4d00e83946e1d874d6afa18276a2",
+      call_police: 7,
+      loginUser: "gernot.ullrich@gmx.de",
+      userpw: "VHdku&Rc=CYvX$wg3W",
+      loginButton: "ANMELDEN"
+    }
+    _, doc = region_cc.post_cc('checkUser', args, opts)
+    session_id = doc.css("script").text.match(/PHPSESSID=([a-f0-9]+)'/)[1]
+    Setting.key_set_value("session_id", session_id)
+  end
+
+  def self.logoff
+    opts = RegionCcAction.get_base_opts_from_environment
+    region = Region.find_by(shortname: opts[:context].upcase)
+    region_cc = region.region_cc
+    args = {
+    }
+    _, doc = region_cc.post_cc('logoff', args, opts)
+    Setting.key_delete("session_id")
   end
 
   def self.key_set_value(k, v)

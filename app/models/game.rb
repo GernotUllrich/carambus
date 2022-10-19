@@ -22,32 +22,10 @@ class Game < ApplicationRecord
   has_many :game_participations, :dependent => :destroy
   has_one :table_monitor, :dependent => :nullify
 
-  MIN_ID = 50000000
-  has_paper_trail
   before_save :set_paper_trail_whodunnit
   serialize :data, Hash
 
-  #data Snooker
-  #  data:
-  #    {"Gr."=>"Hauptrunde",
-  #     "#"=>"1",
-  #     "Heim"=>"Kondziella, Steffen",
-  #     "Gast"=>"Utech, Philip",
-  #     "Ergebnis"=>"2 : 5",
-  #     "HS"=>":"},
-
-  # data Dreiband gross
-  #   data:
-  #    {"Gr."=>"Runde 1",
-  #     "#"=>"1",
-  #     "Heim"=>"Weiß, Ferdinand",
-  #     "Gast"=>"Jonetat, Helmut",
-  #     "Punkte"=>"0 : 2",
-  #     "Ergebnis"=>"6 : 15",
-  #     "Aufnahme"=>"26 : 26",
-  #     "GD"=>"0,230 : 0,576",
-  #     "HS"=>"2 : 2"},
-
+=begin
   #"data"=>
   { "ba_results" =>
       { "Gruppe" => 1,
@@ -66,6 +44,7 @@ class Game < ApplicationRecord
         "Höchstserie2" => 15,
         "Tischnummer" => 2
       },
+    {
     "sets" =>
       [
         { "Gruppe" => 1,
@@ -95,8 +74,10 @@ class Game < ApplicationRecord
         },
       ]
   }
+  }
+=end
 
-  serialize :roles, Array
+  MIN_ID = 50000000
 
   attr_accessor :new_game_data
   serialize :new_game_data, Hash
@@ -174,14 +155,27 @@ class Game < ApplicationRecord
   def self.fix_participation(game)
     mapping = { "Gr." => :gname, "Ergebnis" => :result, "Aufnahme" => :innings, "HS" => :hs, "GD" => :gd, "Punkte" => :points }
     tournament = game.tournament
+    begin
     if tournament.present?
-      game.game_participations.delete_all
+        game_participation_ids = game.game_participation_ids
+        #game.game_participations.delete_all
       player_a = Player.joins(:seedings => :tournament).where(tournaments: { id: tournament.id }).
         where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
-      gp_a = GameParticipation.create(game_id: game.id, player_id: player_a.id, role: "Heim") if player_a.present?
+        if player_a.present?
+          gp_a = GameParticipation.where(game_id: game.id, player_id: player_a.id).first ||
+            GameParticipation.create(game_id: game.id, player_id: player_a.id)
+          gp_a.update(role: "Heim")
+          game_participation_ids.delete(gp_a.id)
+        end
       player_b = Player.joins(:seedings => :tournament).where(tournaments: { id: tournament.id }).
         where("players.lastname||', '||players.firstname = :name", name: game.data["Gast"]).first
-      gp_b = GameParticipation.create(game_id: game.id, player_id: player_b.id, role: "Gast") if player_b.present?
+        if player_b.present?
+          gp_b = GameParticipation.where(game_id: game.id, player_id: player_b.id).first ||
+            GameParticipation.create(game_id: game.id, player_id: player_b.id)
+          gp_b.update(role: "Gast")
+          game_participation_ids.delete(gp_b.id)
+        end
+        GameParticipation.where(id: game_participation_ids).destroy_all
       gp_a_results = {}
       gp_b_results = {}
       game.data.each do |k, v|
@@ -211,6 +205,9 @@ class Game < ApplicationRecord
         gp_b.update(attrs)
       end
     else
+      game.destroy
+      end
+    rescue StandardError => e
       game.destroy
     end
   end

@@ -80,7 +80,6 @@ class PartyCc < ApplicationRecord
   end
 
   def self.create_from_ba(party)
-    raise "[PartyCc.create_from_ba] unexpected armed status #{party.attributes}" if opts[:armed]
-
+    RegionCc.logger.info "REPORT ERROR [PartyCc.create_from_ba] unexpected armed status #{party.attributes}"
   end
 end

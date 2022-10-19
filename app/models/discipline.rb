@@ -24,6 +24,7 @@ class Discipline < ApplicationRecord
   has_many :tournaments
   has_many :player_classes
   has_many :player_rankings
+  has_one :discipline_cc, foreign_key: :discipline_id
   has_many :leagues
   has_many :game_plan_ccs
   has_many :game_plan_row_ccs

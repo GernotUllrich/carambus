@@ -100,6 +100,10 @@ class League < ApplicationRecord
           uri = URI(url + url_league)
           res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
           if res.code == "302"
+            if res['location'] == (url + url_league + "/")
+              Rails.logger.error "====== cannot read from #{url_league} - loop"
+              next
+            end
             res2 = Net::HTTP.post_form(URI.parse(res['location']), 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
           else
             res2 = res
@@ -107,7 +111,6 @@ class League < ApplicationRecord
           if res2.code == "200"
             doc = Nokogiri::HTML(res2.body)
             doc
-          end
           ba_id2 = res['location'].match(/.*\/(\d+)\/(\d+)/).andand[2]
           staffel_map = { ba_id2 => "" }
           staffeln = doc.css('select[name="data[League][series_id]"]')
@@ -122,7 +125,10 @@ class League < ApplicationRecord
             league = League.find_by_ba_id_and_ba_id2(ba_id, ba_id2) || League.new(args)
             league.assign_attributes(args)
             league.save
-            league.scrape_single_league(opts.merge(game_details: false))
+              league.scrape_single_league(opts)
+            end
+          else
+            Rails.logger.error "====== cannot read from #{url_league}"
           end
         end
       end
@@ -138,6 +144,8 @@ class League < ApplicationRecord
     organizer = self.organizer
     url = "https://#{organizer.shortname.downcase}.billardarea.de"
     url_league = "/cms_leagues/plan/#{self.ba_id}#{"/#{ba_id2}" if ba_id2.present?}"
+    League.set_scraping(1, url_league == "/cms_leagues/plan/4112/5692")
+    return unless League.scraping[0] && League.scraping[1]
     Rails.logger.info "reading #{url + url_league} - \"#{self.name}\" season #{season.name}"
     uri = URI(url + url_league)
     res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
@@ -188,7 +196,7 @@ class League < ApplicationRecord
         league_teams_found.push(league_team)
       end
       league_teams_found.each do |league_team|
-        url_lt = "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}"
+        url_lt = "https://#{organizer.shortname.downcase}.billardarea.de/cms_teams/show/#{league_team.ba_id}"
         Rails.logger.info "reading index page league_team #{league_team.name} (#{league_team.ba_id}) to scrape league"
         html_lt = URI.open(url_lt)
         doc_lt = Nokogiri::HTML(html_lt)
@@ -329,6 +337,19 @@ class League < ApplicationRecord
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: #{e}, #{e.backtrace.join("\n")}" if DEBUG
+  end
+
+  @@scraping = []
+
+  def self.scraping
+    @@scraping
+  end
+
+  def self.set_scraping(ix, val)
+    if val && @@scraping[ix].blank?
+      Rails.logger.info "========== start scraping #{ix}"
+      @@scraping[ix]  ||= val
+    end
   end
 
   def fix_seqnos

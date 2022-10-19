@@ -1,3 +1,5 @@
+require 'net/http/post/multipart'
+require 'stringio'
 # frozen_string_literal: true
 
 # == Schema Information
@@ -249,7 +251,7 @@ class RegionCc < ApplicationRecord
                # subBranchId: 1,
                # seasonId: 8,
                # staffelId:
-               "massChangingCheckAuth" => ["/admin/report/massChangingCheckAuth.php", true]
+               "massChangingCheckAuth" => ["/admin/report/massChangingCheckAuth.php", true],
                #https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
 
                # teamCounter: 10
@@ -260,7 +262,173 @@ class RegionCc < ApplicationRecord
                # seasonId: 8
                # editAll:
                # matchId: 715
-  }
+               "showCategoryList" => ["/admin/einzel/category/showCategoryList.php", true],
+               # fedId: 20
+               # branchId: 10
+               "showCategory" => ["/admin/einzel/category/showCategory.php", true],
+               # fedId: 20
+               # branchId: 6
+               # catId: 14
+               "editCategoryCheck" => ["/admin/einzel/category/editCategoryCheck.php", true],
+               # fedId: 20
+               # branchId: 6
+               # catId: 14
+               "showTypeList" => ["/admin/einzel/type/showTypeList.php", true],
+               # fedId: 20
+               # branchId: 10
+               "showType" => ["/admin/einzel/type/showType.php", true],
+               # fedId: 20
+               # branchId: 10
+               # season: 2011/2012
+               "showSerienList" => ["/admin/einzel/serie/showSerienList.php", true],
+               # fedId: 20
+               # branchId: 10
+               "showSerie" => ["/admin/einzel/serie/showSerie.php", true],
+               # fedId: 20
+               # branchId: 10
+               # season: 2022/2023
+               # serienId: 4
+               "showGroupList" => ["/admin/einzel/gruppen/showGroupList.php", true],
+               # branchId: 10
+               "showGroup" => ["/admin/einzel/gruppen/showGroup.php", true],
+               # branchId: 10
+               "showMeldelistenList" => ["/admin/einzel/meldelisten/showMeldelistenList.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               "showMeldeliste" => ["/admin/einzel/meldelisten/showMeldeliste.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               # meldelisteId: 66
+               "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               # meisterTypeId: *
+               # t: 2
+               "showMeisterschaft" => ["/admin/einzel/meisterschaft/showMeisterschaft.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               # meisterschaftId: 66
+               "club-showMeldelistenList" => ["/admin/einzel/clubmeldung/showMeldelistenList.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               "club-showMeldeliste" => ["/admin/einzel/clubmeldung/showMeldeliste.php", true],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # catId: *
+               # season: 2010/2011
+               # meldelisteId: 66
+               "createMeldelisteSave" => ["/admin/einzel/meldelisten/createMeldelisteSave.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # season: 2010/2011
+               # catId: *
+               # selectedDisciplinId: 13
+               # selectedCatId: 17
+               # meldelistenName: 5. Petit Prix Einband Vorrunde 1
+               # meldeschluss: 29.01.2011
+               # stichtag: 01.01.2011
+               # save:
+               "createMeldelisteCheck" => ["/admin/einzel/meldelisten/createMeldelisteCheck.php", false],
+               # branchId: 6
+               # fedId: 20
+               # disciplinId: *
+               # catId: *
+               # season: 2022/2023
+               # create:
+               "releaseMeldeliste" => ["/admin/einzel/meldelisten/releaseMeldeliste.php", false],
+               # branchId: 10,
+               # fedId: cc_id,
+               # season: season.name,
+               # meldelisteId: cc_id_ml
+               # release: ""
+               "createMeisterschaftSave" => ["/admin/einzel/meisterschaft/createMeisterschaftSave.php", false],
+               "editMeisterschaftCheck" => ["/admin/einzel/meisterschaft/editMeisterschaftCheck.php", false],
+               "editMeisterschaftSave" => ["/admin/einzel/meisterschaft/editMeisterschaftSave.php", false],
+               "deleteMeldeliste" => ["/admin/einzel/meldelisten/deleteMeldeliste.php", false],
+               "deleteErgebnis" => ["/admin/einzel/meisterschaft/deleteErgebnis.php", false],
+               "showErgebnisliste" => ["/admin/einzel/meisterschaft/showErgebnisliste.php", false],
+               "importErgebnisseStep1" => ["/admin/einzel/meisterschaft/importErgebnisseStep1.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               # ibut
+               "importErgebnisseStep2" => ["/admin/einzel/meisterschaft/importErgebnisseStep2.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               # importFile - filename="result3.csv"
+               # saveBut
+               "importErgebnisseStep3" => ["/admin/einzel/meisterschaft/importErgebnisseStep3.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: *
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               # saveBut
+               "importRangliste1" => ["/admin/einzel/meisterschaft/importRangliste1.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: 9
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               # importBut
+               "importRangliste2" => ["/admin/einzel/meisterschaft/importRangliste2.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: 9
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               # ranglistenimport - filename="rangliste3.csv"
+               # importBut
+               "showRangliste" => ["/admin/einzel/meisterschaft/showRangliste.php", false],
+               # fedId: 20
+               # branchId: 10
+               # disciplinId: 9
+               # season: 2010/2011
+               # catId: *
+               # meisterTypeId: *
+               # meisterschaftsId: 109
+               "releaseRangliste.php" => ["/admin/einzel/meisterschaft/releaseRangliste.php.php", false],
+               #  fedId: 20
+               #  branchId: 10
+               #   disciplinId: 9
+               #   season: 2010/2011
+               #   catId: *
+               #   meisterTypeId: *
+               #   meisterschaftsId: 109
+               #   releaseBut
+  }.freeze
 
   # PHPSESSID = "3e7da06b0149fe5ad787246fc7a0e2b4"
   BASE_URL = 'https://e12112e2454d41f1824088919da39bc0.club-cloud.de'
@@ -289,6 +457,52 @@ class RegionCc < ApplicationRecord
     e
   end
 
+  def post_cc_with_formdata(action, post_options = {}, opts = {})
+    dry_run = opts[:armed].blank?
+    referer = post_options.delete(:referer)
+    referer = referer.present? ? base_url + referer : nil
+    if PATH_MAP[action].present?
+      url = base_url + PATH_MAP[action][0]
+      read_only_action = PATH_MAP[action][1]
+      if read_only_action
+        Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}" if DEBUG
+      else
+        # read_only
+        RegionCc.logger.debug "[#{action}] #{'WILL' if dry_run} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+      end
+      doc = nil; res = nil
+      if !dry_run || read_only_action
+        ## f = FormData.new
+        ## f.append(post_options.reject { |_k, v| v.blank? })
+        uri = URI(url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        #http.set_debug_output($stdout) # Logger.new("foo.log") works too
+        req = Net::HTTP::Post::Multipart.new(uri.request_uri, post_options)
+        ## req = f.post_request(uri.request_uri)
+        req['cookie'] = "PHPSESSID=#{opts[:session_id]}"
+        #req['Content-Type'] = 'application/x-www-form-urlencoded'
+        # req.content_type = f.content_type
+        # req.content_length = f.size
+        # req.body_stream = f
+        req['referer'] = referer if referer.present?
+        req['cache-control'] = "max-age=0"
+        req['upgrade-insecure-requests'] = "1"
+        req['accept-language'] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
+        req['accept'] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+        #req.set_form_data(post_options.reject { |_k, v| v.blank? })
+        #sleep(0.5)
+        res = http.request(req)
+        doc = if res.message == 'OK'
+                Nokogiri::HTML(res.body)
+              else
+                Nokogiri::HTML(res.message)
+              end
+      end
+    end
+    return res, doc
+  end
+
   def post_cc(action, post_options = {}, opts = {})
     dry_run = opts[:armed].blank?
     referer = post_options.delete(:referer)
@@ -311,8 +525,12 @@ class RegionCc < ApplicationRecord
         req['cookie'] = "PHPSESSID=#{opts[:session_id]}"
         req['Content-Type'] = 'application/x-www-form-urlencoded'
         req['referer'] = referer if referer.present?
+        req['cache-control'] = "max-age=0"
+        req['upgrade-insecure-requests'] = "1"
+        req['accept-language'] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6"
+        req['accept'] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         req.set_form_data(post_options.reject { |_k, v| v.blank? })
-        sleep(0.5)
+        #sleep(0.5)
         res = http.request(req)
         doc = if res.message == 'OK'
                 Nokogiri::HTML(res.body)
@@ -336,7 +554,7 @@ class RegionCc < ApplicationRecord
 
   def get_cc_with_url(action, url, get_options = {}, opts = {})
     referer = base_url + get_options.delete(:referer)
-    Rails.logger.debug "[post_cc] POST #{action} with payload #{get_options}" if DEBUG
+    Rails.logger.debug "[get_cc] GET #{action} with payload #{get_options}" if DEBUG
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
@@ -362,7 +580,7 @@ class RegionCc < ApplicationRecord
     leagues_region_todo = League.
       joins(league_teams: :club).
       where(season: season, organizer_type: 'Region', organizer_id: region.id).
-      where.not(leagues: {ba_id: opts[:exclude_league_ba_ids]}).
+      where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] }).
       where('clubs.region_id = ?', region.id).uniq
     # TODO forget DBU leagues for now
     # dbu_region = Region.find_by_shortname('portal')
@@ -519,6 +737,352 @@ class RegionCc < ApplicationRecord
     end
   end
 
+  def sync_category_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.branch_ccs.each do |branch_cc|
+      _, doc = post_cc('showCategoryList', { fedId: cc_id, branchId: branch_cc.cc_id }, opts)
+      options = doc.css("select[name=\"catId\"] > option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        name = option.text.strip
+        status = sex = max_age = min_age = nil
+        category_cc = CategoryCc.find_or_initialize_by(cc_id: cc_id)
+        _, doc_cat = post_cc('showCategory', { fedId: cc_id, branchId: branch_cc.cc_id, catId: cc_id }, opts)
+        lines = doc_cat.css("tr.tableContent > td > table > tr")
+        lines.each do |tr|
+          if tr.css("td")[0].text.strip =~ /Kategorie/
+            name = tr.css("td")[2].text.strip
+            if m = name.match(/(.*) \(\d+-\d+\)/)
+              name = m[1]
+            end
+          elsif tr.css("td")[0].text.strip =~ /Status/
+            status = tr.css("td > table > tr > td")[1].text.gsub(/^ /, "").strip
+          elsif tr.css("td")[0].text.strip =~ /Geschlecht/
+            sex = CategoryCc::SEX_MAP_REVERSE[tr.css("td")[2].text.strip]
+          elsif tr.css("td")[0].text.strip =~ /Alter/
+            m = tr.css("td")[2].text.strip.match(/(\d+)\s*-\s*(\d+)/)
+            min_age = m[1].to_i
+            max_age = m[2].to_i
+          end
+        end
+        category_cc.update(context: opts[:context], branch_cc_id: branch_cc.id, name: name, sex: sex, min_age: min_age, max_age: max_age, status: status)
+        CategoryCc.last
+      end
+    end
+  end
+
+  def sync_group_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.branch_ccs.each do |branch_cc|
+      _, doc = post_cc('showGroupList', { branchId: branch_cc.cc_id }, opts)
+      options = doc.css("select[name=\"groupId\"] > option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        name = option.text.strip
+        status = ""
+        display = ""
+        pos_hash = {}
+        group_cc = GroupCc.find_or_initialize_by(cc_id: cc_id)
+        _, doc_cat = post_cc('showGroup', { branchId: branch_cc.cc_id, groupId: cc_id }, opts)
+        lines = doc_cat.css("tr.tableContent > td > table > tr")
+        lines.each do |tr|
+          if tr.css("td")[0].text.strip =~ /Name/
+            name = tr.css("td")[2].text.strip
+          elsif tr.css("td")[0].text.strip =~ /Status/
+            status = tr.css("td")[2].text.strip
+          elsif tr.css("td")[0].text.strip =~ /Darstellung/
+            display = tr.css("td")[2].text.strip
+          elsif tr.css("td")[0].text.strip =~ /Runden|Gruppen/
+            positions = tr.css("td > table > tr")
+            positions.each do |position|
+              pos = position.css("td").andand[0].andand.text.andand.to_i
+              val = position.css("td").andand[1].andand.text
+              pos_hash[pos.to_i] = val if pos.present?
+            end
+          end
+        end
+        group_cc.update(context: opts[:context], branch_cc_id: branch_cc.id, name: name, status: status, display: display, data: { positions: pos_hash }.to_json)
+        group_cc
+      end
+    end
+  end
+
+  def sync_discipline_ccs(opts)
+    season = Season.find_by_name(opts[:season_name])
+    region = Region.find_by_shortname(opts[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.branch_ccs.each do |branch_cc|
+      _, doc = post_cc('createMeldelisteCheck', { branchId: branch_cc.cc_id, fedId: region_cc.cc_id, disciplinId: "*", catId: "*", season: season.name, create: "" }, opts)
+      options = doc.css("select[name=\"selectedDisciplinId\"] > option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        @strip = option.text.strip
+        name = @strip
+        status = ""
+        display = ""
+        pos_hash = {}
+        discipline_cc = DisciplineCc.find_or_initialize_by(cc_id: cc_id)
+        discipline = Discipline.find_by_name(name.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub("Billard Kegeln", "Billard-Kegeln"))
+        discipline_cc.update(context: region.shortname.downcase, name: name, branch_cc_id: branch_cc.id, discipline_id: discipline.andand.id)
+      end
+    end
+  end
+
+  def sync_tournament_series_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    season = Season.find_by_name(opts[:season_name])
+    region_cc = region.region_cc
+    region_cc.branch_ccs.each do |branch_cc|
+      _, doc = post_cc('showSerienList', { fedId: cc_id, branchId: branch_cc.cc_id, season: opts[:season_name] }, opts)
+      options = doc.css("select[name=\"serienId\"] > option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        args = { season: season.name, branch_cc_id: branch_cc.id }
+        pos_hash = {}
+        tournament_series_cc = TournamentSeriesCc.find_or_initialize_by(cc_id: cc_id)
+
+        _, doc_cat = post_cc('showSerie', { fedId: region_cc.cc_id, branchId: branch_cc.cc_id, season: opts[:season_name], serienId: cc_id, show: "", :referer => "/admin/einzel/serie/showSerienList.php?branchId=#{branch_cc.cc_id}&fedId=#{cc_id}&season=#{opts[:season_name]}" }, opts.merge())
+        lines = doc_cat.css("tr.tableContent > td > table > tr")
+        lines.each do |tr|
+          if tr.css("td")[0].text.strip =~ /Status/
+            args.merge!(status: tr.css("td")[2].text.strip.gsub(/^ /, "").strip)
+          elsif tr.css("td")[0].text.strip =~ /Turnier-Serie/
+            args.merge!(name: tr.css("td")[2].text.strip)
+          elsif tr.css("td")[0].text.strip =~ /Serienwertung/
+            args.merge!(series_valuation: tr.css("td")[2].text.strip.to_i)
+          elsif tr.css("td")[0].text.strip =~ /Turniere anzeigen/
+            args.merge!(no_tournaments: tr.css("td")[2].text.strip.to_i)
+          elsif tr.css("td")[0].text.strip =~ /Punkte-Formel/
+            args.merge!(point_formula: tr.css("td")[2].text.strip.match(/([^(]*)\(.*/).andand[1].andand.gsub(/ /, " ").andand.strip.to_s)
+          elsif tr.css("td")[0].text.strip =~ /Minimal-Punktzahl/
+            args.merge!(min_points: tr.css("td")[2].text.strip.to_i)
+          elsif tr.css("td")[0].text.strip =~ /Rundung Punktzahl/
+            args.merge!(point_fraction: tr.css("td")[2].text.strip.to_i)
+          elsif tr.css("td")[0].text.strip =~ /Verein/
+            if m = tr.css("td")[2].text.strip.match(/.*\((\d+)\).*/)
+              club_cc_id = m[1].to_i
+              args.merge!(club_id: Club.find_by_cc_id(club_cc_id))
+            end
+          elsif tr.css("td")[0].text.strip =~ /Jackpot \(manuell\)/
+            if m = tr.css("td")[2].text.strip.match(/(\d+,\d+).*/)
+              args.merge!(point_fraction: m[1].gsub(",", ".").to_f)
+            end
+          elsif tr.css("td")[0].text.strip =~ /Mannschaften/
+            zeilen = tr.css("table > tr.odd td")
+            zeilen.each do |zeile|
+              pos_hash[]
+            end
+          end
+        end
+        tournament_series_cc.update(args)
+      end
+    end
+  end
+
+  def sync_registration_list_ccs_detail(season, branch_cc, opts)
+    _, doc = post_cc('showMeldelistenList', { fedId: cc_id, branchId: branch_cc.cc_id, disciplinId: "*", catId: "*", season: season.name }, opts)
+    options = doc.css("select[name=\"meldelisteId\"] > option")
+    options.each do |option|
+      cc_id_ml = option["value"].to_i
+      name = option.text.strip
+      status = ""
+      deadline = Date.today
+      qualifying_date = Date.today
+      discipline_id = nil
+      category_cc_id = nil
+      pos_hash = {}
+      registration_list_cc = RegistrationListCc.find_or_initialize_by(cc_id: cc_id_ml)
+      # if branch_cc.cc_id == 10 && season.name == "2010/2011"
+      #   _, doc_cat = post_cc('deleteMeldeliste', { branchId: 10, fedId: cc_id, season: season.name, meldelisteId: cc_id_ml }, opts)
+      #   next
+      # end
+      next if !registration_list_cc.new_record? && opts[:update_from_cc].blank?
+      _, doc_cat = post_cc('showMeldeliste', { fedId: cc_id, branchId: branch_cc.cc_id, disciplinId: "*", meldelisteId: cc_id_ml, catId: "*", season: season.name }, opts)
+      lines = doc_cat.css("tr.tableContent > td > table > tr")
+      begin
+        lines.each do |tr|
+          if tr.css("td")[0].text.strip =~ /Meldungen/
+            positions = tr.css("td > table > tr")
+            positions.each do |position|
+              pos = position.css("td").andand[0].andand.text.andand.to_i
+              val = position.css("td").andand[1].andand.text
+              pos_hash[pos.to_i] = val if pos.present?
+            end
+          elsif tr.css("td")[0].text.strip =~ /Meldeliste/
+            name = tr.css("td")[2].text.strip
+          elsif tr.css("td")[0].text.strip =~ /Disziplin/
+            d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub("Billard Kegeln", "Billard-Kegeln")
+            discipline_id = Discipline.find_by_name(d_name).andand.id
+          elsif tr.css("td")[0].text.strip =~ /Kategorie/
+            k_name = tr.css("td")[2].text.strip
+            m = k_name.match(/(.*) \(\d+-\d+\)/)
+            category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first.andand.id
+          elsif tr.css("td")[0].text.strip =~ /Meldeschluss/
+            deadline = tr.css("td")[2].text.strip
+            deadline = Date.parse(deadline) if deadline =~ /\d\d\.\d\d\.\d\d\d\d/
+          elsif tr.css("td")[0].text.strip =~ /Stichtag/
+            qualifying_date = tr.css("td")[2].text.strip
+            if m = qualifying_date.match(/(\d\d\.\d\d\.\d\d\d\d).*/)
+              qualifying_date = Date.parse(m[1])
+            end
+          elsif tr.css("td")[0].text.strip =~ /Status/
+            status = tr.css("td")[2].text.strip.gsub(/^ /, "").strip
+          end
+        end
+        if opts[:release] && status != "Freigegeben"
+          _, doc = post_cc('releaseMeldeliste', { branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: "" }, opts)
+        end
+        registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id, context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
+      rescue Exception => e
+        Rails.logger.error "Error"
+      end
+    end
+  end
+
+  def sync_registration_list_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    season = Season.find_by_name(opts[:season_name])
+    region_cc = region.region_cc
+    if opts[:branch_cc_cc_id].present?
+      branch_cc = BranchCc.find_by_cc_id(opts[:branch_cc_cc_id].to_i)
+      sync_registration_list_ccs_detail(season, branch_cc, opts) if branch_cc.present?
+    else
+      region_cc.branch_ccs.each do |branch_cc|
+        sync_registration_list_ccs_detail(season, branch_cc, opts)
+      end
+    end
+  end
+
+  def sync_tournament_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    season_name = opts[:season_name]
+    season = Season.find_by_name(season_name)
+    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+    region_cc = region.region_cc
+    tournament_map = []
+    tournaments = []
+    region_cc.branch_ccs.each do |branch_cc|
+      next if branch_cc.name == "Pool" || branch_cc.name == "Snooker" #TODO remove restriction on branch
+      _, doc = post_cc('showMeisterschaftenList', {
+        fedId: region_cc.cc_id,
+        branchId: branch_cc.cc_id,
+        disciplinId: "*",
+        catId: "*",
+        meisterTypeId: "*",
+        season: season.name,
+        t: 1
+      }, opts)
+      if (msg = doc.css('input[name="errMsg"]')[0].andand['value']).present?
+        RegionCc.logger.error msg
+        return [[], msg]
+      end
+      options = doc.css("a.cc_bluelink")
+      options.each do |option|
+        begin
+          if m = option["href"].match(/.*\?p=([^&]*)&/)
+            cc_id = m[1].split("-")[6].to_i
+            args = {}
+            pos_hash = {}
+            tournament_cc = TournamentCc[cc_id]
+            next if tournament_cc.present? && !opts[:update_from_cc]
+            tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id)
+            _, doc_cat = get_cc('showMeisterschaft', { p: m[0] }, opts)
+            lines = doc_cat.css("tr.tableContent > td > table > tr")
+            lines.each do |tr|
+              if tr.css("td")[0].text.strip =~ /Meldungen/
+                positions = tr.css("td > table > tr")
+                positions.each do |position|
+                  pos = position.css("td").andand[0].andand.text.andand.to_i
+                  val = position.css("td").andand[1].andand.text
+                  pos_hash[pos.to_i] = val if pos.present?
+                end
+              elsif tr.css("td")[0].text.strip == "Meisterschaft"
+                args.merge!(name: tr.css("td")[2].text.strip)
+              elsif tr.css("td")[0].text.strip =~ /Kurzbezeichner/
+                args.merge!(shortname: tr.css("td")[2].text.strip)
+              elsif tr.css("td")[0].text.strip =~ /Turnier-Serie/
+                unless tr.css("td")[2].text.gsub(/ /, "").strip =~ /Keine Serien-Zuordnung vorhanden/
+                  ts_name = tr.css("td")[2].text.gsub(/ /, "").strip
+                  tournament_series_cc = TournamentSeriesCc.where(name: ts_name, branch_cc_id: branch_cc.id, season: season.name).first
+                  args.merge!(tournament_series_cc_id: tournament_series_cc.id)
+                end
+              elsif tr.css("td")[0].text.strip =~ /Disziplin/
+                d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein")
+                args.merge!(discipline_id: Discipline.find_by_name(d_name).andand.id)
+              elsif tr.css("td")[0].text.strip =~ /Melde-Regel/
+                args.merge!(registration_rule: TournamentCc::REGISTRATION_RULES_INV[tr.css("td")[2].text.strip])
+              elsif tr.css("td")[0].text.strip =~ /Sortierung nach/
+                #args.merge!(sorting_by: tr.css("td")[2].text.strip)
+              elsif tr.css("td")[0].text.strip =~ /Startgeld/
+                args.merge!(entry_fee: tr.css("td")[2].text.strip.gsub(",", ".").to_f)
+              elsif tr.css("td")[0].text.strip =~ /Meisterschaftstyp/
+                name, shortname = tr.css("td")[2].text.strip.match(/\s*(.*)\s*\((.*)\)/)[1..2]
+                name = name.gsub(/ /, "").strip
+                shortname = shortname.gsub(/ /, "").strip
+                championship_type_cc = ChampionshipTypeCc.where(name: name, shortname: shortname, branch_cc_id: branch_cc.id).first
+                args.merge!(championship_type_cc_id: championship_type_cc.andand.id)
+              elsif tr.css("td")[0].text.strip =~ /Meisterschaftsgruppe/
+                group_cc = GroupCc.where(name: tr.css("td")[2].text.strip, branch_cc_id: branch_cc.id).first
+                args.merge!(group_cc_id: group_cc.andand.id)
+              elsif tr.css("td")[0].text.strip =~ /Kategorie/
+                k_name = tr.css("td")[2].text.strip
+                if m = k_name.match(/(.*) \(\d+-\d+\)/)
+                  args.merge!(category_cc_id: CategoryCc.where(context: opts[:context], branch_cc_id: branch_cc.id, name: m[1]).first.andand.id)
+                end
+              elsif tr.css("td")[0].text.strip =~ /Datum/
+                args.merge!(tournament_start: tr.css("td")[2].text.strip)
+                if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).* \(Spielbeginn am \d+\.\d+\.\d+ um (\d+\:\d+) Uhr\)/)
+                  args.merge!(tournament_start: DateTime.parse("#{m[1]} #{m[2]}"))
+                end
+              elsif tr.css("td")[0].text.strip =~ /Location/
+                args.merge!(location_text: tr.css("td")[2].inner_html.strip)
+              elsif tr.css("td")[0].text.strip =~ /Status/
+                args.merge!(status: tr.css("td")[2].text.strip.gsub(/^ /, "").strip)
+              end
+            end
+            if args[:name].present?
+              tournament_cc.update(args.merge(cc_id: cc_id, season: season.name, branch_cc_id: branch_cc.id))
+              tournament_cc.attributes
+            end
+          end
+        rescue Exception => e
+          Rails.logger.error "Errror: #{e} #{e.backtrace.join("\n")}"
+        end
+      end
+    end
+  end
+
+  def sync_championship_type_ccs(opts)
+    region = Region.find_by_shortname(opts[:context].upcase)
+    region_cc = region.region_cc
+    region_cc.branch_ccs.each do |branch_cc|
+      _, doc = post_cc('showTypeList', { fedId: cc_id, branchId: branch_cc.cc_id }, opts)
+      options = doc.css("select[name=\"typeId\"] > option")
+      options.each do |option|
+        cc_id = option["value"].to_i
+        name = option.text.strip
+        shortname = ""
+        status = ""
+        championship_type_cc = ChampionshipTypeCc.find_or_initialize_by(cc_id: cc_id)
+        _, doc_cat = post_cc('showType', { fedId: cc_id, branchId: branch_cc.cc_id, typeId: cc_id }, opts)
+        lines = doc_cat.css("tr.tableContent > td > table > tr")
+        lines.each do |tr|
+          if tr.css("td")[0].text.strip =~ /Meisterschaftstyp/
+            name = tr.css("td")[2].text.strip
+          elsif tr.css("td")[0].text.strip =~ /Status/
+            status = tr.css("td > table > tr > td")[1].text.gsub(/^ /, "").strip
+          elsif tr.css("td")[0].text.strip =~ /Kurzbezeichnung/
+            shortname = tr.css("td")[2].text.strip
+          end
+        end
+        championship_type_cc.update(context: opts[:context], branch_cc_id: branch_cc.id, name: name, shortname: shortname, status: status)
+        ChampionshipTypeCc.last
+      end
+    end
+  end
+
   def sync_game_plans(opts = {})
     season = Season.find_by_name(opts[:season_name])
     region = Region.find_by_shortname(opts[:context].upcase)
@@ -638,9 +1202,9 @@ class RegionCc < ApplicationRecord
                   while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]])) do
                     pg_line_ix += 1
                   end
-                  sc_ = pg.data[:result][pg.data[:result].keys[0]].gsub("Bälle (x0.00):", "").split(":").map(&:strip).map(&:to_i)
-                  in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].gsub("Aufn. (x0.00):", "").split(":").map(&:strip).map(&:to_i) : []
-                  br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].gsub("HS:", "").split(":").map(&:strip).map(&:to_i) : []
+                  sc_ = pg.data[:result][pg.data[:result].keys[0]].gsub("Bälle (x0.00):", "").split(":").map(&:@strip).map(&:to_i)
+                  in_ = pg.data[:result].keys[1].present? ? pg.data[:result][pg.data[:result].keys[1]].gsub("Aufn. (x0.00):", "").split(":").map(&:@strip).map(&:to_i) : []
+                  br_ = pg.data[:result].keys[2].present? ? pg.data[:result][pg.data[:result].keys[2]].gsub("HS:", "").split(":").map(&:@strip).map(&:to_i) : []
 
                   # 2:0 => 1:0, 1:0
                   # 2:1 => 1:0, 0:1, 1:0
@@ -888,6 +1452,162 @@ class RegionCc < ApplicationRecord
     branches
   end
 
+  def fix_tournament_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+    tournaments = Tournament.
+      where(season: season, organizer_type: 'Region', organizer_id: region.id).
+      where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] }).to_a
+    tournaments.each do |tournament|
+      next if tournament.discipline.root.name == "Pool" || tournament.discipline.root.name == "Snooker"
+      tournament_cc = TournamentCc.find_by(tournament_id: tournament.id)
+      if tournament_cc.present?
+        branch_cc = tournament.discipline.root.branch_cc
+        registration_list_ccs = RegistrationListCc.where(
+          name: tournament.title,
+          context: region.shortname.downcase,
+          discipline_id: tournament.discipline_id,
+          season_id: tournament.season_id
+        )
+        registration_list_cc = nil
+        if registration_list_ccs.count == 1
+          registration_list_cc = registration_list_ccs.first
+        elsif registration_list_ccs.count > 1
+          Rails.logger.info 'Error: Ambiguity Problem'
+        else
+          Rails.logger.info 'Error: No RegistrationList for Tournament'
+        end
+        type_found = nil
+        begin
+          TournamentCc::TYPE_MAP_REV[branch_cc.cc_id].keys.each do |type_name|
+            if tournament.title =~ /#{type_name}/
+              type_found = TournamentCc::TYPE_MAP_REV[branch_cc.cc_id][type_name]
+              break
+            end
+          end
+        rescue Exception => e
+          Rails.logger.error "Error: #{e} Tournament[#{tournament.id}]"
+          return
+        end
+        # args = {
+        #   branchId: 6,
+        # fedId: 20,
+        # disciplinId: "*",
+        # catId: "*",
+        # meisterTypeId: "*",
+        # season: 2014/2015
+        # }
+        #
+        args = {
+          fedId: cc_id,
+          branchId: branch_cc.cc_id,
+          disciplinId: "*",
+          season: opts[:season_name],
+          catId: "*",
+          meisterTypeId: "*",
+          meisterschaftsId: tournament_cc.cc_id,
+          ebut: ""
+        }
+        _, doc = post_cc('editMeisterschaftCheck', args, opts)
+        args = {
+          fedId: cc_id,
+          branchId: branch_cc.cc_id,
+          disciplinId: tournament.discipline.discipline_cc.cc_id,
+          season: opts[:season_name],
+          catId: "*",
+          meisterschaftsId: tournament_cc.cc_id,
+          firstEntry: 1,
+          meisterName: tournament.title,
+          meisterShortName: tournament.shortname.presence || tournament.title,
+          meldeListId: registration_list_cc.cc_id,
+          mr: 1,
+          meisterTypeId: type_found.to_s,
+          groupId: 10, #NBV History is good for all
+          playDate: tournament.date.strftime('%Y-%m-%d'),
+          playDateTo: tournament.end_date.andand.strftime('%Y-%m-%d'),
+          startTime: tournament.date.strftime('%H:%M'),
+          quote: "0",
+          sg: "0,00",
+          maxtn: "0",
+          countryId: "free",
+          pubName: doc.css('input[name="pubName"]')[0].attributes['value'].to_s,
+          pubStreet: doc.css('input[name="pubStreet"]')[0].attributes['value'].to_s,
+          pubZipcode: doc.css('input[name="pubZipcode"]')[0].attributes['value'].to_s,
+          pubCity: doc.css('input[name="pubCity"]')[0].attributes['value'].to_s,
+          pubPhone: doc.css('input[name="pubPhone"]')[0].attributes['value'].to_s,
+          besch: "",
+          attachment4: "",
+          attachment5: "",
+          attachment1: "",
+          attachment2: "",
+          attachment3: "",
+          :referer => "/admin/einzel/meisterschaft/editMeisterschaftCheck.php?",
+          save: ""
+        }
+        _, doc = post_cc('editMeisterschaftSave', args, opts)
+        doc
+      else
+        Rails.logger.error "Error: Problem in tournament_structure - Tournament[#{tournament.id}]"
+      end
+    end
+  end
+
+  def synchronize_tournament_structure(opts = {})
+    season = Season.find_by_name(opts[:season_name])
+    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+
+    tournament_region_todo = Tournament.
+      where(season: season, organizer_type: 'Region', organizer_id: region.id).
+      where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] })
+    tournaments_todo_ids = (tournament_region_todo.to_a).map(&:id)
+    tournaments_done, errMsg = sync_tournaments(opts)
+    if errMsg.present?
+      raise_err_msg('synchronize_tournament_structure', errMsg)
+    end
+    tournaments_done_ids = tournaments_done.map(&:id)
+    tournaments_still_todo_ids = tournaments_todo_ids - tournaments_done_ids
+    branch_cc_ids = []
+    unless tournaments_still_todo_ids.blank?
+      tournaments_still_todo_ids.each do |tournament_id|
+        tournament = Tournament[tournament_id]
+        next if tournament.discipline.root.name == "Pool" || tournament.discipline.root.name == "Snooker"
+        begin
+          if tournament.blank?
+            raise_err_msg('synchronize_tournament_structure', "no tournament with id #{tournament_id}")
+          else
+            registration_list_cc = RegistrationCc.create_from_ba(tournament, opts)
+            branch_cc_ids |= [tournament.discipline.root.branch_cc.cc_id]
+          end
+        rescue Exception => e
+          Rails.logger.error "Error: #{e} Tournament[#{tournament.id}]"
+        end
+      end
+    end
+    branch_cc_ids.each do |branch_cc_id|
+      branch_cc = BranchCc.find_by_cc_id(branch_cc_id)
+      sync_registration_list_ccs_detail(season, branch_cc, opts.merge(update_from_cc: false, release: true))
+    end
+    unless tournaments_still_todo_ids.blank?
+      tournaments_still_todo_ids.each do |tournament_id|
+        tournament = Tournament[tournament_id]
+        next if tournament.discipline.root.name == "Pool" || tournament.discipline.root.name == "Snooker"
+        if tournament.blank?
+          raise_err_msg('synchronize_tournament_structure', "no tournament with id #{tournament_id}")
+        else
+          tournament_cc = TournamentCc.create_from_ba(tournament, opts)
+        end
+      end
+    end
+    tournament_ids_overdone = tournaments_done_ids - tournaments_todo_ids
+    unless tournament_ids_overdone.blank?
+      msg = "more tournament_ids with context #{opts[:context].upcase} than expected in CC: #{Tournament.where(id: tournament_ids_overdone).map do |tournament|
+        "#{tournament.title}[#{tournament.id}] - #{tournament.discipline.andand.name}"
+      end }"
+      RegionCc.logger.info msg
+      Rails.logger.info msg
+    end
+  end
+
   def sync_competitions(opts = {})
     competitions = []
     context = opts[:context]
@@ -1061,6 +1781,65 @@ class RegionCc < ApplicationRecord
     end
 
     [leagues, nil]
+  rescue StandardError => e
+    [[], e.to_s]
+  end
+
+  def sync_tournaments(opts = {})
+    region = Region.find_by_shortname(opts[:context].upcase)
+    season_name = opts[:season_name]
+    season = Season.find_by_name(season_name)
+    raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
+    tournaments = []
+    region.region_cc.branch_ccs.each do |branch_cc|
+      next if branch_cc.name == "Pool" || branch_cc.name == "Snooker" #TODO remove restriction on branch
+      # Get List of Tournaments in CC
+      _, doc = post_cc('showMeisterschaftenList', {
+        fedId: region.region_cc.cc_id,
+        branchId: branch_cc.cc_id,
+        disciplinId: "*",
+        catId: "*",
+        meisterTypeId: "*",
+        season: season.name,
+        t: 1
+      }, opts)
+      if (msg = doc.css('input[name="errMsg"]')[0].andand['value']).present?
+        RegionCc.logger.error msg
+        return [[], msg]
+      end
+      options = doc.css("a.cc_bluelink")
+      options.each do |option|
+        if m = option["href"].match(/.*\?p=([^&]*)&/)
+          cc_id = m[1].split("-")[6].to_i
+          tournament_cc = TournamentCc.find_by(cc_id: cc_id)
+          if tournament_cc.present?
+            tournament = tournament_cc.tournament
+            unless tournament.present?
+              tournaments_tmp = Tournament.where(
+                title: tournament_cc.name,
+                season_id: season.id,
+                discipline_id: tournament_cc.discipline_id
+              )
+              if tournaments_tmp.count != 1
+                RegionCc.logger.error "Error: no unique matching Tournament for TournamentCc(#{cc_id})"
+              else
+                tournament = tournaments_tmp[0]
+                tournament_cc.update(tournament_id: tournament.id)
+              end
+            end
+            if tournament.present?
+              tournaments.push(tournament)
+            end
+          else
+            RegionCc.logger.error "Error: TournamentCc[] not found - run synchronize_tournament_ccs first"
+          end
+        else
+
+        end
+      end
+    end
+
+    [tournaments, nil]
   rescue StandardError => e
     [[], e.to_s]
   end

@@ -1,0 +1,97 @@
+# == Schema Information
+#
+# Table name: tournament_ccs
+#
+#  id                      :bigint           not null, primary key
+#  context                 :string
+#  description             :text
+#  entry_fee               :decimal(6, 2)
+#  flowchart               :string
+#  league_climber_quote    :integer
+#  location_text           :string
+#  max_players             :integer
+#  name                    :string
+#  poster                  :string
+#  ranking_list            :string
+#  registration_rule       :integer
+#  season                  :string
+#  shortname               :string
+#  starting_at             :time
+#  status                  :string
+#  successor_list          :string
+#  tender                  :string
+#  tournament_end          :datetime
+#  tournament_start        :datetime
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  branch_cc_id            :integer
+#  category_cc_id          :integer
+#  cc_id                   :integer
+#  championship_type_cc_id :integer
+#  discipline_id           :integer
+#  group_cc_id             :integer
+#  location_id             :integer
+#  registration_list_cc_id :integer
+#  tournament_id           :integer
+#  tournament_series_cc_id :integer
+#
+
+one:
+  cc_id: 1
+  context: MyString
+  name: MyString
+  shortname: MyString
+  status: MyString
+  branch_cc_id: 1
+  season: MyString
+  registration_list_cc_id: 1
+  registration_rule: 1
+  discipline_id: 1
+  championship_type_cc_id: 1
+  category_cc_id: 1
+  group_cc_id: 1
+  tournament_start: 2022-09-26 00:18:55
+  tournament_series_cc_id: 1
+  tournament_end: 2022-09-26 00:18:55
+  starting_at: 2022-09-26 00:18:55
+  league_climber_quote: 1
+  entry_fee: 9.99
+  max_players: 1
+  location_id: 1
+  location_text: MyString
+  description: MyText
+  poster: MyString
+  tender: MyString
+  flowchart: MyString
+  ranking_list: MyString
+  successor_list: MyString
+
+two:
+  cc_id: 1
+  context: MyString
+  name: MyString
+  shortname: MyString
+  status: MyString
+  branch_cc_id: 1
+  season: MyString
+  registration_list_cc_id: 1
+  registration_rule: 1
+  discipline_id: 1
+  championship_type_cc_id: 1
+  category_cc_id: 1
+  group_cc_id: 1
+  tournament_start: 2022-09-26 00:18:55
+  tournament_series_cc_id: 1
+  tournament_end: 2022-09-26 00:18:55
+  starting_at: 2022-09-26 00:18:55
+  league_climber_quote: 1
+  entry_fee: 9.99
+  max_players: 1
+  location_id: 1
+  location_text: MyString
+  description: MyText
+  poster: MyString
+  tender: MyString
+  flowchart: MyString
+  ranking_list: MyString
+  successor_list: MyString

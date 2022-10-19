@@ -24,7 +24,7 @@ require 'net/http'
 #  innings_goal                   :integer
 #  kickoff_switches_with_set      :boolean          default(TRUE), not null
 #  last_ba_sync_date              :datetime
-#  location                       :text
+#  location_text                  :text
 #  manual_assignment              :boolean          default(FALSE)
 #  modus                          :string
 #  organizer_type                 :string
@@ -44,6 +44,7 @@ require 'net/http'
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null
 #  ba_id                          :integer
+#  cc_id                          :integer
 #  discipline_id                  :integer
 #  league_id                      :integer
 #  location_id                    :integer
@@ -76,13 +77,15 @@ class Tournament < ApplicationRecord
   has_many :teams, dependent: :destroy
   has_many :party_games, dependent: :destroy
   has_one :tournament_monitor
+  has_one :tournament_cc, class_name: "TournamentCc", :dependent => :nullify
   has_one :setting
   #noinspection RailsParamDefResolve
   belongs_to :organizer, polymorphic: true
-  belongs_to :tournament_location, class_name: "Location", foreign_key: :location_id, optional: true
+  belongs_to :location, optional: true
   has_one :tournament_local, :dependent => :nullify
   has_many :party_tournaments
   has_many :parties, :through => :party_tournaments
+  belongs_to :tournament_cc, optional: true, foreign_key: :cc_id
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
 
@@ -260,41 +263,46 @@ class Tournament < ApplicationRecord
     region ||= self.organizer
     url = "https://#{region.shortname.downcase}.billardarea.de"
     if self.single_or_league == "single"
-      url_tournament = "/cms_#{self.single_or_league}/show/#{self.ba_id}"
-      Rails.logger.info "reading #{url + url_tournament} - \"#{self.title}\" season #{season.name}"
-      uri = URI(url + url_tournament)
-      res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
-      doc = Nokogiri::HTML(res.body)
-      doc.css(".element").each do |element|
-        label = element.css("label").text.strip
-        value = Array(element.css(".field")).map(&:text).map(&:strip).join("\n")
-        mappings = {
-          "Meisterschaft" => :title,
-          "Datum" => :data, # 13.05.2021	(09:00 Uhr) - 14.05.2021
-          "Meldeschluss" => :accredation_end, # 27.10.2020 (23:59 Uhr)
-          "Kurzbezeichnung" => :shortname,
-          "Disziplin" => :discipline,
-          "Spielmodus" => :modus,
-          "Altersklasse" => :age_restriction,
-          "Spiellokal" => :location,
-        }
-        case label
-        when "Datum"
-          date_begin, time_begin, date_end = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?(?:\s+-\s+(\d+\.\d+\.\d+))?.*/).to_a[1..-1]
-          self.date = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
-          self.end_date = DateTime.parse(date_end) if date_end.present?
-        when "Meldeschluss"
-          date_begin, time_begin = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?.*/).to_a[1..-1]
-          self.accredation_end = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
-        when "Disziplin"
-          discipline = Discipline.find_by_name(value)
-          if discipline.blank? && value.present?
-            discipline = Discipline.create(name: value)
+      begin
+        url_tournament = "/cms_#{self.single_or_league}/show/#{self.ba_id}"
+        Rails.logger.info "reading #{url + url_tournament} - \"#{self.title}\" season #{season.name}"
+        uri = URI(url + url_tournament)
+        res = Net::HTTP.post_form(uri, 'data[Season][check]' => '87gdsjk8734tkfdl', 'data[Season][season_id]' => "#{season.ba_id}")
+        doc = Nokogiri::HTML(res.body)
+        doc.css(".element").each do |element|
+          label = element.css("label").text.strip
+          value = Array(element.css(".field")).map(&:text).map(&:strip).join("\n")
+          mappings = {
+            "Meisterschaft" => :title,
+            "Datum" => :data, # 13.05.2021	(09:00 Uhr) - 14.05.2021
+            "Meldeschluss" => :accredation_end, # 27.10.2020 (23:59 Uhr)
+            "Kurzbezeichnung" => :shortname,
+            "Disziplin" => :discipline,
+            "Spielmodus" => :modus,
+            "Altersklasse" => :age_restriction,
+            "Spiellokal" => :location_text,
+          }
+          case label
+          when "Datum"
+            date_begin, time_begin, date_end = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?(?:\s+-\s+(\d+\.\d+\.\d+))?.*/).to_a[1..-1]
+            self.date = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
+            self.end_date = DateTime.parse(date_end) if date_end.present?
+          when "Meldeschluss"
+            date_begin, time_begin = value.match(/\s*(\d+\.\d+\.\d+)\s*(?:\((.*) Uhr\))?.*/).to_a[1..-1]
+            self.accredation_end = DateTime.parse(date_begin + "#{" #{time_begin}" if time_begin.present?}")
+          when "Disziplin"
+            discipline = Discipline.find_by_name(value)
+            if discipline.blank? && value.present?
+              discipline = Discipline.create(name: value)
+            end
+            self.discipline_id = (discipline || Discipline.find_by_name("-")).andand.id
+          else
+            self.update_attribute(mappings[label], value)
           end
-          self.discipline_id = (discipline || Discipline.find_by_name("-")).andand.id
-        else
-          self.update_attribute(mappings[label], value)
         end
+      rescue Exception => e
+        e
+        return
       end
       self.data = {}
       self.save!
@@ -508,7 +516,7 @@ class Tournament < ApplicationRecord
     # called from state machine only
     # use direct only for testing purposes
     tournament_monitor.andand.destroy
-    unless (organizer.is_a? Club) || (id >= Seeding::MIN_ID)
+    unless (organizer.is_a? Club) || (id.present? && id >= Seeding::MIN_ID)
       seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
     end
     games.where("games.id >= #{Game::MIN_ID}").destroy_all

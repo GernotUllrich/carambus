@@ -1,0 +1,10 @@
+delete from  ion_contents ;
+delete from  ion_modules ;
+delete from  category_ccs ;
+delete from  championship_type_ccs ;
+delete from  group_ccs ;
+delete from  registration_ccs ;
+delete from  registration_list_ccs ;
+delete from  tournament_ccs ;
+delete from  tournament_series_ccs ;
+delete from  discipline_ccs;

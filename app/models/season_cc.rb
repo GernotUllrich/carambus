@@ -20,6 +20,7 @@ class SeasonCc < ApplicationRecord
   belongs_to :competition_cc
   belongs_to :season
   has_many :league_ccs
+  has_many :registration_list_ccs
 
   delegate :fedId,:branchId, :subBranchId, :region_cc, :branch_cc, to: :competition_cc
   alias_attribute :seasonId, :cc_id

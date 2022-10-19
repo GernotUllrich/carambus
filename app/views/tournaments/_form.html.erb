@@ -40,7 +40,7 @@
   <div class="form-group">
     <%= form.label :location %>
     <%= form.select :location_id,
-                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, @location.andand.id || @tournament.tournament_location.andand.id),
+                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, @location.andand.id || @tournament.location.andand.id),
                     { :prompt => true }, class: "border rounded border-gray-500" %>
   </div>
 

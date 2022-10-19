@@ -89,6 +89,7 @@ gem 'rails-erd', group: :development
 gem 'receipts', '~> 1.0.0'
 gem 'ruby-oembed', '~> 0.14.0', require: 'oembed'
 gem 'turbolinks_render', '~> 0.9.12'
+gem 'multipart-post'
 
 # We always want the latest versions of these gems, so no version numbers
 gem 'omniauth', github: 'omniauth/omniauth'

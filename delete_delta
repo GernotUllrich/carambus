@@ -1,0 +1,12 @@
+delete from  party_games where id < 50000000;
+delete from  parties where id < 50000000;
+delete from  leagues where id < 50000000;
+delete from  league_teams where id < 50000000;
+delete from  players where id < 50000000;
+delete from  season_participations where id < 50000000;
+delete from  clubs where id < 50000000;
+delete from  seedings where id < 50000000;
+delete from  tournaments where id < 50000000;
+delete from  seasons where id < 50000000;
+delete from  games where id < 50000000;
+delete from  game_participations where id < 50000000;

@@ -31,6 +31,7 @@ class Player < ApplicationRecord
   has_many :season_participations
   has_many :player_rankings
   has_many :seedings, dependent: :nullify
+  has_many :registration_ccs
   has_many :party_a_games, foreign_key: :player_a_id, class_name: 'PartyGame'
   has_many :party_b_games, foreign_key: :player_b_id, class_name: 'PartyGame'
   has_one :admin_user, class_name: 'User', foreign_key: 'player_id'

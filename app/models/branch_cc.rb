@@ -18,10 +18,13 @@
 class BranchCc < ApplicationRecord
   has_many :competition_ccs
   has_many :game_plan_ccs
+  has_many :group_ccs
+  has_many :registration_list_ccs
   belongs_to :discipline
+  has_many :discipline_ccs
   belongs_to :region_cc
+  has_many :category_ccs
+  has_many :championship_type_ccs
   delegate :fedId, to: :region_cc
   alias_attribute :branchId, :cc_id
-  has_paper_trail
-  before_save :set_paper_trail_whodunnit
 end

@@ -494,3 +494,35 @@ default:gernot.ullrich@gmail.com
 vi /etc/mail.rc
 set sendmail="/usr/bin/msmtp -t"
 echo "Inhalt der E-Mail" | mail -s "Betreff" gernot.ullrich@gmail.com
+
+======== Abgleich mit API unter Wahrund der lokalen Daten
+0- Alle beteiligten Server müssen den gleichen DB Migrationsstatus haben
+1- Lösche bereits übertragene Versionen:
+ACHTUNG - alle lokalen Server, die eine kleinere Version als nnnnnn haben müssen ebenfalls au diese weise aktualisiert werden!!
+ssh api
+Version.where("id < nnnnnn").delete_all
+2- dump api
+pg_dump -Uwww_data carambus_api_production | gzip > carambus_api_production.sql.gz
+pw: toS6E7tARQafHCXz
+3- Übertrabe zum lokalen Server (vorher dump vom lokalen Server)
+ssh bc-wedel
+cd carambus/current
+pg_dump -Uwww_data carambus_production | gzip > carambus_production_bcw.sql.gz
+pw: toS6E7tARQafHCXz
+scp api:~/carambus_api/current/carambus_api_production.sql.gz .
+gunzip carambus_api_production.sql.gz
+4- Lösche records mit id < 50000000 (api data)
+ssh bc_wedel
+/etc/init.d/unicorn_carambus_production stop
+psql -Uwww_data carambus_production
+pw: toS6E7tARQafHCXz
+execute cat ~/carambus/doc/API_DATA_ONLY 
+5-load new api data
+\i carambus_api_production.sql
+
+
+
+
+
+
+
