@@ -667,7 +667,9 @@ namespace :carambus do
         end
       elsif line.match(/^\\\./)
         in_copy_mode = false
-        f.puts line
+        if !in_copy_users_or_tournaments
+          f.puts line
+        end
       else
         if in_copy_mode
           if !in_copy_users_or_tournaments && line.match(/^(\d+)\t/).andand[1].to_i > Setting::MIN_ID

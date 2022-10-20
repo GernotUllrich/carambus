@@ -56,6 +56,7 @@ require 'net/http'
 #
 #  index_tournaments_on_ba_id         (ba_id) UNIQUE
 #  index_tournaments_on_foreign_keys  (title,season_id,region_id)
+#  tournaments_title_index            (organizer_id,organizer_type,season_id,title) UNIQUE
 #
 class Tournament < ApplicationRecord
 
@@ -218,7 +219,7 @@ class Tournament < ApplicationRecord
                    "Title" => "tournaments.title",
                    "Shortname" => "tournaments.shortname",
                    "Discipline" => "disciplines.name",
-                   "Region" => "regions.name",
+                   "Region" => "regions.shortname",
                    "Season" => "seasons.name",
                    "Status" => "tournaments.plan_or_show",
                    "SingleOrLeague" => "tournaments.single_or_league",

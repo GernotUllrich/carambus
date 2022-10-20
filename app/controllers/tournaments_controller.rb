@@ -4,7 +4,7 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments
   def index
-    @tournaments = Tournament.joins(:season, :discipline).sort_by_params(@sSearch, sort_direction)
+    @tournaments = Tournament.joins("INNER JOIN \"regions\" on regions.id = tournaments.organizer_id").joins(:season, :discipline).sort_by_params(@sSearch, sort_direction)
     if @sSearch.present?
       @tournaments = apply_filters(@tournaments, Tournament::COLUMN_NAMES, "(tournaments.ba_id = :isearch) or (tournaments.title ilike :search) or (tournaments.shortname ilike :search) or (seasons.name ilike :search) or (tournaments.plan_or_show ilike :search) or (tournaments.single_or_league ilike :search)")
     end
