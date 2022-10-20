@@ -40,7 +40,6 @@
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null
 #  ba_id                          :integer
-#  cc_id                          :integer
 #  discipline_id                  :integer
 #  league_id                      :integer
 #  location_id                    :integer

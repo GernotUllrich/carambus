@@ -37,6 +37,11 @@
 #  tournament_id           :integer
 #  tournament_series_cc_id :integer
 #
+# Indexes
+#
+#  index_tournament_ccs_on_cc_id          (cc_id) UNIQUE
+#  index_tournament_ccs_on_tournament_id  (tournament_id) UNIQUE
+#
 class TournamentCc < ApplicationRecord
   REGISTRATION_RULES = {
     1 => 'Standard (nur Aktive dürfen gemeldet werden)',

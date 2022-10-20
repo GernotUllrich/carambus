@@ -2,15 +2,16 @@
 #
 # Table name: regions
 #
-#  id         :bigint           not null, primary key
-#  address    :text
-#  email      :string
-#  logo       :string
-#  name       :string
-#  shortname  :string
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  country_id :integer
+#  id                 :bigint           not null, primary key
+#  address            :text
+#  email              :string
+#  logo               :string
+#  name               :string
+#  public_cc_url_base :string
+#  shortname          :string
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  country_id         :integer
 #
 # Indexes
 #

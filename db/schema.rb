@@ -660,6 +660,7 @@ ActiveRecord::Schema.define(version: 2022_10_15_192522) do
     t.integer "country_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "public_cc_url_base"
     t.index ["country_id"], name: "index_regions_on_country_id"
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
   end
@@ -817,6 +818,8 @@ ActiveRecord::Schema.define(version: 2022_10_15_192522) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "tournament_id"
+    t.index ["cc_id"], name: "index_tournament_ccs_on_cc_id", unique: true
+    t.index ["tournament_id"], name: "index_tournament_ccs_on_tournament_id", unique: true
   end
 
   create_table "tournament_locals", force: :cascade do |t|
@@ -953,7 +956,6 @@ ActiveRecord::Schema.define(version: 2022_10_15_192522) do
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "continuous_placements", default: false, null: false
     t.boolean "manual_assignment", default: false
-    t.integer "cc_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
@@ -1033,15 +1035,6 @@ ActiveRecord::Schema.define(version: 2022_10_15_192522) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
-  end
-
-  create_table "wordles", force: :cascade do |t|
-    t.text "words"
-    t.text "hints"
-    t.text "data"
-    t.integer "seqno"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   add_foreign_key "account_invitations", "accounts"
