@@ -1,98 +1,46 @@
+<script>
+  function searchTournamentCcs(selectObj, tableOnly) {
+    Rails.ajax({
+      type: "GET",
+      url: "/tournament_ccs?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
+      success: function (response) {
+        var elem = document.getElementById("table_wrapper");
+        elem.innerHTML = response.body.innerHTML;
+      },
+      error: function (response) {
+        console.log(response.responseText);
+      }
+    })
+  }
+
+  document.addEventListener("turbolinks:load", function () {
+    //searchTournaments(document.getElementById("search"), false);
+  })
+</script>
+
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Tournament Ccs</h1>
 
     <% if @tournament_ccs.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <input oninput="searchTournamentCcs(this, true)" type="search" value="<%= @sSearch %>" id="search" name="search" class="block appearance-none placeholder-gray-500 placeholder-opacity-50 border border-light-blue-400 rounded-md w-full py-2 px-3 text-gray-700 leading-5 focus:outline-none focus:ring-2 focus:ring-light-blue-300" placeholder="Search">
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-200 hover:text-gray-800 hover:bg-white dark:bg-black inline-block", title:"e.g. sea:2010/ reg:nordd dis:10-b" %>
+          </div>
+        </div>
+      </div>
       <%= link_to 'New Tournament Cc', new_tournament_cc_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 
   <% if @tournament_ccs.any? %>
-    <div class="bg-white rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-        <tr>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :cc_id, 'Cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_id, 'Tournament', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :context, 'Context', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :name, 'Name', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :shortname, 'Shortname', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :status, 'Status', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :branch_cc_id, 'Sparte', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :season, 'Season', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_list_cc_id, 'Registration list cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_rule, 'Registration rule', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :discipline_id, 'Discipline', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :championship_type_cc_id, 'Championship type cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :category_cc_id, 'Category cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :group_cc_id, 'Group cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_start, 'Tournament start', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_series_cc_id, 'Tournament series cc', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_end, 'Tournament end', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :starting_at, 'Starting at', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :league_climber_quote, 'League climber quote', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :entry_fee, 'Entry fee', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :max_players, 'Max players', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_id, 'Location', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_text, 'Location text', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :description, 'Description', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :poster, 'Poster', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tender, 'Tender', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :flowchart, 'Flowchart', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :ranking_list, 'Ranking list', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :successor_list, 'Successor list', class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <% @tournament_ccs.each do |tournament_cc| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100">
-            <td class="p-3"><%= tournament_cc.cc_id %></td>
-            <td class="p-3"><%= link_to "#{tournament_cc.tournament.andand.title}[#{tournament_cc.tournament_id}]", tournament_path(tournament_cc.tournament) if tournament_cc.tournament.present? %></td>
-            <td class="p-3"><%= tournament_cc.context %></td>
-            <td class="p-3"><%= tournament_cc.name %></td>
-            <td class="p-3"><%= tournament_cc.shortname %></td>
-            <td class="p-3"><%= tournament_cc.status %></td>
-            <td class="p-3"><%= link_to "#{tournament_cc.branch_cc.discipline.name}[#{tournament_cc.branch_cc.discipline_id}]", discipline_path(tournament_cc.branch_cc.discipline) %></td>
-            <td class="p-3"><%= tournament_cc.season %></td>
-            <td class="p-3"><%= tournament_cc.registration_list_cc_id %></td>
-            <td class="p-3"><%= TournamentCc::REGISTRATION_RULES[tournament_cc.registration_rule] %></td>
-            <td class="p-3"><%= link_to "#{tournament_cc.discipline.name}[#{tournament_cc.discipline_id}]", discipline_path(tournament_cc.discipline) %></td>
-            <td class="p-3"><%= tournament_cc.championship_type_cc_id %></td>
-            <td class="p-3"><%= tournament_cc.category_cc_id %></td>
-            <td class="p-3"><%= tournament_cc.group_cc_id %></td>
-            <td class="p-3"><%= tournament_cc.tournament_start %></td>
-            <td class="p-3"><%= tournament_cc.tournament_series_cc_id %></td>
-            <td class="p-3"><%= tournament_cc.tournament_end %></td>
-            <td class="p-3"><%= tournament_cc.starting_at %></td>
-            <td class="p-3"><%= tournament_cc.league_climber_quote %></td>
-            <td class="p-3"><%= tournament_cc.entry_fee %></td>
-            <td class="p-3"><%= tournament_cc.max_players %></td>
-            <td class="p-3"><%= tournament_cc.location_id %></td>
-            <td class="p-3"><%= tournament_cc.location_text %></td>
-            <td class="p-3"><%= tournament_cc.description %></td>
-            <td class="p-3"><%= tournament_cc.poster %></td>
-            <td class="p-3"><%= tournament_cc.tender %></td>
-            <td class="p-3"><%= tournament_cc.flowchart %></td>
-            <td class="p-3"><%= tournament_cc.ranking_list %></td>
-            <td class="p-3"><%= tournament_cc.successor_list %></td>
-
-            <td>
-              <%= link_to "View", tournament_cc, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div id="table_wrapper">
+      <%= render partial: 'tournament_ccs_table' %>
     </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
-
   <% else %>
     <div class="bg-white rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
       <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>

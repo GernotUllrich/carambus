@@ -1,13 +1,36 @@
 class TournamentCcsController < ApplicationController
+  include FiltersHelper
   before_action :set_tournament_cc, only: [:show, :edit, :update, :destroy]
 
   # GET /tournament_ccs
   def index
-    @pagy, @tournament_ccs = pagy(TournamentCc.sort_by_params(params[:sort], sort_direction))
+    @tournament_ccs = TournamentCc.
+      joins(:branch_cc, :discipline, :championship_type_cc, :group_cc, :category_cc, :tournament).
+      sort_by_params(@sSearch, sort_direction)
+    if @sSearch.present?
+      search = <<EOD
+(tournament_ccs.context ilike :search) or 
+(tournament_ccs.cc_id = :isearch) or 
+(tournament_ccs.location_text ilike :search) or 
+(tournament_ccs.shortname ilike :search) or 
+(tournament_ccs.name ilike :search)
+EOD
+      @tournament_ccs = apply_filters(@tournament_ccs, TournamentCc::COLUMN_NAMES, search)
+    end
+    @pagy, @tournament_ccs = pagy(@tournament_ccs)
 
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @tournament_ccs.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @tournament_ccs.load
+    respond_to do |format|
+      format.html {
+        if params[:table_only].present?
+          params.reject! { |k, v| k.to_s == "table_only" }
+          render(partial: "search", :layout => false)
+        else
+          render("index")
+        end }
+    end
   end
 
   # GET /tournament_ccs/1

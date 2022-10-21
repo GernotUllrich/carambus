@@ -23,6 +23,13 @@ module Jumpstart
     attr_accessor :multitenancy
     attr_writer :omniauth_providers
     attr_accessor :carambus_api_url
+    attr_accessor :carambus_api_access_token
+    attr_accessor :carambus_api_token_type
+    attr_accessor :carambus_api_token_expire_at
+    attr_accessor :small_table_no
+    attr_accessor :large_table_no
+    attr_accessor :pool_table_no
+    attr_accessor :snooker_table_no
 
     def self.load!
       if File.exist?(config_path)
@@ -87,24 +94,24 @@ module Jumpstart
     end
 
     def dependencies
-      gems = {main: [], test: [], development: []}
-      gems[:main] += Array.wrap(omniauth_providers).map { |provider| {name: "omniauth-#{provider}"} }
-      gems[:main] += [{name: "airbrake"}] if airbrake?
-      gems[:main] += [{name: "appsignal"}] if appsignal?
-      gems[:main] += [{name: "convertkit-ruby", github: "excid3/convertkit-ruby", require: "convertkit"}] if convertkit?
-      gems[:main] += [{name: "gibbon"}] if mailchimp?
-      gems[:main] += [{name: "drip-ruby", require: "drip"}] if drip?
-      gems[:main] += [{name: "honeybadger"}] if honeybadger?
-      gems[:main] += [{name: "intercom-rails"}] if intercom?
-      gems[:main] += [{name: "rollbar"}] if rollbar?
-      gems[:main] += [{name: "scout_apm"}] if scout?
-      gems[:main] += [{name: "bugsnag"}] if bugsnag?
-      gems[:main] += [{name: "sentry-raven"}] if sentry?
-      gems[:main] += [{name: "skylight"}] if skylight?
-      gems[:main] += [{name: "stripe"}, {name: "stripe_event"}] if stripe?
-      gems[:main] << {name: "braintree"} if braintree? || paypal?
-      gems[:main] << {name: job_processor.to_s} unless job_processor.to_s == "async"
-      gems[:development] += [{name: "guard"}, {name: "guard-livereload", version: "~> 2.5", require: false}, {name: "rack-livereload"}] if livereload?
+      gems = { main: [], test: [], development: [] }
+      gems[:main] += Array.wrap(omniauth_providers).map { |provider| { name: "omniauth-#{provider}" } }
+      gems[:main] += [{ name: "airbrake" }] if airbrake?
+      gems[:main] += [{ name: "appsignal" }] if appsignal?
+      gems[:main] += [{ name: "convertkit-ruby", github: "excid3/convertkit-ruby", require: "convertkit" }] if convertkit?
+      gems[:main] += [{ name: "gibbon" }] if mailchimp?
+      gems[:main] += [{ name: "drip-ruby", require: "drip" }] if drip?
+      gems[:main] += [{ name: "honeybadger" }] if honeybadger?
+      gems[:main] += [{ name: "intercom-rails" }] if intercom?
+      gems[:main] += [{ name: "rollbar" }] if rollbar?
+      gems[:main] += [{ name: "scout_apm" }] if scout?
+      gems[:main] += [{ name: "bugsnag" }] if bugsnag?
+      gems[:main] += [{ name: "sentry-raven" }] if sentry?
+      gems[:main] += [{ name: "skylight" }] if skylight?
+      gems[:main] += [{ name: "stripe" }, { name: "stripe_event" }] if stripe?
+      gems[:main] << { name: "braintree" } if braintree? || paypal?
+      gems[:main] << { name: job_processor.to_s } unless job_processor.to_s == "async"
+      gems[:development] += [{ name: "guard" }, { name: "guard-livereload", version: "~> 2.5", require: false }, { name: "rack-livereload" }] if livereload?
       gems
     end
 

@@ -43,6 +43,21 @@
 #  index_tournament_ccs_on_tournament_id  (tournament_id) UNIQUE
 #
 class TournamentCc < ApplicationRecord
+
+  COLUMN_NAMES = { #TODO FILTERS
+                   "CC_ID" => "tournament_ccs.cc_id",
+                   "Name" => "tournament_ccs.name",
+                   "Shortname" => "tournament_ccs.shortname",
+                   "Discipline" => "disciplines.name",
+                   "Context" => "tournament_ccs.context",
+                   "SingleOrLeague" => "tournament_ccs.single_or_league",
+                   "Season" => "tournament_ccs.season",
+                   "BranchCc" => "branch_ccs.name",
+                   "Type" => "championship_type_ccs.name",
+                   "CategoryCc" => "category_ccs.name",
+                   "GroupCc" => "group_ccs.name",
+  }
+
   REGISTRATION_RULES = {
     1 => 'Standard (nur Aktive dürfen gemeldet werden)',
     2 => 'Flexibel (Aktive und Passive dürfen gemeldet werden (Teilnehmer-Liste))',
