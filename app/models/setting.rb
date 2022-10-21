@@ -106,20 +106,24 @@ class Setting < ApplicationRecord
 
   def self.key_get_value(k)
     Setting.transaction do
-      inst = Setting.instance.reload
-      type, val = inst.data[k.to_s].to_a.flatten
-      return case type
-             when "Integer"
-               val.to_i
-             when "Float"
-               val.to_f
-             when "Hash"
-               JSON.parse(val)
-             when "Array"
-               JSON.parse(val)
-             else
-               val
-             end
+      if Jumpstart.config.respond_to?(k) && Jumpstart.config.send(k).present?
+        return Jumpstart.config.send(k)
+      else
+        inst = Setting.instance.reload
+        type, val = inst.data[k.to_s].to_a.flatten
+        return case type
+               when "Integer"
+                 val.to_i
+               when "Float"
+                 val.to_f
+               when "Hash"
+                 JSON.parse(val)
+               when "Array"
+                 JSON.parse(val)
+               else
+                 val
+               end
+      end
     rescue
       return nil
     end
