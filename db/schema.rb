@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_10_15_192522) do
+ActiveRecord::Schema.define(version: 2022_10_29_183750) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -956,6 +956,7 @@ ActiveRecord::Schema.define(version: 2022_10_15_192522) do
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "continuous_placements", default: false, null: false
     t.boolean "manual_assignment", default: false
+    t.boolean "winner_breaks"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["organizer_id", "organizer_type", "season_id", "title"], name: "tournaments_title_index", unique: true
     t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"

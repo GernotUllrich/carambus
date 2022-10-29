@@ -41,6 +41,7 @@ require 'net/http'
 #  timeout                        :integer          default(45)
 #  timeouts                       :integer          default(0), not null
 #  title                          :string
+#  winner_breaks                  :boolean
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null
 #  ba_id                          :integer
