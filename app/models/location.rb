@@ -22,6 +22,7 @@
 class Location < ApplicationRecord
   belongs_to :club, optional: true
   belongs_to :region, optional: true
+  belongs_to :organizer, polymorphic: true
   has_many :tables
   has_many :tournaments, foreign_key: :location_id
   serialize :data, Hash
