@@ -102,7 +102,7 @@
     <%- if table_kinds.present? -%>
       <%- table_kinds.each do |table_kind| %>
         <h1 style="text-shadow: 2px 2px #000000" class="flex text-white lg:mt-10 text-3vw"><%= table_kind.display_name %></h1>
-        <div class="grid grid-cols-8 gap-4 h-1/8">
+        <div class="grid grid-cols-4 gap-4 h-1/8">
           <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
           <%- if true %>
             <%- tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
