@@ -655,9 +655,9 @@ en:
     updated_at: updated at
     display_name_pool: Pool
     display_name_snooker: Snooker
-    display_name_small_billard: Small Table
-    display_name_half_match: Half Match Table
-    display_name_match_billard: Match Table
+    display_name_small_billard: Carambol Small Table
+    display_name_half_match: Carambol Half Match Table
+    display_name_match_billard: Carambol Match Table
     none_available: None available
   table:
     id: id

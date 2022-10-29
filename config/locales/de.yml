@@ -413,9 +413,9 @@ de:
     updated_at: updated at
     display_name_pool: Pool
     display_name_snooker: Snooker
-    display_name_small_billard: Kleiner Tisch
-    display_name_half_match: Halbmatch Tisch
-    display_name_match_billard: Großer Tisch
+    display_name_small_billard: Karambol kleiner Tisch
+    display_name_half_match: Karambol Halbmatch Tisch
+    display_name_match_billard: Karambol Großer Tisch
     none_available: Keine Tische verfügbar
   table:
     id: id
