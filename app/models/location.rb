@@ -55,6 +55,13 @@ class Location < ApplicationRecord
     end
   end
 
+  def background_image
+    counts = {}
+    tables.each { |t| counts[t.table_kind_id] = counts[t.table_kind_id].to_i + 1 }
+    max_table_kind_id = counts.max_by { |k, v| v }[0]
+    TableKind::TABLE_KIND_BACKGROUND[TableKind[max_table_kind_id].andand.name] || TABLE_KIND_BACKGROUND["Small Billard"]
+  end
+
   def merge_locations(with_location_ids = [])
     Tournament.where(location_id: with_location_ids).update_all(location_id: id)
     Table.where(location_id: with_location_ids).update_all(location_id: id)

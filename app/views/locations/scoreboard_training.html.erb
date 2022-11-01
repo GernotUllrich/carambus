@@ -91,7 +91,7 @@
       <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
     <% end %>
   </div>
-  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= t('select_training_table') %></h1>
   <%- if @location.present? %>
     <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mt-4"><%= @location.name %></h1>

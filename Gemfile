@@ -26,7 +26,8 @@ gem 'redis', '~> 4.0'
 gem 'slim-rails'
 
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.4.4', require: false
+# TODO does nor work on raspi??
+#gem 'bootsnap'#, '>= 1.4.4', require: false
 
 # Security update
 gem 'nokogiri', '>= 1.10.8'

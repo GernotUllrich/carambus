@@ -55,7 +55,7 @@
       <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
     <% end %>
   </div>
-  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+  <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
     <h1 class="text-yellow-500"><%= @tournament.title %></h1>
     <div class="flex flex-col">
       <%= render partial: "tournament_monitors/rankings", locals: { tournament_monitor: @tournament.tournament_monitor, full_screen: true, totals: true, grid: true } %>

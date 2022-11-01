@@ -76,7 +76,7 @@
 <div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
   <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
 </div>
-<div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+<div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
   <% if I18n.locale.to_s == "en" %>
     <%= link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbolinks: false }, tabindex: 0 %>
 

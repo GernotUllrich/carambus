@@ -547,7 +547,7 @@ DEPENDENCIES
   annotate
   attr_encrypted (~> 3.1)
   bcrypt (~> 3.1.7)
-  bootsnap (>= 1.4.4)
+  bootsnap
   brakeman
   bundler-audit!
   byebug

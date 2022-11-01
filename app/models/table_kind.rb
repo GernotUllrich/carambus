@@ -14,6 +14,16 @@ class TableKind < ApplicationRecord
   has_many :tables
 
   TABLE_KINDS = ["Pool", "Snooker", "Small Billard", "Half Match Billard", "Match Billard"]
+  TABLE_KIND_BACKGROUND = {
+    "Pool" => "/bg_pool2.jpg",
+    "Snooker" => "/snooker.jpg",
+    "Small Billard" => "/Karambol.jpg",
+    "Half Match Billard" => "/Karambol.jpg",
+    "Match Billard" => "/Karambol.jpg",
+    "Pin Billards" => "/Karambol.jpg",
+    "Biathlon" => "/Karambol.jpg",
+    "5-Pin Billards" => "/Karambol.jpg",
+  }
 
   TABLE_KIND_DISCIPLINE_NAMES = {
     "Pin Billards" => [],

@@ -91,7 +91,7 @@
     <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
 </div>
-<div class="p-7 lg:p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/Karambol.jpg')">
+<div class="p-7 lg:p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= t('select_training_table') %>
     - <%= @location.name %></h1>
   <%- if @location.present? %>
@@ -99,6 +99,7 @@
     <%- tables = @location.tables %>
     <%- free_tables = tables - tournament_tables %>
     <%- table_kinds = free_tables.map(&:table_kind).uniq.sort_by { |tk| tk.name } %>
+    <%- table_kind_counts = table_kinds.map{|tk| } %>
     <%- if table_kinds.present? -%>
       <%- table_kinds.each do |table_kind| %>
         <h1 style="text-shadow: 2px 2px #000000" class="flex text-white lg:mt-10 text-3vw"><%= table_kind.display_name %></h1>

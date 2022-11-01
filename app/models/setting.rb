@@ -106,10 +106,9 @@ class Setting < ApplicationRecord
 
   def self.key_get_value(k)
     Setting.transaction do
-      if Jumpstart.config.respond_to?(k) && Jumpstart.config.send(k).present?
-        return Jumpstart.config.send(k)
-      else
-        inst = Setting.instance.reload
+      inst = Setting.instance.reload
+      hash = inst.data
+      if hash[k.to_s].present?
         type, val = inst.data[k.to_s].to_a.flatten
         return case type
                when "Integer"
@@ -123,6 +122,16 @@ class Setting < ApplicationRecord
                else
                  val
                end
+      else
+        if Jumpstart.config.respond_to?(k) && Jumpstart.config.send(k).present?
+          v = Jumpstart.config.send(k)
+          hash[k.to_s] = { v.class.name => (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s }
+          inst.data_will_change!
+          inst.update(data: hash)
+          return v
+        else
+          return nil
+        end
       end
     rescue
       return nil
