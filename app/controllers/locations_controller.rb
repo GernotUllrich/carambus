@@ -72,7 +72,7 @@ class LocationsController < ApplicationController
         @allow_overflow = false
         @allow_follow_up = true
         if @table.present?
-          render "scoreboard_free_game"
+          render "scoreboard_free_game_#{TableKind::TABLE_KIND_FREE_GAME_SETUP[@table.table_kind.name]}"
           return
         end
       end

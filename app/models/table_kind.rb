@@ -25,6 +25,17 @@ class TableKind < ApplicationRecord
     "5-Pin Billards" => "/Karambol.jpg",
   }
 
+  TABLE_KIND_FREE_GAME_SETUP = {
+    "Pool" => "pool",
+    "Snooker" => "snooker",
+    "Small Billard" => "karambol",
+    "Half Match Billard" => "karambol",
+    "Match Billard" => "karambol",
+    "Pin Billards" => "karambol",
+    "Biathlon" => "karambol",
+    "5-Pin Billards" => "karambol",
+  }
+
   TABLE_KIND_DISCIPLINE_NAMES = {
     "Pin Billards" => [],
     "Biathlon" => [],
