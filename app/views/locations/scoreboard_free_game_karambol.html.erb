@@ -497,7 +497,8 @@
         <div class="flex flex-col text-white">
           <div class="flex w-full mb-1 text-2vw">
             <div class="flex h-full pb-1"><%= link_to t("game_participation.balls_goal"), "javascript:balls_mode('')", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %></div>
-            <div class="flex pb-1"><%= image_tag "neu.png" %></div>
+            <div class="flex pb-1"><%= image_tag "neu.png"
+            %></div>
           </div>
           <%= content_tag :div, id: "balls_goal_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
             <%= select_tag :balls_goal, options_for_select(gm, (@balls_goal || "80").to_i), onchange: "propagate_balls_goal();", class: "p-1 text-2vw w-full" %>

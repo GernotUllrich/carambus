@@ -1,4 +1,6 @@
-<div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+<div class="p-14 w-full m-auto flex items-end flex-col bg-cover
+h-screen bg-center bg-no-repeat" style="background-image: url('<%=
+@location.andand.background_image || "/Karambol.jpg" %>')">
   <% if I18n.locale.to_s == "en" %>
     <%= link_to image_tag("flag_de.png"), { :locale=>'de' } %>
 

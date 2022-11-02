@@ -1,0 +1,571 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>
+<script type="text/javascript">
+  var table_kind;
+  var players;
+  var player_ids;
+  var tabbed_elements;
+  var tabbed_keys;
+  var game_values_disciplines;
+  var game_values_innings;
+  var game_values_balls_goal;
+  var current_element;
+  <%- game_values_balls_goal = [ 80, 100, 120, 150, 200, 250, 300, 400, 0, 10, 20, 25, 30, 40, 50, 60, 75 ] %>
+  <%- gm = game_values_balls_goal.map{|v| [v == 0 ? "no limit" : v.to_s,v]} %>
+  <%- game_values_disciplines = {
+      "Pool": ["Pool",
+        "9-Ball",
+        "8-Ball",
+        "14.1 endlos",
+        "Blackball",
+        "10-Ball"],
+      "Snooker": ["Snooker"],
+      "Small Billard": ["Freie Partie klein",
+        "Dreiband klein",
+        "Cadre 35/2",
+        "Cadre 52/2",
+        "Einband klein",
+        "Eurokegel",
+        "Biathlon",
+        "5-Pin Billards"],
+      "Half Match Billard": ["Cadre 57/2", "Cadre 38/2", "Dreiband halb", "Einband halb"],
+      "Match Billard": ["Dreiband groß",
+        "Freie Partie groß",
+        "Einband groß",
+        "Cadre 47/1",
+        "Cadre 71/2",
+        "Cadre 47/2"],
+      "Pin Billards": ["Pin Billards"],
+    } %>
+  <%- game_values_disciplines_json = game_values_disciplines.to_json.html_safe %>
+
+  window.onload = function () {
+    game_values_disciplines = JSON.parse('<%= game_values_disciplines_json %>')
+    players = JSON.parse('<%= @players.map { |p| [p.id, "#{p.lastname}, #{p.firstname}"] }.to_json.html_safe %>');
+    game_values_innings = [
+      20, 15, 0, 25
+    ]
+    game_values_timeouts = [
+      0, 1, 2, 3, 4, 5
+    ]
+    game_values_timeout = [
+      "", "30", "40", "45"
+    ]
+    game_values_balls_goal = <%= JSON.parse(game_values_balls_goal) %>;
+    <%- table_kind = @table_monitor.andand.table.andand.table_kind.andand.name %>
+    table_kind = "<%= table_kind %>";
+    tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+    set_default_values();
+    tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      current_element = "player_a_w"
+      document.getElementById(current_element).focus();
+    }
+  };
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    //console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a",
+      37: "key_a",
+      34: "key_b",
+      39: "key_b",
+      66: "key_c",
+      38: "key_c",
+      116: "key_d",
+      27: "key_d",
+      40: "key_d",
+    }
+    tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+
+    tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+
+    current_element = document.activeElement.getAttribute("id") || "submit"
+    console.log("active: " + current_element);
+    if (current_element == null) {
+      current_element = tabbed_keys[0];
+      console.log("active now: " + current_element);
+      document.getElementById(current_element).focus();
+    }
+
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c") {
+        current_element = document.activeElement.getAttribute("id") || "submit";
+        if (current_element != "submit") {
+          document.getElementById("submit").focus()
+        } else {
+          window.history.back();
+        }
+      }
+      if (key == "key_b") {
+        current_element = document.activeElement.getAttribute("id") || "submit";
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i + 1;
+            if (ff >= tabbed_keys.length) ff = 0;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_a") {
+        current_element = document.activeElement.getAttribute("id") || "submit";
+        for (var i = 0; i < tabbed_keys.length; i++) {
+          if (tabbed_keys[i] == current_element) {
+            var ff = i - 1;
+            if (ff < 0) ff = tabbed_keys.length - 1;
+            console.log("active becomes (a): " + tabbed_keys[ff]);
+            el = document.getElementById(tabbed_keys[ff])
+            if (el != null)
+              el.focus();
+            break;
+          }
+        }
+      }
+      if (key == "key_d") {
+        current_element = document.activeElement.getAttribute("id") || "submit";
+        if (current_element == "submit")
+          document.getElementsByName("commit")[0].click()
+        else
+          set_next_value(current_element);
+      }
+    }
+    event.preventDefault();
+    return true
+  });
+
+  function set_next_value(name_) {
+    let name_stripped1 = name_.replace("_w", "");
+    let player_select = "";
+    let name_stripped = "";
+    let next_val = "";
+    let next_val_id = 0;
+    let current_value = "";
+    let default_name = "Spieler A"
+    // let players_p = [...players]
+    // let player_ids_p = [...player_ids]
+    let value_id = 0;
+
+    if (name_stripped1.endsWith("_a")) {
+      player_select = "_a";
+      name_stripped = name_stripped1.replace("_a", "");
+    } else if (name_stripped1.endsWith("_b")) {
+      player_select = "_b";
+      name_stripped = name_stripped1.replace("_b", "");
+    } else {
+      player_select = ""
+      name_stripped = name_stripped1;
+    }
+    switch (name_stripped) {
+      case "discipline":
+        current_value = document.getElementById(name_stripped1).value;
+        next_val = next_value(game_values_disciplines[table_kind], current_value);
+        break;
+      case "innings_goal":
+        current_value = document.getElementById(name_stripped1).value;
+        next_val = next_value(game_values_innings, current_value);
+        break;
+      case "timeout":
+        current_value = document.getElementById(name_stripped1).value;
+        next_val = next_value(game_values_timeout, current_value);
+        break;
+      case "timeouts":
+        current_value = document.getElementById(name_stripped1).value;
+        next_val = next_value(game_values_timeouts, current_value);
+        break;
+      case "balls_goal":
+        current_value = document.getElementById(name_stripped1).value;
+        next_val = next_value(game_values_balls_goal, current_value);
+        break;
+      case "player":
+        current_value = document.getElementById(name_stripped1 + "_id").value;
+        current_player_id = document.getElementById(name_stripped1 + "_id").value
+        if (player_select == "_b") default_name = "Spieler B"
+        players_p = [...players]
+        players_p.unshift([0, default_name])
+        current_value = player_from_id(players_p, current_player_id)
+        next_val = next_value(players_p, current_value);
+        document.getElementById(name_stripped1 + "_id").value = next_val[0];
+        return
+    }
+    document.getElementById(name_stripped1).value = next_val;
+    if (name_stripped != "player" && player_select == "") {
+      document.getElementById(name_stripped + "_a").value = next_val
+      document.getElementById(name_stripped + "_b").value = next_val
+    }
+  };
+
+  function player_from_id(values, value) {
+    for (var i = 0; i < values.length; i++) {
+      if (values[i][0] == value)
+        return values[i];
+    }
+    return values[0]
+  }
+
+  function propagate_discipline() {
+    document.getElementById("discipline_a").value = document.getElementById("discipline").value
+    document.getElementById("discipline_b").value = document.getElementById("discipline").value
+  }
+
+  function propagate_balls_goal() {
+    document.getElementById("balls_goal_a").value = document.getElementById("balls_goal").value
+    document.getElementById("balls_goal_b").value = document.getElementById("balls_goal").value
+  }
+
+  function balls_mode(s) {
+    set_balls_modal(s);
+  }
+
+  function set_balls_modal() {
+    document.getElementById("modal-balls").classList.toggle("hidden");
+    document.getElementById("modal-balls" + "-bg").classList.toggle("hidden");
+    document.getElementById("modal-balls").classList.toggle("flex");
+    document.getElementById("modal-balls" + "-bg").classList.toggle("flex");
+  }
+
+  function set_checked_balls(ab, val) {
+    document.getElementById("player_" + ab + '_balls_' + val).checked = true
+    if (ab === '') {
+      document.getElementById("balls_goal").value = val
+      document.getElementById("player_a_balls_" + val).checked = true
+      document.getElementById("player_b_balls_" + val).checked = true
+      propagate_balls_goal()
+    } else {
+      document.getElementById("balls_goal_" + ab).value = val
+    }
+  }
+
+  function players_mode() {
+    set_players_modal();
+  }
+
+  function set_players_modal() {
+    document.getElementById("modal-players").classList.toggle("hidden");
+    document.getElementById("modal-players" + "-bg").classList.toggle("hidden");
+    document.getElementById("modal-players").classList.toggle("flex");
+    document.getElementById("modal-players" + "-bg").classList.toggle("flex");
+  }
+
+  function next_value(values, value) {
+    for (var i = 0; i < values.length; i++) {
+      if (values[i] == value) {
+        next = i + 1
+        if (i >= values.length - 1) next = 0
+        return values[next];
+      }
+    }
+    return values[0]
+  }
+
+  function set_checked_player(ab, ix, val) {
+    document.getElementById("player" + ab + "_" + ix).checked = true
+    document.getElementById("player_" + ab + "_id").value = val
+  }
+
+  function set_default_values() {
+    if (document.getElementById("discipline").value == "") {
+      document.getElementById("discipline").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("discipline_a").value == "") {
+      document.getElementById("discipline_a").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("discipline_b").value == "") {
+      document.getElementById("discipline_b").value = game_values_disciplines[table_kind][0]
+    }
+    if (document.getElementById("balls_goal").value == "") {
+      document.getElementById("balls_goal").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("balls_goal_a").value == "") {
+      document.getElementById("balls_goal_a").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("balls_goal_b").value == "") {
+      document.getElementById("balls_goal_b").value = game_values_balls_goal[0]
+    }
+    if (document.getElementById("innings_goal").value == "") {
+      document.getElementById("innings_goal").value = game_values_innings[0]
+    }
+  }
+</script>
+<%- if Date.today.to_s == "2022-06-19" %>
+  <%- @discipline = @discipline_a = @discipline_b = "Dreiband klein" %>
+  <%- @balls_goal = @balls_goal_a = @balls_goal_b = 25 %>
+  <%- @innings_goal = 30 %>
+<%- end %>
+<div data-controller="table-monitor" data-action="doubleclick->table-monitor#home click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "e.g. reg:nordd wedel" %>
+</div>
+<div class="fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
+    <%= render_svg "icons/home", styles: "fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div data-controller="table-monitor" class="p-14 w-full m-auto flex
+ items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
+     style="background-image: url('<%= @location.background_image
+     .gsub(".", "-.") %>')">
+  <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex
+  text-gray-200 "><%= "#{@table.andand.table_kind.andand.name} -
+                        #{@table.andand.name}" %></h1>
+  <%- if @location.present? %>
+    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-200 mt-4"><%= @location.name %></h1>
+    <%= form_tag start_game_table_monitor_path(@table_monitor), method: :post, class: "flex flex-col text-gray-200" do %>
+
+      <div class="flex justify-center mt-4 text-center">
+        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
+          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+        </div>
+      </div>
+      <div class="flex mt-8 text-2vw grid grid-cols-6 gap-6
+      items-center">
+        <div>Spielerauswahl</div>
+        <div class="col-span-5">
+          <div>
+            <%= link_to "Spielerauswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          </div>
+        </div>
+        <form>
+          <div>Disziplin</div>
+          <div class="col-span-5 flex flex-row items-center">
+            <div class="flex pb-1 w-16 h-16 mr-10"><%= image_tag "p8.png" %></div>
+            <div class="flex pb-1 hover:bg-gray-700 hover:w-24 hover:h-24 w-16 h-16   mr-10"><%= image_tag "p9.png" %></div>
+            <div class="flex pb-1 w-16 h-16 mr-10"><%= image_tag "p10.png" %></div>
+            <div class="flex pb-1 w-24"><%= image_tag "p14.1.png" %></div>
+          </div>
+          <div>Anstoß</div>
+          <div class="col-span-5">
+            <fieldset>
+              <div class="flex flex-row items-center">
+                <div class="flex items-center hidden"></div>
+                <div class="flex items-center">
+                  <input checked id="break" name="break" type="radio" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                  <label for="break" class="ml-3 font-medium text-2vw text-white">Wechsel</label>
+                </div>
+                <div class="flex items-center ml-8">
+                  <input id="winner" name="break" type="radio" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                  <label for="winner" class="ml-3 font-medium text-2vw text-white">Gewinner</label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div>Gewinnspiele</div>
+          <div class="col-span-5">
+            <fieldset>
+              <div class="grid grid-cols-12 gap-4">
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '1'), 'undefined': !(active === '1') }">
+                  <input type="radio" x-model="value" name="games-choice" value="1" class="sr-only" aria-labelledby="games-choice-0-label">
+                  <span id="games-choice-0-label">1</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '1'), 'border-2': !(active === '1'), 'border-indigo-500': (value === '1'), 'border-transparent': !(value === '1') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '2'), 'undefined': !(active === '2') }">
+                  <input type="radio" x-model="value" name="games-choice" value="2" class="sr-only" aria-labelledby="games-choice-1-label">
+                  <span id="games-choice-1-label">2</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '2'), 'border-2': !(active === '2'), 'border-indigo-500': (value === '2'), 'border-transparent': !(value === '2') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '3'), 'undefined': !(active === '3') }">
+                  <input type="radio" x-model="value" name="games-choice" value="3" class="sr-only" aria-labelledby="games-choice-2-label">
+                  <span id="games-choice-2-label">3</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-indigo-500" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '3'), 'border-2': !(active === '3'), 'border-indigo-500': (value === '3'), 'border-transparent': !(value === '3') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '4'), 'undefined': !(active === '4') }">
+                  <input type="radio" x-model="value" name="games-choice" value="4" class="sr-only" aria-labelledby="games-choice-3-label">
+                  <span id="games-choice-3-label">4</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '4'), 'border-2': !(active === '4'), 'border-indigo-500': (value === '4'), 'border-transparent': !(value === '4') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '5'), 'undefined': !(active === '5') }">
+                  <input type="radio" x-model="value" name="games-choice" value="5" class="sr-only" aria-labelledby="games-choice-4-label">
+                  <span id="games-choice-4-label">5</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '5'), 'border-2': !(active === '5'), 'border-indigo-500': (value === '5'), 'border-transparent': !(value === '5') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '6'), 'undefined': !(active === '6') }">
+                  <input type="radio" x-model="value" name="games-choice" value="6" class="sr-only" aria-labelledby="games-choice-5-label">
+                  <span id="games-choice-5-label">6</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '6'), 'border-2': !(active === '6'), 'border-indigo-500': (value === '6'), 'border-transparent': !(value === '6') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '7'), 'undefined': !(active === '7') }">
+                  <input checked type="radio" x-model="value" name="games-choice" value="7" class="sr-only" aria-labelledby="games-choice-6-label">
+                  <span id="games-choice-6-label">7</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '7'), 'border-2': !(active === '7'), 'border-indigo-500': (value === '7'), 'border-transparent': !(value === '7') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '8'), 'undefined': !(active === '8') }">
+                  <input type="radio" x-model="value" name="games-choice" value="8" class="sr-only" aria-labelledby="games-choice-6-label">
+                  <span id="games-choice-6-label">8</span>
+                </label>
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '9'), 'undefined': !(active === '9') }">
+                  <input type="radio" x-model="value" name="games-choice" value="9" class="sr-only" aria-labelledby="games-choice-6-label">
+                  <span id="games-choice-6-label">9</span>
+                </label>
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '10'), 'undefined': !(active === '10') }">
+                  <input type="radio" x-model="value" name="games-choice" value="10" class="sr-only" aria-labelledby="games-choice-6-label">
+                  <span id="games-choice-6-label">10</span>
+                </label>
+
+              </div>
+            </fieldset>
+          </div>
+          <div>Punkteziel</div>
+          <div class="col-span-5">
+            <fieldset>
+              <div class="grid grid-cols-12 gap-4">
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '30'), 'undefined': !(active === '30') }">
+                  <input type="radio" x-model="value" name="points-choice" value="30" class="sr-only" aria-labelledby="points-choice-0-label">
+                  <span id="points-choice-0-label">30</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '30'), 'border-2': !(active === '30'), 'border-indigo-500': (value === '30'), 'border-transparent': !(value === '30') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '40'), 'undefined': !(active === '40') }">
+                  <input type="radio" x-model="value" name="points-choice" value="40" class="sr-only" aria-labelledby="points-choice-1-label">
+                  <span id="points-choice-1-label">40</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '40'), 'border-2': !(active === '40'), 'border-indigo-500': (value === '40'), 'border-transparent': !(value === '40') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '50'), 'undefined': !(active === '50') }">
+                  <input type="radio" x-model="value" name="points-choice" value="50" class="sr-only" aria-labelledby="points-choice-2-label">
+                  <span id="points-choice-2-label">50</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-indigo-500" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '50'), 'border-2': !(active === '50'), 'border-indigo-500': (value === '50'), 'border-transparent': !(value === '50') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '65'), 'undefined': !(active === '65') }">
+                  <input type="radio" x-model="value" name="points-choice" value="65" class="sr-only" aria-labelledby="points-choice-3-label">
+                  <span id="points-choice-3-label">65</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '65'), 'border-2': !(active === '65'), 'border-indigo-500': (value === '65'), 'border-transparent': !(value === '65') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '75'), 'undefined': !(active === '75') }">
+                  <input type="radio" x-model="value" name="points-choice" value="75" class="sr-only" aria-labelledby="points-choice-4-label">
+                  <span id="points-choice-4-label">75</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '75'), 'border-2': !(active === '75'), 'border-indigo-500': (value === '75'), 'border-transparent': !(value === '75') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '80'), 'undefined': !(active === '80') }">
+                  <input type="radio" x-model="value" name="points-choice" value="80" class="sr-only" aria-labelledby="points-choice-5-label">
+                  <span id="points-choice-5-label">80</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '80'), 'border-2': !(active === '80'), 'border-indigo-500': (value === '80'), 'border-transparent': !(value === '80') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '100'), 'undefined': !(active === '100') }">
+                  <input type="radio" x-model="value" name="points-choice" value="100" class="sr-only" aria-labelledby="points-choice-6-label">
+                  <span id="points-choice-6-label">100</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '100'), 'border-2': !(active === '100'), 'border-indigo-500': (value === '100'), 'border-transparent': !(value === '100') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '125'), 'undefined': !(active === '125') }">
+                  <input type="radio" x-model="value" name="points-choice" value="125" class="sr-only" aria-labelledby="points-choice-6-label">
+                  <span id="points-choice-6-label">125</span>
+                </label>
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '150'), 'undefined': !(active === '150') }">
+                  <input type="radio" x-model="value" name="points-choice" value="150" class="sr-only" aria-labelledby="points-choice-6-label">
+                  <span id="points-choice-6-label">150</span>
+                </label>
+
+              </div>
+            </fieldset>
+          </div>
+          <div>Aufnahme-Limit</div>
+          <div class="col-span-5">
+            <fieldset>
+              <div class="grid grid-cols-6 gap-4">
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '0'), 'undefined': !(active === '0') }">
+                  <input type="radio" x-model="value" name="points-choice" value="0" class="sr-only" aria-labelledby="points-choice-0-label">
+                  <span id="points-choice-0-label">keines</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '0'), 'border-2': !(active === '0'), 'border-indigo-500': (value === '0'), 'border-transparent': !(value === '0') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="bg-blue-600 group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '25'), 'undefined': !(active === '25') }">
+                  <input type="radio" x-model="value" name="points-choice" value="20" class="sr-only" aria-labelledby="points-choice-1-label">
+                  <span id="points-choice-1-label">20</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '25'), 'border-2': !(active === '25'), 'border-indigo-500': (value === '25'), 'border-transparent': !(value === '25') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '25'), 'undefined': !(active === '25') }">
+                  <input type="radio" x-model="value" name="points-choice" value="25" class="sr-only" aria-labelledby="points-choice-2-label">
+                  <span id="points-choice-2-label">25</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-indigo-500" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '25'), 'border-2': !(active === '25'), 'border-indigo-500': (value === '25'), 'border-transparent': !(value === '25') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '30'), 'undefined': !(active === '30') }">
+                  <input type="radio" x-model="value" name="points-choice" value="30" class="sr-only" aria-labelledby="points-choice-3-label">
+                  <span id="points-choice-3-label">30</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '30'), 'border-2': !(active === '30'), 'border-indigo-500': (value === '30'), 'border-transparent': !(value === '30') }"></span>
+                </label>
+
+              </div>
+            </fieldset>
+          </div>
+          <div>Shoot-Out</div>
+          <div class="col-span-5">bbb</div>
+          <div>Erster Anstoß</div>
+          <div class="col-span-5">
+            <fieldset>
+              <div class="grid grid-cols-4 gap-4">
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '0'), 'undefined': !(active === '0') }">
+                  <input type="radio" x-model="value" name="points-choice" value="0" class="sr-only" aria-labelledby="points-choice-0-label">
+                  <span id="points-choice-0-label">Ausstoßen</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '0'), 'border-2': !(active === '0'), 'border-indigo-500': (value === '0'), 'border-transparent': !(value === '0') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '1'), 'undefined': !(active === '1') }">
+                  <input type="radio" x-model="value" name="points-choice" value="1" class="sr-only" aria-labelledby="points-choice-1-label">
+                  <span id="points-choice-1-label">Heim / Spieler A</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '1'), 'border-2': !(active === '1'), 'border-indigo-500': (value === '1'), 'border-transparent': !(value === '1') }"></span>
+                </label>
+
+                <label x-radio-group-option="" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase hover:bg-gray-200 focus:outline-none sm:flex-1 bg-white shadow-sm text-gray-900 cursor-pointer undefined" x-state:on:size.instock="In Stock" x-state:off:size.instock="Out of Stock" x-description="Active: &quot;ring-2 ring-indigo-500&quot;" :class="{ 'ring-2 ring-indigo-500': (active === '2'), 'undefined': !(active === '2') }">
+                  <input type="radio" x-model="value" name="points-choice" value="2" class="sr-only" aria-labelledby="points-choice-2-label">
+                  <span id="points-choice-2-label">Gast / Spieler B</span>
+
+                  <span class="pointer-events-none absolute -inset-px rounded-md border-2 border-indigo-500" aria-hidden="true" x-description="Active: &quot;border&quot;, Not Active: &quot;border-2&quot;	Checked: &quot;border-indigo-500&quot;, Not Checked: &quot;border-transparent&quot;" :class="{ 'border': (active === '2'), 'border-2': !(active === '2'), 'border-indigo-500': (value === '2'), 'border-transparent': !(value === '2') }"></span>
+                </label>
+
+              </div>
+            </fieldset>
+          </div>
+        </form>
+      </div>
+    <%- end %>
+  <%- end %>
+</div>

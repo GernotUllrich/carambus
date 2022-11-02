@@ -15,11 +15,13 @@
     <div class="bg-white dark:bg-black rounded shadow p-8">
       <div class="mb-4">
         <h5>Club</h5>
-        <%= link_to "@location.club.name", club_path(@location.club) if @location.club.present? %>
+        <%= link_to @location.club.andand.name, club_path(@location
+                                                          .club) if @location.club.present? %>
       </div>
       <div class="mb-4">
         <h5>Region</h5>
-        <%= link_to "@location.region.name", region_path(@location.region) if @location.region.present? %>
+        <%= link_to @location.region.andand.name, region_path
+            (@location.region) if @location.region.present? %>
       </div>
       <div class="mb-4">
         <h5>Name</h5>
