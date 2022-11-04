@@ -790,7 +790,7 @@ module.exports = {
     gridRowStart: ['responsive'],
     gridTemplateColumns: ['responsive'],
     gridTemplateRows: ['responsive'],
-    height: ['responsive'],
+    height: ['responsive', 'hover'],
     inset: ['responsive'],
     justifyContent: ['responsive'],
     justifyItems: ['responsive'],
@@ -849,9 +849,21 @@ module.exports = {
     verticalAlign: ['responsive'],
     visibility: ['responsive'],
     whitespace: ['responsive'],
-    width: ['responsive'],
+    width: ['responsive', 'hover'],
     wordBreak: ['responsive'],
     zIndex: ['responsive', 'focus-within', 'focus'],
+    extend: {
+      backgroundColor: ['group-focus', 'active'],
+      borderColor: ['group-focus'],
+      boxShadow: ['group-focus'],
+      opacity: ['group-focus'],
+      textColor: ['group-focus', 'active'],
+      textDecoration: ['group-focus'],
+    }
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/aspect-ratio'),
+  ],
 }

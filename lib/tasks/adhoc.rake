@@ -145,7 +145,7 @@ namespace :adhoc do
   end
   desc 'test version update'
   task test_version_update: :environment do
-    Version.update_from_carambus_api(update_region_from_ba: 1, player_details: true)
+    Version.update_from_carambus_api(update_club_from_ba: 292, player_details: true)
   end
 
   desc 'test_league 8'

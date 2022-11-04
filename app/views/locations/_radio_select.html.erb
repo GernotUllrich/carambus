@@ -1,0 +1,26 @@
+<%- %>
+<div x-show="<%= show.presence %>" x-init="increment = <%= increment %>"><%= header %></div>
+<div x-show="<%= show.presence %>" class="col-span-4">
+  <div class="grid grid-cols-<%= cols %> gap-4">
+    <%- values.each_with_index do |val, ix| %>
+      <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 bg-white shadow-sm cursor-pointer undefined" :class="{ 'bg-blue-600 text-white': (<%= varname %> == '<%= val %>'), 'text-gray-900': !(<%= varname %> == '<%= val %>') }">
+        <input type="radio" x-model="<%= varname %>" name="<%= varname %>-choice" value="<%= val %>" class="sr-only" aria-labelledby="<%= varname %>-choice-<%= ix %>-label">
+        <span id="<%= varname %>-choice-<%= ix %>-label"><%= displays[ix] %></span>
+      </label>
+    <%- end %>
+
+  </div>
+</div>
+<div x-show="<%= show.presence %>" class="flex flex-row items-center">
+  <%- unless local_assigns[:no_counter] %>
+    <div x-show="'discipline' != '<%= varname %>'" class="flex w-24 pl-3 pr-3 text-4vw font-bold" @click="if (parseInt(<%= varname %>) <= 200) {increment = 25}; if (parseInt(<%= varname %>) <= 100) {increment = 5}; if (parseInt(<%= varname %>) <= 10) {increment = 1}; if (parseInt(<%= varname %>) > 0 ) {<%= varname %> = parseInt(<%= varname %>) - increment};">-</div>
+    <div x-show="'discipline' != '<%= varname %>'" x-text="<%= varname %>" class="col-span-2 flex items-center justify-center text-2vw font-medium bg-white shadow-sm text-gray-900 border rounded-md py-3 px-4 ml-8 mr-8"></div>
+    <div x-show="'discipline' == '<%= varname %>'" class="flex justify-center w-full">
+      <div x-show="discipline == 0" class="overflow-hidden flex pb-1 hover:bg-gray-700 w-16 h-16 mr-10"><%= image_tag "p8.png", class: "translate hover:scale-125 scale-200" %></div>
+      <div x-show="discipline == 1" class="overflow-hidden flex pb-1 hover:bg-gray-700 w-16 h-16 mr-10"><%= image_tag "p9.png" %></div>
+      <div x-show="discipline == 2" class="overflow-hidden flex pb-1 hover:bg-gray-700 w-16 h-16 mr-10"><%= image_tag "p10.png" %></div>
+      <div x-show="discipline == 3" class="overflow-hidden flex pb-1 hover:bg-gray-700 w-16 h-16 "><%= image_tag "p14.1.png" %></div>
+    </div>
+    <div x-show="'discipline' != '<%= varname %>'" class="flex w-24 pl-3 pr-3 text-4vw font-bold" @click="if (parseInt(<%= varname %>) >= 10) {increment = 5}; if (parseInt(<%= varname %>) >= 100) {increment = 25}; if (parseInt(<%= varname %>) >= 200) { increment = 100 }; if (parseInt(<%= varname %>) < <%= maxval %>) {<%= varname %> = parseInt(<%= varname %>) + increment};">+</div>
+  <%- end %>
+</div>

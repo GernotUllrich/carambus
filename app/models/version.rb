@@ -48,7 +48,7 @@ ORDER BY S.relname;
   end
 
   def self.get_max_ids
-    tables = File.read("#{Rails.root}/db/schema.rb").split("\n").select{|l| l =~ /create_table/ }.map do |line|
+    tables = File.read("#{Rails.root}/db/schema.rb").split("\n").select { |l| l =~ /create_table/ }.map do |line|
       line.match(/\"(.*)\"/)[1]
     end
     localized_tables = []
@@ -144,9 +144,10 @@ ORDER BY S.relname;
               (obj ||= classz.where(cc_id: args['cc_id']).first) if args['cc_id'].present?
             elsif h['item_type'] == "SeasonParticipation"
               obj = classz.where(player_id: args['player_id'], club_id: args['club_id'], season_id: args['season_id']).first
-
-              obj.andand.update_columns(id: h['item_id'])
-              next
+              if obj.present?
+                obj.update_columns(id: h['item_id'])
+                next
+              end
             end
             if obj.present?
               Rails.logger.info "#{obj.attributes}"
@@ -167,7 +168,7 @@ ORDER BY S.relname;
                   next
                 end
               end
-              args.each do |k,v|
+              args.each do |k, v|
                 obj.write_attribute(k, v)
               end
               if obj.valid?
@@ -194,7 +195,7 @@ ORDER BY S.relname;
             classz = h['item_type'].constantize
             obj = classz.where(id: h['item_id']).first
             if obj.present?
-              args.each do |k,v|
+              args.each do |k, v|
                 obj.write_attribute(k, v)
               end
               if obj.valid?
@@ -219,7 +220,7 @@ ORDER BY S.relname;
               args['data'] = YAML.load(args['data']) if args['data'].present?
               args['remarks'] = YAML.load(args['remarks']) if args['remarks'].present?
 
-              args.each do |k,v|
+              args.each do |k, v|
                 obj.write_attribute(k, v)
               end
               obj.save!

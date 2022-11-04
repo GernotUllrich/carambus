@@ -118,11 +118,11 @@ class Club < ApplicationRecord
       logo: club_logo
     )
     if player_details
-      known_players = players.map(&:ba_id)
+      known_players = players.joins(:season_participations).where(season_participations: {season: season}).map(&:ba_id)
       (club_players - known_players).each do |player_ba_id|
         player = Player.find_by_ba_id(player_ba_id)
         skip_details = player.present? && !force_update
-        player ||= players.new()
+        player ||= Player.new
         player.update(ba_id: player_ba_id)
         sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id, id) ||
           SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: id)
