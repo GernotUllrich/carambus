@@ -1,0 +1,57 @@
+# Management of League Match Days
+
+### Overview
+
+The handling of league matches is fundamentally different compared to individual tournaments and is therefore specially supported. The structure of league matches is predefined for each league and does not change during a season.
+
+The following phases are typically followed:
+
+* Planning of match days and teams
+* At start of match day: Finalization of players by team captains
+* Per round: Assignment of tables to individual games
+* Allocation of players to individual games per round
+* Starting rounds and transferring data to scoreboards
+* Operation of scoreboards
+* Transfer of results to matchday monitor and overview boards if needed
+* Automatic completion of a round, start of next round, and potential shootout start for tied games
+* Transfer of results to ClubCloud
+
+### Planning Match Days and Teams
+
+The structure of a league's match days is determined at the beginning of the season at DBU (German Billiard Union) or state level and formally entered in ClubCloud. The scheduling of individual match days is also managed in ClubCloud. Additionally, players eligible for individual teams are specified.
+
+This data forms the basis for Carambus Matchday Management. The tournament director can most easily find this data via the game venue view where all matches are listed.
+
+After opening the match day view, there's a link to the Matchday Monitor. This interface controls the entire match day process.
+
+### Finalizing Players for a Match Day
+
+Carambus offers selection of players from the ClubCloud entries for the respective team, plus players from subordinate leagues. After selection, the group of available players for the match day is irrevocably fixed.
+
+### Table Assignment
+
+In Carambus, available tables in a game venue can be defined with name and type (large carom, medium, small, pool, snooker). Per round, tables must be assigned to individual games from this pool.
+
+### Player Allocation to Games
+
+After table assignment, individual match pairings must be staffed. A round can only be started when all games in a round are occupied.
+
+### Transferring Data to Scoreboards
+
+When starting a round, match pairings appear on the scoreboards. After completing a match, results remain visible until the next pairing is called up.
+
+### Scoreboard Operation
+
+Scoreboards are operated via touch input. Undo allows unlimited reversal of inputs. This remains possible even after match end, until the tournament director finally closes the match.
+
+### Control via Matchday Monitor
+
+The entire match day supervision can be done through the Matchday Monitor. Results are updated live in the monitor view. At the end, results of individual pairings must be confirmed.
+
+### Automatic Round Completion and Restart
+
+When all games in a round are confirmed, the system automatically proceeds to next round or potentially a shootout. Intermediate and final results can be viewed on any scoreboard if needed (Start -> Tournaments -> Tournament)
+
+### Upload to ClubCloud
+
+The upload form to ClubCloud is offered in the same way as in ClubCloud's admin area. For this to work, a login to ClubCloud in the same browser is required.

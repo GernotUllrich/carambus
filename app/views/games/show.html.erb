@@ -1,0 +1,50 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Games', games_path %> > Game #<%= @game.id %></h1>
+      <%= button_to('Edit', edit_game_path(@game), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class="mb-4">
+      <h5>Tournament</h5>
+      <%= custom_link_to @game.tournament.title, tournament_path(@game.tournament) %>
+    </div>
+    <div class="mb-4">
+      <h5>Roles</h5>
+      <%= @game.roles %>
+    </div>
+    <div class="mb-4">
+      <h5>Data</h5>
+      <%= @game.data %>
+    </div>
+    <div class="mb-4">
+      <h5>Seqno</h5>
+      <%= @game.seqno %>
+    </div>
+    <div class="mb-4">
+      <h5>Gname</h5>
+      <%= @game.gname %>
+    </div>
+    <div class="mb-4">
+      <h5>Group no</h5>
+      <%= @game.group_no %>
+    </div>
+    <div class="mb-4">
+      <h5>Table no</h5>
+      <%= @game.table_no %>
+    </div>
+    <div class="mb-4">
+      <h5>Round no</h5>
+      <%= @game.round_no %>
+    </div>
+    <div class="mb-4">
+      <h5>Started at</h5>
+      <%= @game.started_at %>
+    </div>
+    <div class="mb-4">
+      <h5>Ended at</h5>
+      <%= @game.ended_at %>
+    </div>
+  </div>
+</div>
+</div>

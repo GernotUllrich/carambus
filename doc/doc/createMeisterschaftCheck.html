@@ -1,0 +1,158 @@
+<table cellspacing="1" cellpadding="5" width="100%">
+    <tbody>
+    <tr>
+        <td>Verband</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap="">Norddeutscher Billard-Verband e.V. (NBV)</td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap="">Meisterschaft*</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><input type="text" name="meisterName" size="50" maxlength="100" class="obligatory" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Kurzbezeichnung*</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><input type="text" name="meisterShortName" size="30" maxlength="20" class="obligatory" value="">&nbsp;<i>(Anzeige
+            in der Gesamt-Rangliste.)</i></td>
+    </tr>
+    <tr>
+        <td>Sparte</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""> Pool</td>
+    </tr>
+    <tr>
+        <td>Saison</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap="">2022/2023</td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap="">Meldeliste</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><select size="1" name="meldeListId">
+            <option value="50">8-Ball LEM</option>
+            <option value="88">BM 10 Ball</option>
+            <option value="86">BM 14/1e</option>
+            <option value="87">BM 8 Ball</option>
+            <option value="89">BM 9 Ball</option>
+            <option value="90">NDM 3er TEAM</option>
+            <option value="91">NDM Doppel 8 Ball</option>
+            <option value="92">NDM TEAM</option>
+        </select></td>
+    </tr>
+    <tr valign="top">
+        <td>Melde-Regel</td>
+        <td width="20" nowrap=""></td>
+        <td class="white"><select name="mr" size="1" onchange="refreshPage()">
+            <option value="1">Standard (nur Aktive dürfen gemeldet werden)</option>
+            <option value="2">Flexibel (Aktive und Passive dürfen gemeldet werden (Teilnehmer-Liste))</option>
+            <option value="3">Meine Club Cloud (Meldung durch Spieler möglich / Extra-Meldeliste)</option>
+        </select><br><i>(Melde-Regel steuert ob Aktive, Passive oder sogar freie Meldungen möglich sind.)</i></td>
+    </tr>
+    <tr>
+        <td nowrap="">Meisterschaftstyp</td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><select size="1" name="meisterTypeId">
+            <option value="2">Bezirksmeisterschaft (BM)</option>
+            <option value="1">Norddeutsche Meisterschaft (NDM)</option>
+        </select></td>
+    </tr>
+    <tr valign="top">
+        <td>Meisterschaftsgruppe</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><select name="groupId" size="1">
+            <option value="zero">Keine Meisterschaftsgruppe</option>
+            <option value="2">NBV (alt)</option>
+        </select><br><i>(Ermöglicht eine Gruppenauswahl bei der Ergebnis-Eingabe.)</i></td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap="">Datum (von* - bis)</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><input type="date" name="playDate" class="obligatory" value="">&nbsp;-&nbsp;<input type="date" name="playDateTo"
+                                                                                                                       value=""></td>
+    </tr>
+    <tr>
+        <td>Spielbeginn*</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><input type="time" name="startTime" class="obligatory" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Aufsteiger-Quote</td>
+        <td width="20" nowrap=""></td>
+        <td class="white" nowrap=""><input type="text" name="quote" size="3" maxlength="2" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Startgeld [€]</td>
+        <td width="20" nowrap=""></td>
+        <td class="white"><input type="text" name="sg" size="10" maxlength="7" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Max. Teilnehmer</td>
+        <td width="20" nowrap=""></td>
+        <td class="white"><input type="text" name="maxtn" size="5" maxlength="4" value=""></td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap="">Bundesland <font size="-2">[4]</font></td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><select name="countryId" size="1" onchange="refreshPage()">
+            <option value="free">Freie Spiellokal-Eingabe</option>
+            <option value="9">Hamburg (4)</option>
+            <option value="11">Mecklenburg-Vorpommern (1)</option>
+            <option value="6">Niedersachsen (3)</option>
+            <option value="10">Schleswig-Holstein (15)</option>
+        </select></td>
+    </tr>
+    <tr>
+        <td nowrap="">Location</td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><input type="text" name="pubName" size="50" maxlength="100" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Strasse</td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><input type="text" name="pubStreet" size="50" maxlength="100" value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">PLZ / Ort</td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><input type="text" name="pubZipcode" size="5" maxlength="5" value="">&nbsp;<input type="text" name="pubCity"
+                                                                                                                      size="50" maxlength="100"
+                                                                                                                      value=""></td>
+    </tr>
+    <tr>
+        <td nowrap="">Telefon</td>
+        <td width="20" nowrap="">&nbsp;</td>
+        <td class="white" nowrap=""><input type="text" name="pubPhone" size="20" maxlength="20" value=""></td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr valign="top">
+        <td>Beschreibung</td>
+        <td width="20" nowrap=""></td>
+        <td><textarea name="besch" cols="80" rows="8"></textarea></td>
+    </tr>
+    </tbody>
+</table>

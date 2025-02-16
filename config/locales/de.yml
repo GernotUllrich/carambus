@@ -1,0 +1,1308 @@
+de:
+  account:
+    card_exp_month: Kartenablaufdatunm
+    card_exp_year: Kartenablaufjahr
+    card_last4: Kartenendziffern
+    card_token: Karten Token
+    card_type: Kartenart
+    created_at: Erstellt
+    domain: Domain
+    extra_billing_info: Zusatzinfos
+    id: id
+    name: Name
+    owner_id: Benutzerkennung
+    passwords:
+      edit:
+        two_factor:
+          description: When you login, you will be required to enter a one-time code along to one of your devices.
+          disable: Disable two-factor authentication
+          enable: Enable two-factor authentication
+          header: Two-factor Authentication
+        update: Aktualisieren
+        update_password: Passwort Aktualisieren
+      updated: Dein Passwort wurde erfolgreich geändert.
+    personal: persönlich
+    plan: Plan
+    processor: Prozessor
+    processor_id: Prozessor ID
+    quantity: Anzahl
+    subdomain: Subdomain
+    trial_ends_at: Probezeitende
+    updated_at: aktualisiert
+  account_invitation:
+    account_id: account id
+    created_at: erstellt
+    email: email
+    id: id
+    invited_by_id: invited by id
+    name: Name
+    roles: Rollen
+    token: Token
+    updated_at: aktualisiert
+  account_invitations:
+    authenticate: Please login or create an account to accept this invitation
+    invite_user: Invite User
+    not_found: Whoops, we weren't able to find this invitation. Check with your account admin for a new invitation.
+    show:
+      accept: Accept Invitation
+      decline: Decline
+      invited_you_to_join_html: "<strong>%{inviter}</strong> invited you to join <strong>%{account}</strong>"
+  account_invitations_mailer:
+    invite:
+      accept_or_decline: accept or decline
+      description_html: You can %{link} this invitation.
+      header_html: "%{inviter} has invited you to collaborate on <strong>%{account}</strong>"
+      subject: "%{inviter} invited you to %{account}"
+      view_invitation: View invitation
+  account_user:
+    account_id: account id
+    created_at: erstellt
+    id: id
+    roles: Rollen
+    updated_at: updated at
+    user_id: user id
+  actions: Aktionen
+  activerecord:
+    attributes:
+      account:
+        name_on_card: Name on Card
+      api_token:
+        created_at: Created
+        last_used_at: Last Used
+      club:
+      party:
+      party_monitor:
+        party: Spieltag
+        reset_party_monitor: Spieltag-Monitor komplett zurücksetzen
+        state: Status
+      tournament:
+        accredation_end: Registrierung bis
+        age_restriction: Zugangs-beschränkungen
+        allow_follow_up: 'Nachstoß erlaubt:'
+        allow_overflow: 'Eingabeüberlauf erlaubt:'
+        ba_id: Ba-Id
+        ba_state: BA-Status
+        balls_goal: Bälle Ziel
+        cc_id: Cc-Id
+        club: Club
+        color_remains_with_set: 'Farbe bleibt bei Satzwechsel:'
+        data: Daten
+        date: Datum
+        discipline: Disziplin
+        end_date: Turnierende
+        fixed_display_left: 'Linksseitige Darstellung:'
+        games: Spiele
+        handicap_tournier: Handicap-Turnier
+        hosting_club: Gastgeber
+        innings_goal: Aufnahme-begrenzung
+        kickoff_switches_with: 'Anstoß wechselt mit:'
+        league: Liga
+        location: Spielort
+        modus: Modus
+        name: Name
+        organizer: Organisiert von
+        plan_or_show: plan or show
+        player_class: Spielerklasse
+        position: Position
+        rankings: Ranglisten
+        region: Regionalverband
+        reorder: Reihenfolge
+        season: Saison
+        sets_to_play: 'Sätze:'
+        sets_to_play_win: Sätze / Gewinnsätze
+        sets_to_win: 'Gewinnsätze:'
+        shortname: Kurzname
+        single_or_league: Einzel oder Mannschaft
+        state: Status
+        sync_date: zuletzt mit BA bzw. CC synchronisiert
+        team_size: 'Teamgrösse:'
+        timeout: Timeout (Sek.)
+        timeouts: "# Timeouts"
+        title: Titel
+      user:
+        timezone: Zeitzone
+        theme: Farbschema
+        preferences: Einstellungen
+    errors:
+      models:
+        account:
+          attributes:
+            domain:
+              reserved: "%{value} is reserved."
+            subdomain:
+              format: must be at least 2 characters and alphanumeric
+              reserved: "%{value} is reserved."
+        account_invitation:
+          attributes:
+            email:
+              invited: has already been invited
+        account_user:
+          attributes:
+            admin:
+              cannot_be_removed: role cannot be removed for the account owner
+  add_tables: Tische hinzufügen
+  announcement:
+    created_at: erstellt
+    id: id
+    kind: kind
+    published_at: published at
+    title: title
+    updated_at: updated at
+  announcements:
+    index:
+      description: Updates und Verbesserungen an %{name}
+      empty_placeholder: Hier kommen bald neue Nachrichten!
+      title: Neuigkeiten
+    show:
+      back: Back
+      description: New updates and improvements to %{name}
+      title: What's New
+  api_token:
+    created_at: erstellt
+    expires_at: expires at
+    id: id
+    last_used_at: last used at
+    metadata: metadata
+    name: name
+    token: token
+    transient: transient
+    updated_at: updated at
+    user_id: user id
+  api_tokens:
+    all: All API Tokens
+    app: App
+    created: Successfully created API token
+    default: Default
+    destroyed: Your API token has been revoked
+    edit:
+      title: Edit
+    index:
+      create: Create an API Token
+      title: API Tokens
+      view: View
+    new:
+      title: New API Token
+    show:
+      auth_header: Authenticate using Header
+      click_to_copy: Click to copy
+      confirm: Are you sure you want to revoke this API token?
+      edit: Edit Token
+      revoke: Revoke Token
+    updated: Successfully updated API token
+  application:
+    account_navbar:
+      accounts: Accounts
+      api_tokens: API
+      billing: Rechnungen
+      connected_accounts: Verbundene Accounts
+      password: Password
+      profile: Profil
+    flash:
+      confirm_payment: Betätige Die letzte Zahlung
+    footer:
+      about: Über uns
+      privacy: Datenschutzrichtlinien
+      terms: AGB
+    navbar:
+      log_in: Anmelden
+      accounts: Accounts
+      admin: Admin
+      api_tokens: API
+      billing: Rechnungen
+      connected_accounts: Verbundene Accounts
+      dashboard: Dashboard
+      password: Password
+      signed_in_as_html: Angemeldet als <strong>%{user}</strong>
+      sign_up: Registrieren
+      profile: Profil
+      sign_out: Abmelden
+    right_nav:
+      announcements: Was gibt's neues
+      pricing: Preise
+    scaffold:
+      actions: Actions
+      edit:
+        title: Edit %{model}
+      new:
+        title: New %{model}
+      view: View
+  are_you_sure: Sicher?
+  back: Zurück
+  ca:
+    update: Aktualisieren
+  calendar:
+    no_upcoming: Keine anstehenden Events gefunden
+    upcoming: 'Anstehende Events:'
+  cancel: Cancel
+  cancel_game: Spiel beenden
+  carambus_manages: Carambus verwaltet den Billard-Spielbetrieb
+  close_party: Spieltag abschliessen
+  club:
+    address: Adresse
+    ba_id: Link zur Billard Area
+    cc_id: Link zur Club Cloud
+    club_tournaments: Club Turniere
+    dbu_entry: DBU Eintritt
+    email: eMail
+    founded: Gegründet
+    homepage: Homepage
+    id: id
+    index:
+      club: Club
+      clubs: Clubs
+    logo: Logo
+    name: Name
+    new_club_guest: Neuen Club Gast anlegen
+    new_club_location: Neuen Club Spielort anlegen
+    new_club_tournament: Neues Club Turnier anlegen
+    priceinfo: Mitgliedsbeiträge
+    region_id: Regionalverband
+    shortname: Kurzname
+    status: Status
+    synonyms: Synonyme
+  clubs:
+    address: address
+    ba_id: BA Id
+    created_at: created at
+    dbu_entry: DBU entry
+    email: eMail
+    founded: founded
+    homepage: Homepage
+    logo: Logo
+    name: Name
+    priceinfo: price info
+    region_id: region
+    shortname: short name
+    status: status
+    updated_at: updated at
+  continue: weiter
+  copied: Copied!
+  copy_to_clipboard: Copy scoreboard link to clipboard
+  country:
+    code: ISO Code
+    created_at: created at
+    id: id
+    index:
+      countries: Länder
+    name: Name
+    updated_at: updated at
+  create_an_account_first: Bitte eröffne zuächst einen Account.
+  dashboard:
+    show:
+      title: Dashboard
+  delete: Löschen
+  discipline:
+    created_at: created at
+    data: Daten
+    id: id
+    index:
+      discipline: Disziplin
+      disciplines: Disziplinen
+    name: Name
+    super_discipline_id: Übergeordnete Disziplin
+    table_kind_id: Tischart
+    updated_at: updated at
+  discipline_tournament_plan:
+    discipline_id: Disziplin
+    id: id
+    index:
+      discipline_tournament_plan: Disziplin/Turnierplan
+      discipline_tournament_plans: Disziplin/Turnierpläne
+    innings: Aufnahmen
+    player_class: Spielerklasse
+    players: Spielerzahl
+    points: Bälle
+    tournament_plan_id: Turnierplan
+    updated_at: updated at
+  edit: Edit
+  errors:
+    messages:
+      image_format_not_supported: image format not supported
+      invalid_theme: Ungültiges Layout Thema
+      invalid_locale: Ungültiges Locale Kürzel
+      invalid_timezone: Ungültige Zeitzone
+  game:
+    created_at: erstellt
+    data: data
+    display_af_game_group: Achtelfinale
+    display_af_game_name: Achtelfinale %{game_no}
+    display_fin_game_name: Finale
+    display_group_game_name: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}
+    display_group_game_name_group: Group
+    display_group_game_name_rp: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}/%{rp}
+    display_group_game_name_short: Gruppe %{group_no}
+    display_hf_game_group: Halbfinale
+    display_hf_game_name: Halbfinale %{game_no}
+    display_place_game_name: Platz %{n1}-%{n2} %{n3}
+    display_qf_game_group: Viertelfinale
+    display_qf_game_name: Viertelfinale %{game_no}
+    ended_at: ended at
+    gname: gname
+    group_no: group no
+    id: id
+    index:
+      game: Partie
+      games: Partien
+    roles: roles
+    round_no: round no
+    seqno: seqno
+    started_at: started at
+    table_no: table no
+    template_game_id: template game id
+    tournament_id: tournament id
+    updated_at: updated at
+  game_participation:
+    balls_goal: Ballziel
+    created_at: created at
+    data: Daten
+    game_id: Partie
+    gd: GD
+    gname: Spielbezeichnung
+    hs: HS
+    id: id
+    index:
+      game_participation: Partiepartner
+      game_participations: Partiepartner
+    innings: Aufnahmen
+    player_id: Spieler
+    points: Bälle
+    result: Ergebnis
+    role: Rolle
+    updated_at: updated at
+  game_results: Einzelergebnisse
+  gd: GD
+  goal: Ziel
+  hello: Hallo Welt
+  helpers:
+    label:
+      account:
+        name: Account Name
+      country: Country or region
+      user:
+        name: Full name
+        theme: Design
+        locale: Sprache
+        timezone: Zeitzone
+    placeholder:
+      account:
+        billing_email: gernot.ullrich@gmx.de
+        domain: carambus.de
+        extra_billing_info: VAT ID, Business name, address, etc...
+        name: Account Name
+        name_on_card: Full Name
+        subdomain: example
+      account_invitation:
+        email: gernot.ullrich@gmx.de
+        name: Full name
+      api_token:
+        name: Token Name
+      name_on_card: Full name
+      user:
+        email: you@example.com
+        name: Steve Jobs
+        password: password
+  home:
+    index:
+      about: Der Entwickler
+      carambus_tournament_management: Carambus Turnierverwaltung
+      club: Clubs
+      club_cloud: Club Cloud
+      club_locations: Club Locations
+      club_settings: Club-Einstellungen
+      configure: Einstellungen
+      country: Länder
+      discipline: Disziplin
+      disciplinetournamentplan: Disziplin/Turnierpläne
+      disziplinen: Disziplinen
+      docs: Dokumentation
+      game: Partie
+      game_plans: Spielpläne
+      gameparticipation: GameParticipation
+      guest: Gast
+      guests: Gäste
+      inning: Aufnahmen
+      intro: Einführung
+      large_carambol_tables: Große Carambol Tische
+      league: Ligen
+      league_parties: Ligaspieltage
+      league_teams: Mannschaften
+      leagues: Ligen
+      location: Spielort
+      locations: Spielorte
+      matchday_monitoring: Spieltagverwaltung
+      organisation: Organisationen
+      partien: Partien
+      party_games: Spieltagpartien
+      party_monitors: Spieltag-Monitore
+      player: Spieler
+      player_rankings: Ranglisten
+      pool_tables: Pool Tische
+      region: Regionalverbände
+      reservation: Reservierungen
+      results: Ergebnisse
+      results_so_far: Ergebnisse bisher
+      season: Saison
+      seasonparticipation: Clubzugehörigkeit
+      seeding: Turnierteilnahmen
+      select_regional_organization: Auswahl des Regionalverbandes
+      select_your_club: Auswahl des Clubs
+      small_carambol_tables: Kleine Carambol Tische
+      snooker_tables: Snooker Tische
+      spieler: Spieler
+      table_kind: Tischtypen
+      tablemonitor: Table-Monitore
+      tournament: Turniere
+      tournament_settings: Turnier-Einstellungen
+      tournamentmonitor: Turnier-Monitore
+      tournamentplan: Turnierpläne
+      tournaments: Turniere
+      tournierabwicklung: Turnierabwicklung
+      tournierplanung: Turnierverwaltung
+      training: Training
+      version: Versionen
+      your_tables: Verfügbare Turniertische
+  last_inning: Letzte<br />Aufnahme
+  layouts:
+    mailer:
+      copyright_html: Copyright &copy; %{year}, All rights reserved.
+      mailing_address: 'Our mailing address is:'
+      preferences: Update subscription preferences
+      unsubscribe: Unsubscribe from this list
+      view_in_browser: View this in your browser
+  league:
+    show:
+      reload_from_billard_area: Datenabgleich mit der %{source}
+      reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
+  league_league_teams: Liga Mannschaften
+  league_parties: Liga Wettkämpfe
+  leagues_season: Aktuelle Ligaspiele in der Saison
+  leaving_game: Du möchtest das laufende Spiel verlassen.
+  location:
+    address: Adresse
+    club_id: Club
+    created_at: created at
+    data: Daten
+    id: ID
+    index:
+      location: Spiellokal
+      locations: Spiellokale
+    name: Name
+    organizer_id: Organisierung
+    organizer_type: Region/Club
+    updated_at: updated at
+  may_loose_results: Spielergebnisse können dabei verloren gehen!
+  must_be_an_admin: Adminrechte erforderlich.
+  not_allowed_on_api_server: Diese Operation ist in API Server nicht möglich.
+  not_leave_party_game: Liga- oder Einzelwettkämpfe können nur über das Turniermanagement beendet werden.
+  notification:
+    account_id: account id
+    created_at: erstellt
+    id: id
+    interacted_at: interacted at
+    params: params
+    read_at: read at
+    recipient_id: recipient id
+    recipient_type: recipient type
+    type: type
+    updated_at: updated at
+  notifications:
+    account_transferred: "%{previous_owner} made you owner of the %{account} account."
+    empty: Nothing to see here — yet.
+    empty_description: We'll let you know when you have new notifications.
+    index:
+      empty_placeholder: Nothing to see here — yet.
+      title: Notifications
+    invite_accepted: "%{user} accepted your invitation."
+  oauth:
+    apple: Apple
+    developer: Developer
+    facebook: Facebook
+    github: GitHub
+    gitlab: GitLab
+    google_oauth2: Google
+    microsoft_graph: Microsoft
+    sign_in_with: Sign in with %{provider}
+    stripe: Stripe
+    twitter: Twitter
+  of: of
+  parties:
+    index:
+      listing_parties: Liste aktueller Ligabegegnungen
+    parties: Spieltage
+    party: Spieltag
+  party_party_games: Spieltagpartien
+  payments:
+    show:
+      back: Go back
+      cancelled: Payment Cancelled
+      cancelled_description: This payment was cancelled.
+      confirm: Confirm your %{amount} payment
+      confirm_button: Confirm Payment
+      confirm_description: Extra confirmation is needed to process your payment. Please confirm your payment by filling out your payment details below.
+      successful: Payment Successful
+      successful_description: This payment was already successfully confirmed.
+    success: Thanks for subscribing!
+  plan:
+    amount: Betrag
+    created_at: created at
+    details: Details
+    features: Leistungen
+    id: id
+    index:
+      plan: Plan
+      plans: Pläne
+    interval: Interval
+    name: Name
+    trial_period_days: Probezeit in Tagen
+    updated_at: updated at
+  player:
+    ba_id: Link zur Billard Area
+    club_id: Club
+    created_at: created at
+    data: Details
+    firstname: Vorname
+    fullname: Name
+    id: ID
+    index:
+      player: Spieler
+      players: Spieler
+    last_sync: Last Sync
+    lastname: Nachname
+    nickname: Spitzname
+    source_url: Quelle
+    title: Titel
+    updated_at: updated at
+  player_class:
+    created_at: created at
+    discipline_id: Disziplin
+    id: id
+    index:
+      player_class: Spielerklasse
+      player_classes: Spielerklassen
+    shortname: Kurname
+    updated_at: updated at
+  player_ranking:
+    balls: balls
+    bed: BED
+    btg: BTG
+    created_at: created at
+    discipline_id: Disziplin
+    g: g
+    gd: GD
+    hs: HS
+    id: id
+    index:
+      player_ranking: Ranglistenplatz
+      player_rankings: Ranglistenplätze
+    innings: Aufnahmen
+    org_level: Organisationsebene
+    p_gd: p gd
+    p_player_class_id: p player class id
+    player_class_id: player class id
+    player_id: Spieler
+    points: Bälle
+    pp_gd: pp gd
+    pp_player_class_id: pp player class id
+    quote: quote
+    rank: rank
+    region_id: Regionalverband
+    remarks: remarks
+    season_id: Saison
+    sets: sets
+    sp_g: sp g
+    sp_quote: sp quote
+    sp_v: sp v
+    status: Status
+    t_ids: t ids
+    tournament_player_class_id: tournament player class id
+    v: v
+  processing: Processing...
+  region:
+    address: Adresse
+    country_id: Länder Code
+    created_at: created at
+    email: eMail
+    id: ID
+    index:
+      region: Regionalverband
+      regions: Regionalverbände
+    logo: Logo
+    name: Name
+    shortname: Kurzname
+    show:
+      reload_from_billard_area: Datenabgleich mit der %{source} inkl. Clubs
+      reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Clubs und Spieler
+      reload_leagues: Datenabgleich der Liegen aus der Region %{source}
+      reload_leagues_with_details: Datenabgleich der Ligen incl. Spielergebnisse aus der Region %{source}
+      reload_tournaments: Datenabgleich der Einzelmeisterschaften aus der Region %{source}
+    updated_at: updated at
+  requires_admin_role: Adminrechte notwendig
+  rest: Rest
+  save: Speichern
+  scaffold:
+    actions: Actions
+    edit:
+      title: Edit %{model}
+    new:
+      title: New %{model}
+    view: View
+  season:
+    ba_id: BA ID
+    created_at: created at
+    data: Daten
+    id: id
+    index:
+      season: Saison
+      seasons: Saisons
+    name: Name
+    updated_at: updated at
+  season_participation:
+    club_id: Club
+    created_at: created at
+    data: Daten
+    id: id
+    index:
+      season_participation: SaisonSpieler
+      season_participations: SaisonSpieler
+    player_id: Spieler
+    season_id: Saison
+    updated_at: updated at
+  seeding:
+    ba_state: BA Status
+    balls_goal: Bälle Ziel
+    created_at: created at
+    data: Daten
+    id: id
+    index:
+      seeding: Turnierteilnahme
+      seedings: Turnierteilnahmen
+    player_id: Spieler
+    playing_discipline_id: Disziplin
+    position: Listenposition
+    rank: Ranglistenplatz
+    state: Status
+    tournament_id: Turnier
+    updated_at: updated at
+  select_game: Wähle aus den noch offenen Spielpaarungen
+  select_game_mode: Wähle den Spielmodus
+  select_tournament: Turniere
+  select_training_table: Tischzuordnung
+  setting:
+    club_id: club id
+    created_at: erstellt
+    data: data
+    id: id
+    region_id: region id
+    state: state
+    tournament_id: tournament id
+    updated_at: updated at
+  something_went_wrong: Da ist was schief gegangen
+  sort_by: 'Sortiere nach:'
+  static:
+    about:
+      content: |
+        <i>
+        <p>&nbsp;</p>
+        <p>Kompromisslose Automatisierung des Billard Spielbetriebs von der Tournierplanung über die Datenerfassung bis hin zur Übertragung der Spielergebnisse. Das ist das Ziel des Carambus Projektes.</p>
+        <p>Eigentlich ist mein Beratungsgewerbe Ullrich-IT-Consulting bereits Geschichte, da ich mich schon seit längerem Im Ruhestand befinde.
+        Aber anlässlich des bevorstehenden Jubiläums meines Vereins <a href=http://www.billardclub-wedel.de>Billardclub Wedel 61 e.V.</a> kam mir die Idee
+        endlich einmal etwas Substantielles beizusteuern.</p>
+        <p>Und wer mich kennt, der weiss, dass ich während meines gesamten Berufslebens - zuletzt als Visionär bei Sun Microsystems - bestebt war neueste Technologien
+        einzusetzen.</p>
+        <p>Vor 12 Jahren kam ich das erste Mal mit der Entwicklungsumgebung Ruby/Rails in Berührung. Seit dem schätze ich den enormen Fortschritt
+        in der Entwicklungsgeschwindigkeit. Die grosse Frage war nun, ob sich dieses Projekt, welches an vielen Stellen
+        Realzeit-Anforderungen an die beteiligten Anzeige- und Erfassungssystem stellt, sinnvoll mit RoR realisieren lässt.<p>
+        <p>Dem Projekt ging also zunächst eine ca 4-wöchige Evaluierung möglicher Entwicklungsumgebungen voraus - insbesondere React, React Native und Angular.
+        Leider führte das jeweils zu sehr aufwendigen Bruchstellen zwischen serverseitiger Datenbankorientierte Logik und den JavaScriptbasierten Endgeräten.
+        Also verschiedene Betriebssysteme, Sprachen und Frameworks. Keine gute Idee.
+        Glücklicherweise
+        kam ich über <a href=\"http://gorails.com\">GoRails</a> zu einer idealen Lösung - Stimulus Reflex und Cable Ready!  Carambus ist ein serverbasierte Weblösung mit Single Page Feeling!</p>
+        <p>Dr. Gernot Ullrich</p>
+        <p>Ullrich-IT-Consulting</p>
+        </i>
+      title: 'Der Entwickler über sich selbst:'
+    no_plans: Noch sind keine Bestellungen konfiguriert.
+    pricing:
+      get_started: Auf geht's
+      heading: Preise
+      monthly: Monatlich
+      subhead: Einfache, unkomplizierte Preisstruktur
+      yearly: Jährlich
+    privacy:
+      title: Datenschutzrichtlinien
+    terms:
+      title: AGB
+  subscriptions:
+    already_subscribed: You are already subscribed.
+    billing_address:
+      add_billing_address: Add billing address
+      billing_address: Billing Address
+      created: Your billing address was added successfully.
+      destroyed: Your billing address has been removed successfully.
+      edit: Edit
+      no_billing_address: You have no billing address on file.
+      update_billing_address: Update billing address
+      updated: Your billing address was updated successfully.
+    billing_addresses:
+      show:
+        tax_may_apply: Tax may apply.
+    billing_email:
+      billing_email: Billing Email
+      description: Send receipts to a specific email address along with the account owner.
+      save: Save
+      saving: Saving...
+    billing_info:
+      add_info: Add information
+      additional_information: Add any additional information to all of your receipts such as your VAT ID, full business name, and address.
+      extra_billing_info: Extra Billing Information
+      save_info: Save information
+      saving: Saving...
+    billing_settings_updated: Billing settings have been updated successfully.
+    cancels:
+      destroy:
+        resumed: Your subscription has been canceled.
+      show:
+        active_until: Your plan will be canceled, but is still available until the end of your billing period.
+        back: Back to Billing
+        button: Cancel plan
+        contact_us: Contact us
+        description: You can cancel anytime, but you'll lose access to %{product}.
+        help_html: Need to talk to someone? %{link} -- we'd love to help.
+        processing: Cancelling...
+        resume: If you change your mind, you can resume your subscription.
+        subject: Question about %{product}
+        title: Cancel your plan
+    charges:
+      amount: Amount
+      date: Date
+      empty: No billing history.
+      invoice: Invoice
+      receipt: Receipt
+      title: Billing History
+      view: View
+    created: Thanks for subscribing!
+    edit:
+      current_plan: Current Plan
+      description: Simple, straightforward pricing to get your online business up and running
+      monthly: Monthly
+      processing: Processing...
+      title: Change Your Plan
+      trial_ends: Your trial ends in %{days}.
+      yearly: Yearly
+    forms:
+      stripe:
+        credit_or_debit_card: Credit or debit card
+    index:
+      choose_plan: Choose a plan
+      contact_admin: Contact an admin to change the %{account} subscription.
+      not_subscribed: You are not currently subscribed.
+      subscriptions: Current plan
+      title: Billing
+    new:
+      account: Account
+      billing_address: Billing Address
+      change: Change
+      contact_html: Don't hesitate to %{link}.
+      contact_subject: I have a question about %{product}
+      contact_support: contact support
+      help: Need any help?
+      payment_method: Payment Method
+      processing: Processing...
+      renews_html: Automatically renews<br/>after 1 %{interval}
+      start_trial: Start trial
+      subscribe: Subscribe
+      subtotal: Subtotal
+      tax: Tax
+      testimonial: "%{product} has made my life so much easier. I can't recommend it enough."
+      title: Checkout
+      total: Total due today
+    pauses:
+      show:
+        back: Back to Billing
+        button: Pause plan
+        description: You can pause your subscription and resume at a later time.
+        note: The pause takes effect on the first day of your next billing cycle. You will not be charged while your account is paused.
+        processing: Pausing...
+        title: Pause your plan
+      update:
+        resumed: Your subscription has been paused.
+    payment_methods:
+      create:
+        updated: Your payment method was updated successfully.
+      forms:
+        braintree:
+          button: Update Card
+        fake_processor:
+          message: You have free access and don't need to add a payment method.
+        stripe:
+          button: Update Card
+          credit_or_debit_card: Credit or Debit Card
+      new:
+        billing: Billing
+        past_due: Your payment method was declined. Please add another payment method to continue.
+        payment_details: Payment Details
+    plan:
+      change_plan: Change Plan
+      contact_us: Contact Us
+      contact_us_price: Let's Talk
+      current_plan: Current plan
+      get_started: Get Started
+      processing: Processing...
+      start_trial: Start Trial
+    resumed: Your subscription has been resumed.
+    resumes:
+      show:
+        back: Back to Billing
+        button: Resume plan
+        processing: Resuming...
+        resume: This plan will no longer be canceled and will automatically renew.
+        title: Resume your plan
+      update:
+        resumed: Your subscription has been resumed.
+    subscription:
+      cancel_plan: Cancel plan
+      canceled: Canceled
+      canceled_on_trial: After your trial ends on %{date}, this plan will be canceled automatically.
+      change_plan: Change plan
+      confirm_payment: Confirm payment
+      ends_at: Your plan will be canceled on %{date}.
+      failed_payment: Your latest payment has failed. Update your payment method to continue this plan.
+      free_trial: Free Trial
+      free_trial_ends: Your trial ends on %{date}.
+      incomplete: Incomplete
+      past_due: Past due
+      pause: Pause plan
+      paused: Your plan is paused.
+      paused_at: Your plan will be paused on %{date}.
+      resume: Resume plan
+      title: Current Plans
+      trial: After your trial ends on %{date}, this plan will continue automatically.
+      unpaid: Unpaid
+      update_payment_method: Update payment method
+      view_upcoming_invoice: View upcoming invoice
+      view_usage: View usage
+    summary:
+      each: each
+      per_unit: per %{unit}
+      quantity: 'Quantity: %{quantity} at %{price} %{unit}'
+    upcomings:
+      show:
+        back: Back to Billing
+        description: The current costs for your usage this billing period.
+        line_items:
+          description: Description
+          quantity: Quantity
+          total: Total
+          unit_price: Unit Price
+        title: Upcoming Invoice
+    update:
+      success: Your plan has been updated successfully.
+  table:
+    created_at: erstellt
+    data: data
+    id: id
+    ip_address: ip address
+    location_id: location id
+    name: name
+    table_kind_id: table kind id
+    updated_at: updated at
+  table_assignments_heterogen: Tischzuordnung zu verschiedenen Locations
+  table_assignments_incomplete: Tischzuordnung unvollständig
+  table_assignments_inconsistent: Tischzuordnung mehrdeutig
+  table_kind:
+    created_at: erstellt
+    display_name_half_match: Karambol Halbmatch Tisch
+    display_name_match_billard: Karambol Match Billard
+    display_name_pool: Pool
+    display_name_small_billard: Karambol Turnier Billard
+    display_name_snooker: Snooker
+    id: id
+    measures: measures
+    name: name
+    none_available: Keine Tische verfügbar
+    short: short
+    updated_at: updated at
+  table_monitor:
+    active_timer: Aktiver Zähler
+    created_at: created at
+    data: Daten
+    final_set_score: Partie beendet
+    game_id: Partie
+    id: id
+    index:
+      table_monitor: Tischmonitor
+      table_monitors: Tischmonitore
+    ip_address: IP-Adresse
+    name: Name
+    next_game_id: Nächste Partie
+    nnn: nnn
+    set_finished: Satz beendet
+    state: Status
+    status:
+      exchange_colors: Farben tauschen
+      exchange_players: Spieler tauschen
+      final_match_score: Endergebnis erfasst
+      final_set_score: Partie beendet
+      match_shootout: Ausstoßen
+      new: Startup...
+      playing: ''
+      ready: Frei
+      ready_for_new_match: Frei
+      set_over: "%{game_or_set_finished}%{wait_check}"
+      shootout_result: Zunächst evtl. Spielertausch!!!
+      start_game: Spiel starten
+      tournament_endresult: Tournament Result
+      wait_check: "-OK?"
+      warmup: Spielbeginn
+      warmup_a: Einstoßen Spieler A
+      warmup_b: Einstoßen Spieler B
+    table_id: Tisch
+    timer_finish_at: Timerende
+    timer_halt_at: Timer angehalten
+    timer_start_at: Timerstart
+    tournament_monitor_id: Turniermonitor
+    updated_at: updated at
+  table_monitors:
+    display_name: Tisch %{t_no}
+  themes:
+    dark: Dark
+    light: Light
+    system: Sync with system
+  tournament:
+    accredation_end: Anmeldung bis
+    age_restriction: Zugangsbeschränkung
+    ba_id: BA / CC
+    ba_state: BA Status
+    balls_goal: Bälleziel
+    created_at: created at
+    data: Daten
+    date: Datum
+    discipline_id: Disziplin
+    end_date: Ende Datum
+    handicap_tournier: Handicap Tournier
+    id: ID
+    innings_goal: Aufnahmeziel
+    location: Lokation
+    location_id: Lokation
+    modus: Modus
+    organizer_id: Organisiert durch
+    organizer_type: Region/Club
+    plan_or_show: plan or show
+    player_class: Spielerklasse
+    region_id: Regionalverband
+    season_id: Saison
+    shortname: Kurzname
+    single_or_league: Einzel oder Mannschaft
+    state: Status
+    sync_date: Letzter Abgleich mit der BA bzw. CC
+    time_out_warm_up_first_min: Time-Out Einspielzeit neuer Tisch
+    time_out_warm_up_follow_up_min: Time-Out Einspielzeit selber Tisch
+    timeout: Time-out Stoßvorbereitung (sek)
+    timeouts: Timeouts
+    title: Titel
+    tournament_plan_id: Tournier Plan
+    updated_at: updated at
+  tournament_monitor:
+    balls_goal: balls goal
+    created_at: erstellt
+    data: data
+    id: id
+    innings_goal: innings goal
+    state: state
+    timeouts: "# timeouts"
+    tournament_id: tournament id
+    updated_at: updated at
+  tournament_monitors:
+    current_games:
+      balls: Bälle
+      current_games_round: Aktuelle Spiele - Runde %{round}
+      current_inning: Aktuelle Aufnahme
+      final_set_score: Partie beendet
+      gd: GD
+      hs: HS
+      inning: Aufnahmen
+      inputs: Eingaben
+      next: Weiter
+      of: von
+      player: Spieler
+      sets: Sätze
+      table: Tisch
+      undo: Undo
+    edit:
+      back: Zurück
+      editing_tournament_execution: Ändern des Turnier-Monitore
+      show: Zeigen
+    form:
+      prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
+    game_results:
+      balls: Bälle
+      balls_goal: BG
+      balls_goal_percent: BG_PCT
+      game: Partie
+      gd: GD
+      hs: HS
+      innings: Aufnahmen
+      playera: PlayerA
+      playerb: PlayerB
+      points: Punkte
+      sets: Sätze
+    index:
+      data: Data
+      destroy: Löschen
+      edit: Ändern
+      event_name: Event Name
+      id: ID
+      listing_tournament_monitors: Liste der Tourier-Monitore
+      new_tournament_execution: Neuer Turnier Monitor
+      object_after_changes: Object (after Changes)
+      object_changes: Object Changes
+      object_diffs: Object Diffs
+      show: Zeigen
+      state: Status
+      this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10: This table is displaying TournamentMonitor::Version which is its own versions table. Only last 10.
+      tournament: Turnier
+      tournamentmonitorversions: TournamentMonitor::Versions
+      when: When
+      whodunnit: whodunnit
+    new:
+      back: zurück
+      new_tournament_execution: Neuer Turnier-Monitor
+    rankings:
+      finals_rankings: Endrundenergebnisse
+      finals_results_in_total: Summen
+      group_rankings: Gruppenergebnisse
+      group_results_in_total: Summen
+      tournament_results: Turnierergebnisse
+    show:
+      playing: 'spielt '
+      start_tournament: Start des Turniers
+      switch_players: Spieler tauschen
+      tournament_phase: 'Turnier Phase:'
+  tournament_plan:
+    created_at: erstellt
+    even_more_description: even more description
+    executor_class: executor class
+    executor_params: executor params
+    id: id
+    more_description: more description
+    name: name
+    ngroups: ngroups
+    nrepeats: nrepeats
+    players: players
+    rulesystem: rulesystem
+    tables: tables
+    updated_at: updated at
+  tournaments:
+    edit:
+      back: Zurück
+      editing_tournament: Editiere Turnier
+      show: Zeigen
+    finalize_modus:
+      alternatives_other_disciplines: 'Weitere Alternativen:'
+      alternatives_same_discipline: 'Alternativen mit der gleichen Disziplin:'
+      continue_with: Weiter mit
+      final_modus_selection: Abschliessende Auswahl des Austragungsmodus
+      proposed_modus: 'Vorgeschlagener Modus:'
+      teilnehmer: Auswahl des Modus für %{count} Teilnehmer
+    form:
+      discipline: Disziplin
+      player_class: Spielerklasse
+      prohibited_this_tournament_from_being_saved: " hat die Änderung dieses Turnieres unmöglich gemacht:"
+    groups:
+      groups: Gruppen
+    index:
+      listing_tournaments: Liste der Turniere
+      new_tournament: Neues Turnier
+    new:
+      back: Zurück
+      new_tournament: Neues Club Turnier
+    show:
+      accredation_end: 'Registrierung bis:'
+      age_restriction: 'Zugangsbeschränkungen:'
+      ba_id: 'Ba Id:'
+      ba_state: 'BA Status:'
+      back: Zurück
+      balls_goal: Bälle Ziel
+      club: Club
+      date: 'Datum:'
+      debugging_force_reset_tournament_monitor: 'Debugging: Force Reset Tournament'
+      define_participants: Setzliste aktualisieren
+      discipline: 'Disziplin:'
+      edit: Aktualisieren
+      final_tournament_mode: 'Abschliessender Turnier Modus:'
+      finalize_tournament_modus: Turniermodus festlegen
+      finish_seeding: Abschluss der Rangliste (nicht umkehrbar)
+      games: Spiele
+      hosting_club: 'Gastgeber:'
+      innings_goal: Aufnahme-begrenzung
+      location: 'Spielort:'
+      mangage_tournament_group_phase: Verwaltung der Turnierspiele
+      modus: 'Modus:'
+      name: Name
+      new_position: Edit Position
+      order_by_ranking_or_handicap: Ordne nach Rangliste bzw. Handicap
+      party_monitor: Spieltag Monitor
+      player_class: 'Spielerklasse:'
+      position: Position
+      rankings: Ranglisten
+      region: 'Regionalverband:'
+      registrations: Registrierungen
+      reload_from_billard_area: Datenabgleich mit der Club Cloud
+      reload_from_billard_area_with_details: Datenabgleich mit der Club Cloud mit allen Details
+      reorder: Reihenfolge
+      reset_tournament_monitor: Zurücksetzen des Turnier-Monitors
+      sets_to_play: 'Sätze:'
+      sets_to_win: 'Gewinnsätze:'
+      state: 'Status:'
+      syncing_with_billard_area: Bis auf lokal im Club organisierte Turniere müssen fast alle Turnierdaten über die <a href="http://billard_area">Billard-Area</a> eingegeben werden. Hier gibt es nur die Möglichkeit ergänzende Informationen hinzuzufügen, soweit sie für die Tournierabwicklung erforderlich sind (Tischzuordnungen, Locations etc).
+      syncing_with_billard_area_ext: Der Abgleich mit den Daten der Billard-Area erfogt über den Link
+      team_size: 'Teamgrösse:'
+      title: 'Titel:'
+    start_tournament: Starte den Turnier-Monitor
+    tournament_monitor: Turnier-Monitor
+  tournaments_season: Aktuelle Turniere in der Saison
+  training_game: Trainings-Partie
+  unauthorized: Du hast keine Berechtigung für diese Aktion.
+  upload_to_club_cloud: Upload in die ClubCloud
+  user:
+    accepted_privacy_at: accepted privacy at
+    accepted_terms_at: accepted terms at
+    admin: admin
+    announcements_read_at: announcements read at
+    confirmation_sent_at: confirmation sent at
+    confirmation_token: confirmation token
+    confirmed_at: confirmed at
+    created_at: erstellt
+    current_sign_in_at: current sign in at
+    current_sign_in_ip: current sign in ip
+    email: email
+    encrypted_password: encrypted password
+    first_name: first name
+    firstname: Vorname
+    id: id
+    invitation_accepted_at: invitation accepted at
+    invitation_created_at: invitation erstellt
+    invitation_limit: invitation limit
+    invitation_sent_at: invitation sent at
+    invitation_token: invitation token
+    invitations_count: invitations count
+    invited_by_id: invited by id
+    invited_by_type: invited by type
+    last_name: last name
+    last_sign_in_at: last sign in at
+    last_sign_in_ip: last sign in ip
+    lastname: Nachname
+    player_id: player id
+    preferred_language: Bevorzugte Sprache
+    remember_created_at: remember erstellt
+    reset_password_sent_at: reset password sent at
+    reset_password_token: reset password token
+    sign_in_count: sign in count
+    terms_of_service: terms of service
+    time_zone: time zone
+    unconfirmed_email: unconfirmed email
+    updated_at: updated at
+    username: username
+  users:
+    agreements:
+      destroy:
+        declined: To continue using the service, please sign in and accept the %{agreement}.
+      show:
+        accept: I Accept
+        decline: I Decline
+        description: Before you can proceed, you must read and accept the new %{agreement}.
+        last_updated: Last updated %{date}
+        title: "%{agreement} Changed"
+    avatar:
+      upload: Upload Avatar
+    connected_accounts:
+      connected_account:
+        remove: Remove
+      index:
+        description: Connecting your social media accounts makes logging in easier.
+        none: You don't have any connected accounts.
+        redirecting: Redirecting...
+        title: Connected Accounts
+    omniauth_callbacks:
+      account_exists: We already have an account with this email. Login with your previous account before connecting this one.
+      connected_to_another_account: This account is already connected to another user.
+    sessions:
+      create:
+        incorrect_verification_code: Incorrect verification code
+    sudo:
+      forgot_password: Forgot password?
+      header: Confirm password to continue
+      invalid_password: Invalid password
+      submit: Confirm password
+    two_factor:
+      backup_codes:
+        cancel: Cancel
+        description: Recovery codes are used to access your account in the event you cannot receive two-factor authentication codes.
+        header: Backup Codes
+        next: Next
+        save_codes: Treat your recovery codes with the same level of attention as you would your password!
+        warning: Download, print, or copy your recovery codes before continuing.
+      description: Two Factor Authentication
+      disable: Disable Two-factor authentication
+      disabled: Two-factor authentication is now disabled
+      enable: Enable Two-factor authentication
+      enabled: Two-factor authentication was enabled successfully
+      header: Two-factor authentication
+      submit: Continue
+      verify:
+        cancel: Cancel
+        header: Scan this code with your app.
+        instructions_1_html: 'Install Authy: %{ios} or %{android}'
+        instructions_2: In the app, select "Add account"
+        instructions_3: Choose "Scan QR Code"
+        instructions_4: 'Trouble scanning? Enter this key in your app instead:'
+        subheader: Scan the QR code with the two-factor authentication app on your phone.
+        verify: Verify
+        verify_description: After scanning the QR code, the app will display a code that you can enter to continue.
+        verify_header: Enter the six-digit code from the application
+  version:
+    created_at: created at
+    event: Ereignis
+    id: id
+    index:
+      version: Version
+      versions: Versionen
+    item_id: Item ID
+    item_type: Item Typ
+    object: Object
+    object_changes: Object Änderungen
+    updated_at: updated at
+    whodunnit: wer war's
+  view: Ansehen
+  warning: Warnung
+  welcome: Willkommen
+  welcome_to_carambus: Willkommen zu Carambus
+  administrate:
+    dashboards:
+      user:
+        title: "Benutzer"
+        subtitle: "Systembenutzer verwalten"
+    actions:
+      cancel: "Abbrechen"
+  documentation_not_available: Dokumentation nicht verfügbar
+  locales:
+    en: Englisch
+    de: Deutsch
+  devise:
+    registrations:
+      edit:
+        theme: Design
+        system_theme: Systemstandard
+        dark_theme: Dunkles Design
+        light_theme: Helles Design
+        language: Sprache
+        timezone: Zeitzone
+        change_password: Passwort ändern
+        current_password: Aktuelles Passwort
+        new_password: Neues Passwort
+        confirm_new_password: Neues Passwort bestätigen
+  preferences:
+    preferences: Einstellungen
+    system_theme: System Farbschema
+    dark_theme: Dunkles Farbschema
+    light_theme: Helles Farbschema

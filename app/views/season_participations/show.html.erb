@@ -1,0 +1,32 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to t('home.index.seasonparticipation'), season_participations_path %> > Season Participation
+        #<%= @season_participation.id %></h1>
+      <%= button_to('Edit', edit_season_participation_path(@season_participation), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Player</h5>
+        <%= custom_link_to @season_participation.player.fl_name, @season_participation.player %>
+      </div>
+      <div class="mb-4">
+        <h5>Season</h5>
+        <%= @season_participation.season_id %>
+      </div>
+      <div class="mb-4">
+        <h5>Status</h5>
+        <%= @season_participation.status %>
+      </div>
+      <div class="mb-4">
+        <h5>Data</h5>
+        <%= @season_participation.data %>
+      </div>
+      <div class="mb-4">
+        <h5>Club</h5>
+        <%= custom_link_to @season_participation.club.name, @season_participation.club %>
+      </div>
+    </div>
+  </div>
+</div>

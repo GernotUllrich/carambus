@@ -1,0 +1,145 @@
+<%#- unless @tournament.new_record? %>
+<!--  <p class="text-red-500">-->
+    <%#= t('tournaments.show.syncing_with_club_cloud').html_safe %>
+<!--  </p>-->
+<!--  <p class="text-red-500">-->
+    <%#= t('tournaments.show.syncing_with_billard_area_ext').html_safe %>
+<!--  </p>-->
+<!--  <p> <%#= custom_link_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "" %></p>-->
+<%#- end %>
+<!--<br>-->
+<%= form_with model: @tournament do |form| %>
+
+  <%- loc_ids = (Array(Location.joins(:tables).where(organizer_type: @tournament.organizer_type, organizer_id: @tournament.organizer_id).andand.map(&:id)) +
+    Array(@tournament.andand.region.andand.clubs.andand.map { |club| club.locations.andand.joins(:tables).to_a }.andand.flatten.andand.map(&:id))).uniq
+  %>
+  <%- if @league.present? %>
+    <div class="form-group">
+      <%= hidden_field_tag :league_id, @league.andand.id %>
+      <%= form.label :league %>
+      <%= "#{@league.name}" %>
+    </div>
+  <%- end %>
+  <div class="form-group">
+    <%= form.label :title %>
+    <%= form.text_field :title, class: "border rounded border-gray-500" %>
+  </div>
+  <%- if @tournament.new_record? && @tournament.organizer.present? %>
+    <div class="form-group">
+      <%= form.label :organizer %>
+      <%= @tournament.organizer.name %>
+      <%= form.hidden_field :organizer_id %>
+      <%= form.hidden_field :organizer_type %>
+    </div>
+    <div class="form-group">
+      <%= form.label :season_id %>
+      <%= season.name %>
+      <%= form.hidden_field :season_id %>
+    </div>
+  <%- end %>
+  <div class="form-group">
+    <%= form.label :location %>
+    <%= form.select :location_id,
+                    options_for_select(Location.where(id: loc_ids).order(:name).map { |loc| [loc.name, loc.id] }, @location.andand.id || @tournament.location.andand.id),
+                    { :prompt => true }, class: "border rounded border-gray-500" %>
+  </div>
+
+  <%- @disciplines = Discipline.all.order(:name).all %>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.collection_select :discipline_id, @disciplines, :id, :name, { :selected => @tournament.discipline_id, :prompt => true }, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :player_class %>
+    <%= form.select :player_class, options_for_select(["I", "II", "III", "1", "2", "3", "4", "5", "6", "7"], @tournament.player_class), { :selected => @tournament.player_class, :prompt => true }, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :innings_goal %>
+    <%= form.number_field :innings_goal, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :balls_goal %>
+    <%= form.number_field :balls_goal, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :timeouts %>
+    <%= form.number_field :timeouts, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :timeout %>
+    <%= form.number_field :timeout, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sets_to_win %>
+    <%= form.number_field :sets_to_win, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sets_to_play %>
+    <%= form.number_field :sets_to_play, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :team_size %>
+    <%= form.number_field :team_size, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :kickoff_switches_with %>
+    <%= form.select :kickoff_switches_with, options_for_select(["", "set", "winner"], @tournament.kickoff_switches_with), { :selected => @tournament.kickoff_switches_with, :prompt => true }, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :allow_follow_up %>
+    <%= form.check_box :allow_follow_up, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :color_remains_with_set %>
+    <%= form.check_box :color_remains_with_set, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :fixed_display_left %>
+    <%= form.select :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :handicap_tournier %>
+    <%= form.check_box :handicap_tournier, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :continuous_placements %>
+    <%= form.check_box :continuous_placements, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :manual_assignment %>
+    <%= form.check_box :manual_assignment, class: "border rounded border-gray-500" %>
+  </div>
+
+  <div class="field-unit">
+    <%= form.label :source_url, "ClubCloud URL" %>
+    <%= form.text_field :source_url, disabled: @tournament.id < Tournament::MIN_ID %>
+    <% if @tournament.id < Tournament::MIN_ID %>
+      <small class="hint">Importiertes Turnier - Bearbeitung eingeschränkt</small>
+    <% end %>
+  </div>
+
+  <div class="field-unit">
+    <%= form.label :data, "Lokale Konfiguration" %>
+    <%= form.text_area :data, rows: 8 %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button "Save Tournament", class: "btn btn-primary" %>
+  </div>
+<% end %>

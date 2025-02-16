@@ -1,0 +1,5 @@
+<div class="teaser flex flex-col items-center text-gray-200 text-bold">
+
+  <%= ranking_table(table_monitor.tournament_monitor, table_monitor.tournament_monitor.data["rankings"]["groups"][ranking_key2], order: ( tournament_monitor.tournament.handicap_tournier? ? %i[points bg_p] : %i[points gd]), grid: defined?(grid)) %>
+
+</div>

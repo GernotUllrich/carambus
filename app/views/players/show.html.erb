@@ -1,0 +1,150 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to t('player.index.players'), players_path %> > <%= @player.fullname %></h1>
+      <%= button_to('Edit', edit_player_path(@player), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <%- club = @player.season_participations.where(season: Season.current_season).first.andand.club %>
+    <div class=" rounded shadow p-8">
+<!--      <div class="mb-4">
+        <h5><%#= t('player.ba_id') %></h5>
+        <%#- if club.present? %>
+          <%#= custom_link_to @player.ba_id, "https://#{club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{club.ba_id}/#{@player.ba_id}", class: "yellow_link", target: :_blank %>
+        <%#- end %>
+      </div>-->
+      <div class="mb-4">
+        <h5><%= t('player.club_id') %></h5>
+        <%= custom_link_to club.shortname, club_path(club) if club.present? %>
+      </div>
+      <%- if @player.is_a? Team %>
+
+        <div class="mb-4">
+          <h5><%= t('player.fullname') %></h5>
+          <%= @player.fullname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.data') %></h5>
+          <%= @player.data.inspect %>
+        </div>
+      <%- else %>
+        <div class="mb-4">
+          <h5><%= t('player.lastname') %></h5>
+          <%= @player.lastname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.nickname') %></h5>
+          <%= @player.nickname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.firstname') %></h5>
+          <%= @player.firstname %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.title') %></h5>
+          <%= @player.title %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.source_url') %></h5>
+          <%= link_to_if @player.source_url.present?, @player.source_url.present? ? URI.parse(@player.source_url).host : "", @player.source_url, target: :_blank %>
+        </div>
+        <div class="mb-4">
+          <h5><%= t('player.last_sync') %></h5>
+          <%= @player.sync_date.andand.to_date %>
+        </div>
+      <%- end %>
+    </div>
+  </div>
+</div>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col mb-4">
+      <h3 class="h3"><%= t('player_ranking.index.player_rankings') %></h3>
+      <div class=" rounded shadow table-responsive">
+        <ul class="list">
+          <%- Discipline.joins(:player_rankings => :player).where(players: { id: @player.id }).order("disciplines.name desc").uniq.each do |dis| %>
+            <li><%= dis.name %>
+              <%- dis.player_rankings.joins(:season).joins(:player).where(players: { id: @player.id }).order("seasons.name asc").each do |ranking| %>
+                <%- next if ranking.btg.blank? %>
+                <div class="pl-10 flex flex-row">
+                  <div class="flex w-1/6"><%= "#{ranking.season.name}: " %></div>
+                  <div class="flex w-1/6"><%= "\##{ranking.rank} " %></div>
+                  <div class="flex w-full"><%= "BTG:#{ranking.btg}" %></div>
+                </div>
+              <%- end %>
+            </li>
+          <%- end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col mb-4">
+      <h3 class="h3"><%= t('seeding.index.seedings') %></h3>
+      <div class=" rounded shadow table-responsive">
+        <table>
+          <thead>
+          <tr class="flex flex-row with-full">
+            <th class="flex w-1/6"><%= t('home.index.season') %></th>
+            <th class="flex w-1/6"><%= t('home.index.region') %></th>
+            <!--    <th>Discipline</th>-->
+            <th class="flex w-1/6"><%= t('home.index.tournament') %></th>
+            <th class="flex w-1/2"><%= t('home.index.results') %></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% @player.seedings.where("seedings.id < #{Seeding::MIN_ID}").order("seedings.id desc").each do |seeding| %>
+            <%- tournament = seeding.tournament %>
+            <%- next if tournament.blank? %>
+            <%- if tournament.is_a?(Tournament) %>
+              <tr class="flex flex-row with-full">
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.season.name, season_path(seeding.tournament.season) %></td>
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.organizer.shortname, region_path(seeding.tournament.organizer) %></td>
+                <!--    <td><%#= custom_link_to seeding.tournament.discipline.shortname, region_path(seeding.tournament.discipline) if seeding.tournament.discipline.present? %></td>-->
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.title, tournament_path(seeding.tournament) %></td>
+                <td class="flex w-1/2"><%= custom_link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
+              </tr>
+            <%- elsif tournament.is_a?(Party) %>
+              <tr class="flex flex-row with-full">
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.league.season.name, season_path(seeding.tournament.league.season) %></td>
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.league.organizer.shortname, region_path(seeding.tournament.league.organizer) %></td>
+                <td class="flex w-1/6"><%= custom_link_to seeding.tournament.league.name, league_path(seeding.tournament.league) %></td>
+                <td class="flex w-1/2"><%= custom_link_to(Seeding.result_display(seeding), seeding_path(seeding)) %></td>
+              </tr>
+            <%- end %>
+          <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col mb-4">
+      <h3 class="h3">Seasons</h3>
+      <div class=" rounded shadow p-8">
+        <table>
+          <thead>
+          <tr>
+            <th>Season</th>
+            <th>Club</th>
+          </tr>
+          </thead>
+          <tbody>
+          <% SeasonParticipation.joins(:club).joins(:player).joins(:season).where(players: { id: @player.id }).order("season_participations.season_id desc").uniq.each do |season_participation| %>
+            <tr>
+              <td><%= custom_link_to season_participation.season.name, season_path(season_participation.season) %></td>
+              <td><%= custom_link_to season_participation.club.shortname, club_path(season_participation.club) %></td>
+            </tr>
+          <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

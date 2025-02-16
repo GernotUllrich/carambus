@@ -1,0 +1,69 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Games</h1>
+
+    <% if @games.any? %>
+      <%= button_to 'New Game', new_game_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @games.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :template_game_id,'Template game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :tournament_id,'Tournament', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :roles,'Roles', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :seqno,'Seqno', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :gname,'Gname', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :group_no,'Group no', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :table_no,'Table no', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :round_no,'Round no', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :started_at,'Started at', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :ended_at,'Ended at', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @games.each do |game| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= custom_link_to game.tournament.title, tournament_path(game.tournament) %></td>
+                      <td class="p-3"><%= game.roles %></td>
+                      <td class="p-3"><%= game.data %></td>
+                      <td class="p-3"><%= game.seqno %></td>
+                      <td class="p-3"><%= game.gname %></td>
+                      <td class="p-3"><%= game.group_no %></td>
+                      <td class="p-3"><%= game.table_no %></td>
+                      <td class="p-3"><%= game.round_no %></td>
+                      <td class="p-3"><%= game.started_at %></td>
+                      <td class="p-3"><%= game.ended_at %></td>
+
+            <td>
+              <%= custom_link_to t('view'), game, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Game</p>
+        <%= button_to 'New Game', new_game_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

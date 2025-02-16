@@ -1,0 +1,63 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-full mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to t('parties.parties'), parties_path %> > <%= t('parties.party') %> #<%= @party.id %></h1>
+      <%= custom_link_to 'Edit', edit_party_path(@party), class: "btn btn-link" %>
+    </div>
+
+    <div class="flex flex-wrap space-y-5  dark: rounded shadow p-8">
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Date</h5>
+        <%= @party.date %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>League</h5>
+        <%= custom_link_to @party.league.name, league_path(@party.league) %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Remarks</h5>
+        <%= @party.remarks %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>League team a</h5>
+        <%= custom_link_to @party.league_team_a.name, league_team_path(@party.league_team_a) %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>League team b</h5>
+        <%= custom_link_to @party.league_team_b.name, league_team_path(@party.league_team_b) %>
+      </div>
+<!--      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Ba</h5>
+        <%#= custom_link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}", class: "yellow_link", target: :_blank %>
+      </div>-->
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>CC</h5>
+        <%= custom_link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", party_cc_path(@party.party_cc) if @party.party_cc.present? %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Day seqno</h5>
+        <%= @party.day_seqno %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Data</h5>
+        <%= @party.data %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Quelle</h5>
+        <%= link_to_if @party.source_url.present?, @party.source_url.present? ? URI.parse(@party.source_url).host : "", @party.source_url, target: :_blank %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Last Sync</h5>
+        <%= @party.sync_date.andand.to_date %>
+      </div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
+        <h5>Host league team</h5>
+        <%= custom_link_to @party.host_league_team.name, league_team_path(@party.host_league_team) if @party.host_league_team.present? %>
+      </div>
+    </div>
+    <div class="flex flex-row px-3 lg:px-0">
+      <%= button_to I18n.t("tournaments.show.party_monitor"), party_monitor_party_path(@party), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+    </div>
+    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('party_party_games')}", party_games_path(sSearch: "party_id:#{@party.id}"), method: :get if @party.party_games.present? %></h3>
+  </div>
+</div>

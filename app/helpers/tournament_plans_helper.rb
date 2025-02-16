@@ -1,0 +1,2 @@
+module TournamentPlansHelper
+end

@@ -1,0 +1,81 @@
+<div class="container mx-auto p-4">
+  <div class="my-8">
+    <h1><%= t(".title") %></h1>
+
+    <p class="mb-2">This is the entry point for registered users.</p>
+
+    <%- if request.host == "roald.carambus.de" %>
+      <p>Access to the Antarctica photo exchange album has been closed.</p>
+      <p>Thank you to everyone who participated!</p>
+    <% else %>
+      <p>Starting with the 2022/2023 season, data will be collected from various ClubCloud instances through their public interfaces.
+         Data integration is handled centrally and redundancy-free via the Carambus API server. Local Carambus instances in game venues
+         access regional data from the Carambus API server.</p>
+      <p>All data is accessible through the menus. Write access in Carambus requires an administrator role.</p>
+      <p>Uploading result data to ClubCloud requires authorized access to the respective ClubCloud instance.</p>
+      <ul class="list-inside">
+        <li><%= custom_link_to "Regional Associations", regions_path %>
+          <ul class="list-inside">
+            <li>BA-ID[1], Name, Short Name, Logo, Email, Address, Country</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Clubs", clubs_path %>
+          <ul class="list-inside">
+            <li>BA-ID, Region, Name, Short Name, Address, Homepage, Email, Logo</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Game Locations", locations_path %>
+          <ul class="list-inside">
+            <li>Club, Region, Name, Address</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Table Equipment", tables_path %>
+          <ul class="list-inside">
+            <li>Table types, quantity, size, names, managed through game locations</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Player Data", players_path %>
+          <ul class="list-inside">
+            <li>BA-ID, Club, Last Name, First Name, Title</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Seasonal Club Memberships", season_participations_path %>
+          <ul class="list-inside">
+            <li>Player, Season, Club</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Tournaments", tournaments_path %>
+          <ul class="list-inside">
+            <li>BA-ID, Title, Discipline, Class, Format, Access Restrictions, Date, Accreditation Deadline, 
+                Venue, Season, Region, Final Date, Participation Limit, Target Points, Organizer (Club or Region)</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Tournament Format Plans", tournament_plans_path %>
+          <ul class="list-inside">
+            <li>Name, Rule System, Player Count, Table Count, Description, Group Count, Formal Procedure</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Tournament/Player Seedings", seedings_path %>
+          <ul class="list-inside">
+            <li>Player, Seeding Position, Tournament, Potential Handicaps for Handicap Tournaments</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Matches", game_participations_path %>
+          <ul class="list-inside">
+            <li>Tournament, Match Name, PlayerA, PlayerB</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Match Results", games_path %>
+          <ul class="list-inside">
+            <li>Match, Points, Innings, High Run, Average</li>
+          </ul>
+        </li>
+        <li><%= custom_link_to "Player Rankings", player_rankings_path %>
+          <ul class="list-inside">
+            <li>Player, Discipline, Best Single Average, Best Tournament Average</li>
+          </ul>
+        </li>
+      </ul>
+    <%- end %>
+  </div>
+</div> 

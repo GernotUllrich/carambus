@@ -1,0 +1,131 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<script type="text/javascript">
+  document.addEventListener('turbo:load', function () {
+    console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
+    if (!window.hotkeys) {
+      console.error('Hotkeys not available!');
+      return;
+    }
+    let tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+    let tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      let current_element = tabbed_keys[1]
+      let el = document.getElementById(current_element)
+      if (el != null)
+        el.focus();
+    }
+    // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+    window.hotkeys('*', function (event) {
+// Prevent the default refresh event under WINDOWS system
+
+      //console.log(hotkeys.getPressedKeyCodes());
+      //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+      const keyMap = {
+        33: "key_a",
+        37: "key_a",
+        34: "key_b",
+        39: "key_b",
+        66: "key_c",
+        38: "key_c",
+        116: "key_d",
+        27: "key_d",
+        40: "key_d",
+        13: "key_d",
+      }
+      let tabbed_elements = document.querySelectorAll('[tabindex="1"]')
+
+      let tabbed_keys = []
+      for (let i = 0; i < tabbed_elements.length; i++) {
+        tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+      }
+
+      let el;
+      let ff;
+      let current_element = document.activeElement.getAttribute("id")
+      console.log("active: " + current_element);
+      if (current_element == null) {
+        current_element = tabbed_keys[0];
+        console.log("active now: " + current_element);
+        el = document.getElementById(current_element)
+        if (el != null)
+          el.focus();
+      }
+
+      if (event.key in keyMap) {
+        let key = keyMap[event.key];
+        if (key === "key_c") {
+          if (current_element === tabbed_keys[0])
+            window.history.back()
+          else
+            document.getElementById(tabbed_keys[0]).focus()
+        }
+        if (key === "key_b") {
+          current_element = document.activeElement.getAttribute("id")
+          for (let i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] === current_element) {
+              ff = i + 1;
+              if (ff >= tabbed_keys.length) ff = 0;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              el = document.getElementById(tabbed_keys[ff])
+              if (el != null)
+                el.focus();
+              break;
+            }
+          }
+        }
+        if (key === "key_a") {
+          current_element = document.activeElement.getAttribute("id");
+          for (let i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] === current_element) {
+              ff = i - 1;
+              if (ff < 0) ff = tabbed_keys.length - 1;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              el = document.getElementById(tabbed_keys[ff])
+              if (el != null)
+                el.focus();
+              break;
+            }
+          }
+        }
+        if (key === "key_d") {
+          console.log("activate: " + document.activeElement.getAttribute("id"));
+          el = document.activeElement
+          if (el != null)
+            el.click();
+        }
+      }
+      event.preventDefault();
+      return true
+    });
+  });
+</script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
+</div>
+<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+  <h1 style="text-shadow: 2px 2px #000000" class="text-3vw text-yellow-400 mb-4"><%= @tournament&.title %></h1>
+  <%= custom_link_to t('home.index.results_so_far'), game_results_location_path(@location, tournament_id: @tournament&.id), method: :post, data: { turbo: false }, class: "btn btn-primary ring-4 text-2vw p-1 lg:mr-4 mr-0 lg:mb-4 mb-4", id: "game_results_#{@tournament&.id}", tabindex: 1 %>
+  <h2 style="text-shadow: 2px 2px #000000" class="flex text-3vw text-gray-200 mb-5"><%= t('select_game') %></h2>
+  <div class="grid grid-cols-3 gap-2">
+    <%- @pairs.each do |pair| %>
+      <%= custom_link_to "#{pair[1]} - #{pair[2]}", placement_tournament_path(@tournament, game_id: pair[0], table_id: @table.id), method: :post, data: { turbo: false }, class: "btn btn-primary p-1 ring-4 h-full text-1vw lg:mr-4 mr-0 lg:mb-0 mb-0", id: pair[3], tabindex: 1 %>
+    <%- end %>
+  </div>
+</div>

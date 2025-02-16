@@ -1,0 +1,48 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Party Ccs', party_ccs_path %> > Party Cc #<%= @party_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_party_cc_path(@party_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @party_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>League cc</h5>
+        <%= custom_link_to "#{@party_cc.league_cc.name}(#{@party_cc.league_cc.cc_id})", league_cc_path(@party_cc.league_cc) %>
+      </div>
+            <div class="mb-4">
+        <h5>Party</h5>
+        <%= custom_link_to "#{@party_cc.party.name}[#{@party_cc.party_id}]", party_path(@party_cc.party) %>
+      </div>
+            <div class="mb-4">
+        <h5>League team a cc</h5>
+        <%= custom_link_to "#{@party_cc.league_team_a_cc.name}(#{@party_cc.league_team_a_cc.cc_id})", league_team_cc_path(@party_cc.league_team_a_cc) %>
+      </div>
+            <div class="mb-4">
+        <h5>League team b cc</h5>
+        <%= custom_link_to "#{@party_cc.league_team_b_cc.name}(#{@party_cc.league_team_b_cc.cc_id})", league_team_cc_path(@party_cc.league_team_b_cc) %>
+      </div>
+            <div class="mb-4">
+        <h5>League team host cc</h5>
+        <%= custom_link_to "#{@party_cc.league_team_host_cc.name}(#{@party_cc.league_team_host_cc.cc_id})", league_team_cc_path(@party_cc.league_team_host_cc) if @party_cc.league_team_host_cc.present? %>
+      </div>
+            <div class="mb-4">
+        <h5>Day seqno</h5>
+        <%= @party_cc.day_seqno %>
+      </div>
+            <div class="mb-4">
+        <h5>Remarks</h5>
+        <%= @party_cc.remarks %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @party_cc.data %>
+      </div>
+          </div>
+  </div>
+
+</div>

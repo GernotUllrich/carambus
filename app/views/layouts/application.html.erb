@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--TODO JS current_user-->
+<html lang="en" class="<%= current_user&.prefers_dark_mode? ? 'dark' : 'light' %>">
+  <head>
+    <title>
+      <% if content_for?(:title) %>
+        <%= yield :title %> |
+      <% end %>
+      <%= Carambus.config.application_name %>
+    </title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= viewport_meta_tag %>
+    <% if current_user&.system_theme? %><script>document.documentElement.classList.toggle("dark", window.matchMedia('(prefers-color-scheme: dark)').matches)</script><% end %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+    <%# Be sure to add your own custom favicons %>
+    <%= render "favicons" %>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <%= yield :head %>
+    <% if Rails.env.production? %>
+      <style nonce="<%= content_security_policy_nonce %>">
+        /* Production styles */
+      </style>
+    <% else %>
+      <style>
+        /* Development styles without nonce */
+      </style>
+    <% end %>
+  </head>
+  <body class="h-full font-sans antialiased font-normal leading-normal bg-gray-50 dark:bg-gray-900 dark:text-gray-50" data-controller="theme" data-theme-preference-value="<%= current_user&.theme %>">
+    <div class="main flex flex-col">
+      <header>
+        <%= render "flash" %>
+        <%= render "navbar" if @navbar %>
+      </header>
+      <main class="px-3 lg:px-0 h-full">
+        <%= yield %>
+      </main>
+    </div>
+    <%= render partial: "footer" if !turbo_native_app? && @footer %>
+    <ninja-keys data-controller="command-palette" hideBreadcrumbs></ninja-keys>
+  <%= yield :javascript %>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+<%= form_with(model: discipline_tournament_plan) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.collection_select :discipline_id, @disciplines, :id, :name, {:selected => discipline_tournament_plan.discipline_id, :prompt => true}, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tournament_plan_id %>
+    <%= form.collection_select :tournament_plan_id, @tournament_plans, :id, :name, {:selected => discipline_tournament_plan.tournament_plan_id, :prompt => true}, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :points %>
+    <%= form.number_field :points, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :innings %>
+    <%= form.number_field :innings, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :players %>
+    <%= form.number_field :players, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :player_class %>
+    <%= form.text_field :player_class, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

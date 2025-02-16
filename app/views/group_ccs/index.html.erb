@@ -1,0 +1,61 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Group Ccs</h1>
+
+    <% if @group_ccs.any? %>
+      <%= button_to 'New Group Cc', new_group_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @group_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :display,'Display', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @group_ccs.each do |group_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= group_cc.cc_id %></td>
+                      <td class="p-3"><%= group_cc.name %></td>
+                      <td class="p-3"><%= group_cc.context %></td>
+                      <td class="p-3"><%= group_cc.display %></td>
+                      <td class="p-3"><%= group_cc.status %></td>
+                      <td class="p-3"><%= group_cc.branch_cc_id %></td>
+                      <td class="p-3"><%= group_cc.data %></td>
+
+            <td>
+              <%= custom_link_to "View", group_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Group Cc</p>
+        <%= button_to 'New Group Cc', new_group_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

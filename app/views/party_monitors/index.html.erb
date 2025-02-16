@@ -1,0 +1,43 @@
+<%= content_for :title, "Party Monitors" %>
+<%= turbo_stream_from :party_monitors %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="h3"><%= I18n.t("home.index.party_monitors", :default => "Matchday Monitors") %></h1>
+
+      <div class="text-sm font-medium">
+        <span class="text-gray-500"><%= I18n.t("sort_by", :default => "Sort By:") %></span>
+        <%= sortable @party_monitors, :party_id,I18n.t("activerecord.attributes.party_monitor.party"), request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @party_monitors, :state,"State", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @party_monitors, :data,"Data", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @party_monitors, :started_at,"Started at", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @party_monitors, :ended_at,"Ended at", request.params, class: "text-gray-700 mr-1" %>
+      </div>
+    </div>
+    <%- if false %>
+<!--      must not create party_monitor this way -->
+      <%= custom_link_to t("shared.scaffold.new.title", model: "Matchday Monitor"), new_party_monitor_path, class: "btn btn-white" %>
+    <%- end %>
+  </div>
+
+  <%= tag.div id: ("party_monitors" if first_page?), class: " rounded-md shadow p-6 space-y-8" do %>
+    <%= render partial: "party_monitors/index", collection: @party_monitors, as: :party_monitor, cached: true %>
+    <%- if false %>
+      <!--      must not create party_monitor this way -->
+      <div class="hidden only:flex flex-col items-center justify-between lg:flex-row">
+        <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+        <div class="flex-1 text-center">
+          <p class="mb-4 h3">Create your first Party Monitor</p>
+          <%= custom_link_to t("shared.scaffold.new.title", model: "Party Monitor"), new_party_monitor_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+        </div>
+      </div>
+    <%- end %>
+  <% end %>
+
+  <% if @pagy.pages > 1 %>
+    <div class="my-6 text-center">
+      <%== pagy_nav(@pagy) %>
+    </div>
+  <% end %>
+</div>

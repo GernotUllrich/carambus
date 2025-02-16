@@ -1,0 +1,15 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm inline-block", title: "zurück" %>
+</div>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex flex-col  rounded shadow p-8">
+        <%= markdown(@content) %>
+      </div>
+    </div>
+  </div>
+</div>
+

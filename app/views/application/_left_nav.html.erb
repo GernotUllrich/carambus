@@ -1,0 +1,190 @@
+<%# Place any links for the LEFT side of the nav bar here. Be sure to add class: "nav-link" to each item for proper spacing. %>
+<ul class="flex flex-wrap list-none">
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.organisation", :default => "Organisation") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.region", :default => "Region"), regions_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.club", :default => "Club"), clubs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%#= nav_link_to I18n.t("home.index.club_locations", :default => "Club Locations"), club_locations_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("location.index.locations", :default => "Location"), locations_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.spieler", :default => "Spieler") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.season", :default => "Season"), seasons_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.seasonparticipation", :default => "SeasonParticipation"), season_participations_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.player", :default => "Player"), players_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.tournaments", :default => "Turniere") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.seeding", :default => "Seeding"), seedings_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.tournament", :default => "Tournament"), tournaments_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.partien", :default => "Partien") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.game", :default => "Game"), games_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.gameparticipation", :default => "GameParticipation"), game_participations_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.player_rankings", :default => "Player Rankings"), player_rankings_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.leagues", :default => "Partien") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.league", :default => "League"), leagues_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.league_teams", :default => "LeagueTeam"), league_teams_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.league_parties", :default => "Parties"), parties_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.party_games", :default => "Party Games"), party_games_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.game_plans", :default => "Game Plans"), game_plans_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.tournierplanung", :default => "Turnierplanung") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.tournamentmonitor", :default => "TournamentMonitor"), tournament_monitors_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.tablemonitor", :default => "TableMonitor"), table_monitors_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.discipline", :default => "Discipline"), disciplines_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to "Discipline Phases", discipline_phases_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.table_kind", :default => "Table Kind"), table_kinds_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.disciplinetournamentplan", :default => "DisciplineTournamentPlan"), discipline_tournament_plans_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.tournamentplan", :default => "TournamentPlan"), tournament_plans_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.party_monitors", :default => "Matchday Monitor"), party_monitors_path, class: "border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap" %>
+            <%= nav_link_to "Slots", slots_path, class: "border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap" %>
+            <%= nav_link_to "Table Locals", table_locals_path, class: "border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap" %>
+            <%= nav_link_to I18n.t("home.index.country", :default => "Country"), countries_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  <%- if current_user&.system_admin? %>
+    <li>
+      <div class="inline-flex nav-link">
+        <div class="relative" data-controller="dropdown">
+          <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.club_cloud", :default => "Club Cloud") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+          </div>
+          <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+            <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+              <%# TODO Region Context should be drawn from Environment %>
+              <%= nav_link_to "Meta Maps", meta_maps_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Migration", migration_cc_region_path(Region[1]), class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Region Ccs", region_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Branch Ccs", branch_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Competition Ccs", competition_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Season Ccs", season_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "League Ccs", league_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "League Team Ccs", league_team_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Party Ccs", party_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Party Game Ccs", party_game_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Game Plan Row Ccs", game_plan_row_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Game Plan Ccs", game_plan_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Tournament Ccs", tournament_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Category Ccs", category_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Championship Type Ccs", championship_type_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Group Ccs", group_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Registration Ccs", registration_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Registration List Ccs", registration_list_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Tournament Series Ccs", tournament_series_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Ion Contents", ion_contents_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Ion Modules", ion_modules_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+              <%= nav_link_to "Discipline Ccs", discipline_ccs_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  <%- end %>
+  <li>
+    <div class="inline-flex nav-link">
+      <div class="relative" data-controller="dropdown">
+        <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none">
+              <span class="flex items-center hover:text-red-200 dark:hover:text-red-100 text-inherit appearance-none">
+                <%= I18n.t("home.index.docs", :default => "Turnierplanung") %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" style="width: 1rem; height: 1rem;" class="fill-current w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+              </span>
+        </div>
+        <div data-dropdown-target="menu" class="z-20 hidden mt-2 lg:absolute lg:left-0 dropdown-menu">
+          <div class="overflow-hidden  bg-white dark:bg-black border border-green-400 rounded shadow-sm">
+            <%= nav_link_to I18n.t("home.index.intro", :default => "Einführung"), intro_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.tournierplanung", :default => "Turnier Management"), doc_tournament_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.matchday_monitoring", :default => "Matchday Monitoring"), doc_league_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.about", :default => "Über den Entwickler"), about_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+            <%= nav_link_to I18n.t("home.index.version", :default => "Versionen"), repo_version_path, class: 'border-b no-underline block px-6 py-1 text-gray-800 dark:text-gray-200  transition ease-in-out duration-200 whitespace-no-wrap' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+</ul>

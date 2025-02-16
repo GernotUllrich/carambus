@@ -1,0 +1,69 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :id,'Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :type,'Type', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+<!--      <th class="p-3 uppercase text-left text-xs"><%#= sortable @players, :ba_id,'Ba', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :dbu_nr,'dbu_nr', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :cc_id,'Cc', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "clubs.shortname",'Club', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "regions.shortname",'Region', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :fullname,t('player.fullname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname,t('player.lastname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :nickname,t('player.nickname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :firstname,t('player.firstname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :title,'Title', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @players.each do |player| %>
+    <%- clubs = player.season_participations.map(&:club).uniq %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= player.id %></td>
+        <td class="p-3"><%= player.type %></td>
+<!--        <td class="p-3"><%#= player.ba_id %></td>-->
+        <td class="p-3"><%= player.dbu_nr %></td>
+        <td class="p-3"><%= player.cc_id %></td>
+        <td class="p-3"><ul class="list-none">
+          <%- clubs.each do |club| %>
+            <li><%= custom_link_to club.andand.name, club_path(club) if club.present? %></li>
+          <%-end%>
+        </ul></td>
+        <td class="p-3"><ul class="list-none"><%- clubs.each do |club| %>
+            <li><%= custom_link_to club.andand.region.shortname, region_path(club.andand.region) if club.andand.region.present? %></li>
+          <%-end%>
+        </ul></td>
+        <td class="p-3"><%= player.fullname %></td>
+        <td class="p-3"><%= player.lastname %></td>
+        <td class="p-3"><%= player.nickname %></td>
+        <td class="p-3"><%= player.firstname %></td>
+        <td class="p-3"><%= player.title %></td>
+        <td class="p-3"><%= link_to_if player.source_url.present?, player.source_url.present? ? URI.parse(player.source_url).host : "", player.source_url, class: "green_link", target: :_blank %></td>
+        <td class="p-3"><%= player.sync_date.andand.to_date %></td>
+
+        <td>
+          <%= custom_link_to t('view'), player_path(player), class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+<%= form_tag merge_players_path, method: :post do %>
+  <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master player id" %>
+
+  <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave player id"  %>
+  <%= submit_tag "merge and delete slave", class: "btn btn-primary"%>
+<% end %>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,_v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

@@ -1,0 +1,17 @@
+<%= content_for :title, "Club Locations ##{@club_location.id}" %>
+<%= turbo_stream_from @club_location %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Club Locations", club_locations_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      Club Location #<%= @club_location.id %>
+    </h1>
+    <%= custom_link_to t("edit"), edit_club_location_path(@club_location), class: "btn btn-white" %>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render @club_location %>
+  </div>
+</div>

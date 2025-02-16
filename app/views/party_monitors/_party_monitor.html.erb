@@ -1,0 +1,264 @@
+<!--suppress ALL -->
+<div id="<%= dom_id party_monitor %>">
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex-col justify-between items-center mb-4">
+        <%- if @league.present? %>
+          <h1 class="h3 mb-6"><%= custom_link_to @league.name, @league %> - <%= @league.season.name %>
+            - <%= @league.organizer.shortname %>
+            - Teilnehmerliste</h1>
+          <form>
+            <table class="table">
+              <thead>
+              <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <th class="p-3 uppercase text-left text-xs">Spieltag-Nr</th>
+                <th class="p-3 uppercase text-left text-xs">Heim-Mannschaft</th>
+                <th class="p-3 uppercase text-left text-xs">Gast-Mannschaft</th>
+                <th class="p-3 uppercase text-left text-xs">Datum</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td class="p-3"><%= custom_link_to @party.cc_id, @party %></td>
+                <td class="p-3"><%= custom_link_to @party.league_team_a.name, @party.league_team_a %></td>
+                <td class="p-3"><%= custom_link_to @party.league_team_b.name, @party.league_team_b %></td>
+                <td class="p-3"><%= @party.date.to_date.to_fs %></td>
+              </tr>
+              </tbody>
+            </table>
+            <p>
+              <%= content_tag(:button, disabled: ("disabled" if @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                Mannschaftsaufstellung abschließen
+              <%- end %>
+            </p>
+            <%- players_a = Player.where(id: @available_players_a_ids + @assigned_players_a_ids + @available_players_b_ids + @assigned_players_b_ids + @available_replacement_players_a_ids + @available_replacement_players_b_ids) %>
+            <%- players_hash = players_a.inject({}) { |memo, player| memo[player.id] = player; memo } %>
+            <h4>Heim-Mannschaft <%= @party.league_team_a.name %></h4>
+            <table cellpadding="0" cellspacing="0">
+              <tbody>
+              <tr>
+                <td class="p-3"> Mitspieler <span class="text-sm">[<%= @assigned_players_a_ids.count %>]</span><br>
+                  <label>
+                    <select class="font-bold"<%= "disabled" unless @party_monitor.state == "seeding_mode" %> name="assignedPlayerAId[]" size="15" multiple="multiple">
+                      <%- if @assigned_players_a_ids.count > 0 %>
+                        <%- @assigned_players_a_ids.each do |pid| %>
+                          <option value="<%= pid %>">
+                            <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                          </option>
+                        <%- end %>
+                      <%- else %>
+                        <option value="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                      <%- end %>
+                    </select>
+                  </label></td>
+                <td nowrap="" class="p-3">&nbsp;</td>
+                <td class="p-3">
+                  <p>
+                    <%= content_tag(:button, name: "assign_a", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                    <%- end %>
+                  </p>
+                  <p>
+                    <%= content_tag(:button, name: "remove_a", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                    <%- end %>
+                  </p>
+                </td>
+                <td nowrap="" class="p-3">&nbsp;</td>
+                <td class="p-3"> Spielberechtigte <span class="text-sm">[<%= @available_players_a_ids.count %>]</span>
+                  <br> <label>
+                  <select class="font-bold"<%= "disabled" if @party_monitor.state != "seeding_mode" %> name="availablePlayerAId[]" size="15" multiple="multiple">
+                    <%- @available_players_a_ids.each do |pid| %>
+                      <option value="<%= pid %>">
+                        <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                      </option>
+                    <%- end %>
+                    <option value="">===============</option>
+                    <%- @available_replacement_players_a_ids.each do |pid| %>
+                      <option value="<%= pid %>">
+                        <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                      </option>
+                    <%- end %>
+                  </select>
+                </label></td>
+              </tr>
+              </tbody>
+            </table>
+            <h4>Gast-Mannschaft <%= @party.league_team_b.name %></h4>
+            <table cellpadding="0" cellspacing="0">
+              <tbody>
+              <tr>
+                <td> Mitspieler [<%= @assigned_players_b_ids.count %>]<br>
+                  <label>
+                    <select class="font-bold"<%= "disabled" if @party_monitor.state != "seeding_mode" %> name="assignedPlayerBId[]" size="15" multiple="multiple">
+
+                      <%- if @assigned_players_b_ids.count > 0 %>
+                        <%- @assigned_players_b_ids.each do |pid| %>
+                          <option value="<%= pid %>">
+                            <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                          </option>
+                        <%- end %>
+                      <%- else %>
+                        <option value="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                      <%- end %>
+                    </select>
+                  </label></td>
+                <td nowrap="" class="p-3">&nbsp;</td>
+                <td class="p-3">
+                  <p>
+                    <%= content_tag(:button, name: "assign_b", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                    <%- end %>
+                  </p>
+                  <p>
+                    <%= content_tag(:button, name: "remove_b", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                    <%- end %>
+                  </p>
+                </td>
+                <td nowrap="" class="p-3">&nbsp;</td>
+                <td class="p-3">Spielberechtigte<span class="text-sm">[<%= @available_players_b_ids.count %>]</span>
+                  <br> <label>
+                  <select class="font-bold"<%= "disabled" if @party_monitor.state != "seeding_mode" %> name="availablePlayerBId[]" size="15" multiple="multiple">
+                    <%- @available_players_b_ids.each do |pid| %>
+                      <option value="<%= pid %>">
+                        <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                      </option>
+                    <%- end %>
+                    <option value="">===============</option>
+                    <%- @available_replacement_players_b_ids.each do |pid| %>
+                      <option value="<%= pid %>">
+                        <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
+                      </option>
+                    <%- end %>
+                  </select>
+                </label></td>
+              </tr>
+              </tbody>
+            </table>
+            <%= content_tag(:button, disabled: ("disabled" if @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+              Mannschaftsaufstellung abschließen
+            <%- end %>
+            <table>
+              <tr>
+                <td>
+                  <h3>Disziplin Parameter</h3>
+                  <%- r_no = 0 %>
+                  <%- Array(@party_monitor.data[:rows]).each_with_index do |row, row_nr| %>
+                    <%- if row[:type] == "Neue Runde" %>
+                      <%- r_no += 1 %>
+                    <%- elsif ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel", "Shootout (4er Team)"].include?(row[:type]) %>
+                      <h4><%= row[:type] %></h4>
+                      <%- parameter_values = Discipline::GAME_PARAMETERS[row[:type]].dup %>
+                      <ul>
+                        <%- parameter_values.each do |k, v| %>
+                          <%- val = v[3].present? ? row[v[3].to_sym] : nil %>
+                          <%- val ||= v[2] %>
+                          <li>
+                            <%= k %>: <%= val %> &nbsp;&nbsp;
+                            <%= hidden_field_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", val %>
+                            <%= content_tag(:button, disabled: "disabled", name: "edit", title: "Ändern", data: { turbo: false, reflex: "click->PartyMonitorReflex#edit_parameter", reflex_serialize_form: "true", id: @party_monitor.id, val: val, param_id: "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", 'reflex-dataset': "ancestors" }) do %>
+                              <%= render_svg "icons/edit-pencil", styles: "fill-current icon-sm text-gray-200 inline-block" %>
+                            <%- end %>
+                          </li>
+                        <%- end %>
+                      </ul>
+                    <%- end %>
+                  <% end %>
+                </td>
+                <td>&nbsp;&nbsp;</td>
+              </tr>
+            </table>
+            <div style="display: table">
+              <%- r_no = 0; t_no = 1 %>
+              <%- table_ids = [] %>
+              <%- Array(@party_monitor.data[:rows]).each_with_index do |row, row_nr| %>
+                <%- if row[:type] == "Neue Runde" %>
+                  <%- r_no += 1; t_no = 1 %>
+                  <%- table_ids = Array(@party_monitor.data[:table_ids].andand[r_no - 1]) %>
+                  <%- if table_ids.blank? %>
+                    <%- table_ids = Table.joins(:location => { :clubs => :region }).where(id: @available_fitting_table_ids).order("locations.name, tables.name").ids[0..@tournament_tables - 1] %>
+                  <%- end %>
+                  <div style="display:table-row">
+                    <div style="display:table-row-group">
+                      <div style="display:table-cell" class="colored p-3 font-bold" nowrap="">Runde <%= r_no %></div>
+                    </div>
+                  </div>
+                  <div style="display:table-row">
+                    <div style="display:table-row-group">
+                      <div style="display:table-cell" colspan=7>
+                        <%= content_tag(:button, disabled: ("disabled" unless (r_no == @party_monitor.current_round && @party_monitor.state == "table_definition_mode")), class: "btn btn-primary mb-4", name: "enter_next_round_seeding", title: "enter_next_round_seeding", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_next_round_seeding", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                          Tischzuordnung Runde <%= r_no %> abschließen
+                        <%- end %>
+                        &nbsp;=>&nbsp;
+                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[next_round_seeding_mode round_result_checking_mode].include?(@party_monitor.state)), class: "btn btn-primary mb-4", name: "finish_round_seeding_mode", title: "finish_round_seeding_mode", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round_seeding_mode", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                          Spielerzuordnungen Runde <%= r_no %> abschließen
+                        <%- end %>
+                        &nbsp;=>&nbsp;
+                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[ready_for_next_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "start_round_#{r_no}", title: "Runde #{r_no} starten", data: { turbo: false, reflex: "click->PartyMonitorReflex#start_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                          Runde <%= r_no %> starten
+                        <%- end %>
+                        &nbsp;=>&nbsp;
+                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[playing_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "finish_round_#{r_no}", title: "Runde #{r_no} abschliessen", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                          Runde <%= r_no %> abschliessen
+                        <%- end %>
+                      </div>
+                    </div>
+                  </div>
+                  <%- @round_player_a_ids = @assigned_players_a_ids.dup %>
+                  <%- @round_player_b_ids = @assigned_players_b_ids.dup %>
+                <%- elsif ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel", "Shootout (4er Team)"].include?(row[:type]) %>
+                  <%- t_no += 1 %>
+                  <%#- table = Table[@party_monitor.data[:table_ids].andand[r_no - 1].andand[t_no - 2]] %>
+                  <turbo_frame id="party_monitor_scores_<%= row_nr %>">
+                    <%= render partial: 'party_monitors/game_row', locals: {
+                      row: row,
+                      r_no: r_no,
+                      row_nr: row_nr,
+                      t_no: t_no,
+                      table_ids: table_ids,
+                      players_hash: players_hash,
+                      party_monitor: @party_monitor,
+                      assigned_players_a_ids: @assigned_players_a_ids,
+                      assigned_players_b_ids: @assigned_players_b_ids,
+                      available_fitting_table_ids: @available_fitting_table_ids
+                    } %>
+                  </turbo_frame>
+                <%- elsif row[:type] == "Gesamtsumme" %>
+                  <%- points_l, points_r = @party.intermediate_result %>
+                  <div style="display:table-row">
+                    <div style="display:table-cell" class="p-3" nowrap="">
+                      <div class="flex items-start justify-end">
+                        <b>Endstand:&nbsp;&nbsp;</b>
+                        <label>
+                          <input disabled="disabled" class="font-bold" type="text" name="<%= @party.cc_id %>-res1" size="2" maxlength="3" value="<%= points_l %>">
+                        </label>:<label>
+                        <input disabled="disabled" class="font-bold" type="text" name="<%= @party.cc_id %>-res2" size="2" maxlength="3" value="<%= points_r %>">
+                      </label>
+                      </div>
+                    </div>
+                  </div>
+                <%- else %>
+                  <div style="display:table-row">
+                    <div style="display:table-cell" class="p-3" colspan=7><%= row.inspect %></div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+
+            <%= content_tag(:button, disabled: !@party_monitor.party_result_checking_mode?, class: "btn btn-primary", name: "close_party", title: I18n.t("close_party"), data: { turbo: false, reflex: "click->PartyMonitorReflex#close_party", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+              <%= I18n.t("close_party") %>
+            <%- end %>
+
+            <%= custom_link_to( I18n.t("upload_to_club_cloud"), upload_form_party_monitor_path(@party_monitor), disabled: !@party_monitor.closed?, class: "btn btn-primary", data: { turbo: false}, title: I18n.t("upload_to_club_cloud"), method: :get) %>
+
+            <%= content_tag(:button, disabled: !current_user&.admin?, class: "btn btn-primary", name: "reset_party_ponitor", title: "PartyMonitor komplett zurücksetzen", data: { turbo: false, confirm: "Bist Du sicher das gesammte Party-Monitoring incl. aller Spielerzuordnungen und Ergebnisse zurückzusetzen?  Dies kann nicht rückgängig gemacht werden!", reflex: "confirm:complete->PartyMonitorReflex#reset_party_monitor", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+              <%= I18n.t("activerecord.attributes.party_monitor.reset_party_monitor") %> (<%= I18n.t("requires_admin_role") %>)
+            <%- end %>
+          </form>
+        <%- end %>
+        <%= custom_link_to "zurück", @party %>
+      </div>
+    </div>
+  </div>
+</div>

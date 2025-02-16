@@ -1,0 +1,578 @@
+# frozen_string_literal: true
+
+# The Player class represents players in an application. It is associated with various models such as GameParticipation,
+# SeasonParticipation, Club, and others. It is responsible for maintaining player details, including their participation
+# in games, seasons, and associated clubs.
+# Validations are included for the pin4 attribute, which should be unique and a specific length. It also uses
+# a before_save callback to update a player's full name.
+# It includes several instance and class methods for functionality like forming teams from players, updating team names,
+# analyzing duplicate players, and more.
+class Player < ApplicationRecord
+  include LocalProtector
+  include SourceHandler
+  has_many :game_participations, dependent: :nullify
+  has_many :season_participations, dependent: :destroy
+  has_many :clubs, through: :season_participations
+  has_many :player_rankings
+  has_many :seedings, dependent: :nullify
+  has_many :registration_ccs
+  has_many :party_a_games, foreign_key: :player_a_id, class_name: "PartyGame"
+  has_many :party_b_games, foreign_key: :player_b_id, class_name: "PartyGame"
+  has_one :admin_user, class_name: "User", foreign_key: "player_id"
+  REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
+
+  validates :pin4,
+            uniqueness: true,
+            length: { is: 4 },
+            exclusion: { in: %w[1234 1111 0000 1212 7777 1004 2000 4444 2222 6969 9999 3333 5555 6666 1122 1313 8888
+                                4321 2001 1010] },
+            unless: -> { pin4.blank? }
+
+  before_save do
+    self.fl_name = "#{firstname} #{lastname}".strip
+  end
+
+  serialize :data, coder: YAML, type: Hash
+  # for teams:
+  #  data ordered by ba_id  then first player's data are copied into resp. fields of player record
+  # data:
+  # {
+  #   'players' => [
+  #     {
+  #       'firstname' => 'Alfred',
+  #       'lastname' => 'Meyer',
+  #       'ba_id' => 12_342,
+  #       'player_id' => 1234
+  #     }
+  #   ]
+  # }
+  @default_guest = {
+    a: {},
+    b: {}
+  }
+  COLUMN_NAMES = { "Id" => "players.id",
+                   "BA_ID" => "players.ba_id",
+                   "CC_ID" => "players.cc_id",
+                   "Nickname" => "players.nickname",
+                   "Firstname" => "players.firstname",
+                   "Lastname" => "players.lastname",
+                   "Title" => "players.title",
+                   "Club" => "clubs.shortname",
+                   "Region" => "regions.shortname",
+                   "BaId" => "players.ba_id" }.freeze
+  def self.search_hash(params)
+    {
+      model: Player,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
+      column_names: Player::COLUMN_NAMES,
+      raw_sql: "(players.firstname ilike :search)
+ or (players.nickname ilike :search)
+ or (players.lastname ilike :search)",
+      joins: []
+    }
+  end
+
+  def self.default_guest(ab, location)
+    if @default_guest[ab][location.id].blank?
+      club = location.club
+      default_guest = club
+                      .season_participations.joins("INNER JOIN \"players\" ON \"players\".\"id\" =
+\"season_participations\".\"player_id\"")
+                      .where(season_id: Season.current_season&.id, players: { fl_name: "Gast #{ab.to_s.upcase}" }).first
+      if default_guest.blank?
+        default_guest = SeasonParticipation.create(club_id: club.id,
+                                                   season_id: Season.current_season&.id,
+                                                   player: Player.create(lastname: "Gast #{ab.to_s.upcase}"),
+                                                   status: "guest")
+      end
+      @default_guest[ab][location.id] = default_guest
+    end
+    @default_guest[ab][location.id]
+  end
+
+  def fullname
+    "#{lastname}, #{firstname}".gsub(/,\s*$/, "")
+  end
+
+  def shortname
+    lastname.present? ? lastname : firstname
+  end
+
+  def self.team_from_players(players)
+    if players.blank?
+      nil
+    elsif players.count == 1
+      players[0]
+    else
+      args = { data: { "players" => players.map do |p|
+        {
+          "firstname" => p.firstname,
+          "lastname" => p.lastname,
+          "ba_id" => p.ba_id,
+          "cc_id" => p.cc_id,
+          "player_id" => p.id
+        }
+      end } }
+
+      Team.where(args).first || Team.create!(args)
+    end
+  end
+
+  def club
+    season_participations.order(:season_id).last.andand.club
+  end
+
+  def simple_firstname
+    nickname.presence || firstname.andand.gsub("Dr.", "")
+  end
+
+  def name
+    fullname
+  end
+
+  def self.update_teams_fl_names
+    Team.all.each do |team|
+      d = team.data
+      players = [d["players"]]
+      players_new = players.map do |pl_hash|
+        pl_hash["fl"] = "#{pl_hash["firstname"]} #{pl_hash["lastname"]}".strip
+        pl_hash
+      end
+      d["players"] = players_new
+      team.data = d
+      team.data_will_change!
+      team.save
+    end
+  end
+
+  def self.analyse_duplicates(opts = {})
+    # get duplicates
+    fl_names_done = []
+    if File.exist?("tmp/PLAYER_DUPLICATES")
+      str = File.read("tmp/PLAYER_DUPLICATES")
+      if str.present?
+        struct = JSON.parse(str)
+        fl_names_done = struct.keys
+      end
+    end
+    fl_names = []
+    Player.select("fl_name").where(type: nil).group("type", :fl_name).having("count(*) > 1").each do |pl|
+      fl_names << pl.fl_name
+    end
+    fl_names -= fl_names_done unless opts[:partial_recalc]
+    struct = struct.presence || {}
+    fl_names.each_with_index do |fl_name, ix|
+      players = Player.cross_domain_player_search(fl_name, opts)
+      if players.nil?
+        str = struct.to_json
+        f = File.new("tmp/PLAYER_DUPLICATES", "wb")
+        f.write(str)
+        f.close
+        # sleep 20
+        players = players.to_a
+      end
+      struct[fl_name] = players
+      next unless (ix % 50).zero?
+
+      str = struct.to_json
+      f = File.new("tmp/PLAYER_DUPLICATES", "wb")
+      f.write(str)
+      f.close
+    end
+    str = struct.to_json
+    os f = File.new("tmp/PLAYER_DUPLICATES", "wb")
+    f.write(str)
+    f.close
+  end
+
+  def self.merge_duplicates_when_uniq_in_cc
+    struct = JSON.parse(File.read("tmp/PLAYER_DUPLICATES"))
+    uniq_in_cc = struct.select { |_k, v| v.count == 1 }
+    uniq_in_cc.each do |fl_name, v|
+      player_master = Player.where(firstname: v[0][0], lastname: v[0][1], cc_id: v[0][3], type: nil).first
+      next unless player_master.present?
+
+      other_players = Player.where(fl_name: fl_name, type: nil).where.not(id: player_master.id).to_a
+      next unless other_players.present?
+
+      Player.merge_players(player_master, other_players)
+      others = "#{[other_players.map(&:id), other_players.map(&:ba_id)]}] with [#{[player_master.id,
+                                                                                   player_master.ba_id]}"
+      Rails.logger.info "====== MERGED #{fl_name} from [#{others}]"
+    end
+  end
+
+  def self.merge_players_when_matching_club_and_dbu_nr
+    struct = JSON.parse(File.read("tmp/PLAYER_DUPLICATES"))
+    struct.each do |k, vvv|
+      dbu_numbers = []
+      vvv.each do |v|
+        dbu_numbers |= [v[4]]
+      end
+      dbu_numbers.each do |dbu_nr|
+        nrw_nr = nil
+        cc_id = nil
+        firstname, lastname, _region, _pass_nr, _dbu_nr = nil
+        vvv.each do |vv|
+          next if vv[4] != dbu_nr
+
+          firstname, lastname, region, pass_nr, _dbu_nr = vv
+          if region == "BVNRW"
+            nrw_nr = pass_nr
+          elsif pass_nr != dbu_nr
+            cc_id = pass_nr
+          end
+        end
+        player_master = Player.where(firstname: firstname, lastname: lastname, cc_id: cc_id, type: nil).first
+        player_master ||= Player.where(firstname: firstname, lastname: lastname, cc_id: nrw_nr, type: nil).first
+        next unless player_master.present?
+
+        club_cc_ids = player_master.clubs.uniq.map(&:cc_id).compact
+        players_to_merge = Player.where(fl_name: k, type: nil).where.not(id: player_master.id).to_a.select do |p|
+          (p.clubs.uniq.map(&:cc_id).compact & club_cc_ids).present?
+        end
+        if players_to_merge.present?
+          Player.merge_players(player_master, players_to_merge)
+          Rails.logger.info "====== MERGED #{k} from [#{[players_to_merge.map do |p|
+            [p.id, p.cc_id, p.dbu_nr]
+          end]}] with [#{[player_master.id, player_master.cc_id,
+                          player_master.dbu_nr]}]"
+        end
+        player_master.reload.update(cc_id: cc_id)
+      end
+    end
+  end
+
+  def self.merge_duplicates
+    # get duplicates
+    fl_names = []
+    Player.select("fl_name").where(type: nil).group("type", :fl_name).having("count(*) > 1").each do |pl|
+      fl_names << pl.fl_name
+    end
+    # merge 999000000 Players
+    Player.where(type: nil, fl_name: fl_names).where.not(ba_id: nil).where("ba_id > 999000000").to_a.each do |pl|
+      club = pl.club
+      pl_master = Player
+                  .where(type: nil, fl_name: pl.fl_name)
+                  .where("ba_id is null OR ba_id < 999000000").to_a
+                  .find { |p| p.club.andand.id.to_i == club.andand.id.to_i }
+      next unless pl_master.present?
+
+      Player.merge_players(pl_master, [pl])
+      Rails.logger.info "====== MERGED #{pl.fl_name} from [#{[pl.id,
+                                                              pl.ba_id]}] with [#{[pl_master.id, pl_master.ba_id]}]"
+    end
+
+    # SeasonParticipation.
+    #   joins("left outer join players on players.id = season_participations.player_id").
+    #   where(players: { type: nil }).
+    #   #where(status: nil, season_id: 14).
+    #   inject([]) do |memo, sp|
+    #   memo << sp.player.andand.fl_name if Player.where(type: nil, fl_name: sp.player.andand.fl_name).count > 1; memo
+    # end.
+    # raise StandardError "FALSE IMPLEMENTATION - DO NOT USE IT"
+    # Player.select(:fl_name).where(type: nil).group(:fl_name).having("count(*) > 1").map(&:fl_name).each do |fl_name|
+    #   ba_id_max = Player.where(type: nil).where(fl_name: fl_name).where.not(ba_id: nil)
+    #     .where("ba_id < 999000000").all.map(&:ba_id).max
+    #   if ba_id_max.present?
+    #     master = Player.where(type: nil).where(fl_name: fl_name).where(ba_id: ba_id_max).first
+    #     ids = Player.where(type: nil).where(fl_name: fl_name).ids - [master.id]
+    #     Player.merge_players(master, Player.where(id: ids).to_a)
+    #   else
+    #     Rails.logger.info "===== scrape ===== WARNING player '#{fl_name}' - no ba_id"
+    #     master = Player.where(type: nil).where(fl_name: fl_name).first
+    #     ids = Player.where(type: nil).where(fl_name: fl_name).ids - [master.id]
+    #     Player.merge_players(master, Player.where(id: ids).to_a)
+    #   end
+    # end
+  end
+
+  def self.cross_domain_player_search(fl_name, opts = {})
+    players = []
+    name_parts = fl_name.split(/\s+/).map(&:strip)
+    partitions = name_parts.count - 1
+    player_found = false
+    (1..partitions).each_with_index do |_p, ix|
+      firstname = name_parts[0..ix].join(" ")
+      lastname = name_parts[ix + 1..].join(" ")
+      shortnames = opts[:only_shortnames].present? ? Array(opts[:only_shortnames]) : Region::SHORTNAMES_CC
+      shortnames.each do |r_shortname|
+        region = Region.find_by_shortname(r_shortname)
+        next if region.blank?
+
+        next unless region.cc_id.present?
+
+        url = region.public_cc_url_base
+        msg, doc = region.post_cc_public("suche", {
+                                           pno: "",
+                                           s: "",
+                                           f: region.cc_id,
+                                           v: firstname,
+                                           n: lastname,
+                                           pa: "",
+                                           lastPageNo: "",
+                                           nextPageNo: 1
+                                         })
+        if msg == "OK"
+          player_table = doc.css("article section table")[1]
+          player_found = false
+          if player_table.present?
+            player_table.css("tr").each do |tr|
+              next if tr.css("th").count.positive?
+
+              dbu_nr = nil
+              pass_nr = nil
+              player_link_a = tr.css("a")[0]
+              next if player_link_a.blank?
+
+              player_link = tr.css("a")[0]["href"]
+              player_url = url + player_link
+              u, p = player_url.split("p=")
+              params = p.split("-")
+              params[3] = params[4]
+              params[1] = params[2] = ""
+              p = params.join("-")
+              player_url = "#{u}p=#{p}"
+              Rails.logger.info "reading #{player_url}"
+              uri = URI(player_url)
+              player_html = Net::HTTP.get(uri)
+              player_doc = Nokogiri::HTML(player_html)
+              detail_table = player_doc.css("aside section table")[0]
+              clubs = []
+              detail_table.css("tr").each do |tr_d|
+                case tr_d.css("td")[0].text.strip
+                when "Pass-Nr."
+                  pass_nr = tr_d.css("td")[1].text.strip.to_i
+                when "DBU-Nr."
+                  dbu_nr = tr_d.css("td")[1].text.strip.to_i
+                when "Vereine"
+                  club_links = tr_d.css("td")[1].css("a")
+                  club_links.each do |club_link|
+                    club_name = club_link.text.strip
+                    club_cc_id = club_link["href"].split("p=")[1].split(/[-|]/)[3].to_i
+                    clubs << [club_name, club_cc_id]
+                  end
+                else
+                  clubs
+                end
+              end
+              players << [firstname, lastname, region.shortname, pass_nr, dbu_nr, clubs]
+              player_found = true
+            end
+          end
+        else
+          Rails.logger.info "==== scrape ==== IO PROBLEM "
+          return nil
+        end
+      end
+    end
+    unless player_found
+      Rails.logger.info "==== scrape ==== WARNING Player #{fl_name} probably exists in \
+ other permutation - check manually!!!"
+    end
+    players
+  end
+
+  def self.fix_from_shortnames(lastname, firstname, season, region,
+                               club_str_, tournament, allow_players_outside_ba,
+                               allow_creates, position)
+    if firstname.match(/.*\((.*)\)/)
+      firstname.gsub!(/\s*\((.*)\)/, "")
+    end
+    club_str = club_str_.strip.gsub("  ", " ")
+    player = nil
+    club = Club.where("synonyms ilike ?", "%#{club_str}%").to_a.find do |cb|
+      cb.synonyms.split("\n").include?(club_str)
+    end
+    if club.present?
+      season_participations = SeasonParticipation.joins(:player).joins(:club)
+                                                 .joins(:season)
+                                                 .where(seasons: { id: season.id }, players: { firstname: firstname,
+                                                                                               lastname: lastname })
+                                                 .where(
+                                                   "clubs.synonyms ilike ?", "%#{club_str}%"
+                                                 ).to_a.select do |sp|
+        sp.club.synonyms.split("\n").include?(club_str)
+      end
+      if season_participations.count == 1
+        season_participation = season_participations.first
+        player = season_participation&.player
+        unless season_participation&.club_id == club.id
+          real_club = season_participations.first&.club
+          if real_club.present?
+            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz: Player #{lastname}, #{firstname} \
+not active in Club #{club_str} [#{club.ba_id}], Region #{region.shortname}, season #{season.name}!"
+            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - Fixed: \
+Player #{lastname}, #{firstname} is active in Club #{real_club.shortname} [#{real_club.ba_id}], \
+Region #{real_club.region&.shortname}, season #{season.name}!"
+            unless SeasonParticipation.find_by_player_id_and_season_id_and_club_id(
+              player&.id, season.id, real_club.id
+            )
+              SeasonParticipation.create(player_id: player&.id, season_id: season.id,
+                                         club_id: real_club.id)
+            end
+          end
+        end
+        if tournament.present?
+          seeding = Seeding.find_by_player_id_and_tournament_id_and_tournament_type(player&.id, tournament.id,
+                                                                                    tournament.class.name) ||
+                    Seeding.create(player_id: player&.id, tournament: tournament, position: position)
+        end
+        state_ix = 0
+      elsif season_participations.count.zero?
+        players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
+        if players.count.zero?
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - Fatal: Player #{lastname}, #{firstname} \
+not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! \
+Not found anywhere - typo?"
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fixed - \
+added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , \
+Region #{region.shortname}, season #{season.name}"
+          if allow_players_outside_ba && allow_creates
+            player_fixed = Player.create(lastname: lastname, firstname: firstname, club_id: club.id)
+            player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
+            SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+              SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+            if tournament.present?
+              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                        Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+            end
+          end
+          state_ix = 0
+        elsif players.count == 1
+          player_fixed = players.first
+          if player_fixed.present?
+            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz: Player #{lastname}, #{firstname} \
+is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
+            SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+              SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fixed: \
+Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], \
+region #{region.shortname} and season #{season.name}"
+            if tournament.present?
+              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                        Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+            end
+          end
+          state_ix = 0
+        elsif players.count > 1
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - Fatal: Ambiguous:
+Player #{lastname}, #{firstname} not active everywhere but exists in
+Clubs [#{players.map(&:club).map { |c| "#{c.andand.shortname} [#{c.andand.ba_id}]" }}] "
+          clubs_str = players.map(&:club).map do |c|
+            "#{c.andand.shortname} [#{c.andand.ba_id}]"
+          end.first
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: \
+Assume Player #{lastname}, #{firstname} is active in Clubs [#{clubs_str}] "
+          player_fixed = players.first
+          if player_fixed.present?
+            SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id) ||
+              SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+            if tournament.present?
+              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                        Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+            end
+          end
+          state_ix = 0
+        end
+      else
+        # (ambiguous clubs)
+        if season_participations.map(&:club_id).uniq.include?(club.id)
+          season_participation = season_participations.find { |sp| sp.club_id == club.id }
+          if season_participation.present?
+            player = season_participation.player
+            if tournament.present?
+              seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id) ||
+                        Seeding.create(player_id: player.id, tournament_id: tournament.id, position: position)
+            end
+          end
+        else
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz: Player #{lastname}, #{firstname} is not \
+active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
+          fixed_season_participation = season_participations.last
+          if fixed_season_participation.present?
+            fixed_club = fixed_season_participation.club
+            player_fixed = fixed_season_participation.player
+            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fixed: Player #{lastname}, #{firstname} \
+playing for Club[#{fixed_club.ba_id}] #{fixed_club.shortname}, region #{fixed_club.region.shortname} \
+and season #{season.name}"
+            SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id,
+                                                                            fixed_club.id) ||
+              SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
+            if tournament.present?
+              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                        Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+            end
+          end
+        end
+        state_ix = 0
+      end
+    else
+      logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fatal: Club #{club_str}, \
+region #{region.shortname} not found!! Typo?"
+      fixed_club = region.clubs.create(name: club_str, shortname: club_str)
+      if allow_creates
+        player_fixed = Player.create(firstname: firstname, lastname: lastname)
+        fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
+        player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
+        SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
+
+        logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Club #{club_str} created \
+in region #{region.shortname}"
+        logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Player #{lastname}, \
+#{firstname} playing for Club #{club_str}"
+        if tournament.present?
+          seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id) ||
+                    Seeding.create(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+        end
+        state_ix = 0
+      end
+    end
+    [player || player_fixed, club || fixed_club, seeding, state_ix]
+  rescue StandardError => e
+    Tournament.logger.info "===== scrape =====  StandardError #{e}:\n#{e.backtrace.to_a.join("\n")}"
+    nil
+  end
+
+  def self.merge_players(player_ok, player_tmp_arr)
+    cc_id = player_ok.cc_id || Array(player_tmp_arr).map(&:cc_id).compact.first
+    dbu_nr = player_ok.dbu_nr || Array(player_tmp_arr).select do |p|
+      p.dbu_nr.present? && p.dbu_nr < 998_000_000
+    end.map(&:dbu_nr).compact.first
+    player_ok.update(cc_id: cc_id, dbu_nr: dbu_nr)
+    Array(player_tmp_arr).each do |player_tmp|
+      Player.transaction do
+        SeasonParticipation.where(player_id: player_tmp.id).each do |sp|
+          unless SeasonParticipation.where(player_id: player_ok.id, season_id: sp.season_id,
+                                           club_id: sp.club_id).first.present?
+            sp.update(player_id: player_ok.id)
+          end
+        end
+        GameParticipation.where(player_id: player_tmp.id).all.each { |l| l.update(player_id: player_ok.id) }
+        PlayerRanking.where(player_id: player_tmp.id).all.each { |l| l.update(player_id: player_ok.id) }
+        Seeding.where(player_id: player_tmp.id).all.each { |l| l.update(player_id: player_ok.id) }
+        PartyGame.where(player_a_id: player_tmp.id).all.each { |l| l.update(player_a_id: player_ok.id) }
+        PartyGame.where(player_b_id: player_tmp.id).all.each { |l| l.update(player_b_id: player_ok.id) }
+        player_tmp.destroy if player_tmp.id != player_ok.id
+        Team.where("data ilike '%#{player_ok.fl_name.gsub("'", "''")}%'").each do |team|
+          players = [team.data["players"]]
+          players.each do |players_hash|
+            next unless players_hash["fl"] == player_ok.fl_name
+            next unless players_hash["ba_id"] != player_ok.ba_id || players_hash["player_id"] != player_ok.id
+
+            players_hash["player_id"] = player_ok.id
+            players_hash["ba_id"] = player_ok.ba_id
+            team.data_will_change!
+          end
+          team.save!
+        end
+      end
+    end
+  end
+
+  def self.fix_player_without_ba_id(region, firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
+    region.fix_player_without_ba_id(firstname, lastname, should_be_ba_id, should_be_club_id)
+  end
+end

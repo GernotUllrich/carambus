@@ -1,0 +1,20 @@
+setup puma.service:
+-rw-r--r-- 1 root root 595 30. Sep 12:11 /etc/systemd/system/puma.service
+sudo vi /etc/systemd/system/puma.service
+
+-rw-r--r-- 1 www-data www-data 2925 30. Sep 12:14 /var/www/carambus/shared/config/puma.rb
+vi /var/www/carambus/shared/config/puma.rb
+
+sudo systemctl daemon-reload
+
+
+
+sudo systemctl enable puma.service
+sudo systemctl start puma.service
+
+in /etc/nginx/sites-enabled/carambus
+
+substitute unicorn -> puma
+
+in /etc/nginx/sites-enabled/unicorn_carambus_production
+substitute

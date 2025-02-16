@@ -1,0 +1,37 @@
+<%= content_for :title, "Game Plans" %>
+<%= turbo_stream_from :game_plans %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="h3">Game Plans</h1>
+
+      <div class="text-sm font-medium">
+        <span class="text-gray-500"><%= I18n.t("sort_by", :default => "Sort By:") %></span>
+        <%= sortable @game_plans, :footprint,"Footprint", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @game_plans, :data,"Data", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @game_plans, :name,"Name", request.params, class: "text-gray-700 mr-1" %>
+      </div>
+    </div>
+
+    <%= custom_link_to t("shared.scaffold.new.title", default: "New Game Plan", model: "Game Plan"), new_game_plan_path, class: "btn btn-white" %>
+  </div>
+
+  <%= tag.div id: ("game_plans" if first_page?), class: " rounded-md shadow p-6 space-y-8" do %>
+    <%= render partial: "game_plans/index", collection: @game_plans, as: :game_plan, cached: true %>
+
+    <div class="hidden only:flex flex-col items-center justify-between lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="mb-4 h3">Create your first Game Plan</p>
+        <%= custom_link_to t("shared.scaffold.new.title", default: "New Game Plan", model: "Game Plan"), new_game_plan_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @pagy.pages > 1 %>
+    <div class="my-6 text-center">
+      <%== pagy_nav(@pagy) %>
+    </div>
+  <% end %>
+</div>

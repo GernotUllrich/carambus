@@ -1,0 +1,152 @@
+.form-group {
+  @apply mb-6 relative;
+}
+
+.form-input[disabled] {
+  @apply bg-gray-200;
+}
+
+/* non-input elements (like the Stripe card form) can be styled to look like an input */
+div.form-control {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  border-width: 1px;
+  padding-top: .5rem;
+  padding-right: .75rem;
+  padding-bottom: .5rem;
+  padding-left: .75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+@layer components {
+  .form-control {
+    @apply form-input block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6;
+    @apply dark:bg-gray-700 dark:ring-gray-600 dark:placeholder-gray-300/50 dark:text-white dark:focus:ring-primary-500;
+  }
+
+  .form-control[disabled], .form-control[readonly] {
+    @apply bg-gray-200 dark:bg-gray-600;
+  }
+
+  .form-control.error {
+    @apply border-red-300 dark:border-red-600;
+  }
+}
+
+/*label,
+.label {
+  @apply block text-sm font-medium leading-5 text-gray-700 mb-1;
+  @apply dark:text-gray-100;
+}*/
+
+.form-hint {
+  @apply text-gray-600 dark:text-gray-300/75 text-xs italic;
+}
+
+.form-hint.error {
+  @apply text-red-500 text-sm italic leading-normal mt-1;
+}
+
+.caret {
+  @apply pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-800;
+}
+
+form.inline .form-group {
+  @apply flex justify-start items-center;
+}
+
+form.inline .form-group .input {
+  @apply flex-1;
+}
+
+form.inline .form-group .label {
+  @apply w-1/4;
+}
+
+/* Fix flatpickr */
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  display: inline-block;
+}
+
+.form-checkbox {
+  @apply rounded border-gray-300 text-primary-600 focus:ring-primary-600;
+  @apply dark:border-white/10 dark:checked:bg-current dark:bg-white/5 dark:focus:ring-offset-gray-900;
+}
+
+.form-checkbox[disabled] {
+  @apply bg-gray-200 dark:bg-gray-600;
+}
+
+[type='checkbox'] {
+  @apply form-checkbox;
+}
+
+.form-radio {
+  @apply border-gray-300 text-primary-600 focus:ring-primary-600 dark:border-white/10 dark:bg-white/5 dark:focus:ring-offset-gray-900;
+}
+
+.form-radio[disabled] {
+  @apply bg-gray-200 dark:bg-gray-600;
+}
+
+[type='radio'] {
+  @apply form-radio;
+}
+
+.input-file {
+  height: auto;
+  z-index: 2;
+  cursor: pointer;
+  @apply opacity-0 inline-block pl-0 pr-0 py-3 px-3 overflow-hidden absolute border-none;
+}
+
+.input-file + label {
+  @apply inline-flex text-sm font-bold text-center px-4 py-0 rounded no-underline items-center justify-between cursor-pointer;
+  @apply btn btn-tertiary;
+  height: 40px;
+  line-height: 40px;
+  transition: ease 0.3s background, ease 0.3s transform, ease 0.2s color;
+}
+
+.input-file + label:focus {
+  outline: 1px dotted #000;
+  outline: -webkit-focus-ring-color auto 5px;
+}
+
+.switch,
+.toggle {
+  @apply relative;
+}
+
+.switch input[type="checkbox"],
+.toggle input[type="checkbox"] {
+  @apply absolute top-2 left-0 opacity-0;
+}
+
+.switch input[type="checkbox"]:checked + label:before,
+.toggle input[type="checkbox"]:checked + label:before {
+  @apply bg-primary-600;
+}
+
+.switch input[type="checkbox"]:checked + label:after,
+.toggle input[type="checkbox"]:checked + label:after {
+  @apply translate-x-[26px];
+}
+
+.switch label,
+.toggle label {
+  @apply relative pl-16 pt-0.5 hover:cursor-pointer inline-block;
+}
+
+.switch label:before,
+.toggle label:before {
+  @apply absolute bg-gray-200 dark:bg-gray-700 top-0 left-0 rounded-3xl h-6 w-[50px] content-[""] transition-colors duration-200 ease-in;
+}
+
+.switch label:after,
+.toggle label:after {
+  @apply absolute top-0.5 left-0.5 rounded-full w-5 h-5 bg-white content-[""] transition-transform duration-200 ease-in;
+}

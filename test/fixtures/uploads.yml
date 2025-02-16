@@ -1,0 +1,21 @@
+# == Schema Information
+#
+# Table name: uploads
+#
+#  id         :bigint           not null, primary key
+#  filename   :string
+#  position   :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  user_id    :integer
+#
+
+one:
+  filename: MyString
+  user_id: 1
+  position: 1
+
+two:
+  filename: MyString
+  user_id: 1
+  position: 1

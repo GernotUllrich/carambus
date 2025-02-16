@@ -1,0 +1,67 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3"><%= t('country.index.countries') %></h1>
+
+    <% if @countries.any? %>
+<!--      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <form action="/countries" method="get" target="table_wrapper" data-reflex-serialize-form="true">
+              <%#= search_field_tag :sSearch, @sSearch, id: 'sSearch', data: { reflex: "input->SearchReflex#perform", reflex_permanent: "search" }, placeholder: "Search" %>
+            </form>
+          </div>
+          <div id="helpSearch" class="flex pl-3" data-controller="tooltip" data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
+            <%#= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-800 hover:text-gray-800 hover: dark: inline-blocktable_monitor.save" %>
+          </div>
+        </div>
+      </div>-->
+      <%= button_to 'New Country', new_country_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary"  if current_user.andand.admin? %>
+    <% end %>
+  </div>
+
+  <% if @countries.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+        <tr>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @countries, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @countries, :code,'Code', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @countries.each do |country| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <td class="p-3"><%= country.name %></td>
+            <td class="p-3"><%= country.code %></td>
+
+            <td>
+              <%= custom_link_to t('view'), country, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Country</p>
+        <%= button_to 'New Country', new_country_path, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
+      </div>
+    </div>
+  <% end %>
+  <div class="mt-6">
+    -> <%= custom_link_to t('home.index.region'), regions_path %>
+  </div>
+</div>

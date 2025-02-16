@@ -1,0 +1,31 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Discipline Ccs', discipline_ccs_path %> > Discipline Cc #<%= @discipline_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_discipline_cc_path(@discipline_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @discipline_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @discipline_cc.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @discipline_cc.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Branch cc</h5>
+        <%= @discipline_cc.branch_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Context</h5>
+        <%= @discipline_cc.context %>
+      </div>
+          </div>
+  </div>
+</div>

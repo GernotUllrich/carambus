@@ -1,0 +1,71 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Game Plan Row Ccs</h1>
+
+    <% if @game_plan_row_ccs.any? %>
+      <%= button_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @game_plan_row_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :game_plan_id,'Game plan', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :home_brett,'Home brett', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :visitor_brett,'Visitor brett', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :sets,'Sets', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :score,'Score', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppg,'Ppg', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppu,'Ppu', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppv,'Ppv', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :mpg,'Mpg', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :pmv,'Pmv', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @game_plan_row_ccs.each do |game_plan_row_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= game_plan_row_cc.cc_id %></td>
+                      <td class="p-3"><%= game_plan_row_cc.game_plan_id %></td>
+                      <td class="p-3"><%= game_plan_row_cc.discipline_id %></td>
+                      <td class="p-3"><%= game_plan_row_cc.home_brett %></td>
+                      <td class="p-3"><%= game_plan_row_cc.visitor_brett %></td>
+                      <td class="p-3"><%= game_plan_row_cc.sets %></td>
+                      <td class="p-3"><%= game_plan_row_cc.score %></td>
+                      <td class="p-3"><%= game_plan_row_cc.ppg %></td>
+                      <td class="p-3"><%= game_plan_row_cc.ppu %></td>
+                      <td class="p-3"><%= game_plan_row_cc.ppv %></td>
+                      <td class="p-3"><%= game_plan_row_cc.mpg %></td>
+                      <td class="p-3"><%= game_plan_row_cc.pmv %></td>
+
+            <td>
+              <%= custom_link_to "View", game_plan_row_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Game Plan Row Cc</p>
+        <%= button_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

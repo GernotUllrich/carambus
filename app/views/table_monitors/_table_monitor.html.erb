@@ -1,0 +1,30 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<div id="<%= dom_id table_monitor %>">
+  <%= content_tag "div", class: "hidden mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_a", id: table_monitor.id }, id: "key_a_table_monitor_#{table_monitor.id}" do %>
+    A
+  <%- end %>
+  <%= content_tag "div", class: "hidden mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_b", id: table_monitor.id }, id: "key_b_table_monitor_#{table_monitor.id}" do %>
+    B
+  <%- end %>
+  <%= content_tag "div", class: "hidden mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_c", id: table_monitor.id }, id: "key_c_table_monitor_#{table_monitor.id}" do %>
+    C
+  <%- end %>
+  <%= content_tag "div", class: "hidden mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { reflex: "click->TableMonitorReflex#key_d", id: table_monitor.id }, id: "key_d_table_monitor_#{table_monitor.id}" do %>
+    D
+  <%- end %>
+  <%- if table_monitor.present? %>
+    <%- show_data = table_monitor.options[:showing_prev_game] ?  table_monitor.prev_data : table_monitor.data %>
+    <%= content_tag "div",
+                    "data-controller": "table-monitor",
+                    id: "full_screen_table_monitor_#{table_monitor.id}",
+                    class: "table_monitor flex-1 h-screen" do %>
+      <%- if show_data["free_game_form"] == "pool" %>
+        <%= render partial: "table_monitors/show_pool", locals: { table_monitor: table_monitor, full_screen: true } %>
+      <%- elsif show_data["free_game_form"] == "snooker" %>
+        <%= render partial: "table_monitors/show_snooker", locals: { table_monitor: table_monitor, full_screen: true } %>
+      <%- else %>
+        <%= render partial: "table_monitors/show", locals: { table_monitor: table_monitor, full_screen: true } %>
+      <%- end %>
+    <%- end %>
+  <%- end %>
+</div>

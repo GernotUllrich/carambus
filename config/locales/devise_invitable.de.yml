@@ -1,0 +1,17 @@
+de:
+  devise:
+    failure:
+      invited: Du hast eine Einladung laufen, akzeptiere sie um die registrierung zu beenden.
+    invitations:
+      edit:
+        header: Akzeptiere deine Einladung
+        submit_button: Enladung annehmen
+      invitation_removed: Deine Einladung wurde entfernt.
+      invitation_token_invalid: Der angegebene Einladungstoken ist nicht gültig!
+      new:
+        header: Einladung gesendet
+        submit_button: Sende eine Einladung
+      no_invitations_remaining: Keine weiteren Einladungen
+      send_instructions: Eine Einladungsmail wurde an %{email} geschickt.
+      updated: Dein Password wurde korrekt gesetzt. Du bist jetzt angemeldet.
+      updated_not_active: Dein Password wurde korrekt gesetzt.

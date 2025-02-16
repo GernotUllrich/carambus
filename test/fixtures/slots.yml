@@ -1,0 +1,39 @@
+# == Schema Information
+#
+# Table name: slots
+#
+#  id                 :bigint           not null, primary key
+#  dayofweek          :integer
+#  hourofday_end      :integer
+#  hourofday_start    :integer
+#  minuteofhour_end   :integer
+#  minuteofhour_start :integer
+#  next_end           :datetime
+#  next_start         :datetime
+#  recurring          :boolean
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  table_id           :integer
+#
+
+one:
+  dayofweek: 1
+  hourofday_start: 1
+  minuteofhour_start: 1
+  hourofday_end: 1
+  minuteofhour_end: 1
+  next_start: 2024-03-15 19:08:44
+  next_end: 2024-03-15 19:08:44
+  table_id: 1
+  recurring: false
+
+two:
+  dayofweek: 1
+  hourofday_start: 1
+  minuteofhour_start: 1
+  hourofday_end: 1
+  minuteofhour_end: 1
+  next_start: 2024-03-15 19:08:44
+  next_end: 2024-03-15 19:08:44
+  table_id: 1
+  recurring: false

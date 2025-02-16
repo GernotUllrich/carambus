@@ -1,0 +1,31 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">New Club Guest - <%= @club.shortname %></h1>
+      <%= custom_link_to 'Cancel', @club, class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <%= form_tag add_club_guest_club_path(@club), method: :post do %>
+        <%= hidden_field_tag "season_id", Season.current_season.id %>
+        <div class="form-group">
+          <%= label_tag "Vorname(*):" %>
+          <%= text_field_tag "firstname", @player.andand.firstname %>
+        </div>
+        <div class="form-group">
+          <%= label_tag "Nachname(*):" %>
+          <%= text_field_tag "lastname", @player.andand.lastname %>
+        </div>
+        <div class="form-group">
+          <%= label_tag "Spitzname:" %>
+          <%= text_field_tag "nickname", @player.andand.nickname %>
+        </div>
+        <div class="form-group">
+          <%= label_tag "Status:" %>
+          <%= select_tag "status", options_for_select(%w{active passive guest}, @season_participation.andand.status || "guest") %>
+        </div>
+        <%= submit_tag "Füge Gastspieler hinzu", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Table Kinds', table_kinds_path %> > Table Kind #<%= @table_kind.id %></h1>
+      <%= button_to( 'Edit', edit_table_kind_path(@table_kind), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @table_kind.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Short</h5>
+        <%= @table_kind.short %>
+      </div>
+            <div class="mb-4">
+        <h5>Measures</h5>
+        <%= @table_kind.measures %>
+      </div>
+          </div>
+  </div>
+</div>

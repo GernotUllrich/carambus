@@ -1,0 +1,213 @@
+<h1>Carambus Turnier Management</h1>
+
+<h3>Inhalt</h3>
+
+<ul>
+<li><a href="#intro">Einführung</a></li>
+<li><a href="#structure">Struktur</a></li>
+<li><a href="#api">Carambus API.</a></li>
+<li><a href="#region_management">Regionales Turniermanagement.</a></li>
+<li><a href="#location_management">Lokales Spielmanagement.</a></li>
+<li><a href="#training">Trainingsmodus.</a></li>
+</ul>
+
+<h2><a name="intro"></a>Einführung</h2>
+
+<p>Carambus zielt darauf, den gesamten Spielbetrieb auf Regional- und Vereinsebene zu automatisieren. Es werden die wichtigsten Billarddisziplinen Karambol, Pool, Snooker und Kegel in Deutschland in Einzelturnieren und Mannschaftswettkämpfen unterstützt.</p>
+
+<blockquote>
+  <p>Automatisierung mit Carambus bedeutet Unterstützung aller Phasen des Billardspiels von der Turnierplanung, der Festsetzung des Turniermodus, der Einteilung der Spielpaarungen entsprechend der Rang- und Setzlisten, der Tischzuordnung, der Realzeiterfassung der Spiele über die Anzeigetafeln bis zur Auswertung der Ergebnisse und Übertragung an die zentralen Verbände.</p>
+</blockquote>
+
+<h2><a name="structure"></a>Struktur</h2>
+
+<p>Technisch gesehen ist Carambus eine Hierarchie von Webservices. An der Spitze steht ein Webserver, der nur dazu dient, externe Daten so Zeit aktuell und effizient wie möglich vorzuhalten. Konsumenten dieser Daten sind auf Regionalebene und am Veranstaltungsort, bzw. in den Clubheimen Webserver, die den lokalen Spielbetrieb verwalten.</p>
+
+<p>Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Turniere, sowie die verschieden Anzeige- und Eingabegeräte am Veranstaltungsort.</p>
+
+<p>Da alles auf standardisierten HTML Protokollen basiert, ist Carambus weitgehend hardwareunabhängig.</p>
+
+<h2><a name="api"></a>Carambus API</h2>
+
+<p>Die Daten, die im Carambus API Server gespeichert werden, sind nur über spezielle REST URLs abrufbar.
+Die Daten werden zur Übertragung verschlüsselt (SSL) und die zugreifenden regionalen Server müssen entsprechend autorisiert (auth0 Token) sein.
+Folgende Daten werden vom API-Server zentral geliefert:</p>
+
+<ul>
+<li>Regionalverbände
+<ul>
+<li>CC-ID[1], Name, Kurzname, Logo, E-Mail, Adresse, Land</li>
+</ul></li>
+<li>Clubs
+<ul>
+<li>CC-ID[1], Region, Name, Kurzname, Adresse, Home-Page, E-Mail, Logo</li>
+</ul></li>
+<li>Spiellokale
+<ul>
+<li>Club[1], Region, Name, Adresse</li>
+</ul></li>
+<li>Tischausstattung
+<ul>
+<li>Tischarten, Zahl, Größe, Namen</li>
+</ul></li>
+<li>Spielerdaten
+<ul>
+<li>CC-ID[1], Club, Nachname, Vorname, Titel</li>
+</ul></li>
+<li>Saisonale Vereinszugehörigkeiten
+<ul>
+<li>Spieler, Saison, Club, Clubgäste</li>
+</ul></li>
+<li>Turniere
+<ul>
+<li>CC-ID[1], Titel, Disziplin, Spielklasse, Modus, Zugangsbeschränkung, Datum, Akkreditierungsschluss, Spiellokal, Saison, Region, Schlussdatum, Aufnahmegrenze, Punktziel, Organisator (Club oder Region)</li>
+</ul></li>
+<li>Turniermoduspläne
+<ul>
+<li>Name, Regelsystem, Spielerzahl, Tischzahl, Beschreibung, Gruppenzahl, formaler Ablauf</li>
+</ul></li>
+<li>Turnier/Spieler Setzlisten
+<ul>
+<li>Spieler, Listenplatz, Turnier, ggf. Vorgaben bei Vorgabeturnieren</li>
+</ul></li>
+<li>Spiele
+<ul>
+<li>Turnier, Spielname, PlayerA, PlayerB</li>
+</ul></li>
+<li>Spielergebnisse
+<ul>
+<li>Spiel, Bälle, Aufnahmen, Höchstserie, Durchschnitt</li>
+</ul></li>
+<li>Spieler Rankings
+<ul>
+<li>Spieler, Disziplin, bester Einzeldurchschnitt, bester Turnierdurchschnitt</li>
+</ul></li>
+</ul>
+
+<p>[1] Ab 2022 wird die BilardArea durch die ClubClud abgelöst.  Im Gegensatz zur BA gibt es nun nicht mehr eindeutige Identifier
+  deutschlandweit.  Die CC-IDs sind nur eindeutig innerhalb der regionalen ClubCloud-Instanzen.</p>
+
+<h2><a name="region_management"></a>Regionales Turniermanagement</h2>
+
+<p>Die Turnierverwaltung wird in folgenden Schritten vollzogen:</p>
+
+<ul>
+<li><strong>Aktualisierung der Turnierdaten:</strong> <br />
+Vor dem Turnierstart sollte dafür gesorgt werden, dass das Turnier mit den Setzlisten in der Billard-Area aktualisiert ist. Die Synchronisierung mit dem lokalen Carambus Turniermanager kann dann angestoßen werden.</li>
+<li><strong>Festlegung der Setzliste:</strong> <br />
+Mit der Synchronisierung wird die Liste der Teilnehmer übernommen. Aus den Ranglistenplätzen der Spieler wird die Setzliste abgeleitet. Der Spielleiter kann weitere Spieler zum Auffüllen von Ausfällen vornehmen und ggf. kleinere Umsetzungen vornehmen.</li>
+<li><strong>Auswahl des Turniermodus:</strong> <br />
+Sobald die geordnete Spielerliste und damit auch die Zahl der Spieler feststeht, wird der Turniermodus ausgewählt. <br />
+Im Allgemeinen gibt es mehrere Möglichkeiten (Gruppenspiele und Hauptrunde, ggf. mit Ausspielen der Plätze oder jeder gegen jeden etc.)</li>
+</ul>
+
+<h2><a name="location_management"></a>Lokales Spielmanagement</h2>
+
+<p>Sobald der Turniermodus festgelegt ist, kann das Turnier beginnen.</p>
+
+<h3>Festlegung der Tische:</h3>
+
+<p>Aus der Menge der im Spiellokal zur Verfügung stehenden Tische werden die Tische 1-n aus dem Spielplan des Turniermodus zugeordnet.</p>
+
+<h3>Festlegung einiger Parameter:</h3>
+
+<p>Vor dem Start können ggf. entsprechend der Turnierregeln noch folgende Parameter aktualisiert werden:</p>
+
+<ul>
+<li>Aufnahmebegrenzung</li>
+<li>Ballziel</li>
+<li>Einspielzeit an neuem Tisch</li>
+<li>Einspielzeit bei Rückkehr zu einem Tisch</li>
+<li>Bedenkzeit vor einem Stoß.</li>
+</ul>
+
+<h3>Start und Ablauf des Spiels:</h3>
+
+<p>Von nun an läuft alles automatisch ab. Auf den Anzeigetafeln erscheinen die Spielpaarungen mit Angabe der Gruppennummern und der Spielnamen (z. B. Gruppe 2 Spiel 2–4, also in der Gruppe 2 der 2. Spieler gegen den 4. Spieler).</p>
+
+<p>Als erstes erscheint an den Anzeigetafeln die Aufforderung zum Einspielen mit entsprechenden Timern, z. B. 5 bzw. 3 Minuten.</p>
+
+<p>Als nächstes erscheint die Aufforderung zum Anstoß. Im Ergebnis können die Spieler getauscht werden (Weiß stößt an, Gelb stößt nach).</p>
+
+<p>Sobald Der anstoßende Spieler feststeht wird das Spiel gestartet.</p>
+
+<p>Folgende Eingaben an den Anzeigetafeln sind möglich:</p>
+
+<p><code>+1</code>   Erhöhe die Ballzahl der laufenden Aufnahme um eins. (Bei Touch Displays kann dies auch duch Klick auf die jeweilige Zahl ausgelöast werden).</p>
+
+<p><code>-1</code>   Erniedrige die Ballzahl der laufenden Aufnahme um eins.</p>
+
+<p><code>nnn</code>  Setze die Ballzahl der laufenden Aufnahme. Zeige das Nummernfeld 0-9.
+        Eine belibige positive Zahl kann eingegeben werden.
+        Abschluss mit Enter oder Abbruch mit C</p>
+
+<p>Die Aufnahme-Historie wird in der Anzeigetafel gezeigt und kann mit der Korrekturtaste auch noch vor Beendigung des Spiels korrigiert werden, s.u.</p>
+
+<p><code>DEL</code>   Mit einer Undo Taste kann auf eine beliebige Aufnahme zurückgegangen werden. Nach Korrektur mit +1, -1 oder nnn Eingabe wird durch mehrfachen Spielerwechsel bis zur aktuellen Aufnahme weitergeblättert.</p>
+
+<p><code>^v</code>    Spielerwechsel: Die aktuelle Ballzahl der beendeten Aufnahme wird gespeichert und der Summe hinzugefügt.  Der andere nun aktive Spieler wird an der Anzeigetafel markiert. (Bei Touch Displays kann dieses auch durch Klick auf die Ballzahl des jeweiligen anderen Spielers ausgelöst werden).</p>
+
+<p>Der Schiedsrichter kann den Timer für die Bedenkzeit <code>&gt;</code> starten, <code>o</code> beenden oder <code>||</code> anhalten</p>
+<h4>4-Tasten-Fernbedienung</h4>
+<p>
+    Bei Turnieren mit Schiedsricher, wird ein besonderer Bedienmodus mit 4-Tasten-Fernbedienungen unterstützt.
+    Diese Fernbedienungen sind solche, mit denen z.B. Powerpoint-Präsentationen ferngesteuert werden.</p>
+
+<p>
+  <%= image_tag ("pointer4.jpg"), width:200, style: "float:left; margin-right: 10px;" %>
+  Die Tasten A (pageup), B (pagedown), C (b) und D (F5, ESC) haben abhängig vom Partie-Status folgende Bedeutungen:
+<br><br>
+<strong>Einstoßen</strong><br>A startet den Einstoß-Timer für Spieler A, B statet den Einstoß-Timer für Spieler B, mit D geht's weiter zur Ausstoßphase.
+<br><br>
+  <strong>Ausstoßen</strong><br>A oder B wechselt den anstoßenden Spieler (Spieler A stößt mit Weiss an), mit D wird das Spiel gestartet, sobald aufgebaut wurde und der Spieler A angetreten ist.
+  <br><br>
+    <strong>Spielphase</strong>
+  <br>Wenn Spieler A am Zug ist, wird für ihn mit A ein Punkt gezählt.
+  <br>Wenn Spieler A am Zug ist, wird bei Fehlaufnahme mit B zu Spieler B gewechselt.
+  <br>Wenn Spieler B am Zug ist, wird für ihn mit B ein Punkt gezählt.
+  <br>Wenn Spieler B am Zug ist, wird bei Fehlaufnahme mit A zu Spieler B gewechselt.
+  <br><br>Wenn ein Spieler das Ziel erreicht hat (Aufnahmebegrenzung oder Punktziel), wird automatisch entweder zum Spieler B zum Nachstoß gewechselt oder das Spiel beendet.
+</p>
+<p>Die Tasten sollten erst betätigt werden, wenn die Bälle zur Ruhe gekommen sind und der Spieler im Prinzip bereit für den nächsten Stoß ist.  Mit der Taste wird gleichzeitig der Timer für die Bedenkzeit gestartet.
+</p>
+<p>Die erweiterten Eingabemöglichkeiten oben können auch mit der 4-Tasten-Fernbedienung ausgelöst werden.  Dazu wird aus dem einfachen Eingabemodus (das Aufnahmenfeld ist selektiert) in den Input-Modus gewechselt mit der Taste D nach unten.  Im Input-Modus sind die einzelnen Eingabefelder durch Links/Rechts-Navigation mit den Tasten A und B anzusteuern.  Die Funktionen werden jeweils mit der Taste D (nach unten) ausgelöst.  Das jeweilige Eingabefeld bleibt danach ausgewählt, sodass die selbe Funktion einfach mehrfach angewendet werden kann.  In den normalen Eingabemodus geht es zurück mit der Taste C (nach oben).</p>
+
+<h3>Timeout Behandlung</h3>
+
+<p>Bei der Turnierplanung oder auch erst beim Turnierstart können die Länge der Bedenkzeit (Timeout), sowie die Zahl der möglichen Timeoutverlängerungen (Timeouts) vorgegeben werden.  Mit der Fernbedienung kann im laufenden Spiel der Timeoutzähler um eins verringert werden.  Die restliche Bedenkzeit wird dann noch einmal um das vorgegenene Timeout verlängert. </p>
+
+<p>Mit der Fernbedienung wird dazu mit der Taste D nach unten zum Timersymbol navigiert und dieses mit der Taste A (links) ausgelöst.  Taste nach oben (Taste C) führt wieder zurück in den normalen Eingabemodus.</p>
+<p>Die anderen Funktionen (Stop, Halt, Play) können ebenfalls mit der Fernbedienung ausgelöst werden. Dazu kann im Timer Modus zyklisch mit der Taste B (rechts) die jeweilige Funktion angestgeuert werden und mit der Taste A (links) ausgelöst werden.</p>
+<h3>Das Ende des Spiels</h3>
+
+<p>wird anhand der Eingaben und der Aufnahme- bzw- Ballzahl automatisch erkannt.</p>
+
+<p>An der Tafel wird ein Abschlussprotokoll angezeigt.  Die Spieler bestätigen das Ergebnis mit einer Eingabe auf der Anzeigetafel.</p>
+
+<h3>Wechsel zur nächsten Runde</h3>
+
+<p>Sobald alle Spiele einer Runde beendet sind, startet automatisch die nächste Runde.  Die entsprechenden neuen Paarungen werden an den Anzeigetafeln angezeigt.</p>
+
+<h3>Ende des Turniers</h3>
+
+<p>Sobald alle Spiele des Turniers abgeschlossen sind, wird ein Endprotokoll an den Spielleiter gesendet mit einer CSV-Datei, die dann direkt zum Upload der Ergebnisse in die Billard-Area genutzt werden kann.</p>
+
+<h2><a name="training"></a>Trainingsmodus</h2>
+
+<p>An den Scoreboards können die jeweiligen Tische ausgewählt werden.
+  Abhängig vom Turnierstatus können freie Tische erkannt werden und für das freie Trainingsspiel
+  genutzt werden.</p>
+
+<p>Ad-Hoc-Spiele können über ein Parameterfeld initialisiert werden. Eingabemöglichkeiten sind dabei</p>
+
+<ul>
+  <li>Disziplin (entsprechend der jeweiligen Tischeigenschaften, für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)</li>
+  <li>Zielballzahl (für beide, kann für den einzelnen Spieler gesondert vorgegeben werden)</li>
+  <li>Aufnahmebegrenzung</li>
+  <li>Timeout (optional)</li>
+  <li>Timeouts (optionale Anzahl der Timeoutverlänngerungen)</li>
+  <li>Spieler (Selektion aus den Clubspielern oder Gästen)</li>
+  <li>Individuelle Disziplin bzw. Zielballzahl</li>
+</ul>
+<p></p>
+<p>Für eine zukünftige Erweiterung sind Statistiken über Trainingsspiele geplant (pro Spieler und pro Spielpaarung)</p>

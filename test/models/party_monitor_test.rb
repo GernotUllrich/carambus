@@ -1,0 +1,32 @@
+# == Schema Information
+#
+# Table name: party_monitors
+#
+#  id                             :bigint           not null, primary key
+#  allow_follow_up                :boolean          default(TRUE), not null
+#  color_remains_with_set         :boolean          default(TRUE), not null
+#  data                           :text
+#  ended_at                       :datetime
+#  fixed_display_left             :string
+#  kickoff_switches_with          :string
+#  sets_to_play                   :integer          default(1), not null
+#  sets_to_win                    :integer          default(1), not null
+#  started_at                     :datetime
+#  state                          :string
+#  team_size                      :integer          default(1), not null
+#  time_out_stoke_preparation_sec :integer          default(45)
+#  time_out_warm_up_first_min     :integer          default(5)
+#  time_out_warm_up_follow_up_min :integer          default(3)
+#  timeout                        :integer          default(0), not null
+#  timeouts                       :integer
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  party_id                       :integer
+#
+require "test_helper"
+
+class PartyMonitorTest < ActiveSupport::TestCase
+  # test "the truth" do
+  #   assert true
+  # end
+end

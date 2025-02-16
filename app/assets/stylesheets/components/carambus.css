@@ -1,0 +1,143 @@
+.text-1-5vw {
+  font-size: 1.5vw;
+  line-height: 1;
+}
+
+.text-1vw {
+  font-size: 1vw;
+  line-height: 1;
+}
+
+.text-2vw {
+  font-size: 2vw;
+  line-height: 1;
+}
+
+.text-2-5vw {
+  font-size: 2.5vw;
+  line-height: 1;
+}
+
+.text-3vw {
+  font-size: 3vw;
+  line-height: 1;
+}
+
+.text-4vw {
+  font-size: 4vw;
+  line-height: 1;
+}
+
+.text-6vw {
+  font-size: 6vw;
+  line-height: 1;
+}
+
+.text-8vw {
+  font-size: 8vw;
+  line-height: 1;
+}
+
+.text-10vw {
+  font-size: 10vw;
+  line-height: 1;
+}
+
+.text-12vw {
+  font-size: 12vw;
+  line-height: 1;
+}
+
+.text-14vw {
+  font-size: 14vw;
+  line-height: 1;
+}
+
+.text-16vw {
+  font-size: 16vw;
+  line-height: 1;
+}
+
+.text-18vw {
+  font-size: 18vw;
+  line-height: 1;
+}
+
+.text-20vw {
+  font-size: 20vw;
+  line-height: 1;
+}
+
+.text-24vw {
+  font-size: 24vw;
+  line-height: 1;
+}
+
+.font-normal {
+  font-weight: 500;
+}
+
+.grid-cols-8 {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.grid-cols-10 {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+
+.grid-cols-17 {
+  grid-template-columns: repeat(17, minmax(0, 1fr));
+}
+
+.grid-cols-18 {
+  grid-template-columns: repeat(18, minmax(0, 1fr));
+}
+
+.grid-cols-19 {
+  grid-template-columns: repeat(19, minmax(0, 1fr));
+}
+
+.grid-cols-20 {
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+}
+
+@layer base {
+  select, input {
+    @apply text-black;
+  }
+
+  p {
+    @apply pb-4;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+}
+
+.green_link {
+  color: green;
+  background-color: transparent;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.yellow_link {
+  color: #f67f32;
+  background-color: transparent;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+ul:not(.list-none) {
+  li {
+    @apply ml-6;
+
+    ul:not(.list-none) {
+      li {
+        @apply ml-6;
+        list-style-type: circle;
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+<%= number_field_tag("balls-#{player.id}", nil, data: { reflex: "change->TournamentReflex#change_point_goal", id: tournament.id }, style: "#{seeding.present? ? "" : "display: none"}") %>

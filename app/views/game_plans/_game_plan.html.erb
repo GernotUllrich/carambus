@@ -1,0 +1,20 @@
+<div id="<%= dom_id game_plan %>">
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-500">Footprint</p>
+    <%= game_plan.footprint %>
+  </div>
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-500">Data</p>
+    <pre><%= JSON.pretty_generate(game_plan.data) %></pre>
+  </div>
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-500">Name</p>
+    <%= game_plan.name %>
+  </div>
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-500">Leagues</p>
+    <%- game_plan.leagues.each do |league| %>
+      <%= custom_link_to (league.name + ' - ' + league.branch.name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").html_safe, league %>
+    <%- end %>
+  </div>
+</div>

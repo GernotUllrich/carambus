@@ -1,0 +1,28 @@
+<%= form_with(model: club_location) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :club_id %>
+    <%= form.number_field :club_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :location_id %>
+    <%= form.number_field :location_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :status %>
+    <%= form.text_field :status, class: "form-control" %>
+  </div>
+
+  <div>
+    <%= form.button button_text(form.send(:submit_default_value)), class: "btn btn-primary" %>
+
+    <% if form.object.new_record? %>
+      <%= custom_link_to t("cancel"), club_locations_path, class: "btn btn-white" %>
+    <% else %>
+      <%= custom_link_to t("cancel"), club_location_path(@club_location), class: "btn btn-white" %>
+    <% end %>
+  </div>
+<% end %>

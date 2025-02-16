@@ -1,0 +1,2 @@
+module PartyGameCcsHelper
+end

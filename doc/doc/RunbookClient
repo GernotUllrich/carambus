@@ -1,0 +1,162 @@
+# Installation Carambus Client
+
+## Konfiguration
+* Raspberry Pi 3B+ m. 1GB
+* Micro SDCD 32 GB  (evtl wg. Video Capture groß genug)
+* Plastikgehäuse wg. WLAN Performance
+  am besten
+  GeeekPi Raspberry Pi 3 B+ Gehäuse, Raspberry Pi Gehäuse mit Lüfter, Raspberry Pi Kühlkörper für Raspberry Pi 3 Modell B+, Raspberry Pi 3/2 Modell B (Blau und Klar)
+  https://www.amazon.de/gp/product/B07MX5B8HH/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
+----------
+Soft Ein-Ausschalter einbauen (PIN 5/6 - Ground und GPIO3)
+in /boot/config.txt
+dtoverlay=gpio-shutdown,gpio_pin=3, active_low=1,gpio_pull=up
+-----------
+pre-install for wlan
+- reinsert the card, so your Windows/Mac OS PC can see the "boot" partition (ignore/canel format warnings).
+- Add an empty file named ssh (or ssh.txt).
+- Add a pre-configured wpa_supplicant.conf file.
+- Safely eject the card and use it to boot the headless Pi computer.
+
+The wpa_supplicant.conf file should contain the following.
+
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=DE
+
+network={
+ssid="WLAN-15AE35"
+psk="3065178072045907"
+key_mgmt=WPA-PSK
+}
+
+network={
+ssid="FRITZ!Box 7490 UL"
+psk="6964362753744967"
+key_mgmt=WPA-PSK
+}
+
+network={
+ssid="Phat-Guest"
+psk="+phatsack2017"
+key_mgmt=WPA-PSK
+}
+
+---------------------------------------
+To prevent the screen from going blank try adding to the end of the first line of /boot/cmdline.txt
+consoleblank=0
+-----------
+
+--------
+ssh pi@........
+passwd    (default ist raspberry)
+---------
+matchbox-keyboard
+https://pimylifeup.com/raspberry-pi-on-screen-keyboard/
+
+sudo apt update
+sudo apt upgrade
+sudo apt install matchbox-keyboard
+on desktop:
+Accessories => Keyboard
+sudo vi /usr/bin/toggle-keyboard.sh
+
+#!/bin/bash
+PID="$(pidof matchbox-keyboard)"
+if [  "$PID" != ""  ]; then
+  kill $PID
+else
+ matchbox-keyboard &
+fi
+
+sudo chmod +x /usr/bin/toggle-keyboard.sh
+
+sudo vi /usr/share/raspi-ui-overrides/applications/toggle-keyboard.desktop
+add:
+[Desktop Entry]
+Name=Toggle Virtual Keyboard
+Comment=Toggle Virtual Keyboard
+Exec=/usr/bin/toggle-keyboard.sh
+Type=Application
+Icon=matchbox-keyboard.png
+Categories=Panel;Utility;MB
+X-MB-INPUT-MECHANISM=True
+
+cp /etc/xdg/lxpanel/LXDE-pi/panels/panel /home/pi/.config/lxpanel/LXDE-pi/panels/panel
+
+sudo vi /home/pi/.config/lxpanel/LXDE-pi/panels/panel
+add at bottom:
+Plugin {
+  type=launchbar
+  Config {
+    Button {
+      id=toggle-keyboard.desktop
+    }
+  }
+}
+
+####### BCW
+Alles gut jetzt.
+
+Carambus ist von aussen erreichbar:
+
+	 http://bc-wedel.duckdns.org:3131
+
+Per ssh über
+
+	ssh -p 8910 www-data@bc-wedel.duckdns.org
+
+Gib mir deinen public key (~/.ssh/id_rsa.pub), dann ist der Zugang erreichbar über
+
+	ssh bcw
+
+In deiner ~/.ssh/config muss dann stehen:
+
+Host bcw
+  User www-data
+  Port 8910
+  Hostname 192.168.2.210
+
+Die Scoreboards (Tisch {n}) sind vom Server über
+
+	ssh bcw{n}
+
+erreichbar
+
+LG
+Gernot
+
+##################################
+vi /home/pi/.config/lxsession/LXDE-pi/autostart
+
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@xscreensaver --no-splash
+@xset s 0
+@xset s noblank
+@xset -dpms
+/usr/local/bin/start_scoreboard_delayed
+
+vi /usr/local/bin/start_scoreboard_delayed
+
+#!/usr/bin/env bash
+/usr/bin/chromium-browser --kiosk  --disable-restore-session-state http://192.168.2.210:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard?locale=de&sb_state=welcome
+
+
+chmod +x /usr/local/bin/start_scoreboard_delayed
+
+
+In raspberrypi 6.1.0-rpi8-rpi-v8 this is done a bit different:
+
+edit a file ~/.config/autostart/carambus.desktop
+
+[Desktop Entry]
+Type=Application
+Exec=/usr/local/bin/start_scoreboard_delayed
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Carambus Startup
+Name=Carambus Startup
+Comment=This script runs at startup
+

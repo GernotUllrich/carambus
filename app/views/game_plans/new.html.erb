@@ -1,0 +1,15 @@
+<%= content_for :title, t("shared.scaffold.new.title", model: "Game Plan") %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Game Plans", game_plans_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      <%= t("shared.scaffold.new.title", model: "Game Plan") %>
+    </h1>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render "form", game_plan: @game_plan %>
+  </div>
+</div>

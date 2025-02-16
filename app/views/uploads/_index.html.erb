@@ -1,0 +1,6 @@
+<div id="<%= dom_id(upload, :index) %>">
+  <%= turbo_stream_from upload %>
+  <%= render upload %>
+  <%= custom_link_to "View", upload, class: "btn btn-white" %>
+</div>
+

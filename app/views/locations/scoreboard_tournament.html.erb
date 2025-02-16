@@ -1,0 +1,173 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<!--<script src="/hotkeys.js"></script>-->
+<script type="text/javascript">
+  document.addEventListener('turbo:load', function () {
+    console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
+    if (!window.hotkeys) {
+      console.error('Hotkeys not available!');
+      return;
+    }
+    let tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    let tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      let current_element = tabbed_keys[1]
+      document.getElementById(current_element).focus();
+    }
+    // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+    window.hotkeys('*', function (event) {
+// Prevent the default refresh event under WINDOWS system
+
+      //console.log(hotkeys.getPressedKeyCodes());
+      //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+      const keyMap = {
+        33: "key_a",
+        37: "key_a",
+        34: "key_b",
+        39: "key_b",
+        66: "key_c",
+        38: "key_c",
+        116: "key_d",
+        27: "key_d",
+        40: "key_d",
+        13: "key_d",
+      }
+      let tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+
+      let tabbed_keys = []
+      for (let i = 0; i < tabbed_elements.length; i++) {
+        tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+      }
+
+      let current_element = document.activeElement.getAttribute("id")
+      console.log("active: " + current_element);
+      if (current_element == null) {
+        current_element = tabbed_keys[0];
+        console.log("active now: " + current_element);
+        document.getElementById(current_element).focus();
+      }
+
+      if (event.key in keyMap) {
+        let key = keyMap[event.key];
+        if (key === "key_c") {
+          if (current_element === tabbed_keys[0])
+            window.history.back()
+          else
+            document.getElementById(tabbed_keys[0]).focus()
+        }
+        if (key === "key_b") {
+          current_element = document.activeElement.getAttribute("id")
+          for (let i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] === current_element) {
+              let ff = i + 1;
+              if (ff >= tabbed_keys.length) ff = 0;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              document.getElementById(tabbed_keys[ff]).focus();
+              break;
+            }
+          }
+        }
+        if (key === "key_a") {
+          let current_element = document.activeElement.getAttribute("id");
+          for (let i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] === current_element) {
+              let ff = i - 1;
+              if (ff < 0) ff = tabbed_keys.length - 1;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              document.getElementById(tabbed_keys[ff]).focus();
+              break;
+            }
+          }
+        }
+        if (key === "key_d") {
+          console.log("activate: " + document.activeElement.getAttribute("id"));
+          document.activeElement.click();
+        }
+      }
+      event.preventDefault();
+      return true
+    });
+  });
+</script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
+</div>
+<div class="w-1/12 grid grid-cols-3 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+  <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
+    <%= render_svg "icons/adjust", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-4vw"><%= t('select_tournament') %></h1>
+  <h2 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= @table.andand.name %></h2>
+  <%- found = false %>
+  <%- if @location.parties.present? %>
+    <%- @location.parties.joins(:party_monitor).order("party_monitors.updated_at desc").each do |party| %>
+      <%- found = true %>
+      <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-400 m-5 text-3vw"><%= party.league.name %> - <%= party.league.season.name %>
+      </h1>
+      <%- if party.party_monitor.present? %>
+        <%= custom_link_to "Tischauswahl", location_path(@location, sb_state: "tables"), data: { turbo: false }, class: "btn btn-primary", id: "training", tabindex: 1 %>
+      <%- end %>
+    <%- end %>
+  <%- end %>
+  <%- if @location.tournaments.present? %>
+    <%- @location.tournaments.joins(:tournament_monitor).order("tournament_monitors.updated_at desc").each do |tournament| %>
+      <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-400 m-5 text-3vw"><%= tournament.title %></h1>
+      <%= custom_link_to t('home.index.results_so_far'), game_results_location_path(@location, tournament_id: tournament.id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 text-2vw p-1 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "game_results_#{tournament.id}", tabindex: 1 %>
+      <div class="flex items-center mt-10 flex-row h-1/8 space-x-10">
+        <%- if tournament.manual_assignment? %>
+          <%- if @table.present? %>
+            <%- found = true %>
+            <%= custom_link_to t('continue'), placement_location_path(@location, tournament_id: tournament.id, table_id: @table.id), method: :post, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{@table.id}", tabindex: 1 %>
+          <%- else %>
+            <%- tournament.location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: tournament.discipline_id }).order("tables.name desc").each do |table| %>
+              <%- found = true %>
+              <div class="flex flex-col">
+                <%= custom_link_to table.name, placement_location_path(@location, tournament_id: tournament.id, table_id: table.id), method: :post, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                <%- if table.table_monitor.andand.game.present? %>
+                  <%- gps = table.table_monitor.andand.game.andand.game_participations.andand.order(:role).to_a %>
+                  <%- if gps[0].andand.player.present? && gps[1].andand.player.present? %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" %></p>
+                  <%- end %>
+                <%- end %>
+              </div>
+            <%- end %>
+          <%- end %>
+        <%- else %>
+          <div class="flex flex-row  space-x-10">
+            <%- tournament.tournament_monitor.table_monitors.joins(:table).order("tables.name desc").each do |table_monitor| %>
+              <%- found = true %>
+              <div class="flex flex-col">
+                <%= custom_link_to table_monitor.display_name, table_monitor_path(table_monitor), data: { turbo: false }, class: "btn btn-primary ring-4 h-full text-3vw p-1 lg:mr-4 mr-0 lg:mb-2 mb-1", id: "table_monitor_#{table_monitor.id}", tabindex: 1 %>
+                <%- if table_monitor.game.present? %>
+                  <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+                  <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" %></p>
+                  <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= t("table_monitor.status.#{table_monitor.state}") %></p>
+                <%- end %>
+              </div>
+            <% end %>
+          </div>
+        <%- end %>
+      </div>
+    <%- end %>
+  <% end %>
+  <%- unless found %>
+    <h2 style="text-shadow: 2px 2px #000000" class="flex text-red-200 text-3vw"><%= "Derzeit ist kein Turnier registriert." %></h2>
+    <%= custom_link_to t('back'), :back, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-3 text-3vw p-8 lg:mr-4 mr-0 lg:mb-2 mb-1 mt-5", id: "back", tabindex: 1 %>
+  <%- end %>
+</div>

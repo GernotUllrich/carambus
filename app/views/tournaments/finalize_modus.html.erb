@@ -1,0 +1,114 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+</style>
+<%= render :partial => "show", locals: {tournament: @tournament, subtitle: I18n.t("tournaments.finalize_modus.final_modus_selection"), drop_details: true } %>
+
+<div flex flex-wrap>
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h3><%= I18n.t("tournaments.finalize_modus.teilnehmer", count: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count) %></h3>
+    </div>
+  </div>
+  <hr/>
+
+  <% if @proposed_discipline_tournament_plan.present? %>
+    <div class="container mx-auto my-8 px-4">
+      <div class="max-w-3xl mx-auto">
+        <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+          <h4><%= I18n.t("tournaments.finalize_modus.proposed_modus") %></h4>
+
+          <div class="flex-col space-y-5  rounded shadow p-8">
+            <h4><%= @proposed_discipline_tournament_plan.name %></h4>
+            <div class="flex sm:flex-row flex-col">
+              <div class="w-3/4">
+                <p class="mb-2">
+                  <%= @proposed_discipline_tournament_plan.rulesystem %>
+                </p>
+                <p class="mb-2">
+                  <%= @proposed_discipline_tournament_plan.more_description %>
+                </p>
+                <p class="mb-2">
+                  <%= @proposed_discipline_tournament_plan.even_more_description %>
+                </p>
+              </div>
+              <div class="w-1/4">
+                <%= button_to "#{I18n.t("tournaments.finalize_modus.continue_with")} #{@proposed_discipline_tournament_plan.name}", select_modus_tournament_path(@tournament, tournament_plan_id: @proposed_discipline_tournament_plan.id), method: :post, class: "btn btn-flat btn-primary" %>
+              </div>
+            </div>
+            <div class="flex-1">
+              <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @groups} if @groups.present?%>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+  <hr/>
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-3xl mx-auto">
+      <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+        <h4><%= I18n.t("tournaments.finalize_modus.alternatives_same_discipline") %></h4>
+        <% @alternatives_same_discipline.each do |alternative| %>
+          <div class="flex-col space-y-5  rounded shadow p-8">
+            <h4><%= alternative.name %></h4>
+            <div class="flex  sm:flex-row flex-col">
+              <div class="w-3/4">
+                <%= alternative.rulesystem %><br/>
+                <%= alternative.more_description %>
+              </div>
+              <div class="w-1/4">
+                <%= button_to "#{I18n.t("tournaments.finalize_modus.continue_with")} #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
+              </div>
+            </div>
+            <div class="flex-1">
+              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), alternative.ngroups) %>
+              <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <hr/>
+  <div class="container mx-auto my-8 px-4">
+    <div class="max-w-3xl mx-auto">
+      <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
+        <h4><%= I18n.t("tournaments.finalize_modus.alternatives_other_disciplines") %></h4>
+        <% @alternatives_other_disciplines.each do |alternative| %>
+          <div class="flex-col space-y-5  rounded shadow p-8">
+            <h4><%= alternative.name %></h4>
+            <div class="flex  sm:flex-row flex-col">
+              <div class="w-3/4">
+                <%= alternative.rulesystem %><br/>
+                <%= alternative.more_description %>
+              </div>
+              <div class="w-1/4">
+                <%= button_to "#{I18n.t("tournaments.finalize_modus.continue_with")} #{alternative.name}", select_modus_tournament_path(@tournament, tournament_plan_id: alternative.id), method: :post, class: "btn btn-flat btn-primary" %>
+              </div>
+            </div>
+            <div class="flex-1">
+              <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), alternative.ngroups) %>
+              <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_other_groups} %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- if User::PRIVILEGED.include?(current_user.andand.email.andand.downcase) %>
+  <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
+<% end %>

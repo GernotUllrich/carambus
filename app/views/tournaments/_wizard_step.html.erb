@@ -1,0 +1,8 @@
+<%# Vereinfachtes Wizard-UI %>
+<div class="wizard-progress">
+  <% @steps.each_with_index do |step, index| %>
+    <div class="step <%= 'active' if index == current_step %>">
+      <%= t("wizard.steps.#{step}") %>
+    </div>
+  <% end %>
+</div> 

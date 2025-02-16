@@ -1,0 +1,35 @@
+<%- if table_monitor.warmup_modal_should_be_open? %>
+  <div class="flex flex-row items-center justify-center">
+    <div class="flex w-4/12"></div>
+    <%- arr = time_counter.to_s.split(":") %>
+    <%- tc = arr[-1].to_i + 60*arr[-2].to_i %>
+    <div class="flex w-4/12 font-bold text-8vw p-2"><%= tc == 0 ? "&nbsp;".html_safe : time_counter %></div>
+    <div class="flex w-4/12"></div>
+  </div>
+  <div class="flex h-1/6 flex-row space-x-8">
+    <%- showing_timer = (table_monitor.warmup_a? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+    <div class="flex flex-1 flex-col">
+      <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+        <div class="flex flex-1 flex-row w-5/6">
+          <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+          <div class="flex text-6vw font-bold text-red-400"><%= green_bars > 0 ? "I" * (18 - green_bars) : "-----------" %></div>
+        </div>
+      </div>
+    </div>
+    <%- showing_timer = (table_monitor.warmup_b? && table_monitor.timer_finish_at.present?) ? "" : "hidden" %>
+    <div class="flex flex-1 flex-col">
+      <div class="flex flex-1 font-bold flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+        <div class="flex flex-1 flex-row w-5/6">
+          <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+          <div class="flex text-6vw font-bold text-red-400"><%= green_bars > 0 ? "I" * (18 - green_bars) : "-----------" %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
+  <div class="flex flex-1 justify-right flex-row w-5/6">
+    <div class="flex text-6vw font-bold text-green-400"><%= "I" * green_bars %></div>
+    <div class="flex text-6vw font-bold text-red-400"><%= "I" * (18 - green_bars) %></div>
+  </div>
+<% end %>

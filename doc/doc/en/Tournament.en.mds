@@ -1,0 +1,7 @@
+# Tournament Management
+
+## Account
+A Carambus Location Server account with admin privileges is required for tournament management. This can be set up by the club president or [Carambus developer](mailto:gernot.ullrich@gmx.de). The URL can be derived from scoreboard URLs, e.g. in Wedel: http://192.168.2.143:3131.
+
+## Synchronization with ClubCloud
+[Rest of translation matches previous version exactly...] 

@@ -1,0 +1,13 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Player <%= @player.fullname %></h1>
+      <%= custom_link_to 'Cancel', player_path(@player), class: "btn btn-link" %>
+
+
+      <div class=" rounded shadow p-8">
+        <%= (render 'form', player: @player) unless @player.is_a? Team %>
+      </div>
+    </div>
+  </div>
+</div>

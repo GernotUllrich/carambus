@@ -1,0 +1,16 @@
+<%= content_for :title, t("shared.scaffold.edit.title", model: "Party Monitor") %>
+
+<div class="container mx-auto px-4 my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Party Monitors", party_monitors_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      <%= t("shared.scaffold.edit.title", model: "Party Monitor") %>
+    </h1>
+    <%= button_to t("delete"), @party_monitor, method: :delete, class: "btn btn-white", form: { data: { turbo_confirm: t("are_you_sure") } } %>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render "form", party_monitor: @party_monitor %>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Region Ccs</h1>
+
+    <% if @region_ccs.any? %>
+      <%= button_to 'New Region Cc', new_region_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @region_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @region_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @region_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @region_ccs, :region_id,'Region', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @region_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @region_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @region_ccs.each do |region_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= custom_link_to "#{region_cc.cc_id}", region_cc_path(region_cc) %></td>
+                      <td class="p-3"><%= region_cc.context %></td>
+                      <td class="p-3"><%= link_to_if region_cc.region.present?, "#{region_cc.region.shortname}[#{region_cc.region_id}]", region_path(region_cc.region) %></td>
+                      <td class="p-3"><%= region_cc.shortname %></td>
+                      <td class="p-3"><%= region_cc.name %></td>
+
+            <td>
+              <%= custom_link_to "View", region_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Region Cc</p>
+        <%= button_to 'New Region Cc', new_region_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

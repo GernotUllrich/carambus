@@ -1,0 +1,101 @@
+<%= form_with(model: game_plan_cc) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :cc_id %>
+    <%= form.number_field :cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :data %>
+    <%= form.text_area :data, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :branch_cc_id %>
+    <%= form.number_field :branch_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.number_field :discipline_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :mp_won %>
+    <%= form.number_field :mp_won, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :mb_draw %>
+    <%= form.number_field :mb_draw, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :mp_lost %>
+    <%= form.number_field :mp_lost, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :znp %>
+    <%= form.number_field :znp, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :vorgabe %>
+    <%= form.number_field :vorgabe, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :plausi %>
+    <%= form.check_box :plausi, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :pez_partie %>
+    <%= form.text_field :pez_partie, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :bez_brett %>
+    <%= form.text_field :bez_brett, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :rang_partie %>
+    <%= form.number_field :rang_partie, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :rang_mgd %>
+    <%= form.number_field :rang_mgd, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :rang_kegel %>
+    <%= form.number_field :rang_kegel, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ersatzspieler_regel %>
+    <%= form.number_field :ersatzspieler_regel, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :row_type_id %>
+    <%= form.number_field :row_type_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

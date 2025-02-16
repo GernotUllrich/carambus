@@ -1,0 +1,2 @@
+module CategoryCcsHelper
+end

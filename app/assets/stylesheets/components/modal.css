@@ -1,0 +1,23 @@
+/* Prevent scrolling while dialog is open */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* Modal animations */
+dialog.modal[open] {
+  animation: fadeIn 200ms forwards;
+}
+
+dialog.modal[closing] {
+  animation: fadeOut 200ms forwards;
+}
+
+/* Slideover animations */
+dialog.slideover[open] {
+  animation: slide-in-from-right 200ms forwards ease-in-out;
+}
+
+dialog.slideover[closing] {
+  pointer-events: none;
+  animation: slide-out-to-right 200ms forwards ease-in-out;
+}

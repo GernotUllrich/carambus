@@ -1,0 +1,15 @@
+<div data-controller="tournament" class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex-col justify-between items-center mb-4">
+      <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
+        - <%= @tournament.organizer.shortname %>
+        - Neues TurnierTeam</h1>
+      <%= form_tag add_team_tournament_path(@tournament), method: :post do %>
+        <%- (1..@tournament.team_size).each do |n|%>
+          <%= label_tag "Player#{n} BaID:" %><%= number_field_tag "player_#{n}_ba_id", nil, placeholder: "player #{n} BA ID" %>
+        <%- end %>
+        <%= submit_tag "Add Team to Seedings List", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  </div>
+</div>

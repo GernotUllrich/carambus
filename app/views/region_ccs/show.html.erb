@@ -1,0 +1,37 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Region Ccs', region_ccs_path %> > Region Cc #<%= @region_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_region_cc_path(@region_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class="flex flex-wrap  rounded shadow p-8">
+            <div class="w-3/12 mb-4 m-w-full pr-8">
+        <h5>Cc</h5>
+        <%= @region_cc.cc_id %>
+      </div>
+            <div class="w-3/12 mb-4 m-w-full pr-8">
+        <h5>Context</h5>
+        <%= @region_cc.context %>
+      </div>
+            <div class="w-3/12 mb-4 m-w-full pr-8">
+        <h5>Region</h5>
+        <%= custom_link_to "#{@region_cc.region.shortname}[#{@region_cc.region_id}]", region_path(@region_cc.region) %>
+      </div>
+            <div class="w-3/12 mb-4 m-w-full pr-8">
+        <h5>Shortname</h5>
+        <%= @region_cc.shortname %>
+      </div>
+            <div class="w-3/12 mb-4 m-w-full pr-8">
+        <h5>Name</h5>
+        <%= @region_cc.name %>
+      </div>
+          </div>
+  </div>
+  <% if @branch_ccs.any? %>
+    <h3> BranchCcs</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'branch_ccs/branch_ccs_table' %>
+    </div>
+  <% end %>
+</div>

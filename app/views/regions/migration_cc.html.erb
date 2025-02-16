@@ -1,0 +1,139 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="mx-auto">
+    <h2>Migration Billard Area zur Club Cloud</h2>
+    <ul class="@apply list-none">
+
+      <li><h3>Set global Parameters</h3>
+        <%= form_tag set_base_parameters_region_path(@region) do %>
+          <%= text_field_tag "PHPSESSID", nil, class: "border-2", style: "width: 300px" %>
+          <%= select_tag "season_id", options_for_select(Season.order(:name).all.map { |s| [s.name, s.id] }, (Season.find_by_name(cookies[:season_name]) || Season.last).id), class: "border-2", style: "width: 300px" %>
+          <%= select_tag "region_id", options_for_select(Region.order(:shortname).all.map { |s| [s.name, s.id] }, Region.find_by_shortname(cookies[:context].andand.upcase || 'NBV').id), class: "border-2", style: "width: 300px" %>
+          <%= select_tag "force_update", options_for_select([["read-only", 0], ["updates enabled", 1]], cookies[:force_update]), class: "border-2", style: "width: 300px" %>
+          <%= submit_tag "SAVE", class: "btn btn-primary" %>
+        <%- end %>
+      </li>
+      <li><h3>Regionale Club Cloud für <%= @region.name %></h3>
+        <%- if @region.region_cc.present? %>
+          <%= custom_link_to "#{@region.region_cc.shortname}(#{@region.region_cc.id})", region_cc_path(@region.region_cc) %>
+          <%= custom_link_to "Check", check_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+          <%= custom_link_to "Fix", fix_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- else %>
+          <p>Zunächst muss die Verbindung zur Club Cloud Instanz hergestellt werden (URL und fedId):</p>
+          <%- @region_cc = RegionCc.new(context: @region.shortname.downcase) %>
+          <p><%= button_to 'New Region Cc', "/region_ccs/new?context=#{@region.shortname.downcase}&region_id=#{@region.id}&name=#{@region.name}&shortname=#{@region.shortname}", class: "btn btn-primary" %></p>
+        <%- end %>
+        <%- if File.exist?("#{Rails.root}/log/region_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/region_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+      </li>
+      <%- if @region.region_cc.present? %>
+        <li><h3>Synchronisation Sparten </h3></li>
+        <% if (@branch_ccs = @region.region_cc.branch_ccs).any? %>
+          <div id="table_wrapper">
+            <%= render partial: 'branch_ccs/branch_ccs_table' %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/branch_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/branch_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Competition Struktur</h3></li>
+        <% if (@competition_ccs = CompetitionCc.joins(:branch_cc => { :region_cc => :region }).where(regions: { id: @region.id })).any? %>
+          <h3> CompetitionCcs</h3>
+          <div id="table_wrapper">
+            <%= render partial: 'competition_ccs/competition_ccs_table' %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_competition_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/competition_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Season</h3></li>
+        <% if (@season_ccs = SeasonCc.joins(:competition_cc => { :branch_cc => { :region_cc => :region } }).where(regions: { id: @region.id })).any? %>
+          <h3> SeasonCcs</h3>
+          <div id="table_wrapper">
+            <%= render partial: 'season_ccs/season_ccs_table' %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_season_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/season_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/competition_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Liga</h3></li>
+        <% if (@league_ccs = LeagueCc.joins(:season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
+          <h3> LeagueCcs</h3>
+          <div id="table_wrapper">
+            <%= render partial: 'league_ccs/league_ccs_table' %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_league_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_league_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/league_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/league_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Liga Mannschaften</h3></li>
+        <% if (@league_team_ccs = LeagueTeamCc.joins(:league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id }).order("season_ccs.name asc, league_team_ccs.cc_id asc")).any? %>
+          <h3> LeagueTeamCcs</h3>
+          <div id="table_wrapper">
+            <%#= custom_link_to "=> LeagueTeamCcs", league_team_ccs_path %>
+            <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_league_team_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/league_team_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/league_team_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Spielpläne</h3></li>
+        <%# if (@game_plan_ccs = GamePlanCc.joins(:league_ccs => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } }).where(regions: { id: @region.id }).order("season_ccs.name asc, game_plan_ccs.cc_id asc")).any? %>
+        <% if (@game_plan_ccs = GamePlanCc.all).any? %>
+          <h3> GamePlanCcs</h3>
+          <div id="table_wrapper">
+            <%= render partial: 'game_plan_ccs/game_plan_ccs_table' %>
+          </div>
+        <%- end %>
+        <%= custom_link_to "Check", check_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_game_plan_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/game_plan_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/game_plan_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Spielbegegnungen (Parties)</h3></li>
+        <% if (@party_ccs = PartyCc.joins(:league_team_a_cc => { :league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } } }).where(regions: { id: @region.id })).any? %>
+          <h3> PartyCcs</h3>
+          <div id="table_wrapper">
+            <%= custom_link_to "=> PartyCcs", party_ccs_path %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_party_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/party_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/party_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+        <li><h3>Synchronisation Spielberichte</h3></li>
+        <% if (@party_game_ccs = PartyGameCc.joins(:party_cc => { :league_cc => { :season_cc => { :competition_cc => { :branch_cc => { :region_cc => :region } } } } }).where(regions: { id: @region.id })).order("seasons.name asc").any? %>
+          <h3> PartyGameCcs</h3>
+          <div id="table_wrapper">
+            <%= custom_link_to "=> PartyGameCcs", party_game_ccs_path %>
+          </div>
+        <% end %>
+        <%= custom_link_to "Check", check_party_game_cc_region_cc_path(@region.region_cc), class: "btn btn-primary" %>
+        <%= custom_link_to "Fix", fix_branch_cc_region_cc_path(@region.region_cc), class: "btn btn-primary", method: :post %>
+        <%- if File.exist?("#{Rails.root}/log/party_game_cc.log") %>
+          <%- text = File.read("#{Rails.root}/log/party_game_cc.log") %>
+          <pre><%= text %></pre>
+        <%- end %>
+      <%- end %>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Disciplines', disciplines_path %> > Discipline #<%= @discipline.id %></h1>
+      <%= button_to('Edit', edit_discipline_path(@discipline), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Type</h5>
+        <%= @discipline.type %>
+      </div>
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @discipline.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Synonyms</h5>
+        <%= my_sanitize @discipline.synonyms.split("\n").join("<br>") %>
+      </div>
+      <div class="mb-4">
+        <h5>Super discipline</h5>
+        <%= custom_link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Sub disciplines</h5>
+        <ul >
+          <%- @discipline.sub_disciplines.order(:name).each do |sub| %>
+            <li><%= custom_link_to sub.name, discipline_path(sub) %></li>
+          <%- end %>
+        </ul>
+        <%= custom_link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Table kind</h5>
+        <%= custom_link_to @discipline.table_kind.name, table_kind_path(@discipline.table_kind) if @discipline.table_kind.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Data</h5>
+        <%= @discipline.data %>
+      </div>
+    </div>
+  </div>
+</div>

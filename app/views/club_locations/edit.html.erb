@@ -1,0 +1,16 @@
+<%= content_for :title, t("shared.scaffold.edit.title", model: "Club Location") %>
+
+<div class="container mx-auto px-4 my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Club Locations", club_locations_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      <%= t("shared.scaffold.edit.title", model: "Club Location") %>
+    </h1>
+    <%= button_to t("delete"), @club_location, method: :delete, class: "btn btn-white", form: { data: { turbo_confirm: t("are_you_sure") } } %>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render "form", club_location: @club_location %>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Locations</h1>
+
+    <% if @locations.any? %>
+      <div class="flex-row w-2/4">
+        <div class="flex flex-row">
+          <div class="flex w-full">
+            <form action="/locations" method="get" target="table_wrapper" data-reflex-serialize-form="true">
+              <%= search_field_tag :sSearch, @sSearch, id: 'sSearch', data: { reflex: "input->SearchReflex#perform", reflex_permanent: "search" }, placeholder: "Search" %>
+            </form>
+          </div>
+          <div class="flex pl-3">
+            <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-sm text-gray-700 dark:text-gray-800 hover:text-gray-800 hover: dark: inline-blocktable_monitor.save", title: "e.g. reg:nbv" %>
+          </div>
+        </div>
+      </div>
+      <%= button_to 'New Location', new_location_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @locations.any? %>
+    <div id="table_wrapper">
+      <%= render partial: 'locations_table' %>
+    </div>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Location</p>
+        <%= button_to 'New Location', new_location_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

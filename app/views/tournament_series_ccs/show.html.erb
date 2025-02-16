@@ -1,0 +1,79 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Tournament Series Ccs', tournament_series_ccs_path %> > Tournament Series Cc #<%= @tournament_series_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_tournament_series_cc_path(@tournament_series_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @tournament_series_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @tournament_series_cc.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Branch cc</h5>
+        <%= @tournament_series_cc.branch_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Season</h5>
+        <%= @tournament_series_cc.season %>
+      </div>
+            <div class="mb-4">
+        <h5>Valuation</h5>
+        <%= @tournament_series_cc.valuation %>
+      </div>
+            <div class="mb-4">
+        <h5>Series valuation</h5>
+        <%= @tournament_series_cc.series_valuation %>
+      </div>
+            <div class="mb-4">
+        <h5>No tournaments</h5>
+        <%= @tournament_series_cc.no_tournaments %>
+      </div>
+            <div class="mb-4">
+        <h5>Point formula</h5>
+        <%= @tournament_series_cc.point_formula %>
+      </div>
+            <div class="mb-4">
+        <h5>Min points</h5>
+        <%= @tournament_series_cc.min_points %>
+      </div>
+            <div class="mb-4">
+        <h5>Point fraction</h5>
+        <%= @tournament_series_cc.point_fraction %>
+      </div>
+            <div class="mb-4">
+        <h5>Price money</h5>
+        <%= @tournament_series_cc.price_money %>
+      </div>
+            <div class="mb-4">
+        <h5>Currency</h5>
+        <%= @tournament_series_cc.currency %>
+      </div>
+            <div class="mb-4">
+        <h5>Club</h5>
+        <%= @tournament_series_cc.club_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Show jackpot</h5>
+        <%= @tournament_series_cc.show_jackpot %>
+      </div>
+            <div class="mb-4">
+        <h5>Jackpot</h5>
+        <%= @tournament_series_cc.jackpot %>
+      </div>
+            <div class="mb-4">
+        <h5>Status</h5>
+        <%= @tournament_series_cc.status %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @tournament_series_cc.data %>
+      </div>
+          </div>
+  </div>
+</div>

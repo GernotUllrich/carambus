@@ -1,0 +1,9 @@
+<div class="field-unit">
+  <%= form.label :discipline %>
+  <%= form.select :discipline_id, options_from_collection_for_select(Discipline.all, :id, :name) %>
+</div>
+
+<div class="field-unit">
+  <%= form.label :startzeit %>
+  <%= form.datetime_local_field :start_time %>
+</div>

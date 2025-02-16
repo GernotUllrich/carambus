@@ -1,0 +1,56 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_won,'Mp won', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mb_draw,'Mb draw', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_lost,'Mp lost', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :znp,'Znp', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :vorgabe,'Vorgabe', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :plausi,'Plausi', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :pez_partie,'Pez partie', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :bez_brett,'Bez brett', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_partie,'Rang partie', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_mgd,'Rang mgd', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_kegel,'Rang kegel', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :ersatzspieler_regel,'Ersatzspieler regel', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :row_type_id,'Row type', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @game_plan_ccs.each do |game_plan_cc| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= game_plan_cc.cc_id %></td>
+        <td class="p-3"><%= game_plan_cc.name %></td>
+        <td class="p-3"><%= game_plan_cc.data %></td>
+        <td class="p-3"><%= game_plan_cc.branch_cc_id %></td>
+        <td class="p-3"><%= game_plan_cc.discipline_id %></td>
+        <td class="p-3"><%= game_plan_cc.mp_won %></td>
+        <td class="p-3"><%= game_plan_cc.mb_draw %></td>
+        <td class="p-3"><%= game_plan_cc.mp_lost %></td>
+        <td class="p-3"><%= game_plan_cc.znp %></td>
+        <td class="p-3"><%= game_plan_cc.vorgabe %></td>
+        <td class="p-3"><%= game_plan_cc.plausi %></td>
+        <td class="p-3"><%= game_plan_cc.pez_partie %></td>
+        <td class="p-3"><%= game_plan_cc.bez_brett %></td>
+        <td class="p-3"><%= game_plan_cc.rang_partie %></td>
+        <td class="p-3"><%= game_plan_cc.rang_mgd %></td>
+        <td class="p-3"><%= game_plan_cc.rang_kegel %></td>
+        <td class="p-3"><%= game_plan_cc.ersatzspieler_regel %></td>
+        <td class="p-3"><%= game_plan_cc.row_type_id %></td>
+
+        <td>
+          <%= custom_link_to "View", game_plan_cc, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>

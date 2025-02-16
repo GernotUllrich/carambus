@@ -1,0 +1,133 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<!--<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>-->
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<!--<script src="/hotkeys.js"></script>-->
+<script type="text/javascript">
+  document.addEventListener('turbo:load', function () {
+    console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
+    if (!window.hotkeys) {
+      console.error('Hotkeys not available!');
+      return;
+    }
+    var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+    var tabbed_keys = []
+    for (let i = 0; i < tabbed_elements.length; i++) {
+      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+    }
+    if (tabbed_keys.length > 0) {
+      var current_element = tabbed_keys[0]
+      document.getElementById(current_element).focus();
+    }
+    // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+    window.hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+      //console.log(hotkeys.getPressedKeyCodes());
+      //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+      var keyMap = {
+        33: "key_a", //pointer left
+        37: "key_a", //arrow left
+        34: "key_b", //pointer right
+        39: "key_b", //arrow right
+        66: "key_c", //pointer up
+        38: "key_c", //arrow up
+        116: "key_d", //pointer down
+        27: "key_d", //pointer down
+        40: "key_d", //arrow down
+        13: "key_d", //return
+      }
+      var tabbed_elements = document.querySelectorAll('a[tabindex="1"]')
+
+      var tabbed_keys = []
+      for (let i = 0; i < tabbed_elements.length; i++) {
+        tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
+      }
+
+      var current_element = document.activeElement.getAttribute("id")
+      console.log("active: " + current_element);
+      if (current_element == null) {
+        current_element = tabbed_keys[0];
+        console.log("active now: " + current_element);
+        document.getElementById(current_element).focus();
+      }
+
+      if (event.keyCode in keyMap) {
+        var key = keyMap[event.keyCode];
+        if (key == "key_c") {
+          window.history.back();
+        }
+        if (key == "key_b") {
+          var current_element = document.activeElement.getAttribute("id")
+          for (var i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] == current_element) {
+              var ff = i + 1;
+              if (ff >= tabbed_keys.length) ff = 0;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              document.getElementById(tabbed_keys[ff]).focus();
+              break;
+            }
+          }
+        }
+        if (key == "key_a") {
+          var current_element = document.activeElement.getAttribute("id");
+          for (var i = 0; i < tabbed_keys.length; i++) {
+            if (tabbed_keys[i] == current_element) {
+              var ff = i - 1;
+              if (ff < 0) ff = tabbed_keys.length - 1;
+              console.log("active becomes (a): " + tabbed_keys[ff]);
+              document.getElementById(tabbed_keys[ff]).focus();
+              break;
+            }
+          }
+        }
+        if (key == "key_d") {
+          console.log("activate: " + document.activeElement.getAttribute("id"));
+          document.activeElement.click();
+        }
+      }
+      event.preventDefault();
+      return true
+    });
+  });
+</script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
+</div>
+<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 "><%= t('select_training_table') %></h1>
+  <%- if @location.present? %>
+    <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 mt-4"><%= @location.name %></h1>
+    <%- tournament_tables = @location.tournaments.map(&:tournament_monitor).compact.map(&:table_monitors).flatten.select { |tm| !%w{new ready ready_for_new_match}.include?(tm.state) }.map(&:table) %>
+    <%- tables = @location.tables %>
+    <%- free_tables = tables - tournament_tables %>
+    <%- table_kinds = free_tables.map(&:table_kind).uniq.sort_by { |tk| tk.name } %>
+    <%- if table_kinds.present? -%>
+      <%- table_kinds.each do |table_kind| %>
+        <h1 style="text-shadow: 2px 2px #000000" class="flex text-white mt-10 "><%= table_kind.display_name %></h1>
+        <div class="grid grid-cols-4 gap-4 h-1/8">
+          <%- free_for_table_kind = free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name } %>
+          <%- if free_for_table_kind.present? %>
+            <%- free_tables.select { |table| table.table_kind == table_kind }.sort_by { |table| table.name }.each do |table| %>
+              <%= custom_link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
+            <% end %>
+          <%- end %>
+        </div>
+      <%- end %>
+    <%- else %>
+      <span><%= t('table_kind.none_available') %></span>
+    <% end %>
+  <%- end %>
+</div>

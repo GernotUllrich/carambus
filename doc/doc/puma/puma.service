@@ -1,0 +1,17 @@
+# /etc/systemd/system/puma.service
+[Unit]
+Description=Puma HTTP Server
+After=network.target
+
+[Service]
+# Foreground process (do not use --daemon in ExecStart or config.rb)
+ExecStart=/bin/bash -c 'cd /var/www/carambus/current; RAILS_ENV=production /var/www/.rbenv/shims/bundle exec puma -C /var/www/carambus/shared/config/puma.rb -e production --state /var/www/carambus/shared/tmp/pids/puma.state'
+WorkingDirectory=/var/www/carambus/current
+# Restart process on crash
+Restart=always
+# User and group for process to run under
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

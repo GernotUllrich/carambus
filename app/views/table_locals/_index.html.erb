@@ -1,0 +1,6 @@
+<div id="<%= dom_id(table_local, :index) %>">
+  <%= turbo_stream_from table_local %>
+  <%= render table_local %>
+  <%= custom_link_to "View", table_local, class: "btn btn-white" %>
+</div>
+

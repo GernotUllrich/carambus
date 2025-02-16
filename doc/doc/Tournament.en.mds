@@ -1,0 +1,124 @@
+# Tournament Management
+
+## Account
+A Carambus Location Server account with admin privileges is required for tournament management. This can be set up by the club president or [Carambus developer](mailto:gernot.ullrich@gmx.de). The URL can be derived from scoreboard URLs, e.g. in Wedel: http://192.168.2.143:3131.
+
+## Synchronization with ClubCloud
+
+Tournaments can best be found via `Regional Associations -> Search -> View`.
+
+Current season tournaments known to the system are listed here. Select tournaments by title. If a tournament isn't listed yet, there could be several reasons:
+
+* The tournament hasn't been entered in ClubCloud yet
+* The central Carambus API Server doesn't know the tournament yet
+* The tournament hasn't been transferred to the local Location Server
+
+### Tournament Not in ClubCloud Yet
+It's the responsibility of the state sports director to enter tournaments with participant lists in ClubCloud.
+
+### Central Carambus API Server Doesn't Know Tournament
+The API Server is currently maintained by the Carambus developer (mailto: gernot.ullrich@gmx.de).  
+Tournament data from regions using Carambus is automatically updated daily at 20:00 from the associated regional ClubCloud server.
+
+Local servers always request updates from ClubCloud via the central API Server (api.carambus.de). This server collects data from various ClubCloud instances. Specific updates always include all updates made on the API Server in the meantime.
+
+### Tournament Not Transferred to Local Location Server
+
+A tournament not present locally but existing on the API Server will be automatically loaded with every API Server request, as each request to the API Server synchronizes the entire dataset. Such an explicit request could be updating club data:
+`Clubs -> Search -> View -> "Synchronize data with ClubCloud including all details"`
+
+### Updating Regional Associations, Clubs, Players, Tournaments, Seeding Lists
+When explicitly requesting data, the API Server compares requested data with Billard Area.
+
+The following explicit data requests are implemented:
+
+* `Club -> Synchronize with ClubCloud`
+* `Club -> Synchronize with ClubCloud including all details`
+* `Regional Association -> Synchronize with ClubCloud including clubs`
+* `Regional Association -> Synchronize with ClubCloud including clubs and players`
+* `Tournament -> Synchronize with ClubCloud`
+
+## Tournament Management
+A tournament is generally managed in these phases:
+
+* Synchronization with ClubCloud
+* Verification of relevant data
+* Sorting of seeding list according to rankings
+* Selection of tournament mode
+* Local adjustment of tournament parameters
+* Scoreboard check
+* Tournament start
+* Match result verification against game protocols
+* Email results (CSV) to tournament director
+* Upload results (CSV) to ClubCloud
+* Final synchronization with ClubCloud
+
+### Synchronization with ClubCloud
+As described above, the tournament can first be loaded by synchronizing club data.
+
+If a tournament is already known locally, updates can be requested again at any time:
+`Region -> Tournament -> Synchronize with ClubCloud`
+
+### Data Verification
+
+The following data is crucial for tournament operation:
+
+* Organizer (regional association or club)
+* Discipline (for table assignments)
+* Date
+* Season
+* Venue (for table assignments)
+
+This data is typically pulled automatically from ClubCloud. Venue is a special case. Unfortunately, ClubCloud allows free text entry for venues. However, Carambus requires selection of a formally defined venue with table configuration (table names, types). Additionally, it must be specified if it's a handicap tournament.
+
+This data must be added via:
+`Tournament -> Edit -> Update Tournament`
+
+### Seeding List Sorting by Rankings
+
+The participant list (seeding) is transferred via BA synchronization.
+
+For handicap tournaments, handicaps can be entered:
+`Tournament -> Update Seeding List`
+This list can now be sorted locally according to player rankings:
+`Tournament -> Order by Ranking or Handicap`
+
+Order can still be changed by swapping positions using up/down arrows.
+
+Finalize the order with:
+`Tournament -> Finalize Seeding List (irreversible)`
+
+### Tournament Mode Selection
+Now proceed to mode selection:
+`Tournament -> Finalize Tournament Mode`
+
+Typically several options are available. The tournament director can select a mode - usually predefined by the state sports director for regional association tournaments.
+
+Select by clicking e.g. `Proceed with T07`
+
+### Local Parameter Adjustments
+
+The following parameters can now be adjusted:
+
+* Table assignments (mapping internal table names to external names)
+* Ball goal (if not predefined for tournament)
+* Innings limit (if not predefined)
+* Timeout in seconds (0 or blank for no timeouts)
+* Timeouts (maximum number of timeout extensions)
+* Checkbox "Tournament manager checks results before acceptance"
+* Warm-up time
+* Reduced warm-up time (when moving to already used table)
+
+About the checkbox: Normally players can advance game status e.g. after `Match completed - OK?`. If verification by tournament manager is required, this will be blocked and the director can release tables after verifying with game protocols.
+
+New pairings automatically appear on scoreboards. Finally:
+
+### Email Results (CSV) to Tournament Director
+
+After tournament completion, the director automatically receives a CSV file with results in ClubCloud upload format. This file is also saved locally at {carambus}/tmp/result-{ba_id}.csv
+
+### Upload Results (CSV) to ClubCloud
+The director can upload the CSV file directly to ClubCloud (they know how to do this ;-)
+
+### Final Synchronization with ClubCloud
+As a final step, perform one last synchronization with ClubCloud. The downloaded data forms the basis for later calculated rankings. 

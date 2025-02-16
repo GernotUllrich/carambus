@@ -1,0 +1,52 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Tournament Plans', tournament_plans_path %> > Tournament Plan
+        #<%= @tournament_plan.id %></h1>
+      <%= button_to('Edit', edit_tournament_plan_path(@tournament_plan), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @tournament_plan.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Rulesystem</h5>
+        <%= @tournament_plan.rulesystem %>
+      </div>
+      <div class="mb-4">
+        <h5>Players</h5>
+        <%= @tournament_plan.players %>
+      </div>
+      <div class="mb-4">
+        <h5>Tables</h5>
+        <%= @tournament_plan.tables %>
+      </div>
+      <div class="mb-4">
+        <h5>More description</h5>
+        <%= @tournament_plan.more_description %>
+      </div>
+      <div class="mb-4">
+        <h5>Even more description</h5>
+        <%= @tournament_plan.even_more_description %>
+      </div>
+      <div class="mb-4">
+        <h5>Executor class</h5>
+        <%= @tournament_plan.executor_class %>
+      </div>
+      <div class="mb-4">
+        <h5>Executor params</h5>
+        <%= JSON.parse @tournament_plan.executor_params %>
+      </div>
+      <div class="mb-4">
+        <h5>Ngroups</h5>
+        <%= @tournament_plan.ngroups %>
+      </div>
+      <div class="mb-4">
+        <h5>Nrepeats</h5>
+        <%= @tournament_plan.nrepeats %>
+      </div>
+    </div>
+  </div>
+</div>

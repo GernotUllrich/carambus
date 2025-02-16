@@ -1,0 +1,71 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :id,"Id", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+<!--      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die Billard Area" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%#= sortable @clubs, :ba_id,"BA(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
+      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die DBU-ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :dbu_nr,"DBU-Nr(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die regionale ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :cc_id,"Cc(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :region_id,"Region(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :name,"Name(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :shortname,"Shortname(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :synonyms,"Synonyms(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :address,"Address(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :homepage,"Homepage", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :email,"eMail ", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :priceinfo,"price info", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :status,"Status", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :founded,"founded", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :dbu_entry,"dbu entry", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= "Actions" %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @clubs.each do |club| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= (club.logo.present? ? image_tag(club.logo) : "") %></td>
+        <td class="p-3"><%= club.id %></td>
+<!--        <td class="p-3"><%#= link_to_if club.ba_id.present? && club.ba_id < 998000000, club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}", class: "yellow_link", target: :_blank %></td>-->
+        <td class="p-3"><%= custom_link_to club.dbu_nr, "https://billard-union.net/verein-details.php?p=10---#{club.dbu_nr}--1-100000-0", class: "green_link", target: :_blank if club.dbu_nr.present? %></td>
+        <td class="p-3"><%= (custom_link_to club.cc_id, "#{club.region.public_cc_url_base}verein-details.php?p=#{club.region.region_cc.andand.cc_id}---#{club.cc_id}--1-100000-0", class: "green_link", target: :_blank) if club.cc_id.present? %></td>
+        <td class="p-3"><%= custom_link_to club.region.shortname, region_path(club.region) %></td>
+        <td class="p-3"><%= custom_link_to(club.name, club_path(club)) %></td>
+        <td class="p-3"><%= club.shortname %></td>
+        <td class="p-3"><%= club.synonyms.andand.gsub("\n", "<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").andand.html_safe %></td>
+        <td class="p-3"><%= club.address.andand.gsub(/\n+/, "<br />").andand.html_safe %></td>
+        <td class="p-3"><%= club.homepage.andand.html_safe %></td>
+        <td class="p-3"><%= club.email.andand.html_safe %></td>
+        <td class="p-3"><%= club.priceinfo.andand.truncate(150).andand.html_safe %></td>
+        <td class="p-3"><%= club.status %></td>
+        <td class="p-3"><%= club.founded %></td>
+        <td class="p-3"><%= club.dbu_entry %></td>
+        <td class="p-3"><%= link_to_if club.source_url.present?, club.source_url.present? ? URI.parse(club.source_url).host : "", club.source_url, target: :_blank %></td>
+        <td class="p-3"><%= club.sync_date.andand.to_date %></td>
+
+        <td>
+          <%= custom_link_to t('view'), club_path(club), class: "btn btn-link no-underline", :"data-turbo" => false %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+<%- if current_user&.admin? %>
+  <%= form_tag merge_clubs_path, method: :post do %>
+    <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master club id" %>
+
+    <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave club id" %>
+    <%= submit_tag "merge and delete slave", class: "btn btn-primary" %>
+  <% end %>
+<% end %>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

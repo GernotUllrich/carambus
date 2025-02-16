@@ -1,0 +1,53 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to t('home.index.region'), regions_path %> > <%= @region.display_shortname %></h1>
+      <%= button_to('Edit', edit_region_path(@region), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5><%= t('region.name') %></h5>
+        <div class="flex">
+          <%= image_tag @region.logo, width: 50 if @region.logo.present? %>&nbsp;
+          <%= @region.name %>
+        </div>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.shortname') %></h5>
+        <%= @region.shortname %>
+<!--        (-> <%#= custom_link_to("Billard Area", "https://#{@region.shortname.andand.downcase || "nbv"}.billardarea.de", class: "yellow_link", target: :_blank) %>)-->
+        <%- if @region.region_cc.present? %>
+          (-> <%= custom_link_to('Club Cloud', @region.public_cc_url_base.presence || @region.region_cc.public_url.presence || @region.region_cc.base_url, class: "green_link") %>
+          , <%= custom_link_to 'Migration Check', migration_cc_region_path(@region) %>)
+        <%- else %>
+          (-> <%= custom_link_to 'Migrate to Club Cloud', migration_cc_region_path(@region) %> )
+        <%- end %>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.email') %></h5>
+        <%= my_sanitize @region.email =~ /kontakt.php/ ? @region.email : mail_to(@region.email) %>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.address') %></h5>
+        <%= @region.address.andand.split("\n").andand.select { |s| s.present? }.andand.join(", ").andand.html_safe %>
+      </div>
+      <div class="mb-4">
+        <h5><%= t('region.country_id') %></h5>
+        <%= custom_link_to @region.country.andand.code, country_path(@region.country) %>
+      </div>
+    </div>
+  </div>
+  <div class="flex grid grid-cols-2 sm:grid-cols-1 gap-4 px-3 lg:px-0">
+    <%= button_to I18n.t("region.show.reload_from_billard_area", source: @region.source), reload_from_ba_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+    <%= button_to I18n.t("region.show.reload_tournaments", source: @region.shortname), reload_tournaments_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+    <%= button_to I18n.t("region.show.reload_from_billard_area_with_details", source: @region.source), reload_from_ba_with_details_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+    <%= button_to I18n.t("region.show.reload_leagues", source: @region.shortname), reload_leagues_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+    <%= button_to I18n.t("region.show.reload_leagues_with_details", source: @region.shortname), reload_leagues_with_details_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+  </div>
+  <hr>
+  <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('tournaments_season')} #{Season.current_season.name}", tournaments_path(sSearch: "org:#{@region.shortname} sea:#{Season.current_season.name} da:>=today") %></h3>
+  <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('leagues_season')} #{Season.current_season.name}", parties_path(sSearch: "org:#{@region.shortname} sea:#{Season.current_season.name} da:>=today") %></h3>
+  <h3><%= custom_link_to "=> Clubs", clubs_path(sSearch:"reg:#{@region.shortname}") %></h3>
+
+</div>

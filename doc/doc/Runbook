@@ -1,0 +1,577 @@
+[# Installation Carambus Server
+
+TODO consider pi-boot-script!!
+
+## Konfiguration
+* Raspberry Pi 4 m. 4GB
+* Micro SDCD 32 GB
+* Joy-iT Alu Gehäuse f. Pi 4
+
+OS mit Raspberry Pi Manager laden:
+* Raspberry Pi OS (32-bit)
+* Mouse und Keyboard anschliessen und OS starten 
+* WLAN konfigurieren
+  IP z.B. 192.168.178.52
+* Software update/upgrade
+
+* German Keyboard Layout (Preferences -> Mouse and Keyboard Settings)
+* root password ändern
+
+* Install ssh
+  
+  sudo apt install openssh-server
+  
+  systemctl start ssh
+
+  check with systemctl status ssh
+
+* eventually adjust firewall
+  
+  ufw allow ssh
+
+* passwort-losen Zugang einrich ten:\
+  Login, and edit this file: sudo nano /etc/ssh/sshd_config\
+  Find this line: PermitRootLogin without-password\
+  Edit: PermitRootLogin yes\
+  Close and save file\
+  reboot or restart sshd service using: /etc/init.d/ssh restart\
+  Set a root password if there isn't one already: sudo passwd root\
+  $ ssh-copy-id root@192.168.178.52       (ggf vorher, brew install ssh-copy-id)
+
+## Konfigurieren mit ansible
+
+* in ~/ansible/hosts eintragen\
+carambus5 ansible_host=192.168.178.107  node_name=web5x^x^.carambus.de provider=domainfactory php_time_zone="Europe/Berlin"
+
+* in /etc/hosts eintragen\
+  192.168.178.52 web3.carambus.de  
+  
+* ~/ansible/host_vars/carambus3\
+  (copy/edit from carambus)
+* run ansible
+* eventually clear below ##### in carambus{n}
+  ansible-playbook -v -i hosts -l carambus5  master.yml
+
+rbenv install 2.7.2
+
+mkdir -p carambus/shared/config
+
+vi carambus/shared/config/database.yml
+production:
+  host: web3.carambus.de
+  adapter: postgresql
+  database: carambus_production
+  port: 5432
+  username: www_data
+  password: toS6E7tARQafHCXz
+
+vi carambus/shared/config/master.key
+bdb689ada581c5cd22726d5641b82ccf
+
+###DEL### echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+sudo apt update
+sudo apt install yarn
+yarn --version
+1.22.5
+
+evtl fix: https://github.com/Joystream/helpdesk/issues/16
+
+sudo apt remove cmdtest
+sudo apt remove yarn
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt-get update && sudo apt-get install yarn
+
+gem install bundler:2.2.19
+bin/rails action_text:install
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v
+v14.17.2
+
+sudo -u postgres psql
+create user www_data with password 'toS6E7tARQafHCXz';
+alter role www_data superuser createrole createdb replication;
+
+in /etc/postgresql/11/main/pg_hba.conf:
+
+  # TYPE  DATABASE        USER            ADDRESS                 METHOD
+  # "local" is for Unix domain socket connections only
+  local   all             all                                     md5
+  # IPv4 local connections:
+  host    all             all             0.0.0.0/0            md5
+  host    all             www_data        0.0.0.0/32            ident
+  # IPv6 local connections:
+  host    carambus_production  www_data   127.0.0.1/32    md5
+  host    all             all             ::1/128                 md5
+  # Allow replication connections from localhost, by a user with the
+  # replication privilege.
+  local   replication     all                                     peer
+  host    replication     all             127.0.0.1/32            md5
+  host    replication     all             ::1/128                 md5
+
+
+
+
+create database carambus_production owner www_data;
+
+  vi shared/config/unicorn.rb
+working_directory "/var/www/carambus/current"
+pid "/var/www/carambus/current/tmp/pids/unicorn.pid"
+stderr_path "/var/www/carambus/shared/log/unicorn.log"
+stdout_path "/var/www/carambus/shared/log/unicorn.log"
+
+listen "/tmp/unicorn.carambus_production.sock"
+worker_processes 4
+timeout  150
+
+preload_app true
+
+before_exec do |server|
+ENV["BUNDLE_GEMFILE"] = "/var/www/carambus/current/Gemfile"
+end
+
+before_fork do |server, worker|
+# Disconnect since the database connection will not carry over
+if defined? ActiveRecord::Base
+ActiveRecord::Base.connection.disconnect!
+end
+
+# Quit the old unicorn process
+old_pid = "#{server.config[:pid]}.oldbin"
+if File.exists?(old_pid) && server.pid != old_pid
+begin
+Process.kill("QUIT", File.read(old_pid).to_i)
+rescue Errno::ENOENT, Errno::ESRCH
+# someone else did our job for us
+end
+end
+
+if defined?(Resque)
+Resque.redis.quit
+end
+
+sleep 1
+end
+
+after_fork do |server, worker|
+# Start up the database connection again in the worker
+if defined?(ActiveRecord::Base)
+ActiveRecord::Base.establish_connection
+end
+
+if defined?(Resque)
+Resque.redis = 'localhost:6379'
+end
+end
+
+##################
+
+apt-get remove apache2
+
+oder
+sudo systemctl disable apache2 && sudo systemctl stop apache2
+
+mkdir /var/log/carambus
+
+vi /etc/nginx/sites-enabled/carambus
+server {
+listen *:80;
+listen [::]:80;
+
+        server_name web3.carambus.de;
+
+        root   /var/www/carambus/current/public/;
+
+
+	#if ($scheme != "https") {
+            #rewrite ^ https://$http_host$request_uri? permanent;
+        #}
+
+        error_log /var/log/carambus/error.log debug;
+        access_log /var/log/carambus/access.log combined;
+
+        location ~ /\. {
+			deny all;
+        }
+
+        location ^~ /.well-known/acme-challenge/ {
+			access_log off;
+			log_not_found off;
+			auth_basic off;
+			root /usr/local/ispconfig/interface/acme/;
+			autoindex off;
+			index index.html;
+			try_files $uri $uri/ =404;
+        }
+
+        location = /favicon.ico {
+            log_not_found off;
+            access_log off;
+            expires max;
+            add_header Cache-Control "public, must-revalidate, proxy-revalidate";
+        }
+
+        location = /robots.txt {
+            allow all;
+            log_not_found off;
+            access_log off;
+        }
+
+	location /cable {
+		proxy_pass http://unicorn_carambus_production/cable;
+		proxy_http_version 1.1;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $host;
+		proxy_set_header X-Forwarded-Proto http;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "Upgrade";
+		proxy_pass_request_headers on;
+		access_log /var/www/carambus/shared/log/nginx.access.log;
+		error_log /var/www/carambus/shared/log/nginx.error.log;
+		proxy_buffering off;
+		proxy_redirect off;
+		break;
+	}
+
+        location / {
+        		root /var/www/carambus/current/public;
+        		try_files $uri @unicorn_carambus_production;
+        }
+
+
+        location @unicorn_carambus_production {
+        	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        	    proxy_set_header Host $http_host;
+        	    proxy_set_header X-Forwarded-Proto  $scheme;
+
+        	    proxy_set_header  X-Real-IP         $remote_addr;
+        	    proxy_set_header  X-Sendfile-Type   X-Accel-Redirect;
+
+        	    proxy_connect_timeout      2500;
+        	    proxy_send_timeout         2500;
+        	    proxy_read_timeout         2500;
+
+        	    proxy_redirect off;
+
+        	    proxy_pass http://unicorn_carambus_production;
+        	    access_log /var/www/carambus/shared/log/nginx.access.log;
+        	    error_log /var/www/carambus/shared/log/nginx.error.log;
+        }
+
+
+}
+
+####################
+
+apt-get install redis
+
+
+sudo vi  /etc/xdg/lxsession/LXDE-pi/autostart
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@xscreensaver --no-splash
+/var/www/carambus/current/bin/start_scoreboard_delayed
+
+
+How do I hide the boot text?
+  https://retropie.org.uk/docs/FAQ/#how-do-i-hide-the-boot-text
+
+without grome:
+  https://die-antwort.eu/techblog/2017-12-setup-raspberry-pi-for-kiosk-mode/
+
+gtk fix
+https://askubuntu.com/questions/101306/how-do-i-install-gtk-3-0
+To use gtk2 or gtk3 apps you don't need to install anything. But, if you want to develop (or even just compile) apps this is what you're looking for:
+
+  sudo apt-get install libgtk-3-dev
+
+Install gstreamer
+ https://github.com/alexa/avs-device-sdk/issues/462
+ sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-libav
+
+Install docbook
+https://zoomadmin.com/HowToInstall/UbuntuPackage/docbook-xml
+  sudo apt-get install -y docbook-xml
+
+
+https://www.raspberrypi.org/forums/viewtopic.php?t=139178
+  sudo apt install libxlt1-dev
+
+https://raspberrytips.com/autostart-a-program-on-boot/
+https://www.raspberrypi.org/documentation/computers/configuration.html#configuring-screen-blanking
+--------------------------------------------------------------------------------
+Virtual Keyboard extension
+Zuche im Webstore nach virtual keyboard
+Das beste derzeit ist das von maslovvlad94
+oder auch
+https://chrome.google.com/webstore/detail/virtual-keyboard/pflmllfnnabikmfkkaddkoolinlfninn?hl=en
+--------------------------------------------------------------------------------
+Check server is reachable
+https://stackoverflow.com/questions/8937663/shell-script-to-check-whether-a-server-is-reachable
+--------------------------------------------------------------------------------
+matchbox-keyboard
+https://pimylifeup.com/raspberry-pi-on-screen-keyboard/
+--------------------------------------------------------------------------------
+pre-install for wlan
+https://www.raspberrypi.org/forums/viewtopic.php?t=254526
+- Write a Raspbian image to the SD card with Etcher.
+- Remove and reinsert the card, so your Windows/Mac OS PC can see the "boot" partition (ignore/canel format warnings).
+- Add an empty file named ssh (or ssh.txt).
+- Add a pre-configured wpa_supplicant.conf file.
+- Safely eject the card and use it to boot the headless Pi computer.
+
+The wpa_supplicant.conf file should contain the following.
+
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=DE
+    
+    network={
+    ssid="WLAN-15AE35"
+    psk="3065178072045907"
+    key_mgmt=WPA-PSK
+    }
+    
+    network={
+    ssid="FRITZ!Box 7490 UL"
+    psk="6964362753744967"
+    key_mgmt=WPA-PSK
+    }
+    
+    network={
+    ssid="Phat-Guest"
+    psk="+phatsack2017"
+    key_mgmt=WPA-PSK
+    }
+------------------------------------
+shutdown button
+
+add to /boot/config.txt
+
+    dtoverlay=gpio-shutdown,gpio_pin=3,active_low=1,gpio_pull=up
+---------------------------------------
+To prevent the screen from going blank try adding to the end of the first line of /boot/cmdline.txt
+consoleblank=0 
+-----------------
+
+Create client database from API database
+1. on api server dump api db
+   ssh api
+   cd carambus_api/current
+   cat config/database.yml
+   pg_dump -Uwww_data carambus_api_production |gzip > carambus_api_production.sql.gz
+2. on development system 
+  cd ~/carambus
+   scp api:carambus_api/current/carambus_api_production.sql.gz .
+   gunzip carambus_api_production.sql.gz
+   scp carambus_api_production.sql pi4bw:
+3. on location server
+  ssh pi4bw
+   cd carambus/current
+   cat config/database.yml
+   /etc/init.d/unicorn_carambus_production stop
+   DISABLE_DATABASE_ENVIRONMENT_CHECK=1 RAILS_ENV=production bundle exec rake db:drop
+   sudo su postgres
+  psql postgres
+   create database carambus_production;
+   alter database carambus_production owner to www_data;
+  \q
+  ^D
+  psql -Uwww_data carambus_production
+  \i ~/carambus_api_production.sql
+4. on development system deploy newest version
+   cd ~/carambus
+   bundle exec cap production deploy
+5. on location server
+   ssh pi4bw
+   cd carambus/current
+   RAILS_ENV=production bundle exec rails c
+6. Sequence Reset
+  Version.sequence_reset
+7. Update API URL
+   set in .env: 
+   CARAMBUS_API_URL="http://api.carambus.de"
+8. Create Scoreboard User
+   RAILS_ENV=production bundle exec rails c
+   User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true, confirmed_at: Time.now
+9. Update last_version_id:
+   1. Get Version from API Server
+      PaperTrail::Version.last.id
+        z.B. 306616
+   2. set Version on Local Server
+      Setting.key_set_value("last_version_id", 306616)
+10. Before Tournament Management update location_id (1 for BCW)
+  t = Tournament[nnnn]
+  t.update(location_id: 1)
+  
+------------------
+
+Create default Scoreboard User
+
+    User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true
+
+Mail einrichten:
+
+    https://decatec.de/linux/linux-einfach-e-mails-versenden-mit-msmtp/
+
+    apt-get update && apt-get upgrade -V
+    apt-get install msmtp msmtp-mta mailutils
+    msmtp --version
+vi /etc/msmtprc
+
+    # Set default values for all following accounts.
+    defaults
+    
+    # Use the mail submission port 587 instead of the SMTP port 25.
+    port 587
+    
+    # Always use TLS.
+    tls on
+    
+    # Set a list of trusted CAs for TLS. The default is to use system settings, but
+    # you can select your own file.
+    tls_trust_file /etc/ssl/certs/ca-certificates.crt
+    
+    # If you select your own file, you should also use the tls_crl_file command to
+    # check for revoked certificates, but unfortunately getting revocation lists and
+    # keeping them up to date is not straightforward.
+    #tls_crl_file ~/.tls-crls
+    
+    # Mail account
+    # TODO: Use your own mail address
+    account gernot.ullrich@gmail.com
+    
+    # Host name of the SMTP server
+    # TODO: Use the host of your own mail account
+    host smtp.gmail.com
+    
+    # As an alternative to tls_trust_file/tls_crl_file, you can use tls_fingerprint
+    # to pin a single certificate. You have to update the fingerprint when the
+    # server certificate changes, but an attacker cannot trick you into accepting
+    # a fraudulent certificate. Get the fingerprint with
+    # $ msmtp --serverinfo --tls --tls-certcheck=off --host=smtp.freemail.example
+    #tls_fingerprint 00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33
+    
+    # Envelope-from address
+    # TODO: Use your own mail address
+    from gernot.ullrich@gmail.com
+    
+    # Authentication. The password is given using one of five methods, see below.
+    auth on
+    
+    # TODO: Use your own user name fpr the mail account
+    user gernot.ullrich@gmail.com
+    
+    # Password method 1: Add the password to the system keyring, and let msmtp get
+    # it automatically. To set the keyring password using Gnome's libsecret:
+    # $ secret-tool store --label=msmtp \
+    #   host smtp.freemail.example \
+    #   service smtp \
+    #   user joe.smith
+    
+    # Password method 2: Store the password in an encrypted file, and tell msmtp
+    # which command to use to decrypt it. This is usually used with GnuPG, as in
+    # this example. Usually gpg-agent will ask once for the decryption password.
+    #passwordeval gpg2 --no-tty -q -d ~/.msmtp-password.gpg
+    
+    # Password method 3: Store the password directly in this file. Usually it is not
+    # a good idea to store passwords in plain text files. If you do it anyway, at
+    # least make sure that this file can only be read by yourself.
+    # TODO: Use the password of your own mail account
+    password tsxangtyzvyhvoiw
+    
+    # Password method 4: Store the password in ~/.netrc. This method is probably not
+    # relevant anymore.
+    
+    # Password method 5: Do not specify a password. Msmtp will then prompt you for
+    # it. This means you need to be able to type into a terminal when msmtp runs.
+    
+    # Set a default account
+    # TODO: Use your own mail address
+    account default: gernot.ullrich@gmail.com
+    
+    # Map local users to mail addresses (for crontab)
+    aliases /etc/aliases
+
+
+
+vi /etc/aliases
+# /etc/aliases
+root: gernot.ullrich@gmail.com
+default:gernot.ullrich@gmail.com
+
+    vi /etc/mail.rc
+    set sendmail="/usr/bin/msmtp -t"
+    echo "Inhalt der E-Mail" | mail -s "Betreff" gernot.ullrich@gmail.com
+    
+    ======== Abgleich mit API unter Wahrund der lokalen Daten
+    0- Alle beteiligten Server müssen den gleichen DB Migrationsstatus haben
+    1- Lösche bereits übertragene Versionen:
+    ACHTUNG - alle lokalen Server, die eine kleinere Version als nnnnnn haben müssen ebenfalls au diese weise aktualisiert werden!!
+    ssh api
+    Version.where("id < nnnnnn").delete_all
+    2- dump api
+    pg_dump -Uwww_data carambus_api_production | gzip > carambus_api_production.sql.gz
+    pw: toS6E7tARQafHCXz
+    3- Übertrabe zum lokalen Server (vorher dump vom lokalen Server)
+    ssh bc-wedel
+    cd carambus/current
+    pg_dump -Uwww_data carambus_production | gzip > carambus_production_bcw.sql.gz
+    pw: toS6E7tARQafHCXz
+    scp api:~/carambus_api/current/carambus_api_production.sql.gz .
+    gunzip carambus_api_production.sql.gz
+    4- Lösche records mit id < 50000000 (api data)
+    ssh bc_wedel
+    /etc/init.d/unicorn_carambus_production stop
+    psql -Uwww_data carambus_production
+    pw: toS6E7tARQafHCXz
+    execute cat ~/carambus/doc/API_DATA_ONLY 
+    5-load new api data
+    \i carambus_api_production.sql
+
+# API Zugriff
+
+Für den gesicherten Zugriff zum API Server wird er oauth Mechanismus 
+verwendet (https://manage.auth0.com/dashboard/eu/dev-r4djmvaa/apis/5fe87ec735acfb004efede63/settings)
+
+Zur Verwaltung Login mit github
+
+Die Clients holen sich mit fest vertrateten credentials  einen Access Token
+Dieser wird in den Settings gespeichert und hat 10 Stunden Gültigkeit,
+befor dann ein neuer Token geholt wird.
+
+
+convert /etc/init.d/xxx to system.d:
+
+sudo systemctl daemon-reload  
+sudo systemctl enable xxx  
+sudo systemctl start xxx 
+
+
+
+
+
+duckdns
+
+*/5 * * * * ~/duckdns/duck.sh > /dev/null 2 > &1
+@reboot /etc/init.d/unicorn_carambus_production start
+
+
+duck.sh:
+
+echo url="https://www.duckdns.org/update?domains=bc-wedel&token=ae779b86-e3e3-45e2-8177-ec27884445ee&ip=" | curl -k -o ~/duckdns/duck.log -K -
+
+List Sequence Numbers:
+
+results = ActiveRecord::Base.connection.execute(
+"SELECT sequencename AS sequence_name, last_value as last_value
+FROM pg_sequences
+WHERE schemaname = 'public'"
+)
+results.each do |result|
+puts "Sequence name: #{result['sequence_name']}, Last value: #{result['last_value']}"
+end
+

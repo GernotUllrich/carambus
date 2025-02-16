@@ -1,0 +1,23 @@
+<div id="<%= dom_id(party_monitor, :index) %>">
+  <%= turbo_stream_from party_monitor %>
+  <%- @party = party_monitor.party; @league = @party.league; @party_monitor = party_monitor %>
+  <%- @assigned_players_a_ids = Player.joins(:seedings).where(seedings: { role: "team_a", tournament_type: "Party", tournament_id: @party.id }).order("players.lastname").ids
+  @assigned_players_b_ids = Player.joins(:seedings).where(seedings: { role: "team_b", tournament_type: "Party", tournament_id: @party.id }).order("players.lastname").ids
+  @available_players_a_ids = @party.league_team_a.seedings.joins(:player).order("players.lastname").map(&:player_id).select { |pid| !@assigned_players_a_ids.include?(pid) }
+  @available_players_b_ids = @party.league_team_b.seedings.joins(:player).order("players.lastname").map(&:player_id).select { |pid| !@assigned_players_b_ids.include?(pid) }
+  league_team_a_name = @party.league_team_a.name
+  league_team_b_name = @party.league_team_b.name
+  replacement_teams_a_ids = LeagueTeam.joins(:league).where(leagues: {season_id: Season.current_season.id}).where(club_id: @party.league_team_a.club_id).where("league_teams.name > '#{league_team_a_name}'").ids - @available_players_a_ids
+  replacement_teams_b_ids = LeagueTeam.joins(:league).where(leagues: {season_id: Season.current_season.id}).where(club_id: @party.league_team_b.club_id).where("league_teams.name > '#{league_team_b_name}'").ids - @available_players_b_ids
+  @available_replacement_players_a_ids = Seeding.where(league_team_id: replacement_teams_a_ids).joins(:player).order("players.lastname").map(&:player_id).select { |pid| !@assigned_players_a_ids.include?(pid) }
+  @available_replacement_players_b_ids = Seeding.where(league_team_id: replacement_teams_b_ids).joins(:player).order("players.lastname").map(&:player_id).select { |pid| !@assigned_players_b_ids.include?(pid) }
+
+  @available_fitting_table_ids = @party.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.order("name").andand.map(&:id).to_a
+  @tournament_tables = @party.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.count.to_i
+  @tables_from_plan = (@party_monitor.data[:tables]).to_i
+  @tournament_tables = [@tournament_tables, (@party_monitor.data[:tables]).to_i].min if @tables_from_plan > 0 %>
+
+  <%= render party_monitor %>
+  <%= custom_link_to "View", party_monitor, class: "btn btn-white" %>
+</div>
+

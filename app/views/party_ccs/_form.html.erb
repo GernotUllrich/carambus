@@ -1,0 +1,56 @@
+<%= form_with(model: party_cc) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :cc_id %>
+    <%= form.number_field :cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :league_cc_id %>
+    <%= form.number_field :league_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :party_id %>
+    <%= form.number_field :party_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :league_team_a_cc_id %>
+    <%= form.number_field :league_team_a_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :league_team_b_cc_id %>
+    <%= form.number_field :league_team_b_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :league_team_host_cc_id %>
+    <%= form.number_field :league_team_host_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :day_seqno %>
+    <%= form.number_field :day_seqno, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :remarks %>
+    <%= form.text_area :remarks, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :data %>
+    <%= form.text_area :data, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

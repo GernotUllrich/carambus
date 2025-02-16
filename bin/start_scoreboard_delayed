@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+PUMA_MASTER_PID=$(systemctl show -p MainPID puma.service --value)
+
+# check the number of worker processes
+while [ $(pgrep -P $PUMA_MASTER_PID | wc -l) -ne 4 ]; do
+  echo "Waiting for Puma server workers to start..."
+  sleep 5
+done
+
+/var/www/carambus/current/bin/start_scoreboard

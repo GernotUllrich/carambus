@@ -1,0 +1,69 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Registration List Ccs</h1>
+
+    <% if @registration_list_ccs.any? %>
+      <%= button_to 'New Registration List Cc', new_registration_list_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @registration_list_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700">Sparte</th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :season_id,'Season', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :category_cc_id,'Category cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :deadline,'Deadline', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :qualifying_date,'Qualifying date', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @registration_list_ccs.each do |registration_list_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= registration_list_cc.cc_id %></td>
+                      <td class="p-3"><%= registration_list_cc.context %></td>
+                      <td class="p-3"><%= registration_list_cc.name %></td>
+                      <td class="p-3"><%= custom_link_to "#{registration_list_cc.branch_cc.name}(#{registration_list_cc.branch_cc_id})", branch_cc_path(registration_list_cc.branch_cc) %></td>
+                      <td class="p-3"><%= registration_list_cc.season.name %></td>
+                      <td class="p-3"><%= registration_list_cc.discipline.name %></td>
+                      <td class="p-3"><%= registration_list_cc.category_cc.name %></td>
+                      <td class="p-3"><%= registration_list_cc.deadline.to_date %></td>
+                      <td class="p-3"><%= registration_list_cc.qualifying_date.to_date %></td>
+                      <td class="p-3"><%= registration_list_cc.data %></td>
+                      <td class="p-3"><%= registration_list_cc.status %></td>
+
+            <td>
+              <%= custom_link_to "View", registration_list_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Registration List Cc</p>
+        <%= button_to 'New Registration List Cc', new_registration_list_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

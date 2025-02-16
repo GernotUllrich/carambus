@@ -1,0 +1,47 @@
+/* Tells browser to use dark mode scroll bars, etc */
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* mobile viewport bug fix */
+  min-height: -webkit-fill-available;
+}
+
+.main {
+  flex: 1;
+}
+
+a {
+  @apply text-primary-400;
+
+  &:hover,
+  &:focus {
+    @apply text-primary-300;
+
+    transform: none;
+  }
+}
+
+ul {
+  @apply list-disc list-inside;
+}
+
+ol {
+  @apply list-decimal list-inside;
+}
+
+.table {
+  @apply w-full;
+  th, td {
+    @apply align-top;
+  }
+
+}
+
+.table-responsive {
+  @apply block w-full overflow-x-auto;
+}

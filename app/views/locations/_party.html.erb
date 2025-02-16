@@ -1,0 +1,19 @@
+<tr id="party_<%= party.id %>" class="mb-4">
+  <%- if @tournament.present? %>
+    <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
+      <%= check_box_tag "party[#{party.id}]", "1", @tournament.party_ids.include?(party.id), data: { reflex: "change->LocationReflex#change_party_seeding", id: @tournament.id } %>
+    <%- end %>
+    <td>
+      <%= party.day_seqno %>
+    </td>
+    <td>
+      <div class="font-bold">
+        <%= "#{party.league_team_a.name} - #{party.league_team_b.name}" %><br/>
+      </div>
+      <%- party.party_games.each_with_index do |party_game, ix| %>
+        <%= check_box_tag "party_game[#{party_game.id}]", "1", @tournament.party_ids.include?(party.id), data: { reflex: "change->TournamentReflex#change_party_game_seeding", id: @tournament.id } %>&nbsp;<%= "#{ix + 1}: #{party_game.name}" %>
+        <br/>
+      <%- end %>
+    </td>
+  <%- end %>
+</tr>

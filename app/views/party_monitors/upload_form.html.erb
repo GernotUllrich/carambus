@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Club-Cockpit: Spielbericht erfassen</title>
+</head>
+<body><br>
+<% @party = @party_monitor.party %>
+<% @available_players_a_ids = @party.league_team_a.seedings.joins(:player).order("players.lastname").map(&:player_id) %>
+<% @available_players_b_ids = @party.league_team_b.seedings.joins(:player).order("players.lastname").map(&:player_id) %>
+<% @players_hash = Player.where(id: @available_players_a_ids + @available_players_b_ids).inject({}) { |memo, player| memo[player.id] = player; memo } %>
+<form name="billard" method="post">
+  <input type="hidden" name="matchId" value="<%= @party.cc_id %>>">
+  <input type="hidden" name="teamId" value="<%= @party.host_league_team.cc_id %>">
+  <input type="hidden" name="woher" value="2">
+  <input type="hidden" name="firstEntry" value="1">
+  <input type="hidden" name="wettbewerb" value="1">
+  <input type="hidden" name="partienr" value="">
+  <input type="hidden" name="subBranchId" value="1">
+  <input type="hidden" name="clubId" value="<%= @party.host_league_team.club.cc_id %>">
+  <input type="hidden" name="season" value="<%= @party.league.season.name %>">
+  <table cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td width="20" nowrap=""></td>
+      <td>
+        <table cellspacing="1" cellpadding="5" width="100%">
+          <tbody>
+          <tr class="tableCaption">
+            <td>
+              <table cellspacing="0" cellpadding="0" width="100%">
+                <tbody>
+                <tr>
+                  <td nowrap=""><strong>SPIELBERICHT ERFASSEN</strong>&nbsp;&nbsp;&nbsp;</td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr class="tableContent">
+            <td>
+              <table cellspacing="1" cellpadding="5" width="100%">
+                <tbody>
+                <tr>
+                  <td nowrap="">Verband</td>
+                  <td width="10" nowrap=""></td>
+                  <!--                  <td class="white" width="100%" nowrap="">Billard-Verband Baden-Württemberg e.V. (BVBW)</td>-->
+                  <td class="white" width="100%" nowrap=""><%= @party.league.organizer.name %> (<%= @party.league.organizer.shortname %>)</td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <hr>
+                  </td>
+                </tr>
+                <tr>
+                  <td nowrap="">Wettbewerb</td>
+                  <td width="10" nowrap=""></td>
+                  <td class="white" width="80%" nowrap=""><%= @party.league.branch.branch_cc.name %>: Kombi-Mannschaft</td>
+                </tr>
+                <tr>
+                  <td nowrap="">Liga <font size="-2">[Saison]</font></td>
+                  <td width="10" nowrap=""></td>
+                  <td class="white" width="80%" nowrap=""><b><%= @party.league.name %></b> <font size="-2">[2022/2023]</font></td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <hr>
+                  </td>
+                </tr>
+                <tr align="center">
+                  <td colspan="3">
+                    <table cellspacing="0" cellpadding="0" width="100%">
+                      <tbody>
+                      <tr class="odd">
+                        <td>
+                          <table cellspacing="0" cellpadding="0" width="100%">
+                            <tbody>
+                            <tr>
+                              <td>
+                                <table cellspacing="0" cellpadding="6" width="100%">
+                                  <tbody>
+                                  <tr>
+                                    <th class="colored" colspan="2" nowrap="">Partie-Nr.</th>
+                                    <th class="colored" nowrap="">Heim-Mannschaft</th>
+                                    <th class="colored"></th>
+                                    <th class="colored" nowrap="">Gast-Mannschaft</th>
+                                    <th class="colored" colspan="2">Datum</th>
+                                  </tr>
+                                  <tr align="center">
+                                    <td align="center" colspan="2"><b><%= @party.party_nr %></b></td>
+                                    <td><strong><%= @party.league_team_a.name %></strong></td>
+                                    <td>:</td>
+                                    <td><strong><%= @party.league_team_b.name %></strong></td>
+                                    <td colspan="2"><strong><%= I18n.l(@party.date.to_date) %></strong></td>
+                                  </tr>
+                                  <tr>
+                                    <td height="5" colspan="5" nowrap=""></td>
+                                  </tr>
+                                  <%- r_no = 0; t_no = 1 %>
+                                  <%- table_ids = [] %>
+                                  <%- @party_monitor.data[:rows].each_with_index do |row, row_nr| %>
+                                    <%- game = @party.games.where(gname: "#{row['seqno']}-#{row['type']}").first %>
+                                    <%- nl = 1; nr = 2; nls = "a"; nrs = "b" %>
+                                    <%- ba_results = game.andand.data.andand["ba_results"].presence || game.andand.table_monitor.andand.data.andand["ba_results"].presence %>
+                                    <%- if ba_results.present? %>
+                                      <%- if ba_results["Spieler1"] == @players_hash[Array(row['player_b'])[0]].andand.ba_id %>
+                                        <%- nl = 2; nr = 1; nls = "b"; nrs = "a" %>
+                                      <%- end %>
+                                    <%- end %>
+                                    <%- if row[:type] == "Neue Runde" %>
+                                      <%- r_no += 1; t_no = 1 %>
+                                      <tr>
+                                        <th class="colored"></th>
+                                        <th class="colored" nowrap="">Runde <%= r_no %></th>
+                                        <th class="colored" nowrap="">Name (Pass-Nr.)</th>
+                                        <th class="colored"></th>
+                                        <th class="colored" nowrap="">Name (Pass-Nr.)</th>
+                                        <th class="colored">Partien</th>
+                                        <th class="colored">Punkte</th>
+                                      </tr>
+                                    <%- elsif ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel", "Shootout (4er Team)"].include?(row[:type]) %>
+                                      <tr align="center">
+                                        <td><b><%= row["seqno"] %><b></b></b></td>
+                                        <td nowrap=""><%= row["type"] %></td>
+                                        <td align="left">
+                                          <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-pid1">
+                                            <option value="0"></option>
+                                            <%- @available_players_a_ids.each do |player_id| %>
+                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[0] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                (<%= @players_hash[player_id].cc_id %>)
+                                              </option>
+                                            <%- end %>
+                                          </select>
+                                        </td>
+                                        <td rowspan="1">:</td>
+                                        <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-pid2">
+                                          <option value="0"></option>
+                                          <%- @available_players_b_ids.each do |player_id| %>
+                                            <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[0] == player_id %>><%= @players_hash[player_id].fullname %>
+                                              (<%= @players_hash[player_id].cc_id %>)
+                                            </option>
+                                          <%- end %>
+                                        </select></td>
+
+                                        <%- if row[:type] == "14/1e" %>
+                                          <td>&nbsp;</td>
+                                        <%- else %>
+                                          <td nowrap=""><input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-sc1" size="2" maxlength="2"
+                                                               value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">:<input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-sc2" size="2"
+                                                                                maxlength="2" value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>"></td>
+                                        <%- end %>
+                                        <td>&nbsp;</td>
+                                      </tr>
+                                      <%- if row[:type] == "14/1e" %>
+                                        <tr align="center">
+                                          <td></td>
+                                          <td></td>
+                                          <td colspan="6" align="left">Punkte:
+                                            <input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-sc1"
+                                                   size="3" maxlength="3"
+                                                   value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">:<input type="text"
+                                                                                                                             name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-sc2"
+                                                                                                                             size="3"
+                                                                                                                             maxlength="3"
+                                                                                                                             value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>">&nbsp;&nbsp;Aufn.:
+                                            <input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-in1" size="3" maxlength="3"
+                                                   value="<%= ba_results["Aufnahmen#{nl}"] if ba_results.present? %>">/<input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-in2" size="3"
+                                                                                                                              maxlength="3" value="<%= ba_results["Aufnahmen#{nr}"] if ba_results.present? %>">&nbsp;&nbsp;HS:
+                                            <input
+                                              type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-br1" size="3" maxlength="3"
+                                              value="<%= ba_results["Höchstserie#{nl}"] if ba_results.present? %>">/<input type="text" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-br2" size="3"
+                                                                                                                           maxlength="3" value="<%= ba_results["Höchstserie#{nr}"] if ba_results.present? %>">&nbsp;
+                                          </td>
+                                        </tr>
+                                      <%- end %>
+                                      <%- if row['type'] =~ /Doppel/ || row['type'] =~ /4er/ %>
+                                        <tr align="center">
+                                          <td><b><b></b></b></td>
+                                          <td nowrap=""></td>
+                                          <td align="left">
+                                            <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-pid1">
+                                              <option value="0"></option>
+                                              <%- @available_players_a_ids.each do |player_id| %>
+                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                  (<%= @players_hash[player_id].cc_id %>)
+                                                </option>
+                                              <%- end %>
+                                            </select>
+                                          </td>
+                                          <td rowspan="1">:</td>
+                                          <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-pid2">
+                                            <option value="0"></option>
+                                            <%- @available_players_b_ids.each do |player_id| %>
+                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                (<%= @players_hash[player_id].cc_id %>)
+                                              </option>
+                                            <%- end %>
+                                          </select></td>
+                                          <td>&nbsp;</td>
+                                          <td>&nbsp;</td>
+                                        </tr>
+                                      <%- end %>
+                                      <%- if row['type'] =~ /4er/ %>
+                                        <%- [3, 4].each do |ii| %>
+                                          <tr align="center">
+                                            <td><b><b></b></b></td>
+                                            <td nowrap=""></td>
+                                            <td align="left">
+                                              <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-<%= ii %>-pid1">
+                                                <option value="0"></option>
+                                                <%- @available_players_a_ids.each do |player_id| %>
+                                                  <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                    (<%= @players_hash[player_id].cc_id %>)
+                                                  </option>
+                                                <%- end %>
+                                              </select>
+                                            </td>
+                                            <td rowspan="1">:</td>
+                                            <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-<%= ii %>-pid2">
+                                              <option value="0"></option>
+                                              <%- @available_players_b_ids.each do |player_id| %>
+                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                  (<%= @players_hash[player_id].cc_id %>)
+                                                </option>
+                                              <%- end %>
+                                            </select></td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                          </tr>
+                                        <%- end %>
+                                      <%- end %>
+                                    <%- end %>
+                                  <%- end %>
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <hr>
+                  </td>
+                </tr>
+                <tr>
+                  <td nowrap="">Zu Null Sieg</td>
+                  <td width="20" nowrap=""></td>
+                  <td class="white" nowrap=""><select name="zuNullTeamId" size="1">
+                    <option value="0" selected=""></option>
+                    <option value="<%= @party.league_team_a.cc_id %>"><%= @party.league_team_a.name %></option>
+                    <option value="<%= @party.league_team_b.cc_id %>"><%= @party.league_team_b.name %></option>
+                  </select>&nbsp;gewinnt mit einem zu Null Ergebnis. <font size="-2">[Es werden keine Spiele gespeichert.]</font>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <hr>
+                  </td>
+                </tr>
+                <tr valign="top">
+                  <td>Beschreibung</td>
+                  <td width="20" nowrap=""></td>
+                  <td><textarea name="memo" cols="80" rows="4"></textarea></td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <hr>
+                  </td>
+                </tr>
+                <tr valign="top">
+                  <td>Protest</td>
+                  <td width="20" nowrap=""></td>
+                  <td><textarea name="protest" cols="80" rows="4"></textarea></td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </td>
+      <td width="100%" nowrap=""></td>
+    </tr>
+    </tbody>
+  </table>
+  <table cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td width="20" nowrap=""></td>
+      <td height="40px">
+        <%= custom_link_to("Zurück", party_monitor_path(@party_monitor), name: "backBut", title:"Zurück", class: "btn btn-primary") %>
+        <%= custom_link_to("Spielbericht speichern", "#", name: "backBut", onclick: "saveReport()", title:"Zurück", class: "btn btn-primary") %>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <script type="text/javascript">  var sessId = '';
+
+  function prePage() {
+    document.forms[0].action = 'showReportList.php?' + sessId;
+    document.forms[0].submit();
+  }
+
+  function saveReport() {
+    if (document.forms[0].elements['zuNullTeamId'].value > 0 && document.forms[0].elements['protest'].value == '') {
+      document.forms[0].elements['protest'].focus();
+      alert('Nichtantritt: Ein Eintrag in Protest ist erforderlich.');
+      return;
+    }
+    document.forms[0].action = 'spielberichtSave.php?' + sessId;
+    document.forms[0].submit();
+  }</script>
+</form>
+
+</body>
+</html>

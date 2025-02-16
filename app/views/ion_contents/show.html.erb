@@ -1,0 +1,55 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Ion Contents', ion_contents_path %> > Ion Content #<%= @ion_content.id %></h1>
+      <%= custom_link_to 'Edit', edit_ion_content_path(@ion_content), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Page</h5>
+        <%= @ion_content.page_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Title</h5>
+        <%= @ion_content.title %>
+      </div>
+<!--            <div class="mb-4">
+        <h5>Html</h5>
+        <%#= @ion_content.html %>
+      </div>-->
+            <div class="mb-4">
+        <h5>Level</h5>
+        <%= @ion_content.level %>
+      </div>
+            <div class="mb-4">
+        <h5>Scraped at</h5>
+        <%= @ion_content.scraped_at %>
+      </div>
+            <div class="mb-4">
+        <h5>Deep scraped at</h5>
+        <%= @ion_content.deep_scraped_at %>
+      </div>
+            <div class="mb-4">
+        <h5>Ion content</h5>
+        <%= @ion_content.ion_content_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @ion_content.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Hidden</h5>
+        <%= @ion_content.hidden %>
+      </div>
+            <div class="mb-4">
+        <h5>Position</h5>
+        <%= @ion_content.position %>
+      </div>
+      <h4>Modules</h4>
+      <%- @ion_content.ion_modules.each do |mod| %>
+        <%= my_sanitize mod.html %>
+      <% end %>
+          </div>
+  </div>
+</div>

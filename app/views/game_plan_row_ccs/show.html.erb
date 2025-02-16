@@ -1,0 +1,59 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Game Plan Row Ccs', game_plan_row_ccs_path %> > Game Plan Row Cc #<%= @game_plan_row_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_game_plan_row_cc_path(@game_plan_row_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @game_plan_row_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Game plan</h5>
+        <%= @game_plan_row_cc.game_plan_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @game_plan_row_cc.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Home brett</h5>
+        <%= @game_plan_row_cc.home_brett %>
+      </div>
+            <div class="mb-4">
+        <h5>Visitor brett</h5>
+        <%= @game_plan_row_cc.visitor_brett %>
+      </div>
+            <div class="mb-4">
+        <h5>Sets</h5>
+        <%= @game_plan_row_cc.sets %>
+      </div>
+            <div class="mb-4">
+        <h5>Score</h5>
+        <%= @game_plan_row_cc.score %>
+      </div>
+            <div class="mb-4">
+        <h5>Ppg</h5>
+        <%= @game_plan_row_cc.ppg %>
+      </div>
+            <div class="mb-4">
+        <h5>Ppu</h5>
+        <%= @game_plan_row_cc.ppu %>
+      </div>
+            <div class="mb-4">
+        <h5>Ppv</h5>
+        <%= @game_plan_row_cc.ppv %>
+      </div>
+            <div class="mb-4">
+        <h5>Mpg</h5>
+        <%= @game_plan_row_cc.mpg %>
+      </div>
+            <div class="mb-4">
+        <h5>Pmv</h5>
+        <%= @game_plan_row_cc.pmv %>
+      </div>
+          </div>
+  </div>
+</div>

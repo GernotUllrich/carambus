@@ -1,0 +1,34 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @uploads, :user_id,'User ID', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @uploads, :user_name,'User Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @uploads, :filename,'Filename', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @uploads, :created_at,'Erstellt', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @uploads.each do |upload| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= upload.user_id %></td>
+        <td class="p-3"><%= User[upload.user_id].name %></td>
+        <td class="p-3"><%= upload.filename %></td>
+        <td class="p-3"><%= upload.created_at %></td>
+        <td>
+          <%= custom_link_to t('view'), upload, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

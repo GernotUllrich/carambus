@@ -1,0 +1,36 @@
+<%= form_with(model: table) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :location_id %>
+    <%= form.number_field :location_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :table_kind_id %>
+    <%= form.number_field :table_kind_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :data %>
+    <%= form.text_area :data, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ip_address %>
+    <%= form.text_field :ip_address, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

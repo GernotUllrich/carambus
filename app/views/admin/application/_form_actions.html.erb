@@ -1,0 +1,7 @@
+<div class="form-actions">
+  <%= form.submit class: "button" %>
+
+  <% if show_cancel %>
+    <%= link_to t("administrate.actions.cancel"), :back, class: "button-secondary" %>
+  <% end %>
+</div>

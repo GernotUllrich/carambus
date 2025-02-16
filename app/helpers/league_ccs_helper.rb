@@ -1,0 +1,2 @@
+module LeagueCcsHelper
+end

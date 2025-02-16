@@ -1,0 +1,116 @@
+<!--<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>-->
+<!--<script src="/hotkeys.js"></script>-->
+<style>
+    .space-above {
+        margin-top: 15px;
+    }
+</style>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div data-controller="clipboard" data-clipboard-success-content="<%= t('copied') %>" data-clipboard-text="<%= scoreboard_location_url(@location.md5, sb_state: "welcome") %>" class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Locations', locations_path %> > Location #<%= @location.id %></h1>
+      <%= button_to('Edit', edit_location_path(@location), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+      <%= custom_link_to('scoreboard', "/locations/#{@location.md5}/scoreboard?sb_state=welcome", class: "btn btn-link", data: { turbo: false } ) %>
+      <button
+        class="btn"
+        data-clipboard-text="<%= scoreboard_location_url(@location.md5, sb_state: "welcome") %>"
+      >
+        <%= t('copy_to_clipboard') %>
+      </button>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Clubs</h5>
+        <ul>
+          <%- @location.clubs.each do |club| %>
+            <li><%= custom_link_to(club.andand.name, club_path(club)) if club.present? %></li>
+          <%- end %>
+        </ul>
+      </div>
+      <div class="mb-4">
+        <h5>Region</h5>
+        <%= custom_link_to(@location.region.andand.name, region_path(@location.region)) if @location.region.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @location.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Synonyme</h5>
+        <%= @location.synonyms.gsub("\n", ",<hr class=\"my-2 w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %>
+      </div>
+      <div class="mb-4">
+        <h5>Address</h5>
+        <%= @location.address.andand.gsub("\n", "<br>").andand.html_safe %>
+      </div>
+      <div class="mb-4">
+        <h5>Data</h5>
+        <%= @location.data %>
+      </div>
+      <div class="mb-4">
+        <h5>Tables</h5>
+        <table class="w-full">
+          <thead>
+          <tr>
+            <%- TableKind.all.each do |table_kind| %>
+              <%- tables_of_kind = Table.joins(:table_kind).joins(:location).
+                where(locations: { id: @location.id }).where(table_kind_id: table_kind.id).uniq %>
+              <%- if tables_of_kind.count > 0 %>
+                <th><%= table_kind.name %></th>
+              <%- end %>
+            <% end %>
+            <th>Add Tables</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <%- TableKind.all.each do |table_kind| %>
+              <%- tables_of_kind = @location.tables.where(table_kind_id: table_kind.id) %>
+              <%- if tables_of_kind.count > 0 %>
+                <td>
+                  <%- tables_of_kind.order(:name).each do |table| %>
+                    <%= "#{custom_link_to(table.name, table_path(table))}<br />".html_safe %>
+                  <% end %>
+                </td>
+              <%- end %>
+            <%- end %>
+            <td>
+              <%= form_tag add_tables_to_location_path(@location) do %>
+                <%= select_tag :table_kind_id, options_for_select(TableKind.order(:name).all.map { |tk| [tk.name, tk.id] },
+                                                                  TableKind.where(name: "Small Billard").first&.id), class: "border-2" %>
+                <br>
+                <%= number_field_tag :number, value = 1, class: "border-2", style: "width: 50px" %>
+                <%= submit_tag "Add" %>
+              <%- end %>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+<hr>
+<h2 class="space-above"><%= t('parties.index.listing_parties') %></h2>
+<%- @parties = @location.parties.where("date > ?", Time.now - 14.days).where("date < ?", Time.now + 5.weeks).order(:date) %>
+<%= render partial: 'parties/parties_table' %>
+<h2 class="space-above"><%= t('tournaments.index.listing_tournaments') %></h2>
+<%- Season.order(name: :desc).limit(2).uniq.each do |season| %>
+  <h3><%= t('home.index.season') %> <%= season.name %></h3>
+  <!--  <div class="mb-1">Liga auswählen:
+    <%#- if @location.region.present? %>
+  <%#- leagues = @location.region.organized_leagues.where(season: season, discipline_id: @location.tables.map(&:table_kind).map { |tk| tk.discipline_ids }.flatten.uniq).order(name: :asc) %>
+  <%#= form_tag new_tournament_path(@location), method: :post do %>
+  <%#= select_tag :league_id, options_for_select(leagues.map { |league| ["#{league.name}(#{league.discipline.name})", league.id] }) %>
+  <%#= hidden_field_tag :season_id, season.id %>
+  <%#= submit_tag t('tournaments.index.new_tournament'), class: "btn btn-primary" %>
+  <%#- end %>
+  <%#- end %>
+  </div>-->
+  <%- @tournaments = Tournament.where(location_id: @location.id, season_id: season.id).order(id: :desc) %>
+  <div id="table_wrapper">
+    <%= render partial: 'tournaments/tournaments_table' %>
+  </div>
+<% end %>

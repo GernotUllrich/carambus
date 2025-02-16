@@ -1,0 +1,36 @@
+<div class="container mx-auto mt-8 max-w-3xl ">
+  <h1><%= t("home.index.version") %></h1>
+
+  <%- if Rails.env == 'development' %>
+    <%- branch = `git status`.split("\n")[0] %>
+    <%- version = `git log -1`.split("\n")[0] %>
+  <%- else %>
+    <%- version_str = Rails.env == 'development' ? `git log -1`.split("\n")[0] : `tail -1 #{Rails.root.to_s.split("releases")[0]}revisions.log` %>
+    <%- m = version_str.match(/Branch (.*) \(at (.*)\) deployed as release (.*) by (.*)/) %>
+    <%- branch = m[1]; repo_version = m[2]; release = m[3]; by = m[4] %>
+    <%- version = "repo-version: #{repo_version[0..8]}, released: #{release} by: #{by}" %>
+  <%- end %>
+  <%- if local_server? %>
+    <%- url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision") -%>
+    <%- Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<" -%>
+    <%- uri = URI(url) -%>
+    <%- json_io = Net::HTTP.get(uri) -%>
+    <%- vers = JSON.parse(json_io) -%>
+    <%- revision = vers["current_revision"] -%>
+  <%- end %>
+  <pre>
+    Rails:    <%= Rails.version %>
+    Environment: <%= Rails.env %>
+    <%= "API Server: #{Carambus.config.carambus_api_url}" if local_server? %>
+    Carambus Sync Status: <%= "local: #{Setting.key_get_value("last_version_id")} - " if local_server? %>API Server: <%= Version.last_version %>
+    Repo-Branch: <%= branch %>
+    Last: <%= version %>
+    <%- if local_server? && revision != repo_version -%>
+      <div class="text-red-700">
+        <%= "Version is out-of-date (api.carambus.de has version #{revision[0..8]})" %>
+      </div>
+    <%- end -%>
+    <!--    Carambus: <%#= Rails.env == 'development' ? `git log -10` : `#{"tail -1 #{Rails.root}/../../revisions.log"}` %>-->
+
+  </pre>
+</div>

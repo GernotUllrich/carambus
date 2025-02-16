@@ -1,0 +1,16 @@
+<%= content_for :title, t("shared.scaffold.edit.title", model: "Table Local") %>
+
+<div class="container mx-auto px-4 my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Table Locals", table_locals_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      <%= t("shared.scaffold.edit.title", model: "Table Local") %>
+    </h1>
+    <%= button_to t("delete"), @table_local, method: :delete, class: "btn btn-white", form: { data: { turbo_confirm: t("are_you_sure") } } %>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render "form", table_local: @table_local %>
+  </div>
+</div>

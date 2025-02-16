@@ -1,0 +1,119 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    hr {
+        border: 2px solid black;
+        border-collapse: collapse;
+    }
+</style>
+<%= render :partial => "show", locals: { drop_details: true, tournament: @tournament, subtitle: "Tournament Monitor" } %>
+<%- seeding_scope = @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id< #{Seeding::MIN_ID}" %>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
+
+    <div class=" rounded shadow p-8">
+      <p><%= @tournament.tournament_plan.rulesystem %></p>
+      <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
+      <% if @tournament.tournament_monitor.present? %>
+      <% else %>
+        <%- unless @tournament.manual_assignment %>
+          <h4 class="mb-2">Zuordnung der Tische</h4>
+        <% end %>
+        <%= form_tag start_tournament_path(@tournament), id: "start_tournament", method: :post do %>
+          <ol class="flex flex-col">
+            <%- available_fitting_table_ids = @tournament.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.order("name").andand.map(&:id).to_a %>
+            <%- tournament_tables = @tournament.location.andand.tables.andand.joins(:table_kind => :disciplines).andand.where(disciplines: { id: @tournament.discipline_id }).andand.count.to_i %>
+            <%- tables_from_plan = (@tournament.tournament_plan.tables unless (@tournament.manual_assignment || @tournament.continuous_placements)).to_i %>
+            <%- tournament_tables = [tournament_tables, (@tournament.tournament_plan.tables unless (@tournament.manual_assignment || @tournament.continuous_placements)).to_i].min if tables_from_plan > 0 %>
+            <%- (1..tournament_tables).each_with_index do |t_no, ix| %>
+              <li class="flex flex-row w-full space-x-4">
+                <div class="flex mt-1">Tisch <%= ix + 1 %>:</div>
+                <div class="flex" id="location_table_#{ix+1}">
+                  <%- if @tournament.organizer.is_a? Club %>
+                    <%= select_tag "table_id[]", options_for_select(@tournament.location.tables.order("tables.name").map { |table| ["#{table.name} - #{table.table_kind.name.gsub("Small Billard", "kleiner Tisch").gsub("Match Billard", "großer Tisch")}", table.id]}), class: "border mt-1 w-full" %>
+                  <%- else %>
+                    <%= select_tag "table_id[]",
+                                   options_for_select(Table.where(id: available_fitting_table_ids).map { |table| ["#{table.name} - #{table.table_kind.name.gsub("Small Billard", "kleiner Tisch").gsub("Match Billard", "großer Tisch")} - #{table.location.name}", table.id] }, available_fitting_table_ids[ix]),
+                                   class: "border mt-1 w-full" %>
+                  <%- end %>
+                </div>
+              </li>
+            <%- end %>
+          </ol>
+          <div class=" space-y-2 rounded shadow p-8">
+            <h4 class="mb-4">Turnier Parameter</h4>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal, class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal, class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeout (Sek.)" %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Timeouts" %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Tournament Manager checks results before acceptance" %></span><span id="tournament_admin_controlled"><%= check_box_tag :admin_controlled, "1", @tournament.admin_controlled?, class: "border-2", data: { reflex: "change->TournamentReflex#admin_controlled", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Assign Games as Tables become available" %></span><span id="tournament_continuous_placements"><%= check_box_tag :continuous_placements, "1", @tournament.continuous_placements?, class: "border-2", data: { reflex: "change->TournamentReflex#continuous_placements", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "GD has prio on inter-group-comparisons" %></span><span id="tournament_gd_has_prio"><%= check_box_tag :gd_has_prio, "1", @tournament.gd_has_prio?, class: "border-2", data: { reflex: "change->TournamentReflex#gd_has_prio", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp New Table (Min.)" %></span><span id="tournament_time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "WarmUp Same Table (Min.)" %></span><span id="tournament_time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Der Anstoß wechselt zwischen den Sätzen" %></span><span id="tournament_kickoff_switches_with"><%= select_tag :kickoff_switches_with, options_for_select(["", "set", "winner"], @tournament.kickoff_switches_with), class: "border-2", data: { reflex: "change->TournamentReflex#kickoff_switches_with", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Erlaube einen Nachstoß" %></span><span id="allow_follow_up"><%= check_box_tag :allow_follow_up, "1", @tournament.allow_follow_up, class: "border-2", data: { reflex: "change->TournamentReflex#allow_follow_up", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-cen ter">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Die Ballfarbe bleibt zwischen den Sätzen" %></span><span id="tournament_color_remains_with_set"><%= check_box_tag :color_remains_with_set, "1", @tournament.color_remains_with_set?, class: "border-2", data: { reflex: "change->TournamentReflex#color_remains_with_set", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-cen ter">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Kein exaktes Erreichen des Ballzieles notwendig" %></span><span id="tournament_allow_overflow"><%= check_box_tag :allow_overflow, "1", false, class: "border-2", data: { reflex: "change->TournamentReflex#allow_overflow", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Darstellung linksseitig" %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "border-2", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Zahl der Sätze" %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], ["no limit", 999]], @tournament.sets_to_play), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
+            </div>
+            <div class="flex flex-row space-x-4 items-center">
+              <span class="w-1/2 text-right text-2vw"><%= label_tag "Gewinnsätze" %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]], @tournament.sets_to_win), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
+            </div>
+          </div>
+
+          <div class="flex justify-end w-10/12"><%= submit_tag I18n.t("tournaments.start_tournament"), class: "btn btn-flat btn-primary mt-2" %></div>
+        <%- end %>
+        <div class="mt-4">
+          <%= custom_link_to "Back to Mode Selection", finalize_modus_tournament_path(@tournament) %>
+        </div>
+      <%- end %>
+    </div>
+    <div class=" rounded shadow p-8">
+      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
+      <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
+    </div>
+  </div>
+</div>

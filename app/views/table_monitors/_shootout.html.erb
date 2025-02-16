@@ -1,0 +1,40 @@
+<%- table_monitor.get_options!(I18n.locale) %>
+<%- options = table_monitor.options %>
+<div class="flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center" id="modal-id">
+  <div id="table_monitor_modal_shootout_<%= table_monitor.id %>" class="modal-content border-2  rounded-lg border-gray-500 dark:bg-black dark:text-gray-200 bg-gray-100 space-y-4 flex-col h-1/2">
+    <div class="flex h-1/2 flex-col space-x-4">
+      <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
+      <div class="flex h-1/2 flex-row items-center">
+        <%- left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
+        <%- right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
+        <%- left_player_name = left_player[:fullname] %>
+        <%- right_player_name = right_player[:fullname] %>
+        <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
+        <%- kick_off_player_id = options["current_kickoff_player"] == "playera" ? (left_player_id == 0 ? 0 : 1) : (left_player_id == 0 ? 1 : 0) %>
+        <%- kickoff_player_name = table_monitor.tournament_monitor.andand.id.present? ? gps[1 - kick_off_player_id].andand.player.andand.fullname : gps[1 - kick_off_player_id].andand.player.andand.simple_firstname || gps[1 - kick_off_player_id].andand.player.andand.shortname %>
+        <%- aftershot_player_name = table_monitor.tournament_monitor.andand.id.present? ? gps[kick_off_player_id].andand.player.andand.fullname : gps[kick_off_player_id].andand.player.andand.simple_firstname || gps[kick_off_player_id].andand.player.andand.shortname %>
+        <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
+        <%- right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera" %>
+        <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
+        <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "white" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= left_player[:fullname] %></div>
+          <%= render partial: 'table_monitors/menu', locals: { table_monitor: table_monitor } %>
+          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "yellow" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= right_player[:fullname] %></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex h-1/2 flex-row w-full space-x-4">
+      <div class="flex-1 h-full text-center">
+        <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#start_game", id: table_monitor.id }, id: "start_game", tabindex: 6 do %>
+          <%= "#{kickoff_player_name} stößt an!" %>
+        <%- end %>
+      </div>
+      <div class="flex-1 h-full text-center">
+        <%= content_tag "div", class: "text-2vw h-2/3 btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#switch_players_and_start_game", id: table_monitor.id }, id: "switch_and_start", tabindex: 6 do %>
+          <%= "#{aftershot_player_name} stößt an!" %>
+        <%- end %>
+      </div>
+    </div>
+  </div>
+</div>

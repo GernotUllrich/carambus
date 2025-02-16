@@ -1,0 +1,43 @@
+<%= content_for :title, "Slots" %>
+<%= turbo_stream_from :slots %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="h3">Slots</h1>
+
+      <div class="text-sm font-medium">
+        <span class="text-gray-500">Sortiere nach:</span>
+        <%= sortable @slots, :dayofweek,"Dayofweek", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :hourofday_start,"Hourofday start", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :minuteofhour_start,"Minuteofhour start", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :hourofday_end,"Hourofday end", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :minuteofhour_end,"Minuteofhour end", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :next_start,"Next start", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :next_end,"Next end", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :table_id,"Table", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :recurring,"Recurring", request.params, class: "text-gray-700 mr-1" %>
+      </div>
+    </div>
+
+    <%= custom_link_to t("shared.scaffold.new.title", model: "Slot"), new_slot_path, class: "btn btn-white" %>
+  </div>
+
+  <%= tag.div id: ("slots" if first_page?), class: " rounded-md shadow p-6 space-y-8" do %>
+    <%= render partial: "slots/index", collection: @slots, as: :slot, cached: true %>
+
+    <div class="hidden only:flex flex-col items-center justify-between lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="mb-4 h3">Create your first Slot</p>
+        <%= custom_link_to t("shared.scaffold.new.title", model: "Slot"), new_slot_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @pagy.pages > 1 %>
+    <div class="my-6 text-center">
+      <%== pagy_nav(@pagy) %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,123 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<!--<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>-->
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
+</div>
+<div class="w-1/12 grid grid-cols-3 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+  <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
+    <%= render_svg "icons/adjust", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+  <% end %>
+</div>
+<div class="p-7 lg:p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/bg_pool2-.jpg')">
+  <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= t('select_training_table') %>
+    - <%= @location.name %></h1>
+  <%- if @location.present? %>
+    <%- if @table_kinds.present? -%>
+      <%- @table_kinds.each do |table_kind| %>
+        <h1 style="text-shadow: 2px 2px #000000" class="flex text-white lg:mt-10 text-3vw"><%= table_kind.display_name %></h1>
+        <div class="grid grid-cols-1 gap-4">
+        </div>
+        <div class="grid grid-cols-2 gap-4"></div>
+        <div class="grid grid-cols-3 gap-4"></div>
+        <div class="grid grid-cols-4 gap-4"></div>
+        <div class="grid grid-cols-5 gap-4"></div>
+        <div class="grid grid-cols-6 gap-4"></div>
+        <div class="grid grid-cols-7 gap-4"></div>
+        <%- tables_selected = @location.tables.select { |table| table.table_kind_id == table_kind.id } %>
+        <%- cols = { 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 8 => 4, 9 => 5, 10 => 5, 11 => 6, 12 => 6, 13 => 7, 14 => 7, 15 => 5, 16 => 6, 17 => 6, 18 => 6 }[tables_selected.count] || 7 %>
+        <div class="grid grid-cols-<%= cols %> gap-4">
+          <%- tables_selected.sort_by { |table| table.name }.reverse.each do |table| %>
+            <%- tm = table.table_monitor! %>
+            <%- game = tm.game %>
+            <div class="flex flex-col items-center">
+              <%- if tm.present? %>
+                <%- if tm.tournament_monitor.present? %>
+                  <div class="flex flex-col items-center h-1/4">
+                    <%- if table.table_kind.name == "Pool" %>
+                      <%- if tm.discipline == "8-Ball" %>
+                        <div class="mt-4 mr-8 justify-center hover:bg-gray-700 h-full"><%= image_tag "p8.png", class: "object-scale-down h-full" %></div>
+                      <%- elsif tm.discipline == "9-Ball" %>
+                        <div class="mt-4 mr-8 justify-center hover:bg-gray-700 h-full"><%= image_tag "p9.png", class: "object-scale-down h-full" %></div>
+                      <%- elsif tm.discipline == "10-Ball" %>
+                        <div class="mt-4 mr-8 justify-center hover:bg-gray-700 h-full"><%= image_tag "p10.png", class: "object-scale-down h-full" %></div>
+                      <%- else
+                            tm.discipline == "14.1 endlos" %>
+                        <div class="mt-4 mr-8 justify-center hover:bg-gray-700 h-full"><%= image_tag "p14.1.png", class: "object-scale-down h-full" %></div>
+                      <%- end %>
+                    <%- end %>
+                    <%= custom_link_to table.name, table_monitor_path(tm), data: { turbo: false }, class: "focus:outline-none focus:ring-8 #{"text-green-400" if table.scoreboard?} focus:ring-green-500 focus:ring-opacity-90 border-0 flex btn btn-primary ring-4 h-full text-2vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{tm.id}", tabindex: 1 %>
+                    <div class="flex flex-col items-center font-bold text-red-600">
+                      <% if table.event_id.present? %>
+                        <%= "R: #{table.short_event_summary}" %>
+                      <% end %>
+                      <%- if table.heater? %>
+                        <%= image_tag 'yellow-dot.png', height: '10', width: '10', class: "mt-2" %>
+                      <%- end %>
+                    </div>
+                  </div>
+                  <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 mt-4 text-center text-white "><%= tm.tournament_monitor.tournament.title %></p>
+                  <%- if game.present? %>
+                    <%- gps = game.andand.game_participations.andand.order(:role).to_a %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-center text-white "><%= "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" %></p>
+                  <%- else %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-center text-white ">frei</p>
+                  <%- end %>
+                <%- else %>
+                  <%- if game.present? %>
+                    <%= custom_link_to table.name, table_monitor_path(tm), data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{tm.id}", tabindex: 1 %>
+                    <div class="flex flex-col items-center font-bold text-red-600">
+                      <% if table.event_id.present? %>
+                        <%= "R: #{table.short_event_summary}" %>
+                      <% end %>
+                      <%- if table.heater? %>
+                        <%= image_tag 'yellow-dot.png', height: '10', width: '10', class: "mt-2" %>
+                      <%- end %>
+                    </div>
+                    <%- gps = game.andand.game_participations.andand.order(:role).to_a %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 mt-4 text-white "><%= gps[0].andand.player.present? ? "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" : "belegt" %></p>
+                  <%- else %>
+                    <%= custom_link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                    <div class="flex flex-col items-center font-bold text-red-600">
+                      <% if table.event_id.present? %>
+                        <%= "R: #{table.short_event_summary}" %>
+                      <% end %>
+                      <%- if table.heater? %>
+                        <%= image_tag 'yellow-dot.png', height: '10', width: '10', class: "mt-2" %>
+                      <%- end %>
+                    </div>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 mt-4 text-white ">frei</p>
+                  <%- end %>
+                <%- end %>
+              <%- else %>
+                <%= custom_link_to table.name, location_path(@location, sb_state: "start", tournament_id: "", table_id: table.id), data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                <div class="flex flex-col items-center font-bold text-red-600">
+                  <% if table.event_id.present? %>
+                    <%= "R: #{table.short_event_summary}" %>
+                  <% end %>
+                  <%- if table.heater? %>
+                    <%= image_tag 'yellow-dot.png', height: '10', width: '10', class: "mt-2" %>
+                  <%- end %>
+                </div>
+                <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white ">frei</p>
+              <%- end %>
+            </div>
+          <% end %>
+        </div>
+      <%- end %>
+    <%- else %>
+      <span><%= t('table_kind.none_available') %></span>
+    <% end %>
+  <%- end %>
+</div>

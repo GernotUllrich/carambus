@@ -1,0 +1,12 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Edit Branch Cc</h1>
+      <%= custom_link_to 'Cancel', @branch_cc, class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <%= render 'form', branch_cc: @branch_cc %>
+    </div>
+  </div>
+</div>

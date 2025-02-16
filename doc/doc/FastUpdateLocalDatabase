@@ -1,0 +1,54 @@
+Steps to update a local database from tha api database with
+restoring local changes
+
+1. Make a dump the api database
+
+ssh api
+#get password from database.yml
+cd carambus_api/current
+pg_dump -Uwww_data carambus_api_production |gzip > carambus_api_production.sql.gz
+Password:
+#logout
+
+2. copy and unzip to BACKUP directory
+cd /Volumes/SSD980PRO2TB/BACKUP/carambus
+scp api:/var/www/carambus_api/current/carambus_api_production.sql.gz .
+
+3. copy dump to local server
+scp carambus_api_production.sql.gz home:
+
+4. on the local server make a backup if something goes wrong
+ssh home
+gunzip carambus_api_production.sql.gz
+cd carambus/current
+pg_dump -Uwww_data carambus_production |gzip > carambus_production_home.sql.gz
+
+5. filter local changes from sql dump into a carambus_production_50000000.sql
+RAILS_ENV=production /var/www/.rbenv/shims/bundle exec rake carambus:filter_local_changes_from_sql_dump
+
+6. create a new database and load api dump
+sudo su
+psql postgres
+drop database carambus_production;
+create database carambus_production owner www_data;
+# back to www-data
+psql -Uwww_data carambus_production
+Password:
+\i /var/www/carambus_api_production.sql
+
+7. Update API URL
+   set in .env:
+   CARAMBUS_API_URL="http://api.carambus.de"
+8. Create Scoreboard User
+   RAILS_ENV=production bundle exec rails c
+   User.create name: "Scoreboard", email: "scoreboard@carambus.de", password: "scoreboard", password_confirmation: "scoreboard", admin: false, terms_of_service: true, confirmed_at: Time.now
+
+9. Version.sequence_reset
+
+10. Update last_version_id:
+   1. Get Version from API Server
+      PaperTrail::Version.last.id
+        z.B. 306616
+   2. set Version on Local Server
+      Setting.key_set_value("last_version_id", 306616)
+

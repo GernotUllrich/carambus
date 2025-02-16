@@ -1,0 +1,73 @@
+<%- tournament_monitor = local_assigns[:tournament_monitor] %>
+<%- edit_games_modus = local_assigns[:edit_games_modus] %>
+<h2><%= t('game_results') %></h2>
+<%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+<div class="flex space-x-20 p-4 bg-white dark:bg-black">
+  <div class="w-full">
+    <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
+      <table class='w-full'>
+        <thead>
+        <tr>
+          <th><%= I18n.t("tournament_monitors.game_results.game", :default => "Game") %></th>
+          <th>#</th>
+          <th><%= I18n.t("tournament_monitors.game_results.playera", :default => "PlayerA") %></th>
+          <th><%= I18n.t("tournament_monitors.game_results.playerb", :default => "PlayerB") %></th>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.points", :default => "Points") %></th>
+          <%- if tournament_monitor.sets_to_play > 1 %>
+            <th colspan=2><%= I18n.t("tournament_monitors.game_results.sets", :default => "Points") %></th>
+          <%- end %>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls", :default => "Balls") %></th>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.innings", :default => "Innings") %></th>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.gd", :default => "GD") %></th>
+          <th colspan=2><%= I18n.t("tournament_monitors.game_results.hs", :default => "HS") %></th>
+          <%- if tournament_monitor.tournament.handicap_tournier? %>
+            <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls_goal", :default => "GD") %></th>
+            <th colspan=2><%= I18n.t("tournament_monitors.game_results.balls_goal_percent", :default => "HS") %></th>
+          <%- end %>
+        </tr>
+        </thead>
+        <tbody>
+        <%- games = tournament_monitor.tournament.games.where("games.id >= ?", Seeding::MIN_ID).includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 } %>
+        <%- games.each do |game| %>
+          <% playing_game = game.table_monitor.andand.playing? %>
+          <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
+          <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
+          <%- if playera.present? && playerb.present? %>
+            <%- seeding_state_a = game.tournament.seedings.where(player_id: playera.id).first.andand.state %>
+            <%- seeding_state_b = game.tournament.seedings.where(player_id: playerb.id).first.andand.state %>
+            <%- unless seeding_state_a == "no_show" || seeding_state_b == "no_show" %>
+              <tr>
+                <td><%= game.display_gname %></td>
+                <td><%= game.seqno.present? ? game.seqno : select_tag("seqno_#{game.id}", options_for_select([nil] + Array(1..games.count))) %></td>
+                <td><%= playera.andand.fullname %></td>
+                <td><%= playerb.andand.fullname %></td>
+                <td><%= gpa.andand.points %></td>
+                <td><%= gpb.andand.points %></td>
+                <%- if tournament_monitor.sets_to_play > 1 %>
+                  <td><%= gpa.andand.points %></td>
+                  <td><%= gpb.andand.points %></td>
+                <%- end %>
+                <td><%= edit_games_modus && playing_game ? hidden_field_tag("game_id[]", game.id) : "" %><%= edit_games_modus && playing_game ? text_field_tag("resulta[]", gpa.andand.result, size: 3) : gpa.andand.result %></td>
+                <td><%= edit_games_modus && playing_game ? text_field_tag("resultb[]", gpb.andand.result, size: 3) : gpb.andand.result %></td>
+                <td><%= edit_games_modus && playing_game ? text_field_tag("inningsa[]", gpa.andand.innings, size: 3) : gpa.andand.innings %></td>
+                <td><%= edit_games_modus && playing_game ? text_field_tag("inningsb[]", gpb.andand.innings, size: 3) : gpb.andand.innings %></td>
+                <td><%= gpa.andand.gd %></td>
+                <td><%= gpb.andand.gd %></td>
+                <td><%= edit_games_modus && playing_game ? text_field_tag("hsa[]", gpa.andand.hs, size: 3) : gpa.andand.hs %></td>
+                <td><%= edit_games_modus && playing_game ? text_field_tag("hsb[]", gpb.andand.hs, size: 3) : gpb.andand.hs %></td>
+                <%- if tournament_monitor.tournament.handicap_tournier? %>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bga[]", gpa.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpa.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bgb[]", gpb.andand.data.andand['results'].andand['BG'].to_i, size: 3) : gpb.andand.data.andand['results'].andand['BG'].to_i %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pa[]", gpa.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpa.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                  <td><%= edit_games_modus && playing_game ? text_field_tag("bg_pb[]", gpb.andand.data.andand['results'].andand['BG_P'].to_f, size: 3) : gpb.andand.data.andand['results'].andand['BG_P'].to_f %></td>
+                <%- end %>
+              </tr>
+            <%- end %>
+          <%- end %>
+        <% end %>
+        <p><%= edit_games_modus ? submit_tag("update", class: "btn btn-primary bg-blue-600") : "" %></p>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

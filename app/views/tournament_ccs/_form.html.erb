@@ -1,0 +1,151 @@
+<%= form_with(model: tournament_cc) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :cc_id %>
+    <%= form.number_field :cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :context %>
+    <%= form.text_field :context, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :shortname %>
+    <%= form.text_field :shortname, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :status %>
+    <%= form.text_field :status, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :branch_cc_id %>
+    <%= form.number_field :branch_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :season %>
+    <%= form.text_field :season, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :registration_list_cc_id %>
+    <%= form.number_field :registration_list_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :registration_rule %>
+    <%= form.number_field :registration_rule, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.number_field :discipline_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :championship_type_cc_id %>
+    <%= form.number_field :championship_type_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :category_cc_id %>
+    <%= form.number_field :category_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :group_cc_id %>
+    <%= form.number_field :group_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tournament_start %>
+    <%= form.text_field :tournament_start, class: "form-control", data: { controller: :flatpickr, flatpickr_enable_time: true, flatpickr_alt_input: true, flatpickr_alt_format: t("time.formats.long") } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tournament_series_cc_id %>
+    <%= form.number_field :tournament_series_cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tournament_end %>
+    <%= form.text_field :tournament_end, class: "form-control", data: { controller: :flatpickr, flatpickr_enable_time: true, flatpickr_alt_input: true, flatpickr_alt_format: t("time.formats.long") } %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :starting_at %>
+    <%= form.time_select :starting_at, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :league_climber_quote %>
+    <%= form.number_field :league_climber_quote, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :entry_fee %>
+    <%= form.text_field :entry_fee, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :max_players %>
+    <%= form.number_field :max_players, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :location_id %>
+    <%= form.number_field :location_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :location_text %>
+    <%= form.text_field :location_text, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :description %>
+    <%= form.text_area :description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :poster %>
+    <%= form.text_field :poster, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tender %>
+    <%= form.text_field :tender, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :flowchart %>
+    <%= form.text_field :flowchart, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ranking_list %>
+    <%= form.text_field :ranking_list, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :successor_list %>
+    <%= form.text_field :successor_list, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

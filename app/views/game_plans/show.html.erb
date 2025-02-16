@@ -1,0 +1,17 @@
+<%= content_for :title, "Game Plans ##{@game_plan.id}" %>
+<%= turbo_stream_from @game_plan %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="h3">
+      <%= custom_link_to "Game Plans", game_plans_path, class: "text-black" %>
+      <span class="text-gray-400 font-light mx-2">\</span>
+      Game Plan #<%= @game_plan.id %>
+    </h1>
+    <%= custom_link_to "Edit", edit_game_plan_path(@game_plan), class: "btn btn-white" %>
+  </div>
+
+  <div class="p-8  rounded shadow">
+    <%= render @game_plan %>
+  </div>
+</div>

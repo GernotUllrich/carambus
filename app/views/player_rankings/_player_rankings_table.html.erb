@@ -1,0 +1,68 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :rank,'Rank', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :region_id,'Region', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :club_id,'Club', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :season_id,'Season', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :discipline_id,'Discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :balls,'Balls', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :innings,'Aufnahmen', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :gd,'Gd', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :hs,'Hs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :bed,'Bed', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :btg,'Btg', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :class,'Class', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :g,'G', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :v,'V', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :quote,'Quote', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :sets,'Sets', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spg,'Sp.G', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spv,'Sp.V', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spq,'Sp.Quote', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @player_rankings.each do |player_ranking| %>
+      <%- club = player_ranking.season.season_participations.where("season_participations.player_id = ?", player_ranking.player.id).first.andand.club %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <td class="p-3"><%= player_ranking.rank %></td>
+        <td class="p-3"><%= custom_link_to("#{player_ranking.player.lastname}, #{player_ranking.player.firstname}", player_path(player_ranking.player)) %></td>
+        <td class="p-3"><%= custom_link_to("#{player_ranking.region.shortname}", region_path(player_ranking.region)) %></td>
+        <td class="p-3"><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present?%></td>
+        <td class="p-3"><%= custom_link_to("#{player_ranking.season.name}", season_path(player_ranking.season)) %></td>
+        <td class="p-3"><%= custom_link_to player_ranking.discipline.name, discipline_path(player_ranking.discipline) %></td>
+        <td class="p-3"><%= player_ranking.balls %></td>
+        <td class="p-3"><%= player_ranking.innings %></td>
+        <td class="p-3"><%= sprintf("%.2f", player_ranking.gd.to_f) %></td>
+        <td class="p-3"><%= player_ranking.hs %></td>
+        <td class="p-3"><%= sprintf("%.2f", player_ranking.bed.to_f) %></td>
+        <td class="p-3"><%= sprintf("%.2f", player_ranking.btg.to_f) %></td>
+        <td class="p-3"><%= player_ranking.discipline.class_from_accumulated_result(player_ranking) %></td>
+        <td class="p-3"><%= player_ranking.g %></td>
+        <td class="p-3"><%= player_ranking.v %></td>
+        <td class="p-3"><%= (player_ranking.discipline.send(:"#{Discipline::KEY_MAPPINGS[player_ranking.discipline.root.name].andand[:ranking].andand[:formula]}", player_ranking, {v1: player_ranking.g, v2: player_ranking.v})[0] if Discipline::KEY_MAPPINGS[player_ranking.discipline.root.name].andand[:ranking].present?) %></td>
+        <td class="p-3"><%= player_ranking.sets %></td>
+        <td class="p-3"><%= player_ranking.sp_g %></td>
+        <td class="p-3"><%= player_ranking.sp_v %></td>
+        <td class="p-3"><%= (player_ranking.discipline.send(:"#{Discipline::KEY_MAPPINGS[player_ranking.discipline.root.name][:ranking][:formula]}", player_ranking, {v1: player_ranking.sp_g, v2: player_ranking.sp_v}) if Discipline::KEY_MAPPINGS[player_ranking.discipline.root.name].andand[:ranking].present?) %></td>
+
+        <td>
+          <%= custom_link_to t('view'), player_ranking, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

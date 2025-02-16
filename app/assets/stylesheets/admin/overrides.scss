@@ -1,0 +1,9 @@
+// Importierte Datensätze
+tr[data-resource-id^="5"] {
+  background-color: #f8f9fa;
+  td:first-child::after {
+    content: " (importiert)";
+    color: #6c757d;
+    font-size: 0.8em;
+  }
+} 

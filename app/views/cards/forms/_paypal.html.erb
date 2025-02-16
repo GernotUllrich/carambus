@@ -1,0 +1,14 @@
+<%= form_with model: current_account,
+  url: card_url,
+  data: {
+    controller: "paypal",
+    target: "paypal.form",
+    paypal_env: braintree_env,
+    paypal_client_token: Pay.braintree_gateway.client_token.generate
+  } do |f| %>
+
+  <div class="my-8">
+    <%= f.hidden_field :processor, value: :braintree %>
+    <%= tag.div nil, data: { target: "paypal.button" } %>
+  </div>
+<% end %>

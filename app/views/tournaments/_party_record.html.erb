@@ -1,0 +1,15 @@
+<td>
+  <%= party.day_seqno %>
+</td>
+<%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
+  <%= check_box_tag "party[#{party.id}]", "1", party.party_games.count == party.party_games.where.not(tournament: nil).count, data: { reflex: "change->TournamentReflex#change_party_seeding", id: tournament.id } %>
+<%- end %>
+<td>
+  <div class="font-bold">
+    <%= "#{party.league_team_a.name} - #{party.league_team_b.name}" %><br/>
+  </div>
+  <%- party.party_games.each_with_index do |party_game, ix| %>
+    <%= check_box_tag "party_game[#{party_game.id}]", "1", tournament.party_game_ids.include?(party_game.id), data: { reflex: "change->TournamentReflex#change_party_game_seeding", id: tournament.id } %>&nbsp;<%= "#{ix + 1}: #{party_game.name(ix+1)}" %>
+    <br/>
+  <%- end %>
+</td>

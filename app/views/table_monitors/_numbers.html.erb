@@ -1,0 +1,51 @@
+<%- table_monitor = local_assigns[:table_monitor] %>
+<%= content_tag "div" do %>
+  <div id="table_monitor_modal_numbers_<%= table_monitor.id %>" class="modal-content-30">
+    <div class="flex flex-col h-screen space-y-4 rounded-lg border-2 border border-gray-300">
+      <div class="flex flex-row items-center justify-center h-1/6 space-x-4">
+        <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_del", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-red-800 text-3vw", id: "nnn_del", tabindex: 5 do %>
+          <%= "C" %>
+        <%- end %>
+
+        <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_enter", id: table_monitor.id }, class: "flex bg-gray-800 h-1/6 text-6vw w-1/2 p-8 items-center justify-center", id: "number_field", tabindex: 5 do %>
+          <%= table_monitor.nnn %>
+        <%- end %>
+        <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_enter", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center mr-8 p-2 bg-red-800 text-3vw", id: "nnn_enter", tabindex: 5 do %>
+          <%= "enter" %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row items-center justify-center h-1/6 space-x-4">
+        <%- (1..3).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-3vw", id: "nnn_#{i}", tabindex: 5 do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row items-center justify-center h-1/6 space-x-4">
+        <%- (4..6).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-3vw", id: "nnn_#{i}", tabindex: 5 do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row items-center justify-center h-1/6 space-x-4">
+        <%- (7..9).each do |i| %>
+          <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_#{i}", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-3vw", id: "nnn_#{i}", tabindex: 5 do %>
+            <%= i %>
+          <%- end %>
+        <%- end %>
+      </div>
+      <div class="flex flex-row items-center justify-center h-1/6 space-x-4">
+        <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_0", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-3vw", id: "nnn_0", tabindex: 5 do %>
+          0
+        <%- end %>
+        <%= content_tag "span", data: { reflex: "click->TableMonitorReflex#nnn_bsp", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-3vw", id: "nnn_bsp", tabindex: 5 do %>
+          <%= render_svg "icons/backspace", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
+        <%- end %>
+        <%= content_tag "span", data: { reflex: "click@window->TableMonitorReflex#outside click->TableMonitorReflex#outside", id: table_monitor.id }, class: "flex rounded-full lg:h-24 lg:w-24 h-18 w-18 justify-center items-center p-2 bg-gray-800 text-2vw", id: "nnn_esc", tabindex: 5 do %>
+          Esc
+        <%- end %>
+      </div>
+    </div>
+  </div>
+<%- end %>

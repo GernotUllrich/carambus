@@ -1,0 +1,60 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Leagues', leagues_path %> > League #<%= @league.id %></h1>
+      <%= custom_link_to 'Edit', edit_league_path(@league), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @league.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Registration until</h5>
+        <%= @league.registration_until %>
+      </div>
+      <div class="mb-4">
+        <h5>Organizer</h5>
+        <%= custom_link_to @league.organizer.shortname, region_path(@league.organizer) %>
+      </div>
+      <div class="mb-4">
+        <h5>Season</h5>
+        <%= custom_link_to @league.season.name, season_path(@league.season) %>
+      </div>
+<!--      <div class="mb-4">
+        <h5>Ba</h5>
+        <%#= custom_link_to @league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{@league.ba_id}", class: "yellow_link", target: :_blank %>
+      </div>-->
+      <div class="mb-4">
+        <h5>CC</h5>
+        <%= custom_link_to "#{@league.league_cc.name}(#{@league.league_cc.id})", league_cc_path(@league.league_cc) if @league.league_cc.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= custom_link_to @league.discipline.name, discipline_path(@league.discipline) %>
+      </div>
+      <div class="mb-4">
+        <h5>Game Plan</h5>
+        <%= custom_link_to @league.game_plan.name, game_plan_path(@league.game_plan) if @league.game_plan.present? %>
+      </div>
+      <div class="mb-4">
+        <h5>Quelle</h5>
+        <%= link_to_if @league.source_url.present?, @league.source_url.present? ? URI.parse(@league.source_url).host : "", @league.source_url, target: :_blank %>
+      </div>
+      <div class="mb-4">
+        <h5>Last Sync</h5>
+        <%= @league.sync_date.andand.to_date %>
+      </div>
+    </div>
+    <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
+
+    <div class="flex flex-row px-3 lg:px-0">
+      <%= button_to I18n.t("league.show.reload_from_billard_area", source: @league.source), reload_from_ba_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("league.show.reload_from_billard_area_with_details", source: @league.source), reload_from_ba_with_details_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+    </div>
+
+    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}") %></h3>
+    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}") %></h3>
+  </div>
+</div>

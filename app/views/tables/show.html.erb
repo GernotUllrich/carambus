@@ -1,0 +1,32 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Tables', tables_path %> > Table #<%= @table.id %></h1>
+      <%= button_to( 'Edit', edit_table_path(@table), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+      <%= custom_link_to( 'Löschen', table_path(@table), method: :delete, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Location</h5>
+        <%= custom_link_to @table.location.display_address, location_path(@table.location) if @table.present? %>
+      </div>
+            <div class="mb-4">
+        <h5>Table kind</h5>
+        <%= custom_link_to @table.table_kind.name, table_kind_path(@table.table_kind) if @table.table_kind.present? %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @table.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @table.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Ip address</h5>
+        <%= @table.ip_address %>
+      </div>
+          </div>
+  </div>
+</div>

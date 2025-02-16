@@ -1,0 +1,6 @@
+<div id="<%= dom_id(club_location, :index) %>">
+  <%= turbo_stream_from club_location %>
+  <%= render club_location %>
+  <%= custom_link_to "View", club_location, class: "btn btn-white" %>
+</div>
+

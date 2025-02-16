@@ -1,0 +1,45 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :branch,'Sparte', request.params, class: 'text-gray-700' %></th>
+      <%- unless @league_cc.present? %>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_cc_id,'League cc', request.params, class: 'text-gray-700' %></th>
+      <%- end %>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_team_id,'League team', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @league_team_ccs.each do |league_team_cc| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= custom_link_to league_team_cc.cc_id,league_team_cc_path(league_team_cc) %></td>
+        <td class="p-3"><%= league_team_cc.name %></td>
+        <td class="p-3"><%= league_team_cc.shortname %></td>
+        <%- unless @league_cc.present? %>
+          <td class="p-3"><%= custom_link_to "(#{league_team_cc.league_cc.branch_cc.name})", branch_cc_path(league_team_cc.league_cc.branch_cc) %></td>
+          <td class="p-3"><%= custom_link_to "#{league_team_cc.league_cc.name}(#{league_team_cc.league_cc.cc_id})", league_cc_path(league_team_cc.league_cc) %></td>
+        <%- end %>
+        <td class="p-3"><%= custom_link_to "#{league_team_cc.league_team.name}[#{league_team_cc.league_team_id}]", league_team_path(league_team_cc.league_team) %></td>
+        <td class="p-3"><%= league_team_cc.data %></td>
+
+        <td>
+          <%= custom_link_to "View", league_team_cc, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

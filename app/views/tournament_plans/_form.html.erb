@@ -1,0 +1,61 @@
+<%= form_with(model: tournament_plan) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :rulesystem %>
+    <%= form.text_area :rulesystem, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :players %>
+    <%= form.number_field :players, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tables %>
+    <%= form.number_field :tables, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :more_description %>
+    <%= form.text_area :more_description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :even_more_description %>
+    <%= form.text_area :even_more_description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :executor_class %>
+    <%= form.text_field :executor_class, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :executor_params %>
+    <%= form.text_area :executor_params, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ngroups %>
+    <%= form.number_field :ngroups, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :nrepeats %>
+    <%= form.number_field :nrepeats, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,32 @@
+<table class="table">
+  <thead>
+  <tr>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :id,'Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :super_discipline_id,'Super discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :synonyms,'Synonyme', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :table_kind_id,'Table kind', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :team_size,'Teamgröße', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <% @disciplines.each do |discipline| %>
+    <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+      <td class="p-3"><%= discipline.id %></td>
+      <td class="p-3"><%= discipline.name %></td>
+      <td class="p-3"><%= custom_link_to( discipline.super_discipline.andand.name, discipline_path(discipline.super_discipline)) if discipline.super_discipline.present? %></td>
+      <td class="p-3"><%= discipline.synonyms.gsub("\n", "|") %></td>
+      <td class="p-3"><%= custom_link_to( discipline.table_kind.andand.name, table_kind_path(discipline.table_kind )) if discipline.table_kind.present? %></td>
+      <td class="p-3"><%= discipline.team_size %></td>
+      <td class="p-3"><%= discipline.data %></td>
+
+      <td>
+        <%= custom_link_to t('view'), discipline_path(discipline), class: "btn btn-link no-underline" %>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

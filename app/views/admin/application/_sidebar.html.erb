@@ -1,0 +1,6 @@
+<% if current_user.system_admin? %>
+  <%= link_to "Users", admin_users_path %>
+<% end %>
+
+<%= link_to "Turniere", admin_tournaments_path %>
+<%= link_to "Ankündigungen", admin_announcements_path %>

@@ -1,0 +1,57 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Discipline Ccs</h1>
+
+    <% if @discipline_ccs.any? %>
+      <%= button_to 'New Discipline Cc', new_discipline_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
+    <% end %>
+  </div>
+
+  <% if @discipline_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+        <tr>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @discipline_ccs.each do |discipline_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <td class="p-3"><%= discipline_cc.cc_id %></td>
+            <td class="p-3"><%= discipline_cc.name %></td>
+            <td class="p-3"><%= discipline_cc.discipline_id %></td>
+            <td class="p-3"><%= link_to_if discipline_cc.branch_cc.present?, "#{discipline_cc.branch_cc.name}(#{discipline_cc.branch_cc_id})", branch_cc_path(discipline_cc.branch_cc) %></td>
+            <td class="p-3"><%= discipline_cc.context %></td>
+
+            <td>
+              <%= custom_link_to "View", discipline_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Discipline Cc</p>
+        <%= button_to 'New Discipline Cc', new_discipline_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
+      </div>
+    </div>
+  <% end %>
+</div>

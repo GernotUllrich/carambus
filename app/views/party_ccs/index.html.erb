@@ -1,0 +1,68 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Party Ccs</h1>
+
+    <% if @party_ccs.any? %>
+      <%= button_to 'New Party Cc', new_party_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @party_ccs.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+<!--            <th class="p-3 uppercase text-left text-xs"><%#= sortable @party_ccs, :Ba_id,'Ba', request.params, class: 'text-gray-700' %></th>-->
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_cc_id,'League cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :party_id,'Party', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_a_cc_id,'League team a cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_b_cc_id,'League team b cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_host_cc_id,'League team host cc', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :day_seqno,'Day seqno', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :remarks,'Remarks', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @party_ccs.each do |party_cc| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= party_cc.cc_id %></td>
+<!--                      <td class="p-3"><%#= custom_link_to party_cc.party.andand.ba_id, "https://#{party_cc.party.league.organizer.shortname.downcase}.billardarea.de/cms_leagues/matchday/#{party_cc.party.ba_id}", target: :_blank %></td>-->
+                      <td class="p-3"><%= custom_link_to "#{party_cc.league_cc.name}(#{party_cc.league_cc.cc_id})", league_cc_path(party_cc.league_cc) %></td>
+                      <td class="p-3"><%= custom_link_to "#{party_cc.party.name}(#{party_cc.party_id})", party_path(party_cc.party) %></td>
+                      <td class="p-3"><%= custom_link_to "#{party_cc.league_team_a_cc.name}(#{party_cc.league_team_a_cc.cc_id})", league_team_cc_path(party_cc.league_team_a_cc) %></td>
+                      <td class="p-3"><%= custom_link_to "#{party_cc.league_team_b_cc.name}(#{party_cc.league_team_b_cc.cc_id})", league_team_cc_path(party_cc.league_team_b_cc) %></td>
+                      <td class="p-3"><%= custom_link_to "#{party_cc.league_team_host_cc.name}(#{party_cc.league_team_host_cc.cc_id})", league_team_cc_path(party_cc.league_team_host_cc) if party_cc.league_team_host_cc.present? %></td>
+                      <td class="p-3"><%= party_cc.day_seqno %></td>
+                      <td class="p-3"><%= party_cc.remarks %></td>
+                      <td class="p-3"><%= party_cc.data %></td>
+
+            <td>
+              <%= custom_link_to "View", party_cc, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Party Cc</p>
+        <%= button_to 'New Party Cc', new_party_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

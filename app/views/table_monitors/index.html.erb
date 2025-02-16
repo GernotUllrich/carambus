@@ -1,0 +1,62 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Table Monitors</h1>
+
+    <% if @table_monitors.any? %>
+      <%= button_to 'New Table Monitor', new_table_monitor_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @table_monitors.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :tournament_monitor_id,'Tournament monitor', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :state,'State', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :game_id,'Game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :next_game_id,'Next game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @table_monitors, :ip_address,'Ip address', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @table_monitors.each do |table_monitor| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= table_monitor.tournament_monitor.andand.id %></td>
+                      <td class="p-3"><%= table_monitor.state %></td>
+                      <td class="p-3"><%= table_monitor.name %></td>
+                      <td class="p-3"><%= table_monitor.game_id %></td>
+                      <td class="p-3"><%= table_monitor.next_game_id %></td>
+                      <td class="p-3"><%= table_monitor.data %></td>
+                      <td class="p-3"><%= table_monitor.ip_address %></td>
+
+            <td>
+              <%= custom_link_to t('view'), table_monitor, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Table Monitor</p>
+        <%= button_to 'New Table Monitor', new_table_monitor_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

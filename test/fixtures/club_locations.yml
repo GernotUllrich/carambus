@@ -1,0 +1,21 @@
+# == Schema Information
+#
+# Table name: club_locations
+#
+#  id          :bigint           not null, primary key
+#  status      :string
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  club_id     :integer
+#  location_id :integer
+#
+
+one:
+  club_id: 1
+  location_id: 1
+  status: MyString
+
+two:
+  club_id: 1
+  location_id: 1
+  status: MyString

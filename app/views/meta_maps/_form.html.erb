@@ -1,0 +1,38 @@
+<%= form_with(model: meta_map) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :class_ba %>
+    <%= form.text_field :class_ba, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :class_cc %>
+    <%= form.text_field :class_cc, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ba_base_url %>
+    <%= form.text_field :ba_base_url, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :cc_base_url %>
+    <%= form.text_field :cc_base_url, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :data %>
+    <textarea cols="50" rows="3" id="meta_map_data" name="meta_map[data]">
+      <%= JSON.pretty_generate(@meta_map.data) %>
+    </textarea>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

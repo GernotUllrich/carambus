@@ -1,0 +1,68 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Game Participations</h1>
+
+    <% if @game_participations.any? %>
+      <%= button_to 'New Game Participation', new_game_participation_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if @game_participations.any? %>
+    <div class=" rounded shadow table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :game_id,'Game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :role,'Role', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :points,'Points', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :result,'Result', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :innings,'Innings', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gd,'Gd', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :hs,'Hs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gname,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+        <% @game_participations.each do |game_participation| %>
+          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <td class="p-3"><%= game_participation.game_id %></td>
+                      <td class="p-3"><%= game_participation.player_id %></td>
+                      <td class="p-3"><%= game_participation.role %></td>
+                      <td class="p-3"><%= game_participation.data %></td>
+                      <td class="p-3"><%= game_participation.points %></td>
+                      <td class="p-3"><%= game_participation.result %></td>
+                      <td class="p-3"><%= game_participation.innings %></td>
+                      <td class="p-3"><%= game_participation.gd %></td>
+                      <td class="p-3"><%= game_participation.hs %></td>
+                      <td class="p-3"><%= game_participation.gname %></td>
+
+            <td>
+              <%= custom_link_to t('view'), game_participation, class: "btn btn-link no-underline" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="text-center my-6">
+        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+        <%== pagy_nav(@pagy) %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Game Participation</p>
+        <%= button_to 'New Game Participation', new_game_participation_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,38 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Branch Ccs', branch_ccs_path %> > Branch Cc #<%= "#{@branch_cc.id} - #{@branch_cc.name}" %></h1>
+      <%= custom_link_to 'Edit', edit_branch_cc_path(@branch_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @branch_cc.cc_id %>
+      </div>
+      <div class="mb-4">
+        <h5>Context</h5>
+        <%= @branch_cc.context %>
+      </div>
+      <div class="mb-4">
+        <h5>Region cc</h5>
+        <%= link_to_if @branch_cc.region_cc.present?, "#{@branch_cc.region_cc.shortname}(#{@branch_cc.region_cc_id})", region_cc_path(@branch_cc.region_cc) %>
+      </div>
+      <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= custom_link_to "#{@branch_cc.discipline.name}[#{@branch_cc.discipline_id}]", discipline_path(@branch_cc.discipline) %>
+      </div>
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @branch_cc.name %>
+      </div>
+    </div>
+  </div>
+
+  <% if @competition_ccs.any? %>
+    <h3> Competitions</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'competition_ccs/competition_ccs_table' %>
+    </div>
+  <% end %>
+</div>

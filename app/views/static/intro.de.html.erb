@@ -1,0 +1,49 @@
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<!--<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>-->
+<style>
+    .responsive-svg {
+        width: 100%;
+        height: auto;
+    }
+</style>
+<script type="text/javascript">
+  // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
+  window.hotkeys('*', function (event, handler) {
+// Prevent the default refresh event under WINDOWS system
+
+    console.log(hotkeys.getPressedKeyCodes());
+    //alert('you pressed ' + hotkeys.getPressedKeyCodes());
+    var keyMap = {
+      33: "key_a",
+      37: "key_a",
+      34: "key_b",
+      39: "key_b",
+      66: "key_c",
+      38: "key_c",
+      116: "key_d",
+      27: "key_d",
+      40: "key_d",
+      13: "key_d",
+    }
+    if (event.keyCode in keyMap) {
+      var key = keyMap[event.keyCode];
+      if (key == "key_c"){
+        event.preventDefault();
+        window.history.back();
+      }
+    }
+    return true
+  });
+</script>
+<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block" %>
+</div>
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex flex-col  rounded shadow p-8">
+        <%= render "carambus" %>
+      </div>
+    </div>
+  </div>
+</div>

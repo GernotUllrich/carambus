@@ -1,0 +1,12 @@
+de:
+  administrate:
+    actions:
+      cancel: "Abbrechen"
+      confirm: "Bestätigen"
+      destroy: "Löschen"
+      edit: "Bearbeiten"
+      new: "Neu"
+      back: "Zurück"
+    resources:
+      user: "Benutzer"
+    # ... add other resource translations as needed ... 

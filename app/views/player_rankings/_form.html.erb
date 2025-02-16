@@ -1,0 +1,151 @@
+<%= form_with(model: player_ranking) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :player_id %>
+    <%= form.number_field :player_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :region_id %>
+    <%= form.number_field :region_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :season_id %>
+    <%= form.number_field :season_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :org_level %>
+    <%= form.text_field :org_level, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.number_field :discipline_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :status %>
+    <%= form.text_field :status, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :points %>
+    <%= form.number_field :points, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :gd %>
+    <%= form.text_field :gd, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :hs %>
+    <%= form.number_field :hs, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :bed %>
+    <%= form.text_field :bed, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :btg %>
+    <%= form.text_field :btg, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :player_class_id %>
+    <%= form.number_field :player_class_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :p_player_class_id %>
+    <%= form.number_field :p_player_class_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :pp_player_class_id %>
+    <%= form.number_field :pp_player_class_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :p_gd %>
+    <%= form.text_field :p_gd, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :pp_gd %>
+    <%= form.text_field :pp_gd, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :tournament_player_class_id %>
+    <%= form.number_field :tournament_player_class_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :rank %>
+    <%= form.number_field :rank, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :remarks %>
+    <%= form.text_area :remarks, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :g %>
+    <%= form.number_field :g, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :v %>
+    <%= form.number_field :v, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :quote %>
+    <%= form.text_field :quote, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sp_g %>
+    <%= form.number_field :sp_g, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sp_v %>
+    <%= form.number_field :sp_v, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sp_quote %>
+    <%= form.text_field :sp_quote, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :balls %>
+    <%= form.number_field :balls, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sets %>
+    <%= form.number_field :sets, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :t_ids %>
+    <%= form.text_area :t_ids, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

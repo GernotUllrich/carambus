@@ -1,0 +1,35 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Discipline Tournament Plans', discipline_tournament_plans_path %> > Discipline Tournament Plan #<%= @discipline_tournament_plan.id %></h1>
+      <%= button_to('Edit', edit_discipline_tournament_plan_path(@discipline_tournament_plan), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @discipline_tournament_plan.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament plan</h5>
+        <%= @discipline_tournament_plan.tournament_plan_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Points</h5>
+        <%= @discipline_tournament_plan.points %>
+      </div>
+            <div class="mb-4">
+        <h5>Innings</h5>
+        <%= @discipline_tournament_plan.innings %>
+      </div>
+            <div class="mb-4">
+        <h5>Players</h5>
+        <%= @discipline_tournament_plan.players %>
+      </div>
+            <div class="mb-4">
+        <h5>Player class</h5>
+        <%= @discipline_tournament_plan.player_class %>
+      </div>
+          </div>
+  </div>
+</div>

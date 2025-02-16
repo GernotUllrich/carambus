@@ -1,0 +1,24 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3">Competition Ccs</h1>
+
+    <% if @competition_ccs.any? %>
+      <%= button_to 'New Competition Cc', new_competition_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
+    <% end %>
+  </div>
+
+  <% if @competition_ccs.any? %>
+    <div id="table_wrapper">
+      <%= render partial: 'competition_ccs_table' %>
+    </div>
+
+  <% else %>
+    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <%= image_tag "empty.svg", class: "mb-4 lg:w-1/2" %>
+      <div class="flex-1 text-center">
+        <p class="h3 mb-4">Create your first Competition Cc</p>
+        <%= button_to 'New Competition Cc', new_competition_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
+      </div>
+    </div>
+  <% end %>
+</div>

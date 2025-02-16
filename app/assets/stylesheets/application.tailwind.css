@@ -1,0 +1,36 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+
+/*
+ * Jumpstart Pro default styles
+ * Remove these if you'd like to use TailwindUI which expects a clean slate
+*/
+@import "components/base.css";
+@import "components/alert.css";
+@import "components/animation.css";
+@import "components/carambus.css";
+@import "components/avatars.css";
+@import "components/buttons.css";
+@import "components/code.css";
+@import "components/direct_uploads.css";
+@import "components/docs.css";
+@import "components/forms.css";
+@import "components/icons.css";
+@import "components/iframe.css";
+@import "components/modal.css";
+@import "components/nav.css";
+@import "components/notifications.css";
+@import "components/pagination.css";
+@import "components/virt_keyboard.css";
+@import "components/strada.css";
+@import "components/tabs.css";
+@import "components/trix.css";
+@import "components/typography.css";
+@import "components/util.css";
+@import "components/braintree.css";
+
+@import "tailwindcss/utilities";
+
+@import "flatpickr/dist/flatpickr.css";
+@import "tippy.js/dist/tippy.css";
+@import "tom-select/dist/css/tom-select.css";

@@ -1,0 +1,85 @@
+
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_id,'Tournament', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :branch_cc_id,'Sparte', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :season,'Season', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_list_cc_id,'Registration list cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_rule,'Registration rule', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :championship_type_cc_id,'Championship type cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :category_cc_id,'Category cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :group_cc_id,'Group cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_start,'Tournament start', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_series_cc_id,'Tournament series cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_end,'Tournament end', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :starting_at,'Starting at', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :league_climber_quote,'League climber quote', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :entry_fee,'Entry fee', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :max_players,'Max players', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_id,'Location', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_text,'Location text', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :description,'Description', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :poster,'Poster', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tender,'Tender', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :flowchart,'Flowchart', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :ranking_list,'Ranking list', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :successor_list,'Successor list', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @tournament_ccs.each do |tournament_cc| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= tournament_cc.cc_id %></td>
+        <td class="p-3"><%= custom_link_to "#{tournament_cc.tournament.andand.title}[#{tournament_cc.tournament_id}]", tournament_path(tournament_cc.tournament) if tournament_cc.tournament.present? %></td>
+        <td class="p-3"><%= tournament_cc.context %></td>
+        <td class="p-3"><%= tournament_cc.name %></td>
+        <td class="p-3"><%= tournament_cc.shortname %></td>
+        <td class="p-3"><%= tournament_cc.status %></td>
+        <td class="p-3"><%= custom_link_to "#{tournament_cc.branch_cc.discipline.name}[#{tournament_cc.branch_cc.discipline_id}]", discipline_path(tournament_cc.branch_cc.discipline) %></td>
+        <td class="p-3"><%= tournament_cc.season %></td>
+        <td class="p-3"><%= tournament_cc.registration_list_cc_id %></td>
+        <td class="p-3"><%= TournamentCc::REGISTRATION_RULES[tournament_cc.registration_rule] %></td>
+        <td class="p-3"><%= custom_link_to "#{tournament_cc.discipline.name}[#{tournament_cc.discipline_id}]", discipline_path(tournament_cc.discipline) %></td>
+        <td class="p-3"><%= tournament_cc.championship_type_cc_id %></td>
+        <td class="p-3"><%= tournament_cc.category_cc_id %></td>
+        <td class="p-3"><%= tournament_cc.group_cc_id %></td>
+        <td class="p-3"><%= tournament_cc.tournament_start %></td>
+        <td class="p-3"><%= tournament_cc.tournament_series_cc_id %></td>
+        <td class="p-3"><%= tournament_cc.tournament_end %></td>
+        <td class="p-3"><%= tournament_cc.starting_at %></td>
+        <td class="p-3"><%= tournament_cc.league_climber_quote %></td>
+        <td class="p-3"><%= tournament_cc.entry_fee %></td>
+        <td class="p-3"><%= tournament_cc.max_players %></td>
+        <td class="p-3"><%= tournament_cc.location_id %></td>
+        <td class="p-3"><%= tournament_cc.location_text %></td>
+        <td class="p-3"><%= tournament_cc.description %></td>
+        <td class="p-3"><%= tournament_cc.poster %></td>
+        <td class="p-3"><%= tournament_cc.tender %></td>
+        <td class="p-3"><%= tournament_cc.flowchart %></td>
+        <td class="p-3"><%= tournament_cc.ranking_list %></td>
+        <td class="p-3"><%= tournament_cc.successor_list %></td>
+
+        <td>
+          <%= custom_link_to "View", tournament_cc, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

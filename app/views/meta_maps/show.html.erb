@@ -1,0 +1,31 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Meta Maps', meta_maps_path %> > Meta Map #<%= @meta_map.id %></h1>
+      <%= custom_link_to 'Edit', edit_meta_map_path(@meta_map), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Class ba</h5>
+        <%= @meta_map.class_ba %>
+      </div>
+      <div class="mb-4">
+        <h5>Class cc</h5>
+        <%= @meta_map.class_cc %>
+      </div>
+      <div class="mb-4">
+        <h5>Ba base url</h5>
+        <%= @meta_map.ba_base_url %>
+      </div>
+      <div class="mb-4">
+        <h5>Cc base url</h5>
+        <%= @meta_map.cc_base_url %>
+      </div>
+      <div class="mb-4">
+        <h5>Data</h5>
+        <pre><%= JSON.pretty_generate(@meta_map.data) %></pre>
+      </div>
+    </div>
+  </div>
+</div>

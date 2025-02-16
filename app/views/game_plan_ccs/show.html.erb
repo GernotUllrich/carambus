@@ -1,0 +1,83 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Game Plan Ccs', game_plan_ccs_path %> > Game Plan Cc #<%= @game_plan_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_game_plan_cc_path(@game_plan_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @game_plan_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @game_plan_cc.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @game_plan_cc.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Branch cc</h5>
+        <%= @game_plan_cc.branch_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @game_plan_cc.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Mp won</h5>
+        <%= @game_plan_cc.mp_won %>
+      </div>
+            <div class="mb-4">
+        <h5>Mb draw</h5>
+        <%= @game_plan_cc.mb_draw %>
+      </div>
+            <div class="mb-4">
+        <h5>Mp lost</h5>
+        <%= @game_plan_cc.mp_lost %>
+      </div>
+            <div class="mb-4">
+        <h5>Znp</h5>
+        <%= @game_plan_cc.znp %>
+      </div>
+            <div class="mb-4">
+        <h5>Vorgabe</h5>
+        <%= @game_plan_cc.vorgabe %>
+      </div>
+            <div class="mb-4">
+        <h5>Plausi</h5>
+        <%= @game_plan_cc.plausi %>
+      </div>
+            <div class="mb-4">
+        <h5>Pez partie</h5>
+        <%= @game_plan_cc.pez_partie %>
+      </div>
+            <div class="mb-4">
+        <h5>Bez brett</h5>
+        <%= @game_plan_cc.bez_brett %>
+      </div>
+            <div class="mb-4">
+        <h5>Rang partie</h5>
+        <%= @game_plan_cc.rang_partie %>
+      </div>
+            <div class="mb-4">
+        <h5>Rang mgd</h5>
+        <%= @game_plan_cc.rang_mgd %>
+      </div>
+            <div class="mb-4">
+        <h5>Rang kegel</h5>
+        <%= @game_plan_cc.rang_kegel %>
+      </div>
+            <div class="mb-4">
+        <h5>Ersatzspieler regel</h5>
+        <%= @game_plan_cc.ersatzspieler_regel %>
+      </div>
+            <div class="mb-4">
+        <h5>Row type</h5>
+        <%= @game_plan_cc.row_type_id %>
+      </div>
+          </div>
+  </div>
+</div>

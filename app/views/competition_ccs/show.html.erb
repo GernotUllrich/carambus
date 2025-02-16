@@ -1,0 +1,39 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Competition Ccs', competition_ccs_path %> > Competition Cc
+        #<%= @competition_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_competition_cc_path(@competition_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+      <div class="mb-4">
+        <h5>Cc</h5>
+        <%= custom_link_to @competition_cc.cc_id, competition_cc_path(@competition_cc) %>
+      </div>
+      <div class="mb-4">
+        <h5>Name</h5>
+        <%= @competition_cc.name %>
+      </div>
+      <div class="mb-4">
+        <h5>Context</h5>
+        <%= @competition_cc.context %>
+      </div>
+      <div class="mb-4">
+        <h5>Branch cc</h5>
+        <%= custom_link_to "#{@competition_cc.branch_cc.name}(#{@competition_cc.branch_cc_id})", branch_cc_path(@competition_cc.branch_cc) %>
+      </div>
+      <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= custom_link_to "#{@competition_cc.discipline.name}[#{@competition_cc.discipline_id}]", discipline_path(@competition_cc.discipline) %>
+      </div>
+    </div>
+  </div>
+
+  <% if @season_ccs.any? %>
+    <h3> Seasons</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'season_ccs/season_ccs_table' %>
+    </div>
+  <% end %>
+</div>

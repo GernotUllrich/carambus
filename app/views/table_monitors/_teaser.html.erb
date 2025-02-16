@@ -1,0 +1,110 @@
+<div class="teaser flex flex-col items-center text-gray-900 dark:text-gray-200 text-bold">
+  <%- table_monitor.get_options!(I18n.locale) %>
+  <%- options = table_monitor.options %>
+  <%- left_player = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b] %>
+  <%- right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
+  <%- left_player_id = options[:current_left_player] == "playera" ? "playera" : "playerb" %>
+  <%- right_player_id = options[:current_left_player] == "playera" ? "playerb" : "playera" %>
+  <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
+  <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
+  <table class="m-10">
+    <%- display_firstname_only = true %>
+    <%- display_firstname = false %>
+    <%- display_shortname = true %>
+    <tr>
+      <td colspan=4 class="font-bold">
+        <%= custom_link_to "T#{table_monitor.table.name.match(/.*(\d+)$/).andand[1]}", table_monitor_path(table_monitor), data: { turbo: false }, tabindex: 1 %>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" class="text-1vw">
+        <div class="p-1">
+          <%= table_monitor.tournament_monitor&.tournament&.title %>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" class="text-1vw">
+        <div class="p-1">
+          <%- if table_monitor.game&.gname.present? %>
+            <%= "#{table_monitor.game.gname.gsub("group", "Gruppe ").gsub(":", ": ")} - " %>
+          <%- else %>
+            <%= "#{table_monitor.discipline} - " %>
+          <%- end %>
+          <%- delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
+          <%= "Aufnahme <strong class='text-2vw'>#{options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta}</strong".html_safe %>
+
+        </div>
+      </td>
+    </tr>
+    <%- if table_monitor.state_display(I18n.locale).present? %>
+      <tr>
+        <td colspan="3" class="text-2vw text-red-400">
+          <div class="p-1">
+            <%= table_monitor.state_display(I18n.locale) %>
+          </div>
+        </td>
+      </tr>
+    <%- end %>
+    <tr>
+      <td>
+        <div class="flex flex-row items-center justify-start">
+          <div class="w-1/4"><%= image_tag(left_player[:logo], class: "object-contain h-10 w-20") if left_player[:logo].present? %></div>
+          <div class="p-3 <%= options[:current_left_color] == "white" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
+            <%- if display_firstname_only %>
+              <%= (left_player[:firstname].presence || left_player[:lastname]).gsub("Dr. ", "") %>
+            <%- else %>
+              <%= display_shortname ? "#{left_player[:shortname]}" : "#{right_player[:lastname]}#{", #{right_player[:firstname_short]}" if display_firstname}" %>
+            <%- end %>
+          </div>
+        </div>
+      </td>
+      <td>
+        <%- if options[:free_game_form] == 'pool' && left_player[:discipline] != "14.1 endlos" %>
+          <%#= options[:current_sets_a] %>
+        <%- else %>
+          <div class="ml-2 p-1 text-gray-200 font-bold" style="background-color: #006178">
+            <%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %>
+          </div>
+        <%- end %>
+      </td>
+      <td>
+        <%- if left_player_active %>
+          <div class="p-1 ml-2 text-gray-200 font-bold <%= options[:current_left_color] == "white" ? "text-gray-500 dark:text-gray-200 font-bold" : "font-bold text-yellow-600" %>">
+            <%= table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1] || 0 %>
+          </div>
+        <%- end %>
+      </td>
+    </tr>
+    <tr>
+      <td class="">
+        <div class="flex flex-row items-center justify-start">
+          <div class="w-1/4"><%= image_tag(right_player[:logo], class: "object-contain h-10 w-20") if right_player[:logo].present? %></div>
+          <div class="p-3 <%= options[:current_left_color] == "yellow" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
+            <%- if display_firstname_only %>
+              <%= (right_player[:firstname].presence || right_player[:lastname]).gsub("Dr. ", "") %>
+            <%- else %>
+              <%= display_shortname ? "#{right_player[:shortname]}" : "#{right_player[:lastname]}#{", #{right_player[:firstname_short]}" if display_firstname}" %>
+            <%- end %>
+          </div>
+        </div>
+      </td>
+      <td>
+        <%- if options['free_game_form'] == 'pool' && left_player["discipline"] != "14.1 endlos" %>
+          <%#= options["current_sets_b"] %>
+        <%- else %>
+          <div class="ml-2 p-1 text-gray-200 font-bold" style="background-color: #006178">
+            <%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %>
+          </div>
+        <%- end %>
+      </td>
+      <td>
+        <%- if right_player_active %>
+          <div class="p-1 ml-2 text-gray-200 font-bold <%= options[:current_left_color] == "yellow" ? "text-gray-200 font-bold" : "text-yellow-400 font-bold" %>">
+            <%= table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1] || 0 %>
+          </div>
+        <%- end %>
+      </td>
+    </tr>
+  </table>
+</div>

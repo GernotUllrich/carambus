@@ -1,0 +1,71 @@
+<%= form_with(model: game_plan_row_cc) do |form| %>
+  <%= render "error_messages", resource: form.object %>
+
+  <div class="form-group">
+    <%= form.label :cc_id %>
+    <%= form.number_field :cc_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :game_plan_id %>
+    <%= form.number_field :game_plan_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :discipline_id %>
+    <%= form.number_field :discipline_id, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :home_brett %>
+    <%= form.number_field :home_brett, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :visitor_brett %>
+    <%= form.number_field :visitor_brett, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :sets %>
+    <%= form.number_field :sets, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :score %>
+    <%= form.number_field :score, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ppg %>
+    <%= form.number_field :ppg, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ppu %>
+    <%= form.number_field :ppu, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :ppv %>
+    <%= form.number_field :ppv, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :mpg %>
+    <%= form.number_field :mpg, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :pmv %>
+    <%= form.number_field :pmv, class: "form-control" %>
+  </div>
+
+  <div class="form-group flex justify-between">
+    <%= form.button class: "btn btn-primary" %>
+
+    <% if form.object.persisted? %>
+      <%= custom_link_to 'Delete', form.object, class: "btn btn-danger outline", method: :delete, data: { remote: true, confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+<% end %>

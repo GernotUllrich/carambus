@@ -1,0 +1,127 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Tournament Ccs', tournament_ccs_path %> > Tournament Cc #<%= @tournament_cc.id %></h1>
+      <%= custom_link_to 'Edit', edit_tournament_cc_path(@tournament_cc), class: "btn btn-link" %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Tournament</h5>
+        <%= custom_link_to @tournament_cc.tournament_id, tournament_path(@tournament_cc.tournament_id)%>
+      </div>
+            <div class="mb-4">
+        <h5>Cc</h5>
+        <%= @tournament_cc.cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Context</h5>
+        <%= custom_link_to @tournament_cc.context, region_path(Region.find_by_shortname(@tournament_cc.context.upcase)) %>
+      </div>
+            <div class="mb-4">
+        <h5>Name</h5>
+        <%= @tournament_cc.name %>
+      </div>
+            <div class="mb-4">
+        <h5>Shortname</h5>
+        <%= @tournament_cc.shortname %>
+      </div>
+            <div class="mb-4">
+        <h5>Status</h5>
+        <%= @tournament_cc.status %>
+      </div>
+            <div class="mb-4">
+        <h5>Branch cc</h5>
+        <%= custom_link_to @tournament_cc.branch_cc_id, branch_cc_path(@tournament_cc.branch_cc_id) %>
+      </div>
+            <div class="mb-4">
+        <h5>Season</h5>
+        <%= @tournament_cc.season %>
+      </div>
+            <div class="mb-4">
+        <h5>Registration list cc</h5>
+        <%= custom_link_to @tournament_cc.registration_list_cc_id, registration_list_cc_path(@tournament_cc.registration_list_cc_id) if @tournament_cc.registration_list_cc_id.present? %>
+      </div>
+            <div class="mb-4">
+        <h5>Registration rule</h5>
+        <%= custom_link_to @tournament_cc.registration_rule %>
+      </div>
+            <div class="mb-4">
+        <h5>Discipline</h5>
+        <%= @tournament_cc.discipline_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Championship type cc</h5>
+        <%= @tournament_cc.championship_type_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Category cc</h5>
+        <%= @tournament_cc.category_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Group cc</h5>
+        <%= @tournament_cc.group_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament start</h5>
+        <%= @tournament_cc.tournament_start %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament series cc</h5>
+        <%= @tournament_cc.tournament_series_cc_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Tournament end</h5>
+        <%= @tournament_cc.tournament_end %>
+      </div>
+            <div class="mb-4">
+        <h5>Starting at</h5>
+        <%= @tournament_cc.starting_at %>
+      </div>
+            <div class="mb-4">
+        <h5>League climber quote</h5>
+        <%= @tournament_cc.league_climber_quote %>
+      </div>
+            <div class="mb-4">
+        <h5>Entry fee</h5>
+        <%= @tournament_cc.entry_fee %>
+      </div>
+            <div class="mb-4">
+        <h5>Max players</h5>
+        <%= @tournament_cc.max_players %>
+      </div>
+            <div class="mb-4">
+        <h5>Location</h5>
+        <%= @tournament_cc.location_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Location text</h5>
+        <%= @tournament_cc.location_text %>
+      </div>
+            <div class="mb-4">
+        <h5>Description</h5>
+        <%= @tournament_cc.description %>
+      </div>
+            <div class="mb-4">
+        <h5>Poster</h5>
+        <%= @tournament_cc.poster %>
+      </div>
+            <div class="mb-4">
+        <h5>Tender</h5>
+        <%= @tournament_cc.tender %>
+      </div>
+            <div class="mb-4">
+        <h5>Flowchart</h5>
+        <%= @tournament_cc.flowchart %>
+      </div>
+            <div class="mb-4">
+        <h5>Ranking list</h5>
+        <%= @tournament_cc.ranking_list %>
+      </div>
+            <div class="mb-4">
+        <h5>Successor list</h5>
+        <%= @tournament_cc.successor_list %>
+      </div>
+          </div>
+  </div>
+</div>

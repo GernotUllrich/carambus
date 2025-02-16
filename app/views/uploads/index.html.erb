@@ -1,0 +1,29 @@
+<%= content_for :title, "Uploads" %>
+<%= turbo_stream_from :uploads %>
+
+<div class="container px-4 mx-auto my-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+
+      <p>
+      <div class="flex flex-row align-middle">
+        <%= image_tag "warning-sign-svgrepo-com.svg", class: "w-8 m-4" %>
+        <div class="mt-5">Die Uploads werden von mir zeitnah in das Album übernommen. Bitte ggf. etwas
+          Geduld. LG Gernot
+        </div>
+      </div>
+      </p>
+      <h1 class="h3">Uploads</h1>
+
+      <div id="table_wrapper">
+        <%= render partial: 'uploads_table' %>
+
+
+      </div>
+    </div>
+
+    <%= custom_link_to t("shared.scaffold.new.title", model: "Upload"), new_upload_path, class: "btn btn-white" %>
+  </div>
+
+
+</div>

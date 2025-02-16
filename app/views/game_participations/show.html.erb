@@ -1,0 +1,51 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3"><%= custom_link_to 'Game Participations', game_participations_path %> > Game Participation #<%= @game_participation.id %></h1>
+      <%= button_to( 'Edit', edit_game_participation_path(@game_participation), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    </div>
+
+    <div class=" rounded shadow p-8">
+            <div class="mb-4">
+        <h5>Game</h5>
+        <%= @game_participation.game_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Player</h5>
+        <%= @game_participation.player_id %>
+      </div>
+            <div class="mb-4">
+        <h5>Role</h5>
+        <%= @game_participation.role %>
+      </div>
+            <div class="mb-4">
+        <h5>Data</h5>
+        <%= @game_participation.data %>
+      </div>
+            <div class="mb-4">
+        <h5>Points</h5>
+        <%= @game_participation.points %>
+      </div>
+            <div class="mb-4">
+        <h5>Result</h5>
+        <%= @game_participation.result %>
+      </div>
+            <div class="mb-4">
+        <h5>Innings</h5>
+        <%= @game_participation.innings %>
+      </div>
+            <div class="mb-4">
+        <h5>Gd</h5>
+        <%= @game_participation.gd %>
+      </div>
+            <div class="mb-4">
+        <h5>Hs</h5>
+        <%= @game_participation.hs %>
+      </div>
+            <div class="mb-4">
+        <h5>Game</h5>
+        <%= @game_participation.game %>
+      </div>
+          </div>
+  </div>
+</div>
