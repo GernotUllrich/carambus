@@ -98,7 +98,7 @@ gem "strong_migrations", "~> 0.7.6"
 group :development do
   gem "letter_opener_web", "~> 3.0"
   gem "aasm-diagram", require: false
-  gem "capistrano", "~> 3.19.0"
+  gem "capistrano", "~> 3.19.2"
   gem "capistrano-bundler"
   gem "capistrano-rails"
   gem "capistrano-rbenv", github: "capistrano/rbenv"
