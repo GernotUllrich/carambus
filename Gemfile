@@ -85,7 +85,7 @@ gem "paper_trail"
 gem "rails-i18n"
 gem "devise"
 gem "devise-i18n", "~> 1.10"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 9.3"
 gem "pundit", "~> 2.1"
 gem "inline_svg", "~> 1.6"
 gem "nokogiri", ">= 1.12.5" # Security update
