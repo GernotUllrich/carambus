@@ -139,7 +139,7 @@ GEM
       railties (>= 5.2)
       thread-local (>= 1.1.0)
     cancancan (3.6.1)
-    capistrano (3.19.1)
+    capistrano (3.19.2)
       airbrussh (>= 1.0.0)
       i18n
       rake (>= 10.0.0)
@@ -645,7 +645,7 @@ DEPENDENCIES
   bundler (= 2.5.15)
   cable_ready (~> 5.0.pre10)
   cancancan (~> 3.5)
-  capistrano (~> 3.19.0)
+  capistrano (~> 3.19.2)
   capistrano-bundler
   capistrano-rails
   capistrano-rbenv!
