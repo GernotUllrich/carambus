@@ -104,7 +104,7 @@ group :development do
   gem "capistrano-rbenv", github: "capistrano/rbenv"
   gem "capistrano-secrets-yml"
   gem "capistrano3-puma"
-  gem "rack-mini-profiler"
+  gem "rack-mini-profiler", require: false
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console", ">= 4.1.0"
 
