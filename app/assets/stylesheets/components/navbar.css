@@ -1,1 +1,37 @@
- 
+/* Add this to your Tailwind components */
+.logo {
+  @apply h-8 w-8; /* or your preferred size */
+}
+
+/* Sidebar Transition */
+nav {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Active State */
+.active-nav-item {
+  @apply bg-gray-700 text-white;
+}
+
+/* Mini Profiler positioning */
+#mini-profiler {
+  top: 0 !important;
+  right: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Ensure mini profiler is above other elements */
+.profiler-results {
+  z-index: 1000 !important;
+}
+
+/* Hover states are now handled directly in the HTML classes */
+
+:root {
+  --header-height: 4rem;
+}
+
+.sidebar-menu {
+  height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+} 

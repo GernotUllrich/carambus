@@ -1,30 +1,15 @@
-<nav class="flex bg-green-700 items-center justify-between px-4 py-2 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-sm font-medium" data-controller="toggle">
-  <div class="flex items-center flex-shrink-0 mr-6 w-24">
-    <%= custom_link_to root_path do %>
+<!-- Navigation -->
+<nav class="fixed left-0 top-0 h-full w-64 bg-gray-800 dark:bg-gray-800 shadow-lg transition-all duration-300 transform" data-sidebar-target="nav">
+  <div class="p-4">
 
-      <%- if  request.host == "roald.carambus.de" %>
-        <h3 class="flex text-gray-200">ANTARKTIS BILDERTAUSCH</h3>
-      <%- elsif Carambus.config.carambus_api_url.blank? %>
-        <h3 class="flex text-gray-200">CARAMBUS API SERVER</h3>
-      <%- else %>
-        <%= custom_link_to image_tag('logo.svg'), root_path %>
-      <%- end %>
-      <span class="sr-only"><%= Carambus.config.application_name %></span>
-    <% end %>
-  </div>
-  <div class="block lg:hidden">
-    <button type="button" id="sidebar-open" class="flex items-center p-3 text-gray-200 lg:hidden focus:outline-none focus:text-gray-100" data-action="click->toggle#toggle touch->toggle#toggle">
-      <svg class="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"></path></svg>
-    </button>
-  </div>
-  <div class="flex-grow hidden w-full pb-6 opacity-100 lg:flex lg:w-auto lg:pb-0"
-       data-toggle-target="toggleable"
-       data-transition-enter="transition-all ease-linear duration-300"
-       data-transition-enter-from="opacity-0 h-0"
-       data-transition-enter-to="opacity-100"
-       data-transition-leave="transition-all ease-linear duration-300"
-       data-transition-leave-from="opacity-100"
-       data-transition-leave-to="opacity-0">
+    <div class="flex items-center justify-between mb-8">
+      <%= custom_link_to image_tag('logo.svg', class: 'w-12 mb-2'), root_path %>
+      <div class="flex font-bold">Carambus</div>
+      <!-- Close button - always visible when nav is open -->
+      <button data-action="sidebar#collapse" class="bg-gray-700 hover:bg-gray-600 rounded-lg">
+        <%= render_svg "icons/arrow-left-to-line", styles: "w-6 h-6 text-gray-300 dark:text-gray-300" %>
+      </button>
+    </div>
     <div class="lg:flex-grow">
       <%= render "left_nav" %>
     </div>
@@ -52,8 +37,8 @@
           <div class="relative" data-controller="dropdown">
             <button data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" class="inline-block select-none p-2 rounded hover:bg-gray-700" aria-label="Profile Menu">
               <span class="flex items-center gap-1 text-gray-100 dark:text-gray-100 appearance-none">
-                <%= image_tag gravatar_url_for(current_user.email, size:30), class: "rounded-full" %>
-<!--                <span class="max-w-32 truncate leading-tight"><%#= current_user.email %></span>-->
+                <%= image_tag gravatar_url_for(current_user.email, size: 30), class: "rounded-full" %>
+                <!--                <span class="max-w-32 truncate leading-tight"><%#= current_user.email %></span>-->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current flex-shrink-0 w-4 h-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
               </span>
             </button>
@@ -72,7 +57,7 @@
                   <%= custom_link_to t(".dashboard"), admin_root_path, class: 'text-gray-800  hover:bg-primary-50 dark:text-gray-50 dark:bg-gray-800 dark:hover:bg-primary-800 transition ease-in-out duration-200 whitespace-nowrap no-underline block px-6 py-3', target: :_blank, data: { turbo: false } %>
                   <%= custom_link_to 'Sidekiq', admin_sidekiq_web_path, class: 'text-gray-800  hover:bg-primary-50 dark:text-gray-50 dark:bg-gray-800 dark:hover:bg-primary-800 transition ease-in-out duration-200 whitespace-nowrap no-underline block px-6 py-3', target: :_blank, data: { turbo: false } if defined?(::Sidekiq) %>
                 <% end %>
-               <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: 'w-full text-left font-medium cursor-pointer px-6 py-3 border-t border-gray-200 dark:border-gray-700 text-gray-800  hover:bg-primary-50 dark:text-gray-50 dark:bg-gray-800 dark:hover:bg-primary-800 transition ease-in-out duration-200 whitespace-nowrap' %>
+                <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: 'w-full text-left font-medium cursor-pointer px-6 py-3 border-t border-gray-200 dark:border-gray-700 text-gray-800  hover:bg-primary-50 dark:text-gray-50 dark:bg-gray-800 dark:hover:bg-primary-800 transition ease-in-out duration-200 whitespace-nowrap' %>
               </div>
             </div>
           </div>
@@ -82,5 +67,15 @@
         <%= custom_link_to t(".sign_up"), new_user_registration_path, class: 'btn btn-primary' %>
       <% end %>
     </div>
+
   </div>
 </nav>
+
+<!-- Hamburger Menu Button -->
+<button data-action="sidebar#collapse"
+        class="fixed top-4 left-4 z-50 p-2 bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-lg transition-all duration-300 shadow-lg opacity-0 pointer-events-none"
+        data-sidebar-target="showButton">
+  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
