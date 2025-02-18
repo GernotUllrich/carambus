@@ -2,9 +2,12 @@
 
 class TurboFailureApp < Devise::FailureApp
   # Compatibility for Turbo::Native::Navigation
-  class << self
-    def helper_method(name)
-    end
+  def self.helper_method(name, *args)
+    # Empty method to handle helper_method calls with variable arguments
+  end
+
+  def turbo_native_app?
+    false
   end
 
   include Turbo::Native::Navigation

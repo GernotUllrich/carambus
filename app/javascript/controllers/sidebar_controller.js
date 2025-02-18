@@ -32,26 +32,21 @@ export default class extends Controller {
     this.navTarget.classList.toggle('-translate-x-full')
 
     // Toggle hamburger button visibility
-    this.showButtonTarget.classList.toggle('opacity-0')
-    this.showButtonTarget.classList.toggle('pointer-events-none')
+    if (this.hasShowButtonTarget) {  // Add safety check
+      this.showButtonTarget.classList.toggle('opacity-0')
+      this.showButtonTarget.classList.toggle('pointer-events-none')
+    }
 
     // Adjust main content margin
     if (this.hasContentTarget) {
-      if (this.navTarget.classList.contains('-translate-x-full')) {
-        // Sidebar is hidden
-        this.contentTarget.classList.remove('ml-64')
-        this.contentTarget.classList.add('ml-0')
-      } else {
-        // Sidebar is visible
-        this.contentTarget.classList.add('ml-64')
-        this.contentTarget.classList.remove('ml-0')
-      }
+      this.contentTarget.classList.toggle('ml-64')
+      this.contentTarget.classList.toggle('ml-0')
     }
 
     // Save state to localStorage if requested
     if (saveState) {
       const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
-      localStorage.setItem('sidebarCollapsed', isCollapsed)
+      localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
     }
   }
 }
