@@ -1,6 +1,6 @@
 <%- tournament_monitor = local_assigns[:tournament_monitor] %>
 <%- edit_games_modus = local_assigns[:edit_games_modus] %>
-<h2><%= t('game_results') %></h2>
+<h2><%= t("tournament_monitors.game_results.game_results") %></h2>
 <%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
 <div class="flex space-x-20 p-4 bg-white dark:bg-black">
   <div class="w-full">
