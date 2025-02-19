@@ -22,4 +22,7 @@ Rails.application.configure do
 
   # Add this to force English locale in tests
   config.i18n.default_locale = :de
+
+  # Store uploaded files on the local file system in a temporary directory
+  config.active_storage.service = :test
 end
