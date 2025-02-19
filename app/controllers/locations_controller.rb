@@ -168,10 +168,10 @@ class LocationsController < ApplicationController
     sb_state = params[:sb_state] || "welcome"
     if current_user.present?
       sign_out(current_user)
-      @user = User.scoreboard
-      bypass_sign_in @user, scope: :user
-      Current.user = @user
     end
+    @user = User.scoreboard
+    bypass_sign_in @user, scope: :user
+    Current.user = @user
     redirect_to "/locations/#{@location.md5}?sb_state=#{sb_state}"
   end
 
