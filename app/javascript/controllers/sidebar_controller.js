@@ -9,7 +9,7 @@ export default class extends Controller {
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const isMobile = window.innerWidth < 768
 
-    if (isMobile || isSidebarCollapsed) {
+    if (isMobile || isSidebarCollapsed || this.element.classList.contains('no-navbar')) {
       this.collapse(null, false) // Collapse without saving state
     } else {
       // Ensure correct margin on desktop initial load
@@ -22,31 +22,35 @@ export default class extends Controller {
 
   toggle(event) {
     const submenu = event.currentTarget.nextElementSibling
-    submenu.classList.toggle('hidden')
-    event.currentTarget.querySelector('svg').classList.toggle('rotate-180')
+    if (!this.element.classList.contains('no-navbar')) {
+      submenu.classList.toggle('hidden')
+      event.currentTarget.querySelector('svg').classList.toggle('rotate-180')
+    }
   }
 
   collapse(event, saveState = true) {
-    console.log("Collapse triggered")
-    // Toggle sidebar visibility
-    this.navTarget.classList.toggle('-translate-x-full')
+    if (!this.element.classList.contains('no-navbar')) {
+      console.log("Collapse triggered")
+      // Toggle sidebar visibility
+      this.navTarget.classList.toggle('-translate-x-full')
 
-    // Toggle hamburger button visibility
-    if (this.hasShowButtonTarget) {  // Add safety check
-      this.showButtonTarget.classList.toggle('opacity-0')
-      this.showButtonTarget.classList.toggle('pointer-events-none')
-    }
+      // Toggle hamburger button visibility
+      if (this.hasShowButtonTarget) {  // Add safety check
+        this.showButtonTarget.classList.toggle('opacity-0')
+        this.showButtonTarget.classList.toggle('pointer-events-none')
+      }
 
-    // Adjust main content margin
-    if (this.hasContentTarget) {
-      this.contentTarget.classList.toggle('ml-64')
-      this.contentTarget.classList.toggle('ml-0')
-    }
+      // Adjust main content margin
+      if (this.hasContentTarget) {
+        this.contentTarget.classList.toggle('ml-64')
+        this.contentTarget.classList.toggle('ml-0')
+      }
 
-    // Save state to localStorage if requested
-    if (saveState) {
-      const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
-      localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+      // Save state to localStorage if requested
+      if (saveState) {
+        const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
+        localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+      }
     }
   }
 
