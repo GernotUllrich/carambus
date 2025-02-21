@@ -95,7 +95,7 @@ class Tournament < ApplicationRecord
   #      :time_out_warm_up_first_min=>5,
   #      :time_out_warm_up_follow_up_min=>3},
   #
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   NAME_DISCIPLINE_MAPPINGS = {
     "9-Ball" => "9-Ball",

@@ -20,7 +20,7 @@ require "net/http"
 class IonContent < ApplicationRecord
   has_many :ion_modules, -> { order("position") }
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   DEBUG = false
 

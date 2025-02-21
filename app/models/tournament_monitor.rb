@@ -45,7 +45,7 @@ class TournamentMonitor < ApplicationRecord
   has_many :was_table_monitors, as: :tournament_monitor, foreign_key: :prev_tournament_monitor_id,
                                 class_name: "TableMonitor", dependent: :nullify
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   before_save :log_state_change
   before_save :set_paper_trail_whodunnit

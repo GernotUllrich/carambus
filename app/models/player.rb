@@ -32,7 +32,7 @@ class Player < ApplicationRecord
     self.fl_name = "#{firstname} #{lastname}".strip
   end
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
   # for teams:
   #  data ordered by ba_id  then first player's data are copied into resp. fields of player record
   # data:

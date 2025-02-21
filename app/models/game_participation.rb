@@ -56,7 +56,7 @@ class GameParticipation < ApplicationRecord
     # end
   end
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   COLUMN_NAMES = {
     "#" => "games.seqno",

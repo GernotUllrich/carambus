@@ -39,7 +39,7 @@ class Location < ApplicationRecord
 
   cattr_accessor :table_kinds
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   REFLECTION_KEYS = %w[club region].freeze
   # TODO: Filters

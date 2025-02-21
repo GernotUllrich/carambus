@@ -12,5 +12,5 @@
 #  updated_at  :datetime         not null
 #
 class MetaMap < ApplicationRecord
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 end

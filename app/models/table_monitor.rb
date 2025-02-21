@@ -116,7 +116,7 @@ class TableMonitor < ApplicationRecord
   }.freeze
   NNN = "db" # store nnn in database table_monitor
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
   serialize :prev_data, coder: YAML, type: Hash
   # { "state" => "warmup", # ["warmup", "match_shootout", "playing", "set_over", "final_set_score", "final_match_score"]
   #   "current_set" => 1,

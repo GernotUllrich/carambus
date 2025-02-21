@@ -23,7 +23,7 @@ require "net/http"
 #
 class Setting < ApplicationRecord
   # acts_as_singleton
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
   attr_reader :key
   attr_reader :value
 
@@ -50,7 +50,7 @@ class Setting < ApplicationRecord
     SETTING
   end
 
-  def self.login_to_cc
+    def self.login_to_cc
     opts = RegionCcAction.get_base_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     region_cc = region.region_cc
