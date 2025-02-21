@@ -32,7 +32,7 @@ class GamePlanCc < ApplicationRecord
 
   before_save :set_paper_trail_whodunnit
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   delegate :fedId, :branchId, :region_cc, to: :branch_cc
 

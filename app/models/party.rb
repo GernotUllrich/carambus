@@ -60,7 +60,7 @@ class Party < ApplicationRecord
   has_many :party_games, -> { order("seqno") }
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
   serialize :remarks, coder: YAML, type: Hash
 
   REFLECTIONS = %w[versions

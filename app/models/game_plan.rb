@@ -20,7 +20,7 @@ class GamePlan < ApplicationRecord
   # after_destroy_commit -> { broadcast_remove_to :game_plans, target: dom_id(self, :index) }
 
   has_many :leagues, dependent: :nullify
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   def update_footprint
     game_plan = data.sort.to_h

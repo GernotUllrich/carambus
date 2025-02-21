@@ -31,7 +31,7 @@ class PartyMonitor < ApplicationRecord
   has_many :table_monitors, as: :tournament_monitor, class_name: "TableMonitor", dependent: :nullify
 
   alias tournament party
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
   cattr_accessor :allow_change_tables
 
   before_save :log_state_change

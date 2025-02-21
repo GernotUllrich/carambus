@@ -38,7 +38,7 @@ class Seeding < ApplicationRecord
 
   acts_as_list scope: :tournament
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   # data Snooker
   #   data:

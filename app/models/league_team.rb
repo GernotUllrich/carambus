@@ -28,7 +28,7 @@ class LeagueTeam < ApplicationRecord
   has_one :league_team_cc
   has_many :seedings, dependent: :destroy
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   COLUMN_NAMES = {
     "BA_ID" => "league_team_ccs.ba_id",

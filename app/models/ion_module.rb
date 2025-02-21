@@ -15,7 +15,7 @@
 class IonModule < ApplicationRecord
   belongs_to :ion_content
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   def deep_merge_data!(hash)
     h = data.dup

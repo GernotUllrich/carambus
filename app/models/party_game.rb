@@ -21,7 +21,7 @@ class PartyGame < ApplicationRecord
   belongs_to :discipline, optional: true
   has_one :party_game_cc
 
-  serialize :data, coder: YAML, type: Hash
+  serialize :data, coder: JSON, type: Hash
 
   REFLECTIONS = %w[versions
                    party
