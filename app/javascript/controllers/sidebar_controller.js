@@ -4,54 +4,68 @@ export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
   connect() {
-    console.log("Connecting sidebar controller")
-    // Get saved state from localStorage, default to expanded on desktop
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const isMobile = window.innerWidth < 768
 
-    if (isMobile || isSidebarCollapsed || this.element.classList.contains('no-navbar')) {
-      this.collapse(null, false) // Collapse without saving state
+    // Apply initial state immediately
+    if (isMobile || isSidebarCollapsed) {
+      this.navTarget.classList.add('-translate-x-full')
+      if (this.hasContentTarget) {
+        this.contentTarget.classList.add('ml-0')
+        this.contentTarget.classList.remove('ml-64')
+      }
+      if (this.hasShowButtonTarget) {
+        this.showButtonTarget.classList.remove('opacity-0', 'pointer-events-none')
+      }
     } else {
-      // Ensure correct margin on desktop initial load
+      this.navTarget.classList.remove('-translate-x-full')
       if (this.hasContentTarget) {
         this.contentTarget.classList.add('ml-64')
         this.contentTarget.classList.remove('ml-0')
+      }
+      if (this.hasShowButtonTarget) {
+        this.showButtonTarget.classList.add('opacity-0', 'pointer-events-none')
       }
     }
   }
 
   toggle(event) {
     const submenu = event.currentTarget.nextElementSibling
-    if (!this.element.classList.contains('no-navbar')) {
-      submenu.classList.toggle('hidden')
-      event.currentTarget.querySelector('svg').classList.toggle('rotate-180')
-    }
+    submenu.classList.toggle('hidden')
+    event.currentTarget.querySelector('svg').classList.toggle('rotate-180')
   }
 
-  collapse(event, saveState = true) {
-    if (!this.element.classList.contains('no-navbar')) {
-      console.log("Collapse triggered")
-      // Toggle sidebar visibility
-      this.navTarget.classList.toggle('-translate-x-full')
+  collapse(event) {
+    // Force a reflow before making changes
+    void this.navTarget.offsetHeight
 
-      // Toggle hamburger button visibility
-      if (this.hasShowButtonTarget) {  // Add safety check
+    // Toggle nav with requestAnimationFrame to ensure changes are batched
+    requestAnimationFrame(() => {
+      // Toggle nav
+      this.navTarget.classList.toggle('-translate-x-full')
+      
+      // Toggle content margin
+      if (this.hasContentTarget) {
+        const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
+        if (isCollapsed) {
+          this.contentTarget.classList.add('ml-0')
+          this.contentTarget.classList.remove('ml-64')
+        } else {
+          this.contentTarget.classList.add('ml-64')
+          this.contentTarget.classList.remove('ml-0')
+        }
+      }
+
+      // Toggle button visibility
+      if (this.hasShowButtonTarget) {
         this.showButtonTarget.classList.toggle('opacity-0')
         this.showButtonTarget.classList.toggle('pointer-events-none')
       }
 
-      // Adjust main content margin
-      if (this.hasContentTarget) {
-        this.contentTarget.classList.toggle('ml-64')
-        this.contentTarget.classList.toggle('ml-0')
-      }
-
-      // Save state to localStorage if requested
-      if (saveState) {
-        const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
-        localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
-      }
-    }
+      // Save state
+      const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
+      localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+    })
   }
 
   emptyState() {

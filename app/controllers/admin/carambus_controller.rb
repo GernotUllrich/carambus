@@ -1,5 +1,5 @@
 module Admin
-  class UsersController < Admin::ApplicationController
+  class CarambusController < Admin::ApplicationController
     # Overwrite any of the RESTful controller actions to implement custom behavior
     # For example, you may want to send an email after a foo is updated.
     #
@@ -28,9 +28,6 @@ module Admin
     #     resource_class.with_less_stuff
     #   end
     # end
-    def update
-      super
-    end
 
     # Override `resource_params` if you want to transform the submitted
     # data before it's persisted. For example, the following would turn all
