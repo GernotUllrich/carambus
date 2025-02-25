@@ -74,7 +74,7 @@ group :test do
   gem 'factory_bot_rails'
 end
 gem "redcarpet"
-gem "stimulus_reflex", ">= 3.5.2"
+gem "stimulus_reflex", "3.5.3"
 
 gem "gcal-ruby", "~> 0.1.0"
 gem "google-apis-calendar_v3", "~> 0.5.0"
@@ -125,7 +125,7 @@ group :development do
   gem "overcommit", require: false
 end
 
-gem "cable_ready", "~> 5.0.pre10"
+gem "cable_ready", "5.0.6"
 #gem "unicorn"
 
 gem "importmap-rails", "~> 1.1"

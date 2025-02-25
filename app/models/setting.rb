@@ -39,6 +39,8 @@ class Setting < ApplicationRecord
   MIN_ID = 50_000_000
 
   include AASM
+  include ActiveModel::Model
+  include ActiveModel::Attributes
 
   aasm column: "state" do
     state :startup, initial: true
@@ -50,7 +52,7 @@ class Setting < ApplicationRecord
     SETTING
   end
 
-    def self.login_to_cc
+  def self.login_to_cc
     opts = RegionCcAction.get_base_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     region_cc = region.region_cc
@@ -85,14 +87,13 @@ class Setting < ApplicationRecord
   end
 
   def self.key_set_value(k, v)
+    return nil unless ['session_id', 'last_version_id'].include?(k.to_s)
     Setting.transaction do
-      inst = Setting.instance.reload
+      inst = instance.reload
       hash = inst.data
-      hash[k.to_s] = { v.class.name => v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s }
+      hash[k.to_s] = { v.class.name => v.to_s }
       inst.data_will_change!
       inst.update(data: hash)
-    rescue StandardError
-      return nil
     end
   end
 
@@ -113,35 +114,12 @@ class Setting < ApplicationRecord
   end
 
   def self.key_get_value(k)
-    Setting.transaction do
-      inst = Setting.instance.reload
-      hash = inst.data
-      if hash[k.to_s].present?
-        type, val = inst.data[k.to_s].to_a.flatten
-        return case type
-               when "Integer"
-                 val.to_i
-               when "Float"
-                 val.to_f
-               when "Hash"
-                 JSON.parse(val)
-               when "Array"
-                 JSON.parse(val)
-               else
-                 val
-               end
-      elsif Carambus.config.respond_to?(k) && Carambus.config.send(k).present?
-        v = Carambus.config.send(k)
-        hash[k.to_s] = { v.class.name => v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s }
-        inst.data_will_change!
-        inst.update(data: hash)
-        return v
-      else
-        return nil
-      end
-    rescue StandardError
-      return nil
-    end
+    return nil unless ['session_id', 'last_version_id'].include?(k.to_s)
+    inst = instance.reload
+    hash = inst.data
+    return nil unless hash[k.to_s].present?
+    type, val = inst.data[k.to_s].to_a.flatten
+    val
   end
 
   def self.get_carambus_api_token
@@ -171,5 +149,102 @@ class Setting < ApplicationRecord
       token_type = Setting.key_get_value("carambus_api_token_type")
     end
     [access_token, token_type]
+  end
+
+  class Collection
+    include Enumerable
+
+    def initialize(items)
+      @items = items
+    end
+
+    def each(&block)
+      @items.each(&block)
+    end
+
+    def page(*)
+      self
+    end
+
+    def per(*)
+      self
+    end
+
+    def order(*)
+      self
+    end
+
+    def all
+      self
+    end
+
+    def includes(*)
+      self
+    end
+
+    def references(*)
+      self
+    end
+
+    def reorder(*)
+      self
+    end
+
+    def limit(*)
+      self
+    end
+
+    def to_a
+      @items
+    end
+  end
+
+  def self.all
+    Collection.new([Carambus.config])
+  end
+
+  def self.default_scoped
+    all
+  end
+
+  def self.find(*)
+    Carambus.config
+  end
+
+  def self.page(*)
+    all
+  end
+
+  def self.ransack(*)
+    all
+  end
+
+  def self.order(*)
+    all
+  end
+
+  def self.sort_by_params(*, **)
+    all
+  end
+
+  def persisted?
+    true
+  end
+
+  def to_param
+    "1"
+  end
+
+  # Delegiere alle Methoden an Carambus.config
+  def method_missing(method_name, *args, &block)
+    if Carambus.config.respond_to?(method_name)
+      Carambus.config.send(method_name, *args, &block)
+    else
+      super
+    end
+  end
+
+  def respond_to_missing?(method_name, include_private = false)
+    Carambus.config.respond_to?(method_name) || super
   end
 end

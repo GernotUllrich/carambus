@@ -9,23 +9,9 @@ export default class extends Controller {
 
     // Apply initial state immediately
     if (isMobile || isSidebarCollapsed) {
-      this.navTarget.classList.add('-translate-x-full')
-      if (this.hasContentTarget) {
-        this.contentTarget.classList.add('ml-0')
-        this.contentTarget.classList.remove('ml-64')
-      }
-      if (this.hasShowButtonTarget) {
-        this.showButtonTarget.classList.remove('opacity-0', 'pointer-events-none')
-      }
+      document.documentElement.classList.add('sidebar-collapsed')
     } else {
-      this.navTarget.classList.remove('-translate-x-full')
-      if (this.hasContentTarget) {
-        this.contentTarget.classList.add('ml-64')
-        this.contentTarget.classList.remove('ml-0')
-      }
-      if (this.hasShowButtonTarget) {
-        this.showButtonTarget.classList.add('opacity-0', 'pointer-events-none')
-      }
+      document.documentElement.classList.remove('sidebar-collapsed')
     }
   }
 
@@ -41,29 +27,11 @@ export default class extends Controller {
 
     // Toggle nav with requestAnimationFrame to ensure changes are batched
     requestAnimationFrame(() => {
-      // Toggle nav
-      this.navTarget.classList.toggle('-translate-x-full')
-      
-      // Toggle content margin
-      if (this.hasContentTarget) {
-        const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
-        if (isCollapsed) {
-          this.contentTarget.classList.add('ml-0')
-          this.contentTarget.classList.remove('ml-64')
-        } else {
-          this.contentTarget.classList.add('ml-64')
-          this.contentTarget.classList.remove('ml-0')
-        }
-      }
-
-      // Toggle button visibility
-      if (this.hasShowButtonTarget) {
-        this.showButtonTarget.classList.toggle('opacity-0')
-        this.showButtonTarget.classList.toggle('pointer-events-none')
-      }
+      // Toggle collapsed state on html element
+      document.documentElement.classList.toggle('sidebar-collapsed')
 
       // Save state
-      const isCollapsed = this.navTarget.classList.contains('-translate-x-full')
+      const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed')
       localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
     })
   }

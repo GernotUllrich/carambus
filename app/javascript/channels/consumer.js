@@ -3,4 +3,8 @@
 
 import { createConsumer } from "@rails/actioncable"
 
-export default createConsumer()
+console.log("Initializing ActionCable consumer...")
+const consumer = createConsumer()
+console.log("ActionCable consumer initialized")
+
+export default consumer

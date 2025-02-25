@@ -1,0 +1,112 @@
+<% content_for(:title) do %>
+  Settings
+<% end %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">Settings</h1>
+</header>
+
+<section class="main-content__body", id="form_wrapper">
+  <%= form_tag admin_settings_path, method: :post, class: "form" do %>
+    <div class="field-group">
+      <h3>System Settings</h3>
+      <% %w[application_name carambus_api_url carambus_domain queue_adapter season_name force_update].each do |key| %>
+        <div class="field-unit">
+          <div class="field-unit__label">
+            <%= label_tag "config[#{key}]", key.titleize %>
+          </div>
+          <div class="field-unit__field">
+            <%= text_field_tag "config[#{key}]", @config.send(key), class: "field-unit__input" %>
+          </div>
+        </div>
+      <% end %>
+      <div class="field-unit">
+        <div class="field-unit__label">
+          <%= label_tag "config[context]", "Region" %>
+        </div>
+        <div class="field-unit__field">
+          <%= select_tag "config[context]",
+                         options_for_select(@contexts, @config.context),
+                         class: "field-unit__input",
+                         data: {
+                           reflex: "change->SettingsReflex#update_selectors"
+                         } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3>Contact Settings</h3>
+      <% %w[support_email business_name business_address].each do |key| %>
+        <div class="field-unit">
+          <div class="field-unit__label">
+            <%= label_tag "config[#{key}]", key.titleize %>
+          </div>
+          <div class="field-unit__field">
+            <%= text_field_tag "config[#{key}]", @config.send(key), class: "field-unit__input" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="field-group">
+      <h3>Location Settings</h3>
+      <div class="field-unit">
+        <div class="field-unit__label">
+          <%= label_tag "config[location_id]", "Location" %>
+        </div>
+        <div class="field-unit__field">
+          <%= render partial: "location_select", locals: { locations: @locations } %>
+        </div>
+      </div>
+
+      <div class="field-unit">
+        <div class="field-unit__label">
+          <%= label_tag "config[club_id]", "Club" %>
+        </div>
+        <div class="field-unit__field">
+          <%= render partial: "club_select", locals: { clubs: @clubs } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3>Table Settings</h3>
+      <% %w[small_table_no large_table_no pool_table_no snooker_table_no].each do |key| %>
+        <div class="field-unit">
+          <div class="field-unit__label">
+            <%= label_tag "config[#{key}]", key.titleize %>
+          </div>
+          <div class="field-unit__field">
+            <%= number_field_tag "config[#{key}]", @config.send(key), class: "field-unit__input" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="form-actions">
+      <%= submit_tag "Update Configuration", class: "button" %>
+    </div>
+  <% end %>
+
+  <div class="notice">
+    Note: Changes to configuration require application restart to take effect.
+  </div>
+</section>
+
+<% content_for :styles do %>
+  <style>
+      .field-group {
+          margin-bottom: 2rem;
+          padding: 1rem;
+          border: 1px solid #eee;
+          border-radius: 4px;
+      }
+
+      .field-group h3 {
+          margin-top: 0;
+          margin-bottom: 1rem;
+          color: #666;
+      }
+  </style>
+<% end %>

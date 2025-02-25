@@ -316,7 +316,11 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :users
-    # resources :other_models
+    resources :settings, only: [:index, :create, :update] do
+      collection do
+        patch :update
+      end
+    end
     root to: "users#index"
   end
 

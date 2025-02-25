@@ -1,0 +1,12 @@
+<select
+  id="club-select"
+  class="field-unit__input"
+>
+  <% clubs.each do |club| %>
+    <%# id = club.is_a?(Array) ? club[1] : club.id %>
+    <%# name = club.is_a?(Array) ? club[0] : club.name %>
+    <option value="<%= club.id %>" <%= 'selected' if club.id.to_s == config.club_id.to_s %>>
+      <%= club.name %>
+    </option>
+  <% end %>
+</select>
