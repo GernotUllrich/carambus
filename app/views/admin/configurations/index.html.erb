@@ -1,0 +1,26 @@
+<header class="main-content__header">
+  <h1 class="main-content__page-title">System Configuration</h1>
+</header>
+
+<section class="main-content__body">
+  <%= form_tag admin_configurations_path, method: :patch, class: "form" do %>
+    <% Carambus.config.instance_variable_get(:@config).each do |key, value| %>
+      <div class="field-unit">
+        <div class="field-unit__label">
+          <%= label_tag "config[#{key}]", key.titleize %>
+        </div>
+        <div class="field-unit__field">
+          <%= text_field_tag "config[#{key}]", value, class: "field-unit__input" %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="form-actions">
+      <%= submit_tag "Update Configuration", class: "button" %>
+    </div>
+  <% end %>
+
+  <div class="notice">
+    Note: Changes to configuration require application restart to take effect.
+  </div>
+</section> 

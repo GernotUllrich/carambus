@@ -40,7 +40,7 @@ class Region < ApplicationRecord
   has_many :clubs
   has_many :tournaments
   has_many :player_rankings
-  has_many :locations
+  has_many :locations, as: :organizer
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
   has_many :organized_leagues, as: :organizer, class_name: "League"
   has_one :setting
@@ -80,51 +80,53 @@ class Region < ApplicationRecord
     "TBV" => "https://billard-thueringen.de/"
   }.freeze
 
+  SHORTNAME_MAP = Region.all.map{|region| [region.shortname,  region.id]}.to_h.select{|k,_v| k.present?}.freeze
+
   REGION_MAP = {
-    "Norddeutscher Billard-Verband" => Region.find_by_shortname("NBV"),
-    "Norddeutscher Billard-Verband e.V." => Region.find_by_shortname("NBV"),
-    "Brandenburgischer Billard-Verband" => Region.find_by_shortname("BBBV"),
-    "Brandenburgischer Billard-Verband e.V." => Region.find_by_shortname("BBBV"),
-    "Bayerischer Billardverband" => Region.find_by_shortname("BBV"),
-    "Bayerischer Billardverband e.V." => Region.find_by_shortname("BBV"),
-    "BL Mittleres Rheinland" => Region.find_by_shortname("BLMR"),
-    "Billard Landesverband Mittleres Rheinland" => Region.find_by_shortname("BLMR"),
-    "Billard Landesverband Mittleres Rheinland e.V." => Region.find_by_shortname("BLMR"),
-    "BLMR" => Region.find_by_shortname("BLMR"),
-    "Billard-Landesverband Sachsen-Anhalt e.V." => Region.find_by_shortname("BLVSA"),
-    "Billard Landesverband Sachsen-Anhalt" => Region.find_by_shortname("BLVSA"),
-    "Billard Landesverband Sachsen-Anhalt e.V." => Region.find_by_shortname("BLVSA"),
-    "Billard-Verband Niedersachsen e.V." => Region.find_by_shortname("BLVN"),
-    "Billard Landesverband Niedersachsen" => Region.find_by_shortname("BLVN"),
-    "Billard Landesverband Niedersachsen e.V." => Region.find_by_shortname("BLVN"),
-    "Billard-Verband Berlin 49/76 e.V." => Region.find_by_shortname("BVB"),
-    "Billard-Verband Berlin" => Region.find_by_shortname("BVB"),
-    "Billard-Verband Berlin e.V." => Region.find_by_shortname("BVB"),
-    "Billard-Verband Baden-Württemberg" => Region.find_by_shortname("BVBW"),
-    "Billard-Verband Baden-Württemberg e.V." => Region.find_by_shortname("BVBW"),
-    "BV Niederrhein" => Region.find_by_shortname("BVNR"),
-    "Billard-Verband Niederrhein" => Region.find_by_shortname("BVNR"),
-    "Billard-Verband Niederrhein e.V." => Region.find_by_shortname("BVNR"),
-    "Billard-Verband Rheinland-Pfalz 1989 e.V." => Region.find_by_shortname("BVRP"),
-    "Billard-Verband Rheinland-Pfalz" => Region.find_by_shortname("BVRP"),
-    "Billard-Verband Rheinland-Pfalz e.V." => Region.find_by_shortname("BVRP"),
-    "Billard-Verband Nordrhein-Westfalen" => Region.find_by_shortname("BVNRW"),
-    "Billard-Verband Nordrhein-Westfalen e.V." => Region.find_by_shortname("BVNRW"),
-    "BV Westfalen" => Region.find_by_shortname("BVW"),
-    "Billard-Verband Westfalen" => Region.find_by_shortname("BVW"),
-    "Billard-Verband Westfalen e.V." => Region.find_by_shortname("BVW"),
-    "Hessische Billard-Union" => Region.find_by_shortname("HBU"),
-    "Hessische Billard-Union e.V." => Region.find_by_shortname("HBU"),
-    "Billard-Verband Saar" => Region.find_by_shortname("BVS"),
-    "Billard-Verband Saar e.V." => Region.find_by_shortname("BVS"),
-    "Sächsischer Billard Verband" => Region.find_by_shortname("SBV"),
-    "Sächsischer Billard-Verband" => Region.find_by_shortname("SBV"),
-    "Sächsischer Billard-Verband e.V." => Region.find_by_shortname("SBV"),
-    "Sächsischer Billard Verband e.V." => Region.find_by_shortname("SBV"),
-    "Thüringer Billard-Verband" => Region.find_by_shortname("TBV"),
-    "Thüringer Billard-Verband e.V." => Region.find_by_shortname("TBV"),
-    "Deutsche Billard-Union" => Region.find_by_shortname("DBU"),
-    "Deutsche Billard-Union e.V." => Region.find_by_shortname("DBU")
+    "Norddeutscher Billard-Verband" => SHORTNAME_MAP["NBV"],
+    "Norddeutscher Billard-Verband e.V." => SHORTNAME_MAP["NBV"],
+    "Brandenburgischer Billard-Verband" => SHORTNAME_MAP["BBBV"],
+    "Brandenburgischer Billard-Verband e.V." => SHORTNAME_MAP["BBBV"],
+    "Bayerischer Billardverband" => SHORTNAME_MAP["BBV"],
+    "Bayerischer Billardverband e.V." => SHORTNAME_MAP["BBV"],
+    "BL Mittleres Rheinland" => SHORTNAME_MAP["BLMR"],
+    "Billard Landesverband Mittleres Rheinland" => SHORTNAME_MAP["BLMR"],
+    "Billard Landesverband Mittleres Rheinland e.V." => SHORTNAME_MAP["BLMR"],
+    "BLMR" => SHORTNAME_MAP["BLMR"],
+    "Billard-Landesverband Sachsen-Anhalt e.V." => SHORTNAME_MAP["BLVSA"],
+    "Billard Landesverband Sachsen-Anhalt" => SHORTNAME_MAP["BLVSA"],
+    "Billard Landesverband Sachsen-Anhalt e.V." => SHORTNAME_MAP["BLVSA"],
+    "Billard-Verband Niedersachsen e.V." => SHORTNAME_MAP["BLVN"],
+    "Billard Landesverband Niedersachsen" => SHORTNAME_MAP["BLVN"],
+    "Billard Landesverband Niedersachsen e.V." => SHORTNAME_MAP["BLVN"],
+    "Billard-Verband Berlin 49/76 e.V." => SHORTNAME_MAP["BVB"],
+    "Billard-Verband Berlin" => SHORTNAME_MAP["BVB"],
+    "Billard-Verband Berlin e.V." => SHORTNAME_MAP["BVB"],
+    "Billard-Verband Baden-Württemberg" => SHORTNAME_MAP["BVBW"],
+    "Billard-Verband Baden-Württemberg e.V." => SHORTNAME_MAP["BVBW"],
+    "BV Niederrhein" => SHORTNAME_MAP["BVNR"],
+    "Billard-Verband Niederrhein" => SHORTNAME_MAP["BVNR"],
+    "Billard-Verband Niederrhein e.V." => SHORTNAME_MAP["BVNR"],
+    "Billard-Verband Rheinland-Pfalz 1989 e.V." => SHORTNAME_MAP["BVRP"],
+    "Billard-Verband Rheinland-Pfalz" => SHORTNAME_MAP["BVRP"],
+    "Billard-Verband Rheinland-Pfalz e.V." => SHORTNAME_MAP["BVRP"],
+    "Billard-Verband Nordrhein-Westfalen" => SHORTNAME_MAP["BVNRW"],
+    "Billard-Verband Nordrhein-Westfalen e.V." => SHORTNAME_MAP["BVNRW"],
+    "BV Westfalen" => SHORTNAME_MAP["BVW"],
+    "Billard-Verband Westfalen" => SHORTNAME_MAP["BVW"],
+    "Billard-Verband Westfalen e.V." => SHORTNAME_MAP["BVW"],
+    "Hessische Billard-Union" => SHORTNAME_MAP["HBU"],
+    "Hessische Billard-Union e.V." => SHORTNAME_MAP["HBU"],
+    "Billard-Verband Saar" => SHORTNAME_MAP["BVS"],
+    "Billard-Verband Saar e.V." => SHORTNAME_MAP["BVS"],
+    "Sächsischer Billard Verband" => SHORTNAME_MAP["SBV"],
+    "Sächsischer Billard-Verband" => SHORTNAME_MAP["SBV"],
+    "Sächsischer Billard-Verband e.V." => SHORTNAME_MAP["SBV"],
+    "Sächsischer Billard Verband e.V." => SHORTNAME_MAP["SBV"],
+    "Thüringer Billard-Verband" => SHORTNAME_MAP["TBV"],
+    "Thüringer Billard-Verband e.V." => SHORTNAME_MAP["TBV"],
+    "Deutsche Billard-Union" => SHORTNAME_MAP["DBU"],
+    "Deutsche Billard-Union e.V." => SHORTNAME_MAP["DBU"]
   }.freeze
   #  BVB
   SHORTNAMES_ROOF_ORGANIZATION = %w[DBU].freeze
@@ -235,13 +237,13 @@ or (regions.email ilike :search)",
             club = Club.find_by_cc_id(club_dbu_nr) if shortname != "DBU"
             next unless club.present?
 
-            club_location = ClubLocation.find_by_location_id_and_club_id(location.id, club.id)
+            club_location = ClubLocation.find_by_location_id_and_club_id(location&.id, club.id)
             next if club_location.present?
 
             ClubLocation.create(
               location_id: location.id,
               club_id: club.id
-            )
+            ) if location.present?
           end
         end
       end
@@ -262,7 +264,7 @@ or (regions.email ilike :search)",
     rescue StandardError => e
       Rails.logger.info "!!!!!!!!! Error: Problem #{e} #{e.backtrace&.join("\n")}"
     end
-    Region.find_by_shortname("BBV").scrape_region_public
+    SHORTNAME_MAP["BBV"].scrape_region_public
   end
 
   def post_cc_public(action, post_options = {}, _opts = {})
@@ -379,7 +381,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       if tc.present?
         # some checks
         if name != tc.name
-          Rails.logger.info "===== scrape ===== Error: Problem with tournament_cc in\
+          Rails.logger.info "===== scrape ===== Error: Problem with tournament_cc in
  #{tournament_link}: '#{name}' != '#{tc.name}' - fixed"
           tc.assign_attributes(name:)
         end
@@ -402,19 +404,11 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   end
 
   def self.scrape_regions_cc(season)
-    Region.find_by_shortname("DBU").scrape_clubs(season)
+    SHORTNAME_MAP["DBU"].scrape_clubs(season)
   end
 
   # scrape_clubs
   def scrape_clubs(season, opts = {})
-    key_to_db_name = {
-      "Adresse" => "address",
-      "E-Mail" => "email",
-      "Telefon" => "telefon",
-      "Telefax" => "fax",
-      "Website" => "website",
-      "Öffnungszeiten" => "opening"
-    }
     clubs_url = nil
     if Rails.env != "production" || opts[:from_background]
       if shortname == "BBV"
@@ -434,9 +428,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             club_match = tr.css("td")[0].text.match(/\n\s*(.*)\n\s*\((\d+)\)/)
             club_name = club_match.andand[1]
             club_dbu_nr = club_match.andand[2].to_i
-            location_params = []
-            location_name = location_street = location_city = location = nil
-            loc_str = tr.css("td li").each do |ls|
+            location = nil
+            tr.css("td li").each do |ls|
               location_params = ls.text.split("\n").map(&:strip)
               location_name = location_params[1]
               location_street = location_params[2].split(", ")[0]
@@ -564,9 +557,6 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       url = public_cc_url_base
       Rails.logger.info "===== scrape ===== reading #{url} -\
  Region #{shortname} ClubCloud index page - to scrape clubs"
-      uri = URI(url)
-      html = Net::HTTP.get(uri)
-      doc = Nokogiri::HTML(html)
       verband_url = url + "verband.php"
       Rails.logger.info "reading #{verband_url}"
       uri = URI(verband_url)
@@ -596,10 +586,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       if shortname == "BBV" && false # TODO debug this, before releasing
         url = Region::NON_CC["BBV"]
         Rails.logger.info "reading #{url}"
-        uri = URI(url)
-        html = fetch_uri(uri, 10)
         Rails.logger.info "===== scrape ===== SCRAPING REGION '#{url}'"
-        doc = Nokogiri::HTML(html)
+        # TODO continue coding here
         self.logo = "https://api.carambus.de/club-logos/BBV_Transparent-2webp.webp"
         self.address = "Postfach 1104<br>84048 Mainburg"
         self.email = "gs@billard.bayern"

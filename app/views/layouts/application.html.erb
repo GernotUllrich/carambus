@@ -30,18 +30,67 @@
         /* Development styles without nonce */
     </style>
   <% end %>
+  <script>
+    (function () {
+      const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile || isSidebarCollapsed) {
+        document.documentElement.classList.add('sidebar-collapsed');
+      }
+    })();
+  </script>
+
+  <style>
+      /* Initial states */
+      .nav-target {
+          transform: translateX(0);
+          transition: transform 0.3s ease-in-out;
+      }
+
+      .show-button-target {
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease-in-out;
+      }
+
+      .content-wrapper {
+          margin-left: 16rem; /* ml-64 equivalent */
+          transition: margin-left 0.3s ease-in-out;
+      }
+
+      /* Collapsed states */
+      .sidebar-collapsed .nav-target {
+          transform: translateX(-100%);
+      }
+
+      .sidebar-collapsed .show-button-target {
+          opacity: 1;
+          pointer-events: auto;
+      }
+
+      .sidebar-collapsed .content-wrapper {
+          margin-left: 0;
+      }
+
+      @media (max-width: 768px) {
+          .content-wrapper {
+              margin-left: 0;
+          }
+      }
+  </style>
 </head>
 <body class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-50" data-controller="theme" data-theme-preference-value="<%= current_user&.theme %>">
-<div class="flex min-h-screen <%= "no-navbar" unless @navbar%>" data-controller="sidebar">
+<div class="flex flex-col min-h-screen <%= "no-navbar" unless @navbar %>" data-controller="sidebar">
   <header>
     <%= render "flash" %>
-    <%= render "navbar" if @navbar %>
+    <%= render "navbar" %>
   </header>
   <!-- Main Content -->
-  <main class="flex-1 <%= "p-8" if @navbar %> bg-gray-300 dark:bg-gray-900 transition-all duration-300" data-sidebar-target="content">
+  <main class="flex-1 p-8 bg-gray-300 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
     <%= yield %>
-    <%= render partial: "footer" if !turbo_native_app? && @footer %>
   </main>
+  <%= render partial: "footer" if !turbo_native_app? && @footer %>
 </div>
 <ninja-keys data-controller="command-palette" hideBreadcrumbs></ninja-keys>
 <%= yield :javascript %>

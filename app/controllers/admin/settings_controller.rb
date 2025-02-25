@@ -1,0 +1,58 @@
+module Admin
+  class SettingsController < Admin::ApplicationController
+    include CableReady::Broadcaster
+
+    def index
+      @config = Carambus.config
+      @contexts = Region.order(:shortname).map { |region| [region.name, region.shortname] }
+      @region = Region.find_by_shortname(@config.context)
+
+      if @region
+        @locations = Location.where(organizer_type: "Region", organizer_id: @region.id)
+                           .order(:name)
+        #.map { |location| [location.name, location.id] }
+
+        @clubs = Club.where.not(name: "").where(region_id: @region.id)
+                    .order(:name)
+      else
+        @locations = []
+        @clubs = []
+      end
+
+      render 'admin/settings/index'
+    end
+
+    def create
+      params[:config].each do |key, value|
+        Carambus.config.send("#{key}=", value)
+      end
+
+      Carambus.save_config
+      flash[:notice] = 'Configuration updated successfully. Please restart the application for changes to take effect.'
+      redirect_to admin_settings_path
+    end
+
+    def update
+      create  # Gleiche Logik wie create
+    end
+
+    def update_selectors
+      region = Region.find_by_shortname(params[:context])
+
+      if region
+        locations = Location.where(organizer_type: "Region", organizer_id: region.id)
+                           .order(:name)
+                           .map { |location| [location.name, location.id.to_s] }
+
+        clubs = Club.where(region_id: region.id)
+                    .order(:name)
+                    .map { |club| [club.name, club.id.to_s] }
+      else
+        locations = []
+        clubs = []
+      end
+
+      render json: { locations: locations, clubs: clubs }
+    end
+  end
+end

@@ -5,17 +5,42 @@ class Carambus
                 :business_name, :business_address, :carambus_domain, :queue_adapter
 
   def initialize
-    @carambus_api_url = ENV.fetch('CARAMBUS_API_URL', 'https://api.carambus.de/')
-    @location_id = ENV.fetch('CARAMBUS_LOCATION_ID', '1')
-    @application_name = ENV.fetch('CARAMBUS_APPLICATION_NAME', 'Carambus')
-    @support_email = ENV.fetch('CARAMBUS_SUPPORT_EMAIL', 'gernot.ullrich@gmx.de')
-    @business_name = ENV.fetch('CARAMBUS_BUISINESS_NAME', 'Ullrich IT Consulting')
-    @business_address = ENV.fetch('CARAMBUS_BUISINESS_ADDRESS', '22869 Schenefeld, Sandstückenweg 15')
-    @carambus_domain = ENV.fetch('CARAMBUS_DOMAIN', 'carambus.de')
-    @queue_adapter = ENV.fetch('CARAMBUS_QUEUE_ADAPTER', 'async')
+    @config = load_yaml_config
   end
 
-  def self.config
-    @config ||= Carambus.new
+  def method_missing(method_name, *args)
+    if method_name.to_s.end_with?('=')
+      key = method_name.to_s.chomp('=')
+      write_config(key, args.first)
+    else
+      @config[method_name.to_s]
+    end
+  end
+
+  def respond_to_missing?(method_name, include_private = false)
+    @config.key?(method_name.to_s.chomp('=')) || super
+  end
+
+  class << self
+    def config
+      @config ||= new
+    end
+
+    def reload_config!
+      @config = new
+    end
+  end
+
+  private
+
+  def load_yaml_config
+    YAML.load_file(Rails.root.join('config', 'carambus.yml'))['default']
+  end
+
+  def write_config(key, value)
+    @config[key] = value
+    yaml = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+    yaml['default'][key] = value
+    File.write(Rails.root.join('config', 'carambus.yml'), yaml.to_yaml)
   end
 end
