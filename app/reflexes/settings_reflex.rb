@@ -8,17 +8,15 @@ class SettingsReflex < ApplicationReflex
 
     region = Region.find_by_shortname(element.value)
 
-    @locations = region ? region.locations.order(:name) : [] # .map { |l| [l.name, l.id.to_s] } : []
-    @clubs = region ? region.clubs.where.not(name: "").order(:name) : [] # .map { |c| [c.name, c.id.to_s] } : []
+    @locations = region ? region.locations.where.not(name: "").order(:name) : []
+    @clubs = region ? region.clubs.where.not(name: "").order(:name) : []
 
     morph "#location-select", render(partial: "admin/settings/location_select", locals: {
-      locations: @locations,
-      config: Carambus.config
+      locations: @locations
     })
 
     morph "#club-select", render(partial: "admin/settings/club_select", locals: {
-      clubs: @clubs,
-      config: Carambus.config
+      clubs: @clubs
     })
   end
 end

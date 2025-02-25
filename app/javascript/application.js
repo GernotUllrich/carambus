@@ -10,9 +10,17 @@ import "./channels"
 import "./controllers"
 import hotkeys from "./src/hotkeys"
 import consumer from "./channels/consumer"
+import "@stimulus_reflex/polyfills"
 
 // Expose hotkeys to global window object
 window.hotkeys = hotkeys;
 
 console.log('ActionCable Consumer:', consumer)
 console.log('StimulusReflex Version:', StimulusReflex.version)
+
+// Manuelles Polyfill für hasAttribute hinzufügen
+if (!Element.prototype.hasAttribute) {
+  Element.prototype.hasAttribute = function(name) {
+    return this.attributes.getNamedItem(name) !== null
+  }
+}

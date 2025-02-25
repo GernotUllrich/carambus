@@ -23,7 +23,11 @@ module Admin
     end
 
     def create
-      params[:config].each do |key, value|
+      integer_keys = [:small_table_no, :large_table_no, :pool_table_no, :snooker_table_no,
+                      :location_id, :club_id].map(&:to_s)
+      config = config_params.to_h
+      config.each do |key, value|
+        value = value.to_i if integer_keys.include?(key)
         Carambus.config.send("#{key}=", value)
       end
 
@@ -53,6 +57,18 @@ module Admin
       end
 
       render json: { locations: locations, clubs: clubs }
+    end
+
+    private
+
+    def config_params
+      params.require(:config).permit(
+        :application_name, :carambus_api_url, :carambus_domain, :queue_adapter,
+        :season_name, :force_update, :context,
+        :support_email, :business_name, :business_address,
+        :small_table_no, :large_table_no, :pool_table_no, :snooker_table_no,
+        :location_id, :club_id
+      )
     end
   end
 end
