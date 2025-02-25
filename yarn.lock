@@ -7,6 +7,15 @@
   resolved "https://registry.yarnpkg.com/@alloc/quick-lru/-/quick-lru-5.2.0.tgz#7bf68b20c0a350f936915fcae06f58e32007ce30"
   integrity sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==
 
+"@cable_ready/polyfills@4.4.6":
+  version "4.4.6"
+  resolved "https://registry.yarnpkg.com/@cable_ready/polyfills/-/polyfills-4.4.6.tgz#57d242b3363902f4da3e76ed8c72d24d4a527f92"
+  integrity sha512-qdRzfUCx4Tal49XC1vHRxm0A7FxbBeF/7dOxmAFOqmXWVkO+pclk9v7KqK2G/OnYt7CyZrD/YxDV8rooog14Qg==
+  dependencies:
+    "@webcomponents/template" "^1.4.4"
+    core-js "^3.4.0"
+    element-closest "^3.0.2"
+
 "@esbuild/aix-ppc64@0.23.0":
   version "0.23.0"
   resolved "https://registry.yarnpkg.com/@esbuild/aix-ppc64/-/aix-ppc64-0.23.0.tgz#145b74d5e4a5223489cabdc238d8dad902df5259"
@@ -321,6 +330,26 @@
     estree-walker "^2.0.2"
     picomatch "^2.3.1"
 
+"@stimulus/polyfills@>= 1.1.1":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@stimulus/polyfills/-/polyfills-2.0.0.tgz#64b3e247c762330f80d88e993d1d26b24e3c13b1"
+  integrity sha512-XrN0AGSpBg9e7LHcOGjuyKx3a1SIcaNDqQkjMU0dy63NKsqYccjRGCvtBBE2U3NwcCQX3H22kMpeXCERUwl0ag==
+  dependencies:
+    core-js "^3.4.0"
+    element-closest "^2.0.2"
+    eventlistener-polyfill "^1.0.5"
+    mutation-observer-inner-html-shim "^1.0.0"
+
+"@stimulus_reflex/polyfills@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@stimulus_reflex/polyfills/-/polyfills-3.4.0.tgz#75dab40c2f6feb91fa190e1a9dc372bb5ab65c5e"
+  integrity sha512-c4wELbALVIWWI0T1G2sRy/Gd+nZWfMOfDm48OD8/+mZvtdANwMMcW7GhIhe3hfrD1qqHYSRcr0jniACxv9IU3Q==
+  dependencies:
+    "@cable_ready/polyfills" "4.4.6"
+    "@stimulus/polyfills" ">= 1.1.1"
+    core-js "^3.4.0"
+    formdata-polyfill "^3.0.20"
+
 "@tailwindcss/aspect-ratio@^0.4.0":
   version "0.4.2"
   resolved "https://registry.npmjs.org/@tailwindcss/aspect-ratio/-/aspect-ratio-0.4.2.tgz"
@@ -362,6 +391,11 @@
   version "2.0.7"
   resolved "https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz"
   integrity sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==
+
+"@webcomponents/template@^1.4.4":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@webcomponents/template/-/template-1.5.1.tgz#c938df94d641cd0f2e849dd30f38c4b11e31ea81"
+  integrity sha512-3e8bx+bgRhyuRwFrDGu7CalILomo11ixuMzVGvpXSxL8lX+ijCIG6J3kS4O/7nElVuKE7vkuXB1xD+RICDNCCg==
 
 ansi-regex@^5.0.1:
   version "5.0.1"
@@ -512,6 +546,11 @@ commander@^4.0.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz#9fd602bd936294e9e9ef46a3f4d6964044b18068"
   integrity sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==
 
+core-js@^3.4.0:
+  version "3.40.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.40.0.tgz#2773f6b06877d8eda102fc42f828176437062476"
+  integrity sha512-7vsMc/Lty6AGnn7uFpYT56QesI5D2Y/UkgKounk87OP9Z2H9Z8kj6jzcSGAxFmUtDOS0ntK6lbQz+Nsa0Jj6mQ==
+
 cross-spawn@^7.0.0:
   version "7.0.6"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.6.tgz#8a58fe78f00dcd70c370451759dfbfaf03e8ee9f"
@@ -555,6 +594,16 @@ electron-to-chromium@^1.4.796:
   version "1.4.816"
   resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.816.tgz"
   integrity sha512-EKH5X5oqC6hLmiS7/vYtZHZFTNdhsYG5NVPRN6Yn0kQHNBlT59+xSM8HBy66P5fxWpKgZbPqb+diC64ng295Jw==
+
+element-closest@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-2.0.2.tgz#72a740a107453382e28df9ce5dbb5a8df0f966ec"
+  integrity sha512-QCqAWP3kwj8Gz9UXncVXQGdrhnWxD8SQBSeZp5pOsyCcQ6RpL738L1/tfuwBiMi6F1fYkxqPnBrFBR4L+f49Cg==
+
+element-closest@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-3.0.2.tgz#3814a69a84f30e48e63eaf57341f4dbf4227d2aa"
+  integrity sha512-JxKQiJKX0Zr5Q2/bCaTx8P+UbfyMET1OQd61qu5xQFeWr1km3fGaxelSJtnfT27XQ5Uoztn2yIyeamAc/VX13g==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -612,6 +661,11 @@ estree-walker@^2.0.2:
   version "2.0.2"
   resolved "https://registry.npmjs.org/estree-walker/-/estree-walker-2.0.2.tgz"
   integrity sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==
+
+eventlistener-polyfill@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/eventlistener-polyfill/-/eventlistener-polyfill-1.0.5.tgz#d3c96e57d52ca4dc30b3b8f3cf9698dc8e277d8a"
+  integrity sha512-xqqTj0eyJWqAMg1U+Sr20Upi86bOlbLfk/cbVnHuTEKh2S59PszLNwsc4miaUwLR7YRnCnxwSkdCZpxdo3MPwA==
 
 fast-glob@^3.2.12:
   version "3.3.2"
@@ -683,6 +737,11 @@ foreground-child@^3.1.0:
   dependencies:
     cross-spawn "^7.0.0"
     signal-exit "^4.0.1"
+
+formdata-polyfill@^3.0.20:
+  version "3.0.20"
+  resolved "https://registry.yarnpkg.com/formdata-polyfill/-/formdata-polyfill-3.0.20.tgz#d6319db8efc5cf4bb2da27856c2b902be63be1c6"
+  integrity sha512-TAaxIEwTBdoH1TWndtUH1T0/GisUHwmOKcV5hjkR/iTatHBJSOHb563FP86Lra5nXo3iNdhK7HPwMl5Ihg71pg==
 
 fraction.js@^4.3.7:
   version "4.3.7"
@@ -939,6 +998,11 @@ morphdom@2.6.1:
   version "2.6.1"
   resolved "https://registry.npmjs.org/morphdom/-/morphdom-2.6.1.tgz"
   integrity sha512-Y8YRbAEP3eKykroIBWrjcfMw7mmwJfjhqdpSvoqinu8Y702nAwikpXcNFDiIkyvfCLxLM9Wu95RZqo4a9jFBaA==
+
+mutation-observer-inner-html-shim@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/mutation-observer-inner-html-shim/-/mutation-observer-inner-html-shim-1.0.1.tgz#84349f51dfc390d0af85011de8fa14e645fb400e"
+  integrity sha512-YmJPDSUWJgBhwqRJP6AMvjdfDHU1gsrT5YdgpxMit2+x1khLYhdYq9fvp4clPsYecVT3JOprBf/KjEX7IqlU+g==
 
 mz@^2.7.0:
   version "2.7.0"
