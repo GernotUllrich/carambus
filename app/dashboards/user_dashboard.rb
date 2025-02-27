@@ -21,7 +21,6 @@ class UserDashboard < Administrate::BaseDashboard
     current_sign_in_ip: Field::String.with_options(searchable: false),
     email: Field::String,
     encrypted_password: Field::String,
-    failed_attempts: Field::Number,
     first_name: Field::String,
     invitation_accepted_at: Field::DateTime,
     invitation_created_at: Field::DateTime,
@@ -84,7 +83,6 @@ class UserDashboard < Administrate::BaseDashboard
     current_sign_in_ip
     email
     encrypted_password
-    failed_attempts
     first_name
     invitation_accepted_at
     invitation_created_at
@@ -135,7 +133,6 @@ class UserDashboard < Administrate::BaseDashboard
     current_sign_in_ip
     email
     encrypted_password
-    failed_attempts
     first_name
     invitation_accepted_at
     invitation_created_at

@@ -1,0 +1,15 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <div class="flex items-center text-sm text-gray-500 mb-2">
+      <%= link_to "Pages", pages_path, class: "hover:underline" %>
+      <span class="mx-2">›</span>
+      <%= link_to @page.title, @page, class: "hover:underline" %>
+      <span class="mx-2">›</span>
+      <span>Edit</span>
+    </div>
+    
+    <h1 class="text-2xl font-bold">Edit Page</h1>
+  </div>
+  
+  <%= render 'form', page: @page %>
+</div> 

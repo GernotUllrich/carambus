@@ -1,0 +1,140 @@
+<%= form_with(model: page, class: "space-y-6") do |form| %>
+  <% if page.errors.any? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+      <h2 class="font-bold mb-2"><%= pluralize(page.errors.count, "error") %> prohibited this page from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% page.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :title, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+    </div>
+
+    <div>
+      <%= form.label :super_page_id, "Parent Page", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.collection_select :super_page_id, @parent_pages, :id, :title, { include_blank: "None (Root Page)" }, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+    </div>
+  </div>
+
+  <div>
+    <%= form.label :summary, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= form.text_area :summary, rows: 3, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+    <p class="mt-1 text-sm text-gray-500">A brief description of the page content. This will be displayed in listings.</p>
+  </div>
+
+  <div class="relative">
+    <div class="flex justify-between items-center mb-2">
+      <%= form.label :content, class: "block text-sm font-medium text-gray-700" %>
+      <div class="flex space-x-2">
+        <button type="button" id="preview-toggle" class="text-sm text-blue-500 hover:text-blue-700">Preview</button>
+        <button type="button" id="edit-toggle" class="text-sm text-gray-500 hover:text-gray-700 hidden">Edit</button>
+      </div>
+    </div>
+    
+    <div id="editor-container">
+      <%= form.text_area :content, rows: 15, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md font-mono", id: "content-editor" %>
+    </div>
+    
+    <div id="preview-container" class="hidden prose prose-blue max-w-none p-4 border border-gray-300 rounded-md bg-white min-h-[300px]">
+      <!-- Preview content will be loaded here -->
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <%= form.label :position, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :position, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+      <p class="mt-1 text-sm text-gray-500">Order among siblings (lower numbers appear first)</p>
+    </div>
+
+    <div>
+      <%= form.label :tags, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :tags, value: page.tags&.join(", "), class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md", placeholder: "tag1, tag2, tag3" %>
+      <p class="mt-1 text-sm text-gray-500">Comma-separated list of tags</p>
+    </div>
+  </div>
+
+  <% if current_user.system_admin? %>
+    <div class="bg-gray-50 p-4 rounded-md">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Access Permissions</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <% %w[create read update delete].each do |action| %>
+          <div>
+            <%= form.label "crud_minimum_roles_#{action}", action.titleize, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= form.select "crud_minimum_roles[#{action}]", options_for_select([["Player", "player"], ["Club Admin", "club_admin"], ["System Admin", "system_admin"]], page.crud_minimum_roles&.dig(action)), {}, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="flex justify-end">
+    <%= link_to "Cancel", page.persisted? ? page : pages_path, class: "bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2" %>
+    <%= form.submit class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const previewToggle = document.getElementById('preview-toggle');
+    const editToggle = document.getElementById('edit-toggle');
+    const editorContainer = document.getElementById('editor-container');
+    const previewContainer = document.getElementById('preview-container');
+    const contentEditor = document.getElementById('content-editor');
+    
+    previewToggle.addEventListener('click', function() {
+      // Get the markdown content
+      const markdownContent = contentEditor.value;
+      
+      // Make an AJAX request to preview the content
+      fetch('/pages/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ content: markdownContent })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Update the preview container with the rendered HTML
+        previewContainer.innerHTML = data.html;
+        
+        // Show the preview, hide the editor
+        editorContainer.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        previewToggle.classList.add('hidden');
+        editToggle.classList.remove('hidden');
+      });
+    });
+    
+    editToggle.addEventListener('click', function() {
+      // Show the editor, hide the preview
+      editorContainer.classList.remove('hidden');
+      previewContainer.classList.add('hidden');
+      previewToggle.classList.remove('hidden');
+      editToggle.classList.add('hidden');
+    });
+    
+    // Handle tags input
+    const tagsInput = document.querySelector('input[name="page[tags]"]');
+    if (tagsInput) {
+      tagsInput.addEventListener('blur', function() {
+        // Split by comma, trim whitespace, and filter out empty strings
+        const tags = this.value.split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0);
+        
+        // Update the input value with the cleaned tags
+        this.value = tags.join(', ');
+      });
+    }
+  });
+</script> 

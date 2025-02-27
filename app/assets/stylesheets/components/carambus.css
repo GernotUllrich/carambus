@@ -141,3 +141,21 @@ ul:not(.list-none) {
     }
   }
 }
+.highlight {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 10px;
+  margin: 10px 0;
+  overflow: auto;
+}
+
+.highlight pre {
+  margin: 0;
+  padding: 0;
+}
+
+.highlight code {
+  font-family: monospace;
+  white-space: pre;
+}

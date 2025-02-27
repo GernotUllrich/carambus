@@ -321,10 +321,34 @@ Rails.application.routes.draw do
         patch :update
       end
     end
+    resources :pages do
+      member do
+        post :publish
+        post :archive
+        get :preview
+      end
+
+      collection do
+        post :preview, defaults: { format: :json }
+        get :preview, defaults: { format: :json }
+      end
+    end
     root to: "users#index"
   end
 
   scope module: :users do
     resource :profile, only: [:edit, :update], controller: 'profiles'
+  end
+
+  # Add routes for pages
+  resources :pages do
+    member do
+      post :publish
+      post :archive
+    end
+
+    collection do
+      post :preview
+    end
   end
 end
