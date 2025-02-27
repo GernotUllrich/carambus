@@ -34,7 +34,6 @@ class UserDashboard < Administrate::BaseDashboard
     last_otp_timestep: Field::Number,
     last_sign_in_at: Field::DateTime,
     last_sign_in_ip: Field::String.with_options(searchable: false),
-    locked_at: Field::DateTime,
     name: Field::String,
     otp_backup_codes: Field::Text,
     otp_required_for_login: Field::Boolean,
@@ -96,7 +95,6 @@ class UserDashboard < Administrate::BaseDashboard
     last_otp_timestep
     last_sign_in_at
     last_sign_in_ip
-    locked_at
     name
     otp_backup_codes
     otp_required_for_login
@@ -146,7 +144,6 @@ class UserDashboard < Administrate::BaseDashboard
     last_otp_timestep
     last_sign_in_at
     last_sign_in_ip
-    locked_at
     name
     otp_backup_codes
     otp_required_for_login

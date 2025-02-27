@@ -48,13 +48,13 @@ class League < ApplicationRecord
 
   GAME_PARAMETER_DEFAULTS = {
     pool: {
-      substitutes: true,
-      kickoff_switches_with: "set",
-      match_points: {
-        win: 0,
-        draw: 0,
-        lost: 0
-      },
+    substitutes: true,
+    kickoff_switches_with: "set",
+    match_points: {
+      win: 0,
+      draw: 0,
+      lost: 0
+    },
       extra_shootout_match_points: {
         win: 0,
         lost: 0
@@ -173,11 +173,11 @@ class League < ApplicationRecord
       rang_partie: nil, # (Aktivierung erlaubt, dass z.B. Partien, Frames oder Legs in der Tabelle als zusätzliche Spalte angezeigt und gewertet werden.)
       rang_mgd: nil, # (Aktivierung erlaubt, dass z.B. Mannschaftsgesamtdurchschnitt (Karambol-MGD) in der Tabelle als zusätzliche Spalte angezeigt und gewertet wird.)
       rang_kegel: nil, # (Aktivierung erlaubt, dass z.B. zusätzliche, Billard-Kegel spezifische Spalten in der Tabelle angezeigt und gewertet werden.)
-      ersatzspieler_regel: 0,
+    ersatzspieler_regel: 0,
       # 0: Keine Ersatzspieler-Regelung
       # 1: Ersatzspieler NUR aus direkt nachfolgender Mannschaft möglich
       # 2: Ersatzspieler aus ALLEN nachfolgenden Mannschaften möglich
-      row_type_id: nil
+    row_type_id: nil
       # 20; 10-Ball
       # 21: 10-Ball Doppel
       # 1: 14/1e
