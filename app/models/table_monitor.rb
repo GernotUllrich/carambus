@@ -1712,6 +1712,8 @@ data[\"allow_overflow\"].present?")
       current_kickoff_player = current_kickoff_player == "playera" ? "playerb" : "playera"
     when "winner"
       current_kickoff_player = data["sets"][-1]["Innings1"][-1].to_i > data["sets"][-1]["Innings2"][-1].to_i ? "playera" : "playerb"
+    else
+      current_kickoff_player
     end
     options = {
       "Gruppe" => game.group_no,

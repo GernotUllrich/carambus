@@ -43,7 +43,7 @@ class RegistrationCc < ApplicationRecord
         branchId: branch_cc_id,
         disciplinId: tournament.discipline.discipline_cc.cc_id,
         season: opts[:season_name],
-        catId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first.andand.cc_id,
+        catId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first&.cc_id,
         meldelistenName: tournament.title,
         meldeschluss: (tournament.date - 14.days).strftime("%d.%m.%Y"),
         stichtag: "01.01.#{tournament.date.year}"
@@ -67,7 +67,7 @@ class RegistrationCc < ApplicationRecord
         branchId: branch_cc_id,
         selectedDisciplinId: tournament.discipline.discipline_cc.cc_id,
         season: opts[:season_name],
-        selectedCatId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first.andand.cc_id,
+        selectedCatId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first&.cc_id,
         meldelistenName: tournament.title,
         meldeschluss: (tournament.date - 14.days).strftime("%d.%m.%Y"),
         stichtag: "01.01.#{tournament.date.year}",
@@ -80,7 +80,7 @@ class RegistrationCc < ApplicationRecord
       branchId: branch_cc_id,
       disciplinId: tournament.discipline.discipline_cc.cc_id,
       season: opts[:season_name],
-      catId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first.andand.cc_id,
+      catId: CategoryCc.where("name ilike '%#{cat_scope}%'").where(branch_cc_id: tournament.discipline.root.branch_cc.id).first&.cc_id,
       meldelistenName: tournament.title,
       meldeschluss: (tournament.date - 14.days).strftime("%d.%m.%Y"),
       stichtag: "01.01.#{tournament.date.year}"

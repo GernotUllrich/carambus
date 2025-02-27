@@ -179,7 +179,7 @@ class TournamentCc < ApplicationRecord
         season: opts[:season_name],
         meisterName: tournament.title,
         meisterShortName: tournament.shortname.presence || "NDM",
-        meldeListId: registration_list_cc.cc_id,
+        meldeListId: registration_list_cc&.cc_id,
         mr: 1,
         meisterTypeId: type_found.to_s,
         groupId: 10,
@@ -201,6 +201,7 @@ class TournamentCc < ApplicationRecord
     tournament_cc.update(tournament_id: tournament.id) if tournament_cc.present?
   end
 
+  #noinspection RubyLocalVariableNamingConvention
   def delete_tournament_results(opts)
     region = tournament.organizer
     tournament_cc = TournamentCc.find_by_tournament_id(tournament.id)
@@ -229,7 +230,7 @@ class TournamentCc < ApplicationRecord
     game_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}"
     tournament.games.where(game_scope).each do |game|
       game.gname = game.gname.presence || "Gruppe 1"
-      if m = game.gname.match(/^G(\d)-/)
+      if (m = game.gname.match(/^G(\d)-/))
         game.gname = "Gruppe #{m[1]}"
       end
       game.gname = "Gruppe 1" if /.*Runde/.match?(game.gname)
@@ -250,7 +251,7 @@ class TournamentCc < ApplicationRecord
       gp2 = game.game_participations.where(role: %w[playerb Gast]).first
 
       line = begin
-        "#{gruppe};#{partie};;#{gp1.player.cc_id};#{gp2.player.cc_id};#{gp1.result};#{gp2.result};#{gp1.innings};#{gp2.innings};#{gp1.hs};#{gp2.hs}"
+        "#{gruppe};#{partie};;#{gp1&.player&.cc_id};#{gp2&.player&.cc_id};#{gp1&.result};#{gp2&.result};#{gp1&.innings};#{gp2&.innings};#{gp1&.hs};#{gp2&.hs}"
       rescue StandardError
         nil
       end

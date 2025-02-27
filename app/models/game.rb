@@ -134,36 +134,28 @@ class Game < ApplicationRecord
     res
   end
 
+  RANKING_KEY_PATTERNS = {
+    %r{group(\d+):(\d+)-(\d+)(?:\/(\d+))} => ->(m) { I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4]).html_safe },
+    /group(\d+):(\d+)-(\d+)/ => ->(m) { I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3]).html_safe },
+    /group(\d+)/i => ->(m) { I18n.t("game.display_group_game_name_short", group_no: clean_key(m[1])).html_safe },
+    # ... repeated for all patterns
+  }.freeze
+
+  def clean_key(key)
+    key.to_str.gsub("/", "")
+  end
+
   def self.display_ranking_key(ranking_key)
     return unless ranking_key.present?
 
-    if m = ranking_key.match(%r{group(\d+):(\d+)-(\d+)(?:/(\d+))})
-      "#{I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4])}".html_safe
-    elsif m = ranking_key.match(/group(\d+):(\d+)-(\d+)/)
-      "#{I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3])}".html_safe
-    elsif m = ranking_key.match(/group(\d+)/i)
-      "#{I18n.t("game.display_group_game_name_short", group_no: m[1].to_str.gsub("/", ""))}".html_safe
-    elsif m = ranking_key.match(%r{hf(/?\d+)})
-      "#{I18n.t("game.display_hf_game_name", game_no: m[1].to_str.gsub("/", ""))}"
-    elsif m = ranking_key.match(/hf/)
-      "#{I18n.t("game.display_hf_game_group")}"
-    elsif m = ranking_key.match(%r{vf(/?\d+)})
-      "#{I18n.t("game.display_qf_game_name", game_no: m[1])}"
-    elsif m = ranking_key.match(%r{qf(/?\d+)})
-      "#{I18n.t("game.display_qf_game_name", game_no: m[1])}"
-    elsif m = ranking_key.match(/qf/)
-      "#{I18n.t("game.display_qf_game_group")}"
-    elsif m = ranking_key.match(%r{af(/?\d+)})
-      "#{I18n.t("game.display_af_game_name", game_no: m[1].to_str.gsub("/", ""))}"
-    elsif m = ranking_key.match(/af/)
-      "#{I18n.t("game.display_af_game_group")}"
-    elsif m = ranking_key.match(/fin/)
-      "#{I18n.t("game.display_fin_game_name")}"
-    elsif m = ranking_key.match(/p<(\d+)(?:\.\.|-)(\d+)>(\d+)?/)
-      "#{I18n.t("game.display_place_game_name", n1: m[1].to_s.gsub("/", ""), n2: m[2].to_s.gsub("/", ""),
-                n3: m[3].to_s.gsub("/", ""))}"
-    end
+    RANKING_KEY_PATTERNS.each do |pattern, translator|
+      next unless (m = ranking_key.match(pattern))
+
+      return translator.call(m)
   end
+
+    nil
+    end
 
   def display_gname
     Game.display_ranking_key(gname)

@@ -47,7 +47,7 @@ class Team < Player
 
   def order_players
     if data["players"].present?
-      data["players"].sort_by! { |h| h["ba_id]"] }
+      data["players"]&.sort_by! { |h| h["ba_id]"] }
       self.firstname = data["players"][0]["firstname"]
       self.lastname = data["players"][0]["lastname"]
     else
@@ -56,6 +56,6 @@ class Team < Player
   end
 
   def fullname
-    data["players"].map { |h| h["lastname"] }.join(" | ")
+    data["players"]&.map { |h| h["lastname"] }&.join(" | ")
   end
 end

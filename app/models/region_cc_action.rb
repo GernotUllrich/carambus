@@ -6,22 +6,7 @@ class RegionCcAction
     force_update = (ENV["CC_UPDATE"].presence || Setting.key_get_value("force_update").presence) == "true"
     # exclude_season_names = ["2009/2010", "2010/2011", "2011/2012", "2012/2013", "2013/2014", "2014/2015", "2015/2016",
     #                         "2019/2020", "2020/2021"]
-    exclude_season_names = [
-      "2009/2010",
-      "2010/2011",
-      "2011/2012",
-      "2012/2013",
-      "2013/2014",
-      "2014/2015",
-      "2015/2016",
-      "2016/2017",
-      "2017/2018",
-      "2018/2019",
-      "2019/2020",
-      "2020/2021",
-      "2021/2022"
-      # "2022/2023,"
-    ]
+    exclude_season_names = %w[2009/2010 2010/2011 2011/2012 2012/2013 2013/2014 2014/2015 2015/2016 2016/2017 2017/2018 2018/2019 2019/2020 2020/2021 2021/2022]
     pool_ba_ids = League
                   .joins(:discipline)
                   .where(organizer_id: [1, 17])
@@ -117,7 +102,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       raise_err_msg("synchronize_region_structure", "unknown context Region #{context}")
     else
       regions_todo = [region.id]
-      regions_done = RegionCc.sync_regions(opts).map(&:id)
+      regions_done = RegionCc.sync_regions(opts)&.map(&:id).to_a
     end
     regions_still_todo = regions_todo - regions_done
     unless regions_still_todo.blank?
@@ -276,7 +261,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       league_teams_done, = region_cc.sync_league_teams_new(opts)
       league_teams_done_ids = league_teams_done.map(&:id)
     end
-    league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
+    league_teams_still_todo_ids = league_teams_todo_ids&.uniq&.sort.to_a - league_teams_done_ids&.uniq&.sort.to_a
     unless league_teams_still_todo_ids.blank?
       if force_cc_update
         league_teams_still_todo_ids.each do |league_team_id|
@@ -327,7 +312,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       league_teams_done, = region_cc.sync_league_teams(opts)
       league_teams_done_ids = league_teams_done.map(&:id)
     end
-    league_teams_still_todo_ids = league_teams_todo_ids.uniq.sort - league_teams_done_ids.uniq.sort
+    league_teams_still_todo_ids = league_teams_todo_ids&.uniq&.sort.to_a - league_teams_done_ids&.uniq&.sort.to_a
     unless league_teams_still_todo_ids.blank?
       if force_cc_update
         league_teams_still_todo_ids.each do |league_team_id|
@@ -375,7 +360,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       parties_done, = region_cc.sync_parties(opts)
       parties_done_ids = parties_done.map(&:id)
     end
-    parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
+    parties_still_todo_ids = parties_todo_ids&.uniq&.sort.to_a - parties_done_ids&.uniq&.sort.to_a
     unless parties_still_todo_ids.blank?
       if force_cc_update
         parties_still_todo_ids.each do |party_id|
@@ -430,7 +415,7 @@ TournamentCc[#{TournamentCc.where("id > 50000000").ids}]
       parties_done = region_cc.sync_party_games(parties_todo_ids, opts)
       parties_done_ids = parties_done.map(&:id)
     end
-    parties_still_todo_ids = parties_todo_ids.uniq.sort - parties_done_ids.uniq.sort
+    parties_still_todo_ids = parties_todo_ids&.uniq&.sort.to_a - parties_done_ids&.uniq&.sort.to_a
     unless parties_still_todo_ids.blank?
       parties_still_todo_ids.each do |party_id|
         party = Party[party_id]

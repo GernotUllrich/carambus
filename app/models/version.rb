@@ -184,7 +184,7 @@ class Version < ApplicationRecord
       "&player_details=#{player_details}" if player_details
     }#{
       "&league_details=#{league_details}" if league_details
-    }&season_id=#{Season.current_season.id}")
+    }&season_id=#{Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = Net::HTTP.get(uri)
