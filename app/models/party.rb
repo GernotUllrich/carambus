@@ -154,4 +154,9 @@ class Party < ApplicationRecord
   def cc_link
     "#{league.organizer.public_cc_url_base}sb_spielbericht.php?p=#{league.organizer.cc_id}--#{league.season.name}-#{league.cc_id}-#{league.cc_id2.presence || "0"}-#{cc_id}"
   end
+
+  def get_non_show_team
+    return league_team_b.id if no_show_team_id == league_team_a.id
+    league_team_a.id
+  end
 end
