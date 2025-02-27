@@ -1,0 +1,462 @@
+<div class="field-unit field-unit--title">
+  <%= form.label :title, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_field :title, class: "field-unit__input" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--summary">
+  <%= form.label :summary, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :summary, rows: 3, class: "field-unit__textarea" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--content">
+  <%= form.label :content, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <% if page.resource.content_type == 'markdown' %>
+      <div class="markdown-toolbar" style="margin-bottom: 10px; background: #f5f5f5; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <button type="button" class="md-btn" onclick="insertMarkdown('h1')" title="Heading 1">H1</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('h2')" title="Heading 2">H2</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('h3')" title="Heading 3">H3</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="insertMarkdown('bold')" title="Bold">B</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('italic')" title="Italic">I</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('strike')" title="Strikethrough">S</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="insertMarkdown('link')" title="Link">🔗</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('image')" title="Image">🖼️</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="insertMarkdown('ul')" title="Unordered List">• List</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('ol')" title="Ordered List">1. List</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('task')" title="Task List">☑ Task</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="insertMarkdown('code')" title="Code">Code</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('codeblock')" title="Code Block">Code Block</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="insertMarkdown('quote')" title="Blockquote">Quote</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('hr')" title="Horizontal Rule">HR</button>
+        <button type="button" class="md-btn" onclick="insertMarkdown('table')" title="Table">Table</button>
+        <span class="separator">|</span>
+        <button type="button" class="md-btn" onclick="undoMarkdown()" title="Undo" style="background-color: #ffcccc;">↩ Undo</button>
+      </div>
+
+      <style>
+        .markdown-toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          align-items: center;
+        }
+        .md-btn {
+          background: #fff;
+          border: 1px solid #ccc;
+          border-radius: 3px;
+          padding: 4px 8px;
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        .md-btn:hover {
+          background: #e9e9e9;
+        }
+        .separator {
+          color: #ccc;
+          margin: 0 5px;
+        }
+      </style>
+    <% end %>
+
+    <%= form.text_area :content, rows: 15, class: "field-unit__textarea", id: "markdown-editor" %>
+
+    <% if page.resource.content_type == 'markdown' %>
+      <div style="margin-top: 10px;">
+        <button type="button" id="ajax-preview-button" onclick="previewMarkdown()" class="button" style="background-color: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+          Preview Markdown
+        </button>
+
+        <button type="button" id="new-tab-preview-button" onclick="previewInNewTab()" class="button" style="background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+          Preview in New Tab
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if page.resource.content_type == 'markdown' %>
+  <div class="field-unit">
+    <div class="field-unit__label">
+      <label>Preview</label>
+    </div>
+    <div class="field-unit__field">
+      <div id="markdown-preview" class="markdown-preview" style="border: 1px solid #ccc; padding: 15px; background: #f9f9f9; min-height: 100px; margin-top: 10px; border-radius: 4px;">
+        <% if form.object.content.present? %>
+          <%= raw page.resource.rendered_content %>
+        <% else %>
+          <em>Preview will appear here</em>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<div class="field-unit field-unit--super-page">
+  <%= form.label :super_page_id, "Parent Page", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.collection_select :super_page_id,
+                              Page.all,
+                              :id,
+                              :title,
+                              { include_blank: "None (Root Page)" },
+                              class: "field-unit__select" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--position">
+  <%= form.label :position, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.number_field :position, class: "field-unit__input" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--content-type">
+  <%= form.label :content_type, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.select :content_type,
+                   ['markdown'],
+                   {},
+                   class: "field-unit__select" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--status">
+  <%= form.label :status, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.select :status,
+                   ['draft', 'published', 'archived'],
+                   {},
+                   class: "field-unit__select" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--tags">
+  <%= form.label :tags, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :tags,
+                      value: page.resource.tags.to_json,
+                      rows: 5,
+                      class: "jsonb-field",
+                      style: "font-family: monospace; width: 100%;" %>
+  </div>
+</div>
+
+<div class="field-unit field-unit--crud-minimum-roles">
+  <%= form.label :crud_minimum_roles, class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <%= form.text_area :crud_minimum_roles,
+                      value: page.resource.crud_minimum_roles.to_json,
+                      rows: 5,
+                      class: "jsonb-field",
+                      style: "font-family: monospace; width: 100%;" %>
+  </div>
+</div>
+
+<script>
+  // Store editor history for undo
+  let editorHistory = [];
+  const MAX_HISTORY = 50;
+
+  // Define the insertMarkdown function globally
+  function insertMarkdown(action) {
+    const editor = document.getElementById('markdown-editor');
+    if (!editor) {
+      console.error('Markdown editor not found');
+      return;
+    }
+
+    // Save current state to history before making changes
+    saveToHistory(editor.value);
+
+    console.log('Inserting markdown:', action);
+
+    // Save current selection
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const selectedText = editor.value.substring(start, end);
+
+    let replacement = '';
+
+    switch(action) {
+      case 'h1':
+        replacement = `# ${selectedText || 'Heading 1'}`;
+        break;
+      case 'h2':
+        replacement = `## ${selectedText || 'Heading 2'}`;
+        break;
+      case 'h3':
+        replacement = `### ${selectedText || 'Heading 3'}`;
+        break;
+      case 'bold':
+        replacement = `**${selectedText || 'bold text'}**`;
+        break;
+      case 'italic':
+        replacement = `*${selectedText || 'italic text'}*`;
+        break;
+      case 'strike':
+        replacement = `~~${selectedText || 'strikethrough text'}~~`;
+        break;
+      case 'link':
+        replacement = selectedText ? `[${selectedText}](url)` : '[link text](url)';
+        break;
+      case 'image':
+        replacement = `![${selectedText || 'alt text'}](image-url)`;
+        break;
+      case 'ul':
+        if (selectedText) {
+          // Convert each line to a list item
+          replacement = selectedText.split('\n').map(line => `- ${line}`).join('\n');
+        } else {
+          replacement = '- List item\n- Another item\n- And another item';
+        }
+        break;
+      case 'ol':
+        if (selectedText) {
+          // Convert each line to a numbered list item
+          replacement = selectedText.split('\n').map((line, i) => `${i+1}. ${line}`).join('\n');
+        } else {
+          replacement = '1. First item\n2. Second item\n3. Third item';
+        }
+        break;
+      case 'task':
+        if (selectedText) {
+          // Convert each line to a task list item
+          replacement = selectedText.split('\n').map(line => `- [ ] ${line}`).join('\n');
+        } else {
+          replacement = '- [ ] Task to do\n- [x] Completed task';
+        }
+        break;
+      case 'code':
+        replacement = `\`${selectedText || 'code'}\``;
+        break;
+      case 'codeblock':
+        if (selectedText) {
+          replacement = '```\n' + selectedText + '\n```';
+        } else {
+          replacement = '```language\ncode block\n```';
+        }
+        break;
+      case 'quote':
+        if (selectedText) {
+          // Convert each line to a blockquote
+          replacement = selectedText.split('\n').map(line => `> ${line}`).join('\n');
+        } else {
+          replacement = '> Blockquote text';
+        }
+        break;
+      case 'hr':
+        replacement = '\n---\n';
+        break;
+      case 'table':
+        replacement = '| Header 1 | Header 2 | Header 3 |\n| --- | --- | --- |\n| Cell 1 | Cell 2 | Cell 3 |\n| Cell 4 | Cell 5 | Cell 6 |';
+        break;
+    }
+
+    console.log('Replacement text:', replacement);
+
+    // Insert the replacement text
+    editor.focus();
+    editor.setRangeText(replacement, start, end, 'select');
+
+    // Trigger change event to update any listeners
+    const event = new Event('input', { bubbles: true });
+    editor.dispatchEvent(event);
+  }
+
+  // Function to save current editor state to history
+  function saveToHistory(content) {
+    editorHistory.push(content);
+    if (editorHistory.length > MAX_HISTORY) {
+      editorHistory.shift(); // Remove oldest entry if we exceed max history
+    }
+    console.log('Saved to history, history length:', editorHistory.length);
+  }
+
+  // Function to undo last change
+  function undoMarkdown() {
+    const editor = document.getElementById('markdown-editor');
+    if (!editor || editorHistory.length === 0) {
+      console.error('Cannot undo: editor not found or history empty');
+      return;
+    }
+
+    const previousContent = editorHistory.pop();
+    console.log('Undoing to previous state, history length:', editorHistory.length);
+
+    // Restore previous content
+    editor.value = previousContent;
+
+    // Trigger change event to update any listeners
+    const event = new Event('input', { bubbles: true });
+    editor.dispatchEvent(event);
+  }
+
+  // Function to preview markdown content
+  function previewMarkdown() {
+    const editor = document.getElementById('markdown-editor');
+    const previewDiv = document.getElementById('markdown-preview');
+
+    if (!editor || !previewDiv) {
+      console.error('Preview failed: editor or preview div not found', !!editor, !!previewDiv);
+      return;
+    }
+
+    console.log('Preview button clicked, content length:', editor.value.length);
+    previewDiv.innerHTML = '<em>Loading preview...</em>';
+
+    // Create a simple XMLHttpRequest
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/admin/pages/preview', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('Accept', 'application/json');
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('authenticity_token', csrfToken);
+    formData.append('page[content]', editor.value);
+    formData.append('page[content_type]', 'markdown');
+
+    // Convert FormData to URL-encoded string
+    const params = new URLSearchParams();
+    for (const pair of formData) {
+      params.append(pair[0], pair[1]);
+    }
+
+    // Handle response
+    xhr.onload = function() {
+      console.log('XHR response received:', xhr.status);
+      if (xhr.status === 200) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          previewDiv.innerHTML = response.html || '<em>No preview available</em>';
+        } catch (e) {
+          console.error('Error parsing JSON response:', e);
+          previewDiv.innerHTML = '<em>Error parsing response</em>';
+        }
+      } else {
+        console.error('XHR error:', xhr.status, xhr.statusText);
+        previewDiv.innerHTML = '<em>Error: ' + xhr.status + ' ' + xhr.statusText + '</em>';
+      }
+    };
+
+    // Handle error
+    xhr.onerror = function() {
+      console.error('XHR network error');
+      previewDiv.innerHTML = '<em>Network error</em>';
+    };
+
+    // Send request
+    xhr.send(params.toString());
+  }
+
+  // Function to preview in new tab
+  function previewInNewTab() {
+    const editor = document.getElementById('markdown-editor');
+
+    if (!editor) {
+      console.error('Preview in new tab failed: editor not found');
+      return;
+    }
+
+    // Create a form to submit in a new tab
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/admin/pages/preview';
+    form.target = '_blank';
+    form.style.display = 'none';
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'authenticity_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    // Add content
+    const contentInput = document.createElement('input');
+    contentInput.type = 'hidden';
+    contentInput.name = 'page[content]';
+    contentInput.value = editor.value;
+    form.appendChild(contentInput);
+
+    // Add content type
+    const typeInput = document.createElement('input');
+    typeInput.type = 'hidden';
+    typeInput.name = 'page[content_type]';
+    typeInput.value = 'markdown';
+    form.appendChild(typeInput);
+
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+
+    // Clean up
+    setTimeout(function() {
+      document.body.removeChild(form);
+    }, 1000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Document loaded, initializing markdown editor...');
+
+    // Save initial state to history
+    const editor = document.getElementById('markdown-editor');
+    if (editor) {
+      console.log('Found markdown editor, initializing history...');
+      saveToHistory(editor.value);
+
+      // Also save state when user types
+      editor.addEventListener('input', function() {
+        // Debounce to avoid saving every keystroke
+        clearTimeout(editor.saveTimeout);
+        editor.saveTimeout = setTimeout(function() {
+          saveToHistory(editor.value);
+        }, 1000); // Save after 1 second of inactivity
+      });
+    } else {
+      console.warn('Markdown editor not found during initialization');
+    }
+
+    // JSON field formatting
+    const textareas = document.querySelectorAll('.jsonb-field');
+    textareas.forEach(function(textarea) {
+      textarea.addEventListener('blur', function() {
+        try {
+          // Try to parse and format the JSON
+          const json = JSON.parse(this.value);
+          this.value = JSON.stringify(json, null, 2);
+        } catch (e) {
+          // If it's not valid JSON, leave it as is
+          console.error('Invalid JSON:', e);
+        }
+      });
+    });
+
+    // Set up preview buttons
+    const ajaxPreviewButton = document.getElementById('ajax-preview-button');
+    const newTabPreviewButton = document.getElementById('new-tab-preview-button');
+
+    if (ajaxPreviewButton) {
+      ajaxPreviewButton.addEventListener('click', previewMarkdown);
+    }
+
+    if (newTabPreviewButton) {
+      newTabPreviewButton.addEventListener('click', previewInNewTab);
+    }
+  });
+</script>

@@ -73,7 +73,7 @@ group :test do
   gem "webmock"
   gem 'factory_bot_rails'
 end
-gem "redcarpet"
+gem "redcarpet", "~> 3.5"
 gem "stimulus_reflex", "3.5.3"
 
 gem "gcal-ruby", "~> 0.1.0"
@@ -81,7 +81,7 @@ gem "google-apis-calendar_v3", "~> 0.5.0"
 gem "i15r", "~> 0.5.1"
 gem "i18n_yaml_sort", git: "https://github.com/GovTechSG/i18n_yaml_sort.git"
 gem "multipart-post"
-gem "paper_trail"
+gem "paper_trail", "~> 15.2"
 gem "rails-i18n"
 gem "devise"
 gem "devise-i18n", "~> 1.10"
@@ -141,3 +141,6 @@ gem 'flay'
 gem 'administrate', '~> 0.19.0'
 
 gem 'cancancan', '~> 3.5'
+
+# Syntax highlighting for code blocks
+gem 'rouge', '~> 3.26'

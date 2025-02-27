@@ -1,0 +1,28 @@
+<div class="field-unit__label">
+  <%= f.label field.attribute %>
+</div>
+<div class="field-unit__field">
+  <%= f.text_area field.attribute, 
+                  value: field.formatted_data, 
+                  class: "jsonb-field",
+                  rows: 10,
+                  style: "font-family: monospace; width: 100%;" %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.querySelector('.jsonb-field');
+    if (textarea) {
+      textarea.addEventListener('blur', function() {
+        try {
+          // Try to parse and format the JSON
+          const json = JSON.parse(this.value);
+          this.value = JSON.stringify(json, null, 2);
+        } catch (e) {
+          // If it's not valid JSON, leave it as is
+          console.error('Invalid JSON:', e);
+        }
+      });
+    }
+  });
+</script> 

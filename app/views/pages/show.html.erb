@@ -1,0 +1,100 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <div class="flex items-center text-sm text-gray-500 mb-2">
+      <% if @page.super_page %>
+        <%= link_to @page.super_page.title, @page.super_page, class: "hover:underline" %>
+        <span class="mx-2">›</span>
+      <% end %>
+      <span><%= @page.title %></span>
+    </div>
+    
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold"><%= @page.title %></h1>
+      
+      <div class="flex space-x-2">
+        <% if @page.accessible_to?(current_user, 'update') %>
+          <%= link_to "Edit", edit_page_path(@page), class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+          
+          <% if @page.draft? %>
+            <%= button_to "Publish", publish_page_path(@page), method: :post, class: "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" %>
+          <% elsif @page.published? %>
+            <%= button_to "Archive", archive_page_path(@page), method: :post, class: "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded" %>
+          <% else %>
+            <%= button_to "Publish", publish_page_path(@page), method: :post, class: "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" %>
+          <% end %>
+        <% end %>
+        
+        <% if @page.accessible_to?(current_user, 'delete') %>
+          <%= button_to "Delete", @page, method: :delete, data: { confirm: "Are you sure you want to delete this page?" }, class: "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" %>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="flex items-center text-sm text-gray-500 mt-2">
+      <% if @page.author %>
+        <span>By <%= @page.author.display_name %></span>
+        <span class="mx-2">•</span>
+      <% end %>
+      
+      <span>Version <%= @page.version %></span>
+      <span class="mx-2">•</span>
+      
+      <% if @page.published? %>
+        <span>Published <%= @page.published_at.strftime("%b %d, %Y") %></span>
+      <% elsif @page.draft? %>
+        <span class="text-yellow-600">Draft</span>
+      <% else %>
+        <span class="text-gray-600">Archived</span>
+      <% end %>
+      
+      <% if @page.tags.present? && @page.tags.any? %>
+        <span class="mx-2">•</span>
+        <div class="flex space-x-1">
+          <% @page.tags.each do |tag| %>
+            <%= link_to tag, pages_path(tag: tag), class: "text-blue-500 hover:underline" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @page.summary.present? %>
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <p class="italic text-gray-700"><%= @page.summary %></p>
+    </div>
+  <% end %>
+  
+  <div class="prose prose-blue max-w-none mb-8">
+    <%= raw @page.rendered_content %>
+  </div>
+  
+  <% if @sub_pages.any? %>
+    <div class="mt-12">
+      <h2 class="text-xl font-bold mb-4">Subpages</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @sub_pages.each do |sub_page| %>
+          <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+            <h3 class="font-semibold mb-2">
+              <%= link_to sub_page.title, sub_page, class: "text-blue-600 hover:text-blue-800" %>
+            </h3>
+            
+            <% if sub_page.summary.present? %>
+              <p class="text-sm text-gray-600 mb-2"><%= truncate(sub_page.summary, length: 100) %></p>
+            <% end %>
+            
+            <div class="text-xs text-gray-500">
+              <% if sub_page.published? %>
+                Published <%= time_ago_in_words(sub_page.published_at) %> ago
+              <% elsif sub_page.draft? %>
+                <span class="text-yellow-600">Draft</span>
+              <% else %>
+                <span class="text-gray-600">Archived</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div> 
