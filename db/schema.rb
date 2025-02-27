@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_02_24_131040) do
+ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -425,6 +425,29 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_24_131040) do
     t.text "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "pages", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "content"
+    t.text "summary"
+    t.integer "super_page_id"
+    t.integer "position"
+    t.string "author_type"
+    t.integer "author_id"
+    t.string "content_type", default: "markdown"
+    t.integer "status", default: 0
+    t.datetime "published_at"
+    t.jsonb "tags", default: []
+    t.jsonb "metadata", default: {}
+    t.jsonb "crud_minimum_roles", default: {"read"=>"player", "create"=>"system_admin", "delete"=>"system_admin", "update"=>"system_admin"}
+    t.string "version", default: "0.1"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_type", "author_id"], name: "index_pages_on_author_type_and_author_id"
+    t.index ["status"], name: "index_pages_on_status"
+    t.index ["super_page_id"], name: "index_pages_on_super_page_id"
+    t.index ["tags"], name: "index_pages_on_tags", using: :gin
   end
 
   create_table "parties", force: :cascade do |t|
