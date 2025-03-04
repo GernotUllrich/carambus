@@ -97,7 +97,7 @@
                                   </tr>
                                   <%- r_no = 0; t_no = 1 %>
                                   <%- table_ids = [] %>
-                                  <%- @party_monitor.data[:rows].each_with_index do |row, row_nr| %>
+                                  <%- @party_monitor.data["rows"].each_with_index do |row, row_nr| %>
                                     <%- game = @party.games.where(gname: "#{row['seqno']}-#{row['type']}").first %>
                                     <%- nl = 1; nr = 2; nls = "a"; nrs = "b" %>
                                     <%- ba_results = game.andand.data.andand["ba_results"].presence || game.andand.table_monitor.andand.data.andand["ba_results"].presence %>
@@ -125,7 +125,7 @@
                                           <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-pid1">
                                             <option value="0"></option>
                                             <%- @available_players_a_ids.each do |player_id| %>
-                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[0] == player_id %>><%= @players_hash[player_id].fullname %>
+                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr]["player_a"])[0] == player_id %>><%= @players_hash[player_id].fullname %>
                                                 (<%= @players_hash[player_id].cc_id %>)
                                               </option>
                                             <%- end %>
@@ -135,7 +135,7 @@
                                         <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-pid2">
                                           <option value="0"></option>
                                           <%- @available_players_b_ids.each do |player_id| %>
-                                            <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[0] == player_id %>><%= @players_hash[player_id].fullname %>
+                                            <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr][:player_b])[0] == player_id %>><%= @players_hash[player_id].fullname %>
                                               (<%= @players_hash[player_id].cc_id %>)
                                             </option>
                                           <%- end %>
@@ -180,7 +180,7 @@
                                             <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-pid1">
                                               <option value="0"></option>
                                               <%- @available_players_a_ids.each do |player_id| %>
-                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr]["player_a"])[1] == player_id %>><%= @players_hash[player_id].fullname %>
                                                   (<%= @players_hash[player_id].cc_id %>)
                                                 </option>
                                               <%- end %>
@@ -190,7 +190,7 @@
                                           <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-pid2">
                                             <option value="0"></option>
                                             <%- @available_players_b_ids.each do |player_id| %>
-                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                              <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr]["player_b"])[1] == player_id %>><%= @players_hash[player_id].fullname %>
                                                 (<%= @players_hash[player_id].cc_id %>)
                                               </option>
                                             <%- end %>
@@ -208,7 +208,7 @@
                                               <select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-<%= ii %>-pid1">
                                                 <option value="0"></option>
                                                 <%- @available_players_a_ids.each do |player_id| %>
-                                                  <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_a])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                  <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr]["player_a"])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
                                                     (<%= @players_hash[player_id].cc_id %>)
                                                   </option>
                                                 <%- end %>
@@ -218,7 +218,7 @@
                                             <td align="left"><select size="1" name="<%= @party.cc_id %>-<%= row_nr %>-<%= r_no %>-<%= ii %>-pid2">
                                               <option value="0"></option>
                                               <%- @available_players_b_ids.each do |player_id| %>
-                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data[:rows][row_nr][:player_b])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
+                                                <option value="<%= @players_hash[player_id].cc_id %>" <%= "selected" if Array(@party_monitor.data["rows"][row_nr]["player_b"])[ii - 1] == player_id %>><%= @players_hash[player_id].fullname %>
                                                   (<%= @players_hash[player_id].cc_id %>)
                                                 </option>
                                               <%- end %>

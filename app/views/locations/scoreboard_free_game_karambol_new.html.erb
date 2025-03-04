@@ -1,62 +1,14 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
-<!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
-<!--<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.js" defer></script>-->
-<script src="/cdn.min.js" defer></script>
-<style <%= Rails.env.production? ? "nonce=\"#{ content_security_policy_nonce}\"" : "" %>>
+<!--<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>-->
+<style>
     .responsive-svg {
         width: 100%;
         height: auto;
     }
 </style>
+<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
 <script src="/onscreen-keyboard.js"></script>
-<script type="text/javascript" nonce="<%= content_security_policy_nonce %>">
-  console.log('Script loaded!'); // Should appear in console immediately
-
-  document.addEventListener('alpine:init', () => {
-    console.log('Alpine init event received!');
-
-    Alpine.data('scoreboardGameConfig', () => ({
-      parameters: 0,
-      discipline: 0,
-      table_kind: '',
-      balls_goal_b: 0,
-      balls_goal: 0,
-      balls_goal_2: 0,
-      balls_goal_a: 0,
-      balls_goal_a_2: 0,
-      balls_goal_b_2: 0,
-      games_2: 0,
-      games: 0,
-      sets: 0,
-      sets_2: 0,
-      next_break: 0,
-      next_break_2: 0,
-      innings: 0,
-      innings_2: 0,
-      multiset: 0,
-      increment_parameters: 0,
-      increment_discipline: 0,
-      increment_sets: 0,
-      increment_games: 0,
-      increment_balls_goal: 0,
-      increment_balls_goal_a: 0,
-      increment_balls_goal_b: 0,
-      last_direction: '',
-      parameters_a: 0,
-      parameters_b: 0,
-      discipline_a: 0,
-      discipline_b: 0,
-      parameters_a_2: 0,
-      parameters_b_2: 0,
-      gametime: 0,
-      warntime: 0,
-      initConfig() {
-        console.log('Initializing game config');
-        this.parameters = 0;
-        this.discipline = 0;
-      }
-    }));
-  });
+<script type="text/javascript">
 
   function players_mode() {
     set_players_modal();
@@ -84,20 +36,6 @@
     document.getElementById("modal-new-player").classList.toggle("flex");
     document.getElementById("modal-new-player" + "-bg").classList.toggle("flex");
   }
-
-  document.addEventListener('turbo:before-render', () => {
-    console.log('Event turbo:before-render occurred');
-    if (window.Alpine) Alpine.dispose();
-  });
-
-  document.addEventListener('turbo:render', () => {
-    console.log('Event turbo:render occurred');
-    if (window.Alpine) {
-      Alpine.discoverUninitializedComponents(node => {
-        Alpine.initializeComponent(node);
-      });
-    }
-  });
 </script>
 <div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
 <div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
@@ -214,7 +152,7 @@
         </div>
   </div>
 </div>
-<div data-controller="table-monitor" data-turbo-permanent data-action="doubleclick->table-monitor#home click->table-monitor#back" class="w-10 fixed text-gray-200 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
+<div data-controller="table-monitor" data-action="doubleclick->table-monitor#home click->table-monitor#back" class="w-10 fixed text-gray-200 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
   <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
 </div>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
@@ -225,7 +163,8 @@
     <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
 </div>
-<div data-controller="table-monitor" class="p-4 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat dark:bg-gray-900 dark:text-gray-50"
+<div data-controller="table-monitor" class="p-4 w-full m-auto flex
+ items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
      style="background-image: url('<%= @location.background_image
      .gsub(".", "-.") %>')">
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex
@@ -235,7 +174,7 @@
     <%- table_monitor.get_options!(I18n.locale) %>
     <%- options = table_monitor.options %>
     <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
-    <%= form_tag start_game_table_monitor_path(table_monitor), data: { turbo: false }, method: :post, class: "flex flex-col text-gray-300" do %>
+    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300" do %>
       <input name='free_game_form' value='karambol' type='hidden'/>
       <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
       <div class="flex justify-center mt-4 text-center">
@@ -243,7 +182,38 @@
           <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
         </div>
       </div>
-      <div x-data="scoreboardGameConfig()" x-init="initConfig()" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
+      <div x-data="{
+      table_kind: '<%= table.andand.table_kind.andand.name || "Small Billard" %>',
+      multiset: 0,
+      last_direction: 'r',
+      incr_d: {200:50, 100:10, 50:10, 30:10, 20:10, 10:5, 5:1},
+      sets: 1, sets_2: 1, parameters: 0,
+      gametime: <%= options[:gametime].presence || 30 %>,
+      warntime: <%= options[:warntime].presence || 5 %>,
+      increment_balls_goal: 5,
+      increment_balls_goal_a: 5,
+      increment_balls_goal_b: 5,
+
+      balls_goal: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
+      balls_goal_2: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
+      balls_goal_a: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
+      balls_goal_a_2: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
+      balls_goal_b: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal] : "80" %>,
+      balls_goal_b_2: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal] : "80" %>,
+      increment_games: 5,
+      games: <%= options[:sets_to_win].presence || 0 %>,
+      games_2: <%= options[:sets_to_win].presence || 0 %>,
+      increment_innings: 5,
+      innings: <%= options[:innings_goal].to_i > 0 ? options[:innings_goal].to_i : 20 %>,
+      innings_2: <%= options[:innings_goal].to_i > 0 ? options[:innings_goal].to_i : 20 %>,
+      first_break: <%= options[:first_break_choice].presence || "0" %>,
+      next_break: <%= %w{winner set}.index(options[:kickoff_switches_with].presence) || 0 %>,
+      discipline: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
+      discipline_a: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
+      discipline_b: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_b][:discipline].presence || "Freie Partie klein").to_i %>,
+      increment: 0,
+      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>
+      }" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
         <div class="  flex flex-row">Spieler</div>
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
@@ -480,10 +450,10 @@
                 <div class="flex text-white">
                   <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
                     <label for="fixed_display_left"></label><select name="fixed_display_left" id="fixed_display_left" class="p-1 text-2vw w-full">
-                    <option value="">Der Anstoßende</option>
-                    <option value="playera">Spieler A</option>
-                    <option value="playerb">Spieler B</option>
-                  </select>
+                      <option value="">Der Anstoßende</option>
+                      <option value="playera">Spieler A</option>
+                      <option value="playerb">Spieler B</option>
+                    </select>
                   </div>
                 </div>
               </div>

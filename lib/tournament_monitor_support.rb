@@ -36,13 +36,13 @@ module TournamentMonitorSupport
         hs = tabmon.data["ba_results"]["Höchstserie#{n}"].to_i
         sets = tabmon.data["ba_results"]["Sets#{n}"].to_i
         results = {
-          "Gr.": game.gname,
-          Ergebnis: result,
-          Aufnahme: innings,
-          GD: gd,
-          HS: hs,
-          Sets: sets,
-          gp_id: gp.id
+          "Gr." => game.gname,
+          "Ergebnis" => result,
+          "Aufnahme" => innings,
+          "GD" => gd,
+          "HS" => hs,
+          "Sets" => sets,
+          "gp_id" => gp.id
         }
       else
         result = tabmon.data["player#{c}"]["result"].to_i
@@ -55,15 +55,15 @@ module TournamentMonitorSupport
           tabmon.data["player#{c}"]["innings"].to_i).to_f
         hs = tabmon.data["player#{c}"]["hs"].to_i
         results = {
-          "Gr.": game.gname,
-          Ergebnis: result,
-          Aufnahme: innings,
-          GD: gd,
-          HS: hs,
-          gp_id: gp.id,
-          Sets: 1,
-          BG: bg,
-          BG_P: bg_p
+          "Gr." => game.gname,
+          "Ergebnis" => result,
+          "Aufnahme" => innings,
+          "GD" => gd,
+          "HS" => hs,
+          "gp_id" => gp.id,
+          "Sets" => 1,
+          "BG" => bg,
+          "BG_P" => bg_p
         }
       end
       gp.deep_merge_data!("results" => results)
@@ -259,7 +259,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
   def initialize_table_monitors
     Tournament.logger.info "[tmon-initialize_table_monitors]..."
     save!
-    table_ids = Array(tournament.data[:table_ids].andand.map(&:to_i))
+    table_ids = Array(tournament.data["table_ids"].andand.map(&:to_i))
     if table_ids.present?
       (1..[tournament.tournament_plan.andand.tables.to_i, table_ids.count].min).each do |t_no|
         table = Table.find(table_ids[t_no - 1])
@@ -289,7 +289,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       ordered_ranking_nos = {}
       ordered_table_nos = {}
       admin_table_nos = {}
-      table_ids = Array(tournament.data[:table_ids].andand.map(&:to_i))
+      table_ids = Array(tournament.data["table_ids"].andand.map(&:to_i))
       table_ids.each do |table_id|
         @table = Table.find(table_id)
         @table_monitor = @table.table_monitor || @table.table_monitor!
@@ -640,7 +640,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
         info = "+++ 8b - tournament_monitor#do_placement"
         Rails.logger.info info
-        table_ids = tournament.data[:table_ids]
+        table_ids = tournament.data["table_ids"]
         if t_no.to_i.positive? &&
            ((current_round == r_no &&
              new_game.present? &&

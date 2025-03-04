@@ -187,21 +187,22 @@ class TournamentsController < ApplicationController
 
   def start
     data_ = @tournament.data
-    data_[:table_ids] = params[:table_id]
-    data_[:balls_goal] = params[:balls_goal].to_i
-    data_[:innings_goal] = params[:innings_goal].to_i
-    data_[:timeout] = params[:timeout].to_i
-    data_[:timeouts] = params[:timeouts].to_i
-    data_[:sets_to_play] = params[:sets_to_play].to_i
-    data_[:sets_to_win] = params[:sets_to_win].to_i
-    data_[:time_out_warm_up_first_min] = params[:time_out_warm_up_first_min].to_i
-    data_[:time_out_warm_up_follow_up_min] = params[:time_out_warm_up_follow_up_min].to_i
-    data_[:kickoff_switches_with] = params[:kickoff_switches_with]
-    data_[:fixed_display_left] = params[:fixed_display_left].to_s
-    data_[:color_remains_with_set] = params[:color_remains_with_set]
-    data_[:allow_overflow] = params[:allow_overflow]
-    data_[:allow_follow_up] = params[:allow_follow_up]
+    data_["table_ids"] =params[:table_id]
+    data_["balls_goal"] =params[:balls_goal].to_i
+    data_["innings_goal"] =params[:innings_goal].to_i
+    data_["timeout"] =params[:timeout].to_i
+    data_["timeouts"] =params[:timeouts].to_i
+    data_["sets_to_play"] =params[:sets_to_play].to_i
+    data_["sets_to_win"] =params[:sets_to_win].to_i
+    data_["time_out_warm_up_first_min"] =params[:time_out_warm_up_first_min].to_i
+    data_["time_out_warm_up_follow_up_min"] =params[:time_out_warm_up_follow_up_min].to_i
+    data_["kickoff_switches_with"] =params[:kickoff_switches_with]
+    data_["fixed_display_left"] =params[:fixed_display_left].to_s
+    data_["color_remains_with_set"] =params[:color_remains_with_set]
+    data_["allow_overflow"] =params[:allow_overflow]
+    data_["allow_follow_up"] = params[:allow_follow_up]
     @tournament.unprotected = true
+    @tournament.data_will_change!
     @tournament.assign_attributes(data: data_)
     @tournament.save
     if @tournament.valid?
@@ -224,14 +225,15 @@ class TournamentsController < ApplicationController
       end
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
+        return
       else
         redirect_back_or_to(tournament_path(@tournament))
-        nil
+        return
       end
     else
       flash[:alert] = @tournament.errors.full_messages
       redirect_back_or_to(tournament_path(@tournament))
-      nil
+      return
     end
   end
 
@@ -246,7 +248,6 @@ class TournamentsController < ApplicationController
   # POST /tournaments
   def create
     @tournament = Tournament.new(tournament_params)
-    @tournament.club_id = ENV['DEFAULT_CLUB_ID']
     @league = League.find_by_id(params["league_id"])
     if @league.present?
       @tournament.organizer = @league.organizer
@@ -330,11 +331,6 @@ class TournamentsController < ApplicationController
       @tournament.scrape_single_tournament_public
     end
     redirect_back_or_to(tournament_path(@tournament))
-  end
-
-  def setup_wizard
-    @tournament = Tournament.new
-    @steps = [:basic_info, :participants, :schedule, :review]
   end
 
   private

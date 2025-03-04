@@ -117,7 +117,7 @@ class TableMonitor < ApplicationRecord
   NNN = "db" # store nnn in database table_monitor
 
   serialize :data, coder: JSON, type: Hash
-  serialize :prev_data, coder: YAML, type: Hash
+  serialize :prev_data, coder: JSON, type: Hash
   # { "state" => "warmup", # ["warmup", "match_shootout", "playing", "set_over", "final_set_score", "final_match_score"]
   #   "current_set" => 1,
   #   "sets_to_win" => 2,
@@ -681,7 +681,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     current_kickoff_player = "playera"
     self.copy_from = nil
     deep_merge_data!({
-                       "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data[:free_game_form] : nil,
+                       "free_game_form" => tournament_monitor.is_a?(PartyMonitor) ? game.data["free_game_form"] : nil,
                        "balls_on_table" => 15,
                        "balls_counter" => 15,
                        "balls_counter_stack" => [],
@@ -696,43 +696,43 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                              nil
                                            end,
                        "allow_overflow" => if tournament_monitor.is_a?(PartyMonitor)
-                                             game.data[:allow_overflow]
+                                             game.data["allow_overflow"]
                                            else
                                              tournament_monitor&.allow_overflow
                                            end,
                        "kickoff_switches_with" => (
                          if tournament_monitor.is_a?(PartyMonitor)
-                           game.data[:kickoff_switches_with]
+                           game.data["kickoff_switches_with"]
                          else
                            tournament_monitor&.kickoff_switches_with ||
                              tournament_monitor&.tournament&.kickoff_switches_with
                          end).presence || "set",
                        "allow_follow_up" => if tournament_monitor.is_a?(PartyMonitor)
-                                              game.data[:allow_follow_up]
+                                              game.data["allow_follow_up"]
                                             else
                                               tournament_monitor&.allow_follow_up ||
                                                 tournament_monitor&.tournament&.allow_follow_up
                                             end,
                        "sets_to_win" => if tournament_monitor.is_a?(PartyMonitor)
-                                          game.data[:sets_to_win]
+                                          game.data["sets_to_win"]
                                         else
                                           tournament_monitor&.sets_to_win ||
                                             tournament_monitor&.tournament&.sets_to_win
                                         end,
                        "sets_to_play" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data[:sets_to_play]
+                                           game.data["sets_to_play"]
                                          else
                                            tournament_monitor&.sets_to_play ||
                                              tournament_monitor&.tournament&.sets_to_play
                                          end,
                        "team_size" => if tournament_monitor.is_a?(PartyMonitor)
-                                        game.data[:team_size]
+                                        game.data["team_size"]
                                       else
                                         (tournament_monitor&.team_size ||
                                           tournament_monitor&.tournament&.team_size).presence || 1
                                       end,
                        "innings_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data[:innings_goal]
+                                           game.data["innings_goal"]
                                          else
                                            data["innings_goal"] ||
                                              tournament_monitor&.innings_goal ||
@@ -754,7 +754,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          end,
                          "gd" => 0.0,
                          "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data[:balls_goal_a]
+                                           game.data["balls_goal_a"]
                                          else
                                            data["playera"].andand["balls_goal"] ||
                                              tournament_monitor&.tournament&.handicap_tournier? &&
@@ -764,7 +764,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                              tournament_monitor&.tournament&.data.andand[:balls_goal]
                                          end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
-                                   game.data[:timeouts]
+                                   game.data["timeouts"]
                                  else
                                    tournament_monitor&.timeouts ||
                                      tournament_monitor&.tournament&.timeouts ||
@@ -787,7 +787,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                          end,
                          "gd" => 0.0,
                          "balls_goal" => if tournament_monitor.is_a?(PartyMonitor)
-                                           game.data[:balls_goal_a]
+                                           game.data["balls_goal_a"]
                                          else
                                            data["playerb"].andand["balls_goal"] ||
                                              tournament_monitor&.tournament&.handicap_tournier? &&
@@ -797,11 +797,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                              tournament_monitor&.tournament&.data.andand[:balls_goal]
                                          end,
                          "tc" => if tournament_monitor.is_a?(PartyMonitor)
-                                   game.data[:timeouts]
+                                   game.data["timeouts"]
                                  else
                                    tournament_monitor&.timeouts ||
                                      tournament_monitor&.tournament&.timeouts ||
-                                     tournament_monitor&.tournament&.data.andand[:timeouts] ||
+                                     tournament_monitor&.tournament&.data.andand["timeouts"] ||
                                      0
                                  end
                        },
@@ -1203,7 +1203,7 @@ data[\"allow_overflow\"].present?")
           balls: show_data["current_inning"].andand["balls"].to_i,
           active_player: show_data["current_inning"].andand["active_player"]
         }
-      )
+      ).stringify_keys
       self.options = options
       self.gps = gps
       self.location = table.location
@@ -1712,8 +1712,6 @@ data[\"allow_overflow\"].present?")
       current_kickoff_player = current_kickoff_player == "playera" ? "playerb" : "playera"
     when "winner"
       current_kickoff_player = data["sets"][-1]["Innings1"][-1].to_i > data["sets"][-1]["Innings2"][-1].to_i ? "playera" : "playerb"
-    else
-      current_kickoff_player
     end
     options = {
       "Gruppe" => game.group_no,

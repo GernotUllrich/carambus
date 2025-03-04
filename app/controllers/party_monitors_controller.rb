@@ -40,8 +40,8 @@ class PartyMonitorsController < ApplicationController
 
     @available_fitting_table_ids = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.order("name").andand.map(&:id).to_a
     @tournament_tables = @party.location.andand.tables.andand.joins(table_kind: :disciplines).andand.where(disciplines: { id: @league.discipline_id }).andand.count.to_i
-    @tables_from_plan = @party_monitor.data[:tables].to_i
-    @tournament_tables = [@tournament_tables, @party_monitor.data[:tables].to_i].min if @tables_from_plan > 0
+    @tables_from_plan = @party_monitor.data["tables"].to_i
+    @tournament_tables = [@tournament_tables, @party_monitor.data["tables"].to_i].min if @tables_from_plan > 0
   end
 
   def upload_form

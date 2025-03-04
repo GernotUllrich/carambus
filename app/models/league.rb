@@ -48,13 +48,13 @@ class League < ApplicationRecord
 
   GAME_PARAMETER_DEFAULTS = {
     pool: {
-    substitutes: true,
-    kickoff_switches_with: "set",
-    match_points: {
-      win: 0,
-      draw: 0,
-      lost: 0
-    },
+      substitutes: true,
+      kickoff_switches_with: "set",
+      match_points: {
+        win: 0,
+        draw: 0,
+        lost: 0
+      },
       extra_shootout_match_points: {
         win: 0,
         lost: 0
@@ -173,11 +173,11 @@ class League < ApplicationRecord
       rang_partie: nil, # (Aktivierung erlaubt, dass z.B. Partien, Frames oder Legs in der Tabelle als zusätzliche Spalte angezeigt und gewertet werden.)
       rang_mgd: nil, # (Aktivierung erlaubt, dass z.B. Mannschaftsgesamtdurchschnitt (Karambol-MGD) in der Tabelle als zusätzliche Spalte angezeigt und gewertet wird.)
       rang_kegel: nil, # (Aktivierung erlaubt, dass z.B. zusätzliche, Billard-Kegel spezifische Spalten in der Tabelle angezeigt und gewertet werden.)
-    ersatzspieler_regel: 0,
+      ersatzspieler_regel: 0,
       # 0: Keine Ersatzspieler-Regelung
       # 1: Ersatzspieler NUR aus direkt nachfolgender Mannschaft möglich
       # 2: Ersatzspieler aus ALLEN nachfolgenden Mannschaften möglich
-    row_type_id: nil
+      row_type_id: nil
       # 20; 10-Ball
       # 21: 10-Ball Doppel
       # 1: 14/1e
@@ -586,7 +586,7 @@ class League < ApplicationRecord
             result_a = tr.css("td")[4 + shift].css("a")[0]
             result_text = tr.css("td")[4 + shift].text.strip
             points = tr.css("td")[7 + shift].text.strip
-          else
+          elsif ["ST", "TERMIN", "HEIM", "", "GAST"] == header || ["ST", "TERMIN", "HEIM", "", "GAST", "GASTGEBER"] == header
             td_ = tr.css("td")[0]
             if (remark_a = td_.css("a")).present?
               remarks = remark_a[0]["title"].gsub("Memo: ", "")
@@ -597,13 +597,15 @@ class League < ApplicationRecord
                    rescue StandardError
                      nil
                    end
-            league_team_a_name = tr.css("td")[3].text.strip
+            league_team_a_name = tr.css("td")[2].text.strip
             league_team_a = league_teams_cache.find { |lt| lt.name == league_team_a_name }
-            league_team_b_name = tr.css("td")[7].text.strip
+            league_team_b_name = tr.css("td")[6].text.strip
             league_team_b = league_teams_cache.find { |lt| lt.name == league_team_b_name }
-            result_a = tr.css("td")[5].css("a")[0]
-            result_text = tr.css("td")[5].text.strip
-            points = tr.css("td")[8].text.strip
+            result_a = tr.css("td")[4].css("a")[0]
+            result_text = tr.css("td")[4].text.strip
+            points = tr.css("td")[8].andand.text.andand.strip
+          else
+            raise "ScrapeError"
           end
           party_url = league_url
           # scrape game result details
@@ -632,7 +634,7 @@ class League < ApplicationRecord
             if td_.present?
               club_name = td_.css("strong")[0].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
               club = clubs_cache.find { |c| c.synonyms.split("\n").include?(club_name) }
-              raise StandardError if club.blank?
+              raise StandardError "Format Error 0 Party[#{party.id}]" if club.blank?
 
               location_a = td_.css("a")[0]
               location_link = location_a["href"]
@@ -719,7 +721,7 @@ class League < ApplicationRecord
                       header_g & ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler",
                                   "Punkte"] == ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
                       game_plan[:bez_brett] = header_g[header_g.index("Paarung") || header_g.index("Brett")]
-                      raise StandardError unless (m = header_g[1].match(/Runde (\d+)/))
+                      raise StandardError "Format Error 1 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
 
                       structure = "runde+brett"
                       r_no = m[1].to_i
@@ -732,7 +734,7 @@ class League < ApplicationRecord
 
                     elsif header_g & ["", "Heim-Spieler", "Erg.", "Gast-Spieler",
                                       "Punkte"] == ["", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                      raise StandardError unless (m = header_g[1].match(/Runde (\d+)/))
+                      raise StandardError "Format Error 2 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
 
                       structure = "runde"
                       r_no = m[1].to_i
@@ -743,7 +745,7 @@ class League < ApplicationRecord
                       games_per_round = 0
 
                     else
-                      raise StandardError
+                      raise StandardError "Format Error 3 Party[#{party.id}]"
                     end
                   end
                 elsif tr_g.text.match(/(MGD \(Heim\)|MGD \(Gast\)|BED)/).present?
@@ -755,7 +757,7 @@ class League < ApplicationRecord
                   when /BED/
                     # TODO: BED
                   else
-                    raise StandardError, "Format Error"
+                    raise StandardError, "Format Error Party[#{party.id}]"
                   end
                 elsif tr_g.text.strip.blank?
                   # ignore
@@ -767,6 +769,9 @@ class League < ApplicationRecord
                   )
                 elsif %w[runde runde+brett].include?(structure)
 
+                  if structure == "runde" && tr_g.css("td")[2].text.match(/\d-\d/)
+                    structure = "runde+brett"
+                  end
                   shift = structure == "runde+brett" ? 1 : 0
                   seqno = tr_g.css("td")[0].text.strip.to_i if tr_g.css("td")[0].text.strip.present?
                   if tr_g.css("td")[0].text.strip.blank? && tr_g.css("td")[1].text.strip.present?
@@ -843,10 +848,11 @@ class League < ApplicationRecord
                     discipline = Discipline.where("synonyms ilike ?", "%#{discipline_name}%").to_a.find do |dis|
                       dis.synonyms.split("\n").include?(discipline_name)
                     end
-                    raise StandardError, "ERROR discipline #{discipline_name} unknown" if discipline.blank?
+                    raise StandardError, "ERROR discipline #{discipline_name} unknown Party[#{party&.id}]" if discipline.blank?
 
                     disciplines[discipline_name] ||= {}
-                    point_relult = tr_g.css("td")[5].text.strip.split(/\s*:\s*/).map(&:to_i)
+                    addx = /:/.match?(tr_g.css("td")[5].text.strip) ? 1 : 0
+                    point_relult = tr_g.css("td")[4 + addx].text.strip.split(/\s*:\s*/).map(&:to_i)
                     max_game_points = point_relult.max
                     min_game_points = point_relult.min
                     draw_game_points = point_relult[0] == point_relult[1] ? point_relult[0] : 0
@@ -939,6 +945,9 @@ class League < ApplicationRecord
                     players_b << player_b
                     players_a.compact!
                     players_b.compact!
+                    if (players_a.count != 1 || players_b.count != 1)
+                      raise StandardError "Multiple Players on PartyGame not supported Party[#{party.id}]"
+                    end
                     party_games[seqno] ||= {}
                     party_games[seqno].merge!(
                       seqno: seqno,
@@ -950,7 +959,7 @@ class League < ApplicationRecord
                     ).compact!
                   end
                 else
-                  raise StandardError, "Unexpected Format Error"
+                  raise StandardError, "Unexpected Format Error Party[#{party.id}]"
                 end
               end
               game_plan[:tables] = tables
@@ -958,12 +967,12 @@ class League < ApplicationRecord
               party_games.each do |seqno2, data|
                 attrs = {
                   party_id: party.id,
-                  discipline_id: data[:discipline_id],
+                  discipline_id: data["discipline_id"],
                   seqno: seqno2,
-                  player_a_id: Player.team_from_players(data[:player_a_id].compact).andand.id,
-                  player_b_id: Player.team_from_players(data[:player_b_id].compact).andand.id,
-                  data: data[:data],
-                  name: data[:name]
+                  player_a_id: Player.team_from_players(data["player_a_id"].compact).andand.id,
+                  player_b_id: Player.team_from_players(data["player_b_id"].compact).andand.id,
+                  data: data["data"],
+                  name: data["name"]
                 }
                 party_game = PartyGame.where(
                   party_id: party.id,
@@ -973,18 +982,20 @@ class League < ApplicationRecord
                 party_game.save
               end
               # look for shootout
-              res = party.data[:points].split(":").map(&:strip).map(&:to_i).sort
-              game_plan[:match_points][:win] = [game_plan[:match_points][:win].to_i, res[1]].max
-              game_plan[:match_points][:lost] = [game_plan[:match_points][:lost].to_i, res[0]].min
-              party_games_select = party_games.select { |_k, v| v[:name] =~ /shootout/i }
-              if party_games_select.present?
-                data_result = party_games_select.to_a[0][1][:data][:result]["Ergebnis:"]
-                if data_result != "0:0"
-                  game_plan[:extra_shootout_match_points] = {
-                    win: res[1] - res[0],
-                    lost: 0
-                  }
-                  game_plan[:match_points][:draw] = res.min
+              res = party.data["points"].andand.split(":")&.map(&:strip)&.map(&:to_i)&.sort
+              if res.present?
+                game_plan[:match_points][:win] = [game_plan[:match_points][:win].to_i, res[1]].max
+                game_plan[:match_points][:lost] = [game_plan[:match_points][:lost].to_i, res[0]].min
+                party_games_select = party_games.select { |_k, v| v[:name] =~ /shootout/i }
+                if party_games_select.present?
+                  data_result = party_games_select.to_a[0][1][:data][:result]["Ergebnis:"]
+                  if data_result != "0:0"
+                    game_plan[:extra_shootout_match_points] = {
+                      win: res[1] - res[0],
+                      lost: 0
+                    }
+                    game_plan[:match_points][:draw] = res.min
+                  end
                 end
               end
             end
@@ -1098,6 +1109,7 @@ class League < ApplicationRecord
     %w[Pool Snooker Karambol].each do |branch_str|
       branch = Branch.find_by_name(branch_str)
       leagues_url = "https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV%20#{branch_str}%#{season.name.gsub("/20", "/")}"
+      Rails.logger.info "reading #{leagues_url}"
       uri = URI(leagues_url)
       leagues_html = Net::HTTP.get(uri)
       leagues_html = leagues_html.force_encoding('ISO-8859-1').encode('UTF-8')
@@ -1155,6 +1167,7 @@ class League < ApplicationRecord
       rang = args[1].to_i
       if tr.css("td")[2].css("a")[0].present?
         team_url = url + tr.css("td")[2].css("a")[0].andand.attributes.andand["href"]
+        Rails.logger.info "reading #{team_url}"
         team_uri = URI(team_url)
         team_html = Net::HTTP.get(team_uri).gsub("//--", "--").
           gsub('id="banner-groupPage-content"', "").
@@ -1201,6 +1214,7 @@ class League < ApplicationRecord
   end
 
   def self.get_league_doc(league_url)
+    Rails.logger.info "reading #{league_url}"
     league_uri = URI(league_url)
     # fix some unused faulty code
     league_html = Net::HTTP.get(league_uri).gsub("//--", "--").

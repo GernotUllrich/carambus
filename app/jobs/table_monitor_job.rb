@@ -26,7 +26,7 @@ class TableMonitorJob < ApplicationJob
       players_hash = players.each_with_object({}) do |player, memo|
         memo[player.id] = player
       end
-      table_ids = Array(party_monitor.data[:table_ids].andand[r_no - 1])
+      table_ids = Array(party_monitor.data["table_ids"].andand[r_no - 1])
       cable_ready["table-monitor-stream"].inner_html(
         selector: "#party_monitor_scores_#{row_nr}",
         html: ApplicationController.render(
