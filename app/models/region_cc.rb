@@ -43,407 +43,407 @@ class RegionCc < ApplicationRecord
 
   before_save :set_paper_trail_whodunnit
   PATH_MAP = { # maps to path and read_only {true|false}|}
-               "home" => ["", true],
-               # "showClubList" => "/admin/approvement/player/showClubList.php",
-               "createLeagueSave" => ["/admin/league/createLeagueSave.php", false],
-               # fedId: 20
-               # branchId: 10
-               # subBranchId: 2
-               # seasonId: 11
-               # seasonId: 11
-               # leagueName: Oberliga Dreiband
-               # leagueShortName: OD
-               # reportId: 20
-               # prefix: 0
-               # staffelName:
-               # sportdistrictId: 0
-               # sbut:
-               "showLeagueList" => ["/admin/report/showLeagueList.php", true],
-               "showLeague" => ["/admin/league/showLeague.php", true],
+    "home" => ["", true],
+    # "showClubList" => "/admin/approvement/player/showClubList.php",
+    "createLeagueSave" => ["/admin/league/createLeagueSave.php", false],
+    # fedId: 20
+    # branchId: 10
+    # subBranchId: 2
+    # seasonId: 11
+    # seasonId: 11
+    # leagueName: Oberliga Dreiband
+    # leagueShortName: OD
+    # reportId: 20
+    # prefix: 0
+    # staffelName:
+    # sportdistrictId: 0
+    # sbut:
+    "showLeagueList" => ["/admin/report/showLeagueList.php", true],
+    "showLeague" => ["/admin/league/showLeague.php", true],
 
-               "admin_report_showLeague" => ["/admin/report/showLeague.php", true],
-               # branchId: 6
-               # fedId: 20
-               # subBranchId: 1
-               # seasonId: 8
-               # leagueId: 34
-               "admin_report_showLeague_create_team" => ["/admin/report/showLeague_create_team.php", false],
-               # teamCounter: 2
-               # fedId: 20
-               # leagueId: 32
-               # branchId: 6
-               # subBranchId: 1
-               # seasonId: 8
-               "spielbericht_anzeigen" => ["/admin/reportbuilder2/spielbericht_anzeigen.php", true],
-               # p=#{fedId}-#{branchId}-#{cc_id}-&    cc_id vom GamePlanCc
-               "showTeam" => ["/admin/announcement/team/showTeam.php", true],
-               # fedId: 20,
-               # branchId: 6,
-               # subBranchId: 1,
-               # sportDistrictId: *,
-               # clubId: 1004,
-               # originalBranchId: 6,
-               # seasonId: 1,
-               # teamId: 98
-               "editTeam" => ["admin/announcement/team/editTeamCheck.php", false],
-               "showClubList" => ["/admin/announcement/team/showClubList.php", true],
-               # fedId: 20
-               # branchId: 6
-               # subBranchId: 11
-               # sportDistrictId: *
-               # statusId: 1   (1 = active)
-               "showLeague_show_teamplayer" => ["/admin/report/showLeague_show_teamplayer.php", true],
-               # GET
-               # p: 187
-               "showLeague_add_teamplayer" => ["/admin/report/showLeague_add_teamplayer.php", false],
-               # fedId: 20,
-               # leagueId: 34,
-               # staffelId: 0,
-               # branchId: 6,
-               # subBranchId: 1,
-               # seasonId: 8,
-               # p: 187,
-               # passnr: 221109,
-               "showAnnounceList" => ["/admin/announcement/team/showAnnounceList.php", true],
-               # fedId: 20
-               # branchId: 10
-               # subBranchId: 2
-               # sportDistrictId: *
-               # clubId: 1011
-               # originalBranchId: 10
-               # seasonId: 45
-               "spielbericht" => ["/admin/bm_mw/spielbericht.php", true],
-               # errMsgNew:
-               # matchId: 572
-               # teamId: 189
-               # woher: 1
-               # firstEntry: 1
-               #  ODER ?!
-               # sortKey: NAME
-               # branchid: 6
-               # woher: 1
-               # wettbewerb: 1
-               # sportkreis: *
-               # saison: 2010/2011
-               # partienr: 4003
-               # seekBut:
-               "showLeague_create_team_save" => ["/admin/report/showLeague_create_team_save.php", false],
-               # fedId: 20
-               # leagueId: 61
-               # branchId: 10
-               # subBranchId: 2
-               # seasonId: 11
-               # ncid: 1573   TODO was ist ncid
-               # sbut:
-               "spielberichte" => ["/admin/reportbuilder2/spielberichte.php", true],
-               # GET Request
-               # p: "#{fedId}-#{branchId}"
-               "spielberichtCheck" => ["/admin/bm_mw/spielberichtCheck.php", true],
-               "spielberichtSave" => ["/admin/bm_mw/spielberichtSave.php", false],
-               # "errMsgNew:
-               #  fedId: 20
-               #  branchId: 6
-               #  subBranchId: 1
-               #  wettbewerb: 1
-               #  leagueId: 34
-               #  seasonId: 8
-               #  teamId: 185
-               #  matchId: 571
-               #  saison: 2010/2011
-               #  partienr: 4003
-               #  woher: 1
-               #  woher2: 1
-               #  editBut: "
-               #  TODO ODER MIT GET-REQUEST??
-               #
-               # a: 703     party_cc.match_id
-               # b: 2        ???
-               # c: 193>    team cc_id
+    "admin_report_showLeague" => ["/admin/report/showLeague.php", true],
+    # branchId: 6
+    # fedId: 20
+    # subBranchId: 1
+    # seasonId: 8
+    # leagueId: 34
+    "admin_report_showLeague_create_team" => ["/admin/report/showLeague_create_team.php", false],
+    # teamCounter: 2
+    # fedId: 20
+    # leagueId: 32
+    # branchId: 6
+    # subBranchId: 1
+    # seasonId: 8
+    "spielbericht_anzeigen" => ["/admin/reportbuilder2/spielbericht_anzeigen.php", true],
+    # p=#{fedId}-#{branchId}-#{cc_id}-&    cc_id vom GamePlanCc
+    "showTeam" => ["/admin/announcement/team/showTeam.php", true],
+    # fedId: 20,
+    # branchId: 6,
+    # subBranchId: 1,
+    # sportDistrictId: *,
+    # clubId: 1004,
+    # originalBranchId: 6,
+    # seasonId: 1,
+    # teamId: 98
+    "editTeam" => ["admin/announcement/team/editTeamCheck.php", false],
+    "showClubList" => ["/admin/announcement/team/showClubList.php", true],
+    # fedId: 20
+    # branchId: 6
+    # subBranchId: 11
+    # sportDistrictId: *
+    # statusId: 1   (1 = active)
+    "showLeague_show_teamplayer" => ["/admin/report/showLeague_show_teamplayer.php", true],
+    # GET
+    # p: 187
+    "showLeague_add_teamplayer" => ["/admin/report/showLeague_add_teamplayer.php", false],
+    # fedId: 20,
+    # leagueId: 34,
+    # staffelId: 0,
+    # branchId: 6,
+    # subBranchId: 1,
+    # seasonId: 8,
+    # p: 187,
+    # passnr: 221109,
+    "showAnnounceList" => ["/admin/announcement/team/showAnnounceList.php", true],
+    # fedId: 20
+    # branchId: 10
+    # subBranchId: 2
+    # sportDistrictId: *
+    # clubId: 1011
+    # originalBranchId: 10
+    # seasonId: 45
+    "spielbericht" => ["/admin/bm_mw/spielbericht.php", true],
+    # errMsgNew:
+    # matchId: 572
+    # teamId: 189
+    # woher: 1
+    # firstEntry: 1
+    #  ODER ?!
+    # sortKey: NAME
+    # branchid: 6
+    # woher: 1
+    # wettbewerb: 1
+    # sportkreis: *
+    # saison: 2010/2011
+    # partienr: 4003
+    # seekBut:
+    "showLeague_create_team_save" => ["/admin/report/showLeague_create_team_save.php", false],
+    # fedId: 20
+    # leagueId: 61
+    # branchId: 10
+    # subBranchId: 2
+    # seasonId: 11
+    # ncid: 1573   TODO was ist ncid
+    # sbut:
+    "spielberichte" => ["/admin/reportbuilder2/spielberichte.php", true],
+    # GET Request
+    # p: "#{fedId}-#{branchId}"
+    "spielberichtCheck" => ["/admin/bm_mw/spielberichtCheck.php", true],
+    "spielberichtSave" => ["/admin/bm_mw/spielberichtSave.php", false],
+    # "errMsgNew:
+    #  fedId: 20
+    #  branchId: 6
+    #  subBranchId: 1
+    #  wettbewerb: 1
+    #  leagueId: 34
+    #  seasonId: 8
+    #  teamId: 185
+    #  matchId: 571
+    #  saison: 2010/2011
+    #  partienr: 4003
+    #  woher: 1
+    #  woher2: 1
+    #  editBut: "
+    #  TODO ODER MIT GET-REQUEST??
+    #
+    # a: 703     party_cc.match_id
+    # b: 2        ???
+    # c: 193>    team cc_id
 
-               # memo: Die Partien von Florian Knipfer wurden aus der Wertung gestrichen, wegen Einsatz als Ersatz-Spieler in der Bundesliga !!
-               # protest:
-               # zuNullTeamId: 0
-               # wettbewerb: 1
-               # partienr: 4004
-               # saison:
-               # 572-1-1-1-pid1: 10130
-               # 572-1-1-1-pid2: 10353
-               # 572-1-1-sc1: 125
-               # 572-1-1-sc2: 70
-               # 572-1-1-in1: 46
-               # 572-1-1-in2: 45
-               # 572-1-1-br1: 13
-               # 572-1-1-br2: 10
-               # 572-1-1-vo1:
-               # 572-1-1-vo2:
-               # 572-2-1-1-pid1: 10243
-               # 572-2-1-1-pid2: 0
-               # 572-2-1-sc1: 0
-               # 572-2-1-sc2: 0
-               # 572-2-1-in1:
-               # 572-2-1-in2:
-               # 572-2-1-br1:
-               # 572-2-1-br2:
-               # 572-2-1-vo1:
-               # 572-2-1-vo2:
-               # 572-3-1-1-pid1: 0
-               # 572-3-1-1-pid2: 10121
-               # 572-3-1-sc1: 9
-               # 572-3-1-sc2: 4
-               # 572-3-1-in1:
-               # 572-3-1-in2:
-               # 572-3-1-br1:
-               # 572-3-1-br2:
-               # 572-3-1-vo1:
-               # 572-3-1-vo2:
-               # 572-4-1-1-pid1: 0
-               # 572-4-1-1-pid2: 10108
-               # 572-4-1-sc1: 2
-               # 572-4-1-sc2: 8
-               # 572-4-1-in1:
-               # 572-4-1-in2:
-               # 572-4-1-br1:
-               # 572-4-1-br2:
-               # 572-4-1-vo1:
-               # 572-4-1-vo2:
-               # 572-6-1-1-pid1: 0
-               # 572-6-1-1-pid2: 0
-               # 572-6-1-sc1: 8
-               # 572-6-1-sc2: 4
-               # 572-6-1-in1:
-               # 572-6-1-in2:
-               # 572-6-1-br1:
-               # 572-6-1-br2:
-               # 572-6-1-vo1:
-               # 572-6-1-vo2:
-               # 572-7-1-1-pid1: 0
-               # 572-7-1-1-pid2: 10108
-               # 572-7-1-sc1: 9
-               # 572-7-1-sc2: 6
-               # 572-7-1-in1:
-               # 572-7-1-in2:
-               # 572-7-1-br1:
-               # 572-7-1-br2:
-               # 572-7-1-vo1:
-               # 572-7-1-vo2:
-               # 572-8-1-1-pid1: 10130
-               # 572-8-1-1-pid2: 10121
-               # 572-8-1-sc1: 7
-               # 572-8-1-sc2: 5
-               # 572-8-1-in1:
-               # 572-8-1-in2:
-               # 572-8-1-br1:
-               # 572-8-1-br2:
-               # 572-8-1-vo1:
-               # 572-8-1-vo2:
-               # 572-9-1-1-pid1: 10243
-               # 572-9-1-1-pid2: 0
-               # 572-9-1-sc1:
-               # 572-9-1-sc2:
-               # 572-9-1-in1:
-               # 572-9-1-in2:
-               # 572-9-1-br1:
-               # 572-9-1-br2:
-               # 572-9-1-vo1:
-               # 572-9-1-vo2:
-               "massChangingCheck" => ["/admin/report/massChangingCheck.php", true],
-               # fedId: 20,
-               # leagueId: 34,
-               # branchId: 6,
-               # subBranchId: 1,
-               # seasonId: 8,
-               # staffelId:
-               "massChangingCheckAuth" => ["/admin/report/massChangingCheckAuth.php", true],
-               # https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
+    # memo: Die Partien von Florian Knipfer wurden aus der Wertung gestrichen, wegen Einsatz als Ersatz-Spieler in der Bundesliga !!
+    # protest:
+    # zuNullTeamId: 0
+    # wettbewerb: 1
+    # partienr: 4004
+    # saison:
+    # 572-1-1-1-pid1: 10130
+    # 572-1-1-1-pid2: 10353
+    # 572-1-1-sc1: 125
+    # 572-1-1-sc2: 70
+    # 572-1-1-in1: 46
+    # 572-1-1-in2: 45
+    # 572-1-1-br1: 13
+    # 572-1-1-br2: 10
+    # 572-1-1-vo1:
+    # 572-1-1-vo2:
+    # 572-2-1-1-pid1: 10243
+    # 572-2-1-1-pid2: 0
+    # 572-2-1-sc1: 0
+    # 572-2-1-sc2: 0
+    # 572-2-1-in1:
+    # 572-2-1-in2:
+    # 572-2-1-br1:
+    # 572-2-1-br2:
+    # 572-2-1-vo1:
+    # 572-2-1-vo2:
+    # 572-3-1-1-pid1: 0
+    # 572-3-1-1-pid2: 10121
+    # 572-3-1-sc1: 9
+    # 572-3-1-sc2: 4
+    # 572-3-1-in1:
+    # 572-3-1-in2:
+    # 572-3-1-br1:
+    # 572-3-1-br2:
+    # 572-3-1-vo1:
+    # 572-3-1-vo2:
+    # 572-4-1-1-pid1: 0
+    # 572-4-1-1-pid2: 10108
+    # 572-4-1-sc1: 2
+    # 572-4-1-sc2: 8
+    # 572-4-1-in1:
+    # 572-4-1-in2:
+    # 572-4-1-br1:
+    # 572-4-1-br2:
+    # 572-4-1-vo1:
+    # 572-4-1-vo2:
+    # 572-6-1-1-pid1: 0
+    # 572-6-1-1-pid2: 0
+    # 572-6-1-sc1: 8
+    # 572-6-1-sc2: 4
+    # 572-6-1-in1:
+    # 572-6-1-in2:
+    # 572-6-1-br1:
+    # 572-6-1-br2:
+    # 572-6-1-vo1:
+    # 572-6-1-vo2:
+    # 572-7-1-1-pid1: 0
+    # 572-7-1-1-pid2: 10108
+    # 572-7-1-sc1: 9
+    # 572-7-1-sc2: 6
+    # 572-7-1-in1:
+    # 572-7-1-in2:
+    # 572-7-1-br1:
+    # 572-7-1-br2:
+    # 572-7-1-vo1:
+    # 572-7-1-vo2:
+    # 572-8-1-1-pid1: 10130
+    # 572-8-1-1-pid2: 10121
+    # 572-8-1-sc1: 7
+    # 572-8-1-sc2: 5
+    # 572-8-1-in1:
+    # 572-8-1-in2:
+    # 572-8-1-br1:
+    # 572-8-1-br2:
+    # 572-8-1-vo1:
+    # 572-8-1-vo2:
+    # 572-9-1-1-pid1: 10243
+    # 572-9-1-1-pid2: 0
+    # 572-9-1-sc1:
+    # 572-9-1-sc2:
+    # 572-9-1-in1:
+    # 572-9-1-in2:
+    # 572-9-1-br1:
+    # 572-9-1-br2:
+    # 572-9-1-vo1:
+    # 572-9-1-vo2:
+    "massChangingCheck" => ["/admin/report/massChangingCheck.php", true],
+    # fedId: 20,
+    # leagueId: 34,
+    # branchId: 6,
+    # subBranchId: 1,
+    # seasonId: 8,
+    # staffelId:
+    "massChangingCheckAuth" => ["/admin/report/massChangingCheckAuth.php", true],
+    # https://e12112e2454d41f1824088919da39bc0.club-cloud.de/admin/report/massChangingCheckAuth.php?
 
-               # teamCounter: 10
-               # fedId: 20
-               # leagueId: 36
-               # branchId: 6
-               # subBranchId: 1
-               # seasonId: 8
-               # editAll:
-               # matchId: 715
-               "showCategoryList" => ["/admin/einzel/category/showCategoryList.php", true],
-               # fedId: 20
-               # branchId: 10
-               "showCategory" => ["/admin/einzel/category/showCategory.php", true],
-               # fedId: 20
-               # branchId: 6
-               # catId: 14
-               "editCategoryCheck" => ["/admin/einzel/category/editCategoryCheck.php", true],
-               # fedId: 20
-               # branchId: 6
-               # catId: 14
-               "showTypeList" => ["/admin/einzel/type/showTypeList.php", true],
-               # fedId: 20
-               # branchId: 10
-               "showType" => ["/admin/einzel/type/showType.php", true],
-               # fedId: 20
-               # branchId: 10
-               # season: 2011/2012
-               "showSerienList" => ["/admin/einzel/serie/showSerienList.php", true],
-               # fedId: 20
-               # branchId: 10
-               "showSerie" => ["/admin/einzel/serie/showSerie.php", true],
-               # fedId: 20
-               # branchId: 10
-               # season: 2022/2023
-               # serienId: 4
-               "showGroupList" => ["/admin/einzel/gruppen/showGroupList.php", true],
-               # branchId: 10
-               "showGroup" => ["/admin/einzel/gruppen/showGroup.php", true],
-               # branchId: 10
-               "showMeldelistenList" => ["/admin/einzel/meldelisten/showMeldelistenList.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               "showMeldeliste" => ["/admin/einzel/meldelisten/showMeldeliste.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               # meldelisteId: 66
-               "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               # meisterTypeId: *
-               # t: 2
-               "showMeisterschaft" => ["/admin/einzel/meisterschaft/showMeisterschaft.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               # meisterschaftId: 66
-               "club-showMeldelistenList" => ["/admin/einzel/clubmeldung/showMeldelistenList.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               "club-showMeldeliste" => ["/admin/einzel/clubmeldung/showMeldeliste.php", true],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # catId: *
-               # season: 2010/2011
-               # meldelisteId: 66
-               "createMeldelisteSave" => ["/admin/einzel/meldelisten/createMeldelisteSave.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # season: 2010/2011
-               # catId: *
-               # selectedDisciplinId: 13
-               # selectedCatId: 17
-               # meldelistenName: 5. Petit Prix Einband Vorrunde 1
-               # meldeschluss: 29.01.2011
-               # stichtag: 01.01.2011
-               # save:
-               "createMeldelisteCheck" => ["/admin/einzel/meldelisten/createMeldelisteCheck.php", false],
-               # branchId: 6
-               # fedId: 20
-               # disciplinId: *
-               # catId: *
-               # season: 2022/2023
-               # create:
-               "releaseMeldeliste" => ["/admin/einzel/meldelisten/releaseMeldeliste.php", false],
-               # branchId: 10,
-               # fedId: cc_id,
-               # season: season.name,
-               # meldelisteId: cc_id_ml
-               # release: ""
-               "createMeisterschaftSave" => ["/admin/einzel/meisterschaft/createMeisterschaftSave.php", false],
-               "editMeisterschaftCheck" => ["/admin/einzel/meisterschaft/editMeisterschaftCheck.php", false],
-               "editMeisterschaftSave" => ["/admin/einzel/meisterschaft/editMeisterschaftSave.php", false],
-               "deleteMeldeliste" => ["/admin/einzel/meldelisten/deleteMeldeliste.php", false],
-               "deleteErgebnis" => ["/admin/einzel/meisterschaft/deleteErgebnis.php", false],
-               "showErgebnisliste" => ["/admin/einzel/meisterschaft/showErgebnisliste.php", false],
-               "importErgebnisseStep1" => ["/admin/einzel/meisterschaft/importErgebnisseStep1.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               # ibut
-               "importErgebnisseStep2" => ["/admin/einzel/meisterschaft/importErgebnisseStep2.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               # importFile - filename="result3.csv"
-               # saveBut
-               "importErgebnisseStep3" => ["/admin/einzel/meisterschaft/importErgebnisseStep3.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: *
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               # saveBut
-               "importRangliste1" => ["/admin/einzel/meisterschaft/importRangliste1.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: 9
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               # importBut
-               "importRangliste2" => ["/admin/einzel/meisterschaft/importRangliste2.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: 9
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               # ranglistenimport - filename="rangliste3.csv"
-               # importBut
-               "showRangliste" => ["/admin/einzel/meisterschaft/showRangliste.php", false],
-               # fedId: 20
-               # branchId: 10
-               # disciplinId: 9
-               # season: 2010/2011
-               # catId: *
-               # meisterTypeId: *
-               # meisterschaftsId: 109
-               "releaseRangliste.php" => ["/admin/einzel/meisterschaft/releaseRangliste.php.php", false],
-               #  fedId: 20
-               #  branchId: 10
-               #   disciplinId: 9
-               #   season: 2010/2011
-               #   catId: *
-               #   meisterTypeId: *
-               #   meisterschaftsId: 109
-               #   releaseBut
-               "suche" => ["suche.php", true]
-               # c:
-               # f:
-               # 10
-               # v:
-               # Gerd
-               # n:
-               # Schmitz
-               # pa:
-               # lastPageNo:
-               # nextPageNo:
-               # 1
-               # pno:
-               # s:
+    # teamCounter: 10
+    # fedId: 20
+    # leagueId: 36
+    # branchId: 6
+    # subBranchId: 1
+    # seasonId: 8
+    # editAll:
+    # matchId: 715
+    "showCategoryList" => ["/admin/einzel/category/showCategoryList.php", true],
+    # fedId: 20
+    # branchId: 10
+    "showCategory" => ["/admin/einzel/category/showCategory.php", true],
+    # fedId: 20
+    # branchId: 6
+    # catId: 14
+    "editCategoryCheck" => ["/admin/einzel/category/editCategoryCheck.php", true],
+    # fedId: 20
+    # branchId: 6
+    # catId: 14
+    "showTypeList" => ["/admin/einzel/type/showTypeList.php", true],
+    # fedId: 20
+    # branchId: 10
+    "showType" => ["/admin/einzel/type/showType.php", true],
+    # fedId: 20
+    # branchId: 10
+    # season: 2011/2012
+    "showSerienList" => ["/admin/einzel/serie/showSerienList.php", true],
+    # fedId: 20
+    # branchId: 10
+    "showSerie" => ["/admin/einzel/serie/showSerie.php", true],
+    # fedId: 20
+    # branchId: 10
+    # season: 2022/2023
+    # serienId: 4
+    "showGroupList" => ["/admin/einzel/gruppen/showGroupList.php", true],
+    # branchId: 10
+    "showGroup" => ["/admin/einzel/gruppen/showGroup.php", true],
+    # branchId: 10
+    "showMeldelistenList" => ["/admin/einzel/meldelisten/showMeldelistenList.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    "showMeldeliste" => ["/admin/einzel/meldelisten/showMeldeliste.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    # meldelisteId: 66
+    "showMeisterschaftenList" => ["/admin/einzel/meisterschaft/showMeisterschaftenList.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    # meisterTypeId: *
+    # t: 2
+    "showMeisterschaft" => ["/admin/einzel/meisterschaft/showMeisterschaft.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    # meisterschaftId: 66
+    "club-showMeldelistenList" => ["/admin/einzel/clubmeldung/showMeldelistenList.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    "club-showMeldeliste" => ["/admin/einzel/clubmeldung/showMeldeliste.php", true],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # catId: *
+    # season: 2010/2011
+    # meldelisteId: 66
+    "createMeldelisteSave" => ["/admin/einzel/meldelisten/createMeldelisteSave.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # season: 2010/2011
+    # catId: *
+    # selectedDisciplinId: 13
+    # selectedCatId: 17
+    # meldelistenName: 5. Petit Prix Einband Vorrunde 1
+    # meldeschluss: 29.01.2011
+    # stichtag: 01.01.2011
+    # save:
+    "createMeldelisteCheck" => ["/admin/einzel/meldelisten/createMeldelisteCheck.php", false],
+    # branchId: 6
+    # fedId: 20
+    # disciplinId: *
+    # catId: *
+    # season: 2022/2023
+    # create:
+    "releaseMeldeliste" => ["/admin/einzel/meldelisten/releaseMeldeliste.php", false],
+    # branchId: 10,
+    # fedId: cc_id,
+    # season: season.name,
+    # meldelisteId: cc_id_ml
+    # release: ""
+    "createMeisterschaftSave" => ["/admin/einzel/meisterschaft/createMeisterschaftSave.php", false],
+    "editMeisterschaftCheck" => ["/admin/einzel/meisterschaft/editMeisterschaftCheck.php", false],
+    "editMeisterschaftSave" => ["/admin/einzel/meisterschaft/editMeisterschaftSave.php", false],
+    "deleteMeldeliste" => ["/admin/einzel/meldelisten/deleteMeldeliste.php", false],
+    "deleteErgebnis" => ["/admin/einzel/meisterschaft/deleteErgebnis.php", false],
+    "showErgebnisliste" => ["/admin/einzel/meisterschaft/showErgebnisliste.php", false],
+    "importErgebnisseStep1" => ["/admin/einzel/meisterschaft/importErgebnisseStep1.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    # ibut
+    "importErgebnisseStep2" => ["/admin/einzel/meisterschaft/importErgebnisseStep2.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    # importFile - filename="result3.csv"
+    # saveBut
+    "importErgebnisseStep3" => ["/admin/einzel/meisterschaft/importErgebnisseStep3.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: *
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    # saveBut
+    "importRangliste1" => ["/admin/einzel/meisterschaft/importRangliste1.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: 9
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    # importBut
+    "importRangliste2" => ["/admin/einzel/meisterschaft/importRangliste2.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: 9
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    # ranglistenimport - filename="rangliste3.csv"
+    # importBut
+    "showRangliste" => ["/admin/einzel/meisterschaft/showRangliste.php", false],
+    # fedId: 20
+    # branchId: 10
+    # disciplinId: 9
+    # season: 2010/2011
+    # catId: *
+    # meisterTypeId: *
+    # meisterschaftsId: 109
+    "releaseRangliste.php" => ["/admin/einzel/meisterschaft/releaseRangliste.php.php", false],
+    #  fedId: 20
+    #  branchId: 10
+    #   disciplinId: 9
+    #   season: 2010/2011
+    #   catId: *
+    #   meisterTypeId: *
+    #   meisterschaftsId: 109
+    #   releaseBut
+    "suche" => ["suche.php", true]
+    # c:
+    # f:
+    # 10
+    # v:
+    # Gerd
+    # n:
+    # Schmitz
+    # pa:
+    # lastPageNo:
+    # nextPageNo:
+    # 1
+    # pno:
+    # s:
   }.freeze
 
   PUBLIC_ACCESS = {
@@ -501,10 +501,9 @@ class RegionCc < ApplicationRecord
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}" if DEBUG
       else
         # read_only
-        RegionCc.logger.debug "[#{action}] #{
-          if dry_run
-            "WILL"
-          end} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        RegionCc.logger.debug "[#{action}] #{if dry_run
+                                               "WILL"
+                                             end} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil
@@ -552,10 +551,9 @@ class RegionCc < ApplicationRecord
         Rails.logger.debug "[#{action}] POST #{PATH_MAP[action][0]} with payload #{post_options}" if DEBUG
       else
         # read_only
-        RegionCc.logger.debug "[#{action}] #{
-          if dry_run
-            "WILL"
-          end} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
+        RegionCc.logger.debug "[#{action}] #{if dry_run
+                                               "WILL"
+                                             end} POST #{action} #{PATH_MAP[action][0]} with payload #{post_options}"
       end
       doc = nil
       res = nil
@@ -619,10 +617,10 @@ class RegionCc < ApplicationRecord
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
     leagues_region_todo = League
-                            .joins(league_teams: :club)
-                            .where(season: season, organizer_type: "Region", organizer_id: region.id)
-                            .where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] })
-                            .where("clubs.region_id = ?", region.id).uniq
+                          .joins(league_teams: :club)
+                          .where(season: season, organizer_type: "Region", organizer_id: region.id)
+                          .where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] })
+                          .where("clubs.region_id = ?", region.id).uniq
     # TODO: forget DBU leagues for now
     # dbu_region = Region.find_by_shortname('DBU')
     # dbu_leagues_todo = League.joins(league_teams: :club).where(season: season, organizer_type: 'Region', organizer_id: dbu_region.id).where(
@@ -630,8 +628,8 @@ class RegionCc < ApplicationRecord
     # ).uniq
     # leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
     leagues_todo_ids = leagues_region_todo.to_a.map(&:id)
-    leagues_done, err_msg = sync_leagues(opts)
-    raise_err_msg("synchronize_league_structure", err_msg) if err_msg.present?
+    leagues_done, errMsg = sync_leagues(opts)
+    raise_err_msg("synchronize_league_structure", errMsg) if errMsg.present?
     leagues_done_ids = leagues_done.map(&:id)
     leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
     unless leagues_still_todo_ids.blank?
@@ -648,8 +646,8 @@ class RegionCc < ApplicationRecord
     return if league_ids_overdone.blank?
 
     msg = "more league_ids with context #{opts[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
-      "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
-    end }"
+                                                                                          "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
+                                                                                        end }"
     RegionCc.logger.info msg
     Rails.logger.info msg
   end
@@ -669,8 +667,8 @@ class RegionCc < ApplicationRecord
     # ).uniq
     # leagues_todo_ids = (leagues_region_todo.to_a + dbu_leagues_todo.to_a).map(&:id)
     leagues_todo_ids = leagues_region_todo.to_a.map(&:id)
-    leagues_done, err_msg = sync_league_plan(opts)
-    raise_err_msg("synchronize_league_structure", err_msg) if err_msg.present?
+    leagues_done, errMsg = sync_league_plan(opts)
+    raise_err_msg("synchronize_league_structure", errMsg) if errMsg.present?
     leagues_done_ids = leagues_done.map(&:id)
     leagues_still_todo_ids = leagues_todo_ids - leagues_done_ids
     unless leagues_still_todo_ids.blank?
@@ -695,8 +693,8 @@ class RegionCc < ApplicationRecord
     return if league_ids_overdone.blank?
 
     msg = "more league_ids with context #{opts[:context].upcase} than expected in CC: #{League.where(id: league_ids_overdone).map do |league|
-      "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
-    end }"
+                                                                                          "#{league.name}[#{league.id}] - #{league.discipline.andand.name}"
+                                                                                        end }"
     ReagionCc.logger.info msg
     Rails.logger.info msg
   end
@@ -705,7 +703,7 @@ class RegionCc < ApplicationRecord
     season = Season.find_by_name(opts[:season_name])
     raise ArgumentError, "unknown season name #{opts[:season_name]}", caller if season.blank?
 
-    region_cc = Region.where(shortname: opts[:context].upcase).first&.region_cc
+    region_cc = Region.where(shortname: opts[:context].upcase).first.region_cc
     League.where(season: season, organizer_type: "Region", organizer_id: region.id).each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
       next if league.discipline_id.blank? # TODO: TEST REMOVE ME
@@ -743,7 +741,7 @@ class RegionCc < ApplicationRecord
         if league_team_cc.present?
 
           league_team_players_todo = league_team_player_object_hash[lt_id]
-          league_team_player_done = region_cc&.sync_team_players(league_team, opts)
+          league_team_player_done = region_cc.sync_team_players(league_team, opts)
           league_team_player_still_todo = league_team_players_todo - league_team_player_done
           league_team_player_still_todo.each do |player|
             next if player.andand.ba_id.blank? || player.ba_id.to_i > 999_000_000
@@ -758,7 +756,7 @@ class RegionCc < ApplicationRecord
                      passnr: player.ba_id,
                      referer: "/admin/bm_mw/spielberichtCheck.php?" }
             if true
-              _, doc = region_cc&.post_cc(
+              _, doc = region_cc.post_cc(
                 "showLeague_add_teamplayer",
                 args,
                 opts
@@ -794,7 +792,7 @@ class RegionCc < ApplicationRecord
         lines.each do |tr|
           if /Kategorie/.match?(tr.css("td")[0].text.strip)
             name = tr.css("td")[2].text.strip
-            if (m = name.match(/(.*) \(\d+-\d+\)/))
+            if m = name.match(/(.*) \(\d+-\d+\)/)
               name = m[1]
             end
           elsif /Status/.match?(tr.css("td")[0].text.strip)
@@ -865,8 +863,8 @@ class RegionCc < ApplicationRecord
         name = @strip
         discipline_cc = DisciplineCc.find_or_initialize_by(cc_id: cc_id)
         discipline = Discipline.find_by_name(name.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub(
-          "Billard Kegeln", "Billard-Kegeln"
-        ))
+                                               "Billard Kegeln", "Billard-Kegeln"
+                                             ))
         discipline_cc.update(context: region.shortname.downcase, name: name, branch_cc_id: branch_cc.id,
                              discipline_id: discipline.andand.id)
       end
@@ -906,12 +904,12 @@ class RegionCc < ApplicationRecord
           elsif /Rundung Punktzahl/.match?(tr.css("td")[0].text.strip)
             args.merge!(point_fraction: tr.css("td")[2].text.strip.to_i)
           elsif /Verein/.match?(tr.css("td")[0].text.strip)
-            if (m = tr.css("td")[2].text.strip.match(/.*\((\d+)\).*/))
+            if m = tr.css("td")[2].text.strip.match(/.*\((\d+)\).*/)
               club_cc_id = m[1].to_i
               args.merge!(club_id: Club.find_by_cc_id(club_cc_id))
             end
           elsif /Jackpot \(manuell\)/.match?(tr.css("td")[0].text.strip)
-            if (m = tr.css("td")[2].text.strip.match(/(\d+,\d+).*/))
+            if m = tr.css("td")[2].text.strip.match(/(\d+,\d+).*/)
               args.merge!(point_fraction: m[1].tr(",", ".").to_f)
             end
           elsif /Mannschaften/.match?(tr.css("td")[0].text.strip)
@@ -968,13 +966,13 @@ class RegionCc < ApplicationRecord
           elsif /Kategorie/.match?(tr.css("td")[0].text.strip)
             k_name = tr.css("td")[2].text.strip
             m = k_name.match(/(.*) \(\d+-\d+\)/)
-            category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first&.id
+            category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first.andand.id
           elsif /Meldeschluss/.match?(tr.css("td")[0].text.strip)
             deadline = tr.css("td")[2].text.strip
             deadline = Date.parse(deadline) if /\d\d\.\d\d\.\d\d\d\d/.match?(deadline)
           elsif /Stichtag/.match?(tr.css("td")[0].text.strip)
             qualifying_date = tr.css("td")[2].text.strip
-            if (m = qualifying_date.match(/(\d\d\.\d\d\.\d\d\d\d).*/))
+            if m = qualifying_date.match(/(\d\d\.\d\d\.\d\d\d\d).*/)
               qualifying_date = Date.parse(m[1])
             end
           elsif /Status/.match?(tr.css("td")[0].text.strip)
@@ -982,8 +980,8 @@ class RegionCc < ApplicationRecord
           end
         end
         if opts[:release] && status != "Freigegeben"
-          _, _doc = post_cc("releaseMeldeliste",
-                            { branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: "" }, opts)
+          _, doc = post_cc("releaseMeldeliste",
+                           { branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: "" }, opts)
         end
         registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
                                     context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
@@ -1018,21 +1016,21 @@ class RegionCc < ApplicationRecord
       next if branch_cc.name == "Pool" || branch_cc.name == "Snooker" # TODO: remove restriction on branch
 
       _, doc = post_cc("showMeisterschaftenList", {
-        fedId: region_cc.cc_id,
-        branchId: branch_cc.cc_id,
-        disciplinId: "*",
-        catId: "*",
-        meisterTypeId: "*",
-        season: season.name,
-        t: 1
-      }, opts)
+                         fedId: region_cc.cc_id,
+                         branchId: branch_cc.cc_id,
+                         disciplinId: "*",
+                         catId: "*",
+                         meisterTypeId: "*",
+                         season: season.name,
+                         t: 1
+                       }, opts)
       if (msg = doc.css('input[name="errMsg"]')[0].andand["value"]).present?
         RegionCc.logger.error msg
         return [[], msg]
       end
       options = doc.css("a.cc_bluelink")
       options.each do |option|
-        if (m = option["href"].match(/.*\?p=([^&]*)&/))
+        if m = option["href"].match(/.*\?p=([^&]*)&/)
           cc_id = m[1].split("-")[6].to_i
           args = {}
           pos_hash = {}
@@ -1059,7 +1057,7 @@ class RegionCc < ApplicationRecord
                 ts_name = tr.css("td")[2].text.gsub(/ /, "").strip
                 tournament_series_cc = TournamentSeriesCc.where(name: ts_name, branch_cc_id: branch_cc.id,
                                                                 season: season.name).first
-                args.merge!(tournament_series_cc_id: tournament_series_cc&.id)
+                args.merge!(tournament_series_cc_id: tournament_series_cc.id)
               end
             elsif /Disziplin/.match?(tr.css("td")[0].text.strip)
               d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein")
@@ -1076,19 +1074,19 @@ class RegionCc < ApplicationRecord
               shortname = shortname.gsub(/ /, "").strip
               championship_type_cc = ChampionshipTypeCc.where(name: name, shortname: shortname,
                                                               branch_cc_id: branch_cc.id).first
-              args.merge!(championship_type_cc_id: championship_type_cc&.id)
+              args.merge!(championship_type_cc_id: championship_type_cc.andand.id)
             elsif /Meisterschaftsgruppe/.match?(tr.css("td")[0].text.strip)
               group_cc = GroupCc.where(name: tr.css("td")[2].text.strip, branch_cc_id: branch_cc.id).first
-              args.merge!(group_cc_id: group_cc&.id)
+              args.merge!(group_cc_id: group_cc.andand.id)
             elsif /Kategorie/.match?(tr.css("td")[0].text.strip)
               k_name = tr.css("td")[2].text.strip
-              if (m = k_name.match(/(.*) \(\d+-\d+\)/))
+              if m = k_name.match(/(.*) \(\d+-\d+\)/)
                 args.merge!(category_cc_id: CategoryCc.where(context: opts[:context], branch_cc_id: branch_cc.id,
-                                                             name: m[1]).first&.id)
+                                                             name: m[1]).first.andand.id)
               end
             elsif /Datum/.match?(tr.css("td")[0].text.strip)
               args[:tournament_start] = tr.css("td")[2].text.strip
-              if (m = args[:tournament_start].match(/(\d+\.\d+\.\d+).* \(Spielbeginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/))
+              if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).* \(Spielbeginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/)
                 args.merge!(tournament_start: DateTime.parse("#{m[1]} #{m[2]}"))
               end
             elsif /Location/.match?(tr.css("td")[0].text.strip)
@@ -1103,7 +1101,7 @@ class RegionCc < ApplicationRecord
           end
         end
       rescue Exception => e
-        Rails.logger.error "Errror: #{e} #{e.backtrace&.join("\n")}"
+        Rails.logger.error "Errror: #{e} #{e.backtrace.join("\n")}"
       end
     end
   end
@@ -1175,14 +1173,14 @@ class RegionCc < ApplicationRecord
           )
           lines = []
           tables = doc2.css("form > table > tr > td > table > tr > td > table > tr > td > table > tr > td > table > tr > td > table")
-          tables.each do |table_|
-            next if table_.css("> tr > th")[0].andand.text == "Partie-Nr."
+          tables.each do |table|
+            next if table.css("> tr > th")[0].andand.text == "Partie-Nr."
 
             try do
-              table_.css("> tr").each_with_index do |tr_, _ix|
-                tds = tr_.css("> td")
+              table.css("> tr").each_with_index do |tr, _ix|
+                tds = tr.css("> td")
                 if tds.blank?
-                  ths = tr_.css("> th")
+                  ths = tr.css("> th")
                   ths.text
                   lines.push(ths[1].text)
                 else
@@ -1196,7 +1194,7 @@ class RegionCc < ApplicationRecord
                 game_plan_cc.save!
               end
             rescue StandardError => e
-              Rails.logger.info "#{e} #{e.backtrace&.join("\n")}"
+              Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
             end
           end
         end
@@ -1227,12 +1225,12 @@ class RegionCc < ApplicationRecord
               # next unless party.ba_id == 81118
               # Kernel.sleep(0.5)
               if party.no_show_team_id.present?
-                zu_null_team = party.get_non_show_team
+                zuNullTeam = party.no_show_team_id == party.league_team_a.id ? party.league_team_b.id : party.league_team_a.id
               end
               params = {
                 "memo" => party.remarks.andand.deep_stringify_keys.andand["remarks"].to_s.encode(Encoding::ISO_8859_1),
                 "protest" => party.remarks.andand.deep_stringify_keys.andand["protest"].to_s.encode(Encoding::ISO_8859_1),
-                "zuNullTeamId" => (LeagueTeam[zu_null_team] if party.no_show_team_id.present?).andand.cc_id.to_i,
+                "zuNullTeamId" => (LeagueTeam[zuNullTeam] if party.no_show_team_id.present?).andand.cc_id.to_i,
                 "saveBut" => "",
                 "woher" => 1,
                 "matchId" => party_cc.match_id,
@@ -1254,9 +1252,9 @@ class RegionCc < ApplicationRecord
               if params["zuNullTeamId"].to_i > 0
                 params["protest"] = ":: zu Null Ergebnis.".encode(Encoding::ISO_8859_1) if params["protest"].blank?
               elsif params["protest"].present?
-                if /:0/.match?(party.data[:result])
+                if /:0/.match?(party.data["result"])
                   params["zuNullTeamId"] = party.league_team_a.league_team_cc.cc_id
-                elsif /0:/.match?(party.data[:result])
+                elsif /0:/.match?(party.data["result"])
                   params["zuNullTeamId"] = party.league_team_b.league_team_cc.cc_id
                 end
               else
@@ -1266,17 +1264,17 @@ class RegionCc < ApplicationRecord
                   while pg_line_ix < game_lines.count && ((game_lines[pg_line_ix] =~ /Runde/) || (pg.discipline.name != game_lines[pg_line_ix] && pg.discipline.name != discipline_synonyms[game_lines[pg_line_ix]]))
                     pg_line_ix += 1
                   end
-                  sc_ = pg.data[:result][pg.data[:result].keys[0]].gsub("Bälle (x0.00):",
+                  sc_ = pg.data["result"][pg.data["result"].keys[0]].gsub("Bälle (x0.00):",
                                                                         "").split(":").map(&:@strip).map(&:to_i)
-                  in_ = if pg.data[:result].keys[1].present?
-                          pg.data[:result][pg.data[:result].keys[1]].gsub(
+                  in_ = if pg.data["result"].keys[1].present?
+                          pg.data["result"][pg.data["result"].keys[1]].gsub(
                             "Aufn. (x0.00):", ""
                           ).split(":").map(&:@strip).map(&:to_i)
                         else
                           []
                         end
-                  br_ = if pg.data[:result].keys[2].present?
-                          pg.data[:result][pg.data[:result].keys[2]].gsub("HS:",
+                  br_ = if pg.data["result"].keys[2].present?
+                          pg.data["result"][pg.data["result"].keys[2]].gsub("HS:",
                                                                           "").split(":").map(&:@strip).map(&:to_i)
                         else
                           []
@@ -1361,10 +1359,10 @@ class RegionCc < ApplicationRecord
                     "#{party_cc.match_id}-#{pg_line_ix}-1-1-pid2" => pg.player_b.andand.cc_id.to_i
                   }
                   if branch_cc.name == "Pool" || branch_cc.name == "Karambol"
-                    if player_a_noshow && player_b_noshow && pg.party.data[:result] =~ /0:0/
+                    if player_a_noshow && player_b_noshow && pg.party.data["result"] =~ /0:0/
                       RegionCc.logger.info "REPORT keine Ergebnisse - noch nicht gespielt? wer ist Gewinner?"
                     elsif player_a_noshow && sc_[0].to_i == 0
-                      if /0:/.match?(pg.party.data[:result])
+                      if /0:/.match?(pg.party.data["result"])
                         # team a nicht angetreten
                         if party.remarks.andand.deep_stringify_keys.andand["protest"].blank?
                           if party.remarks.andand.deep_stringify_keys.andand["remarks"].blank?
@@ -1398,7 +1396,7 @@ class RegionCc < ApplicationRecord
                       end
                     elsif player_b_noshow && sc_[1].to_i == 0
 
-                      if /:0/.match?(pg.party.data[:result])
+                      if /:0/.match?(pg.party.data["result"])
                         # team b nicht angetreten
                         if party.remarks.andand.deep_stringify_keys.andand["protest"].blank?
                           if party.remarks.andand.deep_stringify_keys.andand["remarks"].blank?
@@ -1485,7 +1483,7 @@ class RegionCc < ApplicationRecord
       end
     end
   rescue StandardError => e
-    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace&.join("\n")}"
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
   end
 
   def self.sync_regions(opts = {})
@@ -1560,8 +1558,8 @@ class RegionCc < ApplicationRecord
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
     tournaments = Tournament
-                    .where(season: season, organizer_type: "Region", organizer_id: region.id)
-                    .where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] }).to_a
+                  .where(season: season, organizer_type: "Region", organizer_id: region.id)
+                  .where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] }).to_a
     tournaments.each do |tournament|
       next if tournament.discipline.root.name == "Pool" || tournament.discipline.root.name == "Snooker"
 
@@ -1624,7 +1622,7 @@ class RegionCc < ApplicationRecord
           firstEntry: 1,
           meisterName: tournament.title,
           meisterShortName: tournament.shortname.presence || tournament.title,
-          meldeListId: registration_list_cc&.cc_id,
+          meldeListId: registration_list_cc.cc_id,
           mr: 1,
           meisterTypeId: type_found.to_s,
           groupId: 10, # NBV History is good for all
@@ -1662,11 +1660,11 @@ class RegionCc < ApplicationRecord
     raise ArgumentError, "unknown season name #{season_name}", caller if season.blank?
 
     tournament_region_todo = Tournament
-                               .where(season: season, organizer_type: "Region", organizer_id: region.id)
-                               .where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] })
+                             .where(season: season, organizer_type: "Region", organizer_id: region.id)
+                             .where.not(tournaments: { ba_id: opts[:exclude_tournament_ba_ids] })
     tournaments_todo_ids = tournament_region_todo.to_a.map(&:id)
-    tournaments_done, err_msg = sync_tournaments(opts)
-    raise_err_msg("synchronize_tournament_structure", err_msg) if err_msg.present?
+    tournaments_done, errMsg = sync_tournaments(opts)
+    raise_err_msg("synchronize_tournament_structure", errMsg) if errMsg.present?
     tournaments_done_ids = tournaments_done.map(&:id)
     tournaments_still_todo_ids = tournaments_todo_ids - tournaments_done_ids
     branch_cc_ids = []
@@ -1707,8 +1705,8 @@ class RegionCc < ApplicationRecord
     return if tournament_ids_overdone.blank?
 
     msg = "more tournament_ids with context #{opts[:context].upcase} than expected in CC: #{Tournament.where(id: tournament_ids_overdone).map do |tournament|
-      "#{tournament.title}[#{tournament.id}] - #{tournament.discipline.andand.name}"
-    end }"
+                                                                                              "#{tournament.title}[#{tournament.id}] - #{tournament.discipline.andand.name}"
+                                                                                            end }"
     RegionCc.logger.info msg
     Rails.logger.info msg
   end
@@ -1843,7 +1841,7 @@ class RegionCc < ApplicationRecord
               if name_str_match
                 l_name = name_str_match[1].strip
                 s_name = name_str_match[2].strip.tr("/", "-")
-                s_name = "Staffel #{s_name}" if /[AB]/.match?(s_name)
+                s_name = "Staffel #{s_name}" if /A|B/.match?(s_name)
               else
                 l_name = name_str
                 s_name = nil
@@ -1864,12 +1862,11 @@ class RegionCc < ApplicationRecord
               next if opts[:exclude_league_ba_ids].include?(league.ba_id)
 
               if league_cc.blank?
-                league_cc = LeagueCc.create(cc_id: cc_id, name: "#{league.name}#{
-                  if league.staffel_text.present?
-                    " #{league.staffel_text}"
-                  end}", season_cc_id: season_cc.id, league_id: league.id, context: league.organizer.shortname.downcase, shortname: "#{league.name.gsub("Kreis", "Kreis ").gsub("lig", " lig")}#{" #{league.staffel_text}"}".split(" ").map do |w|
-                  w[0]&.upcase
-                end.join(""))
+                league_cc = LeagueCc.create(cc_id: cc_id, name: "#{league.name}#{if league.staffel_text.present?
+                                                                                   " #{league.staffel_text}"
+                                                                                 end}", season_cc_id: season_cc.id, league_id: league.id, context: league.organizer.shortname.downcase, shortname: "#{league.name.gsub("Kreis", "Kreis ").gsub("lig", " lig")}#{" #{league.staffel_text}"}".split(" ").map do |w|
+                                                                                                                                                                                                     w[0].upcase
+                                                                                                                                                                                                   end.join(""))
               end
               if league_cc.present?
                 league_cc.sync_single_league(opts)
@@ -1909,21 +1906,21 @@ class RegionCc < ApplicationRecord
 
       # Get List of Tournaments in CC
       _, doc = post_cc("showMeisterschaftenList", {
-        fedId: region.cc_id,
-        branchId: branch_cc.cc_id,
-        disciplinId: "*",
-        catId: "*",
-        meisterTypeId: "*",
-        season: season.name,
-        t: 1
-      }, opts)
+                         fedId: region.cc_id,
+                         branchId: branch_cc.cc_id,
+                         disciplinId: "*",
+                         catId: "*",
+                         meisterTypeId: "*",
+                         season: season.name,
+                         t: 1
+                       }, opts)
       if (msg = doc.css('input[name="errMsg"]')[0].andand["value"]).present?
         RegionCc.logger.error msg
         return [[], msg]
       end
       options = doc.css("a.cc_bluelink")
       options.each do |option|
-        next unless (m = option["href"].match(/.*\?p=([^&]*)&/))
+        next unless m = option["href"].match(/.*\?p=([^&]*)&/)
 
         cc_id = m[1].split("-")[6].to_i
         tournament_cc = TournamentCc.find_by(cc_id: cc_id)
@@ -2082,19 +2079,19 @@ class RegionCc < ApplicationRecord
                       if club.present?
                         league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: team_cc_id }).where(leagues: { id: league_cc.league_id }).first
                         league_team ||= LeagueTeam
-                                          .joins(:league)
-                                          .joins(club: :region)
-                                          .where(regions: { id: region.id })
-                                          .where(name: name_str, # shortname? TODO
-                                                 league_id: league_cc.league.id,
-                                                 club_id: club.id).first
+                                        .joins(:league)
+                                        .joins(club: :region)
+                                        .where(regions: { id: region.id })
+                                        .where(name: name_str, # shortname? TODO
+                                               league_id: league_cc.league.id,
+                                               club_id: club.id).first
                         league_team ||= LeagueTeam
-                                          .joins(:league)
-                                          .joins(club: :region)
-                                          .where(regions: { id: region.id })
-                                          .where(name: club.shortname, # shortname? TODO
-                                                 league_id: league_cc.league.id,
-                                                 club_id: club.id).first
+                                        .joins(:league)
+                                        .joins(club: :region)
+                                        .where(regions: { id: region.id })
+                                        .where(name: club.shortname, # shortname? TODO
+                                               league_id: league_cc.league.id,
+                                               club_id: club.id).first
                       else
                         RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{
                           name: team_club_str, cc_id: club_cc_id, region: region.shortname
@@ -2130,7 +2127,7 @@ class RegionCc < ApplicationRecord
 
     [league_teams, league_team_ccs]
   rescue StandardError => e
-    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace&.join("\n")}"
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
   end
 
   def sync_league_teams(opts = {})
@@ -2218,28 +2215,28 @@ class RegionCc < ApplicationRecord
 
               team_club_str = name_str
 
-              if /.*[ [:space:]]+\d+$/.match?(name_str)
-                team_club_str = (m = name_str.match(/(.*[^ [[:space:]]])[ [:space:]]*(\d+)$/))[1]
+              if /.*[ [[:space:]]]+\d+$/.match?(name_str)
+                team_club_str = (m = name_str.match(/(.*[^ [[:space:]]])[ [[:space:]]]*(\d+)$/))[1]
                 m[2]
-                team_club_str = team_club_str&.tr("`", "'")
+                team_club_str = team_club_str.tr("`", "'")
               end
               club = Club.where(region: region, shortname: team_club_str).first
               if club.present?
                 league_team = LeagueTeam.joins(:league).joins(:league_team_cc).where(league_team_ccs: { cc_id: cc_id }).where(leagues: { id: league_cc.league_id }).first
                 league_team ||= LeagueTeam
-                                  .joins(:league)
-                                  .joins(club: :region)
-                                  .where(regions: { id: region.id })
-                                  .where(name: name_str, # shortname? TODO
-                                         league_id: league_cc.league.id,
-                                         club_id: club.id).first
+                                .joins(:league)
+                                .joins(club: :region)
+                                .where(regions: { id: region.id })
+                                .where(name: name_str, # shortname? TODO
+                                       league_id: league_cc.league.id,
+                                       club_id: club.id).first
                 league_team ||= LeagueTeam
-                                  .joins(:league)
-                                  .joins(club: :region)
-                                  .where(regions: { id: region.id })
-                                  .where(name: team_club_str, # shortname? TODO
-                                         league_id: league_cc.league.id,
-                                         club_id: club.id).first
+                                .joins(:league)
+                                .joins(club: :region)
+                                .where(regions: { id: region.id })
+                                .where(name: team_club_str, # shortname? TODO
+                                       league_id: league_cc.league.id,
+                                       club_id: club.id).first
               else
                 RegionCc.logger.warn "REPORT! [sync_league_teams] Name des Clubs entspricht keiner BA Liga: CC: #{{
                   name: team_club_str, cc_id: cc_id, region: region.shortname
@@ -2255,7 +2252,7 @@ class RegionCc < ApplicationRecord
                 league_team_ccs.push(league_team_cc) unless league_team_ccs.include?(league_team_cc)
               else
                 RegionCc.logger.warn "REPORT! [sync_league_teams] Name der Liga Mannschaft #{team_club_str} in Liga #{league_cc.attributes} entspricht keinem BA LigaTeam: CC: #{{
-                  name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club&.id
+                  name: name_str, cc_id: cc_id, league_id: league_cc.league.id, club_id: club.andand.id
                 }.inspect}"
               end
             end
@@ -2266,7 +2263,7 @@ class RegionCc < ApplicationRecord
 
     [league_teams, league_team_ccs]
   rescue StandardError => e
-    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace&.join("\n")}"
+    RegionCc.logger.error "ERROR #{e} \n#{e.backtrace.join("\n")}"
   end
 
   def sync_league_plan(opts = {})
@@ -2276,7 +2273,7 @@ class RegionCc < ApplicationRecord
       "clubs.region_id = ?", region.id
     ).where.not(leagues: { ba_id: opts[:exclude_league_ba_ids] }).uniq
     leagues_done = []
-    err_msg = nil
+    errMsg = nil
     leagues.each do |league|
       next if opts[:exclude_league_ba_ids].include?(league.ba_id)
 
@@ -2303,6 +2300,7 @@ class RegionCc < ApplicationRecord
           RegionCc.logger.error msg
           return [leagues_done, msg]
         end
+        party_match_id = nil
         party_done_ids = []
         tables = doc3.css("form > table > tr > td > table > tr > td > table > tr > td > table") # TODO: why is an Array returned???
         tables.each do |table|
@@ -2327,10 +2325,9 @@ class RegionCc < ApplicationRecord
             party_res_a = tds.css("> input")[6]["value"]
             party_res_b = tds.css("> input")[7]["value"]
             party_team_host_cc_id = selectors[2].css("option[selected=selected]")[0]["value"].to_i
-            party_time = DateTime.parse("#{tds.css("> input")[4]["value"]} #{
-              if /:/.match?(tds.css("> input")[8]["value"])
-                tds.css("> input")[8]["value"]
-              end}")
+            party_time = DateTime.parse("#{tds.css("> input")[4]["value"]} #{if /:/.match?(tds.css("> input")[8]["value"])
+                                                                               tds.css("> input")[8]["value"]
+                                                                             end}")
             party_register = Date.parse(tds.css("> input")[9]["value"])
 
             party = parties.joins('INNER JOIN "league_teams" as "league_team_a" on "league_team_a"."id" = "parties"."league_team_a_id"')
@@ -2349,10 +2346,10 @@ class RegionCc < ApplicationRecord
                      register_at: party_register,
                      status: party_active,
                      league_cc_id: league_cc.id,
-                     party_id: party&.id,
-                     league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first&.id,
-                     league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first&.id,
-                     league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first&.id,
+                     party_id: party.andand.id,
+                     league_team_a_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_a_cc_id }).first.andand.id,
+                     league_team_b_cc_id: league_cc.league_team_ccs.where(league_team_ccs: { cc_id: party_team_b_cc_id }).first.andand.id,
+                     league_team_host_cc_id: league_cc.league_team_ccs.joins(:party_host_ccs).where(league_team_ccs: { cc_id: party_team_host_cc_id }).first.andand.id,
                      day_seqno: party_day_seqno,
                      data: { result: "#{party_res_a}:#{party_res_b}" } }
             if party.present?
@@ -2402,7 +2399,7 @@ class RegionCc < ApplicationRecord
         RegionCc.logger.info "REPORT [sync_league_plan] Liga nicht in CC: #{league.attributes}"
       end
     end
-    [leagues_done, err_msg]
+    [leagues_done, errMsg]
   end
 
   def sync_clubs(opts = {})
@@ -2507,22 +2504,21 @@ class RegionCc < ApplicationRecord
                     raise RuntimeError,
                           "Party #{{ day_seqno: day_seqno, team_a_cc_name: team_a_cc.name, team_b_cc_name: team_b_cc.name }} not found", caller
                   end
-                  if party.present?
-                    party.assign_attributes(cc_id: cc_id)
-                    party.save!
-                    args = { cc_id: cc_id,
-                             league_cc_id: league_cc.id,
-                             party_id: party.id,
-                             league_team_a_cc: team_a_cc,
-                             league_team_b_cc: team_b_cc,
-                             league_team_host_cc: host_cc }
-                    party_cc = PartyCc.find_by_cc_id_and_league_cc_id(cc_id, league_cc.id)
-                    party_cc = PartyCc.new(args) if party_cc.blank?
-                    party_cc.assign_attributes(args)
-                    party_cc.save!
-                    party_ccs.push(party_cc)
-                    parties.push(party)
-                  end
+
+                  party.assign_attributes(cc_id: cc_id)
+                  party.save!
+                  args = { cc_id: cc_id,
+                           league_cc_id: league_cc.id,
+                           party_id: party.id,
+                           league_team_a_cc: team_a_cc,
+                           league_team_b_cc: team_b_cc,
+                           league_team_host_cc: host_cc }
+                  party_cc = PartyCc.find_by_cc_id_and_league_cc_id(cc_id, league_cc.id)
+                  party_cc = PartyCc.new(args) if party_cc.blank?
+                  party_cc.assign_attributes(args)
+                  party_cc.save!
+                  party_ccs.push(party_cc)
+                  parties.push(party)
                 end
               elsif doc.css("table > tr > td > table > tr.tableContent > td > table > tr > td > input").present?
                 if league.organizer_id == region.id && league.organizer_type == "Region"
@@ -2561,23 +2557,23 @@ class RegionCc < ApplicationRecord
           woher2: 1,
           editBut: "" },
         opts
-      # get Spielbericht
-      # _res, doc = region_cc.post_cc(
-      #   "spielbericht",
-      #   { errMsgNew: "",
-      #   matchId: party_cc.party_game_ccs.first.cc_id,
-      #   teamId: 189
-      #   woher: 1
-      #   firstEntry: 1
-      #   #
-      #   # sortKey: "NAME",
-      #   # branchid: party_cc.branchId,
-      #   # woher: 1,
-      #   # wettbewerb: party_cc.subBranchId,
-      #   # sportkreis: "*",
-      #   # saison: season_name,
-      #   # partienr: party_cc.cc_id,
-      #   # seekBut: ""}, opts
+        # get Spielbericht
+        # _res, doc = region_cc.post_cc(
+        #   "spielbericht",
+        #   { errMsgNew: "",
+        #   matchId: party_cc.party_game_ccs.first.cc_id,
+        #   teamId: 189
+        #   woher: 1
+        #   firstEntry: 1
+        #   #
+        #   # sortKey: "NAME",
+        #   # branchid: party_cc.branchId,
+        #   # woher: 1,
+        #   # wettbewerb: party_cc.subBranchId,
+        #   # sportkreis: "*",
+        #   # saison: season_name,
+        #   # partienr: party_cc.cc_id,
+        #   # seekBut: ""}, opts
       )
       err_msg = doc.present && doc.css('input[name="errMsg"]')[0].andand["value"]
       raise ArgumentError, err_msg if err_msg.present? || doc.blank?

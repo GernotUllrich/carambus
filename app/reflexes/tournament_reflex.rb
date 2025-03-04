@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# The TournamentReflex class in Ruby on Rails handles the real-time updating of
+# various attributes of a Tournament object using StimulusReflex and ActionCable
+# for real-time, websocket-based communication. The attributes include
+# innings goal, timeouts, balls goal, and others.
+# Each method in the class corresponds to an attribute update action.
 class TournamentReflex < ApplicationReflex
   # Add Reflex methods in this file.
   #
@@ -22,117 +27,44 @@ class TournamentReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
 
-  def innings_goal
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    # val = nil if val <=0
-    tournament.update_attribute(:innings_goal, val)
-  end
+  ATTRIBUTE_METHODS = {
+    innings_goal: "I",
+    timeouts: "I",
+    balls_goal: "I",
+    timeout: "I",
+    admin_controlled: "B",
+    continuous_placements: "B",
+    gd_has_prio: "B",
+    kickoff_switches_with: "S",
+    allow_follow_up: "B",
+    color_remains_with_set: "B",
+    fixed_display_left: "K",
+    sets_to_play: "I",
+    sets_to_win: "I",
+    time_out_warm_up_first_min: "B",
+    time_out_warm_up_follow_up_min: "B"
+  }
 
-  def timeouts
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    val = 0 if val < 0
-    tournament.update_attribute(:timeouts, val)
-  end
+  ATTRIBUTE_METHODS.keys.each do |attribute|
+    define_method(attribute.to_s) do
+      morph :nothing
+      tournament = Tournament.find(element.dataset["id"])
+      val = case ATTRIBUTE_METHODS[attribute]
+            when "I"
+              element.value.to_i
+            when "K"
+              element.value.to_s.presence
+            when "S"
+              element.value.to_s.presence || "set"
+            when "B"
+              !!element.checked
+            end
+      update_unprotected(tournament, attribute.to_sym, val)
 
-  def balls_goal
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    val = nil if val <= 0
-    tournament.update_attribute(:balls_goal, val)
-  end
-
-  def timeout
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    val = nil if val <= 0
-    tournament.update_attribute(:timeout, val)
-  end
-
-  def admin_controlled
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["checked"]
-    tournament.update_attribute(:admin_controlled, val)
-  end
-
-  def continuous_placements
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["checked"]
-    tournament.unprotected = true
-    tournament.update_attributes(continuous_placements: val)
-  end
-
-  def gd_has_prio
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["checkd"]
-    tournament.update_attribute(:gd_has_prio, val)
-  end
-
-  def kickoff_switches_with
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].presence || "set"
-    tournament.update_attribute(:kickoff_switches_with, val)
-  end
-
-  def allow_follow_up
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["checked"]
-    tournament.update_attribute(:allow_follow_up, val)
-  end
-
-  def color_remains_with_set
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["checked"]
-    tournament.update_attribute(:color_remains_with_set, val)
-  end
-
-  def fixed_display_left
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_s
-    val = nil unless val.present?
-    tournament.update_attribute(:fixed_display_left, val)
-  end
-
-  def sets_to_play
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    tournament.update_attribute(:sets_to_play, val)
-  end
-
-  def sets_to_win
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    tournament.update_attribute(:sets_to_win, val)
-  end
-
-  def time_out_warm_up_first_min
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    val = nil if val <= 0
-    tournament.update_attribute(:time_out_warm_up_first_min, val)
-  end
-
-  def time_out_warm_up_follow_up_min
-    morph :nothing
-    tournament = Tournament.find(element.dataset["id"])
-    val = element.attributes["value"].to_i
-    val = nil if val <= 0
-    tournament.update_attribute(:time_out_warm_up_follow_up_min, val)
+      # tournament.unprotected = true
+      # tournament.update(attribute.to_sym => val)
+      # tournament.unprotected = false
+    end
   end
 
   def change_party_seeding
@@ -188,7 +120,8 @@ class TournamentReflex < ApplicationReflex
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = nil
     if checked
-      seeding = tournament.seedings.where(player_id: player.id).first || tournament.seedings.create(player_id: player.id)
+      seeding = tournament.seedings.where(player_id: player.id).first ||
+        tournament.seedings.create(player_id: player.id)
     else
       tournament.seedings.where(player_id: player.id).destroy_all
     end
@@ -220,7 +153,7 @@ class TournamentReflex < ApplicationReflex
     tournament = Tournament.find(element.dataset["id"])
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where("id > ?", 50_000_000).where(player_id: player.id).first
-    seeding.set_list_position(element.attributes["value"].to_i)
+    seeding&.set_list_position(element.attributes["value"].to_i)
   end
 
   def change_point_goal
@@ -229,6 +162,22 @@ class TournamentReflex < ApplicationReflex
     val = element.attributes["value"].to_i
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where(player_id: player.id).first
-    seeding.update(balls_goal: val)
+    seeding&.update(balls_goal: val)
+  end
+
+  private
+
+  def update_unprotected(object, key, val)
+    object.unprotected = true
+    object.update(key => val)
+    object.unprotected = false
+  end
+
+  private
+
+  def update_unprotected(object, key, val)
+    object.unprotected = true
+    object.update(key => val)
+    object.unprotected = false
   end
 end

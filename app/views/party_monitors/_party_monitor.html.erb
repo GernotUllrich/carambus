@@ -144,7 +144,7 @@
                 <td>
                   <h3>Disziplin Parameter</h3>
                   <%- r_no = 0 %>
-                  <%- Array(@party_monitor.data[:rows]).each_with_index do |row, row_nr| %>
+                  <%- Array(@party_monitor.data["rows"]).each_with_index do |row, row_nr| %>
                     <%- if row[:type] == "Neue Runde" %>
                       <%- r_no += 1 %>
                     <%- elsif ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel", "Shootout (4er Team)"].include?(row[:type]) %>
@@ -172,10 +172,10 @@
             <div style="display: table">
               <%- r_no = 0; t_no = 1 %>
               <%- table_ids = [] %>
-              <%- Array(@party_monitor.data[:rows]).each_with_index do |row, row_nr| %>
+              <%- Array(@party_monitor.data["rows"]).each_with_index do |row, row_nr| %>
                 <%- if row[:type] == "Neue Runde" %>
                   <%- r_no += 1; t_no = 1 %>
-                  <%- table_ids = Array(@party_monitor.data[:table_ids].andand[r_no - 1]) %>
+                  <%- table_ids = Array(@party_monitor.data["table_ids"].andand[r_no - 1]) %>
                   <%- if table_ids.blank? %>
                     <%- table_ids = Table.joins(:location => { :clubs => :region }).where(id: @available_fitting_table_ids).order("locations.name, tables.name").ids[0..@tournament_tables - 1] %>
                   <%- end %>
@@ -209,7 +209,7 @@
                   <%- @round_player_b_ids = @assigned_players_b_ids.dup %>
                 <%- elsif ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel", "Shootout (4er Team)"].include?(row[:type]) %>
                   <%- t_no += 1 %>
-                  <%#- table = Table[@party_monitor.data[:table_ids].andand[r_no - 1].andand[t_no - 2]] %>
+                  <%#- table = Table[@party_monitor.data["table_ids"].andand[r_no - 1].andand[t_no - 2]] %>
                   <turbo_frame id="party_monitor_scores_<%= row_nr %>">
                     <%= render partial: 'party_monitors/game_row', locals: {
                       row: row,

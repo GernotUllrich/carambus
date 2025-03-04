@@ -66,7 +66,7 @@ class PartyMonitorReflex < ApplicationReflex
 
   def gather_parameters
     @party_monitor.data = @party_monitor.data.presence || @league.game_plan.data
-    rows = @party_monitor.data[:rows]
+    rows = @party_monitor.data["rows"]
     params.keys.each do |k|
       next unless /^#{@party.cc_id}-/.match?(k)
 
@@ -93,8 +93,8 @@ class PartyMonitorReflex < ApplicationReflex
   def prepare_next_round
     if @party_monitor.may_prepare_next_round?
       gather_parameters
-      minimum_players = @party_monitor.data[:minimum_players].presence || 4
-      maximum_players = @party_monitor.data[:maximum_players].presence || 8
+      minimum_players = @party_monitor.data["minimum_players"].presence || 4
+      maximum_players = @party_monitor.data["maximum_players"].presence || 8
       assigned_players_a_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_a" }).ids
       assigned_players_b_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_b" }).ids
       if assigned_players_a_ids.count >= minimum_players && assigned_players_b_ids.count >= minimum_players &&
@@ -122,7 +122,7 @@ class PartyMonitorReflex < ApplicationReflex
     if @party_monitor.may_enter_next_round_seeding?
       @party_monitor.data = @party_monitor.data.presence || @league.game_plan.data.dup
       round = @party_monitor.current_round
-      # @party_monitor.data[:table_ids] = params[:table_id].map(&:to_i).uniq
+      # @party_monitor.data["table_ids"] = params[:table_id].map(&:to_i).uniq
       table_id_keys = params.keys.select { |id| id =~ /table_id_#{round}_\d+/ }
       table_ids = []
       table_id_keys.each do |key|
@@ -136,7 +136,7 @@ class PartyMonitorReflex < ApplicationReflex
         @party_monitor.save!
         @party_monitor.enter_next_round_seeding!
       else
-        flash[:alert] = "Mindestens #{@party_monitor.data[:tables].to_i} Tische müssen zugeordnet werden!"
+        flash[:alert] = "Mindestens #{@party_monitor.data["tables"].to_i} Tische müssen zugeordnet werden!"
       end
     else
       flash[:alert] =
@@ -161,7 +161,7 @@ class PartyMonitorReflex < ApplicationReflex
       multiple_assignments = 0
       player_a_ids = []
       player_b_ids = []
-      @party_monitor.data[:rows].each do |row|
+      @party_monitor.data["rows"].each do |row|
         next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
                      "Shootout (4er Team)"].include?(row[:type]) && (row[:r_no] == r_no)
 
@@ -211,13 +211,13 @@ class PartyMonitorReflex < ApplicationReflex
   def finish_round
     if @party_monitor.may_finish_round?
       @party_monitor.incr_current_round!
-      if @party_monitor.data[:rows].index do |row|
+      if @party_monitor.data["rows"].index do |row|
            row[:type] == "Neue Runde" && row[:r_no] == @party_monitor.current_round
          end
         @party_monitor.finish_round!
         @party_monitor.save!
         # TODO: if draw result so far play shootout!!!
-        if @party_monitor.data[:rows].index do |row|
+        if @party_monitor.data["rows"].index do |row|
              row[:type] =~ /shootout/i && row[:r_no] == @party_monitor.current_round
            end
           points_l, points_r = @party.intermediate_result
@@ -252,7 +252,7 @@ class PartyMonitorReflex < ApplicationReflex
     # create games for round
     t_no = 1
     if @party_monitor.may_start_round?
-      @party_monitor.data[:rows].each_with_index do |row, row_nr|
+      @party_monitor.data["rows"].each_with_index do |row, row_nr|
         next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
                      "Shootout (4er Team)"].include?(row[:type]) && (row[:r_no] == r_no)
 
@@ -328,11 +328,11 @@ class PartyMonitorReflex < ApplicationReflex
     if @party_monitor.party_result_checking_mode?
       complete = true
       games = []
-      @party_monitor.data[:rows].each do |row|
+      @party_monitor.data["rows"].each do |row|
         next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
                      "Shootout (4er Team)"].include?(row[:type])
 
-        row_type = row[:type]
+        row_type = row[type]
         gname = "#{row[:seqno]}-#{row_type}"
         game = @party_monitor.party.games.where(gname: gname).first
         if game.ended_at.blank?

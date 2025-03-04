@@ -132,18 +132,18 @@ class Tournament < ApplicationRecord
                    parties].freeze
 
   COLUMN_NAMES = { # TODO: FILTERS
-    "BA_ID" => "tournaments.ba_id",
-    "BA State" => "tournaments.ba_state",
-    "Title" => "tournaments.title",
-    "Shortname" => "tournaments.shortname",
-    "Discipline" => "disciplines.name",
-    "Region" => "regions.shortname",
-    "Organization" => "regions.shortname",
-    # 'location' => 'locations.address',
-    "Season" => "seasons.name",
-    "Status" => "tournaments.  plan_or_show",
-    "SingleOrLeague" => "tournaments.single_or_league",
-    "date" => "tournaments.date::date"
+                   "BA_ID" => "tournaments.ba_id",
+                   "BA State" => "tournaments.ba_state",
+                   "Title" => "tournaments.title",
+                   "Shortname" => "tournaments.shortname",
+                   "Discipline" => "disciplines.name",
+                   "Region" => "regions.shortname",
+                   "Organization" => "regions.shortname",
+                   # 'location' => 'locations.address',
+                   "Season" => "seasons.name",
+                   "Status" => "tournaments.  plan_or_show",
+                   "SingleOrLeague" => "tournaments.single_or_league",
+                   "date" => "tournaments.date::date"
   }.freeze
 
   def self.search_hash(params)
@@ -169,7 +169,7 @@ or (tournaments.single_or_league ilike :search)",
     table_ids = Array(record.send(attr)[:table_ids])
     if table_ids.present?
       incomplete = table_ids.length != record.tournament_plan.andand.tables.to_i &&
-                   !record.manual_assignment && record.tournament_plan.andand.tables.to_i < 999
+        !record.manual_assignment && record.tournament_plan.andand.tables.to_i < 999
       heterogen = Table.where(id: table_ids).all.map(&:location_id).uniq.length > 1
       inconsistent = table_ids != table_ids.uniq
       record.errors.add(attr, I18n.t("table_assignments_incomplete")) if incomplete
@@ -254,12 +254,15 @@ or (tournaments.single_or_league ilike :search)",
   before_save do
     self.date = Time.at(0) if date.blank?
     self.organizer = region if organizer.blank?
-    %i[balls_goal innings_goal time_out_warm_up_first_min
+    %w[balls_goal innings_goal time_out_warm_up_first_min
        time_out_warm_up_follow_up_min kickoff_switches_with fixed_display_left] +
-      %i[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
+      %w[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
          team_size kickoff_switches_with allow_follow_up
          fixed_display_left color_remains_with_set].each do |meth|
-        write_attribute(meth, data.delete(meth)) if data[meth].present?
+        if data[meth].present?
+          data_will_change!
+          write_attribute(meth, data.delete(meth))
+        end
       end
   end
 
@@ -288,7 +291,7 @@ or (tournaments.single_or_league ilike :search)",
   end
 
   def t_no_from(table)
-    data[:table_ids].to_a.each_with_index do |table_id, ix|
+    data["table_ids"].to_a.each_with_index do |table_id, ix|
       return ix + 1 if table_id.to_i == table.id
     end
     1
@@ -308,7 +311,7 @@ or (tournaments.single_or_league ilike :search)",
   def scrape_single_tournament_public(opts = {})
     nbsp = ["c2a0"].pack("H*").force_encoding("UTF-8")
     return -1 if organizer_type != "Region"
-    return if Carambus.config.carambus_api_url.present?
+    return if Jumpstart.config.carambus_api_url.present?
 
     region = organizer
     url = organizer.public_cc_url_base
@@ -463,7 +466,7 @@ or (tournaments.single_or_league ilike :search)",
       table.css("tr")[2..].each_with_index do |tr, ix|
         _n = tr.css("td")[0].text.to_i
         player_lname, player_fname, club_name = tr.css("td")[2].inner_html
-                                                  .match(%r{<strong>(.*), (.*)</strong><br>(.*)})[1..3]
+                                                               .match(%r{<strong>(.*), (.*)</strong><br>(.*)})[1..3]
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
                                                                        club_name.strip, self,
@@ -543,10 +546,10 @@ or (tournaments.single_or_league ilike :search)",
         frame1_lines, frame_points, frame_result, frames, gd, group, hb, header, hs, mp, innings, nbsp, no,
           player_list, playera_fl_name, playerb_fl_name, points, result, result_lines, result_url,
           td_lines, _tr = parse_table_tr(
-            frame1_lines, frame_points, frame_result, frames, gd, group, hb,
-            header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
-            points, result, result_lines, result_url, td_lines, tr
-          )
+          frame1_lines, frame_points, frame_result, frames, gd, group, hb,
+          header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
+          points, result, result_lines, result_url, td_lines, tr
+        )
       end
       if td_lines.positive? && no.present?
         handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
@@ -660,7 +663,7 @@ or (tournaments.single_or_league ilike :search)",
         Rails.logger.info "reading #{url + url_tournament} - \"#{title}\" season #{season.name}"
         uri = URI(url + url_tournament)
         res = Net::HTTP.post_form(uri, "data[Season][check]" => "87gdsjk8734tkfdl",
-                                       "data[Season][season_id]" => season.ba_id.to_s)
+                                  "data[Season][season_id]" => season.ba_id.to_s)
         doc = Nokogiri::HTML(res.body)
         doc.css(".element").each do |element|
           label = element.css("label").text.gsub(nbsp, " ").strip
@@ -812,10 +815,12 @@ or (tournaments.single_or_league ilike :search)",
     Tournament.logger.info "[reset_tournament]..."
     # called from state machine only
     # use direct only for testing purposes
-    table_monitors = Array(tournament_monitor.andand.table_monitors)
-    tournament_monitor.andand.destroy
-    table_monitors.each do |tm|
-      tm.reload.reset_table_monitor
+    if tournament_monitor.present?
+      table_monitors = tournament_monitor.table_monitors
+      tournament_monitor.destroy
+      table_monitors.each do |tm|
+        tm.reload.reset_table_monitor
+      end
     end
     unless (organizer.is_a? Club) || (id.present? && id > Seeding::MIN_ID)
       seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
@@ -829,8 +834,9 @@ or (tournaments.single_or_league ilike :search)",
       end
     end
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
-    unless new_record? || (id.present? && id < Seeding::MIN_ID)
+    unless new_record? || (id.present? && id > Seeding::MIN_ID)
       self.unprotected = true
+      data_will_change!
       assign_attributes(tournament_plan_id: nil, state: "new_tournament", data: {})
       save
       self.unprotected = false
@@ -1060,12 +1066,12 @@ or (tournaments.single_or_league ilike :search)",
         /\s*\((.*)\)/, ""
       )
       a1, b1, c1 = tr.css("td")[1].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       playerb_fl_name = (tr.css("td")[3].inner_html.gsub(%r{</?strong>}, "").split("<br>")[0].presence || "Freilos").gsub(
         /\s*\((.*)\)/, ""
       )
       a2, b2, c2 = tr.css("td")[3].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       hs << "#{a1}/#{a2}"
       innings << "#{b1}/#{b2}"
       gd << "#{c1}/#{c2}"
@@ -1183,12 +1189,12 @@ or (tournaments.single_or_league ilike :search)",
 
                 _sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player.id, season.id,
                                                                                       real_club.id) ||
-                      SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id,
-                                                 position: ix + 1)
+                  SeasonParticipation.create(player_id: player.id, season_id: season.id, club_id: real_club.id,
+                                             position: ix + 1)
               end
             end
             seeding = Seeding.find_by_player_id_and_tournament_id(player.id, id) ||
-                      Seeding.create(player_id: player.id, tournament_id: id)
+              Seeding.create(player_id: player.id, tournament_id: id)
             seeding_ids.delete(seeding.id)
           end
         elsif season_participations.count.zero?
@@ -1202,7 +1208,7 @@ or (tournaments.single_or_league ilike :search)",
                                                                             club.id) ||
               SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
             seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, id) ||
-                      Seeding.create(player_id: player_fixed.id, tournament_id: id)
+              Seeding.create(player_id: player_fixed.id, tournament_id: id)
             seeding_ids.delete(seeding.id)
           elsif players.count == 1
             player_fixed = players.first
@@ -1213,7 +1219,7 @@ or (tournaments.single_or_league ilike :search)",
                 SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
               logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - fixed: Player #{lastname}, #{firstname} set active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} and season #{season.name}"
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, id) ||
-                        Seeding.create(player_id: player_fixed.id, tournament_id: id)
+                Seeding.create(player_id: player_fixed.id, tournament_id: id)
               seeding_ids.delete(seeding.id)
             end
           elsif players.count > 1
@@ -1231,7 +1237,7 @@ or (tournaments.single_or_league ilike :search)",
                                                                               club.id) ||
                 SeasonParticipation.create(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, id) ||
-                        Seeding.create(player_id: player_fixed.id, tournament_id: id)
+                Seeding.create(player_id: player_fixed.id, tournament_id: id)
               seeding_ids.delete(seeding.id)
             end
           end
@@ -1241,7 +1247,7 @@ or (tournaments.single_or_league ilike :search)",
           player = season_participation&.player
           if player.present?
             _seeding = Seeding.find_by_player_id_and_tournament_id(player.id, id) ||
-                       Seeding.create(player_id: player.id, tournament_id: id)
+              Seeding.create(player_id: player.id, tournament_id: id)
           end
         else
           logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence: Player #{lastname}, #{firstname} is not active in Club[#{club.ba_id}] #{club_str}, region #{region.shortname} and season #{season.name}"
@@ -1254,7 +1260,7 @@ or (tournaments.single_or_league ilike :search)",
             SeasonParticipation.create(player_id: fixed_player.id, season_id: season.id,
                                        club_id: fixed_club.id)
           seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, id) ||
-                    Seeding.create(player_id: fixed_player.id, tournament_id: id)
+            Seeding.create(player_id: fixed_player.id, tournament_id: id)
           seeding_ids.delete(seeding.id)
         end
       else
@@ -1268,7 +1274,7 @@ or (tournaments.single_or_league ilike :search)",
         logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - temporary fix: Club #{club_str} created in region #{region.shortname}"
         logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - temporary fix: Player #{lastname}, #{firstname} playing for Club #{club_str}"
         seeding = Seeding.find_by_player_id_and_tournament_id(fixed_player.id, id) ||
-                  Seeding.create(player_id: fixed_player.id, tournament_id: id)
+          Seeding.create(player_id: fixed_player.id, tournament_id: id)
         seeding_ids.delete(seeding.id)
       end
     elsif /X/.match?(td.text.gsub(nbsp, " ").strip)
@@ -1338,8 +1344,8 @@ or (tournaments.single_or_league ilike :search)",
       )
     end
     unless game.game_participations.empty? &&
-           player_list[playera_fl_name].present? &&
-           player_list[playerb_fl_name].present?
+      player_list[playera_fl_name].present? &&
+      player_list[playerb_fl_name].present?
       return
     end
 

@@ -136,7 +136,7 @@ class PartyMonitor < ApplicationRecord
   def initialize_table_monitors
     Rails.logger.info "[pmon-initialize_table_monitors]..."
     save!
-    table_ids = Array(data[:table_ids].andand.map(&:to_i))
+    table_ids = Array(data["table_ids"].andand.map(&:to_i))
     if table_ids.present?
       (1..[party.game_plan.andand.tables.to_i, table_ids.count].min).each do |t_no|
         table = Table.find(table_ids[t_no - 1])
@@ -165,7 +165,7 @@ class PartyMonitor < ApplicationRecord
       if !@placements_done.include?(new_game.id) || new_game.data.blank? || new_game.data.keys == ["tmp_results"]
         info = "+++ 8b - tournament_monitor#do_placement"
         Rails.logger.info info
-        table_ids = data[:table_ids][r_no - 1]
+        table_ids = data["table_ids"][r_no - 1]
         if t_no.to_i > 0 &&
            ((current_round == r_no &&
              new_game.present? &&
@@ -543,8 +543,8 @@ class PartyMonitor < ApplicationRecord
     key = key_.to_sym
     seqno = gname.split("-")[0].to_i
     type = gname.split("-")[1..].join("-")
-    ix = data[:rows].find_index { |row| row[:seqno] == seqno && row[:type] == type }
-    ix.present? ? data[:rows][ix][key] : nil
+    ix = data["rows"].find_index { |row| row["seqno"] == seqno && row["type"] == type }
+    ix.present? ? data["rows"][ix][key] : nil
   rescue StandardError => e
     Rails.logger.info "ERROR: #{e}, #{e.backtrace.join("\n")}" if DEBUG
     raise StandardError unless Rails.env == "production"
@@ -556,8 +556,8 @@ class PartyMonitor < ApplicationRecord
     seqno = gname.split("-")[0].to_i
     type = gname.split("-")[1..].join("-")
     data = party.league.game_plan.data
-    ix = data[:rows].find_index { |row| row[:seqno] == seqno && row[:type] == type }
-    ix.present? ? data[:rows][ix][key] : nil
+    ix = data["rows"].find_index { |row| row[:seqno] == seqno && row[:type] == type }
+    ix.present? ? data["rows"][ix][key] : nil
   end
 
   private

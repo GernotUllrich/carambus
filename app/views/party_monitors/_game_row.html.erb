@@ -57,7 +57,7 @@
   <%= ba_results.inspect %>
 <%- end %>
 <div style="display:table-row">
-  <%- table = Table[party_monitor.data[:table_ids].andand[r_no - 1].andand[t_no - 2]] %>
+  <%- table = Table[party_monitor.data["table_ids"].andand[r_no - 1].andand[t_no - 2]] %>
   <div style="display:table-row-group">
     <div style="display:table-cell" class="p-3"><b><%= row["seqno"] %><b></b></b></div>
     <div style="display:table-cell" class="p-3 <%= "flex" if table.present? %> flex-row items-center">
@@ -91,7 +91,7 @@
         <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-1-player_a" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
           <option value="0" selected=""></option>
           <%- round_player_a_ids.each do |pid| %>
-            <option value="<%= pid %>" <%= 'selected' if Array(party_monitor.data[:rows][row_nr][:player_a])[0] == pid %> >
+            <option value="<%= pid %>" <%= 'selected' if Array(party_monitor.data["rows"][row_nr]["player_a"])[0] == pid %> >
               <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
             </option>
           <%- end %>
@@ -113,7 +113,7 @@
         <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-1-player_b" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
           <option value="0" selected=""></option>
           <%- round_player_b_ids.each do |pid| %>
-            <option value="<%= pid %>" <%= 'selected' if Array(party_monitor.data[:rows][row_nr][:player_b])[0] == pid %> >
+            <option value="<%= pid %>" <%= 'selected' if Array(party_monitor.data["rows"][row_nr]["player_b"])[0] == pid %> >
               <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
             </option>
           <%- end %>
@@ -180,7 +180,7 @@
             <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-1-player_a" <%= 'disabled' unless party_monitor.state == 'next_round_seeding_mode' && party_monitor.current_round == r_no %>>
               <option value="0" selected=""></option>
               <%- round_player_a_ids.each do |pid| %>
-                <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_a][1] == pid %> >
+                <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_a"][1] == pid %> >
                   <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
                 </option>
               <%- end %>
@@ -194,7 +194,7 @@
           <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-2-1-player_b" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
             <option value="0" selected=""></option>
             <%- round_player_b_ids.each do |pid| %>
-              <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_b][1] == pid %> >
+              <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_b"][1] == pid %> >
                 <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
               </option>
             <%- end %>
@@ -214,7 +214,7 @@
         <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-3-1-player_a" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
           <option value="0" selected=""></option>
           <%- round_player_a_ids.each do |pid| %>
-            <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_a][2] == pid %> >
+            <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_a"][2] == pid %> >
               <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
             </option>
           <%- end %>
@@ -226,7 +226,7 @@
           <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-3-1-player_b" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
             <option value="0" selected=""></option>
             <%- round_player_b_ids.each do |pid| %>
-              <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_b][2] == pid %> >
+              <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_b"][2] == pid %> >
                 <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
               </option>
             <%- end %>
@@ -245,7 +245,7 @@
           <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-4-1-player_a" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
             <option value="0" selected=""></option>
             <%- round_player_a_ids.each do |pid| %>
-              <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_a][3] == pid %> >
+              <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_a"][3] == pid %> >
                 <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
               </option>
             <%- end %>
@@ -257,7 +257,7 @@
           <select class="font-bold" size="1" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-4-1-player_b" <%= 'disabled' unless party_monitor.state == "next_round_seeding_mode" && party_monitor.current_round == r_no %>>
             <option value="0" selected=""></option>
             <%- round_player_b_ids.each do |pid| %>
-              <option value="<%= pid %>" <%= 'selected' if party_monitor.data[:rows][row_nr][:player_b][3] == pid %> >
+              <option value="<%= pid %>" <%= 'selected' if party_monitor.data["rows"][row_nr]["player_b"][3] == pid %> >
                 <%= players_hash[pid].lastname %>, <%= players_hash[pid].firstname %> (<%= players_hash[pid].ba_id %>)
               </option>
             <%- end %>
