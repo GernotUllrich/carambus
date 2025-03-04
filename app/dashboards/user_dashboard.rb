@@ -48,7 +48,6 @@ class UserDashboard < Administrate::BaseDashboard
     sign_in_count: Field::Number,
     time_zone: Field::String,
     unconfirmed_email: Field::String,
-    unlock_token: Field::String,
     username: Field::String,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -109,7 +108,6 @@ class UserDashboard < Administrate::BaseDashboard
     sign_in_count
     time_zone
     unconfirmed_email
-    unlock_token
     username
     created_at
     updated_at
@@ -158,7 +156,6 @@ class UserDashboard < Administrate::BaseDashboard
     sign_in_count
     time_zone
     unconfirmed_email
-    unlock_token
     username
   ].freeze
 

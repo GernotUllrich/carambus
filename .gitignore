@@ -48,10 +48,12 @@ yarn-debug.log*
 *~
 
 /config/credentials/development.key
+/config/credentials/development.yml.enc
 
 /config/credentials/staging.key
 
 /config/credentials/production.key
+/config/credentials/production.yml.enc
 
 # Ignore local documentation
 /doc/doc-local/**
