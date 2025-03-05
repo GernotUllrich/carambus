@@ -61,13 +61,25 @@ module Admin
     def update
       if params[:publish] && requested_resource.draft?
         requested_resource.publish
-        redirect_to admin_page_path(requested_resource), notice: "Page was successfully published."
+        redirect_to admin_page_path(requested_resource), notice: I18n.t('admin.pages.actions.publish_success')
       elsif params[:archive] && requested_resource.published?
         requested_resource.archive
-        redirect_to admin_page_path(requested_resource), notice: "Page was successfully archived."
+        redirect_to admin_page_path(requested_resource), notice: I18n.t('admin.pages.actions.archive_success')
       else
         super
       end
+    end
+    
+    # Überschreiben der after_resource_update_path-Methode für I18n
+    def after_resource_update_path(requested_resource)
+      flash[:notice] = I18n.t('admin.pages.actions.update_success')
+      super
+    end
+    
+    # Überschreiben der after_resource_create_path-Methode für I18n
+    def after_resource_create_path(requested_resource)
+      flash[:notice] = I18n.t('admin.pages.actions.create_success')
+      super
     end
     
     private

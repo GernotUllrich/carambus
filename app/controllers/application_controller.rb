@@ -31,6 +31,7 @@ class ApplicationController < ActionController::Base
   # impersonates :user
 
   before_action :set_user_preferences
+  # before_action :set_locale
 
   def check_mini_profiler
     # if current_user&.is_admin? # Assuming you have a method to verify if a user is an admin
@@ -83,7 +84,7 @@ class ApplicationController < ActionController::Base
   end
 
   def switch_locale(&action)
-    locale = params[:locale] || I18n.default_locale
+    locale = params[:locale] || current_user&.preferred_language || extract_locale_from_accept_language_header || I18n.default_locale
     I18n.with_locale(locale, &action)
   end
 
@@ -123,5 +124,9 @@ class ApplicationController < ActionController::Base
       # Set timezone
       Time.zone = current_user.preferences['timezone'] || 'Berlin'
     end
+  end
+
+  def extract_locale_from_accept_language_header
+    request.env['HTTP_ACCEPT_LANGUAGE']&.scan(/^[a-z]{2}/)&.first
   end
 end

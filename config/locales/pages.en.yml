@@ -1,0 +1,59 @@
+en:
+  activerecord:
+    models:
+      page:
+        one: Page
+        other: Pages
+    attributes:
+      page:
+        title: Title
+        content: Content
+        summary: Summary
+        super_page_id: Parent Page
+        position: Position
+        content_type: Content Type
+        status: Status
+        published_at: Published At
+        tags: Tags
+        metadata: Metadata
+        crud_minimum_roles: CRUD Minimum Roles
+        version: Version
+        created_at: Created At
+        updated_at: Updated At
+    enums:
+      page:
+        status:
+          draft: Draft
+          published: Published
+          archived: Archived
+        content_type:
+          markdown: Markdown
+  
+  admin:
+    pages:
+      show:
+        rendered_content: Rendered Content
+        preview_in_new_tab: Preview in New Tab
+        edit: Edit
+        publish: Publish
+        archive: Archive
+        none: None
+        not_published: Not published
+      form_fields:
+        parent_page: Parent Page
+        none_root_page: None (Root Page)
+        preview: Preview
+        preview_markdown: Preview Markdown
+        preview_in_new_tab: Preview in New Tab
+        preview_will_appear_here: Preview will appear here
+      actions:
+        publish_success: Page was successfully published.
+        archive_success: Page was successfully archived.
+        update_success: Page was successfully updated.
+        create_success: Page was successfully created.
+  
+  pages:
+    markdown_file:
+      commit_message: "Update documentation: %{title}"
+      error_generating: "Error generating Markdown file: %{message}"
+      error_git_operations: "Error in Git operations: %{message}" 
