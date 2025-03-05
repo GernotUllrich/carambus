@@ -55,7 +55,7 @@ namespace :adhoc do
     # AASMDiagram::Diagram.new(tm, 'doc/doc-local/table_monitor.png')
     # pm = PartyMonitor.new AASMDiagram::Diagram.new(pm, 'doc/doc-local/party_monitor.png')
     # League.scrape_leagues_from_cc(Region.find_by_shortname("BVBW"), Season.current_season, league_details: true,  first_five_parties_only: true, optimize_api_access: false)
-    Version.update_from_carambus_api
+    # Version.update_from_carambus_api
     # location = Tournament[242].match_location_from_location_text
     # Tournament[13215].scrape_single_tournament_public(reload_game_results: false)
     # Region[1].scrape_single_tournament_public(Season.current_season, optimize_api_access: true)
@@ -67,6 +67,10 @@ namespace :adhoc do
     # @tables.map { |t| t.table_monitor.tournament_monitor_id }
     # tm = Tournament[15743].tournament_monitor
     # tm.update_ranking
+    # season = Season.current_season
+    # League.scrape_leagues_from_cc(Region.find_by_shortname("BVBW"), season, league_details: true, optimize_api_access: false)
+    league = League[8695]
+    league.scrape_single_league_from_cc(league_details: true)
   end
 
   desc "Sequence Reset"
@@ -287,6 +291,7 @@ namespace :adhoc do
     TableMonitor.where("id > 50000000").destroy_all
     Game.where("id > 50000000").destroy_all
     GameParticipation.where("id > 50000000").destroy_all
+    Account.where("id > 50000000").destroy_all
     User.where("id > 50000000").destroy_all
   end
 

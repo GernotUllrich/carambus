@@ -20,7 +20,7 @@ class ApplicationRecord < ActiveRecord::Base
   def check
     return unless changes.except("sync_date").present?
 
-    Rails.logger.info "+-+-+-+-+-+-+-+ #{changes.inspect}" if DEBUG
+    Rails.logger.info "+-+-+-+-+-+-+-+#{self.class.name} #{changes.inspect}" if DEBUG
   end
 
   # Orders results by column and direction
@@ -56,7 +56,8 @@ class ApplicationRecord < ActiveRecord::Base
   end
 
   def set_paper_trail_whodunnit
-    PaperTrail.request.whodunnit = "#{Current.user&.id}@#{ENV['DEFAULT_CLUB_ID']}"
+    # Use connection's current_user in reflex context, fallback to regular current_user
+    PaperTrail.request.whodunnit = respond_to?(:connection) ? connection.current_user&.id : Current.user&.id
   end
 
   def hash_diff(first, second)
