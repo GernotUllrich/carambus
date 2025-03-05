@@ -6,6 +6,7 @@ en:
         other: Pages
     attributes:
       page:
+        id: ID
         title: Title
         content: Content
         summary: Summary

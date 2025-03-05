@@ -38,7 +38,7 @@ as well as a link to its edit page.
     <dd><%= page.resource.summary %></dd>
 
     <dt><%= t('activerecord.attributes.page.content') %></dt>
-    <dd><pre><%= page.resource.content %></pre></dd>
+    <dd><pre class="pre-wrap"><%= page.resource.content %></pre></dd>
 
     <dt><%= t('activerecord.attributes.page.super_page_id') %></dt>
     <dd><%= page.resource.super_page&.title || t('admin.pages.show.none') %></dd>

@@ -115,5 +115,5 @@ Rails.application.configure do
   config.credentials.key_path = config.root.join('config/credentials/development.key')
 
   config.i18n.fallbacks = true
-  config.action_view.raise_on_missing_translations = true
+  config.i18n.raise_on_missing_translations = true
 end
