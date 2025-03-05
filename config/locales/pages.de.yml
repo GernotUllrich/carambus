@@ -1,0 +1,59 @@
+de:
+  activerecord:
+    models:
+      page:
+        one: Seite
+        other: Seiten
+    attributes:
+      page:
+        title: Titel
+        content: Inhalt
+        summary: Zusammenfassung
+        super_page_id: Übergeordnete Seite
+        position: Position
+        content_type: Inhaltstyp
+        status: Status
+        published_at: Veröffentlicht am
+        tags: Tags
+        metadata: Metadaten
+        crud_minimum_roles: CRUD Mindestberechtigungen
+        version: Version
+        created_at: Erstellt am
+        updated_at: Aktualisiert am
+    enums:
+      page:
+        status:
+          draft: Entwurf
+          published: Veröffentlicht
+          archived: Archiviert
+        content_type:
+          markdown: Markdown
+  
+  admin:
+    pages:
+      show:
+        rendered_content: Gerenderte Inhalte
+        preview_in_new_tab: Vorschau in neuem Tab
+        edit: "Bearbeiten"
+        publish: "Veröffentlichen"
+        archive: "Archivieren"
+        none: Keine
+        not_published: Nicht veröffentlicht
+      form_fields:
+        parent_page: Übergeordnete Seite
+        none_root_page: Keine (Hauptseite)
+        preview: Vorschau
+        preview_markdown: Markdown-Vorschau
+        preview_in_new_tab: Vorschau in neuem Tab
+        preview_will_appear_here: Vorschau wird hier angezeigt
+      actions:
+        publish_success: Die Seite wurde erfolgreich veröffentlicht.
+        archive_success: Die Seite wurde erfolgreich archiviert.
+        update_success: Die Seite wurde erfolgreich aktualisiert.
+        create_success: Die Seite wurde erfolgreich erstellt.
+  
+  pages:
+    markdown_file:
+      commit_message: "Dokumentation aktualisiert: %{title}"
+      error_generating: "Fehler beim Generieren der Markdown-Datei: %{message}"
+      error_git_operations: "Fehler bei Git-Operationen: %{message}" 

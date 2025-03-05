@@ -67,5 +67,8 @@ module CarambusApp
     # Support older SHA1 digests for ActiveRecord::Encryption
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
 
+    # Lade alle Übersetzungsdateien (auch in Unterordnern)
+    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.{rb,yml}')]
+
   end
 end

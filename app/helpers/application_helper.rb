@@ -103,4 +103,21 @@ module ApplicationHelper
       link_to(args[0], args[1], options)
     end
   end
+
+  def language_switcher
+    available_locales = [:de, :en]
+    links = available_locales.map do |locale|
+      if locale == I18n.locale
+        content_tag(:span, locale.to_s.upcase, class: 'current-locale')
+      else
+        link_to locale.to_s.upcase, url_for(locale: locale), class: 'locale-link'
+      end
+    end
+    
+    safe_join(links, ' | ')
+  end
+
+  def debug_translation(key)
+    "#{I18n.locale}: #{key} => #{I18n.t(key)}"
+  end
 end

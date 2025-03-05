@@ -32,21 +32,25 @@ class Page < ApplicationRecord
   has_many :sub_pages, class_name: 'Page', foreign_key: 'super_page_id', dependent: :nullify
   
   # Enums
-  enum status: { draft: 0, published: 1, archived: 2 }
+  enum status: { draft: 'draft', published: 'published', archived: 'archived' }
+  enum content_type: { markdown: 'markdown' }
   
   # Validations
   validates :title, presence: true
-  validates :content_type, inclusion: { in: ['markdown'] }
-  validates :position, numericality: { only_integer: true, allow_nil: true }
+  validates :content_type, presence: true
+  validates :status, presence: true
+  validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   
   # Callbacks
-  before_validation :set_default_values
+  before_validation :set_defaults
   before_save :update_version
-  after_save :update_positions
+  after_save :generate_markdown_file, if: -> { saved_change_to_status? && published? }
   
   # Scopes
   scope :root_pages, -> { where(super_page_id: nil) }
-  scope :published, -> { where(status: :published) }
+  scope :published, -> { where(status: 'published') }
+  scope :draft, -> { where(status: 'draft') }
+  scope :archived, -> { where(status: 'archived') }
   scope :ordered, -> { order(position: :asc) }
   
   # Default values for crud_minimum_roles
@@ -116,27 +120,21 @@ class Page < ApplicationRecord
   def rendered_content
     return '' if content.blank?
     
-    if content_type == 'markdown'
-      begin
-        renderer = MarkdownRenderer.new
-        
-        markdown = Redcarpet::Markdown.new(
-          renderer,
-          autolink: true,
-          tables: true,
-          fenced_code_blocks: true,
-          strikethrough: true,
-          superscript: true,
-          underline: true,
-          highlight: true,
-          footnotes: true
-        )
-        
-        markdown.render(content)
-      rescue => e
-        Rails.logger.error "Error rendering markdown: #{e.message}"
-        "<p>Error rendering content: #{e.message}</p>"
-      end
+    if markdown?
+      renderer = MarkdownRenderer.new
+      markdown = Redcarpet::Markdown.new(renderer, {
+        autolink: true,
+        tables: true,
+        fenced_code_blocks: true,
+        strikethrough: true,
+        superscript: true,
+        underline: true,
+        highlight: true,
+        quote: true,
+        footnotes: true
+      })
+      
+      markdown.render(content)
     else
       content
     end
@@ -166,7 +164,9 @@ class Page < ApplicationRecord
   
   # Publishes the page
   def publish
-    self.status = :published
+    return if published?
+    
+    self.status = 'published'
     self.published_at = Time.current
     increment_major_version
     save
@@ -174,35 +174,40 @@ class Page < ApplicationRecord
   
   # Archives the page
   def archive
-    self.status = :archived
+    return unless published?
+    
+    self.status = 'archived'
     save
+  end
+  
+  # Attribute-Methoden
+  def tags
+    self[:tags] || []
+  end
+  
+  def metadata
+    self[:metadata] || {}
+  end
+  
+  def crud_minimum_roles
+    self[:crud_minimum_roles] || {}
   end
   
   private
   
   # Sets default values for new records
-  def set_default_values
+  def set_defaults
+    self.status ||= 'draft'
     self.content_type ||= 'markdown'
-    self.status ||= :draft
-    self.crud_minimum_roles ||= DEFAULT_ROLES
     self.tags ||= []
     self.metadata ||= {}
-    
-    # Set position to the end of the list if not specified
-    if position.nil? && super_page
-      max_position = super_page.sub_pages.maximum(:position) || 0
-      self.position = max_position + 1
-    elsif position.nil?
-      max_position = Page.where(super_page_id: nil).maximum(:position) || 0
-      self.position = max_position + 1
-    end
+    self.crud_minimum_roles ||= {}
+    self.position ||= 0
   end
   
   # Updates the version number
   def update_version
-    if content_changed? || title_changed?
-      increment_minor_version
-    end
+    self.version = SecureRandom.uuid if new_record? || content_changed?
   end
   
   # Updates positions of sibling pages
@@ -216,5 +221,78 @@ class Page < ApplicationRecord
     siblings.where('position >= ?', position).order(:position).each do |sibling|
       sibling.update_column(:position, sibling.position + 1)
     end
+  end
+  
+  # Neue Methode zur Generierung von Markdown-Dateien
+  def generate_markdown_file
+    # Bestimme den Pfad basierend auf Hierarchie oder Tags
+    base_path = Rails.root.join('docs')
+    file_path = determine_file_path(base_path)
+    
+    # Erstelle YAML Front Matter
+    front_matter = {
+      'title' => title,
+      'summary' => summary,
+      'version' => version,
+      'published_at' => published_at,
+      'tags' => tags,
+      'metadata' => metadata,
+      'position' => position,
+      'id' => id
+    }.to_yaml
+    
+    # Erstelle den Markdown-Inhalt
+    markdown_content = "---\n#{front_matter}---\n\n#{content}"
+    
+    # Stelle sicher, dass das Verzeichnis existiert
+    FileUtils.mkdir_p(File.dirname(file_path))
+    
+    # Schreibe die Datei
+    File.write(file_path, markdown_content)
+    
+    # Optional: Git-Operationen
+    commit_to_git(file_path) if Rails.env.production?
+  rescue => e
+    Rails.logger.error(I18n.t('pages.markdown_file.error_generating', message: e.message))
+    Rails.logger.error(e.backtrace.join("\n"))
+  end
+  
+  def determine_file_path(base_path)
+    # Logik zur Bestimmung des Dateipfads
+    # z.B. basierend auf Hierarchie, Tags oder anderen Metadaten
+    slug = title.parameterize
+    
+    if super_page
+      # Wenn es eine übergeordnete Seite gibt, erstelle eine Unterverzeichnisstruktur
+      parent_path = get_parent_path(super_page)
+      return base_path.join(parent_path, "#{slug}.md")
+    else
+      # Andernfalls speichere direkt im Basisverzeichnis
+      return base_path.join("#{slug}.md")
+    end
+  end
+  
+  def get_parent_path(page)
+    path = []
+    current_page = page
+    
+    # Rekursiv durch die Hierarchie gehen
+    while current_page
+      path.unshift(current_page.title.parameterize)
+      current_page = current_page.super_page
+    end
+    
+    path.join('/')
+  end
+  
+  def commit_to_git(file_path)
+    relative_path = file_path.relative_path_from(Rails.root)
+    
+    system("cd #{Rails.root} && git add #{relative_path}")
+    system("cd #{Rails.root} && git commit -m '#{I18n.t('pages.markdown_file.commit_message', title: title)}'")
+    # system("cd #{Rails.root} && git push origin main")
+  rescue => e
+    Rails.logger.error(I18n.t('pages.markdown_file.error_git_operations', message: e.message))
+    Rails.logger.error(e.backtrace.join("\n"))
   end
 end 

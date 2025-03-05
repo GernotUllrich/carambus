@@ -111,7 +111,9 @@ Rails.application.configure do
 
   config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
 
-
   config.credentials.content_path = config.root.join('config/credentials/development.yml.enc')
   config.credentials.key_path = config.root.join('config/credentials/development.key')
+
+  config.i18n.fallbacks = true
+  config.action_view.raise_on_missing_translations = true
 end

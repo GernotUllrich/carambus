@@ -73,11 +73,11 @@
     <% if page.resource.content_type == 'markdown' %>
       <div style="margin-top: 10px;">
         <button type="button" id="ajax-preview-button" onclick="previewMarkdown()" class="button" style="background-color: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
-          Preview Markdown
+          <%= t('admin.pages.form_fields.preview_markdown') %>
         </button>
 
         <button type="button" id="new-tab-preview-button" onclick="previewInNewTab()" class="button" style="background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
-          Preview in New Tab
+          <%= t('admin.pages.form_fields.preview_in_new_tab') %>
         </button>
       </div>
     <% end %>
@@ -87,14 +87,14 @@
 <% if page.resource.content_type == 'markdown' %>
   <div class="field-unit">
     <div class="field-unit__label">
-      <label>Preview</label>
+      <label><%= t('admin.pages.form_fields.preview') %></label>
     </div>
     <div class="field-unit__field">
       <div id="markdown-preview" class="markdown-preview" style="border: 1px solid #ccc; padding: 15px; background: #f9f9f9; min-height: 100px; margin-top: 10px; border-radius: 4px;">
         <% if form.object.content.present? %>
           <%= raw page.resource.rendered_content %>
         <% else %>
-          <em>Preview will appear here</em>
+          <em><%= t('admin.pages.form_fields.preview_will_appear_here') %></em>
         <% end %>
       </div>
     </div>
@@ -102,13 +102,13 @@
 <% end %>
 
 <div class="field-unit field-unit--super-page">
-  <%= form.label :super_page_id, "Parent Page", class: "field-unit__label" %>
+  <%= form.label :super_page_id, t('admin.pages.form_fields.parent_page'), class: "field-unit__label" %>
   <div class="field-unit__field">
     <%= form.collection_select :super_page_id,
                               Page.all,
                               :id,
                               :title,
-                              { include_blank: "None (Root Page)" },
+                              { include_blank: t('admin.pages.form_fields.none_root_page') },
                               class: "field-unit__select" %>
   </div>
 </div>
