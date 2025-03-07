@@ -11,18 +11,25 @@ as well as a link to its edit page.
 <header class="main-content__header">
   <h1 class="main-content__page-title"><%= content_for(:title) %></h1>
 
-  <div>
-    <%= link_to t('admin.pages.show.edit'), [:edit, namespace, page.resource], class: "button" %>
+  <!-- Debug-Ausgabe -->
+<!--  <p>Status: <%#= page.resource.status.presence ? page.resource.status : "nil" %></p>
+  <p>Draft?: <%#= page.resource.draft? %></p>
+  <p>Published?: <%#= page.resource.published? %></p>-->
 
-    <% if page.resource.draft? %>
-      <%= button_to t('admin.pages.show.publish'), [:publish, namespace, page.resource], method: :post, class: "button" %>
-    <% elsif page.resource.published? %>
+  <div class="flex">
+    <%= link_to t('admin.pages.show.edit'), [:edit, namespace, page.resource], class: "button" %>&nbsp;
+
+    <% if page.resource.status.to_s == 'draft' %>
+      <%= button_to t('admin.pages.show.publish'), [:publish, namespace, page.resource], method: :post, class: "button" %>&nbsp;
+    <% elsif page.resource.status.to_s == 'published' %>
       <%= button_to t('admin.pages.show.archive'), [:archive, namespace, page.resource], method: :post, class: "button button--danger" %>
     <% end %>
 
     <% if page.resource.content_type == 'markdown' && page.resource.content.present? %>
       <%= link_to t('admin.pages.show.preview_in_new_tab'), "/admin/pages/#{page.resource.id}/preview", target: "_blank", class: "button" %>
     <% end %>
+
+    <%= button_to "Translate & Publish", translate_admin_page_path(page.resource), method: :post, class: "button", data: { turbo_confirm: "This will publish both German and English versions. Continue?" } %>
   </div>
 </header>
 
@@ -40,6 +47,9 @@ as well as a link to its edit page.
     <dt><%= t('activerecord.attributes.page.content') %></dt>
     <dd><pre class="pre-wrap"><%= page.resource.content %></pre></dd>
 
+    <dt><%= t('activerecord.attributes.page.content') %></dt>
+    <dd><pre class="pre-wrap"><%= page.resource.content_en %></pre></dd>
+
     <dt><%= t('activerecord.attributes.page.super_page_id') %></dt>
     <dd><%= page.resource.super_page&.title || t('admin.pages.show.none') %></dd>
 
@@ -54,6 +64,9 @@ as well as a link to its edit page.
 
     <dt><%= t('activerecord.attributes.page.published_at') %></dt>
     <dd><%= page.resource.published_at || t('admin.pages.show.not_published') %></dd>
+
+    <dt><%= t('activerecord.attributes.page.last_translated_at') %></dt>
+    <dd><%= page.resource.last_translated_at || t('admin.pages.show.not_translated') %></dd>
 
     <dt><%= t('activerecord.attributes.page.tags') %></dt>
     <dd><pre><%= JSON.pretty_generate(page.resource.tags) %></pre></dd>

@@ -326,6 +326,7 @@ Rails.application.routes.draw do
         post :publish
         post :archive
         get :preview
+        post :translate
       end
 
       collection do

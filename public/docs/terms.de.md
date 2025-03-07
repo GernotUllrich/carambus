@@ -1,19 +1,3 @@
----
----
-title: AGBs
-summary:
-version:
-published_at: !ruby/object:ActiveSupport::TimeWithZone
-  utc: 2025-03-05 14:56:38.943915000 Z
-  zone: !ruby/object:ActiveSupport::TimeZone
-    name: Europe/Berlin
-  time: 2025-03-05 15:56:38.943915000 Z
-tags: []
-metadata: {}
-position: 0
-id: 4
----
-
 Diese Webanwendung hat im wesentlichen zwei Schnittstellen:
 - Turnierpläne und Ergebnisse aus der Website billardarea.de (BA), bzw. seit 2022 aus den verschiedenen regionalen ClubCloud-Instanzen.
 - die Anzeigetafeln an den Tischen.

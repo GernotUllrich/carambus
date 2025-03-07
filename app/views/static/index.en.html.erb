@@ -1,19 +1,42 @@
-<div class="py-10 max-w-2xl m-auto text-center flex flex-col items-center justify-center">
+<!-----
+---
+title: index
+summary: top level home page
+version:
+published_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2025-03-06 21:13:53.722786000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: Europe/Berlin
+  time: 2025-03-06 22:13:53.722786000 Z
+tags: []
+metadata: {}
+position: 0
+id: 7
+---
 
-  <%- if request.host == "roald.carambus.de" %>
-    <h1 class="mb-2">Welcome to the Antarctica Photo Exchange Server</h1>
-    <p class="mb-6 text-gray-700 dark:text-gray-200 leading-normal text-xl">This server is not public and serves only for data exchange between selected participants. For more information contact <%= mail_to "gernot.ullrich@gmx.de" %></p>
-  <%- else %>
-    <%- if Carambus.config.carambus_api_url.blank? %>
-      <h1 class="mb-2">Welcome to the Carambus API Server</h1>
-    <%- else %>
-      <h1 class="mb-2">Welcome to Carambus</h1>
-    <%- end %>
-    <p class="mb-6 text-gray-700 dark:text-gray-200 leading-normal text-xl">Carambus supports the billiards disciplines of carom, pool, snooker and skittles with browser-based scoreboards integrated into tournament management.</p>
-    <p class="mb-6 text-gray-700 dark:text-gray-200 leading-normal text-xl">The tournament management system is fed with tournament data and seeding lists from ClubCloud (previously from BillardArea). Tournament results can be automatically fed back into ClubCloud.</p>
-    <p class="mb-6 text-gray-700 dark:text-gray-200 leading-normal text-xl">Carambus assists in transferring historical data from BillardArea to ClubCloud.</p>
-    <%- unless ApplicationRecord.local_server? %>
-      <p class="mb-6 text-gray-700 dark:text-gray-200 leading-normal text-xl">This server is not public and serves only as a data source for regional and local Carambus servers. For more information contact <%= mail_to "gernot.ullrich@gmx.de" %></p>
-    <%- end %>
-  <%- end %>
-</div> 
+
+-->
+<div class="py-10 max-w-2xl m-auto text-center flex flex-col items-center justify-center">
+<%- if request.host == "roald.carambus.de" %>
+<h1 class='font-bold text-xl mt-4'>Welcome to the Antarctica picture exchange server</h1>
+This server is not intended for the public and is only for the exchange of data
+      of some selected participants. More details at <%= mail_to "gernot.ullrich@gmx.de" %>
+<%- else %>
+<%- if Carambus.config.carambus_api_url.blank? %>
+<h1 class='font-bold text-xl mt-4'><%= t('welcome_to_carambus') %>
+ API Server</h1>
+<%- else %>
+<h1 class='font-bold text-xl mt-4'><%= t('welcome_to_carambus') %>
+</h1>
+<%- end %>
+<p class='text-base text-gray-700 dark:text-gray-200 leading-relaxed my-4'>
+Carambus supports the billiards disciplines carom, pool, snooker and skittles with browser-based scoreboards that are integrated into the tournament management.</p>
+<p class='text-base text-gray-700 dark:text-gray-200 leading-relaxed my-4'>
+The tournament management is fed with tournament data and seeding lists from the ClubCloud (formerly from BillardArea). Tournament results can be automatically fed back into the ClubCloud.</p>
+<p class='text-base text-gray-700 dark:text-gray-200 leading-relaxed my-4'>
+Carambus supports the transfer of historical data from BillardArea to ClubCloud.</p>
+<%- unless ApplicationRecord.local_server? %>
+This server is not intended for the public and only serves as a data source for regional and local Carambus servers. More details at <%= mail_to "gernot.ullrich@gmx.de" %>
+<%- end %>
+<%- end %>
+</div>

@@ -4,6 +4,13 @@ require "#{Rails.root}/app/helpers/application_helper"
 require "aasm-diagram" if Rails.env == "development"
 
 namespace :adhoc do
+  desc "Translate page content"
+  task translate_page_content: :environment do
+    page = Page[4]
+    translated_content = DeeplTranslationService.translate(page.content, 'de', 'en')
+    # page.update(content: translated_content)
+    puts translated_content
+  end
   desc "Current Test old"
   task test_old: :environment do
     Region.find_by_shortname("NBV").scrape_clubs_old(player_details: true)

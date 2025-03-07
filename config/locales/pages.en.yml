@@ -9,12 +9,14 @@ en:
         id: ID
         title: Title
         content: Content
+        content_en: Content in English
         summary: Summary
         super_page_id: Parent Page
         position: Position
         content_type: Content Type
         status: Status
         published_at: Published At
+        last_translated_at: Last Translated At
         tags: Tags
         metadata: Metadata
         crud_minimum_roles: CRUD Minimum Roles
@@ -29,7 +31,7 @@ en:
           archived: Archived
         content_type:
           markdown: Markdown
-  
+
   admin:
     pages:
       show:
@@ -40,6 +42,7 @@ en:
         archive: Archive
         none: None
         not_published: Not published
+        not_translated: Not translated
       form_fields:
         parent_page: Parent Page
         none_root_page: None (Root Page)
@@ -52,9 +55,9 @@ en:
         archive_success: Page was successfully archived.
         update_success: Page was successfully updated.
         create_success: Page was successfully created.
-  
+
   pages:
     markdown_file:
       commit_message: "Update documentation: %{title}"
       error_generating: "Error generating Markdown file: %{message}"
-      error_git_operations: "Error in Git operations: %{message}" 
+      error_git_operations: "Error in Git operations: %{message}"

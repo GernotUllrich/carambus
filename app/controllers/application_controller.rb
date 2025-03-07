@@ -26,11 +26,11 @@ class ApplicationController < ActionController::Base
     @navbar = true
     @footer = true
   end
+  before_action :set_user_preferences
   around_action :switch_locale
   around_action :set_current_user
   # impersonates :user
 
-  before_action :set_user_preferences
   # before_action :set_locale
 
   def check_mini_profiler
@@ -84,7 +84,9 @@ class ApplicationController < ActionController::Base
   end
 
   def switch_locale(&action)
+    Rails.logger.debug "8 Locale param: #{params[:locale]}"
     locale = params[:locale] || current_user&.preferred_language || extract_locale_from_accept_language_header || I18n.default_locale
+    Rails.logger.debug "9 Setting locale to: #{locale}"
     I18n.with_locale(locale, &action)
   end
 
