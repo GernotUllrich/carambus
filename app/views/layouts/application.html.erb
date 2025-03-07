@@ -87,7 +87,7 @@
     <%= render "navbar" %>
   </header>
   <!-- Main Content -->
-  <main class="flex-1 p-8 bg-gray-300 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
+  <main class="flex-1 bg-gray-300 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
     <%= yield %>
   </main>
   <%= render partial: "footer" if !turbo_native_app? && @footer %>
