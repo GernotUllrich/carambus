@@ -1,3 +1,3 @@
-# require 'administrate/field/number'
-# require 'administrate/field/string'
-# require 'administrate/field/text'
+require 'administrate/field/number'
+require 'administrate/field/string'
+require 'administrate/field/text'
