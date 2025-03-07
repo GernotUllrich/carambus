@@ -9,12 +9,14 @@ de:
         id: ID
         title: Titel
         content: Inhalt
+        content_en: Inhalt (engl.)
         summary: Zusammenfassung
         super_page_id: Übergeordnete Seite
         position: Position
         content_type: Inhaltstyp
         status: Status
         published_at: Veröffentlicht am
+        last_translated_at: Zuletzt übersetzt am
         tags: Tags
         metadata: Metadaten
         crud_minimum_roles: CRUD Mindestberechtigungen
@@ -29,7 +31,7 @@ de:
           archived: Archiviert
         content_type:
           markdown: Markdown
-  
+
   admin:
     pages:
       show:
@@ -40,6 +42,7 @@ de:
         archive: "Archivieren"
         none: Keine
         not_published: Nicht veröffentlicht
+        not_translated: Nicht übersetzt
       form_fields:
         parent_page: Übergeordnete Seite
         none_root_page: Keine (Hauptseite)
@@ -52,9 +55,9 @@ de:
         archive_success: Die Seite wurde erfolgreich archiviert.
         update_success: Die Seite wurde erfolgreich aktualisiert.
         create_success: Die Seite wurde erfolgreich erstellt.
-  
+
   pages:
     markdown_file:
       commit_message: "Dokumentation aktualisiert: %{title}"
       error_generating: "Fehler beim Generieren der Markdown-Datei: %{message}"
-      error_git_operations: "Fehler bei Git-Operationen: %{message}" 
+      error_git_operations: "Fehler bei Git-Operationen: %{message}"

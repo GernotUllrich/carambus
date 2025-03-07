@@ -4,23 +4,23 @@ class PageDashboard < Administrate::BaseDashboard
   # ATTRIBUTE_TYPES
   # a hash that describes the type of each of the model's fields.
   ATTRIBUTE_TYPES = {
-    id: Field::Number,
-    title: Field::String,
-    content: Field::Text.with_options(searchable: true),
-    summary: Field::Text,
-    super_page: Field::BelongsTo.with_options(class_name: "Page"),
-    sub_pages: Field::HasMany.with_options(class_name: "Page"),
-    position: Field::Number,
-    author: Field::Polymorphic,
-    content_type: Field::Select.with_options(collection: ['markdown']),
-    status: Field::Select.with_options(collection: ['draft', 'published', 'archived']),
-    published_at: Field::DateTime,
+    id: Administrate::Field::Number,
+    title: Administrate::Field::String,
+    content: Administrate::Field::Text.with_options(searchable: true),
+    summary: Administrate::Field::Text,
+    super_page: Administrate::Field::BelongsTo.with_options(class_name: "Page"),
+    sub_pages: Administrate::Field::HasMany.with_options(class_name: "Page"),
+    position: Administrate::Field::Number,
+    author: Administrate::Field::Polymorphic,
+    content_type: Administrate::Field::Select.with_options(collection: ['markdown']),
+    status: Administrate::Field::Select.with_options(collection: ['draft', 'published', 'archived']),
+    published_at: Administrate::Field::DateTime,
     tags: Administrate::Field::Jsonb,
     metadata: Administrate::Field::Jsonb,
     crud_minimum_roles: Administrate::Field::Jsonb,
-    version: Field::String,
-    created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    version: Administrate::Field::String,
+    created_at: Administrate::Field::DateTime,
+    updated_at: Administrate::Field::DateTime,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -82,4 +82,4 @@ class PageDashboard < Administrate::BaseDashboard
   def display_resource(page)
     page.title
   end
-end 
+end

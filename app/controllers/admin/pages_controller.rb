@@ -82,6 +82,43 @@ module Admin
       super
     end
     
+    def publish
+      # Debug-Ausgabe
+      Rails.logger.debug "Status vor dem Veröffentlichen: #{requested_resource.status.inspect}"
+      
+      result = requested_resource.publish
+      
+      # Debug-Ausgabe
+      Rails.logger.debug "Status nach dem Veröffentlichen: #{requested_resource.status.inspect}"
+      Rails.logger.debug "Ergebnis von publish: #{result.inspect}"
+      
+      if result
+        redirect_to admin_page_path(requested_resource), notice: I18n.t('admin.pages.actions.publish_success')
+      else
+        redirect_to admin_page_path(requested_resource), alert: "Fehler beim Veröffentlichen der Seite."
+      end
+    end
+    
+    def archive
+      requested_resource.archive
+      redirect_to admin_page_path(requested_resource), notice: I18n.t('admin.pages.actions.archive_success')
+    end
+    
+    # Fügen Sie diese Methode hinzu, um die Aktionen zu definieren
+    def valid_action?(name, resource = resource_class)
+      %w[publish archive].include?(name.to_s) || super
+    end
+    
+    def translate
+      @page = Page.find(params[:id])
+      
+      if @page.publish_with_translation
+        redirect_to [:admin, @page], notice: "Page was successfully translated and published."
+      else
+        redirect_to [:admin, @page], alert: "Translation failed. German version was published."
+      end
+    end
+    
     private
     
     def page_params

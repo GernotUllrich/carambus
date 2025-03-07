@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_06_162648) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,7 +19,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.string "record_type", null: false
     t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
@@ -29,10 +29,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.string "filename", null: false
     t.string "content_type"
     t.text "metadata"
-    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum"
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -436,7 +436,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.string "author_type"
     t.integer "author_id"
     t.string "content_type", default: "markdown"
-    t.integer "status", default: 0
+    t.string "status", default: "draft"
     t.datetime "published_at"
     t.jsonb "tags", default: []
     t.jsonb "metadata", default: {}
@@ -444,6 +444,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.string "version", default: "0.1"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_translated_at"
+    t.string "slug", default: "", null: false
+    t.string "content_en"
     t.index ["author_type", "author_id"], name: "index_pages_on_author_type_and_author_id"
     t.index ["status"], name: "index_pages_on_status"
     t.index ["super_page_id"], name: "index_pages_on_super_page_id"
@@ -1077,6 +1080,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.integer "invitations_count", default: 0
     t.string "preferred_language"
     t.string "username"
+    t.string "firstname"
+    t.string "lastname"
     t.integer "player_id"
     t.integer "sign_in_count"
     t.datetime "current_sign_in_at", precision: nil
@@ -1090,9 +1095,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.string "code"
     t.jsonb "preferences"
     t.virtual "name", type: :string, as: "(((first_name)::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)", stored: true
-    t.integer "failed_attempts", default: 0, null: false
-    t.datetime "locked_at"
-    t.string "unlock_token"
     t.integer "role", default: 0
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -1101,7 +1103,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.index ["invited_by_id"], name: "index_users_on_invited_by_id"
     t.index ["invited_by_type", "invited_by_id"], name: "index_users_on_invited_by_type_and_invited_by_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
-    t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
@@ -1117,7 +1118,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_27_181411) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"

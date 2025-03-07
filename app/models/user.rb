@@ -56,6 +56,10 @@ class User < ApplicationRecord
     system_admin? || PRIVILEGED.include?(email)
   end
 
+  def preferred_language
+    preferences["locale"]
+  end
+
   def role_changed?
     role_changed = previous_changes["role"]
     role_changed && role_changed.first != role_changed.last
