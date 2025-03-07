@@ -85,11 +85,9 @@ class Version < ApplicationRecord
       sql = <<~SQL
         SELECT 'SELECT SETVAL(' ||
                quote_literal(quote_ident(PGT.schemaname) || '.' || quote_ident(S.relname)) ||
-               ', GREATEST(COALESCE(MAX(' ||quote_ident(C.attname)|| '), 1), 
-               CAST(CASE 
-                 WHEN T.relname = 'tournaments' THEN 50000000 
-                 ELSE 50000000 
-               END AS BIGINT)) ) FROM ' ||
+               ', GREATEST(COALESCE(MAX(' ||quote_ident(C.attname)|| '), 1), ' ||
+               'CASE WHEN T.relname = ''tournaments'' THEN 50000000 ' ||
+               'ELSE 50000000 END) ) FROM ' ||
                quote_ident(PGT.schemaname)|| '.'||quote_ident(T.relname)|| ';' as query
         FROM pg_class AS S,
              pg_depend AS D,
