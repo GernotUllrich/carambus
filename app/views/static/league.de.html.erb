@@ -1,0 +1,73 @@
+<!-----
+---
+title: Verwaltung von Ligaspieltagen
+summary: Die Behandlung von Ligabegegnungen läuft grundlegend verschieden verglichen
+  mit Einzelturnieren und wird daher auch speziell unterstützt.  Die Struktur der
+  Ligabegegnungen ist für die einzelnen Ligen vorgegeben und ändert sich nicht im
+  Laufe einer Saison.
+version:
+published_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2025-03-05 14:34:15.052622000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: Europe/Berlin
+  time: 2025-03-05 15:34:15.052622000 Z
+tags: []
+metadata: {}
+position: 2
+id: 2
+---
+
+-->
+<div class="py-10 max-w-2xl m-auto  flex flex-col">
+<h1 class='font-bold mt-4'>Verwaltung von Ligaspieltagen</h1>
+<h3 class='font-bold mt-4'>Überblick</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Behandlung von Ligabegegnungen läuft grundlegend verschieden verglichen mit Einzelturnieren und wird daher auch speziell unterstützt.  Die Struktur der Ligabegegnungen ist für die einzelnen Ligen vorgegeben und ändert sich nicht im Laufe einer Saison.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Folgende Phasen werden im allgemeinen durchlaufen:</p>
+
+<ul>
+<li>Planung der Spieltage und Mannschaften</li>
+<li>Zu Beginn eines Spieltages Festlegung der Spieler durch die Kapitäne</li>
+<li>Pro Runde Festlegung der Spieltische zu den einzelnen Spielen</li>
+<li>Zuordnung der Spieler zu den einzelnen Spielen pro Runde</li>
+<li>Start der Runden und Übertragung der Daten an die Scoreboards</li>
+<li>Bedienung der Scoreboards</li>
+<li>Übergabe der Ergebnisse an den Matchday-Monitor und ggf. an 
+Übersichtsboards</li>
+<li>Automatischer Abschluss einer Runde, Start einer weiteren Runde und ggf. 
+Start eines Shootout bei Gleichstand.</li>
+<li>Übertragung der Ergebnisse an die ClubCloud</li>
+</ul>
+<h3 class='font-bold mt-4'>Planung der Spieltage und Mannschaften</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Struktur der Spieltage einer Liga wird zu Saisonbegin auf DBU- oder Landesebene festgelegt und in der ClubClud formal eingetragen. Die Terminierung der einzelnen Spieltage wird ebenfalls in der ClubCloud geführt.  Weiterhin werden die in den einzelnen Mannschaften spielberechtigten Spieler festgelegt.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Diese Daten bilden die Grundlage für das Carambus Matchday Management. Der Spielleiter findet diese Daten am einfachsten über das Spiellokal, wo alle Begegnungen aufgelistet sind.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Nach öffen der Spieltagansicht gibt es einen Link zum Matchday Monitor. In dessen Ansicht wird der gesammte Spieltagablauf gesteuert.</p>
+<h3 class='font-bold mt-4'>Festlegung der Spieler eines Spieltages</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Carambus bietet aus den Eintragungen in der ClubCloud zur Auswahl die Spieler des entsprechenden Teams und zusätzlich Spieler aus untergeordneten Ligen. Nach der Auswahl, ist die Menge der am Spieltag verfügbaren Spieler unveränderbar festgelegt.</p>
+<h3 class='font-bold mt-4'>Zuordnung der Tische</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+In Carambus können die in einem Spiellokal verfügbaren Tische mit Name und Typ (Karambol groß, mittel, klein, Pool, Snooker) definiert werden.  Rundenweise müssen aus dieser Menge Tische den einzelnen Spielen zugeordnet werden.</p>
+<h3 class='font-bold mt-4'>Zuordnung der Spieler zu Spielen</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Nach der Zuordnung der Tische müssen nun die einzelnen Spielpaarungen besetzt werden.  Erst wenn alle Spiele einer Runde belegt sind, kann die Runde gestartet werden.</p>
+<h3 class='font-bold mt-4'>Übertragundg der Daten an die Scoreboards</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Mit dem Start der Runde erscheinen an den Scoreboards die einzelnen Spielpaarungen. Nach Abschluss eines Matches bleinen die Ergebnisse solange stehen, bis die nächste Paarung aufgerufen wird.</p>
+<h3 class='font-bold mt-4'>Bedienung der Scoreboards</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Bedienung der Scoreboards erfolgt über Touch-Eingabe.  Per Undo können Eingaben beliebig zurückgenommen werden.  Das gilt auch nach Ende der Partie, solange die Partie nicht endgültig vom Spielleiter abgeschlossen wurde.</p>
+<h3 class='font-bold mt-4'>Steuerung am Matchday Monitor</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die gesammte Überwachung der Spieltages kann am Matchday-Monitor vorgenommen werden. Die Ergebnisse werden life in der Monitoransicht aktualisiert. Am Ende muss das Ergebnis der einzelnen Paarungen bestätigt werden. </p>
+<h3 class='font-bold mt-4'>Automatischer Rundenabschluss und -start</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Wenn alle Spiele einer Runde bestätigt sind, wird automatisch zur nächsten Runde, bzw. ggf zum Shootout übergegangen. Die Zwischenrgebnisse und das Endergebnis können bei Bedarf an jedem Scoreboards eingesehen werden (Start -&gt; Turniere -&gt; Turnier)</p>
+<h3 class='font-bold mt-4'>Upload in die ClubCloud</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Zum Upload in die ClubCloud wird das Formular angeboten, genau so wie auch im Adminbereich der ClubCloud.  Damit das funktioniert, ist ein Login  in die ClubCloud mit demselben Browser  notwendig.</p>
+</div>

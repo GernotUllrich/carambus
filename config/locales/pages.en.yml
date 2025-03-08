@@ -8,6 +8,7 @@ en:
       page:
         id: ID
         title: Title
+        slug: Slug
         content: Content
         content_en: Content in English
         summary: Summary

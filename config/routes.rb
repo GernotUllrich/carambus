@@ -239,15 +239,13 @@ Rails.application.routes.draw do
     get :pricing
     get :index_t
     get :training
+    get :doc_tournament
+    get :doc_league
   end
 
   match "/404", to: "errors#not_found", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
-  get "/intro", to: "static#intro"
-  get "/about", to: "static#about"
   get "/repo_version", to: "static#repo_version"
-  get "/doc_tournament", to: "static#tournament"
-  get "/doc/league", to: "static#league"
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

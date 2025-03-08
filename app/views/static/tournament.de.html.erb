@@ -1,0 +1,170 @@
+<!-----
+---
+title: Turnierverwaltung
+summary:
+version:
+published_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2025-03-07 22:00:25.243335000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: Europe/Berlin
+  time: 2025-03-07 23:00:25.243335000 Z
+tags: []
+metadata: {}
+position: 0
+id: 50000002
+---
+
+-->
+<div class="py-10 max-w-2xl m-auto  flex flex-col">
+<h1 class='font-bold mt-4'>Turnierverwaltung</h1>
+<h2 class='font-bold mt-4'>Account</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Für das Carambus Turniermanagement ist ein Account mit Admin-Rechten auf dem Carambus Location Server erforderlich.
+Dieser kann vom Club-Vorsitzenden oder <a href="mailto:gernot.ullrich@gmx.de">Carambus-Entwickler</a> eingerichtet werden.
+URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel http://192.168.2.143:3131 .</p>
+<h2 class='font-bold mt-4'>Abgleich mit der ClubCloud</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Turniere findet man am besten über die Regionaverbände -> Suchen -> Ansehen
+.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Dort sind die aktuell bekannten Turniere der laufenden Saison gelistet. Das Turnier kann über den Titel  ausgewählt werden.
+Sollte ein Turnier noch nicht gelistet sein, so kann das mehrere Gründe haben:</p>
+
+<ul>
+<li>Das Turnier ist noch nicht in der ClubCloud eingetragen</li>
+<li>Der zentrale Carambus API Server kennt das Turnier noch nicht.</li>
+<li>Das Turnier ist noch nicht auf den lokalen Location Server übertragen.</li>
+</ul>
+<h3 class='font-bold mt-4'>Das Turnier ist noch nicht in der ClubCloud eingetragen</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Aufgabe des Landessportwartes ist es, die Turniere mit den Teilnehmerlisten in der ClubCloud einzupflegen.</p>
+<h3 class='font-bold mt-4'>Der zentrale Carambus API Server kennt das Turnier noch nicht.</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Der Api Server wird derzeit vom Carambus-Entwickler (mailto: gernot.ullrich@gmx.de) betreut.<br>
+Turnierdaten der Carambus nutzenden Regionen werden automatisiert täglich um 20:00 aus dem zugehörigen regionalen ClubCloud Server aktualisiert.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Lokale Server fordern Updates aus der ClubCloud immer über den zentralen API Server (api.carambus.de) an.
+Dieser greift die Daten von den verschiedenen ClubCloud Instanzen ab.  Mit den spezifischen Updates werden immer auch alle Updates übertragen, die zwischenzeitlich auf dem API Server gemacht wurden.</p>
+<h3 class='font-bold mt-4'>Das Turnier ist noch nicht auf den lokalen Location Server übertragen</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Ein lokal nicht vorhandenes Turnier, welches aber auf dem API Server existiert, wird automatisch bei jeder Update-Anfrage an den API Server geladen, denn bei jeder Anfrage an den API Server wird der gesammte Datenbestand synchronisiert.
+So eine explizite Anfrage kann z.B. das Aktualisieren der Club-Daten sein:
+Clubs -> Suchen -> Ansehen -> "Datenabgleich mit der ClubCloud mit allen Details"
+</p>
+<h3 class='font-bold mt-4'>Aktualisieren von Regionalverband, Club, Spieler, Turnier, Setzlisten</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Beim expliziten Abholen von Daten werden auf dem API Server die angeforderten Daten mit der Billars Area abggeglichen.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Folgenden explizte Datenanfragen sind implementiert:</p>
+
+<ul>
+<li>Club -> Datenabgleich mit der ClubCloud</li>
+<li>Club -> Datenabgleich mit der ClubCloud mit allen Details</li>
+<li>Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs</li>
+<li>Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs und Spieler</li>
+<li>Turnier -> Datenabgleich mit der ClubCloud</li>
+</ul>
+<h2 class='font-bold mt-4'>TurnierVerwaltung</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Ein Turnier wird generell in folgenden Phasen verwaltet:</p>
+
+<ul>
+<li>Abgleich mit der ClubCloud</li>
+<li>Überprüfung der relevanten Daten</li>
+<li>Sortierung der Setzliste gemäss Rankings</li>
+<li>Auswahl des Turniermodus</li>
+<li>Lokale Anpassung der Turnierparameter</li>
+<li>Check der lokalen Scoreboards</li>
+<li>Start des Turniers</li>
+<li>Abgleich der Partieergebnisse mit den Spielprotokollen</li>
+<li>eMail mit den Spielergebnissen (csv) an den Turnierleiter</li>
+<li>Upload der Spielergebnisse (csv) in die ClubCloud</li>
+<li>Abgleich mit der ClubCloud zum letzten Check.</li>
+</ul>
+<h3 class='font-bold mt-4'>Abgleich mit der ClubCloud</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Wie oben beschrieben kann das Turnier erstmalig geladen werden z.B. durch Abgleich der Clubdaten</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Wenn ein Turnier bereits lokal bekannt ist, kann jederzeit eine Aktualisierung erneut angefordert werden:
+Region -> Turnier -> Datenabgleich mit der ClubCloud
+</p>
+<h3 class='font-bold mt-4'>Überprüfung der relevanten Daten</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Für den Ablauf eines Turnieres sind folgende Daten wichtig:</p>
+
+<ul>
+<li>Veranstalter (Regionalverband oder Club)</li>
+<li>Disziplin (für die Tischzuordnungen)</li>
+<li>Datum</li>
+<li>Saison</li>
+<li>Spielort (für die Tischzuordnungen)</li>
+</ul>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Diese Daten werden in der Regel automatisiert von der ClubCloud gezogen. Ein Sonderfall ist der Spielort.
+Leider ist bezgl. des Spielortes auf der ClubCloud eine freie Texteingaben möglich.
+Für die Tischzuordnung ist in Carambus jedoch die Auswahl eines formal definierten Spielortes mit Konfigurierung der Tische notwendig (Tischnahme, Tischart)
+Weiterhin ist anzugeben, ob es sich um ein Vorgabetournier handelt.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Diese Daten müssen über
+Turnier -> Edit -> Turnier aktualisieren
+
+ergänzt werden</p>
+<h3 class='font-bold mt-4'>Sortierung der Setzliste gemäss Rankings</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Mit dem BA-Abgleich wird die Teilnehmerliste (Setzliste) übertragen.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Für Vorgabeturniere können die Handicaps eingetragen werden:
+Tournament -> Setzliste aktualisieren
+
+Diese Liste kann jetzt lokal entsprechend der Spielerrankings sortiert werden:
+Tournament -> Ordne nach Rangliste bzw. Handicap
+</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Reihenfolge kann jetzt noch geändert werden durch Tausch von Plätzen mit den Pfeilen oben/unten.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die Reihenfolge wird dann endgültig abgeschlossen mit
+Turnier -> Abschluss der Rangliste (nicht umkehrbar)
+</p>
+<h3 class='font-bold mt-4'>Auswahl des Turniermodus</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Jetzt in die Turniermodusauswahl springen:
+Turnier -> Turniermodus festlegen
+</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+In der Regel stehen mehrere Möglichkeiten zur Verfügung.  Der Tournierleiter kann einen Modus auswählen - in der Regel schon vom Landessportwart vorgegeben bei Turnieren der Regionalverbände.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Auswahl duch Klick z.B. Weiter mit T07
+</p>
+<h3 class='font-bold mt-4'>Lokale Anpassung der Turnierparameter</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Folgende Parameter können nun noch angepasst werden:</p>
+
+<ul>
+<li>Zuordnung der Tische (Mapping interner Tischname zu extern Namen)</li>
+<li>Ballziel (ggf. bereits für Turnier vorgegeben)</li>
+<li>Aufnahmebegrenzung (ggf. bereits für Turnier vorgegeben)</li>
+<li>Timeout in sec (0 oder keine eingabe, wenn keine Timeouts)</li>
+<li>Timeouts (n Timeoutverlängerungen maximal)</li>
+<li>Checkbox &quot;Tournament manager checks results before acceptance&quot;</li>
+<li>Einspielzeit</li>
+<li>verkürzte Einspielzeit (bei Wechsel an einen bereits bespielten Tisch)</li>
+</ul>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Zur Checkbox:  Normalerweise können die Spieler des Spielstatus fortschreiben z.B. nach Partie beendet - OK?
+.
+Wenn ein Check von Turniermanager erforderlich ist, wird dieses unterbunden und der Turnierleiter kann nach Abgleich mit dem Spielprotokoll den Tisch freigeben.</p>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Die neuen Spielpaarungen erscheinen jeweils automatisch auf den Scoreboards.
+Erst ganz am Ende:</p>
+<h3 class='font-bold mt-4'>eMail mit den Spielergebnissen (csv) an den Turnierleiter</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Nach Abschluss des Turniers erhält der Turnierleiter automatisch per eMail eine CSV-Datei mit den Ergebnissen in dem Format, welches für den Upload in die ClubCloud notwendig ist.
+Diese Datei wird auch auf dem lokalen Server gespeichert ({carambus}/tmp/result-{ba_id}.csv)</p>
+<h3 class='font-bold mt-4'>Upload der Spielergebnisse (csv) in die ClubCloud</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen (er weiss wie das geht ;-)</p>
+<h3 class='font-bold mt-4'>Abgleich mit der ClubCloud zum letzten Check</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Als letzten Schritt kann nocheinmal ein Abgleich mit der ClubCloud erfolgen.
+Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.</p>
+</div>
