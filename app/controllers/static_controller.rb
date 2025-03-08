@@ -8,28 +8,23 @@ class StaticController < ApplicationController
   def index; end
 
   def about
-    params
   end
 
   def start
     redirect_to root_path
   end
 
-  def tournament
-    filename = I18n.locale == :de ? "Tournament.de.mds" : "Tournament.en.mds"
-    @content = File.read(Rails.root.join("doc/doc/#{filename}"))
-  rescue Errno::ENOENT
-    @content = t("documentation_not_available")
+  def doc_tournament
+    render 'tournament'
   end
 
-  def league
-    filename = I18n.locale == :de ? "League.de.mds" : "League.en.mds"
-    @content = File.read(Rails.root.join("doc/doc/#{filename}"))
-  rescue Errno::ENOENT
-    @content = t("documentation_not_available")
+  def doc_league
+    render 'league'
   end
 
-  def intro; end
+  def intro
+    render 'carambus-turnier-management'
+  end
 
   def index_t; end
 
@@ -49,10 +44,8 @@ class StaticController < ApplicationController
   end
 
   def terms
-    @agreement = Rails.application.config.agreements.find { _1.id == :terms_of_service }
   end
 
   def privacy
-    @agreement = Rails.application.config.agreements.find { _1.id == :privacy_policy }
   end
 end

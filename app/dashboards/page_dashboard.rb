@@ -6,6 +6,7 @@ class PageDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Administrate::Field::Number,
     title: Administrate::Field::String,
+    slug: Administrate::Field::String,
     content: Administrate::Field::Text.with_options(searchable: true),
     summary: Administrate::Field::Text,
     super_page: Administrate::Field::BelongsTo.with_options(class_name: "Page"),
@@ -38,6 +39,7 @@ class PageDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     title
+    slug
     summary
     content
     super_page
@@ -59,6 +61,7 @@ class PageDashboard < Administrate::BaseDashboard
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
     title
+    slug
     summary
     content
     super_page
