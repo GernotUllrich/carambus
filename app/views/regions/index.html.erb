@@ -3,14 +3,40 @@
     <h1 class="h3">Regions</h1>
 
     <% if @regions.any? %>
-      <div class="flex flex-row">
+      <div class="flex flex-row items-center">
         <div class="flex w-full">
-          <form action="/regions" method="get" target="table_wrapper" data-reflex-serialize-form="true">
-            <%= search_field_tag :sSearch, @sSearch, id: 'sSearch', data: { reflex: "input->SearchReflex#perform", reflex_permanent: "search" }, placeholder: "Search" %>
+          <form action="/regions" method="get" target="table_wrapper" data-reflex-serialize-form="true" class="w-full">
+            <input
+              type="search"
+              name="sSearch"
+              id="sSearch"
+              data-reflex="input->SearchReflex#perform"
+              data-reflex-permanent="search"
+              placeholder="Search"
+              data-controller="stimulus-reflex"
+              data-action="input->stimulus-reflex#__perform"
+              class="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
+            >
           </form>
         </div>
-        <div id="helpSearch" class="flex pl-3" data-controller="tooltip" data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
-          <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-800 hover:text-gray-800 hover: dark: inline-blocktable_monitor.save" %>
+        <div
+          id="helpSearch"
+          class="flex pl-3 cursor-pointer"
+          data-controller="tooltip"
+          data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023"
+          data-tippy-delay="0"
+          data-tippy-arrow="true"
+          data-tippy-size="regular"
+          data-tippy-animation="fade"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 20 20"
+               class="fill-current icon-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+               role="img"
+               aria-labelledby="search-info-icon">
+            <title id="search-info-icon">Information Icon</title>
+            <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"></path>
+          </svg>
         </div>
       </div>
       <%= button_to('New Region', new_region_path, disabled: !current_user&.admin?, class: "btn btn-primary") if current_user&.admin? %>
