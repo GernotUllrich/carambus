@@ -15,19 +15,35 @@ class SearchReflex < ApplicationReflex
   def perform
     Rails.logger.debug "SearchReflex is triggered" if DEBUG
     params[:sSearch] = element[:value]
-    results = SearchService.call(params[:controller].camelize.singularize.constantize.search_hash(params))
+    
+    # Get the model class from the controller name
+    model_class = params[:controller].camelize.singularize.constantize
+    
+    # Get search hash from the model
+    search_hash = model_class.search_hash(params)
+    
+    # Call the search service
+    results = SearchService.call(search_hash)
+    
     @pagy, records = pagy(results, request_path: "/#{params[:controller]}")
     instance_variable_set(:"@#{params[:controller]}", records)
+    
     Rails.logger.debug "Query is #{instance_variable_get(:"@#{params[:controller]}").to_sql}" if DEBUG
     Rails.logger.debug "Before Morph: #{instance_variable_get(:"@#{params[:controller]}").inspect}" if DEBUG
+    
     begin
       morph "#table_wrapper",
             render(partial: "#{params[:controller]}/#{params[:controller]}_table",
-                   assigns: { pagy: @pagy, :"#{params[:controller]}" => instance_variable_get(:"@#{params[:controller]}") },
+                   assigns: { 
+                     pagy: @pagy, 
+                     :"#{params[:controller]}" => instance_variable_get(:"@#{params[:controller]}"),
+                     model_class: model_class
+                   },
                    locals: {request: request})
     rescue StandardError => e
       Rails.logger.debug "In Morph: #{e}, #{e.backtrace.inspect}"
     end
-      Rails.logger.debug "After Morph: #{instance_variable_get(:"@#{params[:controller]}").inspect}" if DEBUG
+    
+    Rails.logger.debug "After Morph: #{instance_variable_get(:"@#{params[:controller]}").inspect}" if DEBUG
   end
 end

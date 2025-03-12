@@ -141,6 +141,7 @@ class Region < ApplicationRecord
 
   COLUMN_NAMES = {
     "Logo" => "",
+    "id" => "regions.id",
     "Shortname (BA)" => "regions.shortname",
     "Name" => "regions.name",
     "Email" => "regions.email",
@@ -157,7 +158,8 @@ class Region < ApplicationRecord
       column_names: Region::COLUMN_NAMES,
       raw_sql: "(regions.name ilike :search)
 or (regions.shortname ilike :search)
-or (regions.email ilike :search)",
+or (regions.email ilike :search)
+or (regions.address ilike :search)",
       joins: :country
     }
   end

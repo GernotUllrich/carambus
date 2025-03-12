@@ -1,56 +1,16 @@
 <!-- Navigation -->
-<nav class="fixed left-0 top-0 h-full w-64 bg-gray-800 dark:bg-gray-800 shadow-lg transition-all duration-300 transform nav-target" data-sidebar-target="nav">
+<nav class="fixed left-0 top-0 h-full w-64 bg-gray-300 dark:bg-gray-800 shadow-lg transition-all duration-300 transform nav-target" data-sidebar-target="nav">
   <div class="flex flex-col h-full p-4">
 
     <div class="flex items-center justify-between mb-8">
       <%= custom_link_to image_tag('logo.svg', class: 'w-12 mb-2'), root_path %>
-      <div class="flex font-bold text-gray-300 dark:text-gray-300">Carambus</div>
+      <div class="flex font-bold text-gray-900 dark:text-gray-300">Carambus</div>
       <!-- Close button - always visible when nav is open -->
-      <button data-action="sidebar#collapse" class="bg-gray-700 hover:bg-gray-600 rounded-lg">
-        <%= render_svg "icons/arrow-left-to-line", styles: "w-6 h-6 text-gray-300 dark:text-gray-300" %>
+      <button data-action="sidebar#collapse" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg">
+        <%= render_svg "icons/arrow-left-to-line", styles: "w-6 h-6 text-gray-800 dark:text-gray-300" %>
       </button>
     </div>
 
-    <!-- User menu - moved to top -->
-    <% if user_signed_in? %>
-      <div class="mb-4">
-        <div class="relative" data-controller="dropdown">
-          <div class="flex items-center cursor-pointer" data-action="click->dropdown#toggle click@window->dropdown#hide">
-            <%= image_tag gravatar_url_for(current_user.email, size: 30), class: "rounded-full" %>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current flex-shrink-0 w-4 h-4 ml-1 text-gray-300">
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path>
-            </svg>
-          </div>
-          <div data-dropdown-target="menu"
-               class="hidden absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 z-50">
-            <div class="py-1">
-              <%= custom_link_to t(".profile"), edit_user_registration_path, 
-                  class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800' %>
-              
-              <% if current_user&.admin? %>
-                <div class="border-t border-gray-100 dark:border-gray-800">
-                  <div class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">
-                    <%= t(".admin") %>
-                  </div>
-                  <%= custom_link_to t(".dashboard"), admin_root_path, 
-                      class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
-                      target: :_blank, data: { turbo: false } %>
-                  
-                  <% if defined?(::Sidekiq) %>
-                    <%= custom_link_to 'Sidekiq', admin_sidekiq_web_path, 
-                        class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
-                        target: :_blank, data: { turbo: false } %>
-                  <% end %>
-                </div>
-              <% end %>
-              
-              <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete, 
-                  class: 'w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 border-t border-gray-100 dark:border-gray-800' %>
-            </div>
-          </div>
-        </div>
-      </div>
-    <% end %>
 
     <!-- Middle scrollable section -->
     <div class="flex-1 overflow-y-auto">
@@ -64,18 +24,57 @@
       <%= render "right_nav" %>
       <% if !user_signed_in? %>
         <div class="flex space-x-2 items-center">
-          <%= custom_link_to t(".log_in"), new_user_session_path, class: 'nav-link text-sm' %>
+          <%= custom_link_to t(".log_in"), new_user_session_path, class: 'nav-link text-sm text-gray-800 dark:text.gray-100' %>
           <%= custom_link_to t(".sign_up"), new_user_registration_path, class: 'btn btn-primary text-sm' %>
+        </div>
+      <% else %>
+        <!-- User menu - moved to bottom -->
+        <div class="mb-4">
+          <div class="relative" data-controller="dropdown" style="position: relative;">
+            <div class="flex items-center cursor-pointer" data-action="click->dropdown#toggle click@window->dropdown#hide">
+              <%= image_tag gravatar_url_for(current_user.email, size: 50), class: "rounded-full" %>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current flex-shrink-0 w-4 h-4 ml-1 text-gray-800 dark:text-gray-300 transform rotate-180">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path>
+              </svg>
+            </div>
+            <div data-dropdown-target="menu"
+                 style="position: absolute; bottom: 100%; left: 0; margin-bottom: 0.5rem;"
+                 class="hidden w-48 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 z-[100]">
+              <div class="py-1">
+                <%= custom_link_to t(".profile"), edit_user_registration_path,
+                                   class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800' %>
+
+                <% if current_user&.admin? %>
+                  <div class="border-t border-gray-100 dark:border-gray-800">
+                    <div class="px-4 py-2 text-xs font-bold text-gray-400 uppercase">
+                      <%= t(".admin") %>
+                    </div>
+                    <%= custom_link_to t(".dashboard"), admin_root_path,
+                                       class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+                                       target: :_blank, data: { turbo: false } %>
+
+                    <% if defined?(::Sidekiq) %>
+                      <%= custom_link_to 'Sidekiq', admin_sidekiq_web_path,
+                                         class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+                                         target: :_blank, data: { turbo: false } %>
+                    <% end %>
+                  </div>
+                <% end %>
+
+                <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete,
+                              class: 'w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 border-t border-gray-100 dark:border-gray-800' %>
+              </div>
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
-
   </div>
 </nav>
 
 <!-- Hamburger Menu Button -->
 <button data-action="sidebar#collapse"
-        class="fixed top-4 left-4 z-50 p-2 bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-lg transition-all duration-300 shadow-lg show-button-target"
+        class="fixed top-4 left-4 z-50 p-2 bg-gray-300 text-gray-900 hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-all duration-300 shadow-lg show-button-target"
         data-sidebar-target="showButton">
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>

@@ -30,7 +30,7 @@ class Seeding < ApplicationRecord
     state :no_show
   end
   belongs_to :player, optional: true
-  belongs_to :tournament, polymorphic: true, optional: true
+  belongs_to :tournament, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
   belongs_to :league_team, optional: true
 
@@ -101,12 +101,14 @@ class Seeding < ApplicationRecord
     "league_team_id" => "seedings.league_team_id",
     "LeagueTeam" => "league_teams.name",
     "Discipline" => "disciplines.name",
-    "Date" => "tournaments.date",
-    "Season" => "seasons.name",
-    "Status" => "seeding.status",
+    "Date" => "tournaments.date::date",
+    "Season" => "tournament_seasons.name||league_seasons.name",
+    "Region" => "tournament_regions.shortname||league_regions.shortname",
+    "Status" => "seeding.state",
     "Position" => "seeding.position",
     "Remarks" => "seeding.data"
   }.freeze
+
   def self.search_hash(params)
     {
       model: Seeding,
@@ -116,8 +118,19 @@ class Seeding < ApplicationRecord
       column_names: Seeding::COLUMN_NAMES,
       raw_sql: "(players.fl_name ilike :search)
 or (players.nickname ilike :search)
-or (seedings.state ilike :search)",
-      joins: :player
+or (seedings.state ilike :search)
+or (tournament_seasons.name ilike :search)
+or (league_seasons.name ilike :search)
+",
+      joins: [
+        "LEFT JOIN tournaments ON (seedings.tournament_id = tournaments.id)",
+        "LEFT JOIN leagues ON (seedings.tournament_type = 'League' AND seedings.tournament_id = leagues.id)",
+        "LEFT JOIN seasons AS tournament_seasons ON tournaments.season_id = tournament_seasons.id",
+        "LEFT JOIN seasons AS league_seasons ON leagues.season_id = league_seasons.id",
+        'LEFT JOIN "regions" AS tournament_regions ON ("tournament_regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
+        'LEFT JOIN "regions" AS league_regions ON ("league_regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
+        :player
+      ]
     }
   end
 

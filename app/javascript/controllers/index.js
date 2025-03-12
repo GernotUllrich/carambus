@@ -15,6 +15,9 @@ import "@stimulus_reflex/polyfills"
 import StimulusReflex from 'stimulus_reflex'
 import consumer from '../channels/consumer'
 
+import FilterPopupController from "./filter_popup_controller"
+application.register("filter-popup", FilterPopupController)
+
 StimulusReflex.initialize(application, { 
   consumer, 
   controller, 
