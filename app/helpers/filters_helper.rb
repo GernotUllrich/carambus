@@ -24,11 +24,18 @@ module FiltersHelper
                 # no search on virtual columns
                 # query = query.where("(#{tempname} ilike :search)", search: "%#{value}%")
               elsif /^#{key.strip}/i.match?(ext_name)
-                query = if int_name =~ /id$/ || %w[players points sets ba_id ba2_id cc_id balls innings hs sp_g
+                  query = if int_name =~ /id$/ || %w[players points sets ba_id ba2_id cc_id balls innings hs sp_g
                                                    sp_v g v].include?(int_name.split(".").last)
                           query.where("(#{int_name} = :isearch)", isearch: (value.to_i != 0 ? value.to_i : -7_235_553))
                         elsif /::date$/.match?(int_name)
                           query.where("(#{int_name} #{comp.present? ? comp : "="} :search)", search: value)
+                        elsif /\|\|/.match?(int_name)
+                          vals = int_name.split(/\|\|/)
+                          arr = []
+                          vals.each do |val|
+                            arr << "#{val} ilike '#{value}'"
+                          end
+                          arr.present? ? query.where(arr.join(" or ")) : query
                         else
                           query.where("(#{int_name} #{comp.present? ? comp : "ilike"} :search)",
                                       search: (comp.present? ? value : "%#{value}%").to_s)
@@ -40,7 +47,7 @@ module FiltersHelper
         end
       else
         query = query.where(search_query.to_s, search: "%#{search}%",
-                                               isearch: (search.to_i == 0 ? -727_272 : search.to_i))
+                            isearch: (search.to_i == 0 ? -727_272 : search.to_i))
       end
     rescue Exception => e
       e

@@ -27,6 +27,7 @@ class ApplicationController < ActionController::Base
     @footer = true
   end
   before_action :set_user_preferences
+  before_action :set_model_class
   around_action :switch_locale
   around_action :set_current_user
   # impersonates :user
@@ -130,5 +131,10 @@ class ApplicationController < ActionController::Base
 
   def extract_locale_from_accept_language_header
     request.env['HTTP_ACCEPT_LANGUAGE']&.scan(/^[a-z]{2}/)&.first
+  end
+
+  def set_model_class
+    controller_name = self.class.name.sub(/Controller$/, '')
+    @model_class = controller_name.singularize.safe_constantize
   end
 end

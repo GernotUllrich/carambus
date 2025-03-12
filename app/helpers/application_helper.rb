@@ -120,4 +120,41 @@ module ApplicationHelper
   def debug_translation(key)
     "#{I18n.locale}: #{key} => #{I18n.t(key)}"
   end
+
+  def generate_filter_fields(model_class)
+    return [] unless model_class.respond_to?(:search_hash) && model_class.search_hash({})[:column_names].present?
+    
+    column_names = model_class.search_hash({})[:column_names]
+    
+    fields = []
+    column_names.each do |display_name, column_def|
+      next if column_def.blank?
+      
+      # Extract the field key from the display name
+      # Remove any (*) or <br/> tags
+      clean_name = display_name.gsub(/\(\*\)/, '').gsub(/<br\/>.*/, '')
+      field_key = clean_name.parameterize(separator: '_').downcase
+      
+      # Determine field type based on column definition
+      field_type = if column_def =~ /::date$/
+                     'date'
+                   elsif column_def =~ /_id$/ || column_def =~ /\.id$/
+                     'number'
+                   else
+                     'text'
+                   end
+      
+      # Determine if comparison operators should be available
+      show_operators = field_type == 'date' || field_type == 'number'
+      
+      fields << {
+        display_name: clean_name.strip,
+        field_key: field_key,
+        field_type: field_type,
+        show_operators: show_operators
+      }
+    end
+    
+    fields
+  end
 end
