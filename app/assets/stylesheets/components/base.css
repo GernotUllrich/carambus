@@ -16,7 +16,8 @@ body {
 }
 
 a {
-  @apply text-primary-400;
+  @apply text-primary-600;
+  @apply dark:text-primary-400;
 
   &:hover,
   &:focus {

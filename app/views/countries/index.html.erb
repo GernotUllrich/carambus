@@ -10,7 +10,7 @@
               <%#= search_field_tag :sSearch, @sSearch, id: 'sSearch', data: { reflex: "input->SearchReflex#perform", reflex_permanent: "search" }, placeholder: "Search" %>
             </form>
           </div>
-          <div id="helpSearch" class="flex pl-3" data-controller="tooltip" data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
+          <div id="helpSearch" class="flex pl-3" data-controller="tippy" data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
             <%#= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-800 hover:text-gray-800 hover: dark: inline-blocktable_monitor.save" %>
           </div>
         </div>

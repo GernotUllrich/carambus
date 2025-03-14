@@ -59,12 +59,11 @@ class GameParticipation < ApplicationRecord
   serialize :data, coder: JSON, type: Hash
 
   COLUMN_NAMES = {
-    "#" => "games.seqno",
     "Game" => "games.gname",
     "Tournament" => "tournaments.title",
     "Discipline" => "disciplines.name",
     "Date" => "tournaments.date",
-    "Player" => "players.lastname||', '||players.firstname",
+    "Player" => "players.lastname||players.firstname",
     "Club" => "clubs.shortname",
     "Role" => "game_participations.role",
     "Points" => "game_participations.points",
@@ -72,7 +71,35 @@ class GameParticipation < ApplicationRecord
     "Innings" => "game_participations.innings",
     "GD" => "game_participations.gd",
     "HS" => "game_participations.hs"
-  }
+  }.freeze
+
+  def self.search_hash(params)
+    {
+      model: GameParticipation,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
+      column_names: GameParticipation::COLUMN_NAMES,
+      raw_sql: "(tournaments.title ilike :search)
+      or (regions.shortname ilike :search)
+      or (games.gname ilike :search)
+      or (seasons.name ilike :search)
+      or exists (
+        select 1
+        from game_participations gp
+        join players p on p.id = gp.player_id
+        where gp.game_id = games.id
+        and p.fl_name ilike :search
+      )",
+      joins: [
+        "LEFT JOIN games on (game_participations.game_id = games.id)",
+        "LEFT JOIN tournaments ON (games.tournament_id = tournaments.id)",
+        'LEFT JOIN regions ON (regions.id = tournaments.organizer_id AND tournaments.organizer_type = \'Region\')',
+        'LEFT JOIN seasons ON (seasons.id = tournaments.season_id)',
+        'LEFT JOIN players ON players.id = game_participations.player_id'
+      ]
+    }
+  end
 
   def deep_merge_data!(hash)
     h = data.dup

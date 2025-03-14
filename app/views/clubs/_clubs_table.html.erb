@@ -3,10 +3,10 @@
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :id,"Id", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-<!--      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die Billard Area" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%#= sortable @clubs, :ba_id,"BA(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
-      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die DBU-ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :dbu_nr,"DBU-Nr(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs" data-controller="tooltip" data-tippy-content="Link in die regionale ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :cc_id,"Cc(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :id,"Id(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+<!--      <th class="p-3 uppercase text-left text-xs" data-controller="tippy" data-tippy-content="Link in die Billard Area" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%#= sortable @clubs, :ba_id,"BA(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
+      <th class="p-3 uppercase text-left text-xs" data-controller="tippy" data-tippy-content="Link in die DBU-ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :dbu_nr,"DBU-Nr(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs" data-controller="tippy" data-tippy-content="Link in die regionale ClubCloud" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade"><%= sortable @clubs, :cc_id,"Cc(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :region_id,"Region(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :name,"Name(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @clubs, :shortname,"Shortname(*)", request.params, class: 'text-gray-700 dark:text-gray-300' %></th>

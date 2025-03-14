@@ -1,0 +1,35 @@
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :tournament_id,'Tournament', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :gname,'Gname', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @games, :date,'Date', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @games.each do |game| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= custom_link_to game.tournament.title, tournament_path(game.tournament) if game.tournament.present? %></td>
+        <td class="p-3"><%= game.data %></td>
+        <td class="p-3"><%= game.gname %></td>
+        <td class="p-3"><%= game.tournament&.date %></td>
+
+        <td>
+          <%= custom_link_to t('view'), game, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

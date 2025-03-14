@@ -18,7 +18,6 @@ To add the filter popup to a view, use the shared partial:
 ```erb
 <%= render partial: 'shared/search_with_filter', locals: { 
   model_class: YourModel, 
-  help_text: "Help text for the search field" 
 } %>
 ```
 

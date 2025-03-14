@@ -30,7 +30,6 @@ class Location < ApplicationRecord
   has_many :club_locations
   has_many :clubs, through: :club_locations
   has_many :parties, foreign_key: :location_id
-  belongs_to :region, optional: true
   belongs_to :organizer, polymorphic: true
   has_many :tables
   has_many :tournaments, foreign_key: :location_id
@@ -43,10 +42,10 @@ class Location < ApplicationRecord
 
   REFLECTION_KEYS = %w[club region].freeze
   # TODO: Filters
-  COLUMN_NAMES = { "Club" => "clubs.shortname",
+  COLUMN_NAMES = { "Id" => "clubs.id",
+                   "Clubs" => "clubs.shortname",
                    "Address" => "locations.address",
-                   "Name" => "locations.name",
-                   "Region" => "regions.shortname" }.freeze
+                   "Name" => "locations.name" }.freeze
   def self.search_hash(params)
     {
       model: Location,

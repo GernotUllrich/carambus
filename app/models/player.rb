@@ -51,15 +51,14 @@ class Player < ApplicationRecord
     b: {}
   }
   COLUMN_NAMES = { "Id" => "players.id",
-                   "BA_ID" => "players.ba_id",
                    "CC_ID" => "players.cc_id",
+                   "DBU_ID" => "players.dbu_nr",
                    "Nickname" => "players.nickname",
                    "Firstname" => "players.firstname",
                    "Lastname" => "players.lastname",
                    "Title" => "players.title",
                    "Club" => "clubs.shortname",
-                   "Region" => "regions.shortname",
-                   "BaId" => "players.ba_id" }.freeze
+                   "Region" => "regions.shortname" }.freeze
   def self.search_hash(params)
     {
       model: Player,
@@ -69,6 +68,7 @@ class Player < ApplicationRecord
       column_names: Player::COLUMN_NAMES,
       raw_sql: "(players.firstname ilike :search)
  or (players.nickname ilike :search)
+ or (players.cc_id = :isearch)
  or (players.lastname ilike :search)",
       joins: []
     }

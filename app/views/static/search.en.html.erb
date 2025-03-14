@@ -1,0 +1,27 @@
+<!-----
+---
+title: search
+summary: Hier wird die Suche auf den Index Seiten der verschiedenen Tabellen beschrieben
+version:
+published_at:
+tags: []
+metadata: {}
+position: 0
+id: 8
+---
+
+-->
+<div class="py-10 max-w-2xl m-auto  flex flex-col">
+<h1 class='font-bold mt-4'>The search in tables</h1>
+<h2 class='font-bold mt-4'>Global search</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+By simply entering text, you can search in different places at the same time.  Where exactly the search is performed depends on the context. This can be, for example, for the clubs: name, shortname, address, region.shortname, email and cc_id.
+This means that you can search for NBV, for example, and find all clubs in the region via the region.shortname link.  Or you can search for a specific ClubCloud ID, etc.
+Any number of text segments can be entered.  The terms are &quot;AND&quot; linked.  This means that all text segments must occur in the table rows found.</p>
+<h2 class='font-bold mt-4'>Targeted search in table columns</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+To make it as easy as possible for the user, there is a filter form for each search field, which can be activated by clicking on the icon next to the search field.  Here you will find the global search field, which is handled as described above.  There are also fields where conditions are set in a specific context.  These conditions are also all &quot;AND&quot; linked.</p>
+<h2 class='font-bold mt-4'>Special data types.</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+The date and integer data types are currently treated specially.  Relationships =, &lt;, &lt;=, &gt; and &gt;= can be specified here.  One week is subtracted from the date by default.  &#39;today&#39; is a special value.  &#39;&gt;today&#39; therefore means from one week ago to the future.</p>
+</div>
