@@ -142,7 +142,7 @@ class Region < ApplicationRecord
   COLUMN_NAMES = {
     "Logo" => "",
     "id" => "regions.id",
-    "Shortname (BA)" => "regions.shortname",
+    "Shortname" => "regions.shortname",
     "Name" => "regions.name",
     "Email" => "regions.email",
     "Address" => "regions.address",

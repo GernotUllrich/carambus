@@ -2,17 +2,16 @@
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :id,'Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :id,'Id(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :type,'Type', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-<!--      <th class="p-3 uppercase text-left text-xs"><%#= sortable @players, :ba_id,'Ba', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
       <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :dbu_nr,'dbu_nr', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :cc_id,'Cc', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "clubs.shortname",'Club', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "regions.shortname",'Region', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :fullname,t('player.fullname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname,t('player.lastname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :nickname,t('player.nickname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :firstname,t('player.firstname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :cc_id,'Cc(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "clubs.shortname",t('table_headers.club') + '(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, "regions.shortname",t('table_headers.region') + '(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :fullname, t('table_headers.fullname'), request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :lastname, t('table_headers.lastname') + '(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :nickname, t('table_headers.nickname') + '(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :firstname, t('table_headers.firstname') + '(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :title,'Title', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @players, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
@@ -55,9 +54,8 @@
   </table>
 </div>
 <%= form_tag merge_players_path, method: :post do %>
-  <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master player id" %>
-
-  <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave player id"  %>
+  <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master player id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
+  <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave player id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
   <%= submit_tag "merge and delete slave", class: "btn btn-primary"%>
 <% end %>
 

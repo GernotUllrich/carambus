@@ -2,14 +2,17 @@
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :tournament_id,'Tournament', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :league_team_id,'League Team', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :role,'Rolle', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :position,'Position', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :state,'State', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :playing_discipline_id,'Playing discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :region_id, 'Region(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :player_id, 'Player(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :tournament_id, 'Tournament(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :date, 'Date(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :league_team_id, 'League Team(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :role, 'Rolle', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :position, 'Position(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :data, 'Data(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :state, 'State(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :season, 'Season(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @seedings, :playing_discipline_id, 'Playing discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>
@@ -17,13 +20,22 @@
     <tbody>
     <% @seedings.each do |seeding| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3">
+          <% if seeding.tournament.present? && seeding.tournament.organizer_type == "Region" %>
+            <%= custom_link_to(seeding.tournament.organizer.shortname, region_path(seeding.tournament.organizer)) %>
+          <% elsif seeding.league_team.present? &&  seeding.league_team.league&.organizer_type == 'Region' %>
+            <%= custom_link_to(seeding.league_team.league.organizer.shortname, region_path(seeding.tournament.league_team.league.organizer)) if seeding.tournament.league_team.league.organizer.present? %>
+          <% end %>
+        </td>
         <td class="p-3"><%= custom_link_to(seeding.player.fullname, player_path(seeding.player)) %></td>
         <td class="p-3"><%= custom_link_to(seeding.tournament.title, tournament_path(seeding.tournament)) if seeding.tournament.present? %></td>
+        <td class="p-3"><%= custom_link_to(seeding.tournament.date, tournament_path(seeding.tournament)) if seeding.tournament.present? %></td>
         <td class="p-3"><%= custom_link_to(seeding.league_team.name, league_team_path(seeding.league_team)) if seeding.league_team.present? %></td>
         <td class="p-3"><%= seeding.role %></td>
         <td class="p-3"><%= seeding.position %></td>
         <td class="p-3"><%= Seeding.result_display(seeding) %></td>
         <td class="p-3"><%= seeding.state %></td>
+        <td class="p-3"><%= seeding.tournament&.season&.name || seeding.league_team&.league&.season&.name %></td>
         <td class="p-3"><%= custom_link_to(seeding.tournament.discipline.name, discipline_path(seeding.tournament.discipline)) if seeding.tournament.present? %></td>
 
         <td>
@@ -37,7 +49,7 @@
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

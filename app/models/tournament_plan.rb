@@ -28,6 +28,29 @@ class TournamentPlan < ApplicationRecord
   before_save :set_paper_trail_whodunnit
   # noinspection RubyLiteralArrayInspection
 
+  COLUMN_NAMES = { # TODO: FILTERS
+                   "ID" => "tournament_plans.id",
+                   "Name" => "tournament_plans.name",
+                   "Rulesystem" => "tournament_plans.rulesystem",
+  }.freeze
+
+  def self.search_hash(params)
+    {
+      model: Tournament,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: [params[:sSearch], params[:search]].compact.join("&").to_s,
+      column_names: Tournament::COLUMN_NAMES,
+      raw_sql: "(tournaments.ba_id = :isearch)
+or (tournaments.title ilike :search)
+or (tournaments.shortname ilike :search)
+or (seasons.name ilike :search)",
+      joins: [
+        'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline
+      ]
+    }
+  end
+
   def self.default_plan(nplayers)
     plan = TournamentPlan.find_by_name("Default#{nplayers}")
     plan ||= TournamentPlan.new(

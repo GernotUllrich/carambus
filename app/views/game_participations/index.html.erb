@@ -1,70 +1,8 @@
-<div class="container mx-auto my-8 px-4">
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="h3">Game Participations</h1>
-
-    <% if @game_participations.any? %>
-      <%= button_to 'New Game Participation', new_game_participation_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
-    <% end %>
-  </div>
-
-  <% if @game_participations.any? %>
-    <div class=" rounded shadow table-responsive">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :game_id,'Game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :role,'Role', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :points,'Points', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :result,'Result', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :innings,'Innings', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gd,'Gd', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :hs,'Hs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gname,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @game_participations.each do |game_participation| %>
-          <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <td class="p-3"><%= game_participation.game_id %></td>
-                      <td class="p-3"><%= game_participation.player_id %></td>
-                      <td class="p-3"><%= game_participation.role %></td>
-                      <td class="p-3"><%= game_participation.data %></td>
-                      <td class="p-3"><%= game_participation.points %></td>
-                      <td class="p-3"><%= game_participation.result %></td>
-                      <td class="p-3"><%= game_participation.innings %></td>
-                      <td class="p-3"><%= game_participation.gd %></td>
-                      <td class="p-3"><%= game_participation.hs %></td>
-                      <td class="p-3"><%= game_participation.gname %></td>
-
-            <td>
-              <%= custom_link_to t('view'), game_participation, class: "btn btn-link no-underline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
-    </div>
-
-    <% if @pagy.pages > 1 %>
-      <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
-        <%== pagy_nav(@pagy) %>
-      </div>
-    <% end %>
-
-  <% else %>
-    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
-            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
-      </svg>
-      <div class="flex-1 text-center">
-
-        <%= button_to 'New Game Participation', new_game_participation_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
-      </div>
-    </div>
-  <% end %>
-</div>
+<%= render partial: 'shared/index_with_search', locals: {
+  model_class: GameParticipation,
+  records: @game_participations,
+  title: t('game_participation.index.game_participations'),
+  new_text: 'New GameParticipation',
+  new_path: new_game_participation_path,
+  table_partial: 'game_participations_table'
+} %>

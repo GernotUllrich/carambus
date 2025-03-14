@@ -2,12 +2,11 @@
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id,'Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id,'Clubs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :region_id,'Region', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address,'Address', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id,'Id(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id,'Clubs(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address,'Address(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name,'Name(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :synonyms,'Synonyme', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_type,'Organizer Type', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_id,'Organizer Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
@@ -26,7 +25,6 @@
             custom_link_to club.shortname, club_path(club) if club.present?
           }.join("<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %>
         </td>
-        <td class="p-3"><%= custom_link_to location.region.shortname, region_path(location.region) if location.region.present? %></td>
         <td class="p-3"><%= location.address.gsub("\n", "<br />").html_safe %></td>
         <td class="p-3"><%= location.data %></td>
         <td class="p-3"><%= location.name %></td>
@@ -49,9 +47,8 @@
 </div>
 <%- unless local_server? %>
   <%= form_tag merge_locations_path, method: :post do %>
-    <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master location id" %>
-
-    <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave location id" %>
+    <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master location id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
+    <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave location id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
     <%= submit_tag "merge and delete slave", class: "btn btn-primary" %>
   <% end %>
 <%- end %>

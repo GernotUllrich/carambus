@@ -4,11 +4,24 @@ class GameParticipationsController < ApplicationController
 
   # GET /game_participations
   def index
-    @pagy, @game_participations = pagy(GameParticipation.sort_by_params(params[:sort], sort_direction))
-
+    results = SearchService.call( GameParticipation.search_hash(params) )
+    @pagy, @game_participations = pagy(results)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
-    # Calling @game_participations.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    # Calling @clubs.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @game_participations.load
+    respond_to do |format|
+      format.html do
+        if params[:table_only].present?
+          params.reject! { |k, _v| k.to_s == "table_only" }
+          render(partial: "search", layout: false)
+        else
+          render("index")
+        end
+      end
+    end
+  rescue StandardError => e
+    Rails.logger.error "ERROR: #{e}\n#{e.backtrace.join("\n")}"
+    render("index")
   end
 
   # GET /game_participations/1

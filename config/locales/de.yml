@@ -237,29 +237,6 @@ de:
   cancel_game: Spiel beenden
   carambus_manages: Carambus verwaltet den Billard-Spielbetrieb
   close_party: Spieltag abschliessen
-  club:
-    address: Adresse
-    ba_id: Link zur Billard Area
-    cc_id: Link zur Club Cloud
-    club_tournaments: Club Turniere
-    dbu_entry: DBU Eintritt
-    email: eMail
-    founded: Gegründet
-    homepage: Homepage
-    id: id
-    index:
-      club: Club
-      clubs: Clubs
-    logo: Logo
-    name: Name
-    new_club_guest: Neuen Club Gast anlegen
-    new_club_location: Neuen Club Spielort anlegen
-    new_club_tournament: Neues Club Turnier anlegen
-    priceinfo: Mitgliedsbeiträge
-    region_id: Regionalverband
-    shortname: Kurzname
-    status: Status
-    synonyms: Synonyme
   clubs:
     address: address
     ba_id: BA Id
@@ -321,36 +298,6 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
-  game:
-    created_at: erstellt
-    data: data
-    display_af_game_group: Achtelfinale
-    display_af_game_name: Achtelfinale %{game_no}
-    display_fin_game_name: Finale
-    display_group_game_name: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}
-    display_group_game_name_group: Group
-    display_group_game_name_rp: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}/%{rp}
-    display_group_game_name_short: Gruppe %{group_no}
-    display_hf_game_group: Halbfinale
-    display_hf_game_name: Halbfinale %{game_no}
-    display_place_game_name: Platz %{n1}-%{n2} %{n3}
-    display_qf_game_group: Viertelfinale
-    display_qf_game_name: Viertelfinale %{game_no}
-    ended_at: ended at
-    gname: gname
-    group_no: group no
-    id: id
-    index:
-      game: Partie
-      games: Partien
-    roles: roles
-    round_no: round no
-    seqno: seqno
-    started_at: started at
-    table_no: table no
-    template_game_id: template game id
-    tournament_id: tournament id
-    updated_at: updated at
   game_participation:
     balls_goal: Ballziel
     created_at: created at
@@ -404,6 +351,7 @@ de:
   home:
     index:
       about: Der Entwickler
+      search: Das Suchen in Tabellen
       carambus_tournament_management: Carambus Turnierverwaltung
       club: Clubs
       club_cloud: Club Cloud
@@ -470,6 +418,9 @@ de:
       unsubscribe: Unsubscribe from this list
       view_in_browser: View this in your browser
   league:
+    index:
+      league: Liga
+      leagues: Ligen
     show:
       reload_from_billard_area: Datenabgleich mit der %{source}
       reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
@@ -525,11 +476,19 @@ de:
     stripe: Stripe
     twitter: Twitter
   of: of
+  party:
+    index:
+      party: Ligabegegnung
+      parties: Ligabegegnungen
   parties:
     index:
       listing_parties: Liste aktueller Ligabegegnungen
     parties: Spieltage
     party: Spieltag
+  party_game:
+    index:
+      party_game: Spieltagpartie
+      party_games: Spieltagpartien
   party_party_games: Spieltagpartien
   payments:
     show:
@@ -554,23 +513,6 @@ de:
     interval: Interval
     name: Name
     trial_period_days: Probezeit in Tagen
-    updated_at: updated at
-  player:
-    ba_id: Link zur Billard Area
-    club_id: Club
-    created_at: created at
-    data: Details
-    firstname: Vorname
-    fullname: Name
-    id: ID
-    index:
-      player: Spieler
-      players: Spieler
-    last_sync: Last Sync
-    lastname: Nachname
-    nickname: Spitzname
-    source_url: Quelle
-    title: Titel
     updated_at: updated at
   player_class:
     created_at: created at
@@ -617,25 +559,6 @@ de:
     tournament_player_class_id: tournament player class id
     v: v
   processing: Processing...
-  region:
-    address: Adresse
-    country_id: Länder Code
-    created_at: created at
-    email: eMail
-    id: ID
-    index:
-      region: Regionalverband
-      regions: Regionalverbände
-    logo: Logo
-    name: Name
-    shortname: Kurzname
-    show:
-      reload_from_billard_area: Datenabgleich mit der %{source} inkl. Clubs
-      reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Clubs und Spieler
-      reload_leagues: Datenabgleich der Liegen aus der Region %{source}
-      reload_leagues_with_details: Datenabgleich der Ligen incl. Spielergebnisse aus der Region %{source}
-      reload_tournaments: Datenabgleich der Einzelmeisterschaften aus der Region %{source}
-    updated_at: updated at
   requires_admin_role: Adminrechte notwendig
   rest: Rest
   save: Speichern
@@ -646,6 +569,7 @@ de:
     new:
       title: New %{model}
     view: View
+  search_filter: Öffne das Such-Filter Formular
   season:
     ba_id: BA ID
     created_at: created at
@@ -655,33 +579,6 @@ de:
       season: Saison
       seasons: Saisons
     name: Name
-    updated_at: updated at
-  season_participation:
-    club_id: Club
-    created_at: created at
-    data: Daten
-    id: id
-    index:
-      season_participation: SaisonSpieler
-      season_participations: SaisonSpieler
-    player_id: Spieler
-    season_id: Saison
-    updated_at: updated at
-  seeding:
-    ba_state: BA Status
-    balls_goal: Bälle Ziel
-    created_at: created at
-    data: Daten
-    id: id
-    index:
-      seeding: Turnierteilnahme
-      seedings: Turnierteilnahmen
-    player_id: Spieler
-    playing_discipline_id: Disziplin
-    position: Listenposition
-    rank: Ranglistenplatz
-    state: Status
-    tournament_id: Turnier
     updated_at: updated at
   select_game: Wähle aus den noch offenen Spielpaarungen
   select_game_mode: Wähle den Spielmodus
@@ -982,6 +879,9 @@ de:
     handicap_tournier: Handicap Tournier
     id: ID
     innings_goal: Aufnahmeziel
+    index:
+      tournament: Turnier
+      tournaments: Turniere
     location: Lokation
     location_id: Lokation
     modus: Modus
@@ -1092,6 +992,9 @@ de:
     rulesystem: rulesystem
     tables: tables
     updated_at: updated at
+    index:
+      tournament_plans: "Turnierpläne"
+      new_tournament_plan: "Neuer Turnierplan"
   tournaments:
     edit:
       back: Zurück
@@ -1306,3 +1209,54 @@ de:
     system_theme: System Farbschema
     dark_theme: Dunkles Farbschema
     light_theme: Helles Farbschema
+  shared:
+    search:
+      no_results: "Keine Ergebnisse gefunden für '%{query}'"
+    index_with_search:
+      no_records: "Keine Einträge gefunden"
+
+  league_team:
+    index:
+      league_teams: "Mannschaften"
+      new_league_team: "Neue Mannschaft"
+  discipline_phase:
+    index:
+      discipline_phases: "Disziplinphasen"
+      new_discipline_phase: "Neue Disziplinphase"
+
+  region:
+    index:
+      regions: "Regionalverbände"
+      new_region: "Neuer Regionalverband"
+
+  club:
+    index:
+      clubs: "Vereine"
+      new_club: "Neuer Verein"
+
+  player:
+    index:
+      players: "Spieler"
+      new_player: "Neuer Spieler"
+
+  seeding:
+    index:
+      seedings: "Turnierteilnahmen"
+      new_seeding: "Neue Turnierteilnahme"
+
+  season_participation:
+    index:
+      season_participations: "Saisonteilnahmen"
+      new_season_participation: "Neue Saisonteilnahme"
+
+  game:
+    index:
+      games: "Spiele"
+      new_game: "Neues Spiel"
+  table_headers:
+    club: "Verein"
+    region: "Regionalverband"
+    fullname: "Vollständiger Name"
+    lastname: "Nachname"
+    firstname: "Vorname"
+    nickname: "Spitzname"

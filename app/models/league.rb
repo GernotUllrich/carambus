@@ -254,9 +254,13 @@ class League < ApplicationRecord
  or (regions.name ilike :search)
  or (regions.shortname ilike :search)
  or (seasons.name ilike :search)
+ or (disciplines.name ilike :search)
  or (leagues.cc_id = :isearch)",
-      joins: [:season,
-              "Left outer join regions on leagues.organizer_id = regions.id and leagues.organizer_type = 'Region'"]
+      joins: [
+        :season,
+        :discipline,
+        "Left outer join regions on leagues.organizer_id = regions.id and leagues.organizer_type = 'Region'",
+      ]
     }
   end
 

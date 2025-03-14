@@ -1,0 +1,27 @@
+<!-----
+---
+title: search
+summary: Hier wird die Suche auf den Index Seiten der verschiedenen Tabellen beschrieben
+version:
+published_at:
+tags: []
+metadata: {}
+position: 0
+id: 8
+---
+
+-->
+<div class="py-10 max-w-2xl m-auto  flex flex-col">
+<h1 class='font-bold mt-4'>Die Suche in Tabellen</h1>
+<h2 class='font-bold mt-4'>Globale Suche</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Durch einfache Texteingabe kann gleichzeitig an verschiedenen Stellen gesucht werden.  Wo genau gesucht wird, ist abhängig vom Kontext. Das kann z.B. bei den Clubs:  name, shortname, address, region.shortname, email und  cc_id sein.
+D.h. man kann z.B. nach NBV suchen und findet über die Verknüpfung region.shortname alle clubs in der Region.  Oder man sucht nach einer ganz bestimmten ClubCloud ID, etc.
+Es können beliebig viele Textsegmente eingegeben werden.  Die Begriffe werden &quot;UND&quot;-verknüpft.  D.h. aller Textsegmente müssen in den gefundenen Tabellenzeilen vorkommen.</p>
+<h2 class='font-bold mt-4'>Gezielte Suche in Tabellenspalten</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Um es dem Anwender so einfach wie möglich zu machen, gibt es zu jedem Suchfeld ein Filter Formular, welches durch Anklicken des Icons neben dem Suchfeld aktiviert werden.  Hier findet sich noch einmal das Globale Suchfeld, das wie zuvor beschrieben behandelt wird.  Dazu gibt es Felder, wo gezielt in einem bestimmten Zusammenhang Bedingingen gestellt werden.  Auch diese Bedingungen werden alle &quot;UND&quot;-verknüpft.</p>
+<h2 class='font-bold mt-4'>Spezielle Datentypen.</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+Derzeit werden die Datentypen Datum und Integer besonders behandelt.  Hier können Beziehungen =, &lt;, &lt;=, &gt; und &gt;= angegeben werden.  Beim Datum wird standardmässig eine Woche abgezogen.  Dabei ist &#39;today&#39; ein spezieller Wert.  &#39;&gt;today&#39; meint also von vor einer Woche bis in die Zukunft.</p>
+</div>
