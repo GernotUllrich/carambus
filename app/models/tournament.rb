@@ -307,8 +307,7 @@ or (seasons.name ilike :search)",
   def scrape_single_tournament_public(opts = {})
     nbsp = ["c2a0"].pack("H*").force_encoding("UTF-8")
     return -1 if organizer_type != "Region"
-    return if Jumpstart.config.carambus_api_url.present?
-
+    return if Carambus.config.carambus_api_url.present?
     region = organizer
     url = organizer.public_cc_url_base
     region_cc = region.region_cc
