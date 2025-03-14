@@ -49,7 +49,8 @@ class Club < ApplicationRecord
 
   REFLECTION_KEYS = %w[region season_participations].freeze
 
-  COLUMN_NAMES = { "BA_ID" => "clubs.ba_id",
+  COLUMN_NAMES = { "ID" => "clubs.id",
+                   "BA_ID" => "clubs.ba_id",
                    "CC_ID" => "clubs.cc_id",
                    "Region" => "regions.shortname",
                    "Name" => "clubs.name",

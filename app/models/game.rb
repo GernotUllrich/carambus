@@ -22,15 +22,54 @@
 class Game < ApplicationRecord
   include LocalProtector
 
-  belongs_to :tournament, polymorphic: true, optional: true
+  belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
   has_one :table_monitor, dependent: :nullify
   has_one :was_table_monitor, foreign_key: :prev_game_id, class_name: "TableMonitor", dependent: :nullify
 
   before_save :set_paper_trail_whodunnit
 
-  #serialize :data, coder: YAML, type: Hash
+  # serialize :data, coder: YAML, type: Hash
   serialize :data, coder: JSON, type: Hash
+
+  # Helper method to safely decode legacy YAML or JSON data
+  def self.safe_decode_data(raw_data)
+    return {} if raw_data.blank?
+
+    # Try JSON first
+    begin
+      return JSON.parse(raw_data)
+    rescue JSON::ParserError
+      # If JSON fails, try YAML with safe loading
+      begin
+        # Use YAML.load instead of safe_load for better compatibility with old data
+        return YAML.load(raw_data)
+      rescue Psych::SyntaxError => e
+        Rails.logger.error "Failed to parse data: #{e.message}"
+        return {}
+      end
+    end
+  end
+
+  # Override the data getter to handle both formats
+  def data
+    raw_data = read_attribute_before_type_cast(:data)
+    decoded_data = self.class.safe_decode_data(raw_data)
+
+    # If we successfully decoded YAML data, convert it to JSON
+    if decoded_data.present? && raw_data.start_with?('---')
+      begin
+        self.data = decoded_data # This will serialize it as JSON
+        save!
+        Rails.logger.info "Converted YAML to JSON for Game[#{id}]"
+      rescue StandardError => e
+        Rails.logger.error "Failed to save data: #{e.message}"
+        exit 1
+      end
+    end
+
+    decoded_data
+  end
 
   #   #"data"=>
   #   { "ba_results" =>
@@ -95,10 +134,61 @@ class Game < ApplicationRecord
   end
 
   COLUMN_NAMES = {
-    "Date" => "tournaments.date",
+    "Date" => "tournaments.date::date",
     "Tournament" => "tournaments.title",
-    "Remarks" => "games.data"
+    "Name" => "games.gname",
+    "Remarks" => "games.data",
+    "Player" => "players.fl_name"
   }.freeze
+
+  def self.search_hash(params)
+    {
+      model: Game,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
+      column_names: Game::COLUMN_NAMES,
+      raw_sql: "(tournaments.title ilike :search)
+      or (regions.shortname ilike :search)
+      or (games.gname ilike :search)
+      or (seasons.name ilike :search)
+      or exists (
+        select 1
+        from game_participations gp
+        join players p on p.id = gp.player_id
+        where gp.game_id = games.id
+        and p.fl_name ilike :search
+      )",
+      joins: [
+        "LEFT JOIN tournaments ON (games.tournament_id = tournaments.id)",
+        'LEFT JOIN regions ON (regions.id = tournaments.organizer_id AND tournaments.organizer_type = \'Region\')',
+        'LEFT JOIN seasons ON (seasons.id = tournaments.season_id)',
+        'LEFT JOIN game_participations ON game_participations.game_id = games.id',
+        'LEFT JOIN players ON players.id = game_participations.player_id'
+      ]
+    }
+  end
+
+  def self.legacy_role_joins
+    # Define legacy roles with their exact database values
+    legacy_roles = {
+      'guest' => 'Gast',
+      'home' => 'Heim',
+      'playera' => 'playera',
+      'playerb' => 'playerb'
+    }
+
+    legacy_roles.map do |alias_name, role_value|
+      [
+        "LEFT JOIN game_participitions AS #{alias_name}_game_participitions ON
+        #{alias_name}_game_participitions.game_id = games.id AND
+        #{alias_name}_game_participitions.role = '#{role_value}'",
+
+        "LEFT JOIN players AS #{alias_name}_players ON
+        #{alias_name}_game_participitions.player_id = #{alias_name}_players.id"
+      ]
+    end
+  end
 
   def log_state_change
     if DEBUG
@@ -152,10 +242,10 @@ class Game < ApplicationRecord
       next unless (m = ranking_key.match(pattern))
 
       return translator.call(m)
-  end
+    end
 
     nil
-    end
+  end
 
   def display_gname
     Game.display_ranking_key(gname)

@@ -20,11 +20,11 @@
       </div>
 <!--      <div class="mb-4">
         <h5>Ba</h5>
-        <%#= custom_link_to @league_team.ba_id, "https://nbv.billardarea.de/cms_teams/show/#{@league_team.ba_id}", class: "yellow_link", target: :_blank %>
+        <%#= custom_link_to @league_team.ba_id, "https://nbv.billardarea.de/cms_team  s/show/#{@league_team.ba_id}", class: "yellow_link", target: :_blank %>
       </div>-->
       <div class="mb-4">
         <h5>Club</h5>
-        <%= custom_link_to @league_team.club.shortname, club_path(@league_team.club) %>
+        <%= custom_link_to @league_team.club.shortname, club_path(@league_team.club) if @league_team.club.present? %>
       </div>
     </div>
   </div>

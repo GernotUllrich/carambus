@@ -22,6 +22,10 @@ class StaticController < ApplicationController
     render 'league'
   end
 
+  def search
+
+  end
+
   def intro
     render 'carambus-turnier-management'
   end

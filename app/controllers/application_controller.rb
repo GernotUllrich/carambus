@@ -17,12 +17,13 @@ class ApplicationController < ActionController::Base
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
   before_action do
+    # Store search parameter in session and make it available for views
     if params.has_key?(:sSearch)
       session[:"s_#{params[:controller]}"] = params[:sSearch]
-    else
-      params[:sSearch] = session[:"s_#{params[:controller]}"]
     end
-    @sSearch = session[:"s_#{params[:controller]}"] if params[:action] == "index"
+    # Always set @sSearch from session for both index and non-index actions
+    @sSearch = session[:"s_#{params[:controller]}"]
+    params[:sSearch] = @sSearch
     @navbar = true
     @footer = true
   end

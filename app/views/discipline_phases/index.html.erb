@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <%= custom_link_to t("shared.scaffold.new.title", model: "Discipline Phase"), new_discipline_phase_path, class: "btn btn-white" %>
+    <%= custom_link_to t("discipline_phase.index.discipline_phases"), new_discipline_phase_path, class: "btn btn-white" %>
   </div>
 
   <%= tag.div id: ("discipline_phases" if first_page?), class: " rounded-md shadow p-6 space-y-8" do %>
@@ -28,7 +28,7 @@
       </svg>
       <div class="flex-1 text-center">
         <p class="mb-4 h3">Create your first Discipline Phase</p>
-        <%= custom_link_to t("shared.scaffold.new.title", model: "Discipline Phase"), new_discipline_phase_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+        <%= custom_link_to t("discipline_phase.index.new_discipline_phase", model: "Discipline Phase"), new_discipline_phase_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
       </div>
     </div>
   <% end %>

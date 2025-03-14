@@ -2,15 +2,13 @@
   <table class="table">
     <thead>
     <tr>
-      <%- unless from_party %>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id,'Party', request.params, class: 'text-gray-700' %></th>
-      <%- end %>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno,'Seqno', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id,'Player a', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id,'Player b', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :data,'Data', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :tournament_id,'Tournament', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno, 'Seqno', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :discipline_id, 'Discipline', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id, 'Player a', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id, 'Player b', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :data, 'Data', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :tournament_id, 'Tournament', request.params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>
@@ -18,9 +16,7 @@
     <tbody>
     <% @party_games.each do |party_game| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <%- unless from_party %>
-          <td class="p-3"><%= custom_link_to party_game.name, party_game_path(party_game) %></td>
-        <%- end %>
+        <td class="p-3"><%= custom_link_to party_game.name, party_game_path(party_game) %></td>
         <td class="p-3"><%= party_game.seqno %></td>
         <td class="p-3"><%= custom_link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) if party_game.discipline.present? %></td>
         <td class="p-3"><%= custom_link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
@@ -39,7 +35,7 @@
 </div>
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

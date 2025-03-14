@@ -1,0 +1,35 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="h3"><%= title %></h1>
+
+    <% if model_class.any? %>
+      <%= render partial: 'shared/search_with_filter', locals: {
+        model_class: model_class,
+      } %>
+      <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <% if model_class.any? %>
+    <%= turbo_frame_tag 'table_wrapper' do %>
+      <% if records.blank? && params[:sSearch].present? %>
+        <div class="rounded shadow">
+          <div class="my-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-md p-4 text-center">
+            <%= t('shared.search.no_results', query: params[:sSearch]) %>
+          </div>
+        </div>
+      <% else %>
+        <%= render partial: table_partial, locals: local_assigns %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
+      <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
+      </svg>
+      <div class="flex-1 text-center">
+        <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

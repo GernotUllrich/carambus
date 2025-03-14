@@ -1,38 +1,8 @@
-<div class="container mx-auto my-8 px-4">
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="h3">Discipline Tournament Plans</h1>
-
-    <% if @discipline_tournament_plans.any? %>
-      <div class="flex-row w-2/4">
-        <div class="flex flex-row">
-          <div class="flex w-full">
-            <form action="/discipline_tournament_plans" method="get" target="table_wrapper" data-reflex-serialize-form="true">
-              <%= search_field_tag :sSearch, params[:sSearch], id: 'sSearch', data: { reflex: "input->SearchReflex#perform", reflex_permanent: "search" }, placeholder: "Search" %>
-            </form>
-          </div>
-          <div id="helpSearch" class="flex pl-3" data-controller="tooltip" data-tippy-content="Search Field - z.B.: info region:nbv season:2022/2023" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
-            <%= render_svg "icons/information-outline", styles: "fill-current icon-sm text-gray-700 dark:text-gray-800 hover:text-gray-800 hover: dark: inline-blocktable_monitor.save" %>
-          </div>
-        </div>
-      </div>
-      <%= button_to 'New Discipline Tournament Plan', new_discipline_tournament_plan_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
-    <% end %>
-  </div>
-
-  <% if @discipline_tournament_plans.any? %>
-    <%= turbo_frame_tag 'table_wrapper' do %>
-      <%= render partial: 'discipline_tournament_plans_table' %>
-    <% end %>
-
-  <% else %>
-    <div class=" rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
-            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
-      </svg>
-      <div class="flex-1 text-center">
-
-        <%= button_to 'New Discipline Tournament Plan', new_discipline_tournament_plan_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
-      </div>
-    </div>
-  <% end %>
-</div>
+<%= render partial: 'shared/index_with_search', locals: {
+  model_class: DisciplineTournamentPlan,
+  records: @discipline_tournament_plans,
+  title: t('discipline_tournament_plan.index.discipline_tournament_plan'),
+  new_text: 'New Discipline Tournament Plan',
+  new_path: new_discipline_tournament_plan_path,
+  table_partial: 'discipline_tournament_plans_table'
+} %>
