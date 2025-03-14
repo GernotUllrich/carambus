@@ -25,18 +25,21 @@
 
           <% if field[:show_operators] %>
             <div class="flex space-x-2">
+              <%  operator, value = nil; operator, value = @search_components[field[:field_key]].andand.match(/(contains|=|>|>=|<|<=)([^<>=>]+)/).andand[1..2] if @search_components.present? %>
+              <% value = (Date.today - 7.days).to_s if value =~ /today/i %>
               <select name="<%= field[:field_key] %>_operator" class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-2">
-                <option value="contains">Contains</option>
-                <option value="=">=</option>
-                <option value=">">></option>
-                <option value=">=">>=</option>
-                <option value="<"><</option>
-                <option value="<="><=</option>
+                <option value="contains" <%= "selected" if operator == "contains" %>>Contains</option <%= "selected" if operator == "=" %>>
+                <option value="=" <%= "selected" if operator == "=" %>>=</option>
+                <option value=">" <%= "selected" if operator == ">" %>>></option>
+                <option value=">=" <%= "selected" if operator == ">=" %>>>=</option>
+                <option value="<"<%= "selected" if operator == "<" %>><</option>
+                <option value="<="<%= "selected" if operator == "<=" %>><=</option>
               </select>
 
               <input
                 type="<%= field[:field_type] %>"
                 name="<%= field[:field_key] %>"
+                value="<%= value %>"
                 class="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
                 placeholder="<%= field[:display_name] %>"
               >
@@ -45,6 +48,7 @@
             <input
               type="<%= field[:field_type] %>"
               name="<%= field[:field_key] %>"
+              value="<%= @search_components[field[:field_key]] if @search_components.present? %>"
               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
               placeholder="<%= field[:display_name] %>"
             >

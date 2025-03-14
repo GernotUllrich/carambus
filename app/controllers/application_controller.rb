@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  #include SetCurrentRequestDetails
+  # include SetCurrentRequestDetails
   include CableReady::Broadcaster
   include CanCan::ControllerAdditions
   include DarkModeHelper
@@ -16,6 +16,7 @@ class ApplicationController < ActionController::Base
 
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
+  before_action :set_model_class
   before_action do
     # Store search parameter in session and make it available for views
     if params.has_key?(:sSearch)
@@ -24,11 +25,14 @@ class ApplicationController < ActionController::Base
     # Always set @sSearch from session for both index and non-index actions
     @sSearch = session[:"s_#{params[:controller]}"]
     params[:sSearch] = @sSearch
+
+    # Parse search string into components
+    @search_components = parse_search_string(@sSearch, @model_class) if @sSearch.present?
+
     @navbar = true
     @footer = true
   end
   before_action :set_user_preferences
-  before_action :set_model_class
   around_action :switch_locale
   around_action :set_current_user
   # impersonates :user
@@ -62,6 +66,7 @@ class ApplicationController < ActionController::Base
     return false unless user_signed_in?
     current_user.prefers_dark_mode?
   end
+
   helper_method :dark_mode?
 
   protected
@@ -137,5 +142,35 @@ class ApplicationController < ActionController::Base
   def set_model_class
     controller_name = self.class.name.sub(/Controller$/, '')
     @model_class = controller_name.singularize.safe_constantize
+  end
+
+  def parse_search_string(search_string, model_class)
+    components = {}
+    return components if search_string.blank?
+    components['general'] = []
+    search_terms = search_string.split(/\s+/).map(&:strip)
+    search_terms.each do |search_string|
+      # Match patterns like "field:value" or just "value"
+      search_string.scan(/(\w+):(\S+)|(\S+)/).each do |field, value, plain_text|
+        if field && value
+          #deal with abbreviations of any case
+          field_match = nil
+          model_class::COLUMN_NAMES.each do |k,v|
+            if k.match(/^#{field}/i)
+              field_match = k
+              break
+            end
+          end
+
+          # Handle field:value pairs
+          components[field_match.downcase] = value if field_match.present?
+        elsif plain_text
+          # Handle plain text search
+          components['general'] << plain_text
+        end
+      end
+    end
+    components['general'] = components['general'].join(" ")
+    components
   end
 end
