@@ -17,7 +17,7 @@ default:
   :force_update: 'true'
   :club_id: 357
 development:
-  carambus_api_url: ''
+  carambus_api_url: https://api.carambus.de/
   location_id: 1
   application_name: Carambus
   support_email: gernot.ullrich@gmx.de

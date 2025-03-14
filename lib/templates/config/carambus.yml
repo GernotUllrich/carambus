@@ -17,7 +17,7 @@ default:
   :force_update: 'true'
   :club_id: 357
 development:
-  carambus_api_url: ''
+  carambus_api_url: https://api.carambus.de/
   location_id: 1
   application_name: Carambus
   support_email: gernot.ullrich@gmx.de
@@ -25,8 +25,8 @@ development:
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: carambus.de
   queue_adapter: async
-  small_table_no: 4
-  large_table_no: 4
+  small_table_no: 0
+  large_table_no: 0
   pool_table_no: 0
   snooker_table_no: 0
   context: NBV
