@@ -1,0 +1,48 @@
+
+<div class=" rounded shadow table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :rulesystem,'Rulesystem', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :players,'Players', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :tables,'Tables', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :more_description,'More description', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :even_more_description,'Even more description', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :executor_class,'Executor class', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :executor_params,'Executor params', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :ngroups,'Ngroups', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_plans, :nrepeats,'Nrepeats', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @tournament_plans.each do |tournament_plan| %>
+      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= tournament_plan.name %></td>
+        <td class="p-3"><%= tournament_plan.rulesystem %></td>
+        <td class="p-3"><%= tournament_plan.players %></td>
+        <td class="p-3"><%= tournament_plan.tables %></td>
+        <td class="p-3"><%= tournament_plan.more_description %></td>
+        <td class="p-3"><%= tournament_plan.even_more_description %></td>
+        <td class="p-3"><%= tournament_plan.executor_class %></td>
+        <td class="p-3"><%= JSON.parse tournament_plan.executor_params %></td>
+        <td class="p-3"><%= tournament_plan.ngroups %></td>
+        <td class="p-3"><%= tournament_plan.nrepeats %></td>
+
+        <td>
+          <%= custom_link_to t('view'), tournament_plan, class: "btn btn-link no-underline" %>
+        </td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>

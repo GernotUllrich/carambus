@@ -132,17 +132,15 @@ class Tournament < ApplicationRecord
                    parties].freeze
 
   COLUMN_NAMES = { # TODO: FILTERS
-                   "BA_ID" => "tournaments.ba_id",
-                   "BA State" => "tournaments.ba_state",
+                   "ID" => "tournaments.id",
+                   "CC_ID" => "tournaments.cc_id",
                    "Title" => "tournaments.title",
                    "Shortname" => "tournaments.shortname",
+                   "Date" => "tournaments.date::date",
                    "Discipline" => "disciplines.name",
                    "Region" => "regions.shortname",
                    "Organization" => "regions.shortname",
-                   # 'location' => 'locations.address',
                    "Season" => "seasons.name",
-                   "Status" => "tournaments.  plan_or_show",
-                   "SingleOrLeague" => "tournaments.single_or_league",
                    "date" => "tournaments.date::date"
   }.freeze
 
@@ -156,9 +154,7 @@ class Tournament < ApplicationRecord
       raw_sql: "(tournaments.ba_id = :isearch)
 or (tournaments.title ilike :search)
 or (tournaments.shortname ilike :search)
-or (seasons.name ilike :search)
-or (tournaments.plan_or_show ilike :search)
-or (tournaments.single_or_league ilike :search)",
+or (seasons.name ilike :search)",
       joins: [
         'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline
       ]

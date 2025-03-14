@@ -21,7 +21,6 @@ class SearchService < ApplicationService
     if @sSearch.present?
       results_no_query = results
       results = apply_filters(results, @column_names, @raw_sql)
-      results = results_no_query if results.count.zero?
     end
     results
   end

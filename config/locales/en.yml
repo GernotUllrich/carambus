@@ -228,29 +228,6 @@ en:
   cancel_game: Cancel game
   carambus_manages: Carambus Manages Billard Tournaments
   close_party: close matchday
-  club:
-    address: Address
-    ba_id: Link to Billard Area
-    cc_id: Link to Club Cloud
-    club_tournaments: Club Tournaments
-    dbu_entry: DBU entry
-    email: eMail
-    founded: Founded
-    homepage: Homepage
-    id: id
-    index:
-      club: Club
-      clubs: Clubs
-    logo: Logo
-    name: Name
-    new_club_guest: New Club Guest
-    new_club_location: New Club Location
-    new_club_tournament: New Club Tournament
-    priceinfo: Priceinfo
-    region_id: Region
-    shortname: Shortname
-    status: Status
-    synonyms: Synonyms
   clubs:
     address: address
     ba_id: BA Id
@@ -313,36 +290,6 @@ en:
       invalid_theme: invalid theme
       invalid_locale: invalid locale
       invalid_timezone: invalid timezone
-  game:
-    created_at: created at
-    data: data
-    display_af_game_group: Eigth Finals
-    display_af_game_name: Eigth Final %{game_no}
-    display_fin_game_name: Final
-    display_group_game_name: Group %{group_no}<br />Game %{playera}-%{playerb}
-    display_group_game_name_group: Group
-    display_group_game_name_rp: Group %{group_no}<br />Game %{playera}-%{playerb}/%{rp}
-    display_group_game_name_short: Group %{group_no}
-    display_hf_game_group: Semi Finals
-    display_hf_game_name: Semi Final %{game_no}
-    display_place_game_name: Place %{n1}-%{n2} %{n3}
-    display_qf_game_group: Quarter Finals
-    display_qf_game_name: Quarter Final %{game_no}
-    ended_at: ended at
-    gname: gname
-    group_no: group no
-    id: id
-    index:
-      game: game
-      games: games
-    roles: roles
-    round_no: round no
-    seqno: seqno
-    started_at: started at
-    table_no: table no
-    template_game_id: template game id
-    tournament_id: tournament id
-    updated_at: updated at
   game_participation:
     balls_goal: balls goal
     created_at: created at
@@ -378,6 +325,7 @@ en:
   home:
     index:
       about: The Developer
+      search: How to Search Tables
       carambus_tournament_management: Carambus Tournament Management
       club: Clubs
       club_cloud: Club Cloud
@@ -444,6 +392,9 @@ en:
       unsubscribe: Unsubscribe from this list
       view_in_browser: View this in your browser
   league:
+    index:
+      league: League
+      leagues: Leagues
     show:
       reload_from_billard_area: Datenabgleich mit der %{source}
       reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
@@ -500,12 +451,20 @@ en:
     stripe: Stripe
     twitter: Twitter
   of: of
+  party:
+    index:
+      party: Party
+      parties: Parties
   parties:
     index:
       listing_parties: Listing Matchdays
     parties: Matchdays
     party: Matchday
-  party_party_games: Wettkampfspiele
+  party_game:
+    index:
+      party_game: Party Game
+      party_games: Party Games
+  party_party_games: Party Games
   payments:
     show:
       back: Go back
@@ -528,23 +487,6 @@ en:
     interval: interval
     name: name
     trial_period_days: trial period days
-    updated_at: updated at
-  player:
-    ba_id: ba id
-    club_id: club id
-    created_at: created at
-    data: details
-    firstname: firstname
-    fullname: fullname
-    id: id
-    index:
-      player: Spieler
-      players: Spieler
-    last_sync: last sync
-    lastname: lastname
-    nickname: nickname
-    source_url: source
-    title: title
     updated_at: updated at
   player_class:
     created_at: created at
@@ -592,25 +534,6 @@ en:
     updated_at: updated at
     v: v
   processing: Processing...
-  region:
-    address: address
-    country_id: country id
-    created_at: created at
-    email: email
-    id: id
-    index:
-      region: Regional Organisation
-      regions: Regional Organisations
-    logo: logo
-    name: name
-    shortname: shortname
-    show:
-      reload_from_billard_area: Reload From %{source} with clubs
-      reload_from_billard_area_with_details: Reload From %{source} with clubs and players
-      reload_leagues: Reload Leagues From Region %{source}
-      reload_leagues_with_details: Reload Leagues incl. Results From Region %{source}
-      reload_tournaments: Reload Single Tournaments From Region %{source}
-    updated_at: updated at
   requires_admin_role: requires admin role
   rest: Rest
   reveal:
@@ -629,6 +552,7 @@ en:
     new:
       title: New %{model}
     view: View
+  search_filter: Open Search Filter Form
   season:
     ba_id: ba id
     created_at: created at
@@ -638,32 +562,6 @@ en:
       season: Season
       seasons: Seasons
     name: name
-    updated_at: updated at
-  season_participation:
-    club_id: club id
-    created_at: created at
-    data: data
-    id: id
-    index:
-      season_participation: SeasonParticipation
-      season_participations: SeasonParticipations
-    player_id: player id
-    season_id: season id
-    updated_at: updated at
-  seeding:
-    ba_state: ba state
-    balls_goal: balls goal
-    created_at: created at
-    data: data
-    id: id
-    index:
-      seedings: Tournament participations
-    player_id: player id
-    playing_discipline_id: playing discipline id
-    position: position
-    rank: rank
-    state: state
-    tournament_id: tournament id
     updated_at: updated at
   select_game: Select Game
   select_game_mode: Select Game Mode
@@ -961,6 +859,9 @@ en:
     handicap_tournier: handicap tournier
     id: id
     innings_goal: innings goal
+    index:
+      tournament: Tournament
+      tournaments: Tournaments
     location: location
     location_id: location id
     modus: modus
@@ -1071,6 +972,9 @@ en:
     rulesystem: rulesystem
     tables: tables
     updated_at: updated at
+    index:
+      tournament_plans: "Tournament Plans"
+      new_tournament_plan: "New Tournament Plan"
   tournaments:
     edit:
       back: Back
@@ -1262,3 +1166,53 @@ en:
     system_theme: System Theme
     dark_theme: Dark Theme
     light_theme: Light Theme
+  shared:
+    search:
+      no_results: "No results found for '%{query}'"
+    index_with_search:
+      no_records: "No records found"
+
+  league_team:
+    index:
+      league_teams: "League Teams"
+      new_league_team: "New League Team"
+  discipline_phase:
+    index:
+      discipline_phases: "Discipline Phases"
+      new_discipline_phase: "New Discipline Phase"
+  region:
+    index:
+      regions: "Regional Organizations"
+      new_region: "New Region"
+
+  club:
+    index:
+      clubs: "Clubs"
+      new_club: "New Club"
+
+  player:
+    index:
+      players: "Players"
+      new_player: "New Player"
+
+  seeding:
+    index:
+      seedings: "Tournament Participations"
+      new_seeding: "New Tournament Participation"
+
+  season_participation:
+    index:
+      season_participations: "Season Participations"
+      new_season_participation: "New Season Participation"
+
+  game:
+    index:
+      games: "Games"
+      new_game: "New Game"
+  table_headers:
+    club: "Club"
+    region: "Region"
+    fullname: "Full Name"
+    lastname: "Last Name"
+    firstname: "First Name"
+    nickname: "Nickname"

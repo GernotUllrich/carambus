@@ -427,7 +427,7 @@
                   <%- end %>
                 <%- end %>
               </div>
-              <div class="flex-col dark:bg-black" data-controller="tooltip" data-tippy-content="Break Foul" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
+              <div class="flex-col dark:bg-black" data-controller="tippy" data-tippy-content="Break Foul" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
                 <%- if (['14.1 endlos'].include? left_player[:discipline]) && highest == 15 %>
                   <%= content_tag "div", data: { reflex: "click->TableMonitorReflex#foul_two", id: options[:id] }, id: "game_state", class: "flex align-center overflow-hidden pb-1 hover:scale-125 w-18" do %>
                     <%= image_tag "p0-2r.png" %>

@@ -17,12 +17,10 @@
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.date') %></h5><%= tournament.date %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= tournament.accredation_end %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.location') %></h5><%= custom_link_to tournament.location.display_address, location_path(tournament.location) if tournament.location.present? %></div>
-<!--        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%#= t('activerecord.attributes.tournament.ba_id') %></h5><%#= link_to_if(tournament.ba_id.present?, tournament.ba_id, "https://#{tournament.organizer.shortname.downcase}.billardarea.de/cms_#{tournament.single_or_league}/#{tournament.plan_or_show}/#{tournament.ba_id}", class: "yellow_link", target: :_blank) %></div>-->
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.cc_id') %></h5><%= custom_link_to(tournament.tournament_cc.andand.cc_id, tournament_cc_path(tournament.tournament_cc)) if tournament.tournament_cc.present?%>(<%= custom_link_to("->CC", "#{tournament.organizer.public_cc_url_base}sb_meisterschaft.php?p=#{tournament.organizer.cc_id}--#{tournament.season.name}-#{tournament.cc_id}-0--2-1-100000-", class: "green_link", target: :_blank) if tournament.organizer.is_a?(Region) %>)</div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.season') %></h5><%= custom_link_to(tournament.season.name, season_path(tournament.season)) %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.organizer') %></h5><%= custom_link_to(tournament.organizer.name, tournament.organizer) %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.end_date') %></h5><%= tournament.end_date %></div>
-        <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.plan_or_show') %></h5><%= tournament.plan_or_show %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.single_or_league') %></h5><%= tournament.single_or_league %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.shortname') %></h5><%= tournament.shortname %></div>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.data') %></h5><%= tournament.data %></div>

@@ -38,7 +38,7 @@ module FiltersHelper
                           arr.present? ? query.where(arr.join(" or ")) : query
                         else
                           query.where("(#{int_name} #{comp.present? ? comp : "ilike"} :search)",
-                                      search: (comp.present? ? value : "%#{value}%").to_s)
+                                      search: (comp.present? ? value : "%#{value.gsub('%20', ' ')}%").to_s)
                         end
                 search_matches << key
               end
@@ -46,8 +46,7 @@ module FiltersHelper
           end
         end
       else
-        query = query.where(search_query.to_s, search: "%#{search}%",
-                            isearch: (search.to_i == 0 ? -727_272 : search.to_i))
+        query = query.where(search_query.to_s, search: "%#{search}%", isearch: (search.to_i == 0 ? -727_272 : search.to_i))
       end
     rescue Exception => e
       e

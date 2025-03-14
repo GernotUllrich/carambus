@@ -1,0 +1,10 @@
+// app/assets/stylesheets/components/_filter_popup.scss
+.filter-popup {
+  &__global-search {
+    @apply mb-4 p-2 w-full border rounded-md;
+
+    &:focus {
+      @apply outline-none ring-2 ring-indigo-500 border-indigo-500;
+    }
+  }
+}
