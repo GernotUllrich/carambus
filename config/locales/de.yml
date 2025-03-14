@@ -570,6 +570,10 @@ de:
       title: New %{model}
     view: View
   search_filter: Öffne das Such-Filter Formular
+  general_search: Allgemeine Suche
+  search_all_fields: Alle Felder durchsuchen
+  apply: Anwenden
+  clear: Zurücksetzen
   season:
     ba_id: BA ID
     created_at: created at
@@ -1225,6 +1229,17 @@ de:
       new_discipline_phase: "Neue Disziplinphase"
 
   region:
+    name: Name
+    shortname: Kurzname
+    email: eMail
+    address: Adresse
+    country_id: Country
+    show:
+      reload_from_billard_area: "Neuladen aus der ClubCloud"
+      reload_tournaments: "Neuladen der Turniere"
+      reload_from_billard_area_with_details: "Neuladen aus der ClubCloud mit Details"
+      reload_leagues: "Neuladen der Ligen"
+      reload_leagues_with_details: "Neuladen der Ligen mit Details"
     index:
       regions: "Regionalverbände"
       new_region: "Neuer Regionalverband"
