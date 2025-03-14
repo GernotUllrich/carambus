@@ -553,6 +553,10 @@ en:
       title: New %{model}
     view: View
   search_filter: Open Search Filter Form
+  general_search: General Search
+  search_all_fields: Search all fields
+  apply: Apply
+  clear: Clear
   season:
     ba_id: ba id
     created_at: created at
@@ -1181,6 +1185,17 @@ en:
       discipline_phases: "Discipline Phases"
       new_discipline_phase: "New Discipline Phase"
   region:
+    name: Name
+    shortname: Shortname
+    email: eMail
+    address: Address
+    country_id: Land
+    show:
+      reload_from_billard_area: "Reload from ClubCloud"
+      reload_tournaments: "Reload Tournaments"
+      reload_from_billard_area_with_details: "Reload Tournaments with Details"
+      reload_leagues: "Reload Leagues"
+      reload_leagues_with_details: "Reload Leagues with Details"
     index:
       regions: "Regional Organizations"
       new_region: "New Region"
