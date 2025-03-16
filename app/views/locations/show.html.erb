@@ -30,7 +30,7 @@
       </div>
       <div class="mb-4">
         <h5>Region</h5>
-        <%= custom_link_to(@location.region.andand.name, region_path(@location.region)) if @location.region.present? %>
+        <%= custom_link_to(@location.organizer.andand.name, region_path(@location.organizer)) if @location.organizer.present? && @location.organizer_type == "Region" %>
       </div>
       <div class="mb-4">
         <h5>Name</h5>

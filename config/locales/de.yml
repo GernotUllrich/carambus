@@ -1245,11 +1245,31 @@ de:
       new_region: "Neuer Regionalverband"
 
   club:
+    region_id: Regionalverband
+    name: Name
+    shortname: "Shortname"
+    synonyms: "Synonyme"
+    email: "eMail"
+    address: Adresse
+    homepage: Web-Seite
+    priceinfo: Preise
+    status: Status
+    founded: Gegründet
+    dbu_entry: DBU Beitritt
+    new_club_guest: "Neuer Vereinsgast"
+    new_club_tournament: "Neues Clubturnier"
+    club_tournaments: "Clubturniere"
+    new_club_location: "Neue Club Spielstätte"
+    tournaments: Turniere
     index:
       clubs: "Vereine"
       new_club: "Neuer Verein"
 
   player:
+    firstname: Vorname
+    nickname: Spitzname
+    lastname: Nachname
+    title: Titel
     index:
       players: "Spieler"
       new_player: "Neuer Spieler"
@@ -1260,6 +1280,8 @@ de:
       new_seeding: "Neue Turnierteilnahme"
 
   season_participation:
+    player_id: Spieler
+    club_id: Verein
     index:
       season_participations: "Saisonteilnahmen"
       new_season_participation: "Neue Saisonteilnahme"
