@@ -40,6 +40,7 @@ class ApplicationController < ActionController::Base
   # before_action :set_locale
 
   before_action :set_cache_headers if Rails.env.development?
+  before_action :handle_menu_state
 
   def check_mini_profiler
     # if current_user&.is_admin? # Assuming you have a method to verify if a user is an admin
@@ -180,5 +181,10 @@ class ApplicationController < ActionController::Base
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
+  def handle_menu_state
+    # Reset menu state if collapse_menu parameter is present
+    session.delete(:sidebar_expanded) if params[:collapse_menu].present?
   end
 end
