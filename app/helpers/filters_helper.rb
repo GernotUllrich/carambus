@@ -9,7 +9,7 @@ module FiltersHelper
         key, value = search.split(":")
         if value.present?
           comp = nil
-          if (m = value.match(/(>=|>|<=|<)(.*)/)).present?
+          if (m = value.match(/(>=|=|>|<=|<)(.*)/)).present?
             comp = m[1]
             value = m[2].strip
           end
@@ -26,7 +26,7 @@ module FiltersHelper
               elsif /^#{key.strip}/i.match?(ext_name)
                   query = if int_name =~ /id$/ || %w[players points sets ba_id ba2_id cc_id balls innings hs sp_g
                                                    sp_v g v].include?(int_name.split(".").last)
-                          query.where("(#{int_name} = :isearch)", isearch: (value.to_i != 0 ? value.to_i : -7_235_553))
+                          query.where("(#{int_name} #{comp.present? ? comp : "="} :isearch)", isearch: (value.to_i != 0 ? value.to_i : -7_235_553))
                         elsif /::date$/.match?(int_name)
                           query.where("(#{int_name} #{comp.present? ? comp : "="} :search)", search: value)
                         elsif /\|\|/.match?(int_name)

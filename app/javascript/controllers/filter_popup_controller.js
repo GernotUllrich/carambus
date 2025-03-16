@@ -20,25 +20,17 @@ export default class extends Controller {
       console.error("Missing filterForm target")
     }
     // Close popup when clicking outside
-    document.addEventListener('click', this.closePopupOnClickOutside.bind(this))
+    document.addEventListener('click', this.handleClickOutside.bind(this))
   }
 
   disconnect() {
     console.log("FilterPopupController disconnected")
-    document.removeEventListener('click', this.closePopupOnClickOutside.bind(this))
+    document.removeEventListener('click', this.handleClickOutside.bind(this))
   }
 
-  toggle(event) {
-    console.log("Toggle method called", event)
-    event.preventDefault()
-    event.stopPropagation()
-    try {
-      console.log("Before toggle - popup classes:", this.popupTarget.classList.toString())
-      this.popupTarget.classList.toggle('hidden')
-      console.log("After toggle - popup classes:", this.popupTarget.classList.toString())
-    } catch (error) {
-      console.error("Error in toggle method:", error)
-    }
+  toggle() {
+    console.log("Toggle method called")
+    this.popupTarget.classList.toggle('hidden')
   }
 
   close() {
@@ -49,11 +41,18 @@ export default class extends Controller {
     }
   }
 
-  closePopupOnClickOutside(event) {
-    if (this.popupTarget && !this.popupTarget.contains(event.target) &&
-      !event.target.closest('[data-action*="filter-popup#toggle"]')) {
+  handleClickOutside(event) {
+    if (!this.element.contains(event.target)) {
       this.close()
     }
+  }
+
+  clearFilters(event) {
+    event.preventDefault()
+    console.log("Clearing filters")
+    this.filterFormTarget.reset()
+    this.searchInputTarget.value = ''
+    this.updateSearchAndRefresh('')
   }
 
   applyFilters(event) {
@@ -61,61 +60,55 @@ export default class extends Controller {
     console.log("Applying filters")
 
     const formData = new FormData(this.filterFormTarget)
-    const filters = []
-    const fieldData = {}
-
-    // Handle global search separately
+    const searchParts = []
+    
+    // Handle global search
     const globalSearch = formData.get('global')
-    if (globalSearch && globalSearch.trim() !== '') {
-      filters.push(globalSearch.trim())
+    if (globalSearch) {
+      searchParts.push(globalSearch)
     }
 
-    // Process field-specific filters
-    for (const [key, value] of formData.entries()) {
-      if (key === 'global') continue // Skip global search as it's already handled
-      if (key.endsWith('_operator')) {
-        const fieldName = key.replace('_operator', '')
-        if (!fieldData[fieldName]) fieldData[fieldName] = {}
-        fieldData[fieldName].operator = value
-      } else {
-        if (!fieldData[key]) fieldData[key] = {}
-        fieldData[key].value = value.replace(/ /g, '%20')
-      }
-    }
-
-    // Build filter strings
-    for (const [key, data] of Object.entries(fieldData)) {
-      if (data.value && data.value.trim() !== '') {
-        if (data.operator && data.operator !== 'contains') {
-          filters.push(`${key}:${data.operator}${data.value.trim()}`)
+    // Handle field-specific searches
+    for (const [name, value] of formData.entries()) {
+      if (name !== 'global' && !name.endsWith('_operator') && value) {
+        const operator = formData.get(`${name}_operator`) || ''
+        if (operator && operator !== 'contains') {
+          searchParts.push(`${name}:${operator}${value}`)
         } else {
-          filters.push(`${key}:${data.value.trim()}`)
+          searchParts.push(`${name}:${value}`)
         }
       }
     }
 
-    console.log("Generated filters:", filters)
-
-    // Update the search input with the generated filter string
-    this.searchInputTarget.value = filters.join(' ')
-
-    // Trigger the search
-    const inputEvent = new Event('input', { bubbles: true })
-    this.searchInputTarget.dispatchEvent(inputEvent)
-
-    // Close the popup
+    const searchString = searchParts.join(' ')
+    this.updateSearchAndRefresh(searchString)
     this.close()
   }
 
-  clearFilters() {
-    console.log("Clearing filters")
-    this.filterFormTarget.reset()
-    this.searchInputTarget.value = ''
+  updateSearchAndRefresh(searchString) {
+    // Update the search input
+    this.searchInputTarget.value = searchString
 
-    // Trigger the search to clear results
-    const inputEvent = new Event('input', { bubbles: true })
-    this.searchInputTarget.dispatchEvent(inputEvent)
+    // Create a new URL with current parameters
+    const url = new URL(window.location.href)
+    
+    // Update or remove search parameter
+    if (searchString) {
+      url.searchParams.set('sSearch', searchString)
+    } else {
+      url.searchParams.delete('sSearch')
+    }
 
-    this.close()
+    // Create a new event with the search string
+    const event = new Event('input', {
+      bubbles: true,
+      cancelable: true
+    })
+
+    // Update the URL first
+    window.history.replaceState({}, '', url.toString())
+
+    // Then trigger the search reflex
+    this.searchInputTarget.dispatchEvent(event)
   }
 }

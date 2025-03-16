@@ -1201,11 +1201,31 @@ en:
       new_region: "New Region"
 
   club:
+    region_id: "Region"
+    name: "Name"
+    shortname: "Kürzel"
+    synonyms: "Synonyms"
+    address: "Address"
+    email: "eMail"
+    homepage: "Web page"
+    priceinfo:
+    status: Status
+    founded: founded
+    dbu_entry: "DBU Entry"
+    new_club_guest: "New Club Guest"
+    new_club_tournament: "New Club Tournament"
+    club_tournaments: "Club Tournaments"
+    new_club_location: "New Club Location"
+    tournaments: Tournaments
     index:
       clubs: "Clubs"
       new_club: "New Club"
 
   player:
+    firstname: Firstname
+    nickname: Nickname
+    lastname: Lastname
+    title: Title
     index:
       players: "Players"
       new_player: "New Player"
@@ -1216,6 +1236,8 @@ en:
       new_seeding: "New Tournament Participation"
 
   season_participation:
+    player_id: Player
+    club_id: Club
     index:
       season_participations: "Season Participations"
       new_season_participation: "New Season Participation"

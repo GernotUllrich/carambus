@@ -2,17 +2,17 @@
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :title,'Title(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :discipline_id,'Discipline(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :date,'Date(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :accredation_end,'Accredation end', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_text,'Location Text', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_id,'Location', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :cc_id,'Cc(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :season_id,'Season(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :region_id,'Organizer(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :title, 'Title(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :discipline_id, 'Discipline(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :date, 'Date(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :accredation_end, 'Accredation end', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_text, 'Location Text', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_id, 'Location', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :cc_id, 'Cc(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :season_id, 'Season(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :region_id, 'Organizer(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :source_url, 'Source', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :sync_date, 'Sync Date', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>

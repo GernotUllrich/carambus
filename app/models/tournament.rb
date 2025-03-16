@@ -133,15 +133,14 @@ class Tournament < ApplicationRecord
 
   COLUMN_NAMES = { # TODO: FILTERS
                    "ID" => "tournaments.id",
-                   "CC_ID" => "tournaments.cc_id",
+                   "CC_ID" => "tournament_ccs.cc_id",
                    "Title" => "tournaments.title",
                    "Shortname" => "tournaments.shortname",
                    "Date" => "tournaments.date::date",
                    "Discipline" => "disciplines.name",
                    "Region" => "regions.shortname",
                    "Organization" => "regions.shortname",
-                   "Season" => "seasons.name",
-                   "date" => "tournaments.date::date"
+                   "Season" => "seasons.name"
   }.freeze
 
   def self.search_hash(params)
@@ -156,7 +155,7 @@ or (tournaments.title ilike :search)
 or (tournaments.shortname ilike :search)
 or (seasons.name ilike :search)",
       joins: [
-        'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline
+        'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline, :tournament_cc
       ]
     }
   end

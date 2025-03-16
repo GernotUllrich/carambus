@@ -6,14 +6,14 @@
     </div>
 
     <div class="flex flex-wrap space-y-5  rounded shadow p-8">
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.logo') %></h5><%= image_tag @club.logo if @club.logo.present? %></div>
+      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5>Logo</h5><%= image_tag @club.logo if @club.logo.present? %></div>
 <!--
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%#= t('club.ba_id') %></h5><%#= link_to_if @club.ba_id.present? && @club.ba_id.to_i < 999000000, @club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{@club.ba_id}", class: "yellow_link", target: :_blank %>
       </div>
 -->
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.cc_id') %></h5><%= custom_link_to @club.cc_id.presence || "TBD", "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
+        <h5>cc_id</h5><%= custom_link_to @club.cc_id.presence || "TBD", "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
       </div>
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5><%= t('club.region_id') %></h5><%= custom_link_to @club.region.name, region_path(@club.region) if @club.region.present? %>

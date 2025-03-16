@@ -4,7 +4,12 @@
 
     <div class="flex items-center justify-between mb-8">
       <%= custom_link_to image_tag('logo.svg', class: 'w-12 mb-2'), root_path %>
-      <div class="flex font-bold text-gray-900 dark:text-gray-300">Carambus</div>
+      <div class="flex flex-col">
+        <div class="flex font-bold text-gray-900 dark:text-gray-300">Carambus</div>
+        <% if Carambus.config.carambus_api_url.blank? %>
+          <div class="flex font-bold text-gray-900 dark:text-gray-300">API Server</div>
+        <% end %>
+      </div>
       <!-- Close button - always visible when nav is open -->
       <button data-action="sidebar#collapse" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg">
         <%= render_svg "icons/arrow-left-to-line", styles: "w-6 h-6 text-gray-800 dark:text-gray-300" %>
