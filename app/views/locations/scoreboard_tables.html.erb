@@ -5,10 +5,8 @@
         width: 100%;
         height: auto;
     }
+    a { @apply dark: text-white; }
 </style>
-<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
-</div>
 <div class="w-1/12 grid grid-cols-3 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
@@ -76,7 +74,7 @@
                   <%- end %>
                 <%- else %>
                   <%- if game.present? %>
-                    <%= custom_link_to table.name, table_monitor_path(tm), data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{tm.id}", tabindex: 1 %>
+                    <%= custom_link_to table.name, table_monitor_path(tm), data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} dark:text-white focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{tm.id}", tabindex: 1 %>
                     <div class="flex flex-col items-center font-bold text-red-600">
                       <% if table.event_id.present? %>
                         <%= "R: #{table.short_event_summary}" %>
@@ -88,7 +86,7 @@
                     <%- gps = game.andand.game_participations.andand.order(:role).to_a %>
                     <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 mt-4 text-white "><%= gps[0].andand.player.present? ? "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" : "belegt" %></p>
                   <%- else %>
-                    <%= custom_link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{table.id}", tabindex: 1 %>
+                    <%= custom_link_to table.name, placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "dark:text-white focus:outline-none #{"text-green-400" if table.scoreboard?} focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-2vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1 h-1/4", id: "table_monitor_#{table.id}", tabindex: 1 %>
                     <div class="flex flex-col items-center font-bold text-red-600">
                       <% if table.event_id.present? %>
                         <%= "R: #{table.short_event_summary}" %>

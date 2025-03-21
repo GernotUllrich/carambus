@@ -691,6 +691,16 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     shortname
   end
 
+  scope :having_rankings, -> {
+    joins(:player_rankings)
+      .joins('INNER JOIN disciplines ON disciplines.id = player_rankings.discipline_id')
+      .distinct
+  }
+
+  def has_rankings?
+    player_rankings.joins(:discipline).exists?
+  end
+
   private
 
   def find_or_create_location(addr, name, cc_id, location, location_url)

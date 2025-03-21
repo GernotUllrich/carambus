@@ -359,6 +359,7 @@ en:
       player: Players
       player_rankings: Player Rankings
       pool_tables: Pool Tables
+      rankings: Discipline Rankings
       region: Regions
       reservation: Reservations
       results: Results
@@ -1225,7 +1226,12 @@ en:
     firstname: Firstname
     nickname: Nickname
     lastname: Lastname
+    fullname: Name
+    data: Data
     title: Title
+    club_id: Club
+    source_url: Source
+    last_sync: Last Synchronisation
     index:
       players: "Players"
       new_player: "New Player"

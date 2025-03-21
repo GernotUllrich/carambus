@@ -386,6 +386,7 @@ de:
       player: Spieler
       player_rankings: Ranglisten
       pool_tables: Pool Tische
+      rankings: Disziplin-Ranglisten
       region: Regionalverbände
       reservation: Reservierungen
       results: Ergebnisse
@@ -1270,7 +1271,12 @@ de:
     firstname: Vorname
     nickname: Spitzname
     lastname: Nachname
+    fullname: Name
+    data: Daten
     title: Titel
+    club_id: Verein
+    source_url: Quelle
+    last_sync: Letzter Abgleich
     index:
       players: "Spieler"
       new_player: "Neuer Spieler"
