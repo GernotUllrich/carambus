@@ -80,7 +80,7 @@ class Region < ApplicationRecord
     "TBV" => "https://billard-thueringen.de/"
   }.freeze
 
-  SHORTNAME_MAP = Region.all.map{|region| [region.shortname,  region.id]}.to_h.select{|k,_v| k.present?}.freeze
+  SHORTNAME_MAP = Region.all.map { |region| [region.shortname, region.id] }.to_h.select { |k, _v| k.present? }.freeze
 
   REGION_MAP = {
     "Norddeutscher Billard-Verband" => SHORTNAME_MAP["NBV"],
@@ -314,6 +314,81 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   def scrape_single_league_public(season, opts = {})
     league_details = opts[:league_details]
     League.scrape_leagues_from_cc(self, season, league_details:)
+  end
+
+  # These are URLs which are Errors in ClubCloud and must be ignored
+  VOID_URLS = [
+    "https://ndbv.de/sb_einzelergebnisse.php?p=20--2022/2023-570------100000-"
+  ]
+  # crape_single_tournament_public
+  def scrape_tournaments_check(season_from, opts = {})
+    Tournament.joins(:tournament_cc).where(organizer_id: id, organizer_type: "Region").where("season_id >= ?", season_from.id).where(source_url: nil).each do |tournament|
+      Rails.logger.error "TournamentCheck ERROR: no source_url on Tournament[#{tournament.id}]}"
+    end
+    source_urls_todo = {}
+    Tournament.joins(:tournament_cc).where(organizer_id: id, organizer_type: "Region").where("season_id >= ?", season_from.id).each do |t|
+      source_urls_todo[t.id] = normalize_tournament_url(t.source_url)
+    end
+    source_urls_done = []
+    problem_source_urls = []
+    url = public_cc_url_base
+    Rails.logger.info "TournamentCheck ===== scrape ===== SCRAPING TOURNAMENTS '#{url}'"
+    Season.where("id >= #{season_from.id}").each do |season|
+      einzel_url = url + "sb_einzelergebnisse.php?p=#{cc_id}--#{season.name}-#{opts[:tournament_cc_id]}----1-1-100000-"
+      Rails.logger.info "TournamentCheck reading #{einzel_url}"
+      uri = URI(einzel_url)
+      einzel_html = Net::HTTP.get(uri)
+      einzel_doc = Nokogiri::HTML(einzel_html)
+      einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+        tournament_link = tr.css("a")[0].attributes["href"].value
+        tournament_url = normalize_tournament_url(url + tournament_link)
+        if VOID_URLS.include?(tournament_url)
+          Rails.logger.error "TournamentCheck ERROR: skip erroneous URL from CC: - #{tournament_url}"
+          next
+        end
+        tournament_cc_id_from_link = tournament_link.split("p=")[1].split("-")[3].to_i
+        next if opts[:tournament_cc_id].present? && opts[:tournament_cc_id].to_i != tournament_cc_id_from_link
+
+        region_cc_id_from_link = tournament_link.split("p=")[1].split("-")[0].to_i
+        if cc_id != region_cc_id_from_link
+          Rails.logger.error "TournamentCheck ERROR: mismatch region_cc_id_from_link:#{region_cc_id_from_link} and region.cc_id:#{cc_id} - #{tournament_url}"
+          next
+        end
+
+        tournament_ccs = TournamentCc.where(cc_id: tournament_cc_id_from_link, context: region_cc.context).to_a
+        if tournament_ccs.count > 1
+          Rails.logger.error "TournamentCheck ERROR: multiple tournament_cc with cc_id:#{tournament_cc_id_from_link} - #{tournament_url}"
+          next
+        elsif tournament_ccs.count == 0
+          Rails.logger.info "TournamentCheck TODO: tournament_cc with cc_id:#{tournament_cc_id_from_link} not yet present!! - #{tournament_url}"
+          next
+        end
+        tournament_cc = tournament_ccs[0]
+
+        tournament = tournament_cc.tournament
+        if tournament.blank?
+          Rails.logger.error "TournamentCheck ERROR: tournament_cc with cc_id:#{tournament_cc_id_from_link} without tournament - #{tournament_url}"
+          next
+        end
+        source_url = normalize_tournament_url(tournament_url.gsub("sb_einzelergebnisse.php", "sb_meisterschaft.php"))
+        tournament_source_url = normalize_tournament_url(tournament.source_url)
+        if source_url != tournament_source_url
+          Rails.logger.error "TournamentCheck ERROR: mismatch tournament.source_url:#{tournament.source_url} in Tournament[#{tournament.id}] without source_url from link - #{source_url}"
+          problem_source_urls << [tournament.id, tournament.source_url]
+          next
+        end
+        unless source_urls_todo.values.include?(source_url)
+          Rails.logger.error "TournamentCheck TODO: source_url not in any Tournament - #{source_url}"
+        end
+        source_urls_done << source_url
+      end
+    end
+    source_urls_not_done = source_urls_todo.values - source_urls_done
+    t_ids_todo = source_urls_todo.to_a.select{|k,v| source_urls_not_done.include?(v)}
+    Rails.logger.info "TournamentCheck source_urls not done: Tournament[#{t_ids_todo}]"
+    source_urls_new = source_urls_done - source_urls_todo.values
+    Rails.logger.info "TournamentCheck source_urls new or error: #{source_urls_new.inspect}"
+    Rails.logger.info "TournamentCheck problem_source_urls: #{problem_source_urls.inspect}"
   end
 
   # crape_single_tournament_public
@@ -692,6 +767,12 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
   end
 
   private
+
+  def normalize_tournament_url(url)
+    url_str = url.to_s.gsub(public_cc_url_base, "")
+    params = url_str.split("p=")[1]&.split("-").to_a
+    "#{public_cc_url_base}sb_einzelergebnisse.php?p=#{params[0]}--#{params[2]}-#{params[3]}------100000-"
+  end
 
   def find_or_create_location(addr, name, cc_id, location, location_url)
     unless location.present?
