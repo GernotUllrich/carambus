@@ -1,0 +1,12 @@
+<% if @region.present? && dashboard.show_page_links.present? %>
+  <nav class="navigation-links">
+    <% dashboard.show_page_links.each do |link| %>
+      <%= link_to link[:url].to_s, class: "button" do %>
+        <% if link[:icon].present? %>
+          <i class="fas fa-<%= link[:icon] %>"></i>
+        <% end %>
+        <%= link[:text] %>
+      <% end %>
+    <% end %>
+  </nav>
+<% end %> 

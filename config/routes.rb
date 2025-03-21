@@ -333,6 +333,11 @@ Rails.application.routes.draw do
         get :preview, defaults: { format: :json }
       end
     end
+    resources :regions do
+      member do
+        get :rankings, to: 'regions#show'  # We're reusing the show action for rankings
+      end
+    end
     root to: "users#index"
   end
 
@@ -351,4 +356,6 @@ Rails.application.routes.draw do
       post :preview
     end
   end
+
+  resources :rankings, only: [:index, :show]
 end

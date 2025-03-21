@@ -1,10 +1,10 @@
 <div class="h-[calc(100vh-4rem)] overflow-y-auto">
   <div class="sidebar-menu">
     <% if Current.user&.email == "scoreboard@carambus.de" %>
-      <%= link_to location_path(Carambus.config.location_id, 
-                              sb_state: session[:sb_state], 
-                              table_id: session[:table_id],
-                              collapse_menu: true),
+      <%= link_to location_path(Carambus.config.location_id,
+                                sb_state: session[:sb_state],
+                                table_id: session[:table_id],
+                                collapse_menu: true),
                   class: "mb-4 block px-4 py-2 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md border-2 border-blue-500 dark:border-blue-400",
                   data: { turbo: false } do %>
         <div class="flex items-center justify-center">
@@ -49,6 +49,8 @@
           <li><%= link_to I18n.t("home.index.season", :default => "Season"), seasons_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
           <li><%= link_to I18n.t("home.index.seasonparticipation", :default => "SeasonParticipation"), season_participations_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
           <li><%= link_to I18n.t("home.index.player", :default => "Player"), players_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+            <li><%= link_to I18n.t("home.index.pankings", :default => "Disziplin-Ranglisten"), rankings_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+
         </ul>
       </li>
       <li>

@@ -6,7 +6,8 @@
         height: auto;
     }
 </style>
-<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
+<!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
+<script defer src="/alpine.min.js"></script>
 <script src="/onscreen-keyboard.js"></script>
 <script type="text/javascript">
 
@@ -152,9 +153,6 @@
         </div>
   </div>
 </div>
-<div data-controller="table-monitor" data-action="doubleclick->table-monitor#home click->table-monitor#back" class="w-10 fixed text-gray-200 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
-</div>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
@@ -218,20 +216,24 @@
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
             <div class="flex">
-              <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+              <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full dark:text-white border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
             </div>
-            <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
-              <%= select_tag :player_a_id, options_for_select(Array(players), player_a.andand.id || default_guest_a.player.id), class: "py-3 px-4 text-2vw w-full" %>
+            <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+              <%= select_tag :player_a_id,
+                options_for_select(Array(players), player_a.andand.id || default_guest_a.player.id),
+                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
             <%- end %>
-            <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
-              <%= select_tag :player_b_id, options_for_select(Array(players), player_a.andand.id || default_guest_b.player.id), class: "py-3 px-4 text-2vw w-full" %>
+            <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+              <%= select_tag :player_b_id,
+                options_for_select(Array(players), player_a.andand.id || default_guest_b.player.id),
+                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
             <%- end %>
           </div>
         </div>
         <div class="col-span-1">
 
           <div class="flex">
-            <%= custom_link_to "Neuer Spieler", "javascript:new_player_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+            <%= custom_link_to "Neuer Spieler", "javascript:new_player_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
           </div>
         </div>
         <form>

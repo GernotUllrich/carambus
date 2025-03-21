@@ -766,6 +766,16 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     shortname
   end
 
+  scope :having_rankings, -> {
+    joins(:player_rankings)
+      .joins('INNER JOIN disciplines ON disciplines.id = player_rankings.discipline_id')
+      .distinct
+  }
+
+  def has_rankings?
+    player_rankings.joins(:discipline).exists?
+  end
+
   private
 
   def normalize_tournament_url(url)

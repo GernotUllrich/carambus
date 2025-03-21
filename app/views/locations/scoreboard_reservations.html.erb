@@ -129,7 +129,7 @@
             <input type="time" name="location[end_time]" id="location-end-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="00:00" value="23:00" required/>
           </div>
           <div class="form-group">
-            <%= custom_link_to t('back'), "javascript:set_new_reservation_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+            <%= custom_link_to t('back'), "javascript:set_new_reservation_modal()", data: { turbolinks: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
 
             <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
           </div>
@@ -155,9 +155,6 @@
     </div>
   </div>
 </div>
-<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
-</div>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
@@ -175,7 +172,7 @@
       <pre><%= table_status.join("\n") %></pre>
     </div>
     <p>
-      <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+      <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.

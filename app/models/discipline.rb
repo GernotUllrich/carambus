@@ -39,6 +39,8 @@ class Discipline < ApplicationRecord
 
   before_save :update_synonyms
 
+  validates :name, presence: true
+
   def update_synonyms
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
