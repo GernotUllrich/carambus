@@ -1,0 +1,819 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-7xl mx-auto">
+    <!-- Anchor Navigation -->
+    <div class="bg-white dark:bg-gray-800 rounded shadow p-4 mb-8 sticky top-0 z-10">
+      <h2 class="text-lg font-semibold mb-2">Disziplinen:</h2>
+      <div class="flex flex-wrap gap-3">
+        <% @disciplines.each do |discipline| %>
+          <% if @rankings_by_player.any? { |(pid, did), _| did == discipline.id } %>
+            <a href="#discipline-<%= discipline.id %>"
+               class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+              <%= discipline.name %>
+            </a>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <h1 class="h3 mb-1"><%= @region.name %> Rankings</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Showing rankings for seasons <%= @seasons.map(&:name).join(', ') %></p>
+      </div>
+      <div class="flex space-x-4">
+        <%= link_to 'Back to Regions', rankings_path, class: "btn btn-link" %>
+      </div>
+    </div>
+
+    <div class="space-y-8">
+      <% @disciplines.each do |discipline| %>
+        <% if @rankings_by_player.any? { |(pid, did), _| did == discipline.id } %>
+          <div id="discipline-<%= discipline.id %>" class="scroll-mt-20">
+            <div class="bg-white dark:bg-gray-800 rounded shadow overflow-hidden mb-8">
+              <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100"><%= discipline.name %></h2>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rank</th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Player</th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Club</th>
+                      <% @seasons.each do |season| %>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          <div class="font-bold"><%= season.name %></div>
+                          <div class="font-bold">GD</div>
+                          <div>BTG</div>
+                        </th>
+                      <% end %>
+                      <th scope="col" class="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Effective GD</th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tournaments</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <% player_rankings = @rankings_by_player.select { |(_pid, did), _| did == discipline.id } %>
+                    <% player_data = player_rankings.map do |(player_id, discipline_id), rankings| %>
+                      <% latest_ranking = rankings.max_by { |r| r.season_id } %>
+                      <% current_club = latest_ranking.player.season_participations.find_by(season: @current_season)&.club %>
+                      <% gd_data = calculate_three_year_gd(player_id, discipline_id) %>
+                      <% {
+                        player: latest_ranking.player,
+                        club: current_club,
+                        rankings: rankings,
+                        gd_data: gd_data
+                      } %>
+                    <% end %>
+
+                    <% player_data.reject { |r| r[:gd_data][:effective_gd].nil? }
+                                .sort_by { |r| -r[:gd_data][:effective_gd] }
+                                .each_with_index do |data, index| %>
+                      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"><%= index + 1 %></td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          <%= link_to data[:player].fl_name, player_path(data[:player]), class: "hover:text-blue-600 dark:hover:text-blue-400" %>
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"><%= data[:club]&.shortname %></td>
+                        <% data[:gd_data][:gd_values].each do |gd, btg| %>
+                          <td class="px-3 py-4 whitespace-nowrap text-right text-sm">
+                            <div class="text-gray-900 dark:text-gray-100"><%= format_gd(gd) %></div>
+                            <div class="text-gray-600 dark:text-gray-400"><%= format_btg(btg) %></div>
+                          </td>
+                        <% end %>
+                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <%= format_gd(data[:gd_data][:effective_gd]) %>
+                        </td>
+                        <td class="px-3 py-4 text-sm text-gray-900 dark:text-gray-100 relative overflow-hidden">
+                          <div class="flex flex-wrap gap-2">
+                            <% all_t_ids = data[:rankings].flat_map(&:t_ids).uniq %>
+                            <% all_t_ids.each do |tournament_id| %>
+                              <%= link_to tournament_id, tournament_path(tournament_id),
+                                  class: "text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline" %>
+                            <% end %>
+                          </div>
+                          <button class="chart-toggle flex items-center text-blue-600 hover:text-blue-800 dark:hover:text-blue-400 transition-colors mt-2"
+                                  data-player="<%= data[:player].id %>"
+                                  data-discipline="<%= discipline.id %>">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <%= @chart_data["#{data[:player].id},#{discipline.id}"]&.dig(:tournaments)&.size || 0 %> Turniere
+                          </button>
+                          <!-- Hidden div just to store the player and discipline IDs for the modal -->
+                          <div class="hidden" id="chart-data-<%= data[:player].id %>-<%= discipline.id %>" 
+                               data-player="<%= data[:player].id %>" 
+                               data-discipline="<%= discipline.id %>"
+                               data-player-name="<%= data[:player].fl_name %>"
+                               data-discipline-name="<%= discipline.name %>"></div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Back to top link -->
+            <div class="text-right mb-8">
+              <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">
+                ↑ Zurück zum Anfang
+              </a>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Fixed back to top button -->
+    <div class="fixed bottom-4 right-4">
+      <a href="#"
+         class="p-3 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-300 transition">
+        ↑
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Chart Modal Overlay -->
+<div id="chart-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 mx-4 w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="flex justify-between items-center mb-4 sticky top-0 z-10">
+      <h3 id="chart-modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">Performance Chart</h3>
+      <div class="flex items-center gap-2">
+        <button id="debug-data-button" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm px-2 py-1 border border-current rounded">
+          Show Raw Data
+        </button>
+        <button id="chart-modal-close" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="flex-grow overflow-hidden"> 
+      <div id="chart-modal-container" class="w-full h-[60vh] bg-white dark:bg-gray-900 rounded">
+        <canvas id="chart-modal-canvas"></canvas>
+      </div>
+      <!-- Fixed styling for raw data with explicit max-height and overflow scrolling -->
+      <div id="raw-data-display" class="hidden w-full bg-gray-100 dark:bg-gray-900 p-4 rounded mt-4 text-sm font-mono" style="max-height: 60vh; overflow-y: scroll;">
+        <div id="raw-data-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script tags with proper order and compatibility -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Global chart instance tracker
+let hasInitialized = false;
+let modalChartInstance = null;
+let currentChartData = null;
+
+// Initialize chart functionality
+function initializeCharts() {
+  // Prevent multiple initializations
+  if (hasInitialized) {
+    console.log("Charts already initialized, skipping...");
+    return;
+  }
+  
+  console.log("Initializing charts...");
+  hasInitialized = true;
+  
+  // Get modal elements
+  const chartModal = document.getElementById('chart-modal');
+  const chartModalTitle = document.getElementById('chart-modal-title');
+  const chartModalClose = document.getElementById('chart-modal-close');
+  const chartModalCanvas = document.getElementById('chart-modal-canvas');
+  const chartModalContainer = document.getElementById('chart-modal-container');
+  const rawDataDisplay = document.getElementById('raw-data-display');
+  const rawDataContent = document.getElementById('raw-data-content');
+  const debugDataButton = document.getElementById('debug-data-button');
+  
+  // Ensure all required elements exist
+  if (!chartModal || !chartModalCanvas || !debugDataButton) {
+    console.error("Required elements not found, aborting initialization");
+    hasInitialized = false;
+    return;
+  }
+  
+  console.log("Debug data button element:", debugDataButton);
+  
+  // Parse chart data with error handling
+  let chartData = {};
+  try {
+    chartData = <%= raw @chart_data.to_json %>;
+    console.log("Chart data loaded successfully");
+  } catch (e) {
+    console.error("Error parsing chart data:", e);
+    hasInitialized = false;
+    return;
+  }
+  
+  // Limit data size for better performance
+  try {
+    Object.keys(chartData).forEach(key => {
+      const data = chartData[key];
+      
+      // Limit individual games to 100 most recent points
+      if (data && Array.isArray(data.individual_games) && data.individual_games.length > 100) {
+        data.individual_games = data.individual_games.slice(-100);
+      }
+      
+      // Limit tournaments to 30 most recent
+      if (data && Array.isArray(data.tournaments) && data.tournaments.length > 30) {
+        data.tournaments = data.tournaments.slice(-30);
+      }
+    });
+  } catch (e) {
+    console.error("Error limiting chart data:", e);
+  }
+  
+  // Function to destroy existing chart instance
+  function destroyChart() {
+    if (modalChartInstance) {
+      modalChartInstance.destroy();
+      modalChartInstance = null;
+      // Clear the canvas
+      const canvas = document.getElementById('chart-modal-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // Function to reset modal state
+  function resetModalState() {
+    chartModalContainer.style.display = 'block';
+    rawDataDisplay.classList.add('hidden');
+    debugDataButton.textContent = 'Show Raw Data';
+  }
+
+  // Move the debug button handler outside initializeCharts
+  if (debugDataButton) {
+    debugDataButton.onclick = function() {
+      console.log("Debug button clicked");
+      console.log("Current chart data:", currentChartData);
+      
+      const isShowingRawData = debugDataButton.textContent === 'Show Chart';
+      
+      if (!isShowingRawData) {
+        // Switch to raw data view
+        destroyChart();
+        chartModalContainer.style.display = 'none';
+        rawDataDisplay.classList.remove('hidden');
+        debugDataButton.textContent = 'Show Chart';
+        
+        // Format and display the raw data
+        if (currentChartData) {
+          let formattedData = '<div class="space-y-4">';
+          
+          // Display tournament data
+          formattedData += '<div class="tournament-data">';
+          formattedData += '<h3 class="font-bold mb-2">Tournament Data:</h3>';
+          
+          if (currentChartData.tournaments && currentChartData.tournaments.length > 0) {
+            formattedData += '<table class="w-full border-collapse">';
+            formattedData += '<thead><tr class="bg-gray-200 dark:bg-gray-700"><th class="p-2 border">ID</th><th class="p-2 border">Date</th><th class="p-2 border">Average</th></tr></thead>';
+            formattedData += '<tbody>';
+            
+            currentChartData.tournaments.forEach(t => {
+              formattedData += `<tr class="border-b">
+                <td class="p-2 border">${t.id || 'N/A'}</td>
+                <td class="p-2 border">${new Date(t.date).toLocaleDateString('de-DE')}</td>
+                <td class="p-2 border">${typeof t.average === 'number' ? t.average.toFixed(2) : 'N/A'}</td>
+              </tr>`;
+            });
+            
+            formattedData += '</tbody></table>';
+          } else {
+            formattedData += '<p class="text-gray-600 dark:text-gray-400">No tournament data available</p>';
+          }
+          formattedData += '</div>';
+          
+          // Display individual games data
+          formattedData += '<div class="individual-games-data mt-6">';
+          formattedData += '<h3 class="font-bold mb-2">Individual Games Data:</h3>';
+          
+          if (currentChartData.individual_games && currentChartData.individual_games.length > 0) {
+            formattedData += '<table class="w-full border-collapse">';
+            formattedData += '<thead><tr class="bg-gray-200 dark:bg-gray-700"><th class="p-2 border">Date</th><th class="p-2 border">GD</th><th class="p-2 border">Tournament ID</th></tr></thead>';
+            formattedData += '<tbody>';
+            
+            currentChartData.individual_games.forEach(game => {
+              if (Array.isArray(game) && game.length >= 2) {
+                formattedData += `<tr class="border-b">
+                  <td class="p-2 border">${new Date(game[0]).toLocaleDateString('de-DE')}</td>
+                  <td class="p-2 border">${typeof game[1] === 'number' ? game[1].toFixed(2) : 'N/A'}</td>
+                  <td class="p-2 border">${game[2] || 'N/A'}</td>
+                </tr>`;
+              }
+            });
+            
+            formattedData += '</tbody></table>';
+          } else {
+            formattedData += '<p class="text-gray-600 dark:text-gray-400">No individual games data available</p>';
+          }
+          formattedData += '</div>';
+          formattedData += '</div>';
+          
+          rawDataContent.innerHTML = formattedData;
+          console.log("Raw data displayed");
+        } else {
+          rawDataContent.innerHTML = '<p class="text-gray-600 dark:text-gray-400">No chart data available</p>';
+          console.log("No chart data to display");
+        }
+      } else {
+        // Switch back to chart view
+        resetModalState();
+        if (currentChartData) {
+          createModalChart(currentChartData, chartModalTitle.textContent.split(' - ')[0], chartModalTitle.textContent.split(' - ')[1]);
+        }
+      }
+    };
+  }
+  
+  // Close modal when X button is clicked
+  chartModalClose.addEventListener('click', function() {
+    destroyChart();
+    chartModal.classList.add('hidden');
+    resetModalState();
+  });
+  
+  // Close modal when clicking outside the modal content
+  chartModal.addEventListener('click', function(event) {
+    if (event.target === chartModal) {
+      destroyChart();
+      chartModal.classList.add('hidden');
+      resetModalState();
+    }
+  });
+  
+  // Function to create and render a chart in the modal
+  function createModalChart(data, playerName, disciplineName) {
+    // Store current chart data for raw data display
+    currentChartData = data;
+    
+    // Set the modal title
+    chartModalTitle.textContent = `${playerName} - ${disciplineName} Performance`;
+    
+    // Ensure any existing chart is destroyed
+    if (modalChartInstance) {
+      modalChartInstance.destroy();
+      modalChartInstance = null;
+    }
+
+    // Clear the canvas by getting a fresh context
+    const ctx = chartModalCanvas.getContext('2d');
+    ctx.clearRect(0, 0, chartModalCanvas.width, chartModalCanvas.height);
+    
+    try {
+      console.log("Raw data for chart:", data);
+      
+      // Step 1: Process tournaments first to create lookup table
+      const processedTournaments = [];
+      const tournamentDateById = {};
+      
+      if (data.tournaments && Array.isArray(data.tournaments)) {
+        console.log(`Processing ${data.tournaments.length} tournaments`);
+        console.log("First tournament data:", data.tournaments[0]);
+        
+        data.tournaments.forEach((t, i) => {
+          try {
+            // Debug tournament structure
+            console.log(`Tournament ${i} raw data:`, t);
+            
+            // Check tournament properties
+            if (!t) {
+              console.warn(`Tournament at index ${i} is null or undefined`);
+              return;
+            }
+            
+            // Parse date (handle both ISO and European format)
+            let tournamentDate;
+            if (t.date) {
+              // Try European format first (DD.MM.YYYY)
+              if (t.date.includes('.')) {
+                const [day, month, year] = t.date.split('.');
+                tournamentDate = new Date(year, month - 1, day);
+              } else {
+                // Try as ISO format
+                tournamentDate = new Date(t.date);
+              }
+            }
+            
+            const timestamp = tournamentDate ? tournamentDate.getTime() : null;
+            
+            if (isNaN(timestamp)) {
+              console.warn(`Invalid tournament date at index ${i}: ${t.date}`);
+              return;
+            }
+            
+            const gdValue = parseFloat(t.average);
+            if (isNaN(gdValue)) {
+              console.warn(`Invalid tournament average at index ${i}: ${t.average}`);
+              return;
+            }
+            
+            // Store the timestamp by tournament ID
+            tournamentDateById[t.id] = timestamp;
+            
+            processedTournaments.push({
+              x: timestamp,
+              y: gdValue,
+              id: t.id,
+              date: t.date,
+              label: `Turnier ${t.id}: ${gdValue.toFixed(2)} GD`
+            });
+            
+            console.log(`Successfully processed tournament ${i}: ID ${t.id}, Date ${new Date(timestamp).toLocaleDateString()}, GD ${gdValue}`);
+          } catch (e) {
+            console.error(`Error processing tournament at index ${i}:`, e);
+          }
+        });
+      }
+      
+      console.log(`Successfully processed ${processedTournaments.length} tournaments with dates`);
+      console.log("Tournament dates by ID:", tournamentDateById);
+      
+      // Step 2: Process individual games using tournament dates
+      const processedGames = [];
+      
+      if (data.individual_games && Array.isArray(data.individual_games)) {
+        console.log(`Processing ${data.individual_games.length} individual games`);
+        console.log("First game data:", data.individual_games[0]);
+        
+        // Group games by tournament for better visual distribution
+        const gamesByTournament = {};
+        
+        data.individual_games.forEach((game, i) => {
+          try {
+            if (!Array.isArray(game) || game.length < 2) {
+              console.warn(`Invalid game data at index ${i}:`, game);
+              return;
+            }
+            
+            const gameDate = game[0];
+            const gdValue = parseFloat(game[1]);
+            const tournamentId = game[2]; // Tournament ID should be at index 2
+            
+            console.log(`Processing game ${i}:`, {
+              date: gameDate,
+              gd: gdValue,
+              tournamentId: tournamentId
+            });
+            
+            // Skip if invalid GD
+            if (isNaN(gdValue)) {
+              console.warn(`Invalid GD value at game index ${i}: ${game[1]}`);
+              return;
+            }
+            
+            // If we have a tournament date, use it
+            if (tournamentId && tournamentDateById[tournamentId]) {
+              const tournamentTimestamp = tournamentDateById[tournamentId];
+              
+              if (!gamesByTournament[tournamentId]) {
+                gamesByTournament[tournamentId] = [];
+              }
+              
+              gamesByTournament[tournamentId].push({
+                gdValue: gdValue,
+                tournamentId: tournamentId,
+                originalDate: gameDate
+              });
+              
+              console.log(`Added game to tournament ${tournamentId}`);
+            } else {
+              // If no tournament ID or date, use the game's date
+              let gameTimestamp;
+              
+              // Try parsing the game date (handle both ISO and European format)
+              if (gameDate.includes('.')) {
+                const [day, month, year] = gameDate.split('.');
+                gameTimestamp = new Date(year, month - 1, day).getTime();
+              } else {
+                gameTimestamp = new Date(gameDate).getTime();
+              }
+              
+              if (!isNaN(gameTimestamp)) {
+                processedGames.push({
+                  x: gameTimestamp,
+                  y: gdValue,
+                  label: `Spiel: ${gdValue.toFixed(2)} GD`
+                });
+                console.log(`Added individual game with date ${new Date(gameTimestamp).toLocaleDateString()}`);
+              } else {
+                console.warn(`Invalid game date at index ${i}: ${gameDate}`);
+              }
+            }
+          } catch (e) {
+            console.error(`Error processing game at index ${i}:`, e);
+          }
+        });
+        
+        // Now distribute games within each tournament
+        Object.entries(gamesByTournament).forEach(([tournamentId, games]) => {
+          const tournamentTimestamp = tournamentDateById[tournamentId];
+          if (!tournamentTimestamp) return;
+          
+          // Sort games by GD within tournament
+          games.sort((a, b) => a.gdValue - b.gdValue);
+          
+          // Distribute games slightly around tournament date
+          const rangeInMs = 2 * 24 * 60 * 60 * 1000; // ±2 days
+          const step = games.length > 1 ? (2 * rangeInMs) / (games.length - 1) : 0;
+          
+          games.forEach((game, i) => {
+            const offset = -rangeInMs + (i * step);
+            const gameTimestamp = tournamentTimestamp + offset;
+            
+            processedGames.push({
+              x: gameTimestamp,
+              y: game.gdValue,
+              tournamentId: tournamentId,
+              label: `Spiel: ${game.gdValue.toFixed(2)} GD (Turnier ${tournamentId})`
+            });
+          });
+          
+          console.log(`Distributed ${games.length} games for tournament ${tournamentId}`);
+        });
+      }
+      
+      console.log(`Successfully processed ${processedGames.length} individual games`);
+      
+      // If no valid data, return
+      if (processedTournaments.length === 0 && processedGames.length === 0) {
+        console.warn("No valid data points for chart");
+        return null;
+      }
+      
+      // Find date range using processed data
+      const allDates = [
+        ...processedTournaments.map(t => t.x),
+        ...processedGames.map(g => g.x)
+      ];
+      
+      const minDate = Math.min(...allDates);
+      const maxDate = Math.max(...allDates);
+      
+      // Add padding to date range
+      const dateRange = maxDate - minDate;
+      const xAxisMin = minDate - (dateRange * 0.05);
+      const xAxisMax = maxDate + (dateRange * 0.05);
+      
+      // Y-axis range
+      const allGDValues = [
+        ...processedTournaments.map(t => t.y),
+        ...processedGames.map(g => g.y)
+      ];
+      
+      const minGD = Math.min(...allGDValues);
+      const maxGD = Math.max(...allGDValues);
+      
+      // Set Y-axis limits with reasonable padding
+      let yAxisMin = Math.max(0, Math.floor(minGD) - 0.5);
+      let yAxisMax = Math.ceil(maxGD) + 0.5;
+      
+      // Ensure minimum range of 4 units
+      if (yAxisMax - yAxisMin < 4) {
+        const midpoint = (yAxisMax + yAxisMin) / 2;
+        yAxisMin = midpoint - 2;
+        yAxisMax = midpoint + 2;
+      }
+      
+      console.log(`Date range: ${new Date(minDate).toLocaleDateString()} to ${new Date(maxDate).toLocaleDateString()}`);
+      console.log(`X-Axis with padding: ${new Date(xAxisMin).toLocaleDateString()} to ${new Date(xAxisMax).toLocaleDateString()}`);
+      console.log(`Y-Axis range: ${yAxisMin} to ${yAxisMax}`);
+      
+      // Create chart with proper configuration
+      modalChartInstance = new Chart(chartModalCanvas, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Einzelspiele',
+              data: processedGames,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              borderColor: 'rgba(0, 0, 0, 1)',
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              borderWidth: 1,
+              pointStyle: 'circle',
+              order: 2  // Higher = drawn first (under other layers)
+            },
+            {
+              label: 'Turnierdurchschnitt',
+              data: processedTournaments,
+              backgroundColor: 'rgba(59, 130, 246, 1)',
+              borderColor: 'rgba(30, 64, 175, 1)',
+              pointRadius: 6,
+              pointHoverRadius: 9,
+              borderWidth: 1.5,
+              pointStyle: 'circle',
+              order: 1  // Lower = drawn later (on top of other layers)
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          layout: {
+            padding: {
+              left: 30,
+              right: 30,
+              top: 15,
+              bottom: 10
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 10,
+                font: {
+                  size: 14
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              titleColor: '#000',
+              bodyColor: '#000',
+              borderColor: '#ddd',
+              borderWidth: 1,
+              padding: 12,
+              titleFont: {
+                size: 16,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 14
+              },
+              callbacks: {
+                title: function(context) {
+                  try {
+                    const date = new Date(context[0].parsed.x);
+                    return date.toLocaleDateString('de-DE', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  } catch (e) {
+                    console.error("Error formatting tooltip date:", e);
+                    return 'Unknown date';
+                  }
+                },
+                label: function(context) {
+                  // Use the custom label property if available
+                  if (context.raw.label) {
+                    return context.raw.label;
+                  }
+                  
+                  // Fall back to default formatting
+                  return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} GD`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: xAxisMin,
+              max: xAxisMax,
+              ticks: {
+                callback: function(value) {
+                  const date = new Date(value);
+                  const month = date.getMonth() + 1;
+                  const year = date.getFullYear();
+                  return `${month}/${year}`;
+                },
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)',
+                drawBorder: true
+              },
+              title: {
+                display: true,
+                text: 'Datum',
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                }
+              }
+            },
+            y: {
+              min: yAxisMin,
+              max: yAxisMax,
+              ticks: {
+                count: 6,
+                precision: 2,
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)',
+                drawBorder: true
+              },
+              title: {
+                display: true,
+                text: 'GD',
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      console.log("Chart created successfully");
+      return modalChartInstance;
+    } catch (e) {
+      console.error("Error creating chart:", e);
+      return null;
+    }
+  }
+  
+  // Attach toggle handlers to open the chart modal
+  document.querySelectorAll('.chart-toggle').forEach(button => {
+    button.addEventListener('click', function() {
+      try {
+        destroyChart();
+        resetModalState();
+        
+        const playerId = this.dataset.player;
+        const disciplineId = this.dataset.discipline;
+        
+        if (!playerId || !disciplineId) {
+          console.error("Missing player or discipline ID", this.dataset);
+          return;
+        }
+        
+        // Find the data element with the names
+        const dataElement = document.getElementById(`chart-data-${playerId}-${disciplineId}`);
+        if (!dataElement) {
+          console.error("Data element not found");
+          return;
+        }
+        
+        const playerName = dataElement.dataset.playerName || 'Player';
+        const disciplineName = dataElement.dataset.disciplineName || 'Discipline';
+        
+        // Get the chart data
+        const key = `${playerId},${disciplineId}`;
+        const data = chartData[key];
+        
+        if (!data) {
+          console.warn(`No chart data found for key: ${key}`);
+          return;
+        }
+        
+        // Show the modal
+        chartModal.classList.remove('hidden');
+        
+        // Create the chart
+        createModalChart(data, playerName, disciplineName);
+      } catch (e) {
+        console.error("Error in chart toggle handler:", e);
+      }
+    });
+  });
+  
+  console.log("Chart toggle handlers attached successfully");
+}
+
+// Single initialization point
+function initializeOnce() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeCharts);
+  } else {
+    initializeCharts();
+  }
+}
+
+// Clean up before reinitializing
+function cleanup() {
+  if (modalChartInstance) {
+    modalChartInstance.destroy();
+    modalChartInstance = null;
+  }
+  hasInitialized = false;
+}
+
+// Handle Turbo navigation
+document.addEventListener('turbo:before-render', cleanup);
+document.addEventListener('turbo:load', initializeOnce);
+
+// Initial load
+initializeOnce();
+</script>

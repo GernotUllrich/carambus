@@ -268,6 +268,7 @@ class Version < ApplicationRecord
           args["data"] = YAML.load(args["data"])
         end
         args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+        args["t_ids"] = YAML.load(args["t_ids"]) if args["t_ids"].present?
         begin
           classz = h["item_type"].constantize
           obj = classz.where(id: h["item_id"]).first

@@ -81,9 +81,6 @@
     });
   });
 </script>
-<div data-controller="table-monitor" data-action="click->table-monitor#back" class="w-10 fixed text-gray-300 hover:text-black text-4vw font-bold" style="left: 10px; top: -10px;">
-  <%= render_svg "icons/arrow-thin-left", styles: "responsive-svg fill-current icon-sm inline-block", title: "zurück" %>
-</div>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
     <%= render_svg "icons/adjust", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
@@ -99,16 +96,16 @@
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 pt-5 text-4vw"><%= t('select_game_mode') %></h1>
   <div class="flex items-center mt-20 flex-row h-1/4 space-x-20">
 
-    <%= custom_link_to t('home.index.tournament'), location_path(@location, sb_state: "tournament", table_id: table.andand.id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "tournament", tabindex: 1 %>
+    <%= custom_link_to t('home.index.tournament'), location_path(@location, sb_state: "tournament", table_id: table.andand.id), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "tournament", tabindex: 1 %>
     <%- if table.present? %>
-      <%= custom_link_to t('home.index.training'), placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
+      <%= custom_link_to t('home.index.training'), placement_location_path(@location, tournament_id: "", table_id: table.id), method: :post, data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
     <%- else %>
-      <%= custom_link_to t('home.index.training'), location_path(@location, sb_state: "tables", table_id: table.andand.id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
+      <%= custom_link_to t('home.index.training'), location_path(@location, sb_state: "tables", table_id: table.andand.id), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-6vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "training", tabindex: 1 %>
     <%- end %>
 
   </div>
   <div class="flex items-center mt-20 flex-row h-1/4 space-x-20">
-    <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations", table_id: table.andand.id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 text-3vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "reservations", tabindex: 1 %>
+    <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations", table_id: table.andand.id), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 text-3vw lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "reservations", tabindex: 1 %>
   </div>
 </div>
 

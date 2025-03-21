@@ -1,0 +1,30 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="h3">Rankings by Region</h1>
+      <div class="flex space-x-4">
+        <%= link_to 'Back to Players', players_path, class: "btn btn-link" %>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded shadow p-8">
+      <div class="grid gap-4">
+        <% @regions.each do |region| %>
+          <%= link_to ranking_path(region), class: "block p-4 rounded bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150" do %>
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= region.name %></h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400"><%= region.country&.name %></p>
+              </div>
+              <div class="text-gray-400 dark:text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
