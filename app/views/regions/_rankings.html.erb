@@ -1,0 +1,3 @@
+<% Discipline.joins(:tournaments).where(tournaments: {organizer_type: "Region", organizer_id: @region.id, season_id: Season.current_season&.id}).uniq.each do |discipline| %>
+
+<% end %>

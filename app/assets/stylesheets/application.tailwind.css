@@ -34,3 +34,14 @@
 @import "flatpickr/dist/flatpickr.css";
 @import "tippy.js/dist/tippy.css";
 @import "tom-select/dist/css/tom-select.css";
+
+/* Füge hinzu */
+.chart-container canvas {
+  @apply dark:bg-gray-700 rounded p-2;
+  max-height: 300px;
+  background-color: white;
+}
+
+.dark .chart-container canvas {
+  background-color: #374151;
+}

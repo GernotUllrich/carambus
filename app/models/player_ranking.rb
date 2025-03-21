@@ -122,24 +122,38 @@ class PlayerRanking < ApplicationRecord
 
   def self.ranking_csv(season, region)
     lines = []
-    lines << "Discipline;Rank;Player;btg24;btg23;btg22"
+    lines << "Discipline;Rank;Player;gd24;gd23;gd22"
     PlayerRanking.where(season_id: 15, region_id: 1).joins(:discipline, :player).order(:discipline_id, :rank).map do |r|
-      btg_1 = PlayerRanking.where(
+      gd_1 = PlayerRanking.where(
+        player: r.player,
+        discipline: r.discipline,
+        season_id: season.id - 2,
+        region_id: region.id
+      ).first&.gd
+      gd_2 = PlayerRanking.where(
         player: r.player,
         discipline: r.discipline,
         season_id: season.id - 1,
         region_id: region.id
-      ).first&.btg
-      btg_2 = PlayerRanking.where(
+      ).first&.gd
+      gd_3 = PlayerRanking.where(
         player: r.player,
         discipline: r.discipline,
-        season_id: season.id - 1,
+        season_id: season.id,
         region_id: region.id
-      ).first&.btg
-      lines << "#{r.discipline.name};#{r.rank};#{r.player.fl_name};#{btg_1};#{r.btg};#{btg_2}"
+      ).first&.gd
+      gd_cons = gd_3 || gd_2 || gd_1
+      lines << [r.discipline.name, r.rank, r.player.fl_name, gd_1, gd_2, gd_3, gd_cons]
+      lines << "#{r.discipline.name};#{r.rank};#{r.player.fl_name};#{gd_1};#{gd_2};#{gd_3}; #{gd_cons}"
     end
     f = File.new("#{Rails.root}/tmp/ranking_season_#{region.shortname}-#{season.name.gsub("/", "-")}.csv", "w")
     f.write(lines.join("\n"))
     f.close
   end
+
+  scope :for_region, ->(region) { 
+    joins(:player).where(players: { region_id: region.id }) 
+  }
+
+  scope :order_by_gd, -> { order(three_year_gd: :desc) }
 end

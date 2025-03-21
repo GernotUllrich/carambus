@@ -1,7 +1,7 @@
 <%- table_monitor = local_assigns[:table_monitor] %>
 <div style="z-index:999" class="grid grid-cols-5 gap-4 mr-4 dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
   <%= custom_link_to table_monitor_path(table_monitor), :"data-turbo" => false do %>
-    <%= render_svg "icons/refresh", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-2 lg:m-2 mr-2 dark:text-gray-300 text-gray-300 inline-block", title: "toggle dark mode" %>
+    <%= render_svg "icons/refresh", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-2 lg:m-2 mr-2 dark:text-gray-300 text-gray-300 inline-block", title: "refresh" %>
   <% end %>
   <%= custom_link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbo" => false do %>
     <%= render_svg "icons/adjust", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-2 lg:m-2 mr-2 dark:text-gray-300 text-gray-300 inline-block", title: "toggle dark mode" %>
@@ -13,6 +13,6 @@
     <%= render_svg "icons/home", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg sm:icon-sm lg:m-2 m-2 mr-2 dark:text-gray-300 text-gray-300 inline-block", title: "home" %>
   <% end %>
   <%= custom_link_to "#", :onclick => "warning_mode()", :"data-turbo" => false do %>
-    <%= render_svg "icons/backspace", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg sm:icon-sm m-2 lg:m-2 dark:text-gray-300 text-gray-300 inline-block", title: "back" %>
+    <%= render_svg "icons/backspace", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg sm:icon-sm m-2 lg:m-2 dark:text-gray-300 text-gray-300 inline-block", title: "terminate" %>
   <% end %>
 </div>
