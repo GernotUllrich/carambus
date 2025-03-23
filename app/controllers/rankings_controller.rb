@@ -12,15 +12,8 @@ class RankingsController < ApplicationController
     # Get the last 3 seasons in reverse chronological order
     @seasons = Season.where('id <= ?', @current_season.id)
                     .order(id: :desc)
-                    .limit(3  )
+                    .limit(3)
                     .reverse
-
-    # Initialize @rankings_by_player by grouping rankings by player and discipline, restricted to the region
-    @rankings_by_player = PlayerRanking.where(
-      season_id: @seasons.pluck(:id),
-      region_id: @region.id
-    )
-    .group_by { |ranking| [ranking.player_id, ranking.discipline_id] }
 
     # 1. Aggregate discipline counts for games with a valid data["Disziplin"]
     counts_with_data = Game.joins(tournament: :discipline)
@@ -64,17 +57,80 @@ class RankingsController < ApplicationController
                                    .map { |name, _count| disciplines[name] }
                                    .compact
 
+    # Fetch all player rankings for the region and seasons
+    player_rankings = PlayerRanking.joins(:player)
+                               .includes(player: { season_participations: :club})
+                               .where(season_id: @seasons.pluck(:id))
+                               .where(region_id: @region.id) # Filter by region
+                               .to_a
+
+    # Initialize @rankings_by_player by grouping rankings by player and discipline
+    @rankings_by_player = player_rankings.group_by { |r| [r.player_id, r.discipline_id] }
+
+    # Prefetch all players
+    player_ids = @rankings_by_player.keys.map(&:first).uniq
+    @players = Player.where(id: player_ids).includes(:season_participations).index_by(&:id)
+    
+    # Prefetch all season participations for the current season
+    @latest_season_participations = SeasonParticipation.where(
+      season: @current_season, 
+      player_id: player_ids
+    ).includes(:club).index_by(&:player_id)
+    
+    # Prefetch all clubs
+    club_ids = @latest_season_participations.values.map(&:club_id).compact.uniq
+    @clubs = Club.where(id: club_ids).index_by(&:id)
+
+    # Precompute effective_gd for each player-discipline pair
+    @effective_gd_by_player_discipline = {}
+    @gd_values_by_player_discipline = {}
+    
+    @rankings_by_player.each do |(player_id, discipline_id), rankings|
+      # Map seasons to GD values in chronological order
+      gd_values = @seasons.map do |season|
+        ranking = rankings.find { |r| r.season_id == season.id }
+        [ranking&.gd, ranking&.btg]
+      end
+      
+      # Calculate effective GD (current || previous || previous-1)
+      effective_gd = gd_values[2]&.first || gd_values[1]&.first || gd_values[0]&.first
+      
+      @gd_values_by_player_discipline[[player_id, discipline_id]] = gd_values
+      @effective_gd_by_player_discipline[[player_id, discipline_id]] = effective_gd
+    end
+
+    # Prepare sorted player data for each discipline
+    @sorted_player_data_by_discipline = {}
+    
+    @disciplines.each do |discipline|
+      player_data = @rankings_by_player.select { |(_pid, did), _| did == discipline.id }.map do |(player_id, discipline_id), rankings|
+        player = @players[player_id]
+        club = @latest_season_participations[player_id]&.club_id ? @clubs[@latest_season_participations[player_id].club_id] : nil
+        effective_gd = @effective_gd_by_player_discipline[[player_id, discipline_id]]
+        
+        {
+          player: player,
+          club: club,
+          rankings: rankings,
+          gd_data: {
+            gd_values: @gd_values_by_player_discipline[[player_id, discipline_id]],
+            effective_gd: effective_gd
+          }
+        }
+      end
+      
+      # Sort and filter player data
+      sorted_data = player_data.reject { |r| r[:gd_data][:effective_gd].nil? }
+                             .sort_by { |r| -r[:gd_data][:effective_gd] }
+      
+      @sorted_player_data_by_discipline[discipline.id] = sorted_data
+    end
+
     # Pre-calculate game data for charts with optimizations to prevent browser hangs
     @chart_data = {}
 
     # Get only the necessary player and discipline combinations that appear in the rankings
     player_discipline_pairs = @rankings_by_player.keys
-
-    # Bail early if there are too many combinations to prevent browser overload
-    if player_discipline_pairs.size > 100
-      Rails.logger.warn "Too many player-discipline combinations (#{player_discipline_pairs.size}). Limiting to first 100."
-      player_discipline_pairs = player_discipline_pairs.first(100)
-    end
 
     # Use a more efficient query to get all needed game participations in one go
     player_ids = player_discipline_pairs.map(&:first).uniq
@@ -89,9 +145,9 @@ class RankingsController < ApplicationController
                                             },
                                             player_id: player_ids
                                           )
-                                          .includes(:player, game: :tournament)
+                                          .includes(:player, game: { tournament: :discipline })
                                           .order('tournaments.date DESC')
-                                          .limit(10000) # Safety limit
+    # .limit(10000) # Safety limit
 
     # Pre-group GameParticipations by [player_id, tournament_id] to optimize processing
     grouped_game_participations = game_participations.group_by { |gp| [gp.player_id, gp.game.tournament_id] }
@@ -191,22 +247,23 @@ class RankingsController < ApplicationController
 
   private
 
-  def calculate_three_year_gd(player_id, discipline_id)
-    rankings = @rankings_by_player[[player_id, discipline_id]] || []
-
-    # Map seasons to GD values in chronological order
-    gd_values = @seasons.map do |season|
-      ranking = rankings.find { |r| r.season_id == season.id }
-      [ranking&.gd, ranking&.btg]
-    end
-
-    # Calculate effective GD (current || previous || previous-1)
-    effective_gd = gd_values[2]&.first || gd_values[1]&.first || gd_values[0]&.first
-
-    {
-      gd_values: gd_values,
-      effective_gd: effective_gd
-    }
-  end
-  helper_method :calculate_three_year_gd
+  # No longer needed as we precompute this in the controller
+  # def calculate_three_year_gd(player_id, discipline_id)
+  #   rankings = @rankings_by_player[[player_id, discipline_id]] || []
+  # 
+  #   # Map seasons to GD values in chronological order
+  #   gd_values = @seasons.map do |season|
+  #     ranking = rankings.find { |r| r.season_id == season.id }
+  #     [ranking&.gd, ranking&.btg]
+  #   end
+  # 
+  #   # Calculate effective GD (current || previous || previous-1)
+  #   effective_gd = gd_values[2]&.first || gd_values[1]&.first || gd_values[0]&.first
+  # 
+  #   {
+  #     gd_values: gd_values,
+  #     effective_gd: effective_gd
+  #   }
+  # end
+  # helper_method :calculate_three_year_gd
 end
