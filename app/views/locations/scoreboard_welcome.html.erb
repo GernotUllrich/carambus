@@ -20,7 +20,10 @@
       current_element = "start";
     }
     console.log("active now: " + current_element);
-    document.getElementById(current_element).focus();
+    const elementToFocus = document.getElementById(current_element);
+    if (elementToFocus) {
+      elementToFocus.focus();
+    }
 
     // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
     window.hotkeys('*', function (event, handler) {

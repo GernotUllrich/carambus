@@ -3,12 +3,13 @@
     <div class="flex items-center justify-center">
       <%= custom_link_to root_path, class: "hidden sm:inline-block" do %>
         <div class="ml-4 text-gray-700 dark:text-gray-50">© <%= Date.current.year %> <%= Carambus.config.business_name %></div>
-    <% end %>
+      <% end %>
     </div>
     <ul class="list-none flex flex-wrap items-center justify-center">
       <li><%= custom_link_to t(".about"), about_path, class: "list-none text-gray-700 hover:text-gray-800 dark:text-gray-50 dark:hover:text-gray-200 no-underline block px-4 lg:my-0 my-2" %></li>
       <li><%= custom_link_to t(".privacy"), privacy_path, class: "list-none text-gray-700 hover:text-gray-800 dark:text-gray-50 dark:hover:text-gray-200 no-underline block lg:my-0 my-2 px-4" %></li>
       <li><%= custom_link_to t(".terms"), terms_path, class: "list-none text-gray-700 hover:text-gray-800 dark:text-gray-50 dark:hover:text-gray-200 no-underline block lg:my-0 my-2 px-4" %></li>
+      <li class="px-4"><%= render "shared/language_switcher" %></li>
     </ul>
   </div>
 </footer>

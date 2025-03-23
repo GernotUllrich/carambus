@@ -33,11 +33,9 @@ class ApplicationController < ActionController::Base
     @footer = true
   end
   before_action :set_user_preferences
-  around_action :switch_locale
+  before_action :set_locale
   around_action :set_current_user
   # impersonates :user
-
-  # before_action :set_locale
 
   before_action :set_cache_headers if Rails.env.development?
   before_action :handle_menu_state
@@ -53,6 +51,8 @@ class ApplicationController < ActionController::Base
   end
 
   def default_url_options
+    # Only add locale to URL if it's different from the default locale
+    return {} if I18n.locale == I18n.default_locale
     { locale: I18n.locale }
   end
 
@@ -93,13 +93,6 @@ class ApplicationController < ActionController::Base
     Current.user.andand.email == "scoreboard@carambus.de" && params[:club_id].present? && params[:season_id].present?
   end
 
-  def switch_locale(&action)
-    Rails.logger.debug "8 Locale param: #{params[:locale]}"
-    locale = params[:locale] || current_user&.preferred_language || extract_locale_from_accept_language_header || I18n.default_locale
-    Rails.logger.debug "9 Setting locale to: #{locale}"
-    I18n.with_locale(locale, &action)
-  end
-
   def after_sign_in_path_for(resource)
     if resource.admin?
       admin_root_path
@@ -130,16 +123,34 @@ class ApplicationController < ActionController::Base
       else helpers.set_system_theme
       end
 
-      # Set locale
-      I18n.locale = current_user.preferences['locale'] || I18n.default_locale
-
       # Set timezone
       Time.zone = current_user.preferences['timezone'] || 'Berlin'
     end
   end
 
-  def extract_locale_from_accept_language_header
-    request.env['HTTP_ACCEPT_LANGUAGE']&.scan(/^[a-z]{2}/)&.first
+  def set_locale
+    I18n.locale = locale_from_params || 
+                  locale_from_user || 
+                  locale_from_header || 
+                  I18n.default_locale
+  end
+
+  def locale_from_params
+    locale = params[:locale]
+    return nil unless locale.present?
+    return locale if I18n.available_locales.map(&:to_s).include?(locale)
+  end
+
+  def locale_from_user
+    return nil unless current_user&.preferences
+    locale = current_user.preferences['locale']
+    return locale if locale.present? && I18n.available_locales.map(&:to_s).include?(locale.to_s)
+  end
+
+  def locale_from_header
+    return nil unless request.env['HTTP_ACCEPT_LANGUAGE']
+    locale = request.env['HTTP_ACCEPT_LANGUAGE'].scan(/^[a-z]{2}/).first
+    return locale if I18n.available_locales.map(&:to_s).include?(locale)
   end
 
   def set_model_class
