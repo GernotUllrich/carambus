@@ -7,18 +7,15 @@ class ClubsController < ApplicationController
   # GET /clubs
   def index
     results = SearchService.call( Club.search_hash(params) )
+    # Preload all necessary associations to avoid N+1 queries in the view
+    results = results.includes(:region => :region_cc)
     @pagy, @clubs = pagy(results)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @clubs.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @clubs.load
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   rescue StandardError => e

@@ -18,6 +18,8 @@ class RegionsController < ApplicationController
   # GET /regions
   def index
     results = SearchService.call( Region.search_hash(params) )
+    # Eager load the country association to avoid N+1 queries in the view
+    results = results.includes(:country) if results.respond_to?(:includes)
     @pagy, @regions = pagy(results)
     if @regions.count == 0
       session[:s_regions] = nil
@@ -28,12 +30,7 @@ class RegionsController < ApplicationController
     @regions.load
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   end

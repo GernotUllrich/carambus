@@ -1,27 +1,29 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
+    <% @player_rankings ||= records %>
+    <% @pagy ||= pagy %>
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :rank,'Rank', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :region_id,'Region', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :club_id,'Club', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :season_id,'Season', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :discipline_id,'Discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :balls,'Balls', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :innings,'Aufnahmen', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :gd,'Gd', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :hs,'Hs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :bed,'Bed', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :btg,'Btg', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :class,'Class', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :g,'G', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :v,'V', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :quote,'Quote', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :sets,'Sets', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spg,'Sp.G', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spv,'Sp.V', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spq,'Sp.Quote', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :rank,'Rank', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :player_id,'Player', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :region_id,'Region', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :club_id,'Club', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :season_id,'Season', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :discipline_id,'Discipline', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :balls,'Balls', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :innings,'Aufnahmen', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :gd,'Gd', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :hs,'Hs', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :bed,'Bed', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :btg,'Btg', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :class,'Class', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :g,'G', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :v,'V', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :quote,'Quote', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :sets,'Sets', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spg,'Sp.G', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spv,'Sp.V', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @player_rankings, :spq,'Sp.Quote', params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>
@@ -33,7 +35,7 @@
           <td class="p-3"><%= player_ranking.rank %></td>
         <td class="p-3"><%= custom_link_to("#{player_ranking.player.lastname}, #{player_ranking.player.firstname}", player_path(player_ranking.player)) %></td>
         <td class="p-3"><%= custom_link_to("#{player_ranking.region.shortname}", region_path(player_ranking.region)) %></td>
-        <td class="p-3"><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present?%></td>
+        <td class="p-3"><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
         <td class="p-3"><%= custom_link_to("#{player_ranking.season.name}", season_path(player_ranking.season)) %></td>
         <td class="p-3"><%= custom_link_to player_ranking.discipline.name, discipline_path(player_ranking.discipline) %></td>
         <td class="p-3"><%= player_ranking.balls %></td>
@@ -62,7 +64,6 @@
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

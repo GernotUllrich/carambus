@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Game Plan Row Ccs</h1>
-
+    <% @game_plan_row_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @game_plan_row_ccs.any? %>
       <%= button_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,18 +13,18 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :game_plan_id,'Game plan', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :home_brett,'Home brett', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :visitor_brett,'Visitor brett', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :sets,'Sets', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :score,'Score', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppg,'Ppg', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppu,'Ppu', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppv,'Ppv', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :mpg,'Mpg', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :pmv,'Pmv', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :game_plan_id,'Game plan', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :home_brett,'Home brett', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :visitor_brett,'Visitor brett', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :sets,'Sets', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :score,'Score', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppg,'Ppg', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppu,'Ppu', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :ppv,'Ppv', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :mpg,'Mpg', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_row_ccs, :pmv,'Pmv', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>

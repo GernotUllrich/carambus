@@ -9,7 +9,7 @@
       <div class="text-sm font-medium">
         <span class="text-gray-500 dark:text-gray-300/75">Sort by:</span>
 <%- attributes.reject(&:password_digest?).each do |attribute| -%>
-        <%%= sortable @<%= plural_table_name %>, :<%= attribute.column_name %>,"<%= attribute.human_name %>", request.params, class: "text-gray-700 dark:text-gray-300 mr-1" %>
+        <%%= sortable @<%= plural_table_name %>, :<%= attribute.column_name %>,"<%= attribute.human_name %>", params, class: "text-gray-700 dark:text-gray-300 mr-1" %>
 <%- end -%>
       </div>
     </div>

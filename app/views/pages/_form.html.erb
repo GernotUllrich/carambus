@@ -36,11 +36,11 @@
         <button type="button" id="edit-toggle" class="text-sm text-gray-500 hover:text-gray-700 hidden">Edit</button>
       </div>
     </div>
-    
+
     <div id="editor-container">
       <%= form.text_area :content, rows: 15, class: "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md font-mono", id: "content-editor" %>
     </div>
-    
+
     <div id="preview-container" class="hidden prose prose-blue max-w-none p-4 border border-gray-300 rounded-md bg-white min-h-[300px]">
       <!-- Preview content will be loaded here -->
     </div>
@@ -60,10 +60,10 @@
     </div>
   </div>
 
-  <% if current_user.system_admin? %>
+  <% if current_user&.system_admin? %>
     <div class="bg-gray-50 p-4 rounded-md">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Access Permissions</h3>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <% %w[create read update delete].each do |action| %>
           <div>
@@ -88,11 +88,11 @@
     const editorContainer = document.getElementById('editor-container');
     const previewContainer = document.getElementById('preview-container');
     const contentEditor = document.getElementById('content-editor');
-    
+
     previewToggle.addEventListener('click', function() {
       // Get the markdown content
       const markdownContent = contentEditor.value;
-      
+
       // Make an AJAX request to preview the content
       fetch('/pages/preview', {
         method: 'POST',
@@ -106,7 +106,7 @@
       .then(data => {
         // Update the preview container with the rendered HTML
         previewContainer.innerHTML = data.html;
-        
+
         // Show the preview, hide the editor
         editorContainer.classList.add('hidden');
         previewContainer.classList.remove('hidden');
@@ -114,7 +114,7 @@
         editToggle.classList.remove('hidden');
       });
     });
-    
+
     editToggle.addEventListener('click', function() {
       // Show the editor, hide the preview
       editorContainer.classList.remove('hidden');
@@ -122,7 +122,7 @@
       previewToggle.classList.remove('hidden');
       editToggle.classList.add('hidden');
     });
-    
+
     // Handle tags input
     const tagsInput = document.querySelector('input[name="page[tags]"]');
     if (tagsInput) {
@@ -131,10 +131,10 @@
         const tags = this.value.split(',')
           .map(tag => tag.trim())
           .filter(tag => tag.length > 0);
-        
+
         // Update the input value with the cleaned tags
         this.value = tags.join(', ');
       });
     }
   });
-</script> 
+</script>

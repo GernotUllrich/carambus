@@ -35,8 +35,8 @@ class Page < ApplicationRecord
   has_many :sub_pages, class_name: 'Page', foreign_key: 'super_page_id', dependent: :nullify
 
   # Enums
-  enum status: { draft: 'draft', published: 'published', archived: 'archived' }
-  enum content_type: { markdown: 'markdown' }
+  enum :status, {:draft=>"draft", :published=>"published", :archived=>"archived"}
+  enum :content_type, {:markdown=>"markdown"}
 
   # Validations
   validates :title, presence: true

@@ -412,6 +412,7 @@ en:
     index:
       location: Location
       locations: Locations
+      new_location: New Location
     name: name
     organizer_id: organizer id
     organizer_type: organizer type
@@ -556,6 +557,7 @@ en:
   search_filter: Open Search Filter Form
   general_search: General Search
   search_all_fields: Search all fields
+  search: Search
   apply: Apply
   clear: Clear
   season:
@@ -920,6 +922,7 @@ en:
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
     game_results:
+      game_results: Game Results
       balls: Balls
       balls_goal: BG
       balls_goal_percent: BG_PCT

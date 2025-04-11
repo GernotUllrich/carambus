@@ -3,6 +3,7 @@
 # Generalized search reflex for handling search fields with immediate
 # response on any change of the inputs
 class SearchReflex < ApplicationReflex
+  include Rails.application.routes.url_helpers
 
   before_reflex do
     # session[:"s_#{params[:controller]}"] = params[:sSearch] if params.has_key?(:sSearch)
@@ -13,51 +14,42 @@ class SearchReflex < ApplicationReflex
   DEBUG = true
 
   def perform
-    Rails.logger.debug "SearchReflex is triggered" if DEBUG
-    params[:sSearch] = element[:value]
-    
-    # Get the model class from the controller name
-    model_class = params[:controller].camelize.singularize.constantize
-    
-    # Get search hash from the model
-    search_hash = model_class.search_hash(params)
-    
-    # Call the search service
-    results = SearchService.call(search_hash)
-    
-    @pagy, records = pagy(results, request_path: "/#{params[:controller]}")
-    instance_variable_set(:"@#{params[:controller]}", records)
-    
-    Rails.logger.debug "Search term: #{params[:sSearch].inspect}" if DEBUG
-    Rails.logger.debug "Records empty?: #{records.empty?}" if DEBUG
-    Rails.logger.debug "Records count: #{records.count}" if DEBUG
-    
-    begin
-      if records.empty? && params[:sSearch].present?
-        Rails.logger.debug "Showing no results warning" if DEBUG
-        warning_html = <<~HTML
-          <div class="rounded shadow">
-            <div class="my-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-md p-4 text-center">
-              #{I18n.t('shared.search.no_results', query: params[:sSearch], default: "No results found for '#{params[:sSearch]}'")}
-            </div>
-          </div>
-        HTML
-        
-        morph "#table_wrapper", warning_html
-      else
-        Rails.logger.debug "Rendering table with #{records.count} records" if DEBUG
-        morph "#table_wrapper",
-              render(partial: "#{params[:controller]}/#{params[:controller]}_table",
-                     assigns: { 
-                       pagy: @pagy, 
-                       :"#{params[:controller]}" => instance_variable_get(:"@#{params[:controller]}"),
-                       model_class: model_class
-                     },
-                     locals: {request: request})
-      end
-    rescue StandardError => e
-      Rails.logger.error "Error in SearchReflex: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+    Rails.application.routes.default_url_options[:host] = request.base_url
+    model_name = params[:controller].camelize.singularize
+    @model = model_name.constantize
+
+    # Store search parameters
+    session["#{model_name.underscore}_search"] ||= {}
+
+    # Update search parameters
+    if params[:sSearch].present?
+      session["#{model_name.underscore}_search"][:sSearch] = params[:sSearch]
     end
+
+    # Handle sorting parameters
+    if params[:sort].present?
+      session["#{model_name.underscore}_search"][:sort] = params[:sort]
+      session["#{model_name.underscore}_search"][:direction] = params[:direction] || 'asc'
+    end
+
+    # Get search parameters from session
+    search_params = session["#{model_name.underscore}_search"].symbolize_keys
+
+    # Perform search
+    results = SearchService.call(@model.search_hash(search_params))
+
+    # Paginate results
+    pagy, records = pagy(results)
+    records.load
+
+    Rails.logger.info "Rendering table with #{records.size} records"
+
+    # Send instance variables to view
+    instance_variable_set("@#{model_name.underscore.pluralize}", records)
+    instance_variable_set("@pagy", pagy)
+    instance_variable_set("@search_params", search_params)
+
+    # Render partial
+    render partial: "#{model_name.underscore.pluralize}/#{model_name.underscore.pluralize}_table", locals: {pagy: @pagy, model_class: @model, records: records}
   end
 end

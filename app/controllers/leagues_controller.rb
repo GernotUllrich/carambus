@@ -6,18 +6,16 @@ class LeaguesController < ApplicationController
   # GET /leagues
   def index
     results = SearchService.call(League.search_hash(params))
-    @pagy, @leagues = pagy(results)
+    @pagy, @leagues = pagy(
+      results.includes(:season, :discipline, :game_plan)
+             .preload(:organizer)
+    )
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @leagues.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @leagues.load
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   end

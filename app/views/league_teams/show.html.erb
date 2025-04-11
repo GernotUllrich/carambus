@@ -31,7 +31,7 @@
   <% if @parties.any? %>
     <h3> Parties</h3>
     <div id="table_wrapper text-base">
-      <%= render partial: 'parties/parties_table', locals: { from_index: false } %>
+      <%= render partial: 'parties/parties_table', locals: { from_index: false, pagy: nil, model_class: Party, records: @parties } %>
     </div>
   <% end %>
 </div>
