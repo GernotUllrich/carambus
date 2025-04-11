@@ -43,7 +43,7 @@
   <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('leagues_season')} #{Season.current_season.name}", parties_path(sSearch: "org:#{@region.shortname} sea:#{Season.current_season.name} da:>=today") %></h3>
   <h3><%= custom_link_to "=> Clubs", clubs_path(sSearch: "reg:#{@region.shortname}") %></h3>
   <%= render partial: "rankings" %>
-  <% if current_user.admin? %>
+  <% if current_user&.admin? %>
     <div class="flex grid grid-cols-2 mt-8 sm:grid-cols-1 gap-4 px-3 lg:px-0">
       <%= button_to I18n.t("region.show.reload_from_billard_area", source: @region.source), reload_from_ba_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
       <%= button_to I18n.t("region.show.reload_tournaments", source: @region.shortname), reload_tournaments_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>

@@ -67,7 +67,7 @@ class ApplicationController < ActionController::Base
 
   def dark_mode?
     return false unless user_signed_in?
-    current_user.prefers_dark_mode?
+    current_user&.prefers_dark_mode?
   end
 
   helper_method :dark_mode?
@@ -83,7 +83,7 @@ class ApplicationController < ActionController::Base
   end
 
   def admin_only_check
-    return if current_user.andand.admin? || guest_player_creation?
+    return if current_user&.admin? || guest_player_creation?
 
     redirect_back fallback_location: root_path, alert: "Admin Only - ask gernot.ullrich@gmx.de for permission"
     false
@@ -129,9 +129,9 @@ class ApplicationController < ActionController::Base
   end
 
   def set_locale
-    I18n.locale = locale_from_params || 
-                  locale_from_user || 
-                  locale_from_header || 
+    I18n.locale = locale_from_params ||
+                  locale_from_user ||
+                  locale_from_header ||
                   I18n.default_locale
   end
 
