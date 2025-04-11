@@ -5,7 +5,7 @@
     <h1 class="h3">
       <%= custom_link_to "Uploads", uploads_path, class: "text-black" %>
       <span class="text-gray-400 font-light mx-2">\</span>
-      <%= t("shared.scaffold.new.title", model: "Upload") + " (by #{current_user.name})" %>
+      <%= t("shared.scaffold.new.title", model: "Upload") + " (by #{current_user&.name})" %>
     </h1>
   </div>
 

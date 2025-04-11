@@ -7,18 +7,18 @@
         Documentation
       <% end %>
     </h1>
-    
-    <% if current_user && current_user.admin? %>
+
+    <% if current_user&.admin? %>
       <%= link_to "New Page", new_page_path, class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
     <% end %>
   </div>
-  
+
   <% if @tag.present? %>
     <div class="mb-4">
       <%= link_to "← Back to all pages", pages_path, class: "text-blue-500 hover:underline" %>
     </div>
   <% end %>
-  
+
   <% if @root_pages.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% @root_pages.each do |page| %>
@@ -27,11 +27,11 @@
             <h2 class="text-xl font-semibold mb-2">
               <%= link_to page.title, page, class: "text-blue-600 hover:text-blue-800" %>
             </h2>
-            
+
             <% if page.summary.present? %>
               <p class="text-gray-600 mb-4"><%= page.summary %></p>
             <% end %>
-            
+
             <div class="flex items-center justify-between mt-4">
               <div class="text-sm text-gray-500">
                 <% if page.published? %>
@@ -42,7 +42,7 @@
                   <span class="text-gray-600">Archived</span>
                 <% end %>
               </div>
-              
+
               <div class="text-sm">
                 <% if page.sub_pages.accessible_to(current_user).any? %>
                   <span class="text-blue-500">
@@ -58,7 +58,7 @@
   <% else %>
     <div class="bg-gray-100 p-6 rounded-lg text-center">
       <p class="text-gray-600">No pages found.</p>
-      
+
       <% if current_user && current_user.admin? %>
         <p class="mt-2">
           <%= link_to "Create your first page", new_page_path, class: "text-blue-500 hover:underline" %>
@@ -66,4 +66,4 @@
       <% end %>
     </div>
   <% end %>
-</div> 
+</div>

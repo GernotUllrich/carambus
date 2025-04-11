@@ -1,4 +1,4 @@
-<% if current_user.system_admin? %>
+<% if current_user?.system_admin? %>
   <%= link_to "Users", admin_users_path %>
 <% end %>
 
