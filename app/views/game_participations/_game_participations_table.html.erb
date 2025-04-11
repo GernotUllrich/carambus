@@ -1,17 +1,19 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
+    <% @game_participations ||= records %>
+    <% @pagy ||= pagy %>
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :game_id,'Game', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :player_id,'Player', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :role,'Role', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :points,'Points', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :result,'Result', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :innings,'Innings', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gd,'Gd', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :hs,'Hs', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gname,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :game_id,'Game', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :player_id,'Player', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :role,'Role', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :points,'Points', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :result,'Result', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :innings,'Innings', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gd,'Gd', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :hs,'Hs', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_participations, :gname,'Name', params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>
@@ -41,7 +43,6 @@
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

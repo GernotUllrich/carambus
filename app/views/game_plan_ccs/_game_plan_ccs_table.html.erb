@@ -1,25 +1,27 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
+    <% @pagy ||= pagy %>
+    <% @game_plan_ccs ||= records %>
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_won,'Mp won', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mb_draw,'Mb draw', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_lost,'Mp lost', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :znp,'Znp', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :vorgabe,'Vorgabe', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :plausi,'Plausi', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :pez_partie,'Pez partie', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :bez_brett,'Bez brett', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_partie,'Rang partie', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_mgd,'Rang mgd', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_kegel,'Rang kegel', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :ersatzspieler_regel,'Ersatzspieler regel', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :row_type_id,'Row type', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :branch_cc_id,'Branch cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_won,'Mp won', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mb_draw,'Mb draw', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :mp_lost,'Mp lost', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :znp,'Znp', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :vorgabe,'Vorgabe', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :plausi,'Plausi', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :pez_partie,'Pez partie', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :bez_brett,'Bez brett', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_partie,'Rang partie', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_mgd,'Rang mgd', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :rang_kegel,'Rang kegel', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :ersatzspieler_regel,'Ersatzspieler regel', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @game_plan_ccs, :row_type_id,'Row type', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>

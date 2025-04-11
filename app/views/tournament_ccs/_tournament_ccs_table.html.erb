@@ -1,37 +1,38 @@
-
 <div class=" rounded shadow table-responsive">
+  <% @tournament_ccs ||= records %>
+  <% @pagy ||= pagy %>
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_id,'Tournament', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :branch_cc_id,'Sparte', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :season,'Season', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_list_cc_id,'Registration list cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_rule,'Registration rule', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :championship_type_cc_id,'Championship type cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :category_cc_id,'Category cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :group_cc_id,'Group cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_start,'Tournament start', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_series_cc_id,'Tournament series cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_end,'Tournament end', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :starting_at,'Starting at', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :league_climber_quote,'League climber quote', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :entry_fee,'Entry fee', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :max_players,'Max players', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_id,'Location', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_text,'Location text', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :description,'Description', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :poster,'Poster', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tender,'Tender', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :flowchart,'Flowchart', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :ranking_list,'Ranking list', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :successor_list,'Successor list', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_id,'Tournament', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :shortname,'Shortname', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :branch_cc_id,'Sparte', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :season,'Season', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_list_cc_id,'Registration list cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_rule,'Registration rule', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :championship_type_cc_id,'Championship type cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :category_cc_id,'Category cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :group_cc_id,'Group cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_start,'Tournament start', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_series_cc_id,'Tournament series cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tournament_end,'Tournament end', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :starting_at,'Starting at', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :league_climber_quote,'League climber quote', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :entry_fee,'Entry fee', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :max_players,'Max players', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_id,'Location', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :location_text,'Location text', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :description,'Description', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :poster,'Poster', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :tender,'Tender', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :flowchart,'Flowchart', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :ranking_list,'Ranking list', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :successor_list,'Successor list', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>

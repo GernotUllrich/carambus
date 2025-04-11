@@ -93,14 +93,18 @@ module ApplicationHelper
   end
 
   def custom_link_to(*args, &block)
-    options = block_given? ? args[1] : args[2]
-    options = {} unless options.is_a? Hash
-    options[:"data-turbo"] = false unless options.key?(:"data-turbo")
+    begin
+      options = block_given? ? args[1] : args[2]
+      options = {} unless options.is_a? Hash
+      options[:"data-turbo"] = false unless options.key?(:"data-turbo")
 
-    if block_given?
-      link_to(capture(&block), args[0], options)
-    else
-      link_to(args[0], args[1], options)
+      if block_given?
+        link_to(capture(&block), args[0], options)
+      else
+        link_to(args[0], args[1], options)
+      end
+    rescue StandardError => e
+      Rails.logger.debug "#{e} #{e.backtrace.join("\n")}"
     end
   end
 
@@ -113,7 +117,7 @@ module ApplicationHelper
         link_to locale.to_s.upcase, url_for(locale: locale), class: 'locale-link'
       end
     end
-    
+
     safe_join(links, ' | ')
   end
 
@@ -123,18 +127,18 @@ module ApplicationHelper
 
   def generate_filter_fields(model_class)
     return [] unless model_class.respond_to?(:search_hash) && model_class.search_hash({})[:column_names].present?
-    
+
     column_names = model_class.search_hash({})[:column_names]
-    
+
     fields = []
     column_names.each do |display_name, column_def|
       next if column_def.blank?
-      
+
       # Extract the field key from the display name
       # Remove any (*) or <br/> tags
       clean_name = display_name.gsub(/\(\*\)/, '').gsub(/<br\/>.*/, '')
       field_key = clean_name.parameterize(separator: '_').downcase
-      
+
       # Determine field type based on column definition
       field_type = if column_def =~ /::date$/
                      'date'
@@ -143,10 +147,10 @@ module ApplicationHelper
                    else
                      'text'
                    end
-      
+
       # Determine if comparison operators should be available
       show_operators = field_type == 'date' || field_type == 'number'
-      
+
       fields << {
         display_name: clean_name.strip,
         field_key: field_key,
@@ -154,7 +158,7 @@ module ApplicationHelper
         show_operators: show_operators
       }
     end
-    
+
     fields
   end
 end

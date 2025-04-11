@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Group Ccs</h1>
-
+    <% @group_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @group_ccs.any? %>
       <%= button_to 'New Group Cc', new_group_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,13 +13,13 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :display,'Display', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :display,'Display', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :branch_cc_id,'Branch cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @group_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>

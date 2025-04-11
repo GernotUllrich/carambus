@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Meta Maps</h1>
-
+    <% @meta_maps ||= records %>
+    <% @pagy ||= pagy %>
     <% if @meta_maps.any? %>
       <%= button_to 'New Meta Map', new_meta_map_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,11 +13,11 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :class_ba,'Class ba', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :class_cc,'Class cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :ba_base_url,'Ba base url', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :cc_base_url,'Cc base url', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :class_ba,'Class ba', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :class_cc,'Class cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :ba_base_url,'Ba base url', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :cc_base_url,'Cc base url', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @meta_maps, :data,'Data', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>

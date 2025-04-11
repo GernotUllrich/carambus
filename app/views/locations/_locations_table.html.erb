@@ -1,41 +1,59 @@
 <div class="rounded shadow table-responsive">
+  <% @locations ||= records %>
+  <% @pagy ||= pagy %>
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id,'Id(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id,'Clubs(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address,'Address(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name,'Name(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :synonyms,'Synonyme', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_type,'Organizer Type', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_id,'Organizer Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :id,'Id(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :club_id,'Clubs(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :address,'Address(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :name,'Name(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :synonyms,'Synonyme', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_type,'Organizer Type', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :organizer_id,'Organizer Id', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :source_url,'Source', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @locations, :sync_date,'Sync Date', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>
 
     <tbody>
-    <% @locations.uniq.each do |location| %>
+    <% @locations.each do |location| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:bg-gray-700">
         <td class="p-3"><%= custom_link_to location.id, location_path(location), :"data-turbo" => false %></td>
         <td class="p-3">
-          <%= location.clubs.all.map { |club|
-            custom_link_to club.shortname, club_path(club) if club.present?
-          }.join("<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %>
+          <% club_links = location.clubs.map { |club|
+             custom_link_to club.shortname, club_path(club) if club.present?
+           }.compact %>
+          <%= club_links.join("<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %>
         </td>
-        <td class="p-3"><%= location.address.gsub("\n", "<br />").html_safe %></td>
+        <td class="p-3"><%= location.address.gsub("\n", "<br />").html_safe if location.address.present? %></td>
         <td class="p-3"><%= location.data %></td>
         <td class="p-3"><%= location.name %></td>
-        <td class="p-3"><%= location.synonyms.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %></td>
+        <td class="p-3"><%= location.synonyms.present? ? location.synonyms.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe : "" %></td>
         <td class="p-3"><%= location.organizer_type %></td>
-        <td class="p-3"><%= if location.organizer.present?
-                              custom_link_to location.organizer_id, send("#{location.organizer_type.underscore}_path", location.organizer), target: :_blank
-                            end
-        %></td>
-        <td class="p-3"><%= link_to_if location.source_url.present?, location.source_url.present? ? URI.parse(location.source_url).host : "", location.source_url, target: :_blank %></td>
-        <td class="p-3"><%= location.sync_date.andand.to_date %></td>
+        <td class="p-3">
+          <% if location.organizer_id.present? && location.organizer_type.present? %>
+            <% if location.organizer.present? %>
+              <%= custom_link_to location.organizer_id, send("#{location.organizer_type.underscore}_path", location.organizer), target: :_blank %>
+            <% elsif location.organizer_type == "Region" && @regions_cache&.has_key?(location.organizer_id) %>
+              <%= custom_link_to location.organizer_id, region_path(@regions_cache[location.organizer_id]), target: :_blank %>
+            <% else %>
+              <%= location.organizer_id %>
+            <% end %>
+          <% end %>
+        </td>
+        <td class="p-3">
+          <% if location.source_url.present? %>
+            <% begin %>
+              <%= link_to URI.parse(location.source_url).host, location.source_url, target: :_blank %>
+            <% rescue URI::InvalidURIError %>
+              <%= location.source_url %>
+            <% end %>
+          <% end %>
+        </td>
+        <td class="p-3"><%= location.sync_date&.to_date %></td>
 
         <td>
           <%= custom_link_to t('view'), location, class: "btn btn-link no-underline", :"data-turbo" => false %>
@@ -55,7 +73,6 @@
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, _v| k == "table_only" }) %>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

@@ -8,15 +8,15 @@
 
       <div class="text-sm font-medium">
         <span class="text-gray-500">Sortiere nach:</span>
-        <%= sortable @slots, :dayofweek,"Dayofweek", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :hourofday_start,"Hourofday start", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :minuteofhour_start,"Minuteofhour start", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :hourofday_end,"Hourofday end", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :minuteofhour_end,"Minuteofhour end", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :next_start,"Next start", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :next_end,"Next end", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :table_id,"Table", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @slots, :recurring,"Recurring", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :dayofweek,"Dayofweek", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :hourofday_start,"Hourofday start", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :minuteofhour_start,"Minuteofhour start", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :hourofday_end,"Hourofday end", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :minuteofhour_end,"Minuteofhour end", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :next_start,"Next start", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :next_end,"Next end", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :table_id,"Table", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @slots, :recurring,"Recurring", params, class: "text-gray-700 mr-1" %>
       </div>
     </div>
 

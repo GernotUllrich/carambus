@@ -439,6 +439,7 @@ de:
     index:
       location: Spiellokal
       locations: Spiellokale
+      new_location: Neues Spiellokal
     name: Name
     organizer_id: Organisierung
     organizer_type: Region/Club
@@ -574,6 +575,7 @@ de:
   search_filter: Öffne das Such-Filter Formular
   general_search: Allgemeine Suche
   search_all_fields: Alle Felder durchsuchen
+  search: Suchen
   apply: Anwenden
   clear: Zurücksetzen
   season:
@@ -941,6 +943,7 @@ de:
     form:
       prohibited_this_tournament_monitor_from_being_saved: " prohibited this tournament_monitor from being saved:"
     game_results:
+      game_results: Partieergebnisse
       balls: Bälle
       balls_goal: BG
       balls_goal_percent: BG_PCT
@@ -1294,9 +1297,35 @@ de:
       new_season_participation: "Neue Saisonteilnahme"
 
   game:
+    created_at: erstellt
+    data: data
+    display_af_game_group: Achtelfinale
+    display_af_game_name: Achtelfinale %{game_no}
+    display_fin_game_name: Finale
+    display_group_game_name: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}
+    display_group_game_name_group: Group
+    display_group_game_name_rp: Gruppe %{group_no}<br />Partie %{playera}-%{playerb}/%{rp}
+    display_group_game_name_short: Gruppe %{group_no}
+    display_hf_game_group: Halbfinale
+    display_hf_game_name: Halbfinale %{game_no}
+    display_place_game_name: Platz %{n1}-%{n2} %{n3}
+    display_qf_game_group: Viertelfinale
+    display_qf_game_name: Viertelfinale %{game_no}
+    ended_at: ended at
+    gname: gname
+    group_no: group no
+    id: id
     index:
       games: "Spiele"
       new_game: "Neues Spiel"
+    roles: roles
+    round_no: round no
+    seqno: seqno
+    started_at: started at
+    table_no: table no
+    template_game_id: template game id
+    tournament_id: tournament id
+    updated_at: updated at
   table_headers:
     club: "Verein"
     region: "Regionalverband"

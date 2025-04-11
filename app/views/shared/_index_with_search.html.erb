@@ -1,14 +1,14 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
-    <h1 class="h3"><%= title %></h1>
+    <h1 class="h3"><%= local_assigns[:title] %></h1>
 
     <% if model_class.any? %>
       <%= render partial: 'shared/search_with_filter', locals: {
         model_class: model_class,
-      } %>
+                } %>
       <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
-    <% end %>
-  </div>
+          <% end %>
+        </div>
 
   <% if model_class.any? %>
     <%= turbo_frame_tag 'table_wrapper' do %>

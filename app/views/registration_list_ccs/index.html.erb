@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Registration List Ccs</h1>
-
+    <% @registration_list_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @registration_list_ccs.any? %>
       <%= button_to 'New Registration List Cc', new_registration_list_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,17 +13,17 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700">Sparte</th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :season_id,'Season', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :category_cc_id,'Category cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :deadline,'Deadline', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :qualifying_date,'Qualifying date', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :season_id,'Season', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :category_cc_id,'Category cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :deadline,'Deadline', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :qualifying_date,'Qualifying date', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @registration_list_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>

@@ -1,4 +1,6 @@
 <div class="container mx-auto my-8 px-4">
+  <% @tables ||= records %>
+  <% @pagy ||= pagy %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Tables</h1>
 
@@ -12,11 +14,11 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :location_id,'Location', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :table_kind_id,'Table kind', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :ip_address,'Ip address', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :location_id,'Location', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :table_kind_id,'Table kind', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :name,'Name', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @tables, :ip_address,'Ip address', params, class: 'text-gray-700 dark:text-gray-300' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
           </tr>
         </thead>
@@ -41,7 +43,6 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>
