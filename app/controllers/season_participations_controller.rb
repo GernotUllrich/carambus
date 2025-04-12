@@ -6,8 +6,9 @@ class SeasonParticipationsController < ApplicationController
   # GET /clubs
   def index
     results = SearchService.call( SeasonParticipation.search_hash(params) )
+    results = results.includes(:player, :season, :club)
     @pagy, @season_participations = pagy(results)
-    @season_participations = @season_participations.includes(:player, :season, :club)
+    @season_participations.load
     respond_to do |format|
       format.html do
         render("index")
