@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Party Game Ccs</h1>
-
+    <% @party_game_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @party_game_ccs.any? %>
       <%= button_to 'New Party Game Cc', new_party_game_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,13 +13,13 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :seqno,'Seqno', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :player_a_id,'Player a', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :player_b_id,'Player b', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :seqno,'Seqno', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :player_a_id,'Player a', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :player_b_id,'Player b', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_game_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>
@@ -45,7 +46,6 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>

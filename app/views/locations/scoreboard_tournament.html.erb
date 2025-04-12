@@ -122,8 +122,8 @@
       <%- end %>
     <%- end %>
   <%- end %>
-  <%- if @location.tournaments.present? %>
-    <%- @location.tournaments.joins(:tournament_monitor).order("tournament_monitors.updated_at desc").each do |tournament| %>
+  <%- if @tournaments.present? %>
+    <%- @tournaments.each do |tournament| %>
       <h1 style="text-shadow: 2px 2px #000000" class="flex text-yellow-400 m-5 text-3vw"><%= tournament.title %></h1>
       <%= custom_link_to t('home.index.results_so_far'), game_results_location_path(@location, tournament_id: tournament.id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 text-2vw p-1 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "game_results_#{tournament.id}", tabindex: 1 %>
       <div class="flex items-center mt-10 flex-row h-1/8 space-x-10">
@@ -132,14 +132,14 @@
             <%- found = true %>
             <%= custom_link_to t('continue'), placement_location_path(@location, tournament_id: tournament.id, table_id: @table.id), method: :post, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{@table.id}", tabindex: 1 %>
           <%- else %>
-            <%- tournament.location.tables.joins(:table_kind => :disciplines).where(disciplines: { id: tournament.discipline_id }).order("tables.name desc").each do |table| %>
+            <%- tournament.location.tables.select { |table| table.table_kind.disciplines.include?(tournament.discipline) }.sort_by(&:name).reverse.each do |table| %>
               <%- found = true %>
               <div class="flex flex-col">
                 <%= custom_link_to table.name, placement_location_path(@location, tournament_id: tournament.id, table_id: table.id), method: :post, data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary ring-4 h-full text-3vw p-2 lg:mr-0 mr-0 lg:mt-4 mt-2 p-1", id: "table_monitor_#{table.id}", tabindex: 1 %>
-                <%- if table.table_monitor.andand.game.present? %>
-                  <%- gps = table.table_monitor.andand.game.andand.game_participations.andand.order(:role).to_a %>
-                  <%- if gps[0].andand.player.present? && gps[1].andand.player.present? %>
-                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= "#{gps[0].andand.player.andand.shortname} - #{gps[1].andand.player.andand.shortname}" %></p>
+                <%- if table.table_monitor&.game.present? %>
+                  <%- gps = table.table_monitor.game.game_participations.sort_by(&:role) %>
+                  <%- if gps[0]&.player.present? && gps[1]&.player.present? %>
+                    <p style="text-shadow: 2px 2px #000000" class="flex text-2vw pt-1 lg:pt-3 text-white "><%= "#{gps[0].player.shortname} - #{gps[1].player.shortname}" %></p>
                   <%- end %>
                 <%- end %>
               </div>

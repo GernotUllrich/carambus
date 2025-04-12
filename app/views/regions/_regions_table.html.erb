@@ -1,17 +1,18 @@
 <div>
+  <% @regions ||= records %>
+  <% @pagy ||= pagy %>
   <div id="regions_table" class=" rounded shadow table-responsive">
     <table class="table">
       <thead>
       <tr>
         <th class="p-3 uppercase text-left text-xs">Logo</th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :name,'Name(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-<!--        <th class="p-3 uppercase text-left text-xs"><%#= sortable @regions, :shortname,'Shortname(*)<br/>(BA-Link)'.html_safe, request.params, class: 'text-gray-700 dark:text-gray-300' %></th>-->
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :public_cc_url_base,'Shortname(*)(CC Link)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :email,"Email(*)<br>Kontakt-Formular".html_safe, request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :address,'Address(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :country_id,'Country', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :name,'Name(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :public_cc_url_base,'Shortname(*)(CC Link)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :email,"Email(*)<br>Kontakt-Formular".html_safe, params, class: 'text-gray-700 dark:text-gray-300' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :address,'Address(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :country_id,'Country', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :source_url,'Source', params, class: 'text-gray-700' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @regions, :sync_date,'Sync Date', params, class: 'text-gray-700' %></th>
         <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
       </tr>
       </thead>
@@ -21,11 +22,14 @@
         <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:bg-gray-700">
           <td class="p-3 w-24"><%= (image_tag(region.logo) if region.logo.present?) %></td>
           <td class="p-3"><%= custom_link_to(region.name, region_path(region)) %></td>
-<!--          <td class="p-3"><%#= link_to_if region.shortname.present?, region.shortname, "https://#{region.shortname.andand.downcase}.billardarea.de", class: "yellow_link", target: :_blank %></td>-->
-          <td class="p-3"><%= custom_link_to("#{region.shortname}", region.public_cc_url_base, class: "green_link", target: :_blank) %></td>
-          <td class="p-3"><%= region.email.to_s =~ /kontakt.php/ ? region.email.to_s.gsub("kontakt.php", "#{region.public_cc_url_base}kontakt.php").html_safe : mail_to(region.email) %></td>
+          <td class="p-3"><%= custom_link_to("#{region.shortname}", region.public_cc_url_base, class: "green_link", target: :_blank) if region.public_cc_url_base.present? %></td>
+          <td class="p-3"><%= region.email.to_s =~ /kontakt.php/ ? region.email.to_s.gsub("kontakt.php", "#{region.public_cc_url_base}kontakt.php").andand.html_safe : mail_to(region.email) %></td>
           <td class="p-3"><%= region.address.andand.gsub(/\n+/, "<br />").andand.html_safe %></td>
-          <td class="p-3"><%= custom_link_to(region.country.andand.code, country_path(region.country)) %></td>
+          <td class="p-3">
+            <% if region.country %>
+              <%= custom_link_to(region.country.code, country_path(region.country)) %>
+            <% end %>
+          </td>
           <td class="p-3"><%= link_to_if region.source_url.present?, region.source_url.present? ? URI.parse(region.source_url).host : "", region.source_url, target: :_blank %></td>
           <td class="p-3"><%= region.sync_date.andand.to_date %></td>
 
@@ -40,7 +44,6 @@
 
   <% if @pagy.present? && @pagy.pages > 1 %>
     <div class="text-center my-6">
-      <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
       <%== pagy_nav(@pagy) %>
     </div>
   <% end %>

@@ -1,12 +1,14 @@
 <div class=" rounded shadow table-responsive">
+  <% @season_participations ||= records %>
+  <% @pagy ||= pagy %>
   <table class="table">
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :player_id,'Player(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :season_id,'Season(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :status,'Status', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :club_id,'Club(*)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :player_id,'Player(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :season_id,'Season(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :status,'Status', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @season_participations, :club_id,'Club(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
     </tr>
     </thead>
@@ -14,11 +16,11 @@
     <tbody>
     <% @season_participations.each do |season_participation| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <td class="p-3"><%= custom_link_to season_participation.player.andand.fullname, player_path(season_participation.player) %></td>
-        <td class="p-3"><%= custom_link_to season_participation.season.name, season_path(season_participation.season) %></td>
+        <td class="p-3"><%= custom_link_to season_participation.player&.fullname, player_path(season_participation.player) if season_participation.player %></td>
+        <td class="p-3"><%= custom_link_to season_participation.season&.name, season_path(season_participation.season) if season_participation.season %></td>
         <td class="p-3"><%= season_participation.status %></td>
         <td class="p-3"><%= season_participation.data %></td>
-        <td class="p-3"><%= custom_link_to season_participation.club.shortname, club_path(season_participation.club) %></td>
+        <td class="p-3"><%= custom_link_to season_participation.club&.shortname, club_path(season_participation.club) if season_participation.club %></td>
 
         <td>
           <%= custom_link_to t('view'), season_participation, class: "btn btn-link no-underline" %>
@@ -31,7 +33,6 @@
 
 <% if @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

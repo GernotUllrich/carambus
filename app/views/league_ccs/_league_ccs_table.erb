@@ -1,19 +1,19 @@
   <table class="table">
   <thead>
   <tr>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-<!--    <th class="p-3 uppercase text-left text-xs"><%#= sortable @league_ccs, :ba_link,'BA-Link', request.params, class: 'text-gray-700' %></th>-->
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_link,'CC-Link', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :league_id,'Liga(Carambus)', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season,'Saison', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :shortname,'Kürzel', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+<!--    <th class="p-3 uppercase text-left text-xs"><%#= sortable @league_ccs, :ba_link,'BA-Link', params, class: 'text-gray-700' %></th>-->
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :cc_link,'CC-Link', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :league_id,'Liga(Carambus)', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season,'Saison', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :shortname,'Kürzel', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
     <% unless @season_cc.present? %>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season_cc_id,'Season cc', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :season_cc_id,'Season cc', params, class: 'text-gray-700' %></th>
     <%- end %>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :report_form,'Spielbericht', request.params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @league_ccs, :report_form,'Spielbericht', params, class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
   </tr>
   </thead>
@@ -51,7 +51,6 @@
 </table>
 <% if @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,_v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

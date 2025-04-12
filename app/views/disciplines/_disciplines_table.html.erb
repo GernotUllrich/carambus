@@ -1,13 +1,13 @@
 <table class="table">
   <thead>
   <tr>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :id,'Id', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :name,'Name', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :super_discipline_id,'Super discipline', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :synonyms,'Synonyme', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :table_kind_id,'Table kind', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :team_size,'Teamgröße', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :id,'Id', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :name,'Name', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :super_discipline_id,'Super discipline', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :synonyms,'Synonyme', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :table_kind_id,'Table kind', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :team_size,'Teamgröße', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+    <th class="p-3 uppercase text-left text-xs"><%= sortable @disciplines, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
     <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
   </tr>
   </thead>

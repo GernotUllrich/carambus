@@ -2,6 +2,8 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Discipline Ccs</h1>
 
+    <% @discipline_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @discipline_ccs.any? %>
       <%= button_to 'New Discipline Cc', new_discipline_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
     <% end %>
@@ -12,11 +14,11 @@
       <table class="table">
         <thead>
         <tr>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :discipline_id,'Discipline', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :branch_cc_id,'Branch cc', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :branch_cc_id,'Branch cc', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @discipline_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
           <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
         </tr>
         </thead>

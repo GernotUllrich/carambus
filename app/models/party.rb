@@ -86,6 +86,25 @@ class Party < ApplicationRecord
     "date" => "parties.date::date"
   }
 
+  def self.search_hash(params)
+    {
+      model: Party,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: params[:sSearch],
+      column_names: Party::COLUMN_NAMES,
+      raw_sql: "(league.name ilike :search)
+ or (league_team_a.name ilike :search)
+ or (league_team_b.name ilike :search)
+ or (host_league_team.name ilike :search)",
+      joins: [
+        'LEFT OUTER JOIN "league_teams" AS "league_team_a" ON "parties"."league_team_a_id" = "league_teams"."id"',
+        'LEFT OUTER JOIN "league_teams" AS "league_team_b" ON "parties"."league_team_b_id" = "league_teams"."id"',
+        'LEFT OUTER JOIN "league_teams" AS "host_league_team" ON "parties"."host_league_team_id" = "league_teams"."id"',
+      ]
+    }
+  end
+
   def kickoff_switches_with
     read_attribute(:kickoff_switches_with).presence || "set"
   end

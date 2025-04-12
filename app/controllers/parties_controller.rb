@@ -6,21 +6,13 @@ class PartiesController < ApplicationController
 
   # GET /parties
   def index
-    @parties = Party.joins(:league).sort_by_params(params[:sort], sort_direction).order(day_seqno: :asc) # .joins('INNER JOIN "league_teams" AS "league_team_a" ON "league_team_a"."id" = "parties"."league_team_a_id"')#.joins('INNER JOIN "league_teams" as "league_team_b" ON "league_team_b"."id" = "parties"."league_team_b_id"').joins('INNER JOIN "league_teams" as "host_league_team" ON "host_league_team"."id" = "parties"."host_league_team_id"').sort_by_params(params[:sort], sort_direction)
-    @parties = apply_filters(@parties, Party::COLUMN_NAMES, "(leagues.name ilike :search)") if @sSearch.present?
-    @pagy, @parties = pagy(@parties)
-
-    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
-    # Calling @parties.any? in the view will use the loaded records to check existence instead of making an extra DB call.
+    results = SearchService.call( SeasonParticipation.search_hash(params) )
+    results = results.includes(:league, :league_team_a, :league_team_b, :host_league_team).order(day_seqno: :asc)
+    @pagy, @parties = pagy(results)
     @parties.load
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   end

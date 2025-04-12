@@ -1,24 +1,3 @@
-<% content_for :javascript do %>
-  <script>
-    function searchSeedings(selectObj, tableOnly) {
-      Rails.ajax({
-        type: "GET",
-        url: "/seedings?sSearch=" + document.getElementById("search").value.replace(/&/g, '%26') + "&table_only=true",
-        success: function (response) {
-          var elem = document.getElementById("table_wrapper");
-          elem.innerHTML = response.body.innerHTML;
-        },
-        error: function (response) {
-          console.log(response.responseText);
-        }
-      })
-    }
-
-    document.addEventListener("turbo:load", function () {
-      //searchSeedings(document.getElementById("search"), false);
-    })
-  </script>
-<% end %>
 <%= render partial: 'shared/index_with_search', locals: {
   model_class: Seeding,
   records: @seedings,

@@ -12,8 +12,6 @@ class User < ApplicationRecord
 
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at joerg.unger@hamburg.de].freeze
 
-  SCOREBOARD_USER = User.find_by_email("scoreboard@carambus.de") unless Rails.env == "test"
-
   attr_accessor :player_ba_id, :terms_of_service
 
   before_save :set_paper_trail_whodunnit
@@ -35,7 +33,9 @@ class User < ApplicationRecord
   after_initialize :set_default_preferences
 
   def self.scoreboard
-    SCOREBOARD_USER
+    unless Rails.env == "test"
+      User.find_by_email("scoreboard@carambus.de")
+    end
   end
 
   def skip_confirmation!; end

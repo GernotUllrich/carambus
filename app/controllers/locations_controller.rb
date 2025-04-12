@@ -13,21 +13,30 @@ class LocationsController < ApplicationController
   # GET /locations
   def index
     results = SearchService.call(Location.search_hash(params))
-    @pagy, @locations = pagy(results)
+    @pagy, @locations = pagy(results.includes(clubs: [], organizer: []))
+    # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
+    @locations.load
+
+    # Preload all regions for caching
+    @regions_cache = Region.all.index_by(&:id)
+
+    # Ensure instance variables are available for both regular requests and Reflex
+    @pagy ||= Pagy.new(count: results.count, page: (params[:page] || 1).to_i)
+
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   end
 
   # GET /locations/1
   def show
+    @table_kind_all = TableKind.all.order(:name).to_a
+    Rails.logger.info "params[:table_id] = #{params[:table_id]}"
+    Rails.logger.info "params[:sb_state] = #{params[:sb_state]}"
+    Rails.logger.info "Current.user = #{Current.user&.email}"
+    Rails.logger.info "User.scoreboard = #{User.scoreboard&.email}"
     return unless Current.user == User.scoreboard || params[:table_id].present? || params[:sb_state] == "tables"
 
     table = game = table_monitor = player_b = player_a = nil
@@ -35,6 +44,18 @@ class LocationsController < ApplicationController
     session[:sb_state] = params[:sb_state] if params[:sb_state].present?
     tournament = Tournament.find(params[:tournament_id]) if params[:tournament_id].present?
     @navbar = @footer = false
+
+    # Set @table if table_id is present
+    @table = Table.find(params[:table_id]) if params[:table_id].present?
+
+    # Preload data based on state
+    case session[:sb_state]
+    when "tournament"
+      preload_tournament_data
+    when "tables"
+      preload_tables_data
+    end
+
     if session[:sb_state] == "tables" && params[:terminate_game_id].present?
       game = begin
                Game.find(params[:terminate_game_id])
@@ -48,14 +69,13 @@ class LocationsController < ApplicationController
     elsif game.present? && game.tournament.present? && !game.table_monitor.andand.playing?
       game.table_monitor.andand.reset_table_monitor
     end
-    table = Table.find(params[:table_id]) if params[:table_id].present?
     if local_server?
 
       case session[:sb_state]
       when "welcome"
         render "scoreboard_welcome"
       when "start"
-        render "scoreboard_start", locals: { table: table }
+        render "scoreboard_start", locals: { table: @table }
       when "tournament"
         render "scoreboard_tournament"
       when "tables"
@@ -83,9 +103,9 @@ class LocationsController < ApplicationController
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
-          if table.present?
+          if @table.present?
             # noinspection RubyNilAnalysis
-            table_monitor = table.table_monitor || table.table_monitor!
+            table_monitor = @table.table_monitor || @table.table_monitor!
             if table_monitor.present?
               game = table_monitor.game
               if game.blank?
@@ -131,12 +151,12 @@ class LocationsController < ApplicationController
         color_remains_with_set = true
         allow_overflow = false
         allow_follow_up = true
-        if table.present?
+        if @table.present?
           @bg_color ||= "#1B0909"
           string_frozen_ = "scoreboard_free_game"
-          render("#{string_frozen_}_#{TableKind::TABLE_KIND_FREE_GAME_SETUP[table.table_kind.name]}",
+          render("#{string_frozen_}_#{TableKind::TABLE_KIND_FREE_GAME_SETUP[@table.table_kind.name]}",
                  locals: {
-                   table: table,
+                   table: @table,
                    table_monitor: table_monitor,
                    kickoff_switches_with: kickoff_switches_with,
                    guest_players_default: guest_players_default,
@@ -361,7 +381,23 @@ class LocationsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_location
     Rails.logger.info "Session Data: #{session.to_hash}"
-    @location = Location.includes(tables: %i[table_kind table_monitor]).find_by_md5(params[:id])
+    # Optimize query with eager loading
+    @location = Location.includes(
+      tables: [
+        :table_kind,
+        :table_monitor,
+        { table_monitor: :tournament_monitor }
+      ],
+      clubs: []
+    ).preload(:organizer).find_by_md5(params[:id]) || Location.includes(
+      tables: [
+        :table_kind,
+        :table_monitor,
+        { table_monitor: :tournament_monitor }
+      ],
+      clubs: []
+    ).preload(:organizer).find(params[:id])
+
     if @location.present?
       @display_only = if params[:display_only] == "false"
                         false
@@ -382,16 +418,30 @@ class LocationsController < ApplicationController
         end
       end
     else
-      @location = Location.includes(tables: %i[table_kind table_monitor]).find(params[:id])
+      # Optimize fallback query with same eager loading
+      @location = Location.includes(
+        tables: [
+          :table_kind,
+          :table_monitor,
+          { table_monitor: :tournament_monitor }
+        ],
+        clubs: []
+      ).find(params[:id])
     end
-    @tournament_tables = @location.tables.select do |t|
-      t.table_monitor! if t.table_monitor.blank?
-      t.reload
+
+    # Preload tables to avoid N+1 queries
+    @tables = @location.tables.to_a
+
+    # Preload tournament tables using loaded tables instead of new queries
+    @tournament_tables = @tables.select do |t|
+      if t.table_monitor.blank?
+        t.table_monitor!
+        t.reload
+      end
       t.table_monitor&.tournament_monitor_id.present? &&
-        %w[new ready re ady_for_new_match]
-          .include?(t.table_monitor.state)
+        %w[new ready ready_for_new_match].include?(t.table_monitor.state)
     end
-    @tables = @location.tables
+
     @free_tables = @tables - @tournament_tables
     @location.table_kinds = @table_kinds = @free_tables.map(&:table_kind).uniq
   end
@@ -399,5 +449,54 @@ class LocationsController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def location_params
     params.require(:location).permit(:club_id, :region_id, :address, :data, :name, :season_id, :club_id, :merge, :with)
+  end
+
+  def preload_tournament_data
+    @tournaments = @location.tournaments
+                            .includes(
+                              :tournament_monitor,
+                              :discipline,
+                              tournament_monitor: {
+                                table_monitors: [
+                                  :table,
+                                  { game: { game_participations: :player } }
+                                ]
+                              },
+                              location: {
+                                tables: [
+                                  :table_kind,
+                                  { table_kind: :disciplines },
+                                  { table_monitor: [
+                                    :game,
+                                    { game: { game_participations: :player } }
+                                  ] }
+                                ]
+                              }
+                            )
+                            .joins(:tournament_monitor)
+                            .order("tournament_monitors.updated_at desc")
+
+    # Preload parties and their monitors
+    @parties = @location.parties.includes(:party_monitor, league: :season)
+
+    # Preload table kinds if needed
+    @table_kinds = TableKind.where(id: @location.tables.select(:table_kind_id).distinct)
+  end
+
+  def preload_tables_data
+    @tables = @location.tables
+                       .includes(
+                         :table_kind,
+                         table_kind: :disciplines,
+                         table_monitor: [
+                           :tournament_monitor,
+                           :game,
+                           { game: {
+                             game_participations: {
+                               player: :season_participations
+                             }
+                           } }
+                         ]
+                       )
   end
 end

@@ -1,4 +1,6 @@
 <div class="container mx-auto my-8 px-4">
+  <% @versions ||= records %>
+  <% @pagy ||= pagy %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Versions</h1>
 
@@ -12,12 +14,12 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :item_type,'Item type', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :item_id,'Item', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :event,'Event', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :whodunnit,'Whodunnit', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :object,'Object', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :object_changes,'Object changes', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :item_type,'Item type', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :item_id,'Item', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :event,'Event', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :whodunnit,'Whodunnit', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :object,'Object', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @versions, :object_changes,'Object changes', params, class: 'text-gray-700 dark:text-gray-300' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
           </tr>
         </thead>
@@ -43,7 +45,6 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>

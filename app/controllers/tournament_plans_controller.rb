@@ -4,8 +4,8 @@ class TournamentPlansController < ApplicationController
 
   # GET /tournament_plans
   def index
-    @pagy, @tournament_plans = pagy(TournamentPlan.sort_by_params(params[:sort], sort_direction))
-
+    results = SearchService.call(TournamentPlan.search_hash(params))
+    @pagy, @tournament_plans = pagy(results)
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @tournament_plans.any? in the view will use the loaded records to check existence instead of making an extra DB call.
     @tournament_plans.load

@@ -80,54 +80,6 @@ class Region < ApplicationRecord
     "TBV" => "https://billard-thueringen.de/"
   }.freeze
 
-  SHORTNAME_MAP = Region.all.map { |region| [region.shortname, region.id] }.to_h.select { |k, _v| k.present? }.freeze
-
-  REGION_MAP = {
-    "Norddeutscher Billard-Verband" => SHORTNAME_MAP["NBV"],
-    "Norddeutscher Billard-Verband e.V." => SHORTNAME_MAP["NBV"],
-    "Brandenburgischer Billard-Verband" => SHORTNAME_MAP["BBBV"],
-    "Brandenburgischer Billard-Verband e.V." => SHORTNAME_MAP["BBBV"],
-    "Bayerischer Billardverband" => SHORTNAME_MAP["BBV"],
-    "Bayerischer Billardverband e.V." => SHORTNAME_MAP["BBV"],
-    "BL Mittleres Rheinland" => SHORTNAME_MAP["BLMR"],
-    "Billard Landesverband Mittleres Rheinland" => SHORTNAME_MAP["BLMR"],
-    "Billard Landesverband Mittleres Rheinland e.V." => SHORTNAME_MAP["BLMR"],
-    "BLMR" => SHORTNAME_MAP["BLMR"],
-    "Billard-Landesverband Sachsen-Anhalt e.V." => SHORTNAME_MAP["BLVSA"],
-    "Billard Landesverband Sachsen-Anhalt" => SHORTNAME_MAP["BLVSA"],
-    "Billard Landesverband Sachsen-Anhalt e.V." => SHORTNAME_MAP["BLVSA"],
-    "Billard-Verband Niedersachsen e.V." => SHORTNAME_MAP["BLVN"],
-    "Billard Landesverband Niedersachsen" => SHORTNAME_MAP["BLVN"],
-    "Billard Landesverband Niedersachsen e.V." => SHORTNAME_MAP["BLVN"],
-    "Billard-Verband Berlin 49/76 e.V." => SHORTNAME_MAP["BVB"],
-    "Billard-Verband Berlin" => SHORTNAME_MAP["BVB"],
-    "Billard-Verband Berlin e.V." => SHORTNAME_MAP["BVB"],
-    "Billard-Verband Baden-Württemberg" => SHORTNAME_MAP["BVBW"],
-    "Billard-Verband Baden-Württemberg e.V." => SHORTNAME_MAP["BVBW"],
-    "BV Niederrhein" => SHORTNAME_MAP["BVNR"],
-    "Billard-Verband Niederrhein" => SHORTNAME_MAP["BVNR"],
-    "Billard-Verband Niederrhein e.V." => SHORTNAME_MAP["BVNR"],
-    "Billard-Verband Rheinland-Pfalz 1989 e.V." => SHORTNAME_MAP["BVRP"],
-    "Billard-Verband Rheinland-Pfalz" => SHORTNAME_MAP["BVRP"],
-    "Billard-Verband Rheinland-Pfalz e.V." => SHORTNAME_MAP["BVRP"],
-    "Billard-Verband Nordrhein-Westfalen" => SHORTNAME_MAP["BVNRW"],
-    "Billard-Verband Nordrhein-Westfalen e.V." => SHORTNAME_MAP["BVNRW"],
-    "BV Westfalen" => SHORTNAME_MAP["BVW"],
-    "Billard-Verband Westfalen" => SHORTNAME_MAP["BVW"],
-    "Billard-Verband Westfalen e.V." => SHORTNAME_MAP["BVW"],
-    "Hessische Billard-Union" => SHORTNAME_MAP["HBU"],
-    "Hessische Billard-Union e.V." => SHORTNAME_MAP["HBU"],
-    "Billard-Verband Saar" => SHORTNAME_MAP["BVS"],
-    "Billard-Verband Saar e.V." => SHORTNAME_MAP["BVS"],
-    "Sächsischer Billard Verband" => SHORTNAME_MAP["SBV"],
-    "Sächsischer Billard-Verband" => SHORTNAME_MAP["SBV"],
-    "Sächsischer Billard-Verband e.V." => SHORTNAME_MAP["SBV"],
-    "Sächsischer Billard Verband e.V." => SHORTNAME_MAP["SBV"],
-    "Thüringer Billard-Verband" => SHORTNAME_MAP["TBV"],
-    "Thüringer Billard-Verband e.V." => SHORTNAME_MAP["TBV"],
-    "Deutsche Billard-Union" => SHORTNAME_MAP["DBU"],
-    "Deutsche Billard-Union e.V." => SHORTNAME_MAP["DBU"]
-  }.freeze
   #  BVB
   SHORTNAMES_ROOF_ORGANIZATION = %w[DBU].freeze
   SHORTNAMES_CARAMBUS_USERS = %w[BVBW NBV].freeze
@@ -149,6 +101,56 @@ class Region < ApplicationRecord
     "Country" => ""
   }.freeze
 
+  def self.region_map
+    map = all.pluck(:shortname, :id).to_h
+    map.select { |k, _v| k.present? }
+    return {
+      "Norddeutscher Billard-Verband" => map["NBV"],
+      "Norddeutscher Billard-Verband e.V." => map["NBV"],
+      "Brandenburgischer Billard-Verband" => map["BBBV"],
+      "Brandenburgischer Billard-Verband e.V." => map["BBBV"],
+      "Bayerischer Billardverband" => map["BBV"],
+      "Bayerischer Billardverband e.V." => map["BBV"],
+      "BL Mittleres Rheinland" => map["BLMR"],
+      "Billard Landesverband Mittleres Rheinland" => map["BLMR"],
+      "Billard Landesverband Mittleres Rheinland e.V." => map["BLMR"],
+      "BLMR" => map["BLMR"],
+      "Billard-Landesverband Sachsen-Anhalt e.V." => map["BLVSA"],
+      "Billard Landesverband Sachsen-Anhalt" => map["BLVSA"],
+      "Billard Landesverband Sachsen-Anhalt e.V." => map["BLVSA"],
+      "Billard-Verband Niedersachsen e.V." => map["BLVN"],
+      "Billard Landesverband Niedersachsen" => map["BLVN"],
+      "Billard Landesverband Niedersachsen e.V." => map["BLVN"],
+      "Billard-Verband Berlin 49/76 e.V." => map["BVB"],
+      "Billard-Verband Berlin" => map["BVB"],
+      "Billard-Verband Berlin e.V." => map["BVB"],
+      "Billard-Verband Baden-Württemberg" => map["BVBW"],
+      "Billard-Verband Baden-Württemberg e.V." => map["BVBW"],
+      "BV Niederrhein" => map["BVNR"],
+      "Billard-Verband Niederrhein" => map["BVNR"],
+      "Billard-Verband Niederrhein e.V." => map["BVNR"],
+      "Billard-Verband Rheinland-Pfalz 1989 e.V." => map["BVRP"],
+      "Billard-Verband Rheinland-Pfalz" => map["BVRP"],
+      "Billard-Verband Rheinland-Pfalz e.V." => map["BVRP"],
+      "Billard-Verband Nordrhein-Westfalen" => map["BVNRW"],
+      "Billard-Verband Nordrhein-Westfalen e.V." => map["BVNRW"],
+      "BV Westfalen" => map["BVW"],
+      "Billard-Verband Westfalen" => map["BVW"],
+      "Billard-Verband Westfalen e.V." => map["BVW"],
+      "Hessische Billard-Union" => map["HBU"],
+      "Hessische Billard-Union e.V." => map["HBU"],
+      "Billard-Verband Saar" => map["BVS"],
+      "Billard-Verband Saar e.V." => map["BVS"],
+      "Sächsischer Billard Verband" => map["SBV"],
+      "Sächsischer Billard-Verband" => map["SBV"],
+      "Sächsischer Billard-Verband e.V." => map["SBV"],
+      "Sächsischer Billard Verband e.V." => map["SBV"],
+      "Thüringer Billard-Verband" => map["TBV"],
+      "Thüringer Billard-Verband e.V." => map["TBV"],
+      "Deutsche Billard-Union" => map["DBU"],
+      "Deutsche Billard-Union e.V." => map["DBU"]
+    }
+  end
   def self.search_hash(params)
     {
       model: Region,
@@ -266,7 +268,7 @@ or (regions.address ilike :search)",
     rescue StandardError => e
       Rails.logger.info "!!!!!!!!! Error: Problem #{e} #{e.backtrace&.join("\n")}"
     end
-    SHORTNAME_MAP["BBV"].scrape_region_public
+    Region.find_by_shortname("BBV")&.scrape_region_public
   end
 
   def post_cc_public(action, post_options = {}, _opts = {})
@@ -481,11 +483,12 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   end
 
   def self.scrape_regions_cc(season)
-    SHORTNAME_MAP["DBU"].scrape_clubs(season)
+    Region.find_by_shortname("DBU")&.scrape_clubs(season)
   end
 
   # scrape_clubs
   def scrape_clubs(season, opts = {})
+    region_map_ = Region.region_map
     clubs_url = nil
     if Rails.env != "production" || opts[:from_background]
       if shortname == "BBV"
@@ -561,9 +564,9 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               if %w[Mitgliedsverband Verband Landesverband].include? tr.css("td")[0].text.strip
                 region_name = tr.css("td")[1].text.strip
                 region_name = "BLMR" if %w[PBVRW KBVM PBVM].include?(region_name)
-                region = REGION_MAP[region_name]
+                region = region_map_[region_name]
                 unless region.present?
-                  region = REGION_MAP[region_name] =
+                  region = region_map_[region_name] =
                     Region.find_by_name(region_name) || Region.create(name: region_name, country: Country.first)
                 end
                 Rails.logger.info "===== scrape ===== Error - Name Problem with Region '#{region_name}'" if region.blank?

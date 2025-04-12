@@ -36,18 +36,15 @@ class TournamentPlan < ApplicationRecord
 
   def self.search_hash(params)
     {
-      model: Tournament,
+      model: TournamentPlan,
       sort: params[:sort],
       direction: sort_direction(params[:direction]),
       search: [params[:sSearch], params[:search]].compact.join("&").to_s,
-      column_names: Tournament::COLUMN_NAMES,
-      raw_sql: "(tournaments.ba_id = :isearch)
-or (tournaments.title ilike :search)
-or (tournaments.shortname ilike :search)
-or (seasons.name ilike :search)",
-      joins: [
-        'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline
-      ]
+      column_names: TournamentPlan::COLUMN_NAMES,
+      raw_sql: "(tournament_plans.id = :isearch)
+or (tournament_plans.name ilike :search)
+or (tournament_plans.rulesystem ilike :search)",
+      joins: []
     }
   end
 
