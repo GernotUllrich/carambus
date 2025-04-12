@@ -8,9 +8,9 @@
 
       <div class="text-sm font-medium">
         <span class="text-gray-500">Sortiere nach:</span>
-        <%= sortable @table_locals, :tpl_ip_address,"Tpl ip address", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @table_locals, :ip_address,"Ip address", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @table_locals, :table_id,"Table", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @table_locals, :tpl_ip_address,"Tpl ip address", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @table_locals, :ip_address,"Ip address", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @table_locals, :table_id,"Table", params, class: "text-gray-700 mr-1" %>
       </div>
     </div>
 

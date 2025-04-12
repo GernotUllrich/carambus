@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
+  <% @championship_type_ccs ||= records %>
+  <% @pagy ||= pagy %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Championship Type Ccs</h1>
-
     <% if @championship_type_ccs.any? %>
       <%= button_to 'New Championship Type Cc', new_championship_type_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
     <% end %>
@@ -12,12 +13,12 @@
       <table class="table">
         <thead>
         <tr>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :context,'Context', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :branch_cc_id,'Sparte', request.params, class: 'text-gray-700' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :status,'Status', request.params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :shortname,'Shortname', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :context,'Context', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :branch_cc_id,'Sparte', params, class: 'text-gray-700' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @championship_type_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
           <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
         </tr>
         </thead>

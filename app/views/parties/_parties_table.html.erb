@@ -1,18 +1,20 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
+    <% @parties ||= records %>
+    <% @pagy ||= pagy %>
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_id,'League', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_a_id,'League team a', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_b_id,'League team b', request.params, class: 'text-gray-700' %></th>
-<!--      <th class="p-3 uppercase text-left text-xs"><%#= sortable @parties, :ba_id,'Ba', request.params, class: 'text-gray-700' %></th>-->
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :day_seqno,'Day seqno', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :date,'Datum', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :data,'Data', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :host_league_team_id,'Host league team', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :source_url,'Source', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :sync_date,'Sync Date', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_id,'League', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_a_id,'League team a', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :league_team_b_id,'League team b', params, class: 'text-gray-700' %></th>
+<!--      <th class="p-3 uppercase text-left text-xs"><%#= sortable @parties, :ba_id,'Ba', params, class: 'text-gray-700' %></th>-->
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :day_seqno,'Day seqno', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :date,'Datum', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :data,'Data', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :host_league_team_id,'Host league team', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :source_url,'Source', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :sync_date,'Sync Date', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>
@@ -43,7 +45,6 @@
 
 <% if @pagy.andand.pages.to_i > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

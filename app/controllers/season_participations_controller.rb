@@ -6,16 +6,12 @@ class SeasonParticipationsController < ApplicationController
   # GET /clubs
   def index
     results = SearchService.call( SeasonParticipation.search_hash(params) )
+    results = results.includes(:player, :season, :club)
     @pagy, @season_participations = pagy(results)
     @season_participations.load
     respond_to do |format|
       format.html do
-        if params[:table_only].present?
-          params.reject! { |k, _v| k.to_s == "table_only" }
-          render(partial: "search", layout: false)
-        else
-          render("index")
-        end
+        render("index")
       end
     end
   end

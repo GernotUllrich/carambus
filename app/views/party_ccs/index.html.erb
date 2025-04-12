@@ -1,7 +1,8 @@
 <div class="container mx-auto my-8 px-4">
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Party Ccs</h1>
-
+    <% @party_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <% if @party_ccs.any? %>
       <%= button_to 'New Party Cc', new_party_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
@@ -12,16 +13,16 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-<!--            <th class="p-3 uppercase text-left text-xs"><%#= sortable @party_ccs, :Ba_id,'Ba', request.params, class: 'text-gray-700' %></th>-->
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_cc_id,'League cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :party_id,'Party', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_a_cc_id,'League team a cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_b_cc_id,'League team b cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_host_cc_id,'League team host cc', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :day_seqno,'Day seqno', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :remarks,'Remarks', request.params, class: 'text-gray-700' %></th>
-            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+<!--            <th class="p-3 uppercase text-left text-xs"><%#= sortable @party_ccs, :Ba_id,'Ba', params, class: 'text-gray-700' %></th>-->
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_cc_id,'League cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :party_id,'Party', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_a_cc_id,'League team a cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_b_cc_id,'League team b cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :league_team_host_cc_id,'League team host cc', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :day_seqno,'Day seqno', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :remarks,'Remarks', params, class: 'text-gray-700' %></th>
+            <th class="p-3 uppercase text-left text-xs"><%= sortable @party_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
             <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
           </tr>
         </thead>
@@ -51,7 +52,6 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>

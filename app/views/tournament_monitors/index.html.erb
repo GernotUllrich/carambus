@@ -1,4 +1,6 @@
 <div class="container mx-auto my-8 px-4">
+  <% @tournament_monitors ||= records %>
+  <% @pagy ||= pagy %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3"><%= t('tournament_monitors.index.tournament_monitors') %></h1>
   </div>
@@ -8,13 +10,13 @@
       <table class="table">
         <thead>
         <tr>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :tournament_id,'Tournament', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :data,'Data', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :state,'State', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :innings_goal,'Innings goal', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :balls_goal,'Balls goal', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeouts,'# Timeouts', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
-          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeout,'Timeout  (sek)', request.params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :tournament_id,'Tournament', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :data,'Data', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :state,'State', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :innings_goal,'Innings goal', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :balls_goal,'Balls goal', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeouts,'# Timeouts', params, class: 'text-gray-700 dark:text-gray-300' %></th>
+          <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_monitors, :timeout,'Timeout  (sek)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
           <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
         </tr>
         </thead>
@@ -41,7 +43,6 @@
 
     <% if @pagy.pages > 1 %>
       <div class="text-center my-6">
-        <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject { |k, v| k == "table_only" }) %>
         <%== pagy_nav(@pagy) %>
       </div>
     <% end %>
@@ -59,7 +60,7 @@
   <% end %>
 </div>
 <%- try do %>
-<%- if current_user.andand.admin? %>
+<%- if current_user&.admin? %>
   <h2><%= I18n.t("tournament_monitors.index.tournamentmonitorversions", :default => "TournamentMonitor::Versions") %></h2>
   <p><%= I18n.t("tournament_monitors.index.this_table_is_displaying_tournamentmonitorversion_which_is_its_own_versions_table_only_last_10", :default => "This table is displaying TournamentMonitor::Version which is its own versions table. Only last 10.") %></p>
   <table class="w-full" width=100% cellpadding=10 border=1>

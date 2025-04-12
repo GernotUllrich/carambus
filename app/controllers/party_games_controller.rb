@@ -6,7 +6,11 @@ class PartyGamesController < ApplicationController
 
   # GET /party_games
   def index
-    @party_games = PartyGame.joins(:party).joins('LEFT OUTER JOIN "disciplines" ON "disciplines"."id" = "party_games"."discipline_id"').joins('LEFT OUTER JOIN "parties" ON "parties"."id" = "party_games"."party_id"').joins('INNER JOIN "players" AS "player_a" ON "player_a"."id" = "party_games"."player_a_id"').joins('INNER JOIN "players" as "player_b" ON "player_b"."id" = "party_games"."player_b_id"')
+    @party_games = PartyGame.includes(:party, :discipline, :player_a, :player_b)
+                            .joins(:party).joins('LEFT OUTER JOIN "disciplines" ON "disciplines"."id" = "party_games"."discipline_id"')
+                            .joins('LEFT OUTER JOIN "parties" ON "parties"."id" = "party_games"."party_id"')
+                            .joins('INNER JOIN "players" AS "player_a" ON "player_a"."id" = "party_games"."player_a_id"')
+                            .joins('INNER JOIN "players" as "player_b" ON "player_b"."id" = "party_games"."player_b_id"')
                             .order(seqno: :asc).sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
       @party_games = apply_filters(@party_games, PartyGame::COLUMN_NAMES,

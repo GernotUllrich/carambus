@@ -1,16 +1,18 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
+    <% @league_team_ccs ||= records %>
+    <% @pagy ||= pagy %>
     <thead>
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id,'Cc', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :name,'Name', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :shortname,'Shortname', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :branch,'Sparte', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :name,'Name', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :shortname,'Shortname', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :branch,'Sparte', params, class: 'text-gray-700' %></th>
       <%- unless @league_cc.present? %>
-        <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_cc_id,'League cc', request.params, class: 'text-gray-700' %></th>
+        <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_cc_id,'League cc', params, class: 'text-gray-700' %></th>
       <%- end %>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_team_id,'League team', request.params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :data,'Data', request.params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :league_team_id,'League team', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :data,'Data', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>
@@ -39,7 +41,6 @@
 
 <% if @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
-    <%- request.set_header("action_dispatch.request.query_parameters", request.headers["action_dispatch.request.query_parameters"].reject{|k,v| k == "table_only"})%>
     <%== pagy_nav(@pagy) %>
   </div>
 <% end %>

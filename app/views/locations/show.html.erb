@@ -53,32 +53,28 @@
         <table class="w-full">
           <thead>
           <tr>
-            <%- TableKind.all.each do |table_kind| %>
-              <%- tables_of_kind = Table.joins(:table_kind).joins(:location).
-                where(locations: { id: @location.id }).where(table_kind_id: table_kind.id).uniq %>
-              <%- if tables_of_kind.count > 0 %>
+            <%- table_kind_counts = @tables.map(&:table_kind)
+              .group_by(&:itself)
+              .transform_values(&:count) %>
+            <%- table_kind_counts.keys.each do |table_kind| %>
                 <th><%= table_kind.name %></th>
-              <%- end %>
             <% end %>
             <th>Add Tables</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-            <%- TableKind.all.each do |table_kind| %>
-              <%- tables_of_kind = @location.tables.where(table_kind_id: table_kind.id) %>
-              <%- if tables_of_kind.count > 0 %>
+            <%- table_kind_counts.keys.each do |table_kind| %>
                 <td>
-                  <%- tables_of_kind.order(:name).each do |table| %>
+                  <%- @tables.select{|t| t.table_kind == table_kind}.each do |table| %>
                     <%= "#{custom_link_to(table.name, table_path(table))}<br />".html_safe %>
                   <% end %>
                 </td>
-              <%- end %>
             <%- end %>
             <td>
               <%= form_tag add_tables_to_location_path(@location) do %>
-                <%= select_tag :table_kind_id, options_for_select(TableKind.order(:name).all.map { |tk| [tk.name, tk.id] },
-                                                                  TableKind.where(name: "Small Billard").first&.id), class: "border-2" %>
+                <%= select_tag :table_kind_id, options_for_select(@table_kind_all.map { |tk| [tk.name, tk.id] },
+                                                                  @table_kind_all.select{|tk| tk.name =="Small Billard"}.first&.id), class: "border-2" %>
                 <br>
                 <%= number_field_tag :number, value = 1, class: "border-2", style: "width: 50px" %>
                 <%= submit_tag "Add" %>
@@ -94,8 +90,8 @@
 </div>
 <hr>
 <h2 class="space-above"><%= t('parties.index.listing_parties') %></h2>
-<%- @parties = @location.parties.where("date > ?", Time.now - 14.days).where("date < ?", Time.now + 5.weeks).order(:date) %>
-<%= render partial: 'parties/parties_table' %>
+<%- @parties = Party.includes(:league, :league_team_a, :league_team_b, :host_league_team).where(location: @location).where("date > ?", Time.now - 14.days).where("date < ?", Time.now + 5.weeks).order(:date) %>
+<%= render partial: 'parties/parties_table', locals: {pagy: nil, model_class: Party, records: @parties} %>
 <h2 class="space-above"><%= t('tournaments.index.listing_tournaments') %></h2>
 <%- Season.order(name: :desc).limit(2).uniq.each do |season| %>
   <h3><%= t('home.index.season') %> <%= season.name %></h3>
@@ -109,8 +105,8 @@
   <%#- end %>
   <%#- end %>
   </div>-->
-  <%- @tournaments = Tournament.where(location_id: @location.id, season_id: season.id).order(id: :desc) %>
+  <%- @tournaments = Tournament.includes(:discipline, :season, :location, :tournament_cc).preload(:organizer).where(location_id: @location.id, season_id: season.id).order(id: :desc) %>
   <div id="table_wrapper">
-    <%= render partial: 'tournaments/tournaments_table' %>
+    <%= render partial: 'tournaments/tournaments_table', locals: {pagy: nil, model_class: Tournament, records: @tournaments} %>
   </div>
 <% end %>

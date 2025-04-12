@@ -109,6 +109,6 @@
   </div>
 </div>
 
-<%- if User::PRIVILEGED.include?(current_user.andand.email.andand.downcase) %>
+<%- if User::PRIVILEGED.include?(current_user&.email&.downcase) %>
   <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
 <% end %>

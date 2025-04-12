@@ -8,9 +8,9 @@
 
       <div class="text-sm font-medium">
         <span class="text-gray-500"><%= I18n.t("sort_by", :default => "Sort By:") %></span>
-        <%= sortable @game_plans, :footprint,"Footprint", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @game_plans, :data,"Data", request.params, class: "text-gray-700 mr-1" %>
-        <%= sortable @game_plans, :name,"Name", request.params, class: "text-gray-700 mr-1" %>
+        <%= sortable @game_plans, :footprint,"Footprint", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @game_plans, :data,"Data", params, class: "text-gray-700 mr-1" %>
+        <%= sortable @game_plans, :name,"Name", params, class: "text-gray-700 mr-1" %>
       </div>
     </div>
 
