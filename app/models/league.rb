@@ -33,6 +33,7 @@
 class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   has_many :league_teams
   has_many :parties
   has_many :tournaments

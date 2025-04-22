@@ -61,6 +61,7 @@ require "net/http"
 class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
   include AASM
@@ -1060,12 +1061,12 @@ or (seasons.name ilike :search)",
         /\s*\((.*)\)/, ""
       )
       a1, b1, c1 = tr.css("td")[1].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       playerb_fl_name = (tr.css("td")[3].inner_html.gsub(%r{</?strong>}, "").split("<br>")[0].presence || "Freilos").gsub(
         /\s*\((.*)\)/, ""
       )
       a2, b2, c2 = tr.css("td")[3].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       hs << "#{a1}/#{a2}"
       innings << "#{b1}/#{b2}"
       gd << "#{c1}/#{c2}"

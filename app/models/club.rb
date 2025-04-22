@@ -33,6 +33,7 @@
 class Club < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   belongs_to :region
   # has_many :players, -> { where(type: nil) }
   has_many :season_participations, dependent: :destroy

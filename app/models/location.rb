@@ -26,6 +26,7 @@
 class Location < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   # belongs_to :club
   has_many :club_locations
   has_many :clubs, through: :club_locations
