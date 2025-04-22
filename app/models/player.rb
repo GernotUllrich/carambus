@@ -10,6 +10,7 @@
 class Player < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   has_many :game_participations, dependent: :nullify
   has_many :season_participations, dependent: :destroy
   has_many :clubs, through: :season_participations

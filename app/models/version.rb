@@ -20,7 +20,11 @@ require "net/http"
 #
 #  index_versions_on_item_type_and_item_id  (item_type,item_id)
 #
-class Version < ApplicationRecord
+class Version < PaperTrail::Version
+  belongs_to :region, optional: true
+
+  scope :for_region, ->(region_id) { where(region_id: region_id) }
+
   def self.list_sequence
     sql = <<~SQL
       SELECT 'SELECT NEXTVAL(' ||
@@ -180,6 +184,8 @@ class Version < ApplicationRecord
       "&force=#{force}" if force
     }#{
       "&player_details=#{player_details}" if player_details
+    }#{
+      "&region_id=#{Location[Carambus.config.location_id]&.organizer_id}" if Carambus.config.location_id.present && Location[Carambus.config.location_id]&.organizer_type == "Region"
     }#{
       "&league_details=#{league_details}" if league_details
     }&season_id=#{Season.current_season&.id}")

@@ -22,6 +22,7 @@
 #
 class SeasonParticipation < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
   belongs_to :season
   belongs_to :player
   belongs_to :club

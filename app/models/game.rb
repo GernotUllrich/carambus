@@ -21,6 +21,7 @@
 #
 class Game < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
 
   belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
@@ -257,29 +258,29 @@ class Game < ApplicationRecord
     tournament = game.tournament
     begin
       if tournament.present?
-        game_participation_ids = game.game_participation_ids
-        game.game_participations.delete_all if opts[:touch_games]
+        game_participition_ids = game.game_participition_ids
+        game.game_participitions.delete_all if opts[:touch_games]
         player_a = Player.joins(seedings: :tournament).where(tournaments: { id: tournament.id })
                          .where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
         if player_a.present?
-          gp_a = GameParticipation.where(game_id: game.id, player_id: player_a.id).first
+          gp_a = GameParticipition.where(game_id: game.id, player_id: player_a.id).first
           gp_a.updated_at = Time.now if gp_a.present? && opts(:touch_games)
-          gp_a ||= GameParticipation.create(game_id: game.id, player_id: player_a.id)
+          gp_a ||= GameParticipition.create(game_id: game.id, player_id: player_a.id)
           gp_a.assign_attributes(role: "Heim")
           gp_a.save
-          game_participation_ids.delete(gp_a.id)
+          game_participition_ids.delete(gp_a.id)
         end
         player_b = Player.joins(seedings: :tournament).where(tournaments: { id: tournament.id })
                          .where("players.lastname||', '||players.firstname = :name", name: game.data["Gast"]).first
         if player_b.present?
-          gp_b = GameParticipation.where(game_id: game.id, player_id: player_b.id).first
+          gp_b = GameParticipition.where(game_id: game.id, player_id: player_b.id).first
           gp_b.updated_at = Time.now if gp_b.present? && opts(:touch_games)
-          gp_b ||= GameParticipation.create(game_id: game.id, player_id: player_b.id)
+          gp_b ||= GameParticipition.create(game_id: game.id, player_id: player_b.id)
           gp_b.assign_attributes(role: "Gast")
           gp_b.save
-          game_participation_ids.delete(gp_b.id)
+          game_participition_ids.delete(gp_b.id)
         end
-        GameParticipation.where(id: game_participation_ids).destroy_all
+        GameParticipition.where(id: game_participition_ids).destroy_all
         gp_a_results = {}
         gp_b_results = {}
         game.data.each do |k, v|

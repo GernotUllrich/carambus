@@ -34,6 +34,7 @@ require "open-uri"
 class Region < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include RegionTaggable
   # TODO: check country association, because RuboCop complains
   # Unable to find an associated Rails Model for the ':country' association field
   belongs_to :country
