@@ -30,18 +30,22 @@ class UploadsController < ApplicationController
 
   # POST /uploads or /uploads.json
   def create
-    Rails.logger.info "got create #{upload_params.inspect}"
-    @upload = Upload.new(upload_params)
-    @upload.user_id = current_user.id
-    @upload.filename = upload_params["filename"].original_filename
-    @upload.save
-    upload_dir = "#{Rails.root}/public/roald/MyAlbum/uploads/#{current_user.id}"
-    Rails.logger.info "got public/roald/MyAlbum/uploads/#{current_user.id}"
-    FileUtils.mkdir_p(upload_dir)
-    f = File.open(File.join(upload_dir, @upload.filename), "wb")
-    f.write(upload_params["filename"].read)
-    f.close
-    UploadMailer.report_upload("gernot.ullrich@gmx.de", current_user, @upload.filename).deliver
+    begin
+      Rails.logger.info "got create #{upload_params.inspect}"
+      @upload = Upload.new(upload_params)
+      @upload.user_id = current_user.id
+      @upload.filename = upload_params["filename"].original_filename
+      @upload.save
+      upload_dir = "/var/www/html/island25/uploads/#{current_user.id}"
+      Rails.logger.info "got public/roald/MyAlbum/uploads/#{current_user.id}"
+      FileUtils.mkdir_p(upload_dir)
+      f = File.open(File.join(upload_dir, @upload.filename), "wb")
+      f.write(upload_params["filename"].read)
+      f.close
+      UploadMailer.report_upload("gernot.ullrich@gmx.de", current_user, @upload.filename).deliver
+    rescue StandardError => e
+      Rails.logger.info "Upload error #{e} #{e.backtrace.join("/n")}"
+    end
 
     # Uncomment to authorize with Pundit
     # authorize @upload

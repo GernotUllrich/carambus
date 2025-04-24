@@ -147,7 +147,7 @@ class TournamentsController < ApplicationController
       @tournament.save
       @tournament.unprotected = false
       @tournament.finish_mode_selection!
-      @tournament.save!
+      @tournament.save
       @tournament.reload
     rescue StandardError => e
       flash[:alert] = e.message
@@ -205,7 +205,7 @@ class TournamentsController < ApplicationController
         @tournament.initialize_tournament_monitor
         @tournament.reload
         @tournament.start_tournament!
-        @tournament.save!
+        @tournament.save
         @tournament.reload
         @tournament.tournament_monitor.update(current_admin: current_user,
                                               timeout: (params[:timeout].presence || @tournament.timeout).to_i,

@@ -637,9 +637,9 @@ class League < ApplicationRecord
             game_report_table = game_report_doc.css("aside > section > table")[2]
             td_ = game_report_table.css("tr > td").find { |td| td.text =~ /Gastgeber:/ }
             if td_.present?
-              club_name = td_.css("strong")[0].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
+              club_name = td_.css("strong")[0].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ").gsub(/\s\s+/, " ")
               club = clubs_cache.find { |c| c.synonyms.split("\n").include?(club_name) }
-              raise StandardError "Format Error 0 Party[#{party.id}]" if club.blank?
+              raise StandardError "Format Error 0 Party[#{party&.id}]" if club.blank?
 
               location_a = td_.css("a")[0]
               location_link = location_a["href"]
@@ -774,7 +774,7 @@ class League < ApplicationRecord
                   )
                 elsif %w[runde runde+brett].include?(structure)
 
-                  if structure == "runde" && tr_g.css("td")[2].text.match(/\d-\d/)
+                  if structure == "runde" && tr_g.css("td")[2]&.text&.match(/\d-\d/)
                     structure = "runde+brett"
                   end
                   shift = structure == "runde+brett" ? 1 : 0
@@ -950,9 +950,6 @@ class League < ApplicationRecord
                     players_b << player_b
                     players_a.compact!
                     players_b.compact!
-                    if (players_a.count != 1 || players_b.count != 1)
-                      raise StandardError "Multiple Players on PartyGame not supported Party[#{party.id}]"
-                    end
                     party_games[seqno] ||= {}
                     party_games[seqno].merge!(
                       seqno: seqno,
@@ -972,12 +969,12 @@ class League < ApplicationRecord
               party_games.each do |seqno2, data|
                 attrs = {
                   party_id: party.id,
-                  discipline_id: data["discipline_id"],
+                  discipline_id: data[:discipline_id],
                   seqno: seqno2,
-                  player_a_id: Player.team_from_players(data["player_a_id"].compact).andand.id,
-                  player_b_id: Player.team_from_players(data["player_b_id"].compact).andand.id,
-                  data: data["data"],
-                  name: data["name"]
+                  player_a_id: Player.team_from_players(data[:player_a_id].compact).andand.id,
+                  player_b_id: Player.team_from_players(data[:player_b_id].compact).andand.id,
+                  data: data[:data],
+                  name: data[:name]
                 }
                 party_game = PartyGame.where(
                   party_id: party.id,
@@ -987,7 +984,7 @@ class League < ApplicationRecord
                 party_game.save
               end
               # look for shootout
-              res = party.data["points"].andand.split(":")&.map(&:strip)&.map(&:to_i)&.sort
+              res = party.data[:points].andand.split(":")&.map(&:strip)&.map(&:to_i)&.sort
               if res.present?
                 game_plan[:match_points][:win] = [game_plan[:match_points][:win].to_i, res[1]].max
                 game_plan[:match_points][:lost] = [game_plan[:match_points][:lost].to_i, res[0]].min

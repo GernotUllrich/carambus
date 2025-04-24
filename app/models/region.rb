@@ -103,8 +103,10 @@ class Region < ApplicationRecord
   }.freeze
 
   def self.region_map
-    map = all.pluck(:shortname, :id).to_h
-    map.select { |k, _v| k.present? }
+    regions = all.to_a
+    map = regions.each_with_object({}) do |region, hash|
+      hash[region.shortname] = region if region.shortname.present?
+    end
     return {
       "Norddeutscher Billard-Verband" => map["NBV"],
       "Norddeutscher Billard-Verband e.V." => map["NBV"],
@@ -152,6 +154,7 @@ class Region < ApplicationRecord
       "Deutsche Billard-Union e.V." => map["DBU"]
     }
   end
+
   def self.search_hash(params)
     {
       model: Region,
@@ -222,9 +225,9 @@ or (regions.address ilike :search)",
             location.merge_locations(club_location)
           end
         end
-        location = find_or_create_location(addr, name, cc_id, location, location_url)
-
         location_detail_url = base_url + link
+        location = find_or_create_location(addr, name, cc_id, location, location_detail_url)
+
         Rails.logger.info "reading #{location_detail_url}"
         uri = URI(location_detail_url)
         location_detail_html = Net::HTTP.get(uri)
@@ -273,6 +276,7 @@ or (regions.address ilike :search)",
   end
 
   def post_cc_public(action, post_options = {}, _opts = {})
+    base_url = public_cc_url_base
     referer = post_options.delete(:referer)
     referer = referer.present? ? base_url + referer : nil
     if RegionCc::PATH_MAP[action].present?
@@ -387,7 +391,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       end
     end
     source_urls_not_done = source_urls_todo.values - source_urls_done
-    t_ids_todo = source_urls_todo.to_a.select{|k,v| source_urls_not_done.include?(v)}
+    t_ids_todo = source_urls_todo.to_a.select { |_k, v| source_urls_not_done.include?(v) }
     Rails.logger.info "TournamentCheck source_urls not done: Tournament[#{t_ids_todo}]"
     source_urls_new = source_urls_done - source_urls_todo.values
     Rails.logger.info "TournamentCheck source_urls new or error: #{source_urls_new.inspect}"
@@ -635,6 +639,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       "Öffnungszeiten" => "opening"
     }
     if public_cc_url_base.present?
+      base_url = public_cc_url_base
       url = public_cc_url_base
       Rails.logger.info "===== scrape ===== reading #{url} -\
  Region #{shortname} ClubCloud index page - to scrape clubs"
@@ -813,18 +818,16 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     location = Location.new(attr) unless location.present?
     location.assign_attributes(attr)
     location.synonyms = nil
-    if location.changes.present?
-      location.source_url = location_url
-      location.add_md5
-      if location.new_record?
-        md5 = Digest::MD5.hexdigest(location.attributes.except("synonyms", "sync_date", "updated_at", "created_at").inspect)
-        location = Location.find_by_md5(md5) || location
-      end
-      begin
-        location.save!
-      rescue Exception => e
-        e
-      end
+    location.source_url = location_url
+    location.add_md5
+    if location.new_record?
+      md5 = Digest::MD5.hexdigest(location.attributes.except("synonyms", "sync_date", "updated_at", "created_at").inspect)
+      location = Location.find_by_md5(md5) || location
+    end
+    begin
+      location.save!
+    rescue Exception => e
+      e
     end
     location
   end

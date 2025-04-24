@@ -6,7 +6,10 @@
                                 table_id: session[:table_id],
                                 collapse_menu: true),
                   class: "mb-4 block px-4 py-2 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md border-2 border-blue-500 dark:border-blue-400",
-                  data: { turbo: false } do %>
+                  data: { 
+                    turbo: false,
+                    action: "click->sidebar#collapse"
+                  } do %>
         <div class="flex items-center justify-center">
           <span class="text-center font-medium">
             <%= t('back_to_scoreboard') %>
