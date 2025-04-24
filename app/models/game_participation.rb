@@ -24,6 +24,7 @@
 class GameParticipation < ApplicationRecord
   include LocalProtector
   include CableReady::Broadcaster
+  include RegionTaggable
   belongs_to :player, optional: true
   belongs_to :game
 

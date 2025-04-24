@@ -1115,9 +1115,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_22_134026) do
     t.text "object_changes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "region_id"
+    t.integer "region_ids", default: [], array: true
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
-    t.index ["region_id"], name: "index_versions_on_region_id"
+    t.index ["region_ids"], name: "index_versions_on_region_ids", using: :gin
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"

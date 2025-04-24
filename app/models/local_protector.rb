@@ -17,7 +17,7 @@ module LocalProtector
     end
 
     def disallow_saving_local_records
-      raise ActiveRecord::Rollback if !ApplicationRecord.local_server? && !unprotected
+      raise ActiveRecord::Rollback if !ApplicationRecord.local_server? && !unprotected && !(Carambus.config.no_local_protection == 'true')
 
       true
     end

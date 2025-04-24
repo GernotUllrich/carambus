@@ -13,7 +13,7 @@ namespace :scrape do
     Rails.logger.info "##-##-##-##-##-## UPDATE SEASON ##-##-##-##-##-##"
     Season.update_seasons if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
     season = Season.current_season
-    # season = Season.find_by_name("2023/2024")
+    #season = Season.find_by_name("2023/2024")
     Rails.logger.info "##-##-##-##-##-## UPDATE REGION ##-##-##-##-##-##"
     Region.scrape_regions
     Rails.logger.info "##-##-##-##-##-## UPDATE LOCATIONS ##-##-##-##-##-##"
@@ -24,7 +24,6 @@ namespace :scrape do
     season.scrape_single_tournaments_public_cc(optimize_api_access: false, reload_game_results: false)
     Rails.logger.info "##-##-##-##-##-## UPDATE LEAGUES ##-##-##-##-##-##"
     (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
-      # League.scrape_leagues_from_cc(Region.find_by_shortname(shortname), Season.current_season, league_details: true,  first_five_parties_only: true, optimize_api_access: false)
       League.scrape_leagues_from_cc(Region.find_by_shortname(shortname), season, league_details: true, optimize_api_access: false)
     end
   end

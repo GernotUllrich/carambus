@@ -22,6 +22,7 @@
 #
 class Seeding < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
   include AASM
   aasm column: "state", skip_validation_on_save: true do
     state :registered, initial: true

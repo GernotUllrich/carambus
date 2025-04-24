@@ -10,7 +10,7 @@
   <%= form_tag admin_settings_path, method: :post, class: "form" do %>
     <div class="field-group">
       <h3>System Settings</h3>
-      <% %w[application_name carambus_api_url carambus_domain queue_adapter season_name force_update].each do |key| %>
+      <% %w[application_name carambus_api_url carambus_domain queue_adapter season_name force_update no_local_protection].each do |key| %>
         <div class="field-unit">
           <div class="field-unit__label">
             <%= label_tag "config[#{key}]", key.titleize %>

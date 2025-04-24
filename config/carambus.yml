@@ -15,6 +15,7 @@ default:
   :context: NBV
   :season_name: 2023/2024
   :force_update: 'true'
+  :no_local_protection: 'false'
   :club_id: 357
 development:
   carambus_api_url: https://api.carambus.de
@@ -32,6 +33,7 @@ development:
   context: NBV
   season_name: 2024/2025
   force_update: 'true'
+  no_local_protection: 'true'
   club_id: 357
 test:
   carambus_api_url: https://api.carambus.de/

@@ -133,7 +133,7 @@ class PartyMonitorReflex < ApplicationReflex
       if table_id_keys.length == table_ids[round - 1].length
         @party_monitor.deep_merge_data!(table_ids: table_ids)
         # @party_monitor.data_will_change!
-        @party_monitor.save!
+        @party_monitor.save
         @party_monitor.enter_next_round_seeding!
       else
         flash[:alert] = "Mindestens #{@party_monitor.data["tables"].to_i} Tische müssen zugeordnet werden!"
@@ -215,7 +215,7 @@ class PartyMonitorReflex < ApplicationReflex
            row[:type] == "Neue Runde" && row[:r_no] == @party_monitor.current_round
          end
         @party_monitor.finish_round!
-        @party_monitor.save!
+        @party_monitor.save
         # TODO: if draw result so far play shootout!!!
         if @party_monitor.data["rows"].index do |row|
              row[:type] =~ /shootout/i && row[:r_no] == @party_monitor.current_round
@@ -224,18 +224,19 @@ class PartyMonitorReflex < ApplicationReflex
           if points_l == points_r
             @party_monitor.prepare_next_round!
           else
-            @party_monitor.save!
+            @party_monitor.save
+                                                 .save!
             @party_monitor.finish_party!
           end
         else
           @party_monitor.prepare_next_round!
         end
       else
-        @party_monitor.save!
+        @party_monitor.save
         @party_monitor.finish_round!
         @party_monitor.finish_party!
       end
-      @party_monitor.save!
+      @party_monitor.save
     else
       flash[:alert] =
         "Systemfehler?! Diese Funktion ist nur im den Zuständen '#{["playing_round"].inspect}' möglich!  Derzeit ist der Zustand '#{@party_monitor.state}'"

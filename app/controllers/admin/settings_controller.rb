@@ -67,7 +67,7 @@ module Admin
         :season_name, :force_update, :context,
         :support_email, :business_name, :business_address,
         :small_table_no, :large_table_no, :pool_table_no, :snooker_table_no,
-        :location_id, :club_id
+        :location_id, :club_id, :no_local_protection
       )
     end
   end
