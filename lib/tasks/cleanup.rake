@@ -84,26 +84,8 @@ namespace :cleanup do
       # Delete records not in keep_ids
       if keep_ids.present?
         # Use transaction and set unprotected flag for each record
-        deleted = 0
-        model.where.not(id: keep_ids).find_each do |record|
-          record.unprotected = true
-          if record.destroy
-            deleted += 1
-          else
-            puts "  Failed to delete #{model.name}##{record.id}"
-          end
-        end
-      else
-        # Use transaction and set unprotected flag for each record
-        deleted = 0
-        model.find_each do |record|
-          record.unprotected = true
-          if record.destroy
-            deleted += 1
-          else
-            puts "  Failed to delete #{model.name}##{record.id}"
-          end
-        end
+        deleted = model.where.not(id: keep_ids).count
+        model.where.not(id: keep_ids).delete_all
       end
 
       # Update statistics

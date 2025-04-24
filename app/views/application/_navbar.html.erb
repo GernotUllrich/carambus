@@ -12,7 +12,10 @@
       </div>
       <!-- Close button - always visible when nav is open -->
       <button data-action="sidebar#collapse" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg">
-        <%= render_svg "icons/arrow-left-to-line", styles: "w-6 h-6 text-gray-800 dark:text-gray-300" %>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-800 dark:text-gray-300">
+          <path d="M3 4C3 3.44772 3.44772 3 4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4Z" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="2"/>
+        </svg>
       </button>
     </div>
 
@@ -83,14 +86,8 @@
   bg-transparent hover:bg-gray-400/20 dark:hover:bg-gray-600/20
   rounded-lg transition-all duration-300 shadow-none hover:shadow-lg show-button-target"
         data-sidebar-target="showButton">
-  <svg class="w-6 h-6 text-gray-700/50 hover:text-gray-900/50 dark:text-gray-300/50 dark:hover:text-gray-200/50"
-       fill="none"
-       stroke="currentColor"
-       viewBox="0 0 24 24">
-    <path stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1"
-          d="M4 6h16M4 12h16M4 18h16">
-    </path>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700/50 hover:text-gray-900/50 dark:text-gray-300/50 dark:hover:text-gray-200/50">
+    <path d="M3 4C3 3.44772 3.44772 3 4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4Z" stroke="currentColor" stroke-width="2"/>
+    <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="2"/>
   </svg>
 </button>
