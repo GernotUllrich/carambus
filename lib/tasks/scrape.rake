@@ -9,11 +9,9 @@ require "csv"
 namespace :scrape do
   desc "daily update"
   task daily_update: :environment do
-    scrape_scope = ENV["SCOPE"] || nil # "latest_and_upcoming"
     Rails.logger.info "##-##-##-##-##-## UPDATE SEASON ##-##-##-##-##-##"
     Season.update_seasons if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
     season = Season.current_season
-    #season = Season.find_by_name("2023/2024")
     Rails.logger.info "##-##-##-##-##-## UPDATE REGION ##-##-##-##-##-##"
     Region.scrape_regions
     Rails.logger.info "##-##-##-##-##-## UPDATE LOCATIONS ##-##-##-##-##-##"

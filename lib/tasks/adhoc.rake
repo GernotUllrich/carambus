@@ -78,7 +78,7 @@ namespace :adhoc do
     # League.scrape_leagues_from_cc(Region.find_by_shortname("BVBW"), season, league_details: true, optimize_api_access: false)
     # league = League[8695]
     # league.scrape_single_league_from_cc(league_details: true)
-    Region[11].scrape_tournaments_check(Season[14])
+    League[8891].scrape_single_league_from_cc(league_details: true)
   end
 
   desc "Sequence Reset"

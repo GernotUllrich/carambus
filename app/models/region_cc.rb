@@ -796,7 +796,7 @@ class RegionCc < ApplicationRecord
               name = m[1]
             end
           elsif /Status/.match?(tr.css("td")[0].text.strip)
-            status = tr.css("td > table > tr > td")[1].text.gsub(/^ /, "").strip
+            status = tr.css("td > table > tr > td")[1].text.gsub(/^\u00A0/, "").strip
           elsif /Geschlecht/.match?(tr.css("td")[0].text.strip)
             sex = CategoryCc::SEX_MAP_REVERSE[tr.css("td")[2].text.strip]
           elsif /Alter/.match?(tr.css("td")[0].text.strip)
@@ -889,7 +889,7 @@ class RegionCc < ApplicationRecord
         lines = doc_cat.css("tr.tableContent > td > table > tr")
         lines.each do |tr|
           if /Status/.match?(tr.css("td")[0].text.strip)
-            args.merge!(status: tr.css("td")[2].text.strip.gsub(/^ /, "").strip)
+            args.merge!(status: tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip)
           elsif /Turnier-Serie/.match?(tr.css("td")[0].text.strip)
             args.merge!(name: tr.css("td")[2].text.strip)
           elsif /Serienwertung/.match?(tr.css("td")[0].text.strip)
@@ -897,7 +897,7 @@ class RegionCc < ApplicationRecord
           elsif /Turniere anzeigen/.match?(tr.css("td")[0].text.strip)
             args.merge!(no_tournaments: tr.css("td")[2].text.strip.to_i)
           elsif /Punkte-Formel/.match?(tr.css("td")[0].text.strip)
-            args.merge!(point_formula: tr.css("td")[2].text.strip.match(/([^(]*)\(.*/).andand[1].andand.gsub(/ /,
+            args.merge!(point_formula: tr.css("td")[2].text.strip.match(/([^(]*)\(.*/).andand[1].andand.gsub(/\u00A0/,
                                                                                                              " ").andand.strip.to_s)
           elsif /Minimal-Punktzahl/.match?(tr.css("td")[0].text.strip)
             args.merge!(min_points: tr.css("td")[2].text.strip.to_i)
@@ -976,7 +976,7 @@ class RegionCc < ApplicationRecord
               qualifying_date = Date.parse(m[1])
             end
           elsif /Status/.match?(tr.css("td")[0].text.strip)
-            status = tr.css("td")[2].text.strip.gsub(/^ /, "").strip
+            status = tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip
           end
         end
         if opts[:release] && status != "Freigegeben"
@@ -1053,8 +1053,8 @@ class RegionCc < ApplicationRecord
             elsif /Kurzbezeichner/.match?(tr.css("td")[0].text.strip)
               args.merge!(shortname: tr.css("td")[2].text.strip)
             elsif /Turnier-Serie/.match?(tr.css("td")[0].text.strip)
-              unless /Keine Serien-Zuordnung vorhanden/.match?(tr.css("td")[2].text.gsub(/ /, "").strip)
-                ts_name = tr.css("td")[2].text.gsub(/ /, "").strip
+              unless /Keine Serien-Zuordnung vorhanden/.match?(tr.css("td")[2].text.gsub(/\u00A0/, "").strip)
+                ts_name = tr.css("td")[2].text.gsub(/\u00A0/, "").strip
                 tournament_series_cc = TournamentSeriesCc.where(name: ts_name, branch_cc_id: branch_cc.id,
                                                                 season: season.name).first
                 args.merge!(tournament_series_cc_id: tournament_series_cc.id)
@@ -1070,8 +1070,8 @@ class RegionCc < ApplicationRecord
               args.merge!(entry_fee: tr.css("td")[2].text.strip.tr(",", ".").to_f)
             elsif /Meisterschaftstyp/.match?(tr.css("td")[0].text.strip)
               name, shortname = tr.css("td")[2].text.strip.match(/\s*(.*)\s*\((.*)\)/)[1..2]
-              name = name.gsub(/ /, "").strip
-              shortname = shortname.gsub(/ /, "").strip
+              name = name.gsub(/\u00A0/, "").strip
+              shortname = shortname.gsub(/\u00A0/, "").strip
               championship_type_cc = ChampionshipTypeCc.where(name: name, shortname: shortname,
                                                               branch_cc_id: branch_cc.id).first
               args.merge!(championship_type_cc_id: championship_type_cc.andand.id)
@@ -1086,13 +1086,13 @@ class RegionCc < ApplicationRecord
               end
             elsif /Datum/.match?(tr.css("td")[0].text.strip)
               args[:tournament_start] = tr.css("td")[2].text.strip
-              if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).* \(Spielbeginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/)
+              if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).*\u00A0\(Spielbeginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/)
                 args.merge!(tournament_start: DateTime.parse("#{m[1]} #{m[2]}"))
               end
             elsif /Location/.match?(tr.css("td")[0].text.strip)
               args.merge!(location_text: tr.css("td")[2].inner_html.strip)
             elsif /Status/.match?(tr.css("td")[0].text.strip)
-              args.merge!(status: tr.css("td")[2].text.strip.gsub(/^ /, "").strip)
+              args.merge!(status: tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip)
             end
           end
           if args[:name].present?
@@ -1124,7 +1124,7 @@ class RegionCc < ApplicationRecord
           if /Meisterschaftstyp/.match?(tr.css("td")[0].text.strip)
             name = tr.css("td")[2].text.strip
           elsif /Status/.match?(tr.css("td")[0].text.strip)
-            status = tr.css("td > table > tr > td")[1].text.gsub(/^ /, "").strip
+            status = tr.css("td > table > tr > td")[1].text.gsub(/\u00A0/, "").strip
           elsif /Kurzbezeichnung/.match?(tr.css("td")[0].text.strip)
             shortname = tr.css("td")[2].text.strip
           end
