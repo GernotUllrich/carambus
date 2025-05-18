@@ -95,7 +95,7 @@ class VersionsController < ApplicationController
       attrs = []
       version_query = Version.where("id > ?", last_version_id.to_i)
       if params[:region_id].present?
-        version_query = version_query.where("region_id is NULL or region_id = ?", params[:region_id])
+        version_query = version_query.for_region(params[:region_id])
       end
       version_query.order(id: :asc).limit(20_000).all.each do |version|
         attr = version.attributes

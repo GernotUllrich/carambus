@@ -32,6 +32,12 @@ class Version < PaperTrail::Version
   scope :for_region, ->(region_id) {
     where("region_ids IS NULL OR region_ids = '{}' OR region_ids @> ARRAY[?]::integer[]", region_id)
   }
+
+  def self.relevant_for_region?(region_id)
+    return true if region_ids.nil? || region_ids.empty?
+    region_ids.include?(region_id)
+  end
+
   def self.list_sequence
     sql = <<~SQL
       SELECT 'SELECT NEXTVAL(' ||
