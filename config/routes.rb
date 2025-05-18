@@ -242,6 +242,7 @@ Rails.application.routes.draw do
     get :training
     get :doc_tournament
     get :doc_league
+    get :database_syncing
   end
 
   match "/404", to: "errors#not_found", via: :all

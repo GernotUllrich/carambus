@@ -52,4 +52,7 @@ class StaticController < ApplicationController
 
   def privacy
   end
+
+  def database_synching
+  end
 end

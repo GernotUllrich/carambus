@@ -1,0 +1,103 @@
+<!-----
+---
+title: Datenbank-Partitionierung und Synchronisierung
+summary: 'Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategie
+  zur Optimierung der Datensynchronisierung zwischen lokalen Servern und dem zentralen
+  API-Server. Dieser Ansatz stellt sicher, dass jeder lokale Server nur die für seine
+  Region relevanten Daten verwaltet und gleichzeitig Zugriff auf notwendige globale
+  Ereignisse hat. Zusätzlich werden regionsunabhängige Daten an alle lokalen Server
+  synchronisiert.
+
+  '
+version:
+published_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2025-04-29 21:19:03.426133000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: Europe/Berlin
+  time: 2025-04-29 23:19:03.426133000 Z
+tags: []
+metadata: {}
+position: 0
+id: 10
+---
+
+-->
+<div class="py-10 max-w-2xl m-auto  flex flex-col">
+<h1 class='font-bold mt-4'>Database partitioning and synchronization</h1>
+<h2 class='font-bold mt-4'>Overview</h2>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+The system implements a region-based database partitioning strategy to optimize data synchronization between local servers and the central API server. This approach ensures that each local server only manages the data relevant to its region and at the same time has access to necessary global events. In addition, region-independent data is synchronized to all local servers.</p>
+<h2 class='font-bold mt-4'>Main components</h2>
+<h3 class='font-bold mt-4'>1. region tagging (RegionTaggable)</h3>
+
+<ul>
+<li>Records are tagged with a <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> array to track their regional assignments</li>
+<li>Includes both the local region and the DBU region (German Billiard Union) if applicable</li>
+<li>Records without regional dependencies (region_ids is NULL or empty array) are synchronized to all servers</li>
+<li>Implemented as a core in <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">app/models/concerns/region_taggable.rb</code></li>
+</ul>
+<h3 class='font-bold mt-4'>2. version management</h3>
+
+<ul>
+<li>Uses PaperTrail for version tracking</li>
+<li>Versions are tagged with <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> to track regional relevance</li>
+<li>Versions with NULL or empty region_ids are considered global and sent to all servers</li>
+<li>Contains scopes and methods to filter versions by region</li>
+</ul>
+<h3 class='font-bold mt-4'>3. synchronization process</h3>
+
+<ul>
+<li>Local servers fetch updates via <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">Version.update_from_carambus_api</code></li>
+<li>API server filters versions based on regional relevance</li>
+<li>Only versions relevant to the requesting region are transferred</li>
+<li>Global versions (without regional dependencies) are transferred to all servers</li>
+</ul>
+<h3 class='font-bold mt-4'>4. data cleansing</h3>
+
+<ul>
+<li>One-time cleanup task to remove data from foreign regions</li>
+<li>Retains:
+
+<ul>
+<li>Data of the local region</li>
+<li>DBU region data</li>
+<li>Data of regions with clubs/players in global events</li>
+<li>All region-independent data</li>
+</ul></li>
+</ul>
+<h2 class='font-bold mt-4'>Implementation details</h2>
+<h3 class='font-bold mt-4'>Version model</h3>
+<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">scope :for_region, -&gt;(region_id) {
+  where("region_ids IS NULL OR region_ids = '{}' OR region_ids @&gt; ARRAY[?]::integer[]", region_id)
+}
+
+def self.relevant_for_region?(region_id)
+  return true if region_ids.nil? || region_ids.empty?
+  region_ids.include?(region_id)
+end
+</code></pre><h3 class='font-bold mt-4'>API endpoint</h3>
+<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">def get_updates
+  # ... existing code ...
+  if params[:region_id].present?
+    version_query = version_query.for_region(params[:region_id])
+  end
+  # ... remaining code ...
+end
+</code></pre><h3 class='font-bold mt-4'>Cleanup task</h3>
+<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
+The cleanup task ensures that each local server only starts with relevant data by
+1. Identifying the regions to keep (local, DBU and regions with global event involvement)
+2. Removing records that are not associated with these regions
+3. Maintaining data integrity for global events
+4. Retaining all region-independent data</p>
+<h2 class='font-bold mt-4'>Usage</h2>
+
+<ol>
+<li>Run the cleanup task on each local server:
+<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">bash
+rake cleanup:remove_non_region_records
+</code></li>
+<li>Configure the local server with its region ID</li>
+<li>The system automatically manages the data relevance through the synchronization process</li>
+</ol>
+</div>
