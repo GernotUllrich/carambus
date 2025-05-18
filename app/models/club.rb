@@ -397,10 +397,92 @@ class Club < ApplicationRecord
     end
   end
 
+  def self.find_potential_duplicates
+    potential_duplicates = []
+
+    # Get all clubs that have synonyms
+    clubs = Club.where.not(synonyms: [nil, ""])
+
+    # Create a hash to group clubs by their synonyms
+    synonym_groups = {}
+
+    clubs.find_each do |club|
+      # Get all synonyms for this club, including name and shortname
+      all_synonyms = (club.synonyms.to_s.split("\n") + [club.name, club.shortname])
+        .map(&:strip)
+        .reject(&:blank?)
+        .map(&:downcase)
+        .uniq
+
+      # For each synonym, add the club to the corresponding group
+      all_synonyms.each do |synonym|
+        synonym_groups[synonym] ||= []
+        synonym_groups[synonym] << club
+      end
+    end
+
+    # Find groups that have multiple clubs
+    synonym_groups.each do |synonym, clubs_in_group|
+      next if clubs_in_group.size <= 1
+
+      # For each pair of clubs in the group, check if they might be duplicates
+      clubs_in_group.combination(2).each do |club1, club2|
+        # Skip if these clubs have already been compared
+        next if potential_duplicates.any? { |dup|
+          (dup[:club1][:id] == club1.id && dup[:club2][:id] == club2.id) ||
+          (dup[:club1][:id] == club2.id && dup[:club2][:id] == club1.id)
+        }
+
+        # Calculate how many synonyms they share
+        club1_synonyms = club1.synonyms.to_s.split("\n").map(&:strip).map(&:downcase)
+        club2_synonyms = club2.synonyms.to_s.split("\n").map(&:strip).map(&:downcase)
+        shared_synonyms = (club1_synonyms & club2_synonyms)
+
+        # If they share synonyms or have similar names/shortnames, they might be duplicates
+        if shared_synonyms.any? ||
+           calculate_similarity(club1.name, club2.name) > 0.8 ||
+           calculate_similarity(club1.shortname, club2.shortname) > 0.8
+
+          potential_duplicates << {
+            club1: {
+              id: club1.id,
+              name: club1.name,
+              shortname: club1.shortname,
+              address: club1.address,
+              ba_id: club1.ba_id,
+              cc_id: club1.cc_id,
+              synonyms: club1.synonyms
+            },
+            club2: {
+              id: club2.id,
+              name: club2.name,
+              shortname: club2.shortname,
+              address: club2.address,
+              ba_id: club2.ba_id,
+              cc_id: club2.cc_id,
+              synonyms: club2.synonyms
+            },
+            shared_synonyms: shared_synonyms,
+            name_similarity: calculate_similarity(club1.name, club2.name),
+            shortname_similarity: calculate_similarity(club1.shortname, club2.shortname)
+          }
+        end
+      end
+    end
+
+    # Sort by number of shared synonyms and name similarity
+    potential_duplicates.sort_by { |dup|
+      [
+        -dup[:shared_synonyms].size,  # More shared synonyms first
+        -dup[:name_similarity]        # Higher name similarity first
+      ]
+    }
+  end
+
   def merge_clubs(with_club_ids = [], opts = {})
     Club.transaction do
       if opts[:force_merge] || (Club.where(id: with_club_ids).map(&:name).sort + synonyms.split("\n"))
-         .uniq.compact.sort == synonyms.split("\n").uniq.compact.sort
+                                 .uniq.compact.sort == synonyms.split("\n").uniq.compact.sort
         Rails.logger.info("REPORT merging clubs (#{name}[#{id}] with #{Array(with_club_ids).map do |idx|
           "#{Club[idx].name} [#{idx}]"
         end})")
@@ -429,5 +511,26 @@ class Club < ApplicationRecord
       end
     end
     reload
+  end
+
+  private
+
+  def self.calculate_similarity(str1, str2)
+    return 0.0 if str1.blank? || str2.blank?
+
+    # Normalize strings
+    str1 = str1.to_s.downcase.strip
+    str2 = str2.to_s.downcase.strip
+
+    # If strings are identical, return 1.0
+    return 1.0 if str1 == str2
+
+    # Calculate Levenshtein distance
+    require 'text'
+    max_length = [str1.length, str2.length].max
+    distance = Text::Levenshtein.distance(str1, str2)
+
+    # Convert distance to similarity score (0.0 to 1.0)
+    1.0 - (distance.to_f / max_length)
   end
 end

@@ -91,6 +91,7 @@ gem "inline_svg", "~> 1.6"
 gem "nokogiri", ">= 1.12.5" # Security update
 gem "invisible_captcha", "~> 2.0"
 gem "pretender", "~> 0.4"
+gem 'text'
 
 # We recommend using strong migrations when your app is in production
 gem "strong_migrations", "~> 0.7.6"
