@@ -9,20 +9,24 @@ module RegionTaggable
   private
 
   def tag_version_with_regions
-    return if Carambus.config.carambus_api_url.present?
-    return unless PaperTrail.request.enabled?
+    begin
+      return if Carambus.config.carambus_api_url.present?
+      return unless PaperTrail.request.enabled?
 
-    # Get the last version for this record
-    version = versions.last
-    return unless version
+      # Get the last version for this record
+      version = versions.last
+      return unless version
 
-    if previous_changes.present?
-      # Find all associated regions
-      region_ids = find_associated_region_ids
-      return if region_ids.empty?
+      if previous_changes.present?
+        # Find all associated regions
+        region_ids = find_associated_region_ids
+        return if region_ids.nil? || region_ids.empty?
 
-      # Update the version with the region_ids
-      version.update_column(:region_ids, region_ids)
+        # Update the version with the region_ids
+        version.update_column(:region_ids, region_ids)
+      end
+    rescue StandardError => e
+      Rails.logger.info("Error during tagging: #{e} #{e.backtrace.join("\n")}")
     end
   end
 
@@ -39,23 +43,15 @@ module RegionTaggable
     when Party
       league ? [(league.organizer_type == "Region" ? league.organizer_id : nil)].compact : []
     when GameParticipation
-      if game&.tournament_type == 'Tournament'
-        game.tournament ? [
-          game.tournament.region_id,
-          (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil)
-        ].compact : []
-      elsif tournament_type == 'Party'
-        tournament&.league ? [(tournament.league.organizer_type == "Region" ? tournament.league.organizer_id : nil)].compact : []
-      end
+      game.tournament ? [
+        game.tournament.region_id,
+        (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil)
+      ].compact : []
     when Game
-      if tournament_type == 'Tournament'
-        tournament ? [
-          tournament.region_id,
-          (tournament.organizer_type == "Region" ? tournament.organizer_id : nil)
-        ].compact : []
-      elsif tournament_type == 'Party'
-        tournament&.league ? [(tournament.league.organizer_type == "Region" ? tournament.league.organizer_id : nil)].compact : []
-      end
+      tournament ? [
+        tournament.region_id,
+        (tournament.organizer_type == "Region" ? tournament.organizer_id : nil)
+      ].compact : []
     when PartyGame
       party&.league ? [(party.league.organizer_type == "Region" ? party.league.organizer_id : nil)].compact : []
     when Seeding
@@ -65,7 +61,7 @@ module RegionTaggable
           (tournament.organizer_type == "Region" ? tournament.organizer_id : nil)
         ].compact : []
       elsif league_team_id.present?
-        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league.organizer_id : nil)].compact : []
+        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil)].compact : []
       end
     when Location
       [(organizer_type == "Region" ? organizer_id : nil)].compact
