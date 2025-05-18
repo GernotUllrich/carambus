@@ -17,12 +17,13 @@ class CarambusRender < Redcarpet::Render::HTML
     end
   end
 
-  def block_code(text, language)
-    text
+  def block_code(code, language)
+    language_class = language ? "language-#{language}" : ""
+    %(<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="#{language_class}">#{code}</code></pre>)
   end
 
   def codespan(code)
-    "#{code}\n"
+    %(<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">#{code}</code>)
   end
 
   def doc_header

@@ -227,19 +227,35 @@ class Page < ApplicationRecord
       # Create directory if it doesn't exist
       FileUtils.mkdir_p(File.dirname(published_path))
 
+      # Process German content
       marked_content = add_front_matter(content)
       front_matter, translated_content = split_front_matter(marked_content)
-      markdown = Redcarpet::Markdown.new(CarambusRender)
+      
+      # Use a custom renderer that preserves special constructs
+      renderer = CarambusRender.new
+      markdown = Redcarpet::Markdown.new(renderer, {
+        autolink: true,
+        tables: true,
+        fenced_code_blocks: true,
+        strikethrough: true,
+        superscript: true,
+        underline: true,
+        highlight: true,
+        quote: true,
+        footnotes: true
+      })
+      
       html_content = markdown.render(translated_content)
       if html_content.present?
         File.write(published_path(:de), "<!--#{front_matter}-->\n#{html_content}")
       end
-      # Write the original German content
 
+      # Process English content
       marked_content = add_front_matter(content_en.presence || content)
-      # Use DeepL for translation
+      # Use DeepL for translation with special handling for code blocks
       front_matter, translated_content = DeeplTranslationService.translate(marked_content)
-      markdown = Redcarpet::Markdown.new(CarambusRender)
+      
+      # Use the same renderer for English content
       html_content = markdown.render(translated_content)
       if html_content.present?
         File.write(published_path(:en), "<!--#{front_matter}-->\n#{html_content}")
