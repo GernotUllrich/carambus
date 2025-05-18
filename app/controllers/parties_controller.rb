@@ -6,7 +6,7 @@ class PartiesController < ApplicationController
 
   # GET /parties
   def index
-    results = SearchService.call( SeasonParticipation.search_hash(params) )
+    results = SearchService.call( Party.search_hash(params) )
     results = results.includes(:league, :league_team_a, :league_team_b, :host_league_team).order(day_seqno: :asc)
     @pagy, @parties = pagy(results)
     @parties.load
