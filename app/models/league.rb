@@ -425,7 +425,7 @@ class League < ApplicationRecord
         team_doc = Nokogiri::HTML(team_html)
         team_club_table = team_doc.css("aside > section > table")[2]
         if team_club_table.blank?
-          team_club_name = team_a.text.gsub(/\(.*\)$/, "").strip.gsub(/\s+\d+$/, "").gsub("1.", "1. ").gsub("1.  ",
+          team_club_name = team_a.text.gsub(/\(.*\)$/, "").strip.gsub(/\s+\d+$/, "").gsub(/\s+[IVX]+$/, "").gsub("1.", "1. ").gsub("1.  ",
                                                                                                             "1. ")
           club = Club.where("synonyms ilike ?", "%#{team_club_name}%").to_a.find do |c|
             c.synonyms.split("\n").include?(team_club_name)
@@ -455,7 +455,10 @@ class League < ApplicationRecord
             end
           end
         end
-        raise StandardError if club.blank?
+        if club.blank?
+          Rails.logger.info "Error club #{team_club_name} unknown"
+          next
+        end
 
         if url =~ /billard-union.net/
           club.dbu_nr = team_club_dbu_nr
@@ -488,7 +491,7 @@ class League < ApplicationRecord
 
             a_ = tr_p.css("td > a")[1]
             player_link = a_["href"]
-            fl_name = a_.text.gsub("  ", " ")
+            fl_name = a_.text.gsub("  ", " ").strip
             params = player_link.split("p=")[1].split("-")
             player_dbu_nr = params[5].to_i
             player = league_team_players[team_name][fl_name]
@@ -610,7 +613,8 @@ class League < ApplicationRecord
             result_text = tr.css("td")[4].text.strip
             points = tr.css("td")[8].andand.text.andand.strip
           else
-            raise "ScrapeError"
+            Rails.logger.info "Error - ScrapeError problem with header #{header}"
+            next
           end
           party_url = league_url
           # scrape game result details
@@ -639,8 +643,11 @@ class League < ApplicationRecord
             if td_.present?
               club_name = td_.css("strong")[0].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ").gsub(/\s\s+/, " ")
               club = clubs_cache.find { |c| c.synonyms.split("\n").include?(club_name) }
-              raise StandardError "Format Error 0 Party[#{party&.id}]" if club.blank?
-
+              club ||= Club.where("synonyms ilike '%#{club_name}%'").first
+              if club.blank?
+                Rails.logger.info "Format Error 0 Party[#{party&.id}]"
+                next
+              end
               location_a = td_.css("a")[0]
               location_link = location_a["href"]
               location_text = td_.text
@@ -781,7 +788,7 @@ class League < ApplicationRecord
                   seqno = tr_g.css("td")[0].text.strip.to_i if tr_g.css("td")[0].text.strip.present?
                   if tr_g.css("td")[0].text.strip.blank? && tr_g.css("td")[1].text.strip.present?
                     if /Bälle:|Punkte:/.match?(tr_g.text)
-                      result_detail = tr_g.text.strip.split(/ +/).map { |s| s.split(/\s+/) }.to_h
+                      result_detail = tr_g.text.strip.split(/\u00A0+/).map { |s| s.split(/\s+/) }.to_h
                       party_games[seqno][:data][:result].merge!(result_detail).compact!
                       game_plan[:rang_mgd] = true
                       dis_name = game_plan[:rows][row_index][:type]
@@ -804,7 +811,12 @@ class League < ApplicationRecord
                         res[0] => res[1]
                       )
                     elsif /Bälle:|Punkte:/.match?(tr_g.text)
-                      result_detail = tr_g.text.strip.split(/ +/).reject { |s| s =~ /\(x\d\)/ }.map { |s| s.split(/\s+/) }.to_h
+                      map_ = tr_g.text.strip.encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+                                 .split(/\u00A0+/u) # Split on any positive number of NBSP
+                                 .reject { |s| s =~ /\(x\d+\)/u }
+                                 .map { |s| s.split(/\s+/u) }
+                      Rails.logger.info "map is '#{map_.inspect}'"
+                      result_detail = map_.to_h
                       party_games[seqno][:data][:result].merge!(result_detail).compact!
                       game_plan[:rang_mgd] = true
                       dis_name = game_plan[:rows][row_index][:type]
