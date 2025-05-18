@@ -576,4 +576,29 @@ in region #{region.shortname}"
   def self.fix_player_without_ba_id(region, firstname, lastname, should_be_ba_id = nil, should_be_club_id = nil)
     region.fix_player_without_ba_id(firstname, lastname, should_be_ba_id, should_be_club_id)
   end
+
+
+  def self.remove_inactive_guests(location)
+    # Find all guest players
+    club = location.club
+    default_guest_a = Player.default_guest(:a, location)
+    default_guest_b = Player.default_guest(:b, location)
+    guest_players = Player.joins(season_participations: %i[club season])
+                                .where(clubs: { id: club.id })
+                                .where.not(id: [default_guest_a.player.id,
+                                                default_guest_b.player.id])
+                                .where(season_participations: { status: "guest" })
+                                .where(seasons: { id: Season.current_season&.id })
+                                .order("fl_name")
+    # For each guest player, check if they have any recent game participations
+    guest_players.each do |player|
+      last_participation = player.game_participations.order(created_at: :desc).first
+
+      # If no recent participation or last participation was more than 2 weeks ago
+      if last_participation.nil? || last_participation.created_at < 2.weeks.ago
+        # Delete the player
+        player.destroy
+      end
+    end
+  end
 end
