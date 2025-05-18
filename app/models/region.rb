@@ -53,7 +53,8 @@ class Region < ApplicationRecord
   self.ignored_columns = ["location_url"]
 
   NON_CC = {
-    "BBV" => "https://billardbayern.de/"
+    "BBV" => "https://billardbayern.de/",
+    "BLVSA" => "https://www.blv-sa.de/",
   }
 
   NON_CC_ADMIN = {
@@ -67,8 +68,7 @@ class Region < ApplicationRecord
     # "BBV",##
     "BLMR" => "https://blmr.club-cloud.de/",
     "BLVN" => "https://billard-niedersachsen.de/",
-    "BLVSA" => "https://www.blv-sa.de/",
-    "BVB" => "https://billard.club-cloud.de/berlin/",
+    "BVB" => "https://billardverband-berlin.net/",
     "BVBW" => "https://billard-bvbw.de/",
     "BVNR" => "https://billard-niederrhein.de/",
     "BVNRW" => "https://bvnrw.net/",
@@ -84,9 +84,14 @@ class Region < ApplicationRecord
   #  BVB
   SHORTNAMES_ROOF_ORGANIZATION = %w[DBU].freeze
   SHORTNAMES_CARAMBUS_USERS = %w[BVBW NBV].freeze
-  SHORTNAMES_OTHERS = %w[BLMR BLVN BVNR BVRP BVS BVW SBV TBV].freeze
+  #SHORTNAMES_ROOF_ORGANIZATION = %w[].freeze
+  #SHORTNAMES_CARAMBUS_USERS = %w[].freeze
+  #SHORTNAMES_OTHERS = %w[BVB].freeze
+  #SHORTNAMES_OTHERS = %w[BVW SBV TBV].freeze
+  SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV TBV].freeze
   SHORTNAMES_FEDERATIONS = %w[BVNRW].freeze
-  SHORTNAMES_NO_CC = %w[BBBV BBV HBU].freeze
+  SHORTNAMES_NO_CC = %w[BBV HBU BLVSA].freeze
+
   SHORTNAMES = SHORTNAMES_ROOF_ORGANIZATION +
     SHORTNAMES_FEDERATIONS +
     SHORTNAMES_CARAMBUS_USERS +
@@ -184,7 +189,7 @@ or (regions.address ilike :search)",
     location_doc = Nokogiri::HTML(location_html)
     location_table = location_doc.css("article > section > table")[1]
     # no_locs = location_table.css("th")[0].text.match(/(\d+) Locations gefunden/)[1].to_i
-    no_pages = location_table.css("tr table tr td")[1].text.gsub(/[  ]*/, "").match(/Seite(\d+)von(\d+)/)[2].to_i
+    no_pages = location_table.css("tr table tr td")[1].text.gsub(/[\u00A0 ]*/, "").match(/Seite(\d+)von(\d+)/)[2].to_i
     (1..no_pages).each do |p_no|
       range = (((p_no - 1) * 10 + 1)..((p_no - 1) * 10 + 10))
       page_url = base_url + "location.php?p=#{region_cc.cc_id}|||||||#{p_no}"
