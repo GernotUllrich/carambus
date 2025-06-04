@@ -72,7 +72,7 @@ module RegionTaggable
           find_dbu_region_id_if_global
         ].compact : []
       elsif league_team_id.present?
-        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
       end
     when Location
       [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
@@ -92,7 +92,7 @@ module RegionTaggable
     case self
     when Club
       # Include DBU if club participates in DBU tournaments or leagues
-      return dbu_region.id if tournaments.exists?(organizer_type: 'Region', organizer_id: dbu_region.id) ||
+      return dbu_region.id if tournaments.joins(:tournaments).exists?(tournaments: {organizer_type: 'Region', organizer_id: dbu_region.id}) ||
                              league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
     when Tournament
       # Include DBU if tournament is organized by DBU
@@ -123,8 +123,8 @@ module RegionTaggable
       return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
     when Player
       # Include DBU if player participates in DBU tournaments or leagues
-      return dbu_region.id if game_participations.joins(:game).exists?(games: { tournament: { organizer_type: 'Region', organizer_id: dbu_region.id } }) ||
-                             season_participations.joins(:club).exists?(clubs: { league_teams: { league: { organizer_type: 'Region', organizer_id: dbu_region.id } } })
+      return dbu_region.id if game_participations.joins(game: :tournament).exists?(games: { tournaments: { organizer_type: 'Region', organizer_id: dbu_region.id } }) ||
+                             season_participations.joins(club: { league_teams: :league }).exists?(clubs: { league_teams: { leagues: { organizer_type: 'Region', organizer_id: dbu_region.id } } })
     when LeagueTeam
       # Include DBU if team's league is organized by DBU
       return dbu_region.id if league&.organizer_type == 'Region' && league&.organizer_id == dbu_region.id
