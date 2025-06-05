@@ -74,8 +74,9 @@ class Tournament < ApplicationRecord
   belongs_to :season
   belongs_to :tournament_plan, optional: true
   belongs_to :league, optional: true
-  has_many :seedings, -> { order(position: :asc) }, as: :tournament, class_name: "Seeding", dependent: :destroy
-  has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
+  has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
+  # has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
+  has_many :games, dependent: :destroy
   has_many :teams, dependent: :destroy
   has_one :tournament_monitor
   has_one :tournament_cc, class_name: "TournamentCc", foreign_key: :tournament_id, dependent: :destroy
@@ -359,7 +360,7 @@ or (seasons.name ilike :search)",
     detail_table.css("tr").each do |detail_tr|
       next unless detail_tr.css("td")[0].present?
 
-      case detail_tr.css("td")[0].text.gsub(nbsp, " ").strip
+        case detail_tr.css("td")[0].text.gsub(nbsp, " ").strip
       when "Kürzel"
         self.shortname = tc.shortname = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
       when "Datum"
@@ -469,6 +470,7 @@ or (seasons.name ilike :search)",
         player_list[player.fl_name] = [player, club]
       end
     end
+    reload
     return if discipline&.name == "Biathlon"
 
     # Ergebnisse
@@ -1061,12 +1063,12 @@ or (seasons.name ilike :search)",
         /\s*\((.*)\)/, ""
       )
       a1, b1, c1 = tr.css("td")[1].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.gsub(nbsp, " ").andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       playerb_fl_name = (tr.css("td")[3].inner_html.gsub(%r{</?strong>}, "").split("<br>")[0].presence || "Freilos").gsub(
         /\s*\((.*)\)/, ""
       )
       a2, b2, c2 = tr.css("td")[3].inner_html.gsub(%r{</?strong>},
-                                                   "").split("<br>")[1].andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
+                                                   "").split("<br>")[1].andand.gsub(nbsp, " ").andand.match(%r{<i>(?:HS: (\d+); )?Aufn.: (\d+); Ø: ([\d.]+)</i>}).andand[1..]
       hs << "#{a1}/#{a2}"
       innings << "#{b1}/#{b2}"
       gd << "#{c1}/#{c2}"

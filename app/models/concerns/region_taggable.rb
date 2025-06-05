@@ -49,8 +49,8 @@ module RegionTaggable
           (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil),
           find_dbu_region_id_if_global
         ].compact : []
-      elsif tournament_type == 'Party'
-        tournament&.league ? [(tournament.league.organizer_type == "Region" ? tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      elsif game&.tournament_type == 'Party'
+        game.tournament&.league ? [(game.tournament.league.organizer_type == "Region" ? game.tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
       end
     when Game
       if tournament_type == 'Tournament'
@@ -91,9 +91,9 @@ module RegionTaggable
 
     case self
     when Club
-      # Include DBU if club participates in DBU tournaments or leagues
-      return dbu_region.id if tournaments.joins(:tournaments).exists?(tournaments: {organizer_type: 'Region', organizer_id: dbu_region.id}) ||
-                             league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
+      # Include DBU if any of the club's players have participated in DBU tournaments
+      return dbu_region.id if players.joins(game_participations: { game: :tournament }).exists?(games: { tournaments: { organizer_type: 'Region', organizer_id: dbu_region.id } }) ||
+        league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
     when Tournament
       # Include DBU if tournament is organized by DBU
       return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
@@ -130,7 +130,7 @@ module RegionTaggable
       return dbu_region.id if league&.organizer_type == 'Region' && league&.organizer_id == dbu_region.id
     when SeasonParticipation
       # Include DBU if club participates in DBU tournaments or leagues
-      return dbu_region.id if club&.tournaments.exists?(organizer_type: 'Region', organizer_id: dbu_region.id) ||
+      return dbu_region.id if club&.organized_tournaments.exists?(organizer_type: 'Region', organizer_id: dbu_region.id) ||
                              club&.league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
     end
     nil
