@@ -31,7 +31,7 @@ class Seeding < ApplicationRecord
     state :no_show
   end
   belongs_to :player, optional: true
-  belongs_to :tournament, optional: true
+  belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
   belongs_to :league_team, optional: true
 

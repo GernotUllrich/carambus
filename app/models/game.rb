@@ -23,6 +23,7 @@ class Game < ApplicationRecord
   include LocalProtector
   include RegionTaggable
 
+  # belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
   has_one :table_monitor, dependent: :nullify
