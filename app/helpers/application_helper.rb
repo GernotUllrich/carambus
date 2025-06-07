@@ -24,8 +24,22 @@ module ApplicationHelper
     options[:title] ||= name.underscore.humanize
     options[:aria] = true
     options[:nocomment] = true
-    options[:class] = options.fetch(:styles, "fill-current text-gray-500")
-    options[:nonce] = content_security_policy_nonce
+    
+    # Handle styles separately from class
+    if options[:styles].present?
+      options[:style] = options[:styles]
+      options.delete(:styles)
+    end
+    
+    # Add nonce to both class and style attributes
+    nonce = content_security_policy_nonce
+    options[:nonce] = nonce
+    options[:class] = [options[:class], "fill-current text-gray-500"].compact.join(" ")
+    
+    # Add nonce to style attribute if present
+    if options[:style].present?
+      options[:style] = "#{options[:style]}; nonce=#{nonce}"
+    end
 
     filename = "#{name}.svg"
     inline_svg_tag(filename, options)
