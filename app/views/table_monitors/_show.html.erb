@@ -1,4 +1,6 @@
 <!--encoding: utf-8-->
+<%= stylesheet_link_tag "table_monitor", "data-turbo-track": "reload" %>
+
 <%- if table_monitor.andand.reload.present? %>
   <%- tid = table_monitor.id %>
   <%- Rails.logger.info "tam _show !!!!!!!!!!!!!!!!!!!!!!!!!!!!! #{tid} !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" %>

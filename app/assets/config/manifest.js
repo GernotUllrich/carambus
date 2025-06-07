@@ -8,6 +8,7 @@
 //= link scoreboard_free_game_pool.css
 //= link scoreboard_tournament_scores.css
 //= link scoreboard_tournament.css
+//= link table_monitor.css
 //= link application.css
 //= link application.tailwind.css
 
