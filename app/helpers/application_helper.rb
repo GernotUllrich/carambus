@@ -25,6 +25,7 @@ module ApplicationHelper
     options[:aria] = true
     options[:nocomment] = true
     options[:class] = options.fetch(:styles, "fill-current text-gray-500")
+    options[:nonce] = content_security_policy_nonce
 
     filename = "#{name}.svg"
     inline_svg_tag(filename, options)
