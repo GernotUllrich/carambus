@@ -52,4 +52,9 @@ StimulusReflex.configure do |config|
 
   # config.middleware.use FirstRackMiddleware
   # config.middleware.use SecondRackMiddleware
+
+  # Explicitly set isolation mode as the default behavior
+  # This acknowledges that we're using the new isolation mode behavior
+  # and removes the deprecation warning
+  config.isolation_mode = true
 end
