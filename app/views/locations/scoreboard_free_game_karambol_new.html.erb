@@ -27,6 +27,10 @@
     .text-shadow {
         text-shadow: 2px 2px #000000;
     }
+    #set_params {
+        display: none;
+        text-shadow: 2px 2px #000000;
+    }
 </style>
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
 <script defer src="/alpine.min.js"></script>
@@ -444,7 +448,7 @@
               <input name="warntime" type='number' x-model="warntime" class="flex w-20 text-2vw font-medium  shadow-sm text-gray-900 border rounded-md py-3 px-4">
             </label>
             <div class="flex pl-5 pr-5 text-4vw font-bold" @click="if (parseInt(warntime) >= 10) {increment = 5}; if (parseInt(warntime) >= 100) {increment = 25}; if (parseInt(warntime) >= 200) { increment = 100 }; if (parseInt(warntime) < 99) {warntime = parseInt(warntime) + increment};">+</div>
-            <div id="set_params" style="display: none; text-shadow: 2px 2px #000000" class="text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
+            <div id="set_params" class="text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
               <div class="flex flex-row text-white">
                 <div class="mb-1"><%= t("activerecord.attributes.tournament.kickoff_switches_with") %></div>
                 <%= content_tag :div, id: "kickoff_switches_with", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
