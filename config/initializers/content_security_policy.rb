@@ -40,7 +40,8 @@ Rails.application.config.content_security_policy do |policy|
       "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # First Turbo style
       "'sha256-5j81gpq0UivmDYXTlXpL6OlaOpmQRgb3uGSvE4a8Pmk='", # Second style
       "'sha256-8MKR4j8B1z6srQu4Pe0OATJdQlWy3zdKFo4UYI2nqWw='", # Third style
-      :unsafe_inline # Temporarily allow all inline styles in development
+      :unsafe_hashes,  # Allow hashes to work with style attributes and event handlers
+      :unsafe_inline   # Temporarily allow all inline styles in development
     policy.connect_src :self, :https, "ws://localhost:3000", "wss://localhost:3000"
   else
     # Production policy with strict nonces
@@ -52,7 +53,8 @@ Rails.application.config.content_security_policy do |policy|
     policy.style_src   :self, :https, "https://rsms.me",
       "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # First Turbo style
       "'sha256-5j81gpq0UivmDYXTlXpL6OlaOpmQRgb3uGSvE4a8Pmk='", # Second style
-      "'sha256-8MKR4j8B1z6srQu4Pe0OATJdQlWy3zdKFo4UYI2nqWw='"  # Third style
+      "'sha256-8MKR4j8B1z6srQu4Pe0OATJdQlWy3zdKFo4UYI2nqWw='",  # Third style
+      :unsafe_hashes   # Allow hashes to work with style attributes and event handlers
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 
