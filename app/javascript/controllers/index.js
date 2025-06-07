@@ -18,8 +18,11 @@ import consumer from '../channels/consumer'
 import FilterPopupController from "./filter_popup_controller"
 application.register("filter-popup", FilterPopupController)
 
+// Set the consumer on the application object as recommended
+application.consumer = consumer
+
+// Initialize StimulusReflex without the consumer option
 StimulusReflex.initialize(application, { 
-  consumer, 
   controller, 
   debug: true 
 })
