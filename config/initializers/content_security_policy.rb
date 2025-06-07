@@ -36,7 +36,9 @@ Rails.application.config.content_security_policy do |policy|
     policy.script_src  :self, :https,
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
-    policy.style_src   :self, "https://rsms.me"
+    policy.style_src   :self, "https://rsms.me", 
+      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # Allow the specific inline style that Turbo is trying to inject
+      :unsafe_inline # Temporarily allow all inline styles in development
     policy.connect_src :self, :https, "ws://localhost:3000", "wss://localhost:3000"
   else
     # Production policy with strict nonces
@@ -45,7 +47,8 @@ Rails.application.config.content_security_policy do |policy|
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self, :https, "https://cdn.jsdelivr.net", "https://newapi.carambus.de"
-    policy.style_src   :self, :https, "https://rsms.me"
+    policy.style_src   :self, :https, "https://rsms.me",
+      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='" # Allow the specific inline style that Turbo is trying to inject
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 
