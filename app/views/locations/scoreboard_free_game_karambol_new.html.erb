@@ -1,6 +1,6 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
 <!--<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>-->
-<style>
+<style nonce="<%= content_security_policy_nonce %>">
     .responsive-svg {
         width: 100%;
         height: auto;
@@ -9,7 +9,7 @@
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
 <script defer src="/alpine.min.js"></script>
 <script src="/onscreen-keyboard.js"></script>
-<script type="text/javascript">
+<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
 
   function players_mode() {
     set_players_modal();

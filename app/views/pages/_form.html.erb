@@ -81,7 +81,7 @@
   </div>
 <% end %>
 
-<script>
+<script nonce="<%= content_security_policy_nonce %>">
   document.addEventListener('DOMContentLoaded', function() {
     const previewToggle = document.getElementById('preview-toggle');
     const editToggle = document.getElementById('edit-toggle');
