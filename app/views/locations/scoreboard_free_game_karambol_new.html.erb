@@ -38,8 +38,8 @@
     document.getElementById("modal-new-player" + "-bg").classList.toggle("flex");
   }
 </script>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg" nonce="<%= content_security_policy_nonce %>"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players" nonce="<%= content_security_policy_nonce %>">
   <div id="players_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
     <div class="flex flex-col">
       <div class="flex justify-around pt-5 space-x-10">
@@ -125,8 +125,8 @@
     </div>
   </div>
 </div>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player">
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg" nonce="<%= content_security_policy_nonce %>"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player" nonce="<%= content_security_policy_nonce %>">
   <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
     <div class="flex flex-col">
       <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
@@ -153,7 +153,7 @@
         </div>
   </div>
 </div>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;" nonce="<%= content_security_policy_nonce %>">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
@@ -164,7 +164,7 @@
 <div data-controller="table-monitor" class="p-4 w-full m-auto flex
  items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
      style="background-image: url('<%= @location.background_image
-     .gsub(".", "-.") %>')">
+     .gsub(".", "-.") %>')" nonce="<%= content_security_policy_nonce %>">
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex
   text-gray-300 "><%= "#{table.andand.table_kind.andand.name} -
                         #{table.andand.name}" %></h1>
