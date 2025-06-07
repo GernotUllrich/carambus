@@ -28,6 +28,17 @@
     .text-shadow {
         text-shadow: 2px 2px #000000;
     }
+    /* Move any inline styles here */
+    .icon-lg {
+        width: 2rem;
+        height: 2rem;
+    }
+    .m-4 {
+        margin: 1rem;
+    }
+    .inline-block {
+        display: inline-block;
+    }
 </style>
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
 <script defer src="/alpine.min.js"></script>
@@ -178,10 +189,10 @@
 </div>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold -top-2.5 right-2.5">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= render_svg "icons/information-outline", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= render_svg "icons/home", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
 </div>
 <div data-controller="table-monitor" class="p-4 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat table-monitor-container">

@@ -28,15 +28,15 @@
 
 Rails.application.config.content_security_policy do |policy|
   if Rails.env.development?
-    # Development policy with unsafe-inline
+    # Development policy with nonces
     policy.default_src :self, :https
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
-    policy.script_src  :self, :https, :unsafe_inline, :unsafe_eval,
+    policy.script_src  :self, :https,
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
-    policy.style_src   :self, "https://rsms.me", :unsafe_inline
+    policy.style_src   :self, "https://rsms.me"
     policy.connect_src :self, :https, "ws://localhost:3000", "wss://localhost:3000"
   else
     # Production policy with strict nonces
@@ -45,7 +45,7 @@ Rails.application.config.content_security_policy do |policy|
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self, :https, "https://cdn.jsdelivr.net", "https://newapi.carambus.de"
-    policy.style_src   :self, :https, "https://rsms.me", :unsafe_inline
+    policy.style_src   :self, :https, "https://rsms.me"
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 

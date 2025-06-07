@@ -22,15 +22,6 @@
   <link rel="preconnect" href="https://rsms.me/">
   <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
   <%= yield :head %>
-  <% if Rails.env.production? %>
-    <style nonce="<%= content_security_policy_nonce %>">
-        /* Production styles */
-    </style>
-  <% else %>
-    <style>
-        /* Development styles without nonce */
-    </style>
-  <% end %>
   <style nonce="<%= content_security_policy_nonce %>">
       /* Initial states */
       .nav-target {
@@ -67,6 +58,26 @@
           .content-wrapper {
               margin-left: 0;
           }
+      }
+
+      /* Navbar styles */
+      .dropdown-menu {
+          position: absolute;
+          bottom: 100%;
+          left: 0;
+          margin-bottom: 0.5rem;
+      }
+
+      .dropdown-container {
+          position: relative;
+      }
+
+      /* Language switcher styles */
+      .language-switcher-menu {
+          position: absolute;
+          right: 0;
+          bottom: 100%;
+          margin-bottom: 0.5rem;
       }
   </style>
   <script nonce="<%= content_security_policy_nonce %>">

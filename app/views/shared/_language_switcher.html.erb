@@ -12,9 +12,8 @@
     </button>
   </div>
 
-  <div class="absolute right-0 bottom-full mb-2 origin-bottom-right bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 hidden"
-       data-dropdown-target="menu"
-       style="bottom: 100%; margin-bottom: 0.5rem;">
+  <div class="absolute right-0 origin-bottom-right bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 hidden language-switcher-menu"
+       data-dropdown-target="menu">
     <div class="py-1" role="menu" aria-orientation="vertical">
       <% if I18n.locale.to_s == "en" %>
         <%= link_to({ locale: 'de' }, 

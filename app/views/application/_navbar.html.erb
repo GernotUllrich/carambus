@@ -38,7 +38,7 @@
       <% else %>
         <!-- User menu - moved to bottom -->
         <div class="mb-4">
-          <div class="relative" data-controller="dropdown" style="position: relative;">
+          <div class="dropdown-container" data-controller="dropdown">
             <div class="flex items-center cursor-pointer" data-action="click->dropdown#toggle click@window->dropdown#hide">
               <%= image_tag gravatar_url_for(current_user.email, size: 50), class: "rounded-full" %>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current flex-shrink-0 w-4 h-4 ml-1 text-gray-800 dark:text-gray-300 transform rotate-180">
@@ -46,8 +46,7 @@
               </svg>
             </div>
             <div data-dropdown-target="menu"
-                 style="position: absolute; bottom: 100%; left: 0; margin-bottom: 0.5rem;"
-                 class="hidden w-48 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 z-[100]">
+                 class="dropdown-menu hidden w-48 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 z-[100]">
               <div class="py-1">
                 <%= custom_link_to t(".profile"), edit_user_registration_path,
                                    class: 'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800' %>
