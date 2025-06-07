@@ -47,10 +47,7 @@ Rails.application.config.content_security_policy do |policy|
     policy.script_src  :self, :https, "https://cdn.jsdelivr.net", :strict_dynamic
     policy.style_src   :self, :https, "https://rsms.me", :strict_dynamic
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
-
-    # Add asset-src directive to allow loading of assets
-    policy.asset_src   :self, :https
-end
+  end
 
   # Generate session nonces for permitted importmap, inline scripts, and inline styles
   Rails.application.config.content_security_policy_nonce_generator = ->(request) { SecureRandom.base64(16) }
