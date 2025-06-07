@@ -12,7 +12,7 @@
   <%= custom_link_to scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
     <%= render_svg "icons/home", class: "menu-icon", title: "home" %>
   <% end %>
-  <%= custom_link_to "#", :onclick => "warning_mode()", :"data-turbo" => false do %>
+  <%= custom_link_to "#", data: { action: "click->table-monitor#warningMode" }, :"data-turbo" => false do %>
     <%= render_svg "icons/backspace", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg sm:icon-sm m-2 lg:m-2 dark:text-gray-300 text-gray-300 inline-block", title: "terminate" %>
   <% end %>
 </div>

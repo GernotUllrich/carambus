@@ -41,53 +41,53 @@
       %>
     <%- end %>
   <%- end %>
-  <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, style: "display: none" do %>
-    <%= table_monitor.panel_state %>
-  <%- end %>
-  <%= content_tag "div", id: "current_element", current_element: table_monitor.current_element, style: "display: none" do %>
-    <%= table_monitor.current_element %>
-  <%- end %>
-  <%= content_tag "div", id: "previous_panel", previous_panel: "pointer_mode", style: "display: none" do %>
-    <%= "pointer_mode" %>
-  <%- end %>
-  <%= content_tag "div", id: "previous_element", previous_element: "pointer_mode", style: "display: none" do %>
-    <%= "pointer_mode" %>
-  <%- end %>
-  <!--suppress RubyScope -->
-  <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg"></div>
-  <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back">
-    <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 text-gray-800 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
-      <div class="flex flex-col justify-center items-center">
-        <%= render_svg "warning-sign-svgrepo-com", styles: "flex fill-current lg:m-5 dark:text-black text-white h-12 lg:h-24 w-12 lg:w-24" %>
-        <h1 class="text-3vw mb-5"><%= t('warning') %></h1>
-        <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
-        <%- #noinspection RubyResolve
-            if table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing?) %>
-          <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
-        <%- else %>
-          <p class="text-2vw text-center"><%= I18n.t('not_leave_party_game') %></p>
-        <%- end %>
-        <div class="flex flex-row pt-5 space-x-10">
-          <%= custom_link_to "Home", scoreboard_location_path(table_monitor.location.md5, sb_state: "welcome", :"data-turbo" => false), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless options[:tournament_title].present? && table_monitor.playing? %>
-            <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
+  <div data-controller="table-monitor">
+    <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, class: "hidden-element" do %>
+      <%= table_monitor.panel_state %>
+    <%- end %>
+    <%= content_tag "div", id: "current_element", current_element: table_monitor.current_element, class: "hidden-element" do %>
+      <%= table_monitor.current_element %>
+    <%- end %>
+    <%= content_tag "div", id: "previous_panel", previous_panel: "pointer_mode", class: "hidden-element" do %>
+      <%= "pointer_mode" %>
+    <%- end %>
+    <%= content_tag "div", id: "previous_element", previous_element: "pointer_mode", class: "hidden-element" do %>
+      <%= "pointer_mode" %>
+    <%- end %>
+    <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg" data-table-monitor-target="modalBg"></div>
+    <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back" data-table-monitor-target="modal">
+      <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 text-gray-800 dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none">
+        <div class="flex flex-col justify-center items-center">
+          <%= render_svg "warning-sign-svgrepo-com", class: "flex fill-current lg:m-5 dark:text-black text-white h-12 lg:h-24 w-12 lg:w-24" %>
+          <h1 class="text-3vw mb-5"><%= t('warning') %></h1>
+          <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
+          <%- if table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing?) %>
+            <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
+          <%- else %>
+            <p class="text-2vw text-center"><%= I18n.t('not_leave_party_game') %></p>
           <%- end %>
-          <%= custom_link_to t('continue'), "javascript:unset_warning_modal()", data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          <div class="flex flex-row pt-5 space-x-10">
+            <%= custom_link_to "Home", scoreboard_location_path(table_monitor.location.md5, sb_state: "welcome", :"data-turbo" => false), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
+            <%- unless options[:tournament_title].present? && table_monitor.playing? %>
+              <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
+            <%- end %>
+            <%= custom_link_to t('continue'), "#", data: { action: "click->table-monitor#unsetWarningModal" }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          </div>
         </div>
       </div>
     </div>
+    <%- if options.present? %>
+      <%- args = {
+        options: options,
+        table_monitor: table_monitor,
+        left_player: options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b],
+        right_player: options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a],
+        left_player_id: options[:current_left_player] == "playera" ? "playera" : "playerb",
+        right_player_id: options[:current_left_player] == "playera" ? "playerb" : "playera",
+        left_player_active: options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active],
+        right_player_active: options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active],
+      } %>
+      <%= render partial: 'table_monitors/scoreboard', locals: args.merge(fullscreen: full_screen) %>
+    <%- end %>
   </div>
-  <%- if options.present? %>
-    <%- args = {
-      options: options,
-      table_monitor: table_monitor,
-      left_player: options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b],
-      right_player: options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a],
-      left_player_id: options[:current_left_player] == "playera" ? "playera" : "playerb",
-      right_player_id: options[:current_left_player] == "playera" ? "playerb" : "playera",
-      left_player_active: options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active],
-      right_player_active: options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active],
-    } %>
-    <%= render partial: 'table_monitors/scoreboard', locals: args.merge(fullscreen: full_screen) %>
-  <%- end %>
 <%- end %>

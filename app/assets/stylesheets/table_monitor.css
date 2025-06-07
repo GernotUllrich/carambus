@@ -21,6 +21,11 @@
   display: none;
 }
 
+/* Hidden Elements */
+.hidden-element {
+  display: none;
+}
+
 /* Menu Styles */
 .menu-container {
   z-index: 999;
@@ -125,6 +130,37 @@
 
 .timer-bar.red {
   @apply text-red-600;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.modal-content {
+  position: relative;
+  padding: 20px;
+  margin: auto;
+  width: 75%;
+}
+
+.modal-content-30 {
+  position: relative;
+  background-color: black;
+  color: lightgray;
+  margin: auto;
+  width: 40%;
+}
+
+/* Score Background */
+.score-background {
+  background-color: #006178;
 }
 
 /* Responsive Adjustments */

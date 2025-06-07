@@ -32,7 +32,7 @@
             <%= "#{table_monitor.discipline} - " %>
           <%- end %>
           <%- delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
-          <%= "Aufnahme <strong class='text-2vw'>#{options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta}</strong".html_safe %>
+          <%= "Aufnahme <strong class='text-2vw'>#{options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta}</strong>".html_safe %>
 
         </div>
       </td>
@@ -63,7 +63,7 @@
         <%- if options[:free_game_form] == 'pool' && left_player[:discipline] != "14.1 endlos" %>
           <%#= options[:current_sets_a] %>
         <%- else %>
-          <div class="ml-2 p-1 text-gray-200 font-bold" style="background-color: #006178">
+          <div class="ml-2 p-1 text-gray-200 font-bold score-background">
             <%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %>
           </div>
         <%- end %>
@@ -90,10 +90,10 @@
         </div>
       </td>
       <td>
-        <%- if options['free_game_form'] == 'pool' && left_player["discipline"] != "14.1 endlos" %>
-          <%#= options["current_sets_b"] %>
+        <%- if options['free_game_form'] == 'pool' && left_player[:discipline] != "14.1 endlos" %>
+          <%#= options[:current_sets_a] %>
         <%- else %>
-          <div class="ml-2 p-1 text-gray-200 font-bold" style="background-color: #006178">
+          <div class="ml-2 p-1 text-gray-200 font-bold score-background">
             <%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %>
           </div>
         <%- end %>

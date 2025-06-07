@@ -1,9 +1,12 @@
 import ApplicationController from './application_controller'
+import { Controller } from "@hotwired/stimulus"
 
 /* This is the custom StimulusReflex controller for the Example Reflex.
  * Learn more at: https://docs.stimulusreflex.com
  */
 export default class extends ApplicationController {
+  static targets = ["modal", "modalBg"]
+
   /*
    * Regular Stimulus lifecycle methods
    * Learn more at: https://stimulusjs.org/reference/lifecycle-callbacks
@@ -86,4 +89,32 @@ export default class extends ApplicationController {
   //   console.error('danceError', error);
   //   element.innerText = "Couldn't dance!"
   // }
+
+  warningMode(event) {
+    event.preventDefault()
+    this.showWarningModal()
+  }
+
+  unsetWarningModal(event) {
+    event.preventDefault()
+    this.hideWarningModal()
+  }
+
+  showWarningModal() {
+    const modal = document.getElementById("modal-confirm-back")
+    const modalBg = document.getElementById("modal-confirm-back-bg")
+    if (modal && modalBg) {
+      modal.classList.remove("hidden")
+      modalBg.classList.remove("hidden")
+    }
+  }
+
+  hideWarningModal() {
+    const modal = document.getElementById("modal-confirm-back")
+    const modalBg = document.getElementById("modal-confirm-back-bg")
+    if (modal && modalBg) {
+      modal.classList.add("hidden")
+      modalBg.classList.add("hidden")
+    }
+  }
 }
