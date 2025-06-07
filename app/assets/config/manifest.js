@@ -9,6 +9,7 @@
 //= link scoreboard_free_game_karambol.css
 //= link scoreboard_free_game_pool.css
 //= link scoreboard_tournament_scores.css
+//= link scoreboard_tournament.css
 //= link application.css
 //= link application.tailwind.css
 
