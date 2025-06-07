@@ -1,5 +1,5 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
-<style>
+<style nonce="<%= content_security_policy_nonce %>">
     .responsive-svg {
         width: 100%;
         height: auto;
@@ -7,7 +7,7 @@
 
 </style>
 <!--<script src="hotkeys.js"></script>-->
-<script type="text/javascript">
+<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
   document.addEventListener('turbo:load', function() {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
