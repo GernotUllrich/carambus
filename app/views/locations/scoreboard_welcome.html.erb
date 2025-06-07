@@ -1,12 +1,6 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
-<style nonce="<%= content_security_policy_nonce %>">
-    .responsive-svg {
-        width: 100%;
-        height: auto;
-    }
+<%= stylesheet_link_tag "scoreboard_welcome", "data-turbo-track": "reload" %>
 
-</style>
-<!--<script src="hotkeys.js"></script>-->
 <script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
   document.addEventListener('turbo:load', function() {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
@@ -121,33 +115,25 @@
     }
   });
 </script>
-<style>
-    #info {
-        height: 40px;
-        position: fixed;
-        bottom: 0;
-        width: 300px;
-        color: white;
-        opacity: 1;
-    }
-</style>
+
 <div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
-<div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+
+<div class="welcome-container" style="background-image: url('<%= @location.background_image %>')">
   <% if I18n.locale.to_s == "en" %>
     <%= custom_link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-
   <% else %>
     <%= custom_link_to image_tag("flag_en.png"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-
   <% end %>
-  <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
-  <p style="text-shadow: 2px 2px #000000" class="mb-6 text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
-  <span>
-    <%= custom_link_to "Start", location_path(sb_state: "start"), class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary p-5 lg:p-10 text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "start", data: { turbo: false }, tabindex: 1 %>
-    <%= custom_link_to "Intro", intro_path, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary p-5 lg:p-10 text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "intro", data: { turbo: false }, tabindex: 2 %>
-  </span>
-  <span class="flex items-center flex-row h-1/4 space-x-20">
-    <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations"), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "reservations", tabindex: 1 %>
-  </span>
 
+  <h1 class="welcome-title text-4vw flex mb-2 text-gray-200"><%= t('welcome') + " - #{@location.name}" %></h1>
+  <p class="welcome-subtitle mb-6 text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
+  
+  <span>
+    <%= custom_link_to "Start", location_path(sb_state: "start"), class: "welcome-button", id: "start", data: { turbo: false }, tabindex: 1 %>
+    <%= custom_link_to "Intro", intro_path, class: "welcome-button", id: "intro", data: { turbo: false }, tabindex: 2 %>
+  </span>
+  
+  <span class="flex items-center flex-row h-1/4 space-x-20">
+    <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations"), data: { turbo: false }, class: "welcome-button", id: "reservations", tabindex: 1 %>
+  </span>
 </div>
