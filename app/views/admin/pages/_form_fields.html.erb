@@ -48,7 +48,7 @@
         <button type="button" class="md-btn" onclick="undoMarkdown()" title="Undo" style="background-color: #ffcccc;">↩ Undo</button>
       </div>
 
-      <style nonce="<%= content_security_policy_nonce %>">
+      <style>
         .markdown-toolbar {
           display: flex;
           flex-wrap: wrap;
@@ -175,7 +175,7 @@
   </div>
 </div>
 
-<script nonce="<%= content_security_policy_nonce %>">
+<script>
   // Store editor history for undo
   let editorHistory = [];
   const MAX_HISTORY = 50;
