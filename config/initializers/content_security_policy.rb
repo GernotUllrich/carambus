@@ -44,8 +44,8 @@ Rails.application.config.content_security_policy do |policy|
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
-    policy.script_src  :self, :https, "https://cdn.jsdelivr.net", :strict_dynamic
-    policy.style_src   :self, :https, "https://rsms.me", :strict_dynamic
+    policy.script_src  :self, :https, "https://cdn.jsdelivr.net", "https://newapi.carambus.de"
+    policy.style_src   :self, :https, "https://rsms.me", :unsafe_inline
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 
