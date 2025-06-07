@@ -61,6 +61,5 @@ yarn-debug.log*
 /config/credentials/production-carambus-de.key
 
 /config/credentials/test.key
-/config/deploy.rb
 /config/deploy/*
 /config/carambus.yml
