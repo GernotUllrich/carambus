@@ -1,0 +1,114 @@
+/* Scoreboard Free Game Karambol Styles */
+.responsive-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Modal styles */
+.modal-bg {
+  @apply opacity-70 fixed inset-0 bg-black;
+  z-index: 900;
+}
+
+.modal-container {
+  @apply overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center;
+  z-index: 910;
+}
+
+.modal-content {
+  @apply border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col w-5/6 dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none;
+}
+
+/* Navigation icons */
+.nav-icons {
+  @apply w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold;
+  right: 10px;
+  top: -10px;
+}
+
+/* Table monitor container */
+.table-monitor-container {
+  @apply p-4 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat;
+}
+
+/* Handle dynamic background image via data attribute */
+.table-monitor-container[data-background-image] {
+  background-image: var(--bg-image);
+}
+
+/* Title styles */
+.table-title {
+  @apply text-4vw flex text-gray-300;
+  text-shadow: 2px 2px #000000;
+}
+
+/* Player selection styles */
+.player-selection-container {
+  @apply flex justify-between w-full text-2vw;
+}
+
+.player-column {
+  @apply flex-col;
+}
+
+.player-option {
+  @apply flex mb-2;
+}
+
+.player-radio {
+  @apply mr-4 text-4vw;
+}
+
+/* Form styles */
+.form-control {
+  @apply w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500;
+}
+
+.form-group {
+  @apply mb-4;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500;
+}
+
+/* Game settings styles */
+.game-settings {
+  @apply mt-8 text-2vw grid grid-cols-6 gap-6 items-center;
+}
+
+.game-settings-input {
+  @apply py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500;
+}
+
+/* Karambol specific styles */
+.karambol-discipline-select {
+  @apply grid grid-cols-4 gap-4;
+}
+
+.karambol-discipline-option {
+  @apply flex items-center justify-center p-2 border-2 rounded-lg cursor-pointer;
+}
+
+.karambol-discipline-option.active {
+  @apply border-green-500 bg-green-100 dark:bg-green-900;
+}
+
+.karambol-discipline-option:not(.active) {
+  @apply border-gray-300 dark:border-gray-600;
+}
+
+/* Icon utilities */
+.icon-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.m-4 {
+  margin: 1rem;
+}
+
+.inline-block {
+  display: inline-block;
+} 

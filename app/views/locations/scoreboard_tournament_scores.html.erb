@@ -1,20 +1,16 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
-<style>
-    .responsive-svg {
-        width: 100%;
-        height: auto;
-    }
-</style>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<%= stylesheet_link_tag "scoreboard_tournament_scores", "data-turbo-track": "reload" %>
+
+<div class="nav-icons">
   <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
-    <%= render_svg "icons/adjust", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
+    <%= render_svg "icons/adjust", class: "nav-icon", title: "toggle dark mode" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= render_svg "icons/home", class: "nav-icon", title: "home" %>
   <% end %>
 </div>
 
-<div class="p-14 w-full m-auto flex flex-col bg-cover h-screen bg-center bg-no-repeat">
+<div class="tournament-container" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
   <%- if @location.tournaments.present? %>
     <%- @tournaments = @tournament.present? ? [@tournament] : @location.tournaments.joins(:tournament_monitor).order("tournament_monitors.updated_at desc").to_a %>
 
@@ -24,7 +20,7 @@
         <%- table_monitors = tournament&.tournament_monitor&.table_monitors.to_a.sort_by { |tm| tm.table.name }.reverse %>
         <%- cols = { 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 4, 6 => 3, 8 => 4, 9 => 3, 10 => 4, 11 => 4, 12 => 4, 13 => 4, 14 => 4, 15 => 3, 16 => 4, 17 => 4, 18 => 4 }[table_monitors.count] || 3 %>
         <%#- cols = { 1 => 1, 2 => 2, 3 => 2, 4 => 2, 5 => 2, 6 => 2, 8 => 2, 9 => 2, 10 => 5, 11 => 6, 12 => 6, 13 => 7, 14 => 7, 15 => 5, 16 => 6, 17 => 6, 18 => 6 }[table_monitors.count] || 3 %>
-        <turbo-frame id="teasers" class="grid grid-cols-<%= cols %> text-<%= cols < 4 ? "3" : "2" %>vw gap-8">
+        <turbo-frame id="teasers" class="tournament-grid grid-cols-<%= cols %> text-<%= cols < 4 ? "3" : "2" %>vw">
           <%- monitors = tournament&.tournament_monitor&.table_monitors %>
           <%- monitors&.joins(:game).to_a.sort_by { |tm| tm.table.name }.reverse.each do |table_monitor| %>
             <%- table_monitor.get_options!(I18n.locale) %>
@@ -37,3 +33,17 @@
     <%- end %>
   <%- end %>
 </div>
+
+<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
+  document.addEventListener('turbo:load', function() {
+    // Set the background image via CSS variable
+    const container = document.querySelector('.tournament-container');
+    if (container) {
+      const bgImage = container.style.backgroundImage;
+      if (bgImage) {
+        container.style.setProperty('--bg-image', bgImage);
+        container.style.backgroundImage = 'var(--bg-image)';
+      }
+    }
+  });
+</script>
