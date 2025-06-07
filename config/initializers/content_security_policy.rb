@@ -37,7 +37,9 @@ Rails.application.config.content_security_policy do |policy|
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
     policy.style_src   :self, "https://rsms.me", 
-      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # Allow the specific inline style that Turbo is trying to inject
+      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # First Turbo style
+      "'sha256-5j81gpq0UivmDYXTlXpL6OlaOpmQRgb3uGSvE4a8Pmk='", # Second style
+      "'sha256-8MKR4j8B1z6srQu4Pe0OATJdQlWy3zdKFo4UYI2nqWw='", # Third style
       :unsafe_inline # Temporarily allow all inline styles in development
     policy.connect_src :self, :https, "ws://localhost:3000", "wss://localhost:3000"
   else
@@ -48,7 +50,9 @@ Rails.application.config.content_security_policy do |policy|
     policy.object_src  :none
     policy.script_src  :self, :https, "https://cdn.jsdelivr.net", "https://newapi.carambus.de"
     policy.style_src   :self, :https, "https://rsms.me",
-      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='" # Allow the specific inline style that Turbo is trying to inject
+      "'sha256-N1w/IunAmcmGA9bmhwczywYKXhI6/OPxe8mLaECWK0I='", # First Turbo style
+      "'sha256-5j81gpq0UivmDYXTlXpL6OlaOpmQRgb3uGSvE4a8Pmk='", # Second style
+      "'sha256-8MKR4j8B1z6srQu4Pe0OATJdQlWy3zdKFo4UYI2nqWw='"  # Third style
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 
