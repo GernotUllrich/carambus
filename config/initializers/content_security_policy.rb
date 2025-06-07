@@ -45,7 +45,10 @@ Rails.application.config.content_security_policy do |policy|
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self, :https, "https://cdn.jsdelivr.net", "https://newapi.carambus.de"
-    policy.style_src   :self, :https, "https://rsms.me"
+    policy.style_src   :self, :https, "https://rsms.me",
+      "'sha256-T6AAKdWxO6p6GZVyzGAJDSLhOoPuuoZ6LlqMX153CvM='",
+      "'sha256-OD6WnTmlDUupIM8rAu4UL6qJs5EwvEUS0pvHy7bPG0E='",
+      "'sha256-5L89cK0rWgjOmHtGR05/Rstw8KlD99HzM4VxTNbffgA='"
     policy.connect_src :self, :https, "wss://#{Carambus.config.carambus_domain}"
   end
 
