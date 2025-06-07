@@ -21,8 +21,17 @@ application.register("filter-popup", FilterPopupController)
 // Set the consumer on the application object as recommended
 application.consumer = consumer
 
-// Initialize StimulusReflex without the consumer option
+// Initialize StimulusReflex with only the essential options
+// Note: isolation mode will be the default in the next version
 StimulusReflex.initialize(application, { 
   controller, 
   debug: true 
 })
+
+// If you need to broadcast updates to other tabs, use CableReady operations
+// Example:
+// CableReady.perform({
+//   operations: [
+//     { broadcast: { channel: "YourChannel", data: { message: "Update" } } }
+//   ]
+// })
