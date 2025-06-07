@@ -1,6 +1,7 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
 <!--<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>-->
 <style nonce="<%= content_security_policy_nonce %>">
+    /* Only keep styles that can't be achieved with Tailwind utilities */
     .responsive-svg {
         width: 100%;
         height: auto;
@@ -17,15 +18,8 @@
     #modal-new-player {
         z-index: 910;
     }
-    .top-right-menu {
-        right: 10px;
-        top: -10px;
-    }
     .table-monitor-container {
         background-image: url('<%= @location.background_image.gsub(".", "-.") %>');
-    }
-    .text-shadow {
-        text-shadow: 2px 2px #000000;
     }
     #set_params {
         display: none;
@@ -178,7 +172,7 @@
         </div>
   </div>
 </div>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold top-right-menu">
+<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold -top-2.5 right-2.5">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
