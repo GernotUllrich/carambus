@@ -34,6 +34,11 @@
   flex-direction: column;
 }
 
+/* Handle dynamic background image via data attribute */
+.welcome-container[data-background-image] {
+  background-image: var(--bg-image);
+}
+
 .welcome-button {
   @apply dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary;
   padding: 1.25rem 2.5rem;

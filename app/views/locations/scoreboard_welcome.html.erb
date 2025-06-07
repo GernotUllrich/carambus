@@ -3,6 +3,15 @@
 
 <script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
   document.addEventListener('turbo:load', function() {
+    // Set the background image via CSS variable
+    const container = document.querySelector('.welcome-container');
+    if (container) {
+      const bgImage = container.dataset.backgroundImage;
+      if (bgImage) {
+        container.style.setProperty('--bg-image', `url('${bgImage}')`);
+      }
+    }
+
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
       console.error('Hotkeys not available!');
@@ -118,7 +127,7 @@
 
 <div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
 
-<div class="welcome-container" style="background-image: url('<%= @location.background_image %>')">
+<div class="welcome-container" data-background-image="<%= @location.background_image %>">
   <% if I18n.locale.to_s == "en" %>
     <%= custom_link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
   <% else %>
