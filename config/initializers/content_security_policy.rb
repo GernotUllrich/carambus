@@ -34,18 +34,25 @@ Rails.application.config.content_security_policy do |policy|
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
   else
-    # Production policy with strict nonces
-    policy.style_src :self, 'https://rsms.me', :strict_dynamic
-    policy.script_src :self, 'https://cdn.jsdelivr.net', :strict_dynamic
+    # Initial production policy - more permissive
+    policy.default_src :self
+    policy.font_src :self, :https, :data
+    policy.img_src :self, :https, :data
+    policy.object_src :none
+    policy.script_src :self, :unsafe_inline, :unsafe_eval,
+      "https://cdn.jsdelivr.net",
+      "https://unpkg.com"
+    policy.style_src :self, :unsafe_inline, "https://rsms.me"
+    policy.connect_src :self, :https
+    policy.frame_src :self
+    policy.media_src :self
   end
-
-  # Consider adding these for production as well (without unsafe_inline/unsafe_eval)
-  # policy.style_src :self, "https://rsms.me"
-  # policy.script_src :self, "https://unpkg.com"
 end
 
 # Nonce generation only in production
 if Rails.env.production?
   Rails.application.config.content_security_policy_nonce_generator = ->(request) { SecureRandom.base64(16) }
   Rails.application.config.content_security_policy_nonce_directives = %w(script-src style-src)
+  # Start in report-only mode to catch issues without breaking functionality
+  Rails.application.config.content_security_policy_report_only = true
 end
