@@ -8,11 +8,17 @@
       <%= form.hidden_field :organizer_id, value: @location.organizer_id %>
       <%= form.hidden_field :organizer_type, value: @location.organizer_type %>
     <%- elsif @region.present? %>
-      <%= form.label :club_id %>
-      <%= form.select :club_id, options_for_select(@region.clubs.order(:shortname).map{|club| [club.shortname, club.id]}, @location.club_id) %>
+      <%= form.label :organizer_id %>
+      <%= form.hidden_field :organizer_id, value: @region.id %>
+      <%= form.hidden_field :organizer_type, value: "Region" %>
+    <%- elsif @club.present? %>
+      <%= form.label :organizer_id %>
+      <%= form.hidden_field :organizer_id, value: @club.id %>
+      <%= form.hidden_field :organizer_type, value: "Club" %>
     <% else %>
-      <%= form.label :club_id %>
-      <%= form.number_field :club_id, class: "form-control", value: @location.club_id %>
+      <%= form.label :organizer_id %>
+      <%= form.hidden_field :organizer_id, value: @location&.organizer_type %>
+      <%= form.number_field :club_id, class: "form-control", value: @location&.organizer_id %>
     <%- end %>
   </div>
 

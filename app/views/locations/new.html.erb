@@ -8,33 +8,5 @@
     <div class="rounded shadow p-8">
       <%= render 'locations/form', location: @location %>
     </div>
-
-    <div class="flex justify-between items-center mt-8 mb-4">
-      <h1 class="h3">Rankings by Region</h1>
-      <div class="flex space-x-4">
-        <%= link_to 'Back to Players', players_path, class: "btn btn-link" %>
-      </div>
-    </div>
-
-    <div class="bg-white rounded shadow p-8">
-      <% @regions.each do |region| %>
-        <% if region.has_rankings? %>
-          <div class="mb-6 border-b pb-4">
-            <h2 class="text-xl font-semibold mb-3"><%= region.name %></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <% region.rankings.each do |ranking| %>
-                <div class="bg-gray-50 p-4 rounded">
-                  <h3 class="font-medium mb-2"><%= ranking.discipline.name %></h3>
-                  <div class="flex justify-between text-sm">
-                    <span>GD (3Y): <%= format_gd(ranking.three_year_gd) %></span>
-                    <span>BTG: <%= format_btg(ranking.btg) %></span>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
   </div>
 </div>
