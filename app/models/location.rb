@@ -37,7 +37,7 @@ class Location < ApplicationRecord
 
   self.ignored_columns = ["club_id"]
 
-  after_save :update_club_location
+  # after_save :update_club_location
 
   cattr_accessor :table_kinds
 
