@@ -7,7 +7,7 @@ set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, "DEPLOY"
+set :branch, "master"
 
 set :default_env, {
   path: "/var/www/.nvm/versions/node/v20.15.0/bin:$PATH"
