@@ -37,6 +37,8 @@ class Location < ApplicationRecord
 
   self.ignored_columns = ["club_id"]
 
+  after_save :update_club_location
+
   cattr_accessor :table_kinds
 
   serialize :data, coder: JSON, type: Hash
@@ -72,6 +74,13 @@ class Location < ApplicationRecord
   def add_md5
     self.synonyms = (synonyms.to_s.split("\n") + [name]).reject(&:blank?).sort.uniq.join("\n")
     self.md5 ||= Digest::MD5.hexdigest(attributes.except("synonyms", "updated_at", "created_at").inspect)
+  end
+
+  def update_club_location
+    if organizer.is_a? Club
+      ClubLocation.find_or_create_by!(club: organizer, location: self)
+      reload
+    end
   end
 
   def self.scrape_locations

@@ -253,9 +253,9 @@ class LocationsController < ApplicationController
   def new
     @location = Location.new
     @club = Club.find(params[:club_id]) if params[:club_id].present?
-    return unless params[:region_id].present?
-
-    @region = Region.find(params[:region_id])
+    @club ||= Club[Carambus.config.club_id]
+    @region = Region.find(params[:region_id]) if params[:region_id].present?
+    @location.organizer = @club || @region
   end
 
   # GET /locations/1/edit
@@ -345,11 +345,7 @@ class LocationsController < ApplicationController
   # POST /locations
   def create
     @location = Location.new(location_params.merge(data: JSON.parse(location_params[:data])))
-    @location.organizer ||= Club[@location.club_id].andand.region
     if @location.save
-      if @location.club_id.present?
-        @club_location = ClubLocation.find_or_create_by(club_id: @location.club_id, location_id: @location.id)
-      end
       redirect_to @location, notice: "Location was successfully created."
     else
       render :new
@@ -448,7 +444,7 @@ class LocationsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def location_params
-    params.require(:location).permit(:club_id, :region_id, :address, :data, :name, :season_id, :club_id, :merge, :with)
+    params.require(:location).permit(:organizer_id, :organizer_type, :region_id, :address, :data, :name, :season_id, :merge, :with)
   end
 
   def preload_tournament_data
