@@ -61,7 +61,7 @@
                 #&& !table_monitor.end_of_set? %>
             <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
-          <%= custom_link_to t('continue'), "javascript:unset_warning_modal()", data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          <%= custom_link_to t('continue'), "#", data: { action: "click->table-monitor#unsetWarningModal" }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
         </div>
       </div>
     </div>

@@ -2,54 +2,70 @@
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<style>
-    .responsive-svg {
-        width: 100%;
-        height: auto;
-    }
-</style>
-<!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
+<%= stylesheet_link_tag "scoreboard_free_game_pool", "data-turbo-track": "reload" %>
+
+<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
 <!--<script src="/alpine.min.js"></script>-->
 <script src="/onscreen-keyboard.js"></script>
-<script type="text/javascript">
+<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
+  document.addEventListener('turbo:load', function() {
+    // Set the background image via CSS variable
+    const container = document.querySelector('.table-monitor-container');
+    if (container) {
+      const bgImage = container.dataset.backgroundImage;
+      if (bgImage) {
+        container.style.setProperty('--bg-image', `url('${bgImage}')`);
+      }
+    }
 
-  function players_mode() {
-    set_players_modal();
-  }
+    // Player management functions
+    window.players_mode = function() {
+      set_players_modal();
+    }
 
-  function new_player_mode() {
-    set_new_player_modal();
-  }
+    window.new_player_mode = function() {
+      set_new_player_modal();
+    }
 
-  function set_checked_player(ab, ix, val) {
-    document.getElementById("player" + ab + "_" + ix).checked = true
-    document.getElementById("player_" + ab + "_id").value = val
-  }
+    window.set_checked_player = function(ab, ix, val) {
+      document.getElementById("player" + ab + "_" + ix).checked = true;
+      document.getElementById("player_" + ab + "_id").value = val;
+    }
 
-  function set_players_modal() {
-    document.getElementById("modal-players").classList.toggle("hidden");
-    document.getElementById("modal-players" + "-bg").classList.toggle("hidden");
-    document.getElementById("modal-players").classList.toggle("flex");
-    document.getElementById("modal-players" + "-bg").classList.toggle("flex");
-  }
+    function set_players_modal() {
+      document.getElementById("modal-players").classList.toggle("hidden");
+      document.getElementById("modal-players-bg").classList.toggle("hidden");
+      document.getElementById("modal-players").classList.toggle("flex");
+      document.getElementById("modal-players-bg").classList.toggle("flex");
+    }
 
-  function set_new_player_modal() {
-    document.getElementById("modal-new-player").classList.toggle("hidden");
-    document.getElementById("modal-new-player" + "-bg").classList.toggle("hidden");
-    document.getElementById("modal-new-player").classList.toggle("flex");
-    document.getElementById("modal-new-player" + "-bg").classList.toggle("flex");
-  }
+    function set_new_player_modal() {
+      document.getElementById("modal-new-player").classList.toggle("hidden");
+      document.getElementById("modal-new-player-bg").classList.toggle("hidden");
+      document.getElementById("modal-new-player").classList.toggle("flex");
+      document.getElementById("modal-new-player-bg").classList.toggle("flex");
+    }
+
+    // Make modal functions globally available
+    window.set_players_modal = set_players_modal;
+    window.set_new_player_modal = set_new_player_modal;
+  });
 </script>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
-  <div id="players_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
+<div class="modal-bg hidden" id="modal-players-bg"></div>
+<div class="modal-container hidden" id="modal-players">
+  <div id="players_modal_setup__2" class="modal-content">
     <div class="flex flex-col">
       <div class="flex justify-around pt-5 space-x-10">
-        <%= custom_link_to t('continue'), "javascript:set_players_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+        <%= custom_link_to t('continue'), "javascript:void(0)", 
+            onclick: "set_players_modal()",
+            data: { turbolinks: false }, 
+            class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", 
+            id: "cancel", 
+            tabindex: "1" %>
       </div>
       <div class="flex justify-around w-full text-3vw">
-        <div class="">Spieler A</div>
-        <div class="">Spieler B</div>
+        <div>Spieler A</div>
+        <div>Spieler B</div>
       </div>
       <%- players = [] %>
       <%- players += [["---Gäste---", ""]] +
@@ -58,20 +74,32 @@
       %>
       <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
       <%- count = players.count %>
-      <div class="flex justify-between w-full text-2vw">
+      <div class="player-selection-container">
         <div class="mr-2">
           <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
             <div class="flex flex-row w-full">
-              <div class="flex-col">
+              <div class="player-column">
                 <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="flex mb-2">
-                    <div class="">
+                  <div class="player-option">
+                    <div>
                       <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], nil, 
+                            class: "player-radio", 
+                            id: "playera_#{ix}", 
+                            data: { 
+                              action: "click->set_checked_player",
+                              player: "a",
+                              index: ix,
+                              value: players[ix][1]
+                            } %>
                       <%- end %>
                     </div>
-                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
-                      <%= players[ix][0] %></div>
+                    <div data-action="click->set_checked_player" 
+                         data-player="a" 
+                         data-index="<%= ix %>" 
+                         data-value="<%= players[ix][1] %>">
+                      <%= players[ix][0] %>
+                    </div>
                   </div>
                 <%- end %>
               </div>
@@ -127,9 +155,9 @@
     </div>
   </div>
 </div>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player">
-  <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
+<div class="modal-bg hidden" id="modal-new-player-bg"></div>
+<div class="modal-container hidden" id="modal-new-player">
+  <div id="new_player_modal_setup__2" class="modal-content">
     <div class="flex flex-col">
       <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
       <div class="flex justify-around w-full text-3vw">
@@ -146,32 +174,32 @@
             <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
           </div>
           <div class="form-group">
-            <%= custom_link_to t('back'), "javascript:set_new_player_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
-
+            <%= custom_link_to t('back'), "javascript:void(0)", 
+                onclick: "set_new_player_modal()",
+                data: { turbolinks: false }, 
+                class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", 
+                id: "cancel", 
+                tabindex: "1" %>
             <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
           </div>
-          </div>
         <% end %>
+      </div>
     </div>
   </div>
 </div>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="nav-icons">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= render_svg "icons/information-outline", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= render_svg "icons/home", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
 </div>
-<div data-controller="table-monitor" class="p-4 w-full m-auto flex
- items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
-     style="background-image: url('<%= @location.background_image
-     .gsub(".", "-.") %>')">
-  <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex
-  text-gray-300 "><%= "#{table.andand.table_kind.andand.name} -
-                        #{table.andand.name}" %></h1>
+<div data-controller="table-monitor" 
+     class="table-monitor-container"
+     data-background-image="<%= @location.background_image.gsub(".", "-.") %>">
+  <h1 class="table-title"><%= "#{table.andand.table_kind.andand.name} - #{table.andand.name}" %></h1>
   <%- if @location.present? %>
-    <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
     <%= form_tag start_game_table_monitor_path(table_monitor), method: :post, class: "flex flex-col text-gray-300" do %>
       <input name='free_game_form' value='pool' type='hidden'/>
       <div class="flex justify-center mt-4 text-center">
@@ -179,9 +207,7 @@
           <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
         </div>
       </div>
-      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, increment_points: 1, points: 80, points_2: 80, increment_games: 2, games: 2, games_2: 2, increment_innings: 1, innings: 0, innings_2: 0, first_break: 0, next_break: 0, discipline: 1, discipline_2: 1, sets: 1}" class="mt-8 text-2vw grid grid-cols-6 gap-6 items-center">
-        <input type="hidden" name="gametime" x-model.number="gametime" >
-        <input type="hidden" name="warntime" x-model.number="warntime" >
+      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, increment_points: 1, points: 80, points_2: 80, increment_games: 2, games: 2, games_2: 2, increment_innings: 1, innings: 0, innings_2: 0, first_break: 0, next_break: 0, discipline: 1, discipline_2: 1, sets: 1}" class="game-settings">
         <div>Spieler</div>
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
@@ -197,7 +223,6 @@
           </div>
         </div>
         <div class="col-span-1">
-
           <div class="flex">
             <%= custom_link_to "Neuer Spieler", "javascript:new_player_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
           </div>
@@ -295,6 +320,6 @@
           %>
         </form>
       </div>
-    <%- end %>
-  <%- end %>
+    <% end %>
+  <% end %>
 </div>

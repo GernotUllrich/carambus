@@ -1,0 +1,113 @@
+/* Location View Styles */
+
+/* Text Shadow */
+.text-shadow {
+  text-shadow: 2px 2px #000000;
+}
+
+/* Fixed Navigation */
+.fixed-nav {
+  position: fixed;
+  right: 10px;
+  top: -10px;
+}
+
+/* Background Image Container */
+.bg-image-container {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+}
+
+/* Modal Styles */
+.modal-background {
+  z-index: 900;
+}
+
+.modal-content {
+  z-index: 910;
+}
+
+/* Tournament Container */
+.tournament-container {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Responsive Text */
+.text-responsive-1 {
+  font-size: 1vw;
+}
+
+.text-responsive-2 {
+  font-size: 2vw;
+}
+
+.text-responsive-3 {
+  font-size: 3vw;
+}
+
+.text-responsive-4 {
+  font-size: 4vw;
+}
+
+/* Grid Layouts */
+.grid-nav {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.grid-nav-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* Button Styles */
+.btn-action {
+  @apply focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary;
+}
+
+.btn-action-full {
+  @apply flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .text-responsive-1 {
+    font-size: 1.5vw;
+  }
+  
+  .text-responsive-2 {
+    font-size: 2.5vw;
+  }
+  
+  .text-responsive-3 {
+    font-size: 3.5vw;
+  }
+  
+  .text-responsive-4 {
+    font-size: 4.5vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-responsive-1 {
+    font-size: 2vw;
+  }
+  
+  .text-responsive-2 {
+    font-size: 3vw;
+  }
+  
+  .text-responsive-3 {
+    font-size: 4vw;
+  }
+  
+  .text-responsive-4 {
+    font-size: 5vw;
+  }
+} 

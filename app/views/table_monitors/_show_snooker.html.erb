@@ -122,7 +122,7 @@
                 #&& !table_monitor.end_of_set? %>
             <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
-          <%= custom_link_to t('continue'), "javascript:unset_warning_modal()", data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          <%= custom_link_to t('continue'), "#", data: { action: "click->table-monitor#unsetWarningModal" }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
         </div>
       </div>
     </div>
@@ -160,11 +160,11 @@
       <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
       <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
       <div class="flex h-5/6 bg-gray-200">
-        <div class="w-2/5 <%= options[:current_left_color] == "yellow" ? "player_b dark:bg-black bg-yellow-500 text-gray-800 dark:text-yellow-400" : "player_a  text-gray-800 dark:text-gray-200 bg-yellow-500" %> dark:bg-black">
-          <div class="flex h-1/6  dark:bg-black items-center">
+        <div class="player-section <%= options[:current_left_color] == "yellow" ? "player-b" : "player-a" %>">
+          <div class="flex h-1/6 items-center">
             <div class="flex <%= "w-5/6" if options[:sets_to_play].to_i > 1 %>">
               <div class="p-2"><%= image_tag(left_player[:logo]) if left_player[:logo].present? %></div>
-              <div class="flex-nowrap  <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && left_player[:fullname].andand.length.to_i < 20 %> text-4vw"><%= left_player[:fullname] %></div>
+              <div class="flex-nowrap <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && left_player[:fullname].andand.length.to_i < 20 %> text-4vw"><%= left_player[:fullname] %></div>
             </div>
             <%- if options[:sets_to_play].to_i > 1 %>
               <div class="flex w-1/6 grid place-items-center border-solid font-bold text-6vw border-4">
@@ -291,7 +291,7 @@
             </div>
           <%- end %>
         </div>
-        <div class="w-2/5 <%= options[:current_left_color] == "white" ? "player_b dark:bg-black  dark:text-yellow-400" : "player_a text-gray-200 bg-yellow-500" %> dark:bg-black">
+        <div class="w-2/5 <%= options[:current_left_color] == "white" ? "player-b dark:bg-black  dark:text-yellow-400" : "player-a text-gray-200 bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6  dark:bg-black items-center">
             <%- if options[:sets_to_play].to_i > 1 %>
               <div class="flex w-1/6 grid place-items-center border-solid font-bold text-6vw border-4">
@@ -505,7 +505,7 @@
             </div>
           </div>
         </div>
-        <div class="w-2/5 <%= options[:current_left_color] == "white" ? "player_b dark:bg-black  dark:text-yellow-400" : "player_a text-gray-200 bg-yellow-500" %> dark:bg-black">
+        <div class="w-2/5 <%= options[:current_left_color] == "white" ? "player-b dark:bg-black  dark:text-yellow-400" : "player-a text-gray-200 bg-yellow-500" %> dark:bg-black">
           <div class="flex h-1/6  dark:bg-black items-center">
             <%- if options[:sets_to_play].to_i > 1 %>
               <div class="flex w-1/6 grid place-items-center border-solid text-3vw border-4">

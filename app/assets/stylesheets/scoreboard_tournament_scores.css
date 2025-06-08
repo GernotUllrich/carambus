@@ -1,0 +1,164 @@
+/* Tournament Scores Styles */
+
+/* Responsive SVG */
+.responsive-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Navigation */
+.nav-icons {
+  position: fixed;
+  right: 10px;
+  top: -10px;
+  width: 8.33%; /* w-1/12 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-right: 1rem;
+  color: rgb(209 213 219); /* text-gray-300 */
+  font-weight: 700;
+  font-size: 2vw;
+}
+
+.nav-icons:hover {
+  color: black;
+}
+
+.nav-icon {
+  width: 100%;
+  height: auto;
+  fill: currentColor;
+  margin: 1rem;
+  display: inline-block;
+}
+
+/* Tournament Container */
+.tournament-container {
+  padding: 3.5rem;
+  width: 100%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+}
+
+/* Tournament Title */
+.tournament-title {
+  text-shadow: 2px 2px #000000;
+  display: flex;
+  color: rgb(250 204 21); /* text-yellow-400 */
+  margin: 1.25rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  font-size: 3vw;
+}
+
+/* Tournament Grid */
+.tournament-grid {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Responsive grid columns */
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Responsive text sizes */
+.text-2vw { font-size: 2vw; }
+.text-3vw { font-size: 3vw; }
+
+/* Table Monitor Teaser */
+.table-monitor-teaser {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: white;
+}
+
+.table-monitor-teaser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.table-monitor-teaser-title {
+  font-weight: 600;
+  font-size: 1.5vw;
+}
+
+.table-monitor-teaser-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.table-monitor-teaser-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.table-monitor-teaser-score {
+  font-size: 2vw;
+  font-weight: 700;
+}
+
+.table-monitor-teaser-status {
+  font-size: 1vw;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .nav-icons {
+    width: 16.67%; /* w-1/6 */
+    font-size: 3vw;
+  }
+
+  .tournament-title {
+    font-size: 4vw;
+  }
+
+  .table-monitor-teaser-title {
+    font-size: 2vw;
+  }
+
+  .table-monitor-teaser-score {
+    font-size: 3vw;
+  }
+
+  .table-monitor-teaser-status {
+    font-size: 1.5vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-icons {
+    width: 25%; /* w-1/4 */
+    font-size: 4vw;
+  }
+
+  .tournament-title {
+    font-size: 5vw;
+  }
+
+  .table-monitor-teaser-title {
+    font-size: 2.5vw;
+  }
+
+  .table-monitor-teaser-score {
+    font-size: 4vw;
+  }
+
+  .table-monitor-teaser-status {
+    font-size: 2vw;
+  }
+} 

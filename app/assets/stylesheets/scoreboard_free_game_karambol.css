@@ -1,0 +1,330 @@
+/* Scoreboard Free Game Karambol Styles */
+.responsive-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Modal styles */
+.modal-background {
+  opacity: 0.7;
+  position: fixed;
+  inset: 0;
+  background-color: black;
+  z-index: 900;
+}
+
+.modal-content {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: none;
+  z-index: 910;
+}
+
+/* Player selection modal */
+#players_modal_setup__2 {
+  border: 2px solid #6b7280;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 83.333333%;
+  background-color: white;
+  outline: none;
+}
+
+.dark #players_modal_setup__2 {
+  background-color: black;
+  color: #e5e7eb;
+}
+
+/* New player modal */
+#new_player_modal_setup__2 {
+  border: 2px solid #6b7280;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem;
+  width: 83.333333%;
+  background-color: white;
+  outline: none;
+}
+
+.dark #new_player_modal_setup__2 {
+  background-color: black;
+  color: #e5e7eb;
+}
+
+/* Form styles */
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 2vw;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+}
+
+.dark .form-control {
+  background-color: #1f2937;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 2vw;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.dark .btn-primary {
+  background-color: #1d4ed8;
+}
+
+.dark .btn-primary:hover {
+  background-color: #1e40af;
+}
+
+/* Focus styles */
+.focus\:outline-none:focus {
+  outline: none;
+}
+
+.focus\:ring-8:focus {
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+/* Text sizes */
+.text-2vw {
+  font-size: 2vw;
+}
+
+.text-3vw {
+  font-size: 3vw;
+}
+
+.text-4vw {
+  font-size: 4vw;
+}
+
+/* Grid and flex layouts */
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+/* Spacing */
+.gap-4 {
+  gap: 1rem;
+}
+
+.space-x-10 > * + * {
+  margin-left: 2.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-5 {
+  margin-bottom: 1.25rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.mr-4 {
+  margin-right: 1rem;
+}
+
+.p-3 {
+  padding: 0.75rem;
+}
+
+.p-10 {
+  padding: 2.5rem;
+}
+
+.pt-5 {
+  padding-top: 1.25rem;
+}
+
+/* Responsive text shadow */
+.text-shadow {
+  text-shadow: 2px 2px #000000;
+}
+
+/* Dark mode text colors */
+.dark .text-gray-300 {
+  color: #d1d5db;
+}
+
+.dark .text-white {
+  color: white;
+}
+
+/* Navigation icons */
+.nav-icons {
+  position: fixed;
+  right: 10px;
+  top: -10px;
+  width: 8.333333%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-right: 1rem;
+  font-size: 2vw;
+  font-weight: 700;
+  color: #d1d5db;
+}
+
+.nav-icons:hover {
+  color: black;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .text-2vw {
+    font-size: 16px;
+  }
+
+  .text-3vw {
+    font-size: 20px;
+  }
+
+  .text-4vw {
+    font-size: 24px;
+  }
+
+  .nav-icons {
+    width: 15%;
+  }
+}
+
+/* Table monitor container */
+.table-monitor-container {
+  @apply p-4 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat;
+}
+
+/* Handle dynamic background image via data attribute */
+.table-monitor-container[data-background-image] {
+  background-image: var(--bg-image);
+}
+
+/* Title styles */
+.table-title {
+  @apply text-4vw flex text-gray-300;
+  text-shadow: 2px 2px #000000;
+}
+
+/* Player selection styles */
+.player-selection-container {
+  @apply flex justify-between w-full text-2vw;
+}
+
+.player-column {
+  @apply flex-col;
+}
+
+.player-option {
+  @apply flex mb-2;
+}
+
+.player-radio {
+  @apply mr-4 text-4vw;
+}
+
+/* Game settings styles */
+.game-settings {
+  @apply mt-8 text-2vw grid grid-cols-6 gap-6 items-center;
+}
+
+.game-settings-input {
+  @apply py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500;
+}
+
+/* Karambol specific styles */
+.karambol-discipline-select {
+  @apply grid grid-cols-4 gap-4;
+}
+
+.karambol-discipline-option {
+  @apply flex items-center justify-center p-2 border-2 rounded-lg cursor-pointer;
+}
+
+.karambol-discipline-option.active {
+  @apply border-green-500 bg-green-100 dark:bg-green-900;
+}
+
+.karambol-discipline-option:not(.active) {
+  @apply border-gray-300 dark:border-gray-600;
+}
+
+/* Icon utilities */
+.icon-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.m-4 {
+  margin: 1rem;
+}
+
+.inline-block {
+  display: inline-block;
+}
+.z-910 {
+  z-index:900
+}
+.top-right {
+  right: 10px;
+  top: -10px;
+}
+.karambol-img- {
+  background-image: url('/Karambol-.jpg')
+}
+.text-shadow {
+  text-shadow: 2px 2px #000000
+}
+.no-show {
+  display: none
+}

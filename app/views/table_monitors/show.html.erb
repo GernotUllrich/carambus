@@ -1,417 +1,92 @@
-<!--<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.js"></script>-->
-<!--<script src="/hotkeys.js"></script>-->
+<!--suppress RubyScope, RubyScope, RubyScope -->
+<%= stylesheet_link_tag "table_monitor", "data-turbo-track": "reload" %>
 
-<style>
-    .modal {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgb(0, 0, 0);
-        background-color: rgba(0, 0, 0, 0.2);
-    }
+<div data-controller="table-monitor-show"
+     data-table-monitor-show-table-monitor-id-value="<%= @table_monitor.id %>"
+     data-table-monitor-show-discipline-value="<%= @table_monitor.discipline %>"
+     data-table-monitor-show-tournament-monitor-present-value="<%= @table_monitor.tournament_monitor.present? %>"
+     data-table-monitor-show-panel-nav-h-value="<%= {
+       'undo' => (@table_monitor.discipline == "Eurokegel" ? "minus_2" : "minus_1"),
+       'minus_1' => 'minus_5',
+       'minus_2' => 'minus_4',
+       'minus_5' => 'minus_10',
+       'minus_4' => 'minus_10',
+       'minus_10' => 'next_step',
+       'next_step' => 'add_10',
+       'add_10' => (@table_monitor.discipline == "Eurokegel" ? "add_4" : "add_5"),
+       'add_5' => 'add_1',
+       'add_4' => 'add_2',
+       'add_2' => 'numbers',
+       'add_1' => 'numbers',
+       'numbers' => 'undo',
+       'pause' => 'stop',
+       'play' => 'stop',
+       'stop' => 'timeout',
+       'timeout' => 'pause',
+       'pointer_mode' => 'pointer_mode',
+       'number_field' => 'nnn_1',
+       'nnn_1' => 'nnn_2',
+       'nnn_2' => 'nnn_3',
+       'nnn_3' => 'number_field',
+       'nnn_4' => 'nnn_5',
+       'nnn_5' => 'nnn_6',
+       'nnn_6' => 'nnn_4',
+       'nnn_7' => 'nnn_8',
+       'nnn_8' => 'nnn_9',
+       'nnn_9' => 'nnn_7',
+       'nnn_0' => 'nnn_del',
+       'nnn_del' => 'nnn_esc',
+       'nnn_esc' => 'nnn_0',
+       'start_game' => 'change',
+       'change' => 'start_game',
+       'continue' => 'practice_a',
+       'practice_a' => 'practice_b',
+       'practice_b' => 'continue',
+       'ok' => (@table_monitor.tournament_monitor.present? ? "cancel" : "terminate"),
+       (@table_monitor.tournament_monitor.present? ? "txxx" : "terminate") => (@table_monitor.tournament_monitor.present? ? "cxxx" : "cancel"),
+       'cancel' => 'ok'
+     }.to_json %>"
+     data-table-monitor-show-panel-nav-v-value="<%= {
+       'pointer_mode' => 'timer',
+       'timer' => 'inputs',
+       'number_field' => 'nnn_1',
+       'nnn_1' => 'nnn_4',
+       'nnn_2' => 'nnn_5',
+       'nnn_3' => 'nnn_6',
+       'nnn_4' => 'nnn_7',
+       'nnn_5' => 'nnn_8',
+       'nnn_6' => 'nnn_9',
+       'nnn_7' => 'nnn_0',
+       'nnn_8' => 'nnn_del',
+       'nnn_9' => 'nnn_esc',
+       'nnn_0' => 'number_field',
+       'nnn_del' => 'nnn_2',
+       'nnn_esc' => 'nnn_3'
+     }.to_json %>"
+     data-table-monitor-show-key-map-value="<%= {
+       33 => "key_a",
+       37 => "key_a",
+       34 => "key_b",
+       39 => "key_b",
+       66 => "key_c",
+       38 => "key_b",
+       116 => "key_d",
+       27 => "key_d",
+       40 => "key_d",
+       13 => "key_d"
+     }.to_json %>">
 
-    .responsive-svg {
-        width: 100%;
-        height: auto;
-    }
+  <div data-table-monitor-show-target="panelState" id="panel_state" panel_state=""></div>
+  <div data-table-monitor-show-target="previousPanel" id="previous_panel" previous_panel=""></div>
+  <div data-table-monitor-show-target="currentElement" id="current_element" current_element="" tabindex="-1"></div>
+  <div data-table-monitor-show-target="previousElement" id="previous_element" previous_element=""></div>
 
-    .modal-content {
-        position: relative;
-        padding: 20px;
-        margin: auto;
-        width: 75%;
-        /*-webkit-animation-name: animatetop;*/
-        /*-webkit-animation-duration: 0.4s;*/
-        /*animation-name: animatetop;*/
-        /*animation-duration: 0.4s*/
-    }
+  <div data-table-monitor-show-target="modalConfirmBack" id="modal-confirm-back" class="hidden"></div>
+  <div data-table-monitor-show-target="modalConfirmBackBg" id="modal-confirm-back-bg" class="hidden"></div>
 
-    .modal-content-30 {
-        position: relative;
-        background-color: black;
-        color: lightgray;
-        margin: auto;
-        width: 40%;
-        /*-webkit-animation-name: animatetop;*/
-        /*-webkit-animation-duration: 0.4s;*/
-        /*animation-name: animatetop;*/
-        /*animation-duration: 0.4s*/
-    }
-</style>
-<script type="text/javascript">
-  var panel_nav_h = {
-    "undo": "<%= (@table_monitor.discipline == "Eurokegel" ? "minus_2" : "minus_1") %>",
-    "minus_1": "minus_5",
-    "minus_2": "minus_4",
-    "minus_5": "minus_10",
-    "minus_4": "minus_10",
-    "minus_10": "next_step",
-    "next_step": "add_10",
-    "add_10": "<%= (@table_monitor.discipline == "Eurokegel" ? "add_4" : "add_5") %>",
-    "add_5": "add_1",
-    "add_4": "add_2",
-    "add_2": "numbers",
-    "add_1": "numbers",
-    "numbers": "undo",
-    "pause": "stop",
-    "play": "stop",
-    "stop": "timeout",
-    "timeout": "pause",
-    "pointer_mode": "pointer_mode",
-    "number_field": "nnn_1",
-    "nnn_1": "nnn_2",
-    "nnn_2": "nnn_3",
-    "nnn_3": "number_field",
-    "nnn_4": "nnn_5",
-    "nnn_5": "nnn_6",
-    "nnn_6": "nnn_4",
-    "nnn_7": "nnn_8",
-    "nnn_8": "nnn_9",
-    "nnn_9": "nnn_7",
-    "nnn_0": "nnn_del",
-    "nnn_del": "nnn_esc",
-    "nnn_esc": "nnn_0",
-    "start_game": "change",
-    "change": "start_game",
-    "continue": "practice_a",
-    "practice_a": "practice_b",
-    "practice_b": "continue",
-    "ok": "<%= @table_monitor.andand.tournament_monitor.present? ? "cancel" : "terminate" %>",
-    "<%= @table_monitor.andand.tournament_monitor.present? ? "txxx" : "terminate" %>": "<%= @table_monitor.andand.tournament_monitor.present? ? "cxxx" : "cancel" %>",
-    "cancel": "ok",
-  }
-  var panel_nav_v = {
-    "pointer_mode": "timer",
-    "timer": "inputs",
-    "number_field": "nnn_1",
-    "nnn_1": "nnn_4",
-    "nnn_2": "nnn_5",
-    "nnn_3": "nnn_6",
-    "nnn_4": "nnn_7",
-    "nnn_5": "nnn_8",
-    "nnn_6": "nnn_9",
-    "nnn_7": "nnn_0",
-    "nnn_8": "nnn_del",
-    "nnn_9": "nnn_esc",
-    "nnn_0": "number_field",
-    "nnn_del": "nnn_2",
-    "nnn_esc": "nnn_3",
-  }
-  let keyMap = {
-    33: "key_a",
-    37: "key_a",
-    34: "key_b",
-    39: "key_b",
-    66: "key_c",
-    38: "key_b",
-    116: "key_d",
-    27: "key_d",
-    40: "key_d",
-    13: "key_d",
-  }
+  <%= content_for :title, "Table Monitors ##{@table_monitor.id}" %>
 
-  function currentTime() {
-    let date = new Date();
-    let hh = date.getHours();
-    let mm = date.getMinutes();
-    let ss = date.getSeconds();
-    let time;
-
-    hh = (hh < 10) ? "0" + hh : hh;
-    mm = (mm < 10) ? "0" + mm : mm;
-    ss = (ss < 10) ? "0" + ss : ss;
-
-    time = hh + ":" + mm + ":" + ss;
-    let el = document.getElementById("clock")
-    if (el != null) {
-      el.innerText = time;
-    }
-    setTimeout(function () {
-      currentTime()
-    }, 1000);
-  }
-
-  function focus_or_reset_element() {
-    let el = document.getElementById(get_current_element())
-    if (el != null) {
-      el.focus()
-      return true
-    }
-  }
-
-  function click_or_reset_element() {
-    let el = document.getElementById(get_current_element())
-    if (el != null) {
-      el.click()
-      return true
-    } else {
-      reset_to_pointer_mode()
-      return false
-    }
-  }
-
-  function isHidden(el) {
-    return (el === null || el.offsetParent === null)
-  }
-
-  function backout() {
-    set_panel_state(get_previous_panel())
-    set_current_element(get_previous_element())
-    focus_or_reset_element()
-  }
-
-  function set_panel_state(panel_state) {
-    let el = document.getElementById("panel_state")
-    if (el != null) {
-      el.setAttribute("panel_state", panel_state)
-      el.innerHTML = panel_state
-    }
-  }
-
-  function get_panel_state() {
-    let el = document.getElementById("panel_state")
-    return el.getAttribute("panel_state")
-  }
-
-  function set_previous_panel(previous_panel) {
-    let el = document.getElementById("previous_panel")
-    el.setAttribute("previous_panel", previous_panel)
-    el.innerHTML = previous_panel
-  }
-
-  function get_previous_panel() {
-    let el = document.getElementById("previous_panel")
-    return el.getAttribute("previous_panel")
-  }
-
-  function set_current_element(ce) {
-    let el = document.getElementById("current_element")
-    el.setAttribute("current_element", ce)
-    el.innerHTML = ce
-    el.focus()
-  }
-
-  function get_current_element() {
-    let el = document.getElementById("current_element")
-
-    return el == null ? null : el.getAttribute("current_element")
-  }
-
-  function set_previous_element(previous_element) {
-    let el = document.getElementById("previous_element")
-    el.setAttribute("previous_element", previous_element)
-    el.innerHTML = previous_element
-  }
-
-  function get_previous_element() {
-    let el = document.getElementById("previous_element")
-    return el.getAttribute("previous_element")
-  }
-
-  function previous(ce) {
-    for (let ix in panel_nav_h) {
-      if (panel_nav_h[ix] === ce)
-        return ix;
-    }
-    return ce;
-  }
-
-  function set_warning_modal() {
-    document.getElementById("modal-confirm-back").classList.toggle("hidden");
-    document.getElementById("modal-confirm-back" + "-bg").classList.toggle("hidden");
-    document.getElementById("modal-confirm-back").classList.toggle("flex");
-    document.getElementById("modal-confirm-back" + "-bg").classList.toggle("flex");
-  }
-
-  function unset_warning_modal() {
-    set_warning_modal()
-    reset_to_pointer_mode()
-  }
-
-  function reset_to_pointer_mode() {
-    set_panel_state("pointer_mode")
-    set_current_element("pointer_mode")
-    let el = document.getElementById(get_current_element())
-    if (el != null)
-      el.focus()
-  }
-
-  function touch2Mouse(e) {
-    let theTouch = e.changedTouches[0];
-    let mouseEv;
-    alert("e.type: " + e.type)
-
-    switch (e.type) {
-      case "touchstart":
-        mouseEv = "mousedown";
-        break;
-      case "touchend":
-        mouseEv = "mouseup";
-        break;
-      case "touchmove":
-        mouseEv = "mousemove";
-        break;
-      default:
-        return;
-    }
-
-    let mouseEvent = document.createEvent("MouseEvent");
-    mouseEvent.initMouseEvent(mouseEv, true, true, window, 1, theTouch.screenX, theTouch.screenY, theTouch.clientX, theTouch.clientY, false, false, false, false, 0, null);
-
-    theTouch.target.dispatchEvent(mouseEvent);
-    e.preventDefault();
-  }
-
-  function warning_mode() {
-    set_previous_element(get_current_element())
-    set_previous_panel(get_panel_state())
-    set_panel_state("warning")
-    set_current_element("ok")
-    set_warning_modal();
-    if (!focus_or_reset_element())
-      backout()
-  }
-
-  window.onload = function () {
-    const afterInnerHtmlHandler = event => {
-      console.log(event.detail);
-      focus_or_reset_element();
-    }
-    let tabbed_elements = document.querySelectorAll('a[tabindex="11"]')
-    let tabbed_keys = []
-    for (let i = 0; i < tabbed_elements.length; i++) {
-      tabbed_keys[i] = tabbed_elements[i].getAttribute("id")
-    }
-    for (let i = 0; i < tabbed_keys.length; i++) {
-      let i_next = i < tabbed_keys.length - 1 ? i + 1 : 0
-      panel_nav_h[tabbed_keys[i]] = tabbed_keys[i_next]
-    }
-    Turbo.cache.clear();
-    currentTime();
-    document.addEventListener("cable-ready:after-inner-html", afterInnerHtmlHandler);
-    console.log("active: " + get_current_element());
-    if (get_current_element() !== "" && get_current_element() != null) {
-      console.log("active now: " + get_current_element());
-      focus_or_reset_element()
-    } else
-      reset_to_pointer_mode()
-
-    // document.addEventListener("touchstart", touch2Mouse, true);
-    // document.addEventListener("touchmove", touch2Mouse, true);
-    // document.addEventListener("touchend", touch2Mouse, true);
-
-    // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
-    window.hotkeys('*', function (event, handler) {
-// Prevent the default refresh event under WINDOWS system
-      set_previous_element(get_current_element())
-      set_previous_panel(get_panel_state())
-      event.preventDefault();
-      console.log("+++ GOT KEYCODES: " + hotkeys.getPressedKeyCodes());
-      //alert('you pressed ' + hotkeys.getPressedKeyCodes());
-      if (event.keyCode in keyMap) {
-        let keyCode = keyMap[event.keyCode]
-        if (keyCode === "key_c") {
-          if (get_panel_state() !== "pointer_mode" && get_panel_state() !== "warning" && get_panel_state() !== "setup" && get_panel_state() !== "shootout") {
-            set_panel_state("pointer_mode")
-            set_current_element("pointer_mode")
-            if (!focus_or_reset_element())
-              backout()
-          } else {
-            warning_mode();
-            //if ("<%#= @table_monitor.tournament_monitor_id.to_s %>" == "") {
-            // set_previous_element(get_current_element())
-            // set_previous_panel(get_panel_state())
-            // set_panel_state("warning")
-            // set_current_element("ok")
-            // set_warning_modal();
-            // if (!focus_or_reset_element())
-            //   backout()
-            //}
-            //window.history.back()
-          }
-        } else if (keyCode === "key_d") {
-          if (get_panel_state() === "pointer_mode") { // => timer
-            set_panel_state(panel_nav_v[get_panel_state()])
-            let timeout = !isHidden(document.getElementById("timeout"))
-            let play = isHidden(document.getElementById("pause"))
-            set_current_element(timeout ? "timeout" : play ? "play" : "pause")
-            if (!focus_or_reset_element()) {
-              set_panel_state(panel_nav_v[get_panel_state()])
-              set_current_element("add_one")
-              if (!focus_or_reset_element())
-                backout()
-            }
-          } else if (get_panel_state() === "inputs" || get_panel_state() === "warning") {
-            if (!click_or_reset_element())
-              backout()
-          } else if (get_panel_state() === "timer") { // goto inputs
-            set_panel_state(panel_nav_v[get_panel_state()])
-            set_current_element("add_one")
-            if (!focus_or_reset_element())
-              backout()
-          } else if (get_panel_state() === "shootout") { // => shootout
-            set_current_element("start_game")
-            if (!click_or_reset_element())
-              backout()
-            set_panel_state("pointer_mode")
-            set_current_element("pointer_mode")
-          } else if (get_panel_state() === "setup") { // => setup
-            set_current_element("continue")
-            if (!click_or_reset_element())
-              backout()
-            set_panel_state("shootout")
-            set_current_element("start_game")
-          } else if (get_panel_state() === "numbers") {
-            set_current_element(panel_nav_v[get_current_element()])
-            if (!focus_or_reset_element())
-              backout()
-          }
-        } else if (keyCode === "key_b") {
-          if (get_panel_state() === "pointer_mode" || get_panel_state() === "setup") {
-            document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click();
-          } else if (get_panel_state() === "inputs" || get_panel_state() === "numbers" || get_panel_state() === "warning" || get_panel_state() === "timer") {
-            set_current_element(panel_nav_h[get_current_element()])
-            if (!focus_or_reset_element())
-              backout()
-          } else if (get_panel_state() === "shootout") {
-            set_current_element("change")
-            document.getElementById("change")
-            if (!click_or_reset_element())
-              backout()
-          } else {
-            document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click();
-          }
-        } else if (keyCode === "key_a") {
-          if (get_panel_state() === "pointer_mode" || get_panel_state() === "setup") {
-            document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click()
-          } else if (get_panel_state() === "timer" || get_panel_state() === "numbers") {
-            if (!click_or_reset_element())
-              backout()
-          } else if (get_panel_state() === "inputs" || get_panel_state() === "warning") {
-            set_current_element(previous(get_current_element()))
-            if (!focus_or_reset_element())
-              backout()
-          } else if (get_panel_state() === "shootout") {
-            set_current_element("change")
-            if (!click_or_reset_element())
-              backout()
-          } else {
-            document.getElementById(keyCode + '_table_monitor_<%= @table_monitor.id %>').click();
-          }
-        }
-      }
-      console.log("active panel_state: " + get_panel_state());
-      console.log("active current_element: " + get_current_element());
-      return true
-    })
-  };
-</script>
-
-<%= content_for :title, "Table Monitors ##{@table_monitor.id}" %>
-<%#= turbo_stream_from @table_monitor %>
-
-<div>
-  <%= render @table_monitor, locals: { table_monitor: @table_monitor } %>
+  <div>
+    <%= render @table_monitor, locals: { table_monitor: @table_monitor } %>
+  </div>
 </div>
