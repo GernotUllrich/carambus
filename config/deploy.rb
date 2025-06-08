@@ -130,7 +130,7 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      execute "sudo #{current_path}/current/bin/manage-puma.sh #{fetch(:basename)}"
+      execute "sudo #{current_path}/bin/manage-puma.sh #{fetch(:basename)}"
     end
   end
 end
