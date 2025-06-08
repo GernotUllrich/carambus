@@ -1,382 +1,519 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
 <%= stylesheet_link_tag "scoreboard_free_game_karambol", "data-turbo-track": "reload" %>
 
-<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
-  document.addEventListener('turbo:load', function() {
-    // Set the background image via CSS variable
-    const container = document.querySelector('.table-monitor-container');
-    if (container) {
-      const bgImage = container.dataset.backgroundImage;
-      if (bgImage) {
-        container.style.setProperty('--bg-image', `url('${bgImage}')`);
-      }
-    }
-
-    // Player management functions
-    window.players_mode = function() {
-      set_players_modal();
-    }
-
-    window.new_player_mode = function() {
-      set_new_player_modal();
-    }
-
-    window.set_checked_player = function(ab, ix, val) {
-      document.getElementById("player" + ab + "_" + ix).checked = true;
-      document.getElementById("player_" + ab + "_id").value = val;
-    }
-
-    function set_players_modal() {
-      document.getElementById("modal-players").classList.toggle("hidden");
-      document.getElementById("modal-players-bg").classList.toggle("hidden");
-      document.getElementById("modal-players").classList.toggle("flex");
-      document.getElementById("modal-players-bg").classList.toggle("flex");
-    }
-
-    function set_new_player_modal() {
-      document.getElementById("modal-new-player").classList.toggle("hidden");
-      document.getElementById("modal-new-player-bg").classList.toggle("hidden");
-      document.getElementById("modal-new-player").classList.toggle("flex");
-      document.getElementById("modal-new-player-bg").classList.toggle("flex");
-    }
-
-    // Make modal functions globally available
-    window.set_players_modal = set_players_modal;
-    window.set_new_player_modal = set_new_player_modal;
-  });
-</script>
-
-<div class="modal-bg hidden" id="modal-players-bg"></div>
-<div class="modal-container hidden" id="modal-players">
-  <div id="players_modal_setup__2" class="modal-content">
-    <div class="flex flex-col">
-      <div class="flex justify-around pt-5 space-x-10">
-        <%= custom_link_to t('continue'), "javascript:void(0)", 
-            onclick: "set_players_modal()",
-            data: { turbolinks: false }, 
-            class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", 
-            id: "cancel", 
-            tabindex: "1" %>
-      </div>
-      <div class="flex justify-around w-full text-3vw">
-        <div>Spieler A</div>
-        <div>Spieler B</div>
-      </div>
-      <%- players = [] %>
-      <%- players += [["---Gäste---", ""]] +
-        Array(guest_players_default.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) +
-        Array(guest_players_other.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] })
-      %>
-      <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
-      <%- count = players.count %>
-      <div class="player-selection-container">
-        <div class="mr-2">
-          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
-            <div class="flex flex-row w-full">
-              <div class="player-column">
-                <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="player-option">
-                    <div>
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, 
-                            class: "player-radio", 
-                            id: "playera_#{ix}", 
-                            data: { 
-                              action: "click->set_checked_player",
-                              player: "a",
-                              index: ix,
-                              value: players[ix][1]
-                            } %>
-                      <%- end %>
-                    </div>
-                    <div data-action="click->set_checked_player" 
-                         data-player="a" 
-                         data-index="<%= ix %>" 
-                         data-value="<%= players[ix][1] %>">
-                      <%= players[ix][0] %>
-                    </div>
-                  </div>
-                <%- end %>
-              </div>
-              <div class="player-column">
-                <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="player-option">
-                    <div>
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, 
-                            class: "player-radio", 
-                            id: "playera_#{ix}", 
-                            data: { 
-                              action: "click->set_checked_player",
-                              player: "a",
-                              index: ix,
-                              value: players[ix][1]
-                            } %>
-                      <%- end %>
-                    </div>
-                    <div data-action="click->set_checked_player" 
-                         data-player="a" 
-                         data-index="<%= ix %>" 
-                         data-value="<%= players[ix][1] %>">
-                      <%= players[ix][0] %>
-                    </div>
-                  </div>
-                <%- end %>
-              </div>
-            </div>
-          <%- end %>
-        </div>
-        <div class="mr-2">
-          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
-            <div class="flex flex-row w-full">
-              <div class="player-column">
-                <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="player-option">
-                    <div>
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, 
-                            class: "player-radio", 
-                            id: "playerb_#{ix}", 
-                            data: { 
-                              action: "click->set_checked_player",
-                              player: "b",
-                              index: ix,
-                              value: players[ix][1]
-                            } %>
-                      <%- end %>
-                    </div>
-                    <div data-action="click->set_checked_player" 
-                         data-player="b" 
-                         data-index="<%= ix %>" 
-                         data-value="<%= players[ix][1] %>">
-                      <%= players[ix][0] %>
-                    </div>
-                  </div>
-                <%- end %>
-              </div>
-              <div class="player-column">
-                <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="player-option">
-                    <div>
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, 
-                            class: "player-radio", 
-                            id: "playerb_#{ix}", 
-                            data: { 
-                              action: "click->set_checked_player",
-                              player: "b",
-                              index: ix,
-                              value: players[ix][1]
-                            } %>
-                      <%- end %>
-                    </div>
-                    <div data-action="click->set_checked_player" 
-                         data-player="b" 
-                         data-index="<%= ix %>" 
-                         data-value="<%= players[ix][1] %>">
-                      <%= players[ix][0] %>
-                    </div>
-                  </div>
-                <%- end %>
-              </div>
-            </div>
-          <%- end %>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Test element -->
+<div data-controller="test" class="p-4 bg-gray-100 dark:bg-gray-800 mb-4">
+  <div class="text-lg font-bold mb-2">Test Controller</div>
+  <button data-action="click->test#test" 
+          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+    Test Button
+  </button>
+  <div data-test-target="output" class="mt-2 text-sm"></div>
 </div>
 
-<div class="modal-bg hidden" id="modal-new-player-bg"></div>
-<div class="modal-container hidden" id="modal-new-player">
-  <div id="new_player_modal_setup__2" class="modal-content">
-    <div class="flex flex-col">
-      <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
-      <div class="flex justify-around w-full text-3vw">
-        <%= form_with(model: Player.new) do |form| %>
-          <%= hidden_field_tag :club_id, club.id %>
-          <%= hidden_field_tag :location_id, @location.id %>
-          <%= hidden_field_tag :season_id, Season.current_season.id %>
-          <%= hidden_field_tag :from, "new_guest" %>
-          <%= render "error_messages", resource: form.object %>
-          <div class="form-group">
-            <%= form.text_field :firstname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Vorname" %>
-          </div>
-          <div class="form-group">
-            <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
-          </div>
-          <div class="form-group">
-            <%= custom_link_to t('back'), "javascript:void(0)", 
-                onclick: "set_new_player_modal()",
-                data: { turbolinks: false }, 
-                class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", 
-                id: "cancel", 
+<div data-controller="karambol-game"
+     data-karambol-game-background-image-value="<%= @location.background_image.gsub(".", "-.") %>"
+     data-action="keydown->karambol-game#handleKeydown"
+     data-debug="true"
+     data-karambol-game-debug-value="true">
+  <!-- Players Modal -->
+  <div data-karambol-game-target="playersModalBg" 
+       class="fixed inset-0 bg-black opacity-70 hidden z-[900]"></div>
+  <div data-karambol-game-target="playersModal" 
+       class="fixed inset-0 z-[910] hidden">
+    <div class="flex items-center justify-center min-h-full p-4">
+      <div id="players_modal_setup__2" 
+           class="relative w-5/6 bg-white dark:bg-black dark:text-gray-200 border-2 border-gray-500 rounded-lg shadow-lg">
+        <div class="flex flex-col p-4">
+          <div class="flex justify-around pt-5 space-x-10">
+            <%= custom_link_to t('continue'), "#",
+                data: { action: "click->karambol-game#togglePlayersModal" },
+                class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw",
+                id: "cancel",
                 tabindex: "1" %>
-            <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
           </div>
-        <% end %>
+          <div class="flex justify-around w-full text-3vw">
+            <div class="">Spieler A</div>
+            <div class="">Spieler B</div>
+          </div>
+          <%- players = [] %>
+          <%- players += [["---Gäste---", ""]] +
+            Array(guest_players_default.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) +
+            Array(guest_players_other.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] })
+          %>
+          <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
+          <%- count = players.count %>
+          <div class="flex justify-between w-full text-2vw">
+            <div class="mr-2">
+              <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+                <div class="flex flex-row w-full">
+                  <div class="flex-col">
+                    <%- (0..(count / 2 - 1)).each do |ix| %>
+                      <div class="flex mb-2">
+                        <div class="">
+                          <%- if players[ix][1].present? %>
+                            <%= radio_button_tag :player_a_id, players[ix][1], nil,
+                                class: "mr-4 text-4vw",
+                                id: "playera_#{ix}",
+                                data: {
+                                  action: "click->karambol-game#setCheckedPlayer",
+                                  player: "a",
+                                  index: ix,
+                                  value: players[ix][1]
+                                } %>
+                          <%- end %>
+                        </div>
+                        <div class=""
+                             data-action="click->karambol-game#setCheckedPlayer"
+                             data-player="a"
+                             data-index="<%= ix %>"
+                             data-value="<%= players[ix][1] %>">
+                          <%= players[ix][0] %>
+                        </div>
+                      </div>
+                    <%- end %>
+                  </div>
+                  <div class="flex-col">
+                    <%- ((count / 2)..count - 1).each do |ix| %>
+                      <div class="flex mb-2">
+                        <div class="">
+                          <%- if players[ix][1].present? %>
+                            <%= radio_button_tag :player_a_id, players[ix][1], nil,
+                                class: "mr-4 text-4vw",
+                                id: "playera_#{ix}",
+                                data: {
+                                  action: "click->karambol-game#setCheckedPlayer",
+                                  player: "a",
+                                  index: ix,
+                                  value: players[ix][1]
+                                } %>
+                          <%- end %>
+                        </div>
+                        <div class=""
+                             data-action="click->karambol-game#setCheckedPlayer"
+                             data-player="a"
+                             data-index="<%= ix %>"
+                             data-value="<%= players[ix][1] %>">
+                          <%= players[ix][0] %>
+                        </div>
+                      </div>
+                    <%- end %>
+                  </div>
+                </div>
+              <%- end %>
+            </div>
+            <div class="">
+              <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+                <div class="flex flex-row w-full">
+                  <div class="flex-col">
+                    <%- (0..(count / 2 - 1)).each do |ix| %>
+                      <div class="flex mb-2">
+                        <div class="">
+                          <%- if players[ix][1].present? %>
+                            <%= radio_button_tag :player_b_id, players[ix][1], nil,
+                                class: "mr-4 text-4vw",
+                                id: "playerb_#{ix}",
+                                data: {
+                                  action: "click->karambol-game#setCheckedPlayer",
+                                  player: "b",
+                                  index: ix,
+                                  value: players[ix][1]
+                                } %>
+                          <%- end %>
+                        </div>
+                        <div class=""
+                             data-action="click->karambol-game#setCheckedPlayer"
+                             data-player="b"
+                             data-index="<%= ix %>"
+                             data-value="<%= players[ix][1] %>">
+                          <%= players[ix][0] %>
+                        </div>
+                      </div>
+                    <%- end %>
+                  </div>
+                  <div class="flex-col">
+                    <%- ((count / 2)..count - 1).each do |ix| %>
+                      <div class="flex mb-2">
+                        <div class="">
+                          <%- if players[ix][1].present? %>
+                            <%= radio_button_tag :player_b_id, players[ix][1], nil,
+                                class: "mr-4 text-4vw",
+                                id: "playerb_#{ix}",
+                                data: {
+                                  action: "click->karambol-game#setCheckedPlayer",
+                                  player: "b",
+                                  index: ix,
+                                  value: players[ix][1]
+                                } %>
+                          <%- end %>
+                        </div>
+                        <div class=""
+                             data-action="click->karambol-game#setCheckedPlayer"
+                             data-player="b"
+                             data-index="<%= ix %>"
+                             data-value="<%= players[ix][1] %>">
+                          <%= players[ix][0] %>
+                        </div>
+                      </div>
+                    <%- end %>
+                  </div>
+                </div>
+              <%- end %>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="nav-icons">
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
-  <% end %>
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-    <%= render_svg "icons/home", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
-  <% end %>
-</div>
+  <!-- New Player Modal -->
+  <div data-karambol-game-target="newPlayerModalBg" class="hidden opacity-70 fixed inset-0 bg-black z-[900]"></div>
+  <div data-karambol-game-target="newPlayerModal" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center z-[910]">
+    <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none">
+      <div class="flex flex-col">
+        <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
+        <div class="flex justify-around w-full text-3vw">
+          <%= form_with(model: Player.new) do |form| %>
+            <%= hidden_field_tag :club_id, club.id %>
+            <%= hidden_field_tag :location_id, @location.id %>
+            <%= hidden_field_tag :season_id, Season.current_season.id %>
+            <%= hidden_field_tag :from, "new_guest" %>
+            <%= render "error_messages", resource: form.object %>
+            <div class="form-group">
+              <%= form.text_field :firstname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Vorname" %>
+            </div>
+            <div class="form-group">
+              <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
+            </div>
+            <div class="form-group">
+              <%= custom_link_to t('back'), "#",
+                  data: { action: "click->karambol-game#toggleNewPlayerModal" },
+                  class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw",
+                  id: "cancel",
+                  tabindex: "1" %>
 
-<div data-controller="table-monitor" 
-     class="table-monitor-container"
-     data-background-image="<%= @location.background_image.gsub(".", "-.") %>">
-  <h1 class="table-title"><%= "#{table.andand.table_kind.andand.name} - #{table.andand.name}" %></h1>
-  <%- if @location.present? %>
-    <%- table_monitor.get_options!(I18n.locale) %>
-    <%- options = table_monitor.options %>
-    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300" do %>
-      <input name='free_game_form' value='karambol' type='hidden'/>
-      <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
-      <div class="flex justify-center mt-4 text-center">
-        <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
-          <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+              <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
+            </div>
+          <% end %>
         </div>
       </div>
-      <div x-data="{last_direction: 0, gametime: 30, warntime: 5, increment_points: 1, points: 80, points_2: 80, increment_games: 2, games: 2, games_2: 2, increment_innings: 1, innings: 0, innings_2: 0, first_break: 0, next_break: 0, discipline: 1, discipline_2: 1, sets: 1}" class="game-settings">
-        <div>Spieler</div>
-        <div class="col-span-4 flex flex-row">
-          <div class="grid grid-cols-3 gap-4">
+    </div>
+  </div>
+
+  <!-- Rest of the view content -->
+  <div class="fixed top-[-10px] right-[10px] w-1/12 grid grid-cols-2 gap-4 mr-4 text-gray-300 hover:text-black text-2vw font-bold">
+    <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
+      <%= render_svg "icons/information-outline", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <% end %>
+    <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
+      <%= render_svg "icons/home", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <% end %>
+  </div>
+
+  <!-- Main content -->
+  <div data-controller="table-monitor" 
+       class="p-4 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat"
+       data-karambol-game-target="mainContent">
+    <h1 class="text-shadow text-4vw flex text-gray-300">
+      <%= "#{table.andand.table_kind.andand.name} - #{table.andand.name}" %>
+    </h1>
+    <%- if @location.present? %>
+      <%- table_monitor.get_options!(I18n.locale) %>
+      <%- options = table_monitor.options %>
+      <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300" do %>
+        <input name='free_game_form' value='karambol' type='hidden'/>
+        <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
+        <div class="flex justify-center mt-4 text-center">
+          <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
+            <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
+          </div>
+        </div>
+        <div data-controller="karambol-settings"
+             data-karambol-settings-table-kind-value="<%= table.andand.table_kind.andand.name || "Small Billard" %>"
+             class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
+          <div class="flex flex-row">Spieler</div>
+          <div class="col-span-4 flex flex-row">
+            <div class="grid grid-cols-3 gap-4">
+              <div class="flex">
+                <%= custom_link_to "Spieler-Auswahl", "#",
+                    data: { action: "click->karambol-game#togglePlayersModal" },
+                    class: "flex w-full h-full dark:text-white border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw",
+                    id: "cancel",
+                    tabindex: "1" %>
+              </div>
+              <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+                <%= select_tag :player_a_id,
+                  options_for_select(Array(players), player_a.andand.id || default_guest_a.player.id),
+                  class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
+              <%- end %>
+              <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+                <%= select_tag :player_b_id,
+                  options_for_select(Array(players), player_a.andand.id || default_guest_b.player.id),
+                  class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
+              <%- end %>
+            </div>
+          </div>
+          <div class="col-span-1">
             <div class="flex">
-              <%= custom_link_to "Spieler-Auswahl", "javascript:void(0)", 
-                  onclick: "players_mode()",
-                  data: { turbolinks: false }, 
-                  class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", 
-                  id: "cancel", 
+              <%= custom_link_to "Neuer Spieler", "#",
+                  data: { action: "click->karambol-game#toggleNewPlayerModal" },
+                  class: "flex w-full h-full border-4 dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw",
+                  id: "cancel",
                   tabindex: "1" %>
             </div>
-            <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
-              <%= select_tag :player_a_id, options_for_select(Array(players), default_guest_a.player.id), class: "game-settings-input" %>
-            <%- end %>
-            <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg" do %>
-              <%= select_tag :player_b_id, options_for_select(Array(players), default_guest_b.player.id), class: "game-settings-input" %>
-            <%- end %>
           </div>
-        </div>
-        <div class="col-span-1">
-          <div class="flex">
-            <%= custom_link_to "Neuer Spieler", "javascript:void(0)", 
-                onclick: "new_player_mode()",
-                data: { turbolinks: false }, 
-                class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", 
-                id: "cancel", 
-                tabindex: "1" %>
-          </div>
-        </div>
-        <form>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "true",
-            header: "Disziplin",
-            varname: "discipline",
-            values: [0, 1, 2, 3],
-            maxval: 3,
-            displays: ["8-Ball", "9-Ball", "10-Ball", "14.1 endlos"],
-            cols: 4,
-            increment: 1 }
-          %>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "discipline != 3",
-            header: "Anstoß",
-            varname: "next_break",
-            values: [0, 1],
-            maxval: 2,
-            displays: %w[Wechsel Gewinner],
-            cols: 3,
-            increment: 1,
-            no_counter: true }
-          %>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "discipline != 3",
-            header: "Gewinnspiele",
-            varname: "games",
-            values: (2..10).to_a,
-            maxval: 99,
-            displays: (2..10).to_a,
-            cols: 10,
-            increment: 1 }
-          %>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "discipline == 3",
-            header: "Punkteziel",
-            varname: "points",
-            values: ["0"] + %w{40 50 60 80 100 125 150 175},
-            maxval: 999,
-            displays: ["keins"] + %w{40 50 60 80 100 125 150 175},
-            cols: 9,
-            fixed_increment: 1,
-            increment: 1 }
-          %>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "discipline == 3",
-            header: "Aufnahme-begrenzung",
-            varname: "innings",
-            values: Discipline::KARAMBOL_INNINGS_MAP,
-            maxval: 99,
-            displays: ["keine"] + Discipline::KARAMBOL_INNINGS_MAP[1..-1].to_a,
-            cols: 5,
-            fixed_increment: 1,
-            increment: 1 }
-          %>
-          <div>Shootout</div>
-          <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
-            <%= submit_tag "Start Shootout", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2"%>
-          </div>
-          <div class="col-span-4 flex flex-row">
-            <div class="w-full grid grid-cols-4">
-              <div class="flex justify-end items-center">Spielzeit:</div>
-              <div class="ml-4 grid grid-cols-3 gap-2">
-                <div class="flex text-4vw justify-center font-bold" 
-                     data-action="click->game-settings#decrementTime" 
-                     data-target="gametime">-</div>
-                <div name="gametime" type='number' x-text="gametime" 
-                     class="flex text-2vw items-center justify-center font-medium shadow-sm text-gray-900 border rounded-md"></div>
-                <div class="flex text-4vw justify-center font-bold" 
-                     data-action="click->game-settings#incrementTime" 
-                     data-target="gametime">+</div>
-              </div>
-              <div class="flex justify-end items-center">Warnzeit:</div>
-              <div class="ml-4 grid grid-cols-3 gap-2">
-                <div class="flex text-4vw justify-center font-bold" 
-                     data-action="click->game-settings#decrementTime" 
-                     data-target="warntime">-</div>
-                <div name="warntime" type='number' x-text="warntime" 
-                     class="flex text-2vw items-center justify-center font-medium shadow-sm text-gray-900 border rounded-md"></div>
-                <div class="flex text-4vw justify-center font-bold" 
-                     data-action="click->game-settings#incrementTime" 
-                     data-target="warntime">+</div>
+          <form>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "true",
+              header: "Disziplin + Punktziel",
+              varname: "parameters",
+              values: [0, 1, 2],
+              maxval: 2,
+              displays: ["für beide", "für ↑", "für ↑"],
+              cols: 3,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateParameters" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-small-billard-disciplines-value && data-karambol-settings-show-discipline-value",
+              header: "Disziplin",
+              varname: "discipline",
+              values: [0, 1, 2, 3, 4, 5],
+              maxval: 5,
+              displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
+              cols: 6,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-match-billard-disciplines-value && data-karambol-settings-show-discipline-value",
+              header: "Disziplin",
+              varname: "discipline",
+              values: [6, 7, 8, 9, 10, 11, 12, 13],
+              maxval: 7,
+              displays: ["3Band".html_safe, "Frei", "1Band", "71/2", "47/2", "47/1", "5&nbsp;Pin".html_safe, "Biathl"],
+              cols: 8,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-small-billard-disciplines-value && data-karambol-settings-show-discipline-a-value",
+              header: "Disziplin (A)",
+              varname: "discipline_a",
+              values: [0, 1, 2, 3, 4, 5],
+              maxval: 5,
+              displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
+              cols: 6,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-match-billard-disciplines-value && data-karambol-settings-show-discipline-a-value",
+              header: "Disziplin (A)",
+              varname: "discipline_a",
+              values: [6, 7, 8, 9, 10, 11, 12, 13],
+              maxval: 7,
+              displays: ["3&nbsp;Band".html_safe, "Frei", "Einband", "71/2", "47/2", "47/1", "5&nbsp;Pin".html_safe, "Biathl"],
+              cols: 8,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-small-billard-disciplines-value && data-karambol-settings-show-discipline-b-value",
+              header: "Disziplin (B)",
+              varname: "discipline_b",
+              values: [0, 1, 2, 3, 4, 5],
+              maxval: 5,
+              displays: ["3Band".html_safe, "Frei", "1Band".html_safe, "52/2", "35/2", "Eurok"],
+              cols: 6,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-match-billard-disciplines-value && data-karambol-settings-show-discipline-b-value",
+              header: "Disziplin (B)",
+              varname: "discipline_b",
+              values: [6, 7, 8, 9, 10, 11, 12, 13],
+              maxval: 7,
+              displays: ["3&nbsp;Band".html_safe, "Frei", "Einband", "71/2", "47/2", "47/1", "5&nbsp;Pin".html_safe, "Biathl"],
+              cols: 8,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateDiscipline" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-balls-goal-value",
+              header: "Punktziel",
+              varname: "balls_goal",
+              values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
+              maxval: 9999999,
+              displays: ["keins"] + Discipline::KARAMBOL_POINTS_MAP,
+              cols: 8,
+              increment: 5,
+              data: { action: "change->karambol-settings#updateBallsGoal" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-balls-goal-a-value",
+              header: "Punktziel (A)",
+              varname: "balls_goal_a",
+              values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
+              maxval: 9999999,
+              displays: ["keins"] + Discipline::KARAMBOL_POINTS_MAP,
+              cols: 8,
+              increment: 1,
+              data: { action: "change->karambol-settings#updateBallsGoal" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-balls-goal-b-value",
+              header: "Punktziel (B)",
+              varname: "balls_goal_b",
+              values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
+              maxval: 9999999,
+              displays: ["keins"] + Discipline::KARAMBOL_POINTS_MAP,
+              cols: 8,
+              increment: 1,
+              data: { action: "change->karambol-settings#updateBallsGoal" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "true",
+              header: "Aufnahme-begrenzung",
+              varname: "innings",
+              values: %w{0 20 25 30},
+              maxval: 99,
+              displays: %w{keine 20 25 30},
+              cols: 5,
+              increment: 5,
+              data: { action: "change->karambol-settings#updateInnings" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "true",
+              header: "Mehrsatzspiel",
+              varname: "multiset",
+              values: [0, 1],
+              maxval: 1,
+              displays: %w{ * Mehrsatz},
+              cols: 4,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#toggleMultiset" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-multiset-settings-value",
+              header: "Sätze (best&nbsp;of)".html_safe,
+              varname: "sets",
+              values: [0, 1, 2, 3, 4, 5, 6, 7],
+              maxval: 999,
+              displays: %w{ * 1 2 3 4 5 6 7},
+              cols: 8,
+              increment: 1,
+              data: { action: "change->karambol-settings#updateSets" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-multiset-settings-value",
+              header: "Winner (when)",
+              varname: "games",
+              values: %w{0 1 2 3 4 5 6 7},
+              maxval: 99,
+              displays: %w{* 1 2 3 4 5 6 7},
+              cols: 8,
+              increment: 1,
+              data: { action: "change->karambol-settings#updateGames" }
+            } %>
+            <%= render partial: "radio_select", locals: {
+              table: table,
+              show: "data-karambol-settings-show-multiset-settings-value",
+              header: "Anstoß wechselt",
+              varname: "next_break",
+              values: [0, 1],
+              maxval: 2,
+              displays: ["nach Satz", "zu Gewinner"],
+              cols: 3,
+              increment: 1,
+              no_counter: true,
+              data: { action: "change->karambol-settings#updateNextBreak" }
+            } %>
+            <div data-karambol-settings-target="multisetSettings" class="hidden">Shootout</div>
+            <div data-karambol-settings-target="multisetSettings" class="col-span-5 flex flex-row hidden" data-controller="game-settings">
+              <div class="flex items-center mr-8">Spielzeit:</div>
+              <div class="flex pl-5 pr-5 text-4vw font-bold"
+                   data-action="click->game-settings#decrementGametime">-</div>
+              <label>
+                <input name="gametime"
+                       type='number'
+                       data-game-settings-target="gametime"
+                       class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4">
+              </label>
+              <div class="flex pl-5 pr-5 text-4vw font-bold"
+                   data-action="click->game-settings#incrementGametime">+</div>
+              <div class="flex items-center mr-8 ml-8">Warnzeit:</div>
+              <div class="flex pl-5 pr-5 text-4vw font-bold"
+                   data-action="click->game-settings#decrementWarntime">-</div>
+              <label>
+                <input name="warntime"
+                       type='number'
+                       data-game-settings-target="warntime"
+                       class="flex w-20 text-2vw font-medium shadow-sm text-gray-900 border rounded-md py-3 px-4">
+              </label>
+              <div class="flex pl-5 pr-5 text-4vw font-bold"
+                   data-action="click->game-settings#incrementWarntime">+</div>
+              <div id="set_params" class="no-show text-shadow text-2vw grid gap-3 grid-cols-4 mt-4 text-gray-200">
+                <div class="flex flex-row text-white">
+                  <div class="mb-1"><%= t("activerecord.attributes.tournament.kickoff_switches_with") %></div>
+                  <%= content_tag :div, id: "kickoff_switches_with", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+                    <%= select_tag :kickoff_switches_with, options_for_select(%w[set winner], @kickoff_switches_with), class: "p-1 text-2vw w-full" %>
+                  <%- end %>
+                </div>
+                <div class="flex flex-row text-white">
+                  <%= content_tag :div, id: "color_remains_with_set", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+                    <%= check_box_tag :color_remains_with_set, "1", @color_remains_with_set, class: "p-1 text-2vw mr-4" %>
+                  <%- end %>
+                  <div class="mb-1"><%= t("activerecord.attributes.tournament.color_remains_with_set") %></div>
+                </div>
+                <div class="flex flex-row text-white">
+                  <%= content_tag :div, id: "allow_overflow", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1" do %>
+                    <%= check_box_tag :allow_overflow, "1", @allow_overflow, class: "p-1 text-2vw mr-4" %>
+                  <%- end %>
+                  <div class="mb-1"><%= t("activerecord.attributes.tournament.allow_overflow") %></div>
+                </div>
+                <div class="flex flex-col text-white">
+                  <div class="flex text-white">
+                    <div class="mb-1"><%= t("activerecord.attributes.tournament.fixed_display_left") %></div>
+                  </div>
+                  <div class="flex text-white">
+                    <div id="timeouts_w" tabindex="1" class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg p-1 w-full">
+                      <label for="fixed_display_left"></label><select name="fixed_display_left" id="fixed_display_left" class="p-1 text-2vw w-full">
+                        <option value="">Der Anstoßende</option>
+                        <option value="playera">Spieler A</option>
+                        <option value="playerb">Spieler B</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <%= render partial: "radio_select", locals: {
-            table: table,
-            show: "true",
-            header: "Erster Anstoß",
-            varname: "first_break",
-            values: %w{0 1 2},
-            maxval: 2,
-            displays: ["ausstoßen", "Heim/Spieler A", "Gast/Spieler B"],
-            cols: 3,
-            increment: 1,
-            no_counter: true }
-          %>
-        </form>
-      </div>
-    <% end %>
-  <% end %>
+          </form>
+        </div>
+      <%- end %>
+    <%- end %>
+  </div>
 </div>

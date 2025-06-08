@@ -22,6 +22,7 @@
     "esbuild-rails": "^1.0.3",
     "flatpickr": "^4.6.10",
     "flowbite": "^2.3.0",
+    "glob": "^11.0.2",
     "js-cookie": "^3.0.1",
     "jstz": "^2.1.1",
     "local-time": "^3.0.0",

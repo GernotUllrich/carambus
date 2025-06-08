@@ -1,0 +1,77 @@
+/* Scoreboard Start Styles */
+
+/* Common styles */
+.text-shadow {
+  text-shadow: 2px 2px #000000;
+}
+
+.top-right {
+  right: 10px;
+  top: -10px;
+}
+
+.karambol-img {
+  background-image: url('/Karambol.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pool2-img {
+  background-image: url('/bg_pool2-.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Navigation icons */
+.nav-icons {
+  width: 8.33%; /* w-1/12 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-right: 1rem;
+  position: fixed;
+  color: rgb(209 213 219); /* text-gray-300 */
+  font-weight: 700;
+  font-size: 2vw;
+}
+
+.nav-icons:hover {
+  color: black;
+}
+
+.nav-icon {
+  width: 100%;
+  height: auto;
+  fill: currentColor;
+  margin: 1rem;
+  display: inline-block;
+}
+
+/* Responsive SVG */
+.responsive-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Responsive text sizes */
+.text-2vw { font-size: 2vw; }
+.text-3vw { font-size: 3vw; }
+.text-4vw { font-size: 4vw; }
+.text-6vw { font-size: 6vw; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .nav-icons {
+    width: 16.67%; /* w-1/6 */
+    font-size: 3vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-icons {
+    width: 25%; /* w-1/4 */
+    font-size: 4vw;
+  }
+}

@@ -1,0 +1,92 @@
+.modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.modal-content {
+  position: relative;
+  padding: 20px;
+  margin: auto;
+  width: 75%;
+}
+
+.modal-content-30 {
+  position: relative;
+  background-color: black;
+  color: lightgray;
+  margin: auto;
+  width: 40%;
+}
+
+.close-btn {
+  float: right;
+  color: lightgray;
+  font-size: 24px;
+  font-weight: bold;
+
+  &:hover {
+    color: darkgray;
+  }
+}
+
+// Table styles
+.table-monitor {
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .space-above {
+    margin-top: 15px;
+  }
+
+  .dark {
+    input {
+      background-color: white;
+
+      &[type="submit"] {
+        background-color: #2563eb;
+      }
+    }
+  }
+}
+
+// Scoreboard styles
+.scoreboard-background {
+  background-image: url('/bg_pool2-.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.scoreboard-title {
+  text-shadow: 2px 2px #000000;
+}
+
+// Player section styles
+.player-section {
+  display: flex;
+  height: 100%;
+
+  &.player-a {
+    @apply text-gray-800 dark:text-gray-200 bg-yellow-500 dark:bg-black;
+  }
+
+  &.player-b {
+    @apply dark:bg-black bg-yellow-500 text-gray-800 dark:text-yellow-400;
+  }
+}
+
+// Responsive styles
+.responsive-svg {
+  width: 100%;
+  height: auto;
+} 

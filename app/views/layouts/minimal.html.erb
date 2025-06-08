@@ -13,7 +13,8 @@
     <% if current_user&.system_theme? %>
       <script nonce="<%= content_security_policy_nonce %>">document.documentElement.classList.toggle("dark", window.matchMedia('(prefers-color-scheme: dark)').matches)</script>
     <% end %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_importmap_tags %>
+    <%= javascript_import_module_tag "application" %>
     <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
     <%# Be sure to add your own custom favicons %>
     <%= render "favicons" %>

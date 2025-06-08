@@ -58,6 +58,12 @@ module CarambusApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets generators tasks templates])
 
+    # Disable the asset pipeline since we're using importmap
+    config.assets.enabled = false
+    config.assets.compile = false
+    config.assets.digest = false
+    config.assets.version = nil
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

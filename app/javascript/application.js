@@ -11,6 +11,12 @@ import "./controllers"
 import hotkeys from "./src/hotkeys"
 import consumer from "./channels/consumer"
 import "@stimulus_reflex/polyfills"
+import Alpine from "./src/alpine.min"
+import "./src/onscreen-keyboard"
+
+// Initialize Alpine.js
+window.Alpine = Alpine
+Alpine.start()
 
 // Expose hotkeys to global window object
 window.hotkeys = hotkeys;

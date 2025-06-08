@@ -1,125 +1,35 @@
-<div x-show="<%= show.presence %>" x-init="increment_<%= varname %> = <%= increment %>"><%= header %></div>
-<div x-show="<%= show.presence %>" class="col-span-4">
+<div data-karambol-settings-target="<%= varname %>Header" 
+     class="<%= show == 'true' ? '' : 'hidden' %>">
+  <%= header %>
+</div>
+<div data-karambol-settings-target="<%= varname %>Container" 
+     class="col-span-4 <%= show == 'true' ? '' : 'hidden' %>">
   <div class="grid grid-cols-<%= cols %> gap-4">
     <%- values.each_with_index do |val, ix| %>
       <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
-             :class="{'bg-blue-600 text-white': (<%= varname %> == '<%= val %>'), 'text-gray-200': !(<%= varname %> == '<%= val %>')}">
+             data-karambol-settings-target="<%= varname %>Option"
+             data-value="<%= val %>">
         <input type="radio" 
-               x-model.number="<%= varname %>" 
                name="<%= varname %>_choice" 
                value="<%= val %>" 
                class="sr-only" 
-               aria-labelledby="<%= varname %>-choice-<%= ix %>-label" 
-               @change="handleRadioChange('<%= varname %>', '<%= val %>')">
+               aria-labelledby="<%= varname %>-choice-<%= ix %>-label"
+               <%= local_assigns[:data] ? "data-#{local_assigns[:data]}" : '' %>>
         <span id="<%= varname %>-choice-<%= ix %>-label"><%= displays[ix] %></span>
       </label>
     <%- end %>
   </div>
 </div>
-<div x-show="<%= show.presence %>" class="grid grid-cols-3">
-    <%- unless local_assigns[:no_counter] %>
-    <div x-show="'discipline' != '<%= varname %>'" 
-         class="flex text-4vw justify-center font-bold cursor-pointer" 
-         @click="handleDecrement('<%= varname %>')">-</div>
+<% unless local_assigns[:no_counter] %>
+  <div data-karambol-settings-target="<%= varname %>Counter" 
+       class="grid grid-cols-3 <%= show == 'true' ? '' : 'hidden' %>">
+    <div class="flex text-4vw justify-center font-bold cursor-pointer" 
+         data-action="click->karambol-settings#decrement<%= varname.capitalize %>">-</div>
     <input name="<%= "#{varname}_2" %>_choice" 
-           x-model.number="<%= "#{varname}_2" %>" 
-           x-show="'discipline' != '<%= varname %>'" 
-           x-text="<%= "#{varname}_2" %>" 
-           @change="handleInputChange('<%= varname %>')"
+           type="number"
+           data-karambol-settings-target="<%= varname %>Input"
            class="flex items-center justify-center text-2vw font-medium shadow-sm bg-blue-600 dark:text-gray-200 text-gray-200 border rounded-md">
-      <%- if table.table_kind.name == "Pool" %>
-        <div x-show="'discipline' == '<%= varname %>'" class="flex col-span-3 items-center justify-center w-full">
-          <div x-show="discipline == 0" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p8.png" %></div>
-          <div x-show="discipline == 1" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p9.png" %></div>
-          <div x-show="discipline == 2" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p10.png" %></div>
-          <div x-show="discipline == 3" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p14.1.png" %></div>
-        </div>
-      <%- end %>
-    <div x-show="'discipline' != '<%= varname %>'" 
-         class="flex text-4vw justify-center font-bold cursor-pointer" 
-         @click="handleIncrement('<%= varname %>')">+</div>
-    <%- end %>
+    <div class="flex text-4vw justify-center font-bold cursor-pointer" 
+         data-action="click->karambol-settings#increment<%= varname.capitalize %>">+</div>
   </div>
-
-<script nonce="<%= content_security_policy_nonce %>">
-  function handleRadioChange(varname, val) {
-    if (window[varname] != 3) {
-      window['increment_' + varname] = Math.round(parseInt(window[varname])/2);
-    }
-    if (varname == 'games' && window.games > 0) {
-      window.sets = 0;
-    }
-    if (varname == 'sets' && window.sets > 0) {
-      window.games = 0;
-    }
-    if (varname != 'multiset' && window.sets == 0 && window.games == 0) {
-      window.multiset = 0;
-    }
-    if (varname == 'discipline') {
-      window.discipline_a = window.discipline_b = window.discipline;
-    }
-    if (varname == 'balls_goal') {
-      window.balls_goal_a = window.balls_goal_b = window.balls_goal;
-    }
-    if (!varname.endsWith('_a') && !varname.endsWith('_b')) {
-      window[varname + '_a'] = window[varname + '_b'] = window[varname + '_2'] = 
-      window[varname + '_a_2'] = window[varname + '_b_2'] = window[varname];
-    } else {
-      window[varname + '_2'] = window[varname];
-    }
-  }
-
-  function handleDecrement(varname) {
-    if (window['increment_' + varname] == 0) {
-      window['increment_' + varname] = parseInt(window[varname + '_2']);
-    }
-    if (window.last_direction == 'r') {
-      window['increment_' + varname] = Math.round(window['increment_' + varname]/2);
-    }
-    window[varname + '_2'] = parseInt(window[varname + '_2']) - window['increment_' + varname];
-    window.last_direction = 'l';
-    if (window['increment_' + varname] < 1) {
-      window['increment_' + varname] = 1;
-    }
-    if (window[varname + '_2'] < 0) {
-      window[varname + '_2'] = 0;
-    }
-    updateValues(varname);
-  }
-
-  function handleIncrement(varname) {
-    if (window['increment_' + varname] == 0) {
-      window['increment_' + varname] = parseInt(window[varname + '_2']);
-    }
-    if (window.last_direction == 'l') {
-      window['increment_' + varname] = Math.round(window['increment_' + varname]/2);
-    }
-    window[varname + '_2'] = parseInt(window[varname + '_2']) + window['increment_' + varname];
-    window.last_direction = 'r';
-    if (window[varname + '_2'] > window.maxval) {
-      window[varname + '_2'] = window.maxval;
-    }
-    updateValues(varname);
-  }
-
-  function handleInputChange(varname) {
-    handleDecrement(varname);
-  }
-
-  function updateValues(varname) {
-    if (varname == 'games' && window.games > 0) {
-      window.sets = 0;
-      window.sets_2 = 0;
-    }
-    if (varname == 'sets' && window.sets > 0) {
-      window.games = 0;
-      window.games_2 = 0;
-    }
-    if (!varname.endsWith('_a') && !varname.endsWith('_b')) {
-      window[varname] = window[varname + '_a_2'] = window[varname + '_b_2'] = 
-      window[varname + '_a'] = window[varname + '_b'] = window[varname + '_2'];
-    } else {
-      window[varname] = window[varname + '_2'];
-    }
-  }
-</script>
+<% end %>

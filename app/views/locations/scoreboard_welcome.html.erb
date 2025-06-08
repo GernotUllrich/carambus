@@ -1,148 +1,36 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
-<%= stylesheet_link_tag "scoreboard_welcome", "data-turbo-track": "reload" %>
-
-<script nonce="<%= content_security_policy_nonce %>" type="text/javascript">
-  document.addEventListener('turbo:load', function() {
-    // Set the background image via CSS variable
-    const container = document.querySelector('.welcome-container');
-    if (container) {
-      const bgImage = container.dataset.backgroundImage;
-      if (bgImage) {
-        container.style.setProperty('--bg-image', `url('${bgImage}')`);
+<div data-controller="scoreboard-welcome">
+  <style nonce="<%= content_security_policy_nonce %>">
+      #info {
+          height: 40px;
+          position: fixed;
+          bottom: 0;
+          width: 300px;
+          color: white;
+          opacity: 1;
       }
-    }
-
-    console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
-    if (!window.hotkeys) {
-      console.error('Hotkeys not available!');
-      return;
-    }
-    var current_element = document.activeElement.getAttribute("id")
-    console.log("active: " + current_element);
-    if (current_element == null) {
-      current_element = "start";
-    }
-    console.log("active now: " + current_element);
-    const elementToFocus = document.getElementById(current_element);
-    if (elementToFocus) {
-      elementToFocus.focus();
-    }
-
-    // backspace, tab, clear, enter, return, esc, escape, space, up, down, left, right, home, end, pageup, pagedown, del, delete and f1 through f19
-    window.hotkeys('*', function (event, handler) {
-      // Prevent the default refresh event under WINDOWS system
-
-      //console.log(hotkeys.getPressedKeyCodes());
-      //alert('you pressed ' + hotkeys.getPressedKeyCodes());
-      var keyMap = {
-        33: "key_a",
-        37: "key_a",
-        34: "key_b",
-        39: "key_b",
-        66: "key_c",
-        38: "key_c",
-        116: "key_d",
-        27: "key_d",
-        40: "key_d",
-        13: "key_d",
+      .karambol-img {
+          background-image: url('/Karambol.jpg')
       }
-      var tabbed_elements = {
-        "start": "intro",
-        "intro": "language",
-        "language": "start"
+      .text-shadow {
+          text-shadow: 2px 2px #000000
       }
-
-      if (event.keyCode in keyMap) {
-        var key = keyMap[event.keyCode];
-        if (key == "key_c") {
-          window.history.back();
-        }
-        if (key == "key_b") {
-          var current_element = document.activeElement.getAttribute("id")
-          console.log("active becomes (b): " + tabbed_elements[current_element]);
-          document.getElementById(tabbed_elements[current_element]).focus();
-        }
-        if (key == "key_a") {
-          var current_element = document.activeElement.getAttribute("id");
-          for (k in tabbed_elements) {
-            if (tabbed_elements[k] == current_element) {
-              console.log("active becomes (a): " + k);
-              document.getElementById(k).focus();
-              break;
-            }
-          }
-        }
-        if (key == "key_d") {
-          console.log("activate: " + document.activeElement.getAttribute("id"));
-          document.activeElement.click();
-        }
-      } else {
-        alert("Unhandled Keycode: " + event.keyCode)
-      }
-      event.preventDefault();
-      return true
-    });
-
-    function toggleFullScreen(elem) {
-      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
-        if (elem.requestFullScreen) {
-          elem.requestFullScreen();
-        } else if (elem.mozRequestFullScreen) {
-          elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullScreen) {
-          elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-        } else if (elem.msRequestFullscreen) {
-          elem.msRequestFullscreen();
-        }
-      } else {
-        if (document.cancelFullScreen) {
-          document.cancelFullScreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.webkitCancelFullScreen) {
-          document.webkitCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      }
-    }
-
-
-    function simulateKey(keyCode, type, modifiers) {
-      var evtName = (typeof (type) === "string") ? "key" + type : "keydown";
-      var modifier = (typeof (modifiers) === "object") ? modifier : {};
-
-      var event = document.createEvent("HTMLEvents");
-      event.initEvent(evtName, true, false);
-      event.keyCode = keyCode;
-
-      for (var i in modifiers) {
-        event[i] = modifiers[i];
-      }
-
-      document.dispatchEvent(event);
-    }
-  });
-</script>
-
-<div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
-
-<div class="welcome-container" data-background-image="<%= @location.background_image %>">
-  <% if I18n.locale.to_s == "en" %>
-    <%= custom_link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-  <% else %>
-    <%= custom_link_to image_tag("flag_en.png"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-  <% end %>
-
-  <h1 class="welcome-title text-4vw flex mb-2 text-gray-200"><%= t('welcome') + " - #{@location.name}" %></h1>
-  <p class="welcome-subtitle mb-6 text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
-  
-  <span>
-    <%= custom_link_to "Start", location_path(sb_state: "start"), class: "welcome-button", id: "start", data: { turbo: false }, tabindex: 1 %>
-    <%= custom_link_to "Intro", intro_path, class: "welcome-button", id: "intro", data: { turbo: false }, tabindex: 2 %>
-  </span>
-  
-  <span class="flex items-center flex-row h-1/4 space-x-20">
-    <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations"), data: { turbo: false }, class: "welcome-button", id: "reservations", tabindex: 1 %>
-  </span>
+  </style>
+  <div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
+  <div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen karambol-img bg-center bg-no-repeat">
+    <% if I18n.locale.to_s == "en" %>
+      <%= custom_link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbo: false, scoreboard_welcome_target: "language" }, tabindex: 0 %>
+    <% else %>
+      <%= custom_link_to image_tag("flag_en.png"), { :locale => 'en' }, id: "language", data: { turbo: false, scoreboard_welcome_target: "language" }, tabindex: 0 %>
+    <% end %>
+    <h1 class="text-4vw text-shadow flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
+    <p class="mb-6 text-shadow text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
+    <span>
+      <%= custom_link_to "Start", location_path(sb_state: "start"), class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary p-5 lg:p-10 text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "start", data: { turbo: false, scoreboard_welcome_target: "start" }, tabindex: 1 %>
+      <%= custom_link_to "Intro", intro_path, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary p-5 lg:p-10 text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "intro", data: { turbo: false, scoreboard_welcome_target: "intro" }, tabindex: 2 %>
+    </span>
+    <span class="flex items-center flex-row h-1/4 space-x-20">
+      <%= custom_link_to t('home.index.reservation'), location_path(@location, sb_state: "reservations"), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "reservations", tabindex: 1 %>
+    </span>
+  </div>
 </div>

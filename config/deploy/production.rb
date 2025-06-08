@@ -16,10 +16,11 @@
 # server '192.168.178.60', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # pi4bcw
 # server '192.168.2.210', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bcw
 # server '192.168.178.107', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # bvbw
-# server 'api.carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+# server '192.168.178.48', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
+server 'api.carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"}
 
 # server "bc-wedel.duckdns.org", user: "www-data", roles: %w[app db web], ssh_options: {port: "8910"} # bc-wedel
-server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
+# server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
 # server '192.168.178.81', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
 # server 'db.carambus.de', user: 'deploy', roles: %w{db}
 

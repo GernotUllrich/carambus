@@ -13,6 +13,6 @@
     <%= render_svg "icons/home", class: "menu-icon", title: "home" %>
   <% end %>
   <%= custom_link_to "#", data: { action: "click->table-monitor#warningMode" }, :"data-turbo" => false do %>
-    <%= render_svg "icons/backspace", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current icon-lg sm:icon-sm m-2 lg:m-2 dark:text-gray-300 text-gray-300 inline-block", title: "terminate" %>
+    <%= render_svg "icons/backspace", class: "menu-icon", title: "terminate" %>
   <% end %>
 </div>

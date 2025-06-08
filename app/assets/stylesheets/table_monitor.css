@@ -206,4 +206,39 @@
   .timer-bar {
     font-size: 3vw;
   }
+}
+
+/* SVG styles */
+.responsive-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* State management elements */
+#panel_state,
+#previous_panel,
+#current_element,
+#previous_element {
+  display: none;
+}
+
+/* Modal elements */
+#modal-confirm-back,
+#modal-confirm-back-bg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+}
+
+#modal-confirm-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#modal-confirm-back-bg {
+  background-color: rgba(0, 0, 0, 0.5);
 } 

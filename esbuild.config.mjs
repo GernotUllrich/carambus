@@ -15,17 +15,24 @@ import rails from "esbuild-rails"
 import chokidar from "chokidar"
 import http from "http"
 import { setTimeout } from "timers/promises"
+import { glob } from "glob"
 
 const clients = []
-const entryPoints = [
-  "application.js",
-]
+
+// Find all JavaScript files in app/javascript
+const jsFiles = await glob("app/javascript/**/*.js")
+console.log("Found JavaScript files:", jsFiles)
+
+const entryPoints = jsFiles.map(file => path.relative("app/javascript", file))
+console.log("Entry points:", entryPoints)
+
 const watchDirectories = [
   "./app/javascript/**/*.js",
   "./app/views/**/*.html.erb",
   "./app/assets/builds/**/*.css", // Wait for cssbundling changes
   "./config/locales/**/*.yml",
 ]
+
 const config = {
   absWorkingDir: path.join(process.cwd(), "app/javascript"),
   bundle: true,
@@ -33,7 +40,15 @@ const config = {
   minify: process.env.RAILS_ENV == "production",
   outdir: path.join(process.cwd(), "app/assets/builds"),
   plugins: [rails()],
-  sourcemap: process.env.RAILS_ENV != "production"
+  sourcemap: process.env.RAILS_ENV != "production",
+  format: "esm",
+  target: ["es2020"],
+  loader: {
+    ".js": "jsx",
+    ".jsx": "jsx",
+    ".ts": "ts",
+    ".tsx": "tsx"
+  }
 }
 
 async function buildAndReload() {
