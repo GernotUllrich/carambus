@@ -41,8 +41,8 @@ class Version < PaperTrail::Version
   def self.list_sequence
     sql = <<~SQL
       SELECT 'SELECT NEXTVAL(' ||
-             quote_literal(quote_ident(PGT.schemaname) || '.' || quote_ident(S.relname)) ' ) FROM ' ||
-             quote_ident(PGT.schemaname)|| '.'||quote_ident(T.relname)|| ';' as query
+             pg_catalog.quote_literal(pg_catalog.quote_ident(PGT.schemaname) || '.' || pg_catalog.quote_ident(S.relname)) || ' ) FROM ' ||
+             pg_catalog.quote_ident(PGT.schemaname) || '.' || pg_catalog.quote_ident(T.relname) || ';' as query
       FROM pg_class AS S,
            pg_depend AS D,
            pg_class AS T,
@@ -349,7 +349,11 @@ class Version < PaperTrail::Version
     e.to_s
   end
 
+  def self.local_server?
+    ApplicationRecord.local_server?
+  end
+
   def self.local_from_api
-    Version.sequence_reset if ApplicationRecord.local_server?
+    Version.sequence_reset if local_server
   end
 end
