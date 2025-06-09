@@ -43,7 +43,7 @@ class League < ApplicationRecord
 
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
-  has_one :league_cc, -> { where(context: "nbv") }
+  has_one :league_cc, -> { where(context: "nbv") }, dependent: :destroy
 
   serialize :game_parameters, coder: YAML, type: Hash
 

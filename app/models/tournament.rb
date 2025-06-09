@@ -78,13 +78,13 @@ class Tournament < ApplicationRecord
   # has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
   has_many :games, dependent: :destroy
   has_many :teams, dependent: :destroy
-  has_one :tournament_monitor
+  has_one :tournament_monitor, depentent: :destroy
   has_one :tournament_cc, class_name: "TournamentCc", foreign_key: :tournament_id, dependent: :destroy
-  has_one :setting
+  has_one :setting, depentent: :destroy
   # noinspection RailsParamDefResolve
   belongs_to :organizer, polymorphic: true
   belongs_to :location, optional: true
-  has_one :tournament_local, dependent: :nullify
+  has_one :tournament_local, dependent: :destroy
 
   scope :active_manual_assignment, -> { where(state: "tournament_started").where(manual_assignment: true) }
 

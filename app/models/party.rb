@@ -56,8 +56,8 @@ class Party < ApplicationRecord
   belongs_to :location, optional: true
   belongs_to :no_show_team, class_name: "LeagueTeam", foreign_key: :no_show_team_id, optional: true
 
-  has_one :party_monitor
-  has_one :party_cc
+  has_one :party_monitor, dependent: :nullify
+  has_one :party_cc, dependent: :destroy
   has_many :party_games, -> { order("seqno") }
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
 

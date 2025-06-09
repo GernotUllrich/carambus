@@ -25,6 +25,7 @@ module RegionTaggable
         # Update the version with the region_ids
         version.update_column(:region_ids, region_ids)
       end
+      return true
     rescue StandardError => e
       Rails.logger.info("Error during tagging: #{e} #{e.backtrace.join("\n")}")
     end

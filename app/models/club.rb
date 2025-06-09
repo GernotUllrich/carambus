@@ -38,7 +38,7 @@ class Club < ApplicationRecord
   # has_many :players, -> { where(type: nil) }
   has_many :season_participations, dependent: :destroy
   has_many :players, through: :season_participations
-  has_many :club_locations
+  has_many :club_locations, dependent: :destroy
   has_many :locations, through: :club_locations
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
   has_many :league_teams
