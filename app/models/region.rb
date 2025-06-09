@@ -44,9 +44,9 @@ class Region < ApplicationRecord
   has_many :locations, as: :organizer
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
   has_many :organized_leagues, as: :organizer, class_name: "League"
-  has_one :setting
+  has_one :setting, dependent: :destroy
   has_many :leagues, as: :organizer, class_name: "League"
-  has_one :region_cc
+  has_one :region_cc, dependent: :destroy
 
   serialize :scrape_data, coder: YAML, type: Hash
 

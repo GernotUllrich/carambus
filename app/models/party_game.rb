@@ -20,7 +20,7 @@ class PartyGame < ApplicationRecord
   belongs_to :player_a, class_name: "Player", optional: true
   belongs_to :player_b, class_name: "Player", optional: true
   belongs_to :discipline, optional: true
-  has_one :party_game_cc
+  has_one :party_game_cc, dependent: :destroy
 
   serialize :data, coder: JSON, type: Hash
 

@@ -28,7 +28,7 @@ class Location < ApplicationRecord
   include SourceHandler
   include RegionTaggable
   # belongs_to :club
-  has_many :club_locations
+  has_many :club_locations, dependent: :destroy
   has_many :clubs, through: :club_locations
   has_many :parties, foreign_key: :location_id
   belongs_to :organizer, polymorphic: true

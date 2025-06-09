@@ -26,7 +26,7 @@ class LeagueTeam < ApplicationRecord
   has_many :parties_b, class_name: "Party", foreign_key: :league_team_b_id
   has_many :parties_as_host, class_name: "Party", foreign_key: :host_league_team_id
   has_many :no_show_parties, class_name: "Party", foreign_key: :no_show_team_id
-  has_one :league_team_cc
+  has_one :league_team_cc, dependent: :destroy
   has_many :seedings, dependent: :destroy
 
   serialize :data, coder: JSON, type: Hash
