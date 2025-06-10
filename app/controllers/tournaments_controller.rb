@@ -93,7 +93,7 @@ class TournamentsController < ApplicationController
   def reload_from_ba
     if local_server?
       @tournament.reset_tournament
-      Version.update_from_carambus_api(update_tournament_from_ba: @tournament.id)
+      Version.update_from_carambus_api(update_tournament_from_cc: @tournament.id)
     else
       @tournament.scrape_single_tournament_public(reload_game_results: true)
     end

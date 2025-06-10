@@ -25,7 +25,6 @@
         <td class="p-3"><%= custom_link_to party.league.name, league_path(party.league) %></td>
         <td class="p-3"><%= custom_link_to( party.league_team_a.andand.name, league_team_path(party.league_team_a)) if party.league_team_a.present? %></td>
         <td class="p-3"><%= custom_link_to( party.league_team_b.andand.name, league_team_path(party.league_team_b)) if party.league_team_b.present? %></td>
-<!--        <td class="p-3"><%#= custom_link_to( party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{party.ba_id}", class: "yellow_link", target: :_blank) if party.ba_id.present? %></td>-->
         <td class="p-3"><%= custom_link_to party.cc_id, party.cc_link if party.cc_id.present? %></td>
         <td class="p-3"><%= party.day_seqno %></td>
         <td class="p-3"><%= party.date %></td>

@@ -329,38 +329,6 @@ namespace :carambus do
     puts arr.inspect
   end
 
-  desc "scrape Players"
-  task scrape_players: :environment do
-    ids = []
-    fname = "#{Rails.root}/tmp/pids/XXX"
-    ids = File.read(fname).split(/\s/) if File.exist?(fname)
-    done_ids = ids
-    Player.includes(club: :region).where.not(id: ids).each do |player|
-      done_ids << player.id.to_s
-      write_ids(fname, done_ids) if (done_ids.count % 1000).zero?
-      club = player.club
-      url = "https://#{player.club.region.shortname.downcase}.billardarea.de"
-      player_details_url = "#{url}/cms_clubs/playerdetails/#{club.ba_id}/#{player.ba_id}"
-      Rails.logger.info "reading #{player_details_url} - player details of player [#{player.ba_id}] on club #{club.shortname} [#{club.ba_id}]"
-      uri = URI(player_details_url)
-      html_player_detail = Net::HTTP.get(uri)
-      doc_player_detail = Nokogiri::HTML(html_player_detail)
-      player_ba_id = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) legend+ .element .field").text.strip.to_i
-      next unless player_ba_id == player.ba_id
-
-      player_title = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(3) .field").text.strip
-      player_lastname, player_firstname = doc_player_detail.css("#tabs-1 fieldset:nth-child(1) .element:nth-child(4) .field").text.strip.split(", ")
-      player.update(title: player_title, lastname: player_lastname, firstname: player_firstname)
-    end
-    write_ids(fname, done_ids)
-  end
-
-  def write_ids(fname, done_ids)
-    f = File.new(fname, "w")
-    f.write(done_ids.map(&:to_s).join(" "))
-    f.close
-  end
-
   desc "retrieve updates from API server"
   task retrieve_updates: :environment do
     args = Carambus.config.location_id.present && Location[Carambus.config.location_id]&.organizer_type == "Region" ? {
@@ -416,24 +384,6 @@ namespace :carambus do
   desc "Init PlayerClass"
   task init_player_classes: :environment do
   end
-  desc "Scrape Tournament Details"
-  task scrape_tournaments_details: :environment do
-    on = false
-    Season.where("ba_id > #{Season.find_by_name("2011/2012").id}").order(ba_id: :desc).each do |season|
-      Region.where(shortname: Region::SHORTNAMES).all.each do |region|
-        # next unless region.shortname == "NBV" #TODO TEST
-        season.tournaments.joins(:region).
-          # where(ba_id: 13933).#TODO TEST
-          where(region_id: region.id).all.each do |tournament|
-          on ||= tournament.ba_id == 12_421
-          if on
-            scrape_single_tournament(tournament)
-            tournament.update_columns(sync_date: Time.now)
-          end
-        end
-      end
-    end
-  end
 
   desc "remove duplicate season participations"
   task remove_duplicate_season_participations: :environment do
@@ -441,17 +391,6 @@ namespace :carambus do
     grouped.each_value do |duplicates|
       duplicates.shift
       duplicates.each(&:destroy)
-    end
-  end
-
-  desc "test scrape single tournament"
-  task single_scrape_tournaments_details: :environment do
-    # ba_ids = Array(ENV["BA_ID"].presence || [4465])
-    # ba_ids = Tournament.where(discipline_id: Discipline.find_by_name("Pool").id).map(&:ba_id).sort
-    ba_ids = [6040]
-    Tournament.where(ba_id: ba_ids).all.each do |t|
-      scrape_single_tournament(t, game_details: true)
-      t.update_columns(sync_date: Time.now)
     end
   end
 
@@ -871,6 +810,3 @@ namespace :carambus do
   end
 end
 
-def scrape_single_tournament(tournament, opts = {})
-  tournament.scrape_single_tournament(opts.merge(force_immediate_action: true))
-end

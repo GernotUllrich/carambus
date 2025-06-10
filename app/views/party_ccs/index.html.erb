@@ -31,7 +31,6 @@
         <% @party_ccs.each do |party_cc| %>
           <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                       <td class="p-3"><%= party_cc.cc_id %></td>
-<!--                      <td class="p-3"><%#= custom_link_to party_cc.party.andand.ba_id, "https://#{party_cc.party.league.organizer.shortname.downcase}.billardarea.de/cms_leagues/matchday/#{party_cc.party.ba_id}", target: :_blank %></td>-->
                       <td class="p-3"><%= custom_link_to "#{party_cc.league_cc.name}(#{party_cc.league_cc.cc_id})", league_cc_path(party_cc.league_cc) %></td>
                       <td class="p-3"><%= custom_link_to "#{party_cc.party.name}(#{party_cc.party_id})", party_path(party_cc.party) %></td>
                       <td class="p-3"><%= custom_link_to "#{party_cc.league_team_a_cc.name}(#{party_cc.league_team_a_cc.cc_id})", league_team_cc_path(party_cc.league_team_a_cc) %></td>

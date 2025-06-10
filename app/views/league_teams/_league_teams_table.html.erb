@@ -24,7 +24,6 @@
         <td class="p-3"><%= league_team.shortname %></td>
         <td class="p-3"><%= custom_link_to league_team.league.name, league_path(league_team.league) %></td>
         <td class="p-3"><%= custom_link_to league_team.league.season.name, season_path(league_team.league.season) %></td>
-<!--        <td class="p-3"><%#= custom_link_to( league_team.ba_id, "https://nbv.billardarea.de/cms_teams/show/#{league_team.ba_id}", class: "yellow_link", target: :_blank) if league_team.ba_id.present? %></td>-->
         <td class="p-3"><%= link_to_if league_team.cc_id.present?, league_team.cc_id, league_team.cc_id_link, target: :_blank %></td>
         <td class="p-3"><%= custom_link_to league_team.club.shortname, club_path(league_team.club) if league_team.club.present? %></td>
         <td class="p-3"><%= link_to_if league_team.source_url.present?, league_team.source_url.present? ? URI.parse(league_team.source_url).host : "", league_team.source_url, target: :_blank %></td>

@@ -24,7 +24,6 @@
     <% @party_ccs.each do |party_cc| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
         <td class="p-3"><%= custom_link_to party_cc.cc_id, party_cc_path(party_cc) %></td>
-<!--        <td class="p-3"><%#= custom_link_to party_cc.party.andand.ba_id, "https://#{party_cc.party.league.organizer.shortname.downcase}.billardarea.de/cms_leagues/matchday/#{party_cc.party.ba_id}", class: "yellow_link", target: :_blank %></td>-->
         <%- unless @league_cc.present? %>
           <td class="p-3"><%= custom_link_to "#{party_cc.league_cc.name}(#{party_cc.league_cc_id})", league_cc_path(party_cc.league_cc) %></td>
         <%- end %>

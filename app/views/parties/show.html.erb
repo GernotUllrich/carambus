@@ -26,10 +26,6 @@
         <h5>League team b</h5>
         <%= custom_link_to @party.league_team_b.name, league_team_path(@party.league_team_b) %>
       </div>
-<!--      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Ba</h5>
-        <%#= custom_link_to @party.ba_id, "https://nbv.billardarea.de/cms_leagues/matchday/#{@party.ba_id}", class: "yellow_link", target: :_blank %>
-      </div>-->
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
         <h5>CC</h5>
         <%= custom_link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", party_cc_path(@party.party_cc) if @party.party_cc.present? %>

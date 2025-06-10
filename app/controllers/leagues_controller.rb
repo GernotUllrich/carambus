@@ -59,7 +59,7 @@ class LeaguesController < ApplicationController
 
   def reload_from_ba
     if local_server?
-      Version.update_from_carambus_api(update_league_from_ba: @league.id)
+      Version.update_from_carambus_api(update_league_from_cc: @league.id)
     else
       @league.scrape_single_league_from_cc(league_details: false)
     end
@@ -68,7 +68,7 @@ class LeaguesController < ApplicationController
 
   def reload_from_ba_with_details
     if local_server?
-      Version.update_from_carambus_api(update_league_from_ba: @league.id, league_details: true)
+      Version.update_from_carambus_api(update_league_from_cc: @league.id, league_details: true)
     else
       @league.scrape_single_league_from_cc(league_details: true)
     end

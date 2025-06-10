@@ -16,7 +16,6 @@
       <div class="mb-4">
         <h5><%= t('region.shortname') %></h5>
         <%= @region.shortname %>
-        <!--        (-> <%#= custom_link_to("Billard Area", "https://#{@region.shortname.andand.downcase || "nbv"}.billardarea.de", class: "yellow_link", target: :_blank) %>)-->
         <%- if @region.region_cc.present? %>
           (-> <%= custom_link_to('Club Cloud', @region.public_cc_url_base.presence || @region.region_cc.public_url.presence || @region.region_cc.base_url, class: "green_link") %>
           , <%= custom_link_to 'Migration Check', migration_cc_region_path(@region) %>)

@@ -63,7 +63,7 @@ class ClubsController < ApplicationController
 
   def reload_from_ba
     if local_server?
-      Version.update_from_carambus_api(update_club_from_ba: @club.id)
+      Version.update_from_carambus_api(update_club_from_cc: @club.id)
     else
       @club.scrape_club(Season.current_season, nil, nil, player_details: false)
     end
@@ -72,7 +72,7 @@ class ClubsController < ApplicationController
 
   def reload_from_ba_with_details
     if local_server?
-      Version.update_from_carambus_api(update_club_from_ba: @club.id, player_details: true, force: true)
+      Version.update_from_carambus_api(update_club_from_cc: @club.id, player_details: true, force: true)
     else
       ret = @club.scrape_club(Season.current_season, nil, nil, player_details: true, force: true)
       if ret.present?

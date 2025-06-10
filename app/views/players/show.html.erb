@@ -7,12 +7,6 @@
 
     <%- club = @player.season_participations.where(season: Season.current_season).first.andand.club %>
     <div class=" rounded shadow p-8">
-<!--      <div class="mb-4">
-        <h5><%#= t('player.ba_id') %></h5>
-        <%#- if club.present? %>
-          <%#= custom_link_to @player.ba_id, "https://#{club.region.shortname.downcase}.billardarea.de/cms_clubs/playerdetails/#{club.ba_id}/#{@player.ba_id}", class: "yellow_link", target: :_blank %>
-        <%#- end %>
-      </div>-->
       <div class="mb-4">
         <h5><%= t('player.club_id') %></h5>
         <%= custom_link_to club.shortname, club_path(club) if club.present? %>
