@@ -166,13 +166,13 @@ class Version < PaperTrail::Version
   end
 
   def self.update_from_carambus_api(opts = {})
-    tournament_id = opts[:update_tournament_from_ba]
+    tournament_id = opts[:update_tournament_from_cc]
     region_id = opts[:reload_tournaments]
     region_id ||= opts[:reload_leagues]
     region_id ||= opts[:reload_leagues_with_details]
-    region_id ||= opts[:update_region_from_ba]
-    league_id = opts[:update_league_from_ba]
-    club_id = opts[:update_club_from_ba]
+    region_id ||= opts[:update_region_from_cc]
+    league_id = opts[:update_league_from_cc]
+    club_id = opts[:update_club_from_cc]
     force = opts[:force]
     player_details = opts[:player_details]
     league_details = opts[:league_details]
@@ -180,7 +180,7 @@ class Version < PaperTrail::Version
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
     }#{
-      "&update_tournament_from_ba=#{tournament_id}" if tournament_id.present?
+      "&update_tournament_from_cc=#{tournament_id}" if tournament_id.present?
     }#{
       "&reload_tournaments=#{region_id}" if opts[:reload_tournaments].present?
     }#{
@@ -188,17 +188,17 @@ class Version < PaperTrail::Version
     }#{
       "&reload_leagues_with_details=#{region_id}" if opts[:reload_leagues_with_details].present?
     }#{
-      "&update_region_from_ba=#{region_id}" if opts[:update_region_from_ba].present?
+      "&update_region_from_cc=#{region_id}" if opts[:update_region_from_cc].present?
     }#{
-      "&update_club_from_ba=#{club_id}" if club_id.present?
+      "&update_club_from_cc=#{club_id}" if club_id.present?
     }#{
-      "&update_league_from_ba=#{league_id}" if league_id.present?
+      "&update_league_from_cc=#{league_id}" if league_id.present?
     }#{
       "&force=#{force}" if force
     }#{
       "&player_details=#{player_details}" if player_details
     }#{
-      "&region_id=#{Location[Carambus.config.location_id]&.organizer_id}" if Carambus.config.location_id.present && Location[Carambus.config.location_id]&.organizer_type == "Region"
+      "&region_id=#{Location[Carambus.config.location_id]&.organizer_id}" if Carambus.config.location_id.present? && Location[Carambus.config.location_id]&.organizer_type == "Region"
     }#{
       "&league_details=#{league_details}" if league_details
     }&season_id=#{Season.current_season&.id}")

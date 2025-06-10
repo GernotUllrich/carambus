@@ -22,7 +22,6 @@
   <% @league_ccs.each do |league_cc| %>
     <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
       <td class="p-3"><%= custom_link_to league_cc.cc_id, league_cc_path(league_cc) %></td>
-<!--      <td class="p-3"><%#= custom_link_to "#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}", "https://#{league_cc.context}.billardarea.de/cms_leagues/plan/#{league_cc.league.ba_id}/#{league_cc.league.ba_id2}", class: "yellow_link", target: "_blank" if league_cc.league.present? %></td>-->
       <%= form_tag("#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"][0]}", id: "cc_link_#{league_cc.id}", :method => :post, :class => 'internal', target: :_blank) do %>
         <%= hidden_field_tag 'fedId', league_cc.fedId %>
         <%= hidden_field_tag 'branchId', league_cc.branchId %>

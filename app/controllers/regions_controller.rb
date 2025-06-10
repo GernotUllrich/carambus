@@ -63,7 +63,7 @@ class RegionsController < ApplicationController
 
   def reload_from_ba
     if local_server?
-      Version.update_from_carambus_api(update_region_from_ba: @region.id)
+      Version.update_from_carambus_api(update_region_from_cc: @region.id)
     else
       @region.scrape_clubs(player_details: false)
     end
@@ -72,7 +72,7 @@ class RegionsController < ApplicationController
 
   def reload_from_ba_with_details
     if local_server?
-      Version.update_from_carambus_api(update_region_from_ba: @region.id, player_details: true)
+      Version.update_from_carambus_api(update_region_from_cc: @region.id, player_details: true)
     else
       # @region.scrape_clubs(player_details: true, start_with_club_shortname: "Snooker Club 147 Essen e.V.")
       @region.scrape_clubs(player_details: true)

@@ -22,10 +22,6 @@
         <h5>Season</h5>
         <%= custom_link_to @league.season.name, season_path(@league.season) %>
       </div>
-<!--      <div class="mb-4">
-        <h5>Ba</h5>
-        <%#= custom_link_to @league.ba_id, "https://nbv.billardarea.de/cms_leagues/plan/#{@league.ba_id}", class: "yellow_link", target: :_blank %>
-      </div>-->
       <div class="mb-4">
         <h5>CC</h5>
         <%= custom_link_to "#{@league.league_cc.name}(#{@league.league_cc.id})", league_cc_path(@league.league_cc) if @league.league_cc.present? %>

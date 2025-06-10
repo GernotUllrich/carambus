@@ -31,7 +31,6 @@
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
         <td class="p-3"><%= (club.logo.present? ? image_tag(club.logo) : "") %></td>
         <td class="p-3"><%= club.id %></td>
-<!--        <td class="p-3"><%#= link_to_if club.ba_id.present? && club.ba_id < 998000000, club.ba_id, "https://nbv.billardarea.de/cms_clubs/details/#{club.ba_id}", class: "yellow_link", target: :_blank %></td>-->
         <td class="p-3"><%= custom_link_to club.dbu_nr, "https://billard-union.net/verein-details.php?p=10---#{club.dbu_nr}--1-100000-0", class: "green_link", target: :_blank if club.dbu_nr.present? %></td>
         <td class="p-3"><%= (custom_link_to club.cc_id, "#{club.region.public_cc_url_base}verein-details.php?p=#{club.region.region_cc.andand.cc_id}---#{club.cc_id}--1-100000-0", class: "green_link", target: :_blank) if club.cc_id.present? %></td>
         <td class="p-3"><%= custom_link_to club.region.shortname, region_path(club.region) %></td>
