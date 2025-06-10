@@ -20,7 +20,7 @@ module RegionTaggable
 
     # Update region taggings
     current_region_ids = region_taggings.pluck(:region_id)
-    
+
     # Add new region taggings
     (region_ids - current_region_ids).each do |region_id|
       region_taggings.create!(region_id: region_id)
@@ -51,7 +51,29 @@ module RegionTaggable
     when League
       [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
     when Party
-      [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
+      league ? [(league.organizer_type == "Region" ? league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+    when GameParticipation
+      if game&.tournament_type == 'Tournament'
+        game.tournament ? [
+          game.tournament.region_id,
+          (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil),
+          find_dbu_region_id_if_global
+        ].compact : []
+      elsif game&.tournament_type == 'Party'
+        game.tournament&.league ? [(game.tournament.league.organizer_type == "Region" ? game.tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      end
+    when Game
+      if tournament_type == 'Tournament'
+        tournament ? [
+          tournament.region_id,
+          (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
+          find_dbu_region_id_if_global
+        ].compact : []
+      elsif tournament_type == 'Party'
+        tournament&.league ? [(tournament.league.organizer_type == "Region" ? tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      end
+    when PartyGame
+      party&.league ? [(party.league.organizer_type == "Region" ? party.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
     when Seeding
       if tournament_id.present?
         tournament ? [
