@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_04_22_134026) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -646,6 +646,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_22_134026) do
     t.index ["context"], name: "index_region_ccs_on_context", unique: true
   end
 
+  create_table "region_taggings", force: :cascade do |t|
+    t.string "taggable_type", null: false
+    t.bigint "taggable_id", null: false
+    t.bigint "region_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["region_id"], name: "index_region_taggings_on_region_id"
+    t.index ["taggable_type", "taggable_id", "region_id"], name: "index_region_taggings_on_taggable_and_region", unique: true
+    t.index ["taggable_type", "taggable_id"], name: "index_region_taggings_on_taggable"
+  end
+
   create_table "regions", force: :cascade do |t|
     t.string "name"
     t.string "shortname"
@@ -1121,6 +1132,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_04_22_134026) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "region_taggings", "regions"
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
