@@ -90,8 +90,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     }
     GameParticipation.joins(:game).joins("left outer join tournaments on tournaments.id = games.tournament_id").where(
       "games.id >= ?", Seeding::MIN_ID
-    ).where(games: { tournament_id: tournament_id,
-                     tournament_type: "Tournament" }).each do |gp|
+    ).where.not(games: { tournament_id: nil}).each do |gp|
       game = gp.game
       results = gp.data["results"]
       if results.present?
@@ -317,8 +316,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                            .joins(:game)
                            .joins("left outer join tournaments on tournaments.id = games.tournament_id")
                            .where("games.id >= ?", Seeding::MIN_ID)
-                           .where(games: { round_no: 1, group_no: group_no, tournament_id: tournament.id,
-                                           tournament_type: "Tournament" })
+                           .where(games: { round_no: 1, group_no: group_no, tournament_id: tournament.id})
                            .order("points desc, game_id asc")
                   table_from_winner = winner.where(points: 2).count == 2
                   winner_arr = winner.to_a
@@ -392,8 +390,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                   # rubocop:disable all
                   winner = GameParticipation.joins(:game).joins("left outer join tournaments on tournaments.id = games.tournament_id").where(
                     "games.id >= ?", Seeding::MIN_ID
-                  ).where(games: { round_no: 2, group_no: group_no, tournament_id: tournament.id,
-                                   tournament_type: "Tournament" }).order("gd desc")
+                  ).where(games: { round_no: 2, group_no: group_no, tournament_id: tournament.id}).order("gd desc")
                   # rubocop:enable all
                   winner_arr = winner.to_a
                   table_from_winner = winner_arr[0].gd != winner_arr[1].gd
