@@ -69,8 +69,6 @@ module RegionTaggable
           (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
           find_dbu_region_id_if_global
         ].compact : []
-      elsif tournament_type == 'Party'
-        tournament&.league ? [(tournament.league.organizer_type == "Region" ? tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
       end
     when PartyGame
       party&.league ? [(party.league.organizer_type == "Region" ? party.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
@@ -122,7 +120,7 @@ module RegionTaggable
       return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
     when Party
       # Include DBU if party is organized by DBU
-      return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
+      return dbu_region.id if league && league.organizer_type == 'Region' && league.organizer_id == dbu_region.id
     when Seeding
       # Include DBU if seeding is for a DBU tournament or league
       return dbu_region.id if tournament&.organizer_type == 'Region' && tournament&.organizer_id == dbu_region.id ||

@@ -112,6 +112,8 @@ class Party < ApplicationRecord
   end
 
   def intermediate_result
+    # TODO GameParticipation is only for tournament games and PartyGame is not a Game!!
+    raise "GameParticipation is only for tournament games and PartyGame is not a Game!!"
     points_l = nil
     points_r = nil
     players = GameParticipation.joins(:game).joins("left outer join parties on parties.id = games.tournament_id").where.not(points: nil).where(games: {
