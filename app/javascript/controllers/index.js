@@ -18,6 +18,9 @@ import consumer from '../channels/consumer'
 import FilterPopupController from "./filter_popup_controller"
 application.register("filter-popup", FilterPopupController)
 
+import ClipboardController from "./clipboard_controller"
+application.register("clipboard", ClipboardController)
+
 StimulusReflex.initialize(application, { 
   consumer, 
   controller, 
