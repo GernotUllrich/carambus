@@ -192,7 +192,9 @@ class LocationsController < ApplicationController
     @user = User.scoreboard
     bypass_sign_in @user, scope: :user
     Current.user = @user
-    unless File.exist?("#{Rails.root}/config/scoreboard_url")
+    scoreboard_current = scoreboard_location_url(@location.md5, sb_state: "welcome")
+    scoreboard_url = File.read("#{Rails.root}/config/scoreboard_url").to_s.strip
+    unless scoreboard_current == scoreboard_url
       File.write("#{Rails.root}/config/scoreboard_url", scoreboard_location_url(@location.md5, sb_state: "welcome"))
     end
     redirect_to "/locations/#{@location.md5}?sb_state=#{sb_state}"
