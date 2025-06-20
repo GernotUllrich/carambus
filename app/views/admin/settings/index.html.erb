@@ -70,20 +70,6 @@
       </div>
     </div>
 
-    <div class="field-group">
-      <h3>Table Settings</h3>
-      <% %w[small_table_no large_table_no pool_table_no snooker_table_no].each do |key| %>
-        <div class="field-unit">
-          <div class="field-unit__label">
-            <%= label_tag "config[#{key}]", key.titleize %>
-          </div>
-          <div class="field-unit__field">
-            <%= number_field_tag "config[#{key}]", @config.send(key), class: "field-unit__input" %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-
     <div class="form-actions">
       <%= submit_tag "Update Configuration", class: "button" %>
     </div>
