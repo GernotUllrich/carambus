@@ -39,8 +39,6 @@ class League < ApplicationRecord
   has_many :tournaments
   belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :game_plan, optional: true
-  # belongs_to :region, -> { where(leagues: { organizer_type: "Region" }) }, foreign_key: "organizer_id"
-
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
   has_one :league_cc, -> { where(context: "nbv") }, dependent: :destroy
@@ -291,6 +289,7 @@ class League < ApplicationRecord
       leagues_html = Net::HTTP.get(uri)
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
+
       if table.present?
         table.css("tr").each do |tr|
           cc_id2s = []
@@ -349,8 +348,15 @@ class League < ApplicationRecord
                       staffel_text: staffel_texts[ix] }.compact
             league.assign_attributes(attrs)
             league.source_url = staffel_link
-            league.save
-            league.scrape_single_league_from_cc(opts) if opts[:league_details]
+            if league.changed?
+              league.region_ids |= [region.id]
+              league.save
+            end
+
+            if opts[:league_details]
+              # Collect all records from league details for batch tagging
+              league.scrape_single_league_from_cc(opts)
+            end
           end
         end
       end
@@ -366,8 +372,9 @@ class League < ApplicationRecord
   def scrape_single_league_from_cc(opts = {})
     return unless opts[:league_details]
     organizer = self.organizer
+    region = organizer if organizer.is_a?(Region)
     if organizer.is_a?(Region) && organizer.shortname == "BBV"
-      league_url = scrape_single_bbv_league(organizer, opts)
+      league_url, league_taggings = scrape_single_bbv_league(organizer, opts)
     else
       logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
       season = self.season
@@ -426,7 +433,7 @@ class League < ApplicationRecord
         team_club_table = team_doc.css("aside > section > table")[2]
         if team_club_table.blank?
           team_club_name = team_a.text.gsub(/\(.*\)$/, "").strip.gsub(/\s+\d+$/, "").gsub(/\s+[IVX]+$/, "").gsub("1.", "1. ").gsub("1.  ",
-                                                                                                            "1. ")
+                                                                                                                                   "1. ")
           club = Club.where("synonyms ilike ?", "%#{team_club_name}%").to_a.find do |c|
             c.synonyms.split("\n").include?(team_club_name)
           end
@@ -465,7 +472,10 @@ class League < ApplicationRecord
         else
           club.cc_id = club_cc_id
         end
-        club.save
+        if club.changed?
+          club.region_ids |= [region.id]
+          club.save
+        end
         clubs_cache << club if club.present?
         team_name = team_a.text.strip
         params = team_link.split("p=")[1].split(/[-|]/)
@@ -478,6 +488,7 @@ class League < ApplicationRecord
         }
         league_team.assign_attributes(attrs)
         league_team.source_url = league_url
+        league_team.region_ids |= [region.id]
         league_team.save
         league_teams_cache << league_team
         league_team_players ||= {}
@@ -511,17 +522,24 @@ class League < ApplicationRecord
                     player.lastname = fl_name.split(/\s+/)[1..].join(" ")
                     player.dbu_nr = player_dbu_nr
                     player.source_url = team_url
-                    player.save
+                    if player.changed?
+                      player.region_ids |= [region.id]
+                      player.save
+                    end
                     sp_args = {
                       season_id: season_id,
                       player_id: player.id,
                       club_id: club.id
                     }
-                    SeasonParticipation.where(sp_args).first || SeasonParticipation.create(sp_args)
+                    SeasonParticipation.where(sp_args).first ||
+                      (sp = SeasonParticipation.new(sp_args); sp.region_ids = [region.id]; sp.save)
                   else
                     player.assign_attributes(dbu_nr: player_dbu_nr)
                     player.source_url = team_url
-                    player.save
+                    if player.changed?
+                      player.region_ids |= [region.id]
+                      player.save
+                    end
                   end
                 end
               else
@@ -548,7 +566,10 @@ class League < ApplicationRecord
               seeding.role = role
               break
             end
-            seeding.save!
+            if seeding.changed?
+              seeding.region_ids |= [region.id]
+              seeding.save!
+            end
           end
         end
         league_team.reload
@@ -666,9 +687,14 @@ class League < ApplicationRecord
                 end
                 location.dbu_nr = location_dbu_nr if url =~ /billard-union.net/
                 location.source_url = url + location_link unless url =~ /billard-union.net/
-                location.save
+                if location.changed?
+                  location.region_ids |= [region.id]
+                  location.save
+                end
                 club_location = ClubLocation.where(club: club, location: location).first
-                ClubLocation.create(club: club, location: location) unless club_location.present?
+                unless club_location.present?
+                  (cl = ClubLocation.new(club: club, location: location); cl.region_ids = [region.id]; cl.save)
+                end
               end
             end
             if party.blank? || party.party_games.blank? || !opts[:optimize_api_access]
@@ -691,7 +717,10 @@ class League < ApplicationRecord
                 location: league_team_a.andand.club.andand.location
               }.compact
               party.assign_attributes(party_attrs)
-              party.save!
+              if party.changed?
+                party.region_ids |= [region.id]
+                party.save
+              end
               party_count += 1
               break if opts[:first_five_parties_only] && party_count > 5
 
@@ -993,7 +1022,10 @@ class League < ApplicationRecord
                   seqno: seqno2
                 ).first || PartyGame.new(party_id: party.id, seqno: seqno2)
                 party_game.assign_attributes(attrs)
-                party_game.save
+                if party_game.changed?
+                  party_game.region_ids |= [region.id]
+                  party_game.save
+                end
               end
               # look for shootout
               res = party.data[:points].andand.split(":")&.map(&:strip)&.map(&:to_i)&.sort
@@ -1030,7 +1062,10 @@ class League < ApplicationRecord
             party = Party.where(party_attrs).first
             party ||= Party.new(league_id: id)
             party.assign_attributes(party_attrs.merge(date: date))
-            party.save!
+            if party.changed?
+              party.region_ids |= [region.id]
+              party.save!
+            end
             Party.where(party_attrs.merge(league_id: id, cc_id: nil)).destroy_all
           end
           party
@@ -1068,12 +1103,16 @@ class League < ApplicationRecord
           end
         else
           gp.assign_attributes(footprint: footprint, data: game_plan)
-          gp.save
+          if gp.changed?
+            gp.region_ids |= [region.id]
+            gp.save
+          end
           self.game_plan = gp
           save!
         end
       end
     end
+    return
   rescue StandardError => e
     Rails.logger.info "==== scrape ==== Fatal Error league_url: #{league_url} #{e}, #{e.backtrace&.join("\n")}"
   end
@@ -1147,31 +1186,37 @@ class League < ApplicationRecord
           attrs = { shortname: league_shortname, discipline: branch }.compact
           league.assign_attributes(attrs)
           league.source_url = league_uri
-          league.save
-          league.scrape_single_league_from_cc(opts.merge(league_doc: league_doc)) if opts[:league_details]
+          if league.changed?
+            records_to_tag |= Array(league)
+            league.save
+          end
+          records_to_tag |= Array(league.scrape_single_league_from_cc(opts.merge(league_doc: league_doc))) if opts[:league_details]
         end
       end
     end
+    return records_to_tag
   end
 
   def scrape_single_bbv_league(region, opts = {})
     url = "https://bbv-billard.liga.nu"
+    records_to_tag = []
     logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
     season = self.season
     league_url = self.source_url
     league_doc = opts[:league_doc]
     league_doc, league_uri = get_league_doc(league_url) unless league_doc.present?
     # scrape league teams with results
-    scrape_bbv_league_teams(league_doc, league_url, url)
+    records_to_tag |= Array(scrape_bbv_league_teams(league_doc, league_url, url))
     parties_table_url = url + league_doc.css("#sub-navigation a").select { |a| a.text =~ /Spielplan \(Gesamt\)/ }[0].attributes["href"].value
     parties_table_url
 
-    league_url
+    [league_url, records_to_tag]
   end
 
   # scrape bbv league teams with results
   def scrape_bbv_league_teams(league_doc, league_url, url)
     team_table_url = league_url
+    records_to_tag = []
     team_table_doc = league_doc
     html = team_table_doc.css("table")[0]
     headers = html.css("th").map(&:text)
@@ -1223,8 +1268,12 @@ class League < ApplicationRecord
       }
       league_team.assign_attributes(attrs)
       league_team.source_url = league_url
-      league_team.save
+      if league_team.changed?
+        records_to_tag |= Array(league_team)
+        league_team.save
+      end
     end
+    return records_to_tag
   end
 
   def self.get_league_doc(league_url)
@@ -1238,65 +1287,5 @@ class League < ApplicationRecord
     # league_html = league_html.force_encoding('ISO-8859-1').encode('UTF-8')
     league_doc = Nokogiri::HTML.fragment(league_html)
     return league_doc, league_uri
-  end
-
-  def evaluate_league_players(name_str, league_players, team)
-    player = nil
-    player_names = name_str.split("::")
-    players = []
-    player_names.each_with_index do |player_name_str, ix|
-      player_name = player_name_str.split(/\s+/)
-      words_firstname = player_name[0..-2]
-      words_lastname = Array(player_name[-1])
-      player = nil
-      while words_firstname.count.positive?
-        player_firstname = words_firstname.join(" ")
-        player_lastname = words_lastname.join(" ")
-        player = league_players["#{player_firstname} #{player_lastname}"]
-        if player.blank?
-          player, _club, _seeding, _state_ix = Player.fix_from_shortnames(player_lastname, player_firstname, season, organizer,
-                                                                          team.andand.club.andand.shortname.to_s, nil,
-                                                                          true, false, ix)
-          league_players["#{player_firstname} #{player_lastname}"] = player
-        end
-        if player.present?
-          players.push(player)
-          break
-        else
-          take_last_word_from_firstname = words_firstname.pop
-          words_lastname.unshift(take_last_word_from_firstname)
-        end
-      end
-      next unless player.blank?
-
-      player_name = player_name_str.split(/\s+/)
-      words_firstname = player_name[0..-2]
-      words_lastname = Array(player_name[-1])
-      player_firstname = words_firstname.join(" ")
-      player_lastname = words_lastname.join(" ")
-      player = league_players["#{player_firstname} #{player_lastname}"]
-      next unless player.blank?
-
-      player, _club, _seeding, _state_ix = Player.fix_from_shortnames(player_lastname, player_firstname,
-                                                                      season, organizer,
-                                                                      team.andand.club.andand.shortname.to_s,
-                                                                      nil, true,
-                                                                      true, ix)
-      league_players["#{player_firstname} #{player_lastname}"] = player
-      players.push(player) if player.present?
-    end
-    if players.count == 2
-      args = { data: { "players" => [{ "firstname" => players[0]&.firstname,
-                                       "lastname" => players[0]&.lastname,
-                                       "ba_id" => players[0]&.ba_id,
-                                       "player_id" => players[0]&.id },
-                                     { "firstname" => players[1]&.firstname,
-                                       "lastname" => players[1]&.lastname,
-                                       "ba_id" => players[1]&.ba_id,
-                                       "player_id" => players[1]&.id }] } }
-
-      player = Team.where(args).first || Team.create(args)
-    end
-    player
   end
 end

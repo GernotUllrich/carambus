@@ -48,8 +48,10 @@ module FiltersHelper
       else
         query = query.where(search_query.to_s, search: "%#{search}%", isearch: (search.to_i == 0 ? -727_272 : search.to_i))
       end
-    rescue Exception => e
-      e
+    rescue StandardError => e
+      Rails.logger.error "Error in apply_filters: #{e.message}\n#{e.backtrace.join("\n")}"
+      # Return the original query instead of the exception to prevent hanging
+      query
     end
     query
   end
