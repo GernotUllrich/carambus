@@ -1,7 +1,7 @@
 class TournamentsController < ApplicationController
   include FiltersHelper
   before_action :set_tournament,
-                only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_ba new_team
+                only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement]
 
   # GET /tournaments
@@ -90,7 +90,7 @@ class TournamentsController < ApplicationController
     nil
   end
 
-  def reload_from_ba
+  def reload_from_cc
     if local_server?
       @tournament.reset_tournament
       Version.update_from_carambus_api(update_tournament_from_cc: @tournament.id)
@@ -317,15 +317,6 @@ class TournamentsController < ApplicationController
     rescue StandardError => e
       Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
     end
-  end
-
-  def update_tournament_from_api
-    if local_server?
-      Version.update_from_carambus_api(update_tournament_from_api: @tournament.id)
-    else
-      @tournament.scrape_single_tournament_public
-    end
-    redirect_back_or_to(tournament_path(@tournament))
   end
 
   private

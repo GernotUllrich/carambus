@@ -61,34 +61,31 @@ class VersionsController < ApplicationController
 
   def get_updates
     last_version_id = params[:last_version_id]
-    if (tournament_id = params[:update_tournament_from_cc]).present?
-      @tournament = Tournament.find(tournament_id)
-      @tournament.scrape_single_tournament_public(reload_game_results: true)
-    end
     force = params[:force].presence
     player_details = params[:player_details].presence
     league_details = params[:league_details].presence
-    if (club_id = params[:update_club_from_cc]).present?
+    if (tournament_id = params[:update_tournament_from_cc]).present?
+      @tournament = Tournament.find(tournament_id)
+      @tournament.scrape_single_tournament_public(reload_game_results: true)
+    elsif (club_id = params[:update_club_from_cc]).present?
       @club = Club.find(club_id)
+      @region = @club&.region
       @club.scrape_club(Season.current_season, nil, nil, player_details: player_details, force: force)
-    end
-    if (region_id = params[:update_region_from_cc]).present?
+    elsif (region_id = params[:update_region_from_cc]).present?
       @region = Region.find(region_id)
       @region.scrape_clubs(player_details: player_details)
-    end
-    if (region_id = params[:reload_tournaments]).present?
+    elsif (region_id = params[:reload_tournaments]).present?
       @region = Region.find(region_id)
       @region.scrape_single_tournament_public(Season[params[:season_id]])
-    end
-    if (region_id = params[:reload_leagues]).present?
+    elsif (region_id = params[:reload_leagues]).present?
       @region = Region.find(region_id)
       @region.scrape_single_league_public(Season[params[:season_id]], league_details: false)
-    end
-    if (region_id = params[:reload_leagues_with_details]).present?
+    elsif (region_id = params[:reload_leagues_with_details]).present?
       @region = Region.find(region_id)
       @region.scrape_single_league_public(Season[params[:season_id]], league_details: true)
-    end
-    if (league_id = params[:update_league_from_cc]).present?
+    elsif (league_id = params[:update_league_from_cc]).present?
+      @league = League[league_id]
+      @region = @league&.organizer
       League[league_id]&.scrape_single_league_from_cc(league_details: league_details)
     end
     if last_version_id.present?

@@ -3,8 +3,8 @@ class RegionsController < ApplicationController
   # TODO: callback needed?:  protect_from_forgery except: :search
   before_action :admin_only_check, except: %i[show index]
   before_action :set_region,
-                only: %i[show edit update destroy reload_from_ba migration_cc set_base_parameters reload_from_ba
-                         reload_from_ba_with_details reload_tournaments reload_leagues reload_leagues_with_details]
+                only: %i[show edit update destroy reload_from_cc migration_cc set_base_parameters reload_from_cc
+                         reload_from_cc_with_details reload_tournaments reload_leagues reload_leagues_with_details]
 
   def set_base_parameters
     cookies[:session_id] = params["PHPSESSID"]
@@ -61,7 +61,7 @@ class RegionsController < ApplicationController
     end
   end
 
-  def reload_from_ba
+  def reload_from_cc
     if local_server?
       Version.update_from_carambus_api(update_region_from_cc: @region.id)
     else
@@ -70,7 +70,7 @@ class RegionsController < ApplicationController
     redirect_back_or_to(region_path(@region))
   end
 
-  def reload_from_ba_with_details
+  def reload_from_cc_with_details
     if local_server?
       Version.update_from_carambus_api(update_region_from_cc: @region.id, player_details: true)
     else
@@ -84,7 +84,8 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_tournaments: @region.id, season_id: Season.current_season.id)
     else
-      @region.scrape_single_tournament_public(Season.current_season)
+      tournament_records = @region.scrape_single_tournament_public(Season.current_season)
+      Region.tag_with_region(tournament_records, @region) if tournament_records.present?
     end
     redirect_back_or_to(region_path(@region))
   end
@@ -93,7 +94,9 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_leagues: @region.id, season_id: Season.current_season.id)
     else
-      @region.scrape_single_league_public(Season.current_season, league_details: false)
+      recorda_to_tag = @region.scrape_single_league_public(Season.current_season, league_details: false)
+      Region.tag_with_region(recorda_to_tag, @region)
+
     end
     redirect_back_or_to(region_path(@region))
   end
@@ -102,7 +105,8 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_leagues_with_details: @region.id, season_id: Season.current_season.id)
     else
-      @region.scrape_single_league_public(Season.current_season, league_details: true)
+      recorda_to_tag = @region.scrape_single_league_public(Season.current_season, league_details: true)
+      Region.tag_with_region(recorda_to_tag, @region)
     end
     redirect_back_or_to(region_path(@region))
   end
