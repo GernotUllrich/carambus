@@ -46,8 +46,8 @@
     <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
 
     <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("league.show.reload_from_billard_area", source: @league.source), reload_from_ba_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("league.show.reload_from_billard_area_with_details", source: @league.source), reload_from_ba_with_details_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("league.show.reload_from_club_cloud", source: @league.source), reload_from_cc_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("league.show.reload_from_club_cloud_with_details", source: @league.source), reload_from_cc_with_details_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
     </div>
 
     <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}") %></h3>

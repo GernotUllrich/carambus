@@ -424,8 +424,8 @@ de:
       league: Liga
       leagues: Ligen
     show:
-      reload_from_billard_area: Datenabgleich mit der %{source}
-      reload_from_billard_area_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
+      reload_from_club_cloud: Datenabgleich mit der %{source}
+      reload_from_club_cloud_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
   league_league_teams: Liga Mannschaften
   league_parties: Liga Wettkämpfe
   leagues_season: Aktuelle Ligaspiele in der Saison
@@ -1059,8 +1059,8 @@ de:
       rankings: Ranglisten
       region: 'Regionalverband:'
       registrations: Registrierungen
-      reload_from_billard_area: Datenabgleich mit der Club Cloud
-      reload_from_billard_area_with_details: Datenabgleich mit der Club Cloud mit allen Details
+      reload_from_club_cloud: Datenabgleich mit der Club Cloud
+      reload_from_club_cloud_with_details: Datenabgleich mit der Club Cloud mit allen Details
       reorder: Reihenfolge
       reset_tournament_monitor: Zurücksetzen des Turnier-Monitors
       sets_to_play: 'Sätze:'
@@ -1240,9 +1240,9 @@ de:
     address: Adresse
     country_id: Country
     show:
-      reload_from_billard_area: "Neuladen aus der ClubCloud"
+      reload_from_club_cloud: "Neuladen aus der ClubCloud"
       reload_tournaments: "Neuladen der Turniere"
-      reload_from_billard_area_with_details: "Neuladen aus der ClubCloud mit Details"
+      reload_from_club_cloud_with_details: "Neuladen aus der ClubCloud mit Details"
       reload_leagues: "Neuladen der Ligen"
       reload_leagues_with_details: "Neuladen der Ligen mit Details"
     index:

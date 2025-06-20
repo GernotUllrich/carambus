@@ -32,8 +32,8 @@
       <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
     </div>
     <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("tournaments.show.reload_from_billard_area_with_details"), reload_from_ba_with_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("tournaments.show.reload_from_club_cloud_with_details"), reload_from_cc_with_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
     </div>
   </div>
 </div>

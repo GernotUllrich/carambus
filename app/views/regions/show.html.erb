@@ -44,9 +44,9 @@
   <%= render partial: "rankings" %>
   <% if current_user&.admin? %>
     <div class="flex grid grid-cols-2 mt-8 sm:grid-cols-1 gap-4 px-3 lg:px-0">
-      <%= button_to I18n.t("region.show.reload_from_billard_area", source: @region.source), reload_from_ba_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("region.show.reload_from_club_cloud", source: @region.source), reload_from_cc_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
       <%= button_to I18n.t("region.show.reload_tournaments", source: @region.shortname), reload_tournaments_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("region.show.reload_from_billard_area_with_details", source: @region.source), reload_from_ba_with_details_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("region.show.reload_from_club_cloud_with_details", source: @region.source), reload_from_cc_with_details_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
       <%= button_to I18n.t("region.show.reload_leagues", source: @region.shortname), reload_leagues_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
       <%= button_to I18n.t("region.show.reload_leagues_with_details", source: @region.shortname), reload_leagues_with_details_region_path(@region), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "flex btn btn-flat btn-primary" %>
     </div>
