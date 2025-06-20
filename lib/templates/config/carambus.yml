@@ -8,10 +8,6 @@ default:
   :business_address: 22869 Schenefeld, Sandstückenweg 15
   :carambus_domain: carambus.de
   :queue_adapter: async
-  :small_table_no: 0
-  :large_table_no: 0
-  :pool_table_no: 0
-  :snooker_table_no: 0
   :context: NBV
   :season_name: 2023/2024
   :force_update: 'true'
@@ -25,10 +21,6 @@ development:
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: carambus.de
   queue_adapter: async
-  small_table_no: 0
-  large_table_no: 0
-  pool_table_no: 0
-  snooker_table_no: 0
   context: NBV
   season_name: 2024/2025
   force_update: 'true'
@@ -42,10 +34,6 @@ test:
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: carambus.de
   queue_adapter: async
-  small_table_no: 0
-  large_table_no: 0
-  pool_table_no: 0
-  snooker_table_no: 0
 production:
   carambus_api_url: https://api.carambus.de/
   location_id: 1
@@ -55,7 +43,3 @@ production:
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: carambus.de
   queue_adapter: async
-  small_table_no: 0
-  large_table_no: 0
-  pool_table_no: 0
-  snooker_table_no: 0

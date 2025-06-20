@@ -3,6 +3,7 @@
   name="config[location_id]"
   class="field-unit__input"
 >
+  <option value = "">Select Location</option>
   <% locations.each do |loc| %>
     <option value="<%= loc.id %>" <%= 'selected' if loc.id == Carambus.config.location_id.to_i %>>
       <%= loc.name %>
