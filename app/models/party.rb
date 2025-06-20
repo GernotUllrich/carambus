@@ -76,15 +76,11 @@ class Party < ApplicationRecord
                    party_games]
 
   COLUMN_NAMES = {
-    "BA_ID" => "league_team_ccs.ba_id",
-    "CC_ID" => "league_team_ccs.cc_id",
-    "a_team" => "league_team_a.shortname",
-    "b_team" => "league_team_a.shortname",
-    "host" => "host_league_team.shortname",
-    "league" => "leagues.name",
-    "Sparte" => "league_team_ccs.branch_cc.name",
-    "league_id" => "parties.league_id",
-    "date" => "parties.date::date"
+    "League" => "leagues.name",
+    "League_id" => "parties.league_id",
+    "Date" => "parties.date::date",
+    "Organizer" => "regions.shortname",
+    "Season" => "seasons.name"
   }
 
   def self.search_hash(params)
@@ -94,15 +90,13 @@ class Party < ApplicationRecord
       direction: sort_direction(params[:direction]),
       search: params[:sSearch],
       column_names: Party::COLUMN_NAMES,
-      raw_sql: "(league.name ilike :search)
- or (league_team_a.name ilike :search)
- or (league_team_b.name ilike :search)
- or (host_league_team.name ilike :search)",
+      raw_sql: "(leagues.name ilike :search)
+ or (regions.shortname ilike :search)
+ or (seasons.name ilike :search)",
       joins: [
         :league,
-        'LEFT OUTER JOIN "league_teams" AS "league_team_a" ON "parties"."league_team_a_id" = "league_teams"."id"',
-        'LEFT OUTER JOIN "league_teams" AS "league_team_b" ON "parties"."league_team_b_id" = "league_teams"."id"',
-        'LEFT OUTER JOIN "league_teams" AS "host_league_team" ON "parties"."host_league_team_id" = "league_teams"."id"',
+        'LEFT OUTER JOIN "regions" ON ("regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
+        'LEFT OUTER JOIN "seasons" ON "seasons"."id" = "leagues"."season_id"'
       ]
     }
   end
