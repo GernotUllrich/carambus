@@ -23,8 +23,7 @@ module Admin
     end
 
     def create
-      integer_keys = [:small_table_no, :large_table_no, :pool_table_no, :snooker_table_no,
-                      :location_id, :club_id].map(&:to_s)
+      integer_keys = [:location_id, :club_id].map(&:to_s)
       config = config_params.to_h
       config.each do |key, value|
         value = value.to_i if integer_keys.include?(key)
@@ -66,7 +65,6 @@ module Admin
         :application_name, :carambus_api_url, :carambus_domain, :queue_adapter,
         :season_name, :force_update, :context,
         :support_email, :business_name, :business_address,
-        :small_table_no, :large_table_no, :pool_table_no, :snooker_table_no,
         :location_id, :club_id, :no_local_protection
       )
     end
