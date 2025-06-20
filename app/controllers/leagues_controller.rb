@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
   include FiltersHelper
   before_action :admin_only_check, except: %i[show index]
-  before_action :set_league, only: %i[show edit update destroy reload_from_ba reload_from_ba_with_details]
+  before_action :set_league, only: %i[show edit update destroy reload_from_cc reload_from_cc_with_details]
 
   # GET /leagues
   def index
@@ -57,7 +57,7 @@ class LeaguesController < ApplicationController
     redirect_to leagues_url, notice: "League was successfully destroyed."
   end
 
-  def reload_from_ba
+  def reload_from_cc
     if local_server?
       Version.update_from_carambus_api(update_league_from_cc: @league.id)
     else
@@ -66,7 +66,7 @@ class LeaguesController < ApplicationController
     redirect_back_or_to(league_path(@league))
   end
 
-  def reload_from_ba_with_details
+  def reload_from_cc_with_details
     if local_server?
       Version.update_from_carambus_api(update_league_from_cc: @league.id, league_details: true)
     else

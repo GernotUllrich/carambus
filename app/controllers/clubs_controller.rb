@@ -2,7 +2,7 @@ class ClubsController < ApplicationController
   before_action :admin_only_check, except: %i[show index]
   before_action :set_club,
                 only: %i[new_club_tournament show edit update destroy get_club_details new_club_guest add_club_guest new_club_location
-                         reload_from_ba reload_from_ba_with_details]
+                         reload_from_cc reload_from_cc_with_details]
 
   # GET /clubs
   def index
@@ -61,16 +61,16 @@ class ClubsController < ApplicationController
     render partial: "club_details", locals: { club: @club }, layout: nil
   end
 
-  def reload_from_ba
+  def reload_from_cc
     if local_server?
       Version.update_from_carambus_api(update_club_from_cc: @club.id)
     else
-      @club.scrape_club(Season.current_season, nil, nil, player_details: false)
+      _msg = @club.scrape_club(Season.current_season, nil, nil, player_details: false)
     end
     redirect_back_or_to(club_path(@club))
   end
 
-  def reload_from_ba_with_details
+  def reload_from_cc_with_details
     if local_server?
       Version.update_from_carambus_api(update_club_from_cc: @club.id, player_details: true, force: true)
     else
