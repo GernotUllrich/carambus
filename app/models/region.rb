@@ -35,6 +35,7 @@ class Region < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include RegionScrapable
   # TODO: check country association, because RuboCop complains
   # Unable to find an associated Rails Model for the ':country' association field
   belongs_to :country
@@ -84,10 +85,10 @@ class Region < ApplicationRecord
   #  BVB
   SHORTNAMES_ROOF_ORGANIZATION = %w[DBU].freeze
   SHORTNAMES_CARAMBUS_USERS = %w[BVBW NBV].freeze
-  #SHORTNAMES_ROOF_ORGANIZATION = %w[].freeze
-  #SHORTNAMES_CARAMBUS_USERS = %w[].freeze
-  #SHORTNAMES_OTHERS = %w[BVB].freeze
-  #SHORTNAMES_OTHERS = %w[BVW SBV TBV].freeze
+  # SHORTNAMES_ROOF_ORGANIZATION = %w[].freeze
+  # SHORTNAMES_CARAMBUS_USERS = %w[].freeze
+  # SHORTNAMES_OTHERS = %w[BVB].freeze
+  # SHORTNAMES_OTHERS = %w[BVW SBV TBV].freeze
   SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV TBV].freeze
   SHORTNAMES_FEDERATIONS = %w[BVNRW].freeze
   SHORTNAMES_NO_CC = %w[BBV HBU BLVSA].freeze
@@ -232,7 +233,6 @@ or (regions.address ilike :search)",
         end
         location_detail_url = base_url + link
         location = find_or_create_location(addr, name, cc_id, location, location_detail_url)
-
         Rails.logger.info "reading #{location_detail_url}"
         uri = URI(location_detail_url)
         location_detail_html = Net::HTTP.get(uri)
@@ -253,10 +253,14 @@ or (regions.address ilike :search)",
             club_location = ClubLocation.find_by_location_id_and_club_id(location&.id, club.id)
             next if club_location.present?
 
-            ClubLocation.create(
-              location_id: location.id,
-              club_id: club.id
-            ) if location.present?
+            if location.present?
+              cl = ClubLocation.new(
+                location_id: location.id,
+                club_id: club.id
+              )
+              cl.region_ids |= [self.id]
+              cl.save
+            end
           end
         end
       end
@@ -270,6 +274,7 @@ or (regions.address ilike :search)",
   def self.scrape_regions
     Region.all.each do |region|
       region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname])
+      Region.tag_with_region(region, region) if region.changed?
       region.save if region.changed?
     end
     Region.where.not(public_cc_url_base: nil).all.each do |region|
@@ -277,7 +282,8 @@ or (regions.address ilike :search)",
     rescue StandardError => e
       Rails.logger.info "!!!!!!!!! Error: Problem #{e} #{e.backtrace&.join("\n")}"
     end
-    Region.find_by_shortname("BBV")&.scrape_region_public
+    region = Region.find_by_shortname("BBV")
+    region&.scrape_region_public
   end
 
   def post_cc_public(action, post_options = {}, _opts = {})
@@ -413,6 +419,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     uri = URI(einzel_url)
     einzel_html = Net::HTTP.get(uri)
     einzel_doc = Nokogiri::HTML(einzel_html)
+
     # scrape branches
     einzel_doc.css("article ul.tabstrip li a").each do |a|
       branch_cc_id = a.attributes["href"].value.split("p=")[1].split("-")[1].to_i
@@ -470,8 +477,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       if tc.present?
         # some checks
         if name != tc.name
-          Rails.logger.info "===== scrape ===== Error: Problem with tournament_cc in
- #{tournament_link}: '#{name}' != '#{tc.name}' - fixed"
+          Rails.logger.info "===== scrape ===== Error: Problem with tournament_cc in #{tournament_link}: '#{name}' != '#{tc.name}' - fixed"
           tc.assign_attributes(name:)
         end
       else
@@ -481,7 +487,9 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       tc.save
       # tournament known but no cc entry yet?
       tournament = Tournament.where(season:, organizer: self, title: name).first
-      tournament ||= Tournament.create(season:, organizer: self, title: name)
+      unless tournament.present?
+        tournament = Tournament.create(season:, organizer: self, title: name)
+      end
       TournamentCc.where(tournament_id: tournament.id).where.not(id: tc.id).destroy_all
       tc.update(tournament:)
       tournament.reload.scrape_single_tournament_public(opts.merge(tournament_doc:))
@@ -537,7 +545,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             club.name = club_name
             club.region = self
             club.source_url = club_url
-            club.save!
+            if club.changed?
+              club.region_ids |= [self.id]
+              club.save!
+            end
             if club.present? && location.present?
               club_location = ClubLocation.find_or_create_by({ club: club, location: location })
               club_location
@@ -602,7 +613,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
 
             club.assign_attributes(name: club_name, shortname: club_shortname, region:, cc_id:)
             club.source_url = club_url
-            club.save!
+            if club.changed?
+              club.region_ids |= [self.id]
+              club.save!
+            end
             club_matches.reject { |c| c.id == club.id }.each do |c|
               Rails.logger.info "===== scrape ===== MERGE Clubs #{club.name} [#{club.id}] with #{c.name} [#{c.id}]"
               club.merge_clubs(c.id)
@@ -613,8 +627,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               Rails.logger.info "===== scrape ===== Error ba_id problem cannot merge #{club_matches.map(&:id)} to #{id}"
             end
             club.source_url = club_url
-            club.save!
-            # end
+            if club.changed?
+              club.region_ids |= [self.id]
+              club.save!
+            end
 
             club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU"))
           end
@@ -625,6 +641,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     else
       RegionScrapeClubsJob.perform_later(self, opts)
     end
+    return
   rescue StandardError => e
     Rails.logger.info "===== scrape ===== FATAL Error clubs_url: #{clubs_url}  #{e}, #{e.backtrace&.join("\n")}"
   end
@@ -666,8 +683,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         end
         assign_attributes("#{key_to_db_name[key]}": val) if key_to_db_name[key].present?
       end
+      self.region_ids |= [self.id]
       save!
       self.source_url = verband_url
+      self.region_ids |= [self.id]
       save! if changed?
       region_cc = RegionCc.find_by_shortname(shortname) || RegionCc.new(shortname:)
       region_cc.assign_attributes(name:, cc_id:, region_id: id, context: shortname.downcase, public_url: url,
@@ -801,7 +820,7 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
   def find_or_create_location(addr, name, cc_id, location, location_url)
     unless location.present?
       query = Location.where(organizer_type: "Region", organizer_id: self.id)
-      query = query.where(cc_id: cc_id) if cc_id.present?
+      # query = query.where(cc_id: cc_id) if cc_id.present?
       locations = (query.where("address ilike '%#{addr[0]}%'") if addr[0].present?)
       Array(locations).each do |l|
         addr_loc = if l.address =~ /,/
@@ -822,15 +841,12 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     }.compact
     location = Location.new(attr) unless location.present?
     location.assign_attributes(attr)
-    location.synonyms = nil
     location.source_url = location_url
-    location.add_md5
-    if location.new_record?
-      md5 = Digest::MD5.hexdigest(location.attributes.except("synonyms", "sync_date", "updated_at", "created_at").inspect)
-      location = Location.find_by_md5(md5) || location
-    end
     begin
-      location.save!
+      if location.changed?
+        location.region_ids |= [self.id]
+        location.save!
+      end
     rescue Exception => e
       e
     end

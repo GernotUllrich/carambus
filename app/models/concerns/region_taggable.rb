@@ -9,11 +9,20 @@ module RegionTaggable
     after_destroy :update_region_taggings
   end
 
-  private
+  # Custom getter to default to empty array
+  def region_ids
+    @region_ids ||= []
+  end
+
+  # Custom setter
+  def region_ids=(value)
+    @region_ids = value
+  end
 
   def update_region_taggings
     return if Carambus.config.carambus_api_url.present?
 
+=begin
     # Find all associated regions
     region_ids = find_associated_region_ids
     return if region_ids.nil? || region_ids.empty?
@@ -28,16 +37,23 @@ module RegionTaggable
 
     # Remove old region taggings
     region_taggings.where(region_id: current_region_ids - region_ids).destroy_all
+=end
 
     # Also update version if paper trail is enabled
     if PaperTrail.request.enabled?
       version = versions.last
-      if version && previous_changes.present?
-        version.update_column(:region_ids, region_ids)
+      if version
+        # Use the attr_accessor value if set, otherwise use the calculated region_ids
+        version_region_ids = self.region_ids || find_associated_region_ids
+        version.update_column(:region_ids, version_region_ids)
       end
     end
   rescue StandardError => e
     Rails.logger.info("Error during region tagging: #{e} #{e.backtrace.join("\n")}")
+  end
+
+  def get_region_ids
+    region_ids
   end
 
   def find_associated_region_ids
@@ -45,105 +61,56 @@ module RegionTaggable
     when Region
       [id]
     when Club
-      [region_id, find_dbu_region_id_if_global].compact
+      [region_id]
     when Tournament
-      [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
+      [(organizer_type == "Region" ? organizer_id : nil)].compact
     when League
-      [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
+      [(organizer_type == "Region" ? organizer_id : nil)].compact
     when Party
-      league ? [(league.organizer_type == "Region" ? league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      league ? [(league.organizer_type == "Region" ? league.organizer_id : nil)].compact : []
     when GameParticipation
-      if game&.tournament_type == 'Tournament'
-        game.tournament ? [
-          game.tournament.region_id,
-          (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil),
-          find_dbu_region_id_if_global
-        ].compact : []
-      elsif game&.tournament_type == 'Party'
-        game.tournament&.league ? [(game.tournament.league.organizer_type == "Region" ? game.tournament.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      if game.tournament ? [
+        game.tournament.region_id,
+        (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil)
+      ].compact.uniq : []
       end
     when PartyGame
-      party&.league ? [(party.league.organizer_type == "Region" ? party.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      party&.league ? [(party.league.organizer_type == "Region" ? party.league.organizer_id : nil)].compact : []
     when Seeding
       if tournament_id.present?
-        tournament ? [
-          tournament.region_id,
-          (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
-          find_dbu_region_id_if_global
-        ].compact : []
+        if tournament_type == "Region"
+          tournament ? [
+            tournament.region_id,
+            (tournament.organizer_type == "Region" ? tournament.organizer_id : nil)
+          ].compact : []
+        elsif tournament_type == "Party"
+          tournament&.league&.organizer_type == "Region" ?  [tournament.league.organizer.id] : []
+        end
       elsif league_team_id.present?
-        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+        league_team&.league ? [(league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil)].compact : []
       end
     when Location
-      [(organizer_type == "Region" ? organizer_id : nil), find_dbu_region_id_if_global].compact
+      [(organizer_type == "Region" ? organizer_id : nil)].compact
     when LeagueTeam
-      league ? [(league.organizer_type == "Region" ? league.organizer_id : nil), find_dbu_region_id_if_global].compact : []
+      league ? [(league.organizer_type == "Region" ? league.organizer_id : nil)].compact : []
     when Game
       tournament ? [
         tournament.region_id,
-        (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
-        find_dbu_region_id_if_global
+        (tournament.organizer_type == "Region" ? tournament.organizer_id : nil)
       ].compact.uniq : []
     when PartyGame
       party&.league ? [
-        (party.league.organizer_type == "Region" ? party.league.organizer_id : nil),
-        find_dbu_region_id_if_global
+        (party.league.organizer_type == "Region" ? party.league.organizer_id : nil)
       ].compact.uniq : []
     when GameParticipation
-      game ? game.region_ids : []
+      game ? (game.tournament ? [
+        game.tournament.region_id,
+        (game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : nil)
+      ].compact.uniq : []) : []
     when Player
-      [clubs.pluck(:region_id).uniq, find_dbu_region_id_if_global].flatten.compact
+      [clubs.pluck(:region_id).uniq].compact
     when SeasonParticipation
-      [club&.region_id, find_dbu_region_id_if_global].compact
+      [club&.region_id].compact
     end
-  end
-
-  def find_dbu_region_id_if_global
-    dbu_region = Region.find_by(shortname: 'DBU')
-    return nil unless dbu_region
-
-    case self
-    when Club
-      # Include DBU if club participates in DBU tournaments or leagues
-      return dbu_region.id if organized_tournaments.exists?(organizer_type: 'Region', organizer_id: dbu_region.id) ||
-                             league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
-    when Tournament
-      # Include DBU if tournament is organized by DBU
-      return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
-    when League
-      # Include DBU if league is organized by DBU
-      return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
-    when Party
-      # Include DBU if party is organized by DBU
-      return dbu_region.id if league && league.organizer_type == 'Region' && league.organizer_id == dbu_region.id
-    when Seeding
-      # Include DBU if seeding is for a DBU tournament or league
-      return dbu_region.id if tournament&.organizer_type == 'Region' && tournament&.organizer_id == dbu_region.id ||
-                             league_team&.league&.organizer_type == 'Region' && league_team&.league&.organizer_id == dbu_region.id
-    when Location
-      # Include DBU if location is used by DBU
-      return dbu_region.id if organizer_type == 'Region' && organizer_id == dbu_region.id
-    when LeagueTeam
-      # Include DBU if team's league is organized by DBU
-      return dbu_region.id if league&.organizer_type == 'Region' && league&.organizer_id == dbu_region.id
-    when Game
-      # Include DBU if game is part of a DBU tournament
-      return dbu_region.id if tournament&.organizer_type == 'Region' && tournament&.organizer_id == dbu_region.id
-    when PartyGame
-      # Include DBU if the game is part of a DBU tournament
-      return dbu_region.id if party&.league.organizer_type == 'Region' && party.league.organizer_id == dbu_region.id
-    when GameParticipation
-      # Include DBU if the game is part of a DBU tournament
-      return dbu_region.id if game&.tournament&.organizer_type == 'Region' && game&.tournament&.organizer_id == dbu_region.id
-    when Player
-      # Include DBU if player participates in DBU tournaments or leagues
-      return dbu_region.id if game_participations.joins(game: :tournament).exists?(games: { tournaments: { organizer_type: 'Region', organizer_id: dbu_region.id } }) ||
-                             season_participations.joins(club: { league_teams: :league }).exists?(clubs: { league_teams: { leagues: { organizer_type: 'Region', organizer_id: dbu_region.id } } })
-    when SeasonParticipation
-      # Include DBU if club participates in DBU tournaments or leagues
-      return dbu_region.id if club&.organized_tournaments.exists?(organizer_type: 'Region', organizer_id: dbu_region.id) ||
-                             club&.league_teams.joins(:league).exists?(leagues: { organizer_type: 'Region', organizer_id: dbu_region.id })
-    end
-    nil
   end
 end

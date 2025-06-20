@@ -24,10 +24,14 @@ namespace :cleanup do
       Tournament.where(organizer_type: 'Region', organizer_id: dbu_id).select(:id).map(&:id)
     ].flatten).pluck(:id).uniq
 
+    tournament_seeding_ids = Seeding.where(tournament_id: tournament_ids, tournament_type: "Region")
+
     # Find all leagues we want to keep
     league_ids = League.where(organizer: region)
                       .or(League.where(organizer_type: 'Region', organizer_id: dbu_id))
                       .pluck(:id)
+    league_seeding_ids = Seeding.where(tournament_id: tournament_ids, tournament_type: "Region")
+    seeding_ids = tournament_seeding_ids + league_seeding_ids
 
     # Find all parties in our leagues
     party_ids = Party.joins(:league)
@@ -104,7 +108,9 @@ namespace :cleanup do
     ].flatten).pluck(:id).uniq
 
     # Find initial set of players from games and party games
-    initial_player_ids = Player.where(id: [
+    player_ids = Player.where(id: [
+      Player.joins(:seedings)
+            .where(seedings: {id: seeding_ids}).map(&:id),
       # Players involved in our games
       Player.joins(:game_participations)
             .where(game_participations: { game_id: game_ids })
@@ -124,20 +130,20 @@ namespace :cleanup do
 
     # Find additional clubs through season participations
     additional_club_ids = Club.joins(:season_participations)
-                            .where(season_participations: { player_id: initial_player_ids })
+                            .where(season_participations: { player_id: player_ids })
                             .pluck(:id).uniq
 
     # Combine all club IDs
     club_ids = (initial_club_ids + additional_club_ids).uniq
 
-    # Find all players (including those from additional clubs)
-    player_ids = Player.where(id: [
-      initial_player_ids,
-      # Players in our additional clubs (through season_participations)
-      Player.joins(:season_participations => :club)
-            .where(season_participations: { club_id: additional_club_ids })
-            .select(:id).map(&:id)
-    ].flatten).pluck(:id).uniq
+    # # Find all players (including those from additional clubs)
+    # player_ids = Player.where(id: [
+    #   initial_player_ids,
+    #   # Players in our additional clubs (through season_participations)
+    #   Player.joins(:season_participations => :club)
+    #         .where(season_participations: { club_id: additional_club_ids })
+    #         .select(:id).map(&:id)
+    # ].flatten).pluck(:id).uniq
 
     # Find all season participations for these players in these clubs
     season_participation_ids = SeasonParticipation.where(player_id: player_ids, club_id: club_ids)
@@ -154,6 +160,7 @@ namespace :cleanup do
       { model: PartyGame, keep_ids: PartyGame.joins(:party => :league).where(leagues: { id: league_ids }).pluck(:id) },
       { model: Party, keep_ids: Party.joins(:league).where(league_id: league_ids).pluck(:id) },
       { model: LeagueTeam, keep_ids: LeagueTeam.joins(:league).where(league_id: league_ids).pluck(:id) },
+      { model: Seeding, keep_ids: seeding_ids},
       { model: Player, keep_ids: player_ids },
       { model: League, keep_ids: league_ids },
       { model: Tournament, keep_ids: tournament_ids },

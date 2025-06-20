@@ -5,6 +5,7 @@
 # A Club can have many locations and a single Location can have many clubs.
 class ClubLocation < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
 
   # Broadcast changes in realtime with Hotwire
   after_create_commit lambda {

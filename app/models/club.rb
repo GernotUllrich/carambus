@@ -180,6 +180,7 @@ class Club < ApplicationRecord
         next
       end
     end
+    self.region_ids |= [region.id]
     save!
     Rails.logger.info "===== scrape ===== Scraping Club #{name}[#{id}]"
     # scrape players
@@ -263,14 +264,16 @@ class Club < ApplicationRecord
           player.cc_id = cc_id unless opts[:called_from_portal]
           player.dbu_nr = dbu_nr
           player.source_url = player_url
-          player.save
+          player.region_ids |= [region.id]
+          player.save if player.changed?
           player_ids.delete(player.id)
           player_ids_ok << player.id
           sp = SeasonParticipation.where(season: season, player: player, club: self).first
           sp = SeasonParticipation.new(season: season, player: player, club: self) if sp.blank?
           sp.status = "active"
           sp.source_url = player_url
-          sp.save
+          sp.region_ids |= [region.id]
+          sp.save if sp.changed?
         else
           Rails.logger.info "===== scrape ===== ERROR with Player #{name_}"
         end

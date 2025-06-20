@@ -84,7 +84,9 @@ class Location < ApplicationRecord
   end
 
   def self.scrape_locations
-    Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each(&:scrape_locations)
+    Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
+      region.scrape_locations
+    end
   end
 
   def self.merge_locations(location_ok_id, with_location_ids = [])

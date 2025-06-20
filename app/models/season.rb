@@ -54,7 +54,8 @@ class Season < ApplicationRecord
   def scrape_single_tournaments_public_cc(opts = {})
     (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
       #next unless shortname == "NBV"
-      Region.find_by_shortname(shortname).scrape_single_tournament_public(self, opts)
+      region = Region.find_by_shortname(shortname)
+      region&.scrape_single_tournament_public(self, opts)
     end
   end
 
