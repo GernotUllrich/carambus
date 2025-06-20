@@ -88,8 +88,8 @@ Rails.application.routes.draw do
   resources :league_teams
   resources :leagues do
     member do
-      post :reload_from_ba
-      post :reload_from_ba_with_details
+      post :reload_from_cc
+      post :reload_from_cc_with_details
     end
   end
   resources :seedings do
@@ -172,7 +172,7 @@ Rails.application.routes.draw do
       post :reset
       get :finalize_modus
       get :tournament_monitor
-      post :reload_from_ba
+      post :reload_from_cc
       post :finish_seeding
       get :define_participants
       post :placement
@@ -205,8 +205,8 @@ Rails.application.routes.draw do
   resources :clubs do
     member do
       get :get_club_details
-      post :reload_from_ba
-      post :reload_from_ba_with_details
+      post :reload_from_cc
+      post :reload_from_cc_with_details
       post :new_club_tournament
       get :new_club_location
       get :new_club_guest
@@ -219,8 +219,8 @@ Rails.application.routes.draw do
   resources :regions do
     member do
       get :get_club_selector
-      post :reload_from_ba
-      post :reload_from_ba_with_details
+      post :reload_from_cc
+      post :reload_from_cc_with_details
       post :reload_tournaments
       post :reload_leagues
       post :reload_leagues_with_details

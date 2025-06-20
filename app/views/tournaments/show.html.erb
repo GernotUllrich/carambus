@@ -13,7 +13,7 @@
             <%= button_to I18n.t("tournaments.show.define_participants"), define_participants_tournament_path(@tournament), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
           </div>
           <div class="flex flex-wrap align-items-start pb-4">
-            <%= button_to I18n.t("tournaments.show.reload_from_billard_area"), reload_from_ba_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" if @tournament.organizer.is_a? Region %>
+            <%= button_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" if @tournament.organizer.is_a? Region %>
           </div>
           <div class="flex flex-wrap align-items-start pb-4">
             <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
