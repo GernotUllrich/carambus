@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -93,6 +93,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_club_locations_on_region_ids", using: :gin
   end
 
   create_table "clubs", force: :cascade do |t|
@@ -115,8 +117,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.text "synonyms"
     t.string "source_url"
     t.datetime "sync_date"
+    t.integer "region_ids", default: [], array: true
     t.index ["ba_id"], name: "index_clubs_on_ba_id", unique: true
     t.index ["ba_id"], name: "index_clubs_on_foreign_keys", unique: true
+    t.index ["region_ids"], name: "index_clubs_on_region_ids", using: :gin
   end
 
   create_table "competition_ccs", force: :cascade do |t|
@@ -203,7 +207,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "sets"
+    t.integer "region_ids", default: [], array: true
     t.index ["game_id", "player_id", "role"], name: "index_game_participations_on_foreign_keys", unique: true
+    t.index ["region_ids"], name: "index_game_participations_on_region_ids", using: :gin
   end
 
   create_table "game_plan_ccs", force: :cascade do |t|
@@ -252,6 +258,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_game_plans_on_region_ids", using: :gin
   end
 
   create_table "games", force: :cascade do |t|
@@ -268,6 +276,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "tournament_type"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_games_on_region_ids", using: :gin
   end
 
   create_table "group_ccs", force: :cascade do |t|
@@ -368,6 +378,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.datetime "sync_date"
     t.integer "cc_id"
     t.text "data"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_league_teams_on_region_ids", using: :gin
   end
 
   create_table "leagues", force: :cascade do |t|
@@ -391,7 +403,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.integer "game_plan_id"
     t.text "game_parameters"
     t.boolean "game_plan_locked", default: false, null: false
+    t.integer "region_ids", default: [], array: true
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
+    t.index ["region_ids"], name: "index_leagues_on_region_ids", using: :gin
   end
 
   create_table "location_synonyms", force: :cascade do |t|
@@ -414,7 +428,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.integer "cc_id"
     t.integer "dbu_nr"
     t.integer "club_id"
+    t.integer "region_ids", default: [], array: true
     t.index ["md5"], name: "index_locations_on_md5", unique: true
+    t.index ["region_ids"], name: "index_locations_on_region_ids", using: :gin
   end
 
   create_table "meta_maps", force: :cascade do |t|
@@ -494,6 +510,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "color_remains_with_set", default: true, null: false
     t.string "kickoff_switches_with"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_parties_on_region_ids", using: :gin
   end
 
   create_table "party_ccs", force: :cascade do |t|
@@ -539,6 +557,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.text "data"
     t.string "name"
     t.integer "discipline_id"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_party_games_on_region_ids", using: :gin
   end
 
   create_table "party_monitors", force: :cascade do |t|
@@ -626,8 +646,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.integer "nrw_nr"
     t.string "pin4"
     t.string "logo"
+    t.integer "region_ids", default: [], array: true
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
+    t.index ["region_ids"], name: "index_players_on_region_ids", using: :gin
   end
 
   create_table "region_ccs", force: :cascade do |t|
@@ -644,17 +666,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.string "userpw"
     t.index ["cc_id", "context"], name: "index_region_ccs_on_cc_id_and_context", unique: true
     t.index ["context"], name: "index_region_ccs_on_context", unique: true
-  end
-
-  create_table "region_taggings", force: :cascade do |t|
-    t.string "taggable_type", null: false
-    t.bigint "taggable_id", null: false
-    t.bigint "region_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["region_id"], name: "index_region_taggings_on_region_id"
-    t.index ["taggable_type", "taggable_id", "region_id"], name: "index_region_taggings_on_taggable_and_region", unique: true
-    t.index ["taggable_type", "taggable_id"], name: "index_region_taggings_on_taggable"
   end
 
   create_table "regions", force: :cascade do |t|
@@ -676,7 +687,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.datetime "sync_date"
     t.integer "cc_id"
     t.text "scrape_data"
+    t.integer "region_ids", default: [], array: true
     t.index ["country_id"], name: "index_regions_on_country_id"
+    t.index ["region_ids"], name: "index_regions_on_region_ids", using: :gin
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
   end
 
@@ -727,7 +740,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.integer "ba_id"
     t.string "source_url"
     t.datetime "sync_date"
+    t.integer "region_ids", default: [], array: true
     t.index ["player_id", "club_id", "season_id"], name: "index_season_participations_on_foreign_keys", unique: true
+    t.index ["region_ids"], name: "index_season_participations_on_region_ids", using: :gin
   end
 
   create_table "seasons", force: :cascade do |t|
@@ -755,6 +770,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.integer "league_team_id"
     t.string "role"
     t.string "tournament_type"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_seedings_on_region_ids", using: :gin
   end
 
   create_table "settings", force: :cascade do |t|
@@ -873,6 +890,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.datetime "scoreboard_on_at"
     t.datetime "scoreboard_off_at"
     t.boolean "heater_auto"
+    t.integer "region_ids", default: [], array: true
+    t.index ["region_ids"], name: "index_tables_on_region_ids", using: :gin
   end
 
   create_table "tournament_ccs", force: :cascade do |t|
@@ -1051,7 +1070,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
     t.boolean "manual_assignment", default: false
     t.string "kickoff_switches_with"
     t.string "source_url"
+    t.integer "region_ids", default: [], array: true
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
+    t.index ["region_ids"], name: "index_tournaments_on_region_ids", using: :gin
   end
 
   create_table "uploads", force: :cascade do |t|
@@ -1132,7 +1153,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_10_210633) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "region_taggings", "regions"
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"

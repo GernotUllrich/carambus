@@ -35,7 +35,6 @@ class Region < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
-  include RegionScrapable
   # TODO: check country association, because RuboCop complains
   # Unable to find an associated Rails Model for the ':country' association field
   belongs_to :country
@@ -273,8 +272,7 @@ or (regions.address ilike :search)",
   # scrape regions from Club Cloud Instances
   def self.scrape_regions
     Region.all.each do |region|
-      region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname])
-      Region.tag_with_region(region, region) if region.changed?
+      region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname], region_ids: [region.id])
       region.save if region.changed?
     end
     Region.where.not(public_cc_url_base: nil).all.each do |region|
@@ -841,7 +839,6 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     }.compact
     location = Location.new(attr) unless location.present?
     location.assign_attributes(attr)
-    location.source_url = location_url
     begin
       if location.changed?
         location.region_ids |= [self.id]

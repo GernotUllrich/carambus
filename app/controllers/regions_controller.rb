@@ -84,8 +84,7 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_tournaments: @region.id, season_id: Season.current_season.id)
     else
-      tournament_records = @region.scrape_single_tournament_public(Season.current_season)
-      Region.tag_with_region(tournament_records, @region) if tournament_records.present?
+      @region.scrape_single_tournament_public(Season.current_season)
     end
     redirect_back_or_to(region_path(@region))
   end
@@ -94,7 +93,7 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_leagues: @region.id, season_id: Season.current_season.id)
     else
-      recorda_to_tag = @region.scrape_single_league_public(Season.current_season, league_details: false)
+      @region.scrape_single_league_public(Season.current_season, league_details: false)
       Region.tag_with_region(recorda_to_tag, @region)
 
     end
@@ -105,8 +104,7 @@ class RegionsController < ApplicationController
     if local_server?
       Version.update_from_carambus_api(reload_leagues_with_details: @region.id, season_id: Season.current_season.id)
     else
-      recorda_to_tag = @region.scrape_single_league_public(Season.current_season, league_details: true)
-      Region.tag_with_region(recorda_to_tag, @region)
+      @region.scrape_single_league_public(Season.current_season, league_details: true)
     end
     redirect_back_or_to(region_path(@region))
   end

@@ -2,21 +2,9 @@ module RegionTaggable
   extend ActiveSupport::Concern
 
   included do
-    has_many :region_taggings, as: :taggable, dependent: :destroy
-    has_many :regions, through: :region_taggings
 
     after_save :update_region_taggings
     after_destroy :update_region_taggings
-  end
-
-  # Custom getter to default to empty array
-  def region_ids
-    @region_ids ||= []
-  end
-
-  # Custom setter
-  def region_ids=(value)
-    @region_ids = value
   end
 
   def update_region_taggings
@@ -50,10 +38,6 @@ module RegionTaggable
     end
   rescue StandardError => e
     Rails.logger.info("Error during region tagging: #{e} #{e.backtrace.join("\n")}")
-  end
-
-  def get_region_ids
-    region_ids
   end
 
   def find_associated_region_ids

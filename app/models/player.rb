@@ -611,9 +611,11 @@ in region #{region.shortname}"
         PartyGame.where(player_b_id: player_tmp.id).all.each { |l| l.update(player_b_id: player_ok.id) }
         player_tmp.destroy if player_tmp.id != player_ok.id
         Team.where("data ilike '%#{player_ok.fl_name.gsub("'", "''")}%'").each do |team|
-          players = [team.data["players"]]
+          players = team.data["players"]
           players.each do |players_hash|
-            next unless players_hash["fl"] == player_ok.fl_name
+            if players_hash["fl"].present?
+              next unless players_hash["fl"] != player_ok.fl_name
+            end
             next unless players_hash["ba_id"] != player_ok.ba_id || players_hash["player_id"] != player_ok.id
 
             players_hash["player_id"] = player_ok.id
@@ -652,5 +654,55 @@ in region #{region.shortname}"
         player.destroy
       end
     end
+  end
+
+  def self.find_duplicates_by_fl_name
+    # Find all fl_names that have more than one player
+    duplicate_fl_names = Player.where(type: nil)
+                               .group(:fl_name)
+                               .having('count(*) > 1')
+                               .pluck(:fl_name)
+
+    # Return hash with fl_name as key and array of players as value
+    duplicates = {}
+    duplicate_fl_names.each do |fl_name|
+      duplicates[fl_name] = Player.where(type: nil, fl_name: fl_name).to_a
+    end
+
+    duplicates
+  end
+
+  def self.find_duplicates_by_fl_name_simple
+    # Simple version that returns just the fl_names with counts
+    Player.where(type: nil)
+          .group(:fl_name)
+          .having('count(*) > 1')
+          .count
+  end
+
+  def self.find_duplicates_by_dbu_nr
+    # Find all dbu_nrs that have more than one player
+    duplicate_dbu_nrs = Player.where(type: nil)
+                              .where.not(dbu_nr: nil)
+                              .group(:dbu_nr)
+                              .having('count(*) > 1')
+                              .pluck(:dbu_nr)
+
+    # Return hash with dbu_nr as key and array of players as value
+    duplicates = {}
+    duplicate_dbu_nrs.each do |dbu_nr|
+      duplicates[dbu_nr] = Player.where(type: nil, dbu_nr: dbu_nr).to_a
+    end
+
+    duplicates
+  end
+
+  def self.find_duplicates_by_dbu_nr_simple
+    # Simple version that returns just the dbu_nrs with counts
+    Player.where(type: nil)
+          .where.not(dbu_nr: nil)
+          .group(:dbu_nr)
+          .having('count(*) > 1')
+          .count
   end
 end

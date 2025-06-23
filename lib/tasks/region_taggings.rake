@@ -1,4 +1,135 @@
 namespace :region_taggings do
+
+  desc "Update region_ids for all models that include RegionTaggable"
+  task update_all_region_ids: :environment do
+    dbu_id = Region.find_by_shortname("DBU").id
+    Region.all.each do |region|
+      # next unless region.id  == 1
+      if region.id == dbu_id
+      else
+        party_ids = []
+        club_ids = []
+        region_ids = [region.id]
+        league_ids = []
+        location_ids = []
+        seeding_ids = []
+        tournament_ids = []
+
+        club_ids |= region.club_ids
+        SeasonParticipation.joins(:club).where(clubs: { id: club_ids }).update_all(region_ids: [region.id])
+        Player.joins(:season_participations => :club).where(clubs: { id: club_ids }).update_all(region_ids: [region.id])
+        ClubLocation.joins(:club).where(clubs: { id: club_ids }).update_all(region_ids: [region.id])
+        location_ids |= Location.joins(:club_locations => :club).where(clubs: { id: club_ids }).ids
+        # region.clubs.find_each(batch_size: 1000) do |club|
+        #   #club.season_participations.update_all(region_ids: [region.id])
+        #   # club.season_participations.find_each(batch_size: 1000) do |season_participation|
+        #   #   #season_participation.update_columns(region_ids: season_participation.region_ids.extract(dbu_id) | [region.id])
+        #   #   player_ids |= [season_participation.player_id]
+        #   # end
+        #   #club.club_locations.update_all(region_ids: [region.id])
+        #   # club.club_locations.find_each(batch_size: 1000) do |club_location|
+        #   #   #club_location.update_columns(region_ids: club_location.region_ids.extract(dbu_id) | [region.id])
+        #   #   location_ids |= [club_location.location_id]
+        #   # end
+        # end
+
+        tournament_ids |= region.tournament_ids
+        tournament_ids |= region.organized_tournament_ids
+        league_ids |= region.organized_league_ids
+
+        Tournament.where(id: tournament_ids).update_all(region_ids: [region.id])
+        Game.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(region_ids: [region.id])
+        GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_ids }).update_all(region_ids: [region.id])
+        Player.joins(:game_participations => {:game => :tournament}).where(tournaments: { id: tournament_ids }).update_all(region_ids: [region.id])
+        Team.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(region_ids: [region.id])
+        Seeding.where(tournament_id: tournament_ids , tournament_type: "Region").update_all(region_ids: [region.id])
+        Club.joins(:organized_tournaments).where(tournaments: { id: tournament_ids }).update_all(region_ids: [region.id])
+        # Tournament.where(id: tournament_ids).find_each(batch_size: 1000) do |tournament|
+        #   #tournament.update_columns(region_ids: tournament.region_ids.extract(dbu_id) | [region.id])
+        #   seeding_ids |= tournament.seeding_ids
+        #   #tournament.games.update_all(region_ids: [region.id])
+        #   # tournament.games.find_each(batch_size: 1000) do |game|
+        #   #   game.update_columns(region_ids: game.region_ids.extract(dbu_id) | [region.id])
+        #   # end
+        #   #tournament.teams.update_all(region_ids: [region.id])
+        #   # tournament.teams.find_each(batch_size: 1000) do |team|
+        #   #   team.update_columns(region_ids: team.region_ids.extract(dbu_id) | [region.id])
+        #   # end
+        #   #club_ids |= tournament.where(organizer_type = "Club").find_each(batch_size: 1000).map(&:id)
+        # end
+
+        League.where(id: league_ids).update_all(region_ids: [region.id])
+        LeagueTeam.joins(:league).where(leagues: { id: league_ids }).update_all(region_ids: [region.id])
+        Party.joins(:league).where(leagues: { id: league_ids }).update_all(region_ids: [region.id])
+        # League.where(id: league_ids).find_each(batch_size: 1000) do |league|
+        #   #league.region_ids = league.region_ids.extract(dbu_id) | [region.id]
+        #   # league.league_teams.update_all(region_ids: [region.id])
+        #   # league.league_teams.find_each(batch_size: 1000) do |league_team|
+        #   #   league_team.update_columns(region_ids: league_team.region_ids.extract(dbu_id) | [region.id])
+        #   # end
+        #   party_ids |= league.party_ids
+        # end
+        #
+        region.organized_tournaments.update_all(region_ids: [region.id])
+        # region.organized_tournaments.find_each(batch_size: 1000) do |tournament|
+        #   tournament.region_ids = tournament.region_ids.extract(dbu_id) | [region.id]
+        # end
+        region.organized_leagues.update_all(region_ids: [region.id])
+        # region.organized_leagues.find_each(batch_size: 1000) do |league|
+        #   league.region_ids = league.region_ids.extract(dbu_id) | [region.id]
+        # end
+
+        Club.where(id: club_ids).update_all(region_ids: [region.id])
+        # Club.where(id: club_ids).find_each(batch_size: 1000) do |club|
+        #   club.update_columns(region_ids: club.region_ids.extract(dbu_id) | [region.id])
+        # end
+        #
+        Location.where(id: location_ids).update_all(region_ids: [region.id])
+        Table.joins(:location).where(locations: {id: location_ids}).update_all(region_ids: [region.id])
+        party_ids |=Party.joins(:location).where(locations: {id: location_ids}).ids
+        # Location.where(id: location_ids).find_each(batch_size: 1000) do |location|
+        #   #location.tables.update_all(region_ids: [region.id])
+        #   # location.tables.find_each(batch_size: 1000) do |table|
+        #   #   table.update_columns(region_ids: table.region_ids.extract(dbu_id) | [region.id])
+        #   # end
+        #   party_ids |= location.party_ids
+        # end
+
+        Party.where(id: party_ids).update_all(region_ids: [region.id])
+        PartyGame.joins(:party).where(parties: { id: party_ids }).update_all(region_ids: [region.id])
+        seeding_ids |= Seeding.joins(:league_team => :parties_a).where(parties: { id: party_ids }).ids
+        seeding_ids |= Seeding.joins(:league_team => :parties_b).where(parties: { id: party_ids }).ids
+        seeding_ids |= Seeding.joins(:league_team => :parties_as_host).where(parties: { id: party_ids }).ids
+        # Party.where(id: party_ids).find_each(batch_size: 1000) do |party|
+        #   #party.update_columns(region_ids: party.region_ids.extract(dbu_id) | [region.id])
+        #   party.party_games.update_all(region_ids: [region.id])
+        #   # party.party_games.find_each(batch_size: 1000) do |party_game|
+        #   #   party_game.update_columns(region_ids: party_game.region_ids.extract(dbu_id) | [region.id])
+        #   # end
+        #   seeding_ids |= party.seedings
+        # end
+
+        Seeding.where(id: seeding_ids).update_all(region_ids: [region.id])
+
+        Player.joins(:seedings).where(seedings: { id: seeding_ids }).update_all(region_ids: [region.id])
+        # Seeding.where(id: seeding_ids).find_each(batch_size: 1000) do |seeding|
+        #   #seeding.update_columns(region_ids: seeding.region_ids.extract(dbu_id) | [region.id])
+        #   player_ids |= [seeding.player]
+        # end
+
+        # Player.where(id: player_ids).update_all(region_ids: [region.id])
+        # Player.where(id: player_ids).find_each(batch_size: 1000) do |player|
+        #   player.update_columns(region_ids: player.region_ids.extract(dbu_id) | [region.id])
+        # end
+
+        Region.where(id: region_ids).update_all(region_ids: [region.id])
+        # Region.where(id: region_ids).find_each(batch_size: 1000) do |region_|
+        #   region_.update_columns(region_ids: region_.region_ids.extract(dbu_id) | [region.id])
+        # end
+      end
+    end
+  end
+
   desc "Update region taggings for all models that include RegionTaggable"
   task update_all: :environment do
     if Carambus.config.carambus_api_url.present?
@@ -33,9 +164,7 @@ namespace :region_taggings do
     models_to_process.each do |model_info|
 
       model = model_info[:model]
-      next unless model == Game
       description = model_info[:description]
-
       puts "\nProcessing #{description}..."
 
       # Get all records for this model
@@ -107,53 +236,5 @@ namespace :region_taggings do
         puts "  ..." if without_taggings > 5
       end
     end
-  end
-
-  desc "Clean up invalid region taggings"
-  task cleanup: :environment do
-    puts "Cleaning up invalid region taggings..."
-
-    # Remove taggings for non-existent records
-    invalid_taggings = RegionTagging.where.not(
-      taggable_type: [
-        'Region', 'Club', 'Tournament', 'League', 'Party', 'Location',
-        'LeagueTeam', 'Game', 'PartyGame', 'GameParticipation',
-        'Player', 'SeasonParticipation', 'Seeding'
-      ]
-    )
-
-    if invalid_taggings.any?
-      puts "Found #{invalid_taggings.count} taggings with invalid taggable_type"
-      invalid_taggings.destroy_all
-    end
-
-    # Remove taggings for non-existent regions
-    invalid_region_taggings = RegionTagging.where.not(
-      region_id: Region.pluck(:id)
-    )
-
-    if invalid_region_taggings.any?
-      puts "Found #{invalid_region_taggings.count} taggings with invalid region_id"
-      invalid_region_taggings.destroy_all
-    end
-
-    # Remove taggings for non-existent records
-    models_to_check = [
-      Region, Club, Tournament, League, Party, Location,
-      LeagueTeam, Game, PartyGame, GameParticipation,
-      Player, SeasonParticipation, Seeding
-    ]
-
-    models_to_check.each do |model|
-      invalid_taggings = RegionTagging.where(taggable_type: model.name)
-                                      .where.not(taggable_id: model.pluck(:id))
-
-      if invalid_taggings.any?
-        puts "Found #{invalid_taggings.count} taggings for non-existent #{model.name} records"
-        invalid_taggings.destroy_all
-      end
-    end
-
-    puts "Cleanup completed"
   end
 end
