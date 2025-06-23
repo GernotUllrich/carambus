@@ -11,6 +11,7 @@
 #
 class GamePlan < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
   before_save :set_paper_trail_whodunnit
   before_save :update_footprint
 
