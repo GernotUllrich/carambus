@@ -331,8 +331,8 @@ namespace :carambus do
 
   desc "retrieve updates from API server"
   task retrieve_updates: :environment do
-    args = Carambus.config.location_id.present && Location[Carambus.config.location_id]&.organizer_type == "Region" ? {
-      region_id: (Location[Carambus.config.location_id]&.organizer_id)
+    args = Carambus.config.context.present? ? {
+      region_id: Region.find_by_shortname(Carambus.config.context)&.id
     } : {}
     (1..10).each.map { |i| Version.update_from_carambus_api(args) }
   end

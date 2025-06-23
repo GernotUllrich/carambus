@@ -198,7 +198,7 @@ class Version < PaperTrail::Version
     }#{
       "&player_details=#{player_details}" if player_details
     }#{
-      "&region_id=#{Location[Carambus.config.location_id]&.organizer_id}" if Carambus.config.location_id.present? && Location[Carambus.config.location_id]&.organizer_type == "Region"
+      "&region_id=#{opts[:region_id]}" if opts[:region_id].present?
     }#{
       "&league_details=#{league_details}" if league_details
     }&season_id=#{Season.current_season&.id}")
@@ -209,140 +209,146 @@ class Version < PaperTrail::Version
     while vers.present?
       h = vers.shift
       break if h.blank?
-
-      last_version_id = h.andand["id"].to_i
-      case h["event"]
-      when "create"
-        args = YAML.load(h["object_changes"]).to_a.map { |v| [v[0], v[1][1]] }.to_h
-        if h["item_type"] == "PartyCc" # TODO: what's going on here?
-          args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-        elsif args["data"].present?
-          args["data"] = YAML.load(args["data"])
-        end
-        args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
-        Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
-        begin
-          classz = h["item_type"].constantize
-          item_id = h["item_id"]
-          obj = nil
-          case h["item_type"]
-          when "GameParticipations"
-            obj = classz.where(game_id: args["game_id"], player_id: args["player_id"], role: args["role"]).first
-          when "Player"
-            obj = nil
-            (obj ||= classz.where(type: nil).where(ba_id: args["ba_id"]).first) if args["ba_id"].present?
-          when "SeasonParticipation"
-            obj = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                               season_id: args["season_id"]).first
-            if obj.present?
-              obj.update_columns(id: h["item_id"])
-              next
+      begin
+        ActiveRecord::Base.transaction do
+          last_version_id = h.andand["id"].to_i
+          case h["event"]
+          when "create"
+            args = YAML.load(h["object_changes"]).to_a.map { |v| [v[0], v[1][1]] }.to_h
+            if h["item_type"] == "PartyCc" # TODO: what's going on here?
+              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
+            elsif args["data"].present?
+              args["data"] = YAML.load(args["data"])
             end
-          else
-            # ignore
-          end
-          if obj.present?
-            Rails.logger.info obj.attributes.to_s
-            if obj.id != args["id"] && obj.id < 5_000_000
-              Rails.logger.info "must merge #{h["item_type"]}[#{obj.id}] in source first!!!"
-              puts "must merge #{h["item_type"]}[#{obj.id}] in source first!!!"
-              return
-              # raise ArgumentError, "must merge in source first!!!"
-            end
-          else
-            obj = classz.where(id: item_id).first
-          end
-          if obj.present?
-            if h["item_type"] == "SeasonParticipation"
-              oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                                season_id: args["season_id"]).first
-              if oo.present?
-                oo.update_columns(id: h["item_id"])
-                next
-              end
-            end
-            args.each do |k, v|
-              obj.write_attribute(k, v)
-            end
-            raise StandardError, msg: "trying to update from invalid record" unless obj.valid?
-
-            obj.update_columns(args)
-          else
-            h["item_type"].constantize.create(args.merge(unprotected: true))
-          end
-        rescue StandardError => e
-          Rails.logger.info "#{e} #{e.backtrace.inspect}"
-          return
-        end
-      when "update"
-        args = if h["object_changes"].present?
-                 YAML.load(h["object_changes"])
-                     .to_a.map { |v| [v[0], v[1][1]] }.to_h
-               else
-                 YAML.load(h["object"])
-               end
-        if h["item_type"] == "PartyCc" # TODO: what's going on here?
-          args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-        elsif args["data"].present?
-          args["data"] = YAML.load(args["data"])
-        end
-        args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
-        args["t_ids"] = YAML.load(args["t_ids"]) if args["t_ids"].present?
-        begin
-          classz = h["item_type"].constantize
-          obj = classz.where(id: h["item_id"]).first
-          if obj.present?
-            args.each do |k, v|
-              obj.write_attribute(k, v)
-            end
-            if obj.valid?
-              if h["item_type"] == "SeasonParticipation"
-                oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
-                                  season_id: args["season_id"]).first
-                if oo.present? && oo.id != obj.id
-                  oo.update_columns(id: h["item_id"])
+            args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+            Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
+            begin
+              classz = h["item_type"].constantize
+              item_id = h["item_id"]
+              obj = nil
+              case h["item_type"]
+              when "GameParticipations"
+                obj = classz.where(game_id: args["game_id"], player_id: args["player_id"], role: args["role"]).first
+              when "Player"
+                obj = nil
+                (obj ||= classz.where(type: nil).where(ba_id: args["ba_id"]).first) if args["ba_id"].present?
+              when "SeasonParticipation"
+                obj = classz.where(player_id: args["player_id"], club_id: args["club_id"],
+                                   season_id: args["season_id"]).first
+                if obj.present?
+                  obj.update_columns(id: h["item_id"])
                   next
                 end
+              else
+                # ignore
               end
-            else
-              args = YAML.load(h["object"])
-              args["data"] = YAML.load(args["data"]) if args["data"].present?
-              args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
-            end
-            obj.update_columns(args)
-          else
-            obj = h["item_type"].constantize.new
-            obj.id = h["item_id"]
-            args = YAML.load(h["object"])
-            args["data"] = YAML.load(args["data"]) if args["data"].present?
-            args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+              if obj.present?
+                Rails.logger.info obj.attributes.to_s
+                if obj.id != args["id"] && obj.id < 5_000_000
+                  Rails.logger.info "must merge #{h["item_type"]}[#{obj.id}] in source first!!!"
+                  puts "must merge #{h["item_type"]}[#{obj.id}] in source first!!!"
+                  return
+                  # raise ArgumentError, "must merge in source first!!!"
+                end
+              else
+                obj = classz.where(id: item_id).first
+              end
+              if obj.present?
+                if h["item_type"] == "SeasonParticipation"
+                  oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
+                                    season_id: args["season_id"]).first
+                  if oo.present?
+                    oo.update_columns(id: h["item_id"])
+                    next
+                  end
+                end
+                args.each do |k, v|
+                  obj.write_attribute(k, v)
+                end
+                raise StandardError, msg: "trying to update from invalid record" unless obj.valid?
 
-            args.each do |k, v|
-              obj.write_attribute(k, v)
+                obj.update_columns(args)
+              else
+                h["item_type"].constantize.create(args.merge(unprotected: true))
+                Rails.logger.info "Created #{h["item_type"]} with #{args.inspect}"
+              end
+            rescue StandardError => e
+              Rails.logger.info "#{e} #{e.backtrace.inspect}"
+              return
             end
-            obj.unprotected = true
-            obj.save!
-            obj.unprotected = false
+          when "update"
+            args = if h["object_changes"].present?
+                     YAML.load(h["object_changes"])
+                         .to_a.map { |v| [v[0], v[1][1]] }.to_h
+                   else
+                     YAML.load(h["object"])
+                   end
+            if h["item_type"] == "PartyCc" # TODO: what's going on here?
+              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
+            elsif args["data"].present?
+              args["data"] = YAML.load(args["data"])
+            end
+            args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+            args["t_ids"] = YAML.load(args["t_ids"]) if args["t_ids"].present?
+            begin
+              classz = h["item_type"].constantize
+              obj = classz.where(id: h["item_id"]).first
+              if obj.present?
+                args.each do |k, v|
+                  obj.write_attribute(k, v)
+                end
+                if obj.valid?
+                  if h["item_type"] == "SeasonParticipation"
+                    oo = classz.where(player_id: args["player_id"], club_id: args["club_id"],
+                                      season_id: args["season_id"]).first
+                    if oo.present? && oo.id != obj.id
+                      oo.update_columns(id: h["item_id"])
+                      next
+                    end
+                  end
+                else
+                  args = YAML.load(h["object"])
+                  args["data"] = YAML.load(args["data"]) if args["data"].present?
+                  args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+                end
+                obj.update_columns(args)
+              else
+                obj = h["item_type"].constantize.new
+                obj.id = h["item_id"]
+                args = YAML.load(h["object"])
+                args["data"] = YAML.load(args["data"]) if args["data"].present?
+                args["remarks"] = YAML.load(args["remarks"]) if args["remarks"].present?
+
+                args.each do |k, v|
+                  obj.write_attribute(k, v)
+                end
+                obj.unprotected = true
+                obj.save!
+                obj.unprotected = false
+              end
+            rescue StandardError => e
+              Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
+            end
+          when "destroy"
+            begin
+              obj = h["item_type"].constantize.where(id: h["item_id"]).first
+              if obj.present?
+                obj.unprotected = true
+                obj.delete
+              end
+            rescue StandardError => e
+              Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
+            end
+          else
+            # type code here
+            Rails.logger.info "FatalProtocolError"
+            raise "FatalProtocolError"
           end
-        rescue StandardError => e
-          Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
+          Setting.key_set_value("last_version_id", last_version_id)
         end
-      when "destroy"
-        begin
-          obj = h["item_type"].constantize.where(id: h["item_id"]).first
-          if obj.present?
-            obj.unprotected = true
-            obj.delete
-          end
-        rescue StandardError => e
-          Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
-        end
-      else
-        # type code here
-        Rails.logger.info "FatalProtocolError"
-        raise "FatalProtocolError"
+      rescue StandardError => e
+        Rails.logger.info "===== FATAL #{e} #{e.backtrace} cannot continue"
       end
-      Setting.key_set_value("last_version_id", last_version_id)
     end
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
