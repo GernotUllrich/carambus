@@ -22,77 +22,102 @@ id: 10
 ---
 
 -->
-<div class="py-10 max-w-2xl m-auto  flex flex-col">
-<h1 class='font-bold mt-4'>Datenbank-Partitionierung und Synchronisierung</h1>
-<h2 class='font-bold mt-4'>Übersicht</h2>
-<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
-Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategie zur Optimierung der Datensynchronisierung zwischen lokalen Servern und dem zentralen API-Server. Dieser Ansatz stellt sicher, dass jeder lokale Server nur die für seine Region relevanten Daten verwaltet und gleichzeitig Zugriff auf notwendige globale Ereignisse hat. Zusätzlich werden regionsunabhängige Daten an alle lokalen Server synchronisiert.</p>
-<h2 class='font-bold mt-4'>Hauptkomponenten</h2>
-<h3 class='font-bold mt-4'>1. Regions-Tagging (RegionTaggable)</h3>
+<div class="container mx-auto my-8 px-4">
+  <div class="mx-auto">
+    <h2>Datenbank-Partitionierung und Synchronisierung</h2>
+    <ul class="@apply list-none">
 
-<ul>
-<li>Datensätze werden mit einer <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> markiert, um ihre regionalen Zuordnungen zu verfolgen</li>
-<li>global_context ist TRUE wenn ein Zusammenhang zu einem DBU (Deutsche Billard-Union) Event besteht</li>
-<li>Datensätze ohne regionale Abhängigkeiten (region_id is nil) werden an alle Server synchronisiert</li>
-<li>Implementiert als Concern in <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">app/models/concerns/region_taggable.rb</code></li>
-</ul>
-<h3 class='font-bold mt-4'>2. Versionsverwaltung</h3>
+      <li><h3>Übersicht</h3>
+        <p>Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategie zur Optimierung der Datensynchronisierung zwischen lokalen Servern und dem zentralen API-Server. Dieser Ansatz stellt sicher, dass jeder lokale Server nur die für seine Region relevanten Daten verwaltet und gleichzeitig Zugriff auf notwendige globale Ereignisse hat. Zusätzlich werden regionsunabhängige Daten an alle lokalen Server synchronisiert.</p>
+      </li>
 
-<ul>
-<li>Nutzt PaperTrail für die Versionsverfolgung</li>
-<li>Versionen werden ebenfalls mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> und global_context markiert, um die regionale bzw. globale Relevanz zu verfolgen</li>
-<li>Versionen mit region_id = nil werden als global betrachtet und an alle Server gesendet</li>
-<li>Enthält Scopes und Methoden zum Filtern von Versionen nach Region</li>
-</ul>
-<h3 class='font-bold mt-4'>3. Synchronisierungsprozess</h3>
+      <li><h3>Hauptkomponenten</h3>
+        <h4>1. Regions-Tagging (RegionTaggable)</h4>
+        <ul>
+          <li>Datensätze werden mit einem <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> markiert, um ihre regionale Zuordnung zu verfolgen</li>
+          <li>Ein <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">global_context</code> Boolean-Flag kennzeichnet Datensätze, die an globalen Ereignissen teilnehmen</li>
+          <li>Datensätze ohne regionale Abhängigkeiten (region_id ist NULL) werden an alle Server synchronisiert</li>
+          <li>Implementiert als Concern in <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">app/models/concerns/region_taggable.rb</code></li>
+        </ul>
 
-<ul>
-<li>Lokale Server holen Updates über <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">Version.update_from_carambus_api</code></li>
-<li>API-Server filtert Versionen basierend auf regionaler Relevanz</li>
-<li>Nur für die anfragende Region relevante Versionen werden übertragen</li>
-<li>Globale Versionen (ohne regionale Abhängigkeiten) werden an alle Server übertragen</li>
-</ul>
-<h3 class='font-bold mt-4'>4. Datenbereinigung</h3>
+        <h4>2. Versionsverwaltung</h4>
+        <ul>
+          <li>Nutzt PaperTrail für die Versionsverfolgung</li>
+          <li>Versionen werden mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> markiert, um die regionale Relevanz zu verfolgen</li>
+          <li>Versionen mit NULL region_id werden als global betrachtet und an alle Server gesendet</li>
+        </ul>
 
-<ul>
-<li>Einmalige Bereinigungsaufgabe zum Entfernen von Daten fremder Regionen</li>
-<li>Behält:
+        <h4>3. Synchronisierungslogik</h4>
+        <ul>
+          <li>Lokale Server erhalten nur Daten mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> ihrer Region oder <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">global_context = true</code></li>
+          <li>Globale Ereignisse (DBU-Turniere, etc.) werden an alle Server synchronisiert</li>
+          <li>Regionsunabhängige Daten (Konfigurationen, etc.) werden an alle Server gesendet</li>
+        </ul>
+      </li>
 
-<ul>
-<li>Daten der lokalen Region</li>
-<li>DBU-Regionsdaten</li>
-<li>Daten von Regionen mit Vereinen/Spielern in globalen Ereignissen</li>
-<li>Alle regionsunabhängigen Daten</li>
-</ul></li>
-</ul>
-<h2 class='font-bold mt-4'>Implementierungsdetails</h2>
-<h3 class='font-bold mt-4'>Versionsmodell</h3>
-<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">scope :for_region, ->(region_id) {
-  where("region_id IS NULL OR region_id = '?' OR global_context = TRUE", region_id)
-}
-</code></pre><h3 class='font-bold mt-4'>API-Endpunkt</h3>
-<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">def get_updates
-  # ... existierender Code ...
-  if params[:region_id].present?
-    version_query = version_query.for_region(params[:region_id])
+      <li><h3>Implementierung</h3>
+        <h4>RegionTaggable Concern</h4>
+        <pre><code class="language-ruby">module RegionTaggable
+  extend ActiveSupport::Concern
+
+  included do
+    after_save :update_region_tagging
+    after_destroy :update_region_tagging
   end
-  # ... restlicher Code ...
-end
-</code></pre><h3 class='font-bold mt-4'>Bereinigungsaufgabe</h3>
-<p class='text-base text-gray-700  dark:text-gray-200 leading-relaxed my-4'>
-Die Bereinigungsaufgabe stellt sicher, dass jeder lokale Server nur mit relevanten Daten startet durch:
-1. Identifizierung der zu behaltenden Regionen (lokal, DBU und Regionen mit globaler Ereignisbeteiligung)
-2. Entfernen von Datensätzen, die nicht mit diesen Regionen verbunden sind
-3. Aufrechterhaltung der Datenintegrität für globale Ereignisse
-4. Beibehaltung aller regionsunabhängigen Daten</p>
-<h2 class='font-bold mt-4'>Verwendung</h2>
 
-<ol>
-<li>Führen Sie die Bereinigungsaufgabe auf jedem lokalen Server aus:
-<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">bash
-rake cleanup:remove_non_region_records
-</code></li>
-<li>Konfigurieren Sie den lokalen Server mit seiner Regions-ID</li>
-<li>Das System verwaltet die Datenrelevanz automatisch durch den Synchronisierungsprozess</li>
-</ol>
+  def find_associated_region_id
+    # Berechnet die region_id basierend auf dem Modelltyp
+  end
+
+  def global_context?
+    # Bestimmt, ob der Datensatz globalen Kontext hat
+  end
+end</code></pre>
+
+        <h4>Versions-Scope</h4>
+        <pre><code class="language-ruby">scope :for_region, ->(region_id) {
+  where("region_id IS NULL OR region_id = ?", region_id)
+}</code></pre>
+      </li>
+
+      <li><h3>Verwendung</h3>
+        <h4>Rake Tasks</h4>
+        <pre><code class="language-bash"># Region-IDs für alle Modelle aktualisieren
+rails region_taggings:update_all_region_ids
+
+# Region-Tagging für alle Modelle aktualisieren
+rails region_taggings:update_all
+
+# Global Context für Datensätze setzen
+rails region_taggings:set_global_context
+
+# Region-Tagging verifizieren
+rails region_taggings:verify</code></pre>
+
+        <h4>Modelle mit RegionTaggable</h4>
+        <ul>
+          <li>Region, Club, Tournament, League, Party</li>
+          <li>Location, LeagueTeam, Game, PartyGame, GameParticipation</li>
+          <li>Player, SeasonParticipation, Seeding</li>
+        </ul>
+      </li>
+
+      <li><h3>Migration von altem System</h3>
+        <p>Das System wurde von einem komplexen polymorphic <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_taggings</code> System zu einem einfachen <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> + <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">global_context</code> System migriert:</p>
+        
+        <ol>
+          <li><strong>Altes System</strong>: <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> Array mit polymorphic <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_taggings</code> Tabelle</li>
+          <li><strong>Neues System</strong>: Einzelne <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">global_context</code> Boolean</li>
+        </ol>
+
+        <h4>Vorteile des neuen Systems</h4>
+        <ul>
+          <li>Einfacher zu verstehen und zu warten</li>
+          <li>Bessere Performance durch direkte Indizes</li>
+          <li>Klarere Trennung zwischen regionalen und globalen Daten</li>
+          <li>Weniger Komplexität in der Synchronisierungslogik</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
 </div>
