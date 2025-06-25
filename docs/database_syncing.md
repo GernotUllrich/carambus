@@ -27,67 +27,81 @@ Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategi
 ## Hauptkomponenten
 
 ### 1. Regions-Tagging (RegionTaggable)
-- Datensätze werden mit einem `region_ids`-Array markiert, um ihre regionalen Zuordnungen zu verfolgen
-- Umfasst sowohl die lokale Region als auch die DBU-Region (Deutsche Billard-Union) wenn zutreffend
-- Datensätze ohne regionale Abhängigkeiten (region_ids ist NULL oder leeres Array) werden an alle Server synchronisiert
+- Datensätze werden mit einem `region_id` markiert, um ihre regionale Zuordnung zu verfolgen
+- Ein `global_context` Boolean-Flag kennzeichnet Datensätze, die an globalen Ereignissen teilnehmen
+- Datensätze ohne regionale Abhängigkeiten (region_id ist NULL) werden an alle Server synchronisiert
 - Implementiert als Concern in `app/models/concerns/region_taggable.rb`
 
 ### 2. Versionsverwaltung
 - Nutzt PaperTrail für die Versionsverfolgung
-- Versionen werden mit `region_ids` markiert, um die regionale Relevanz zu verfolgen
-- Versionen mit NULL oder leerem region_ids werden als global betrachtet und an alle Server gesendet
-- Enthält Scopes und Methoden zum Filtern von Versionen nach Region
+- Versionen werden mit `region_id` markiert, um die regionale Relevanz zu verfolgen
+- Versionen mit NULL region_id werden als global betrachtet und an alle Server gesendet
 
-### 3. Synchronisierungsprozess
-- Lokale Server holen Updates über `Version.update_from_carambus_api`
-- API-Server filtert Versionen basierend auf regionaler Relevanz
-- Nur für die anfragende Region relevante Versionen werden übertragen
-- Globale Versionen (ohne regionale Abhängigkeiten) werden an alle Server übertragen
+### 3. Synchronisierungslogik
+- Lokale Server erhalten nur Daten mit `region_id` ihrer Region oder `global_context = true`
+- Globale Ereignisse (DBU-Turniere, etc.) werden an alle Server synchronisiert
+- Regionsunabhängige Daten (Konfigurationen, etc.) werden an alle Server gesendet
 
-### 4. Datenbereinigung
-- Einmalige Bereinigungsaufgabe zum Entfernen von Daten fremder Regionen
-- Behält:
-  - Daten der lokalen Region
-  - DBU-Regionsdaten
-  - Daten von Regionen mit Vereinen/Spielern in globalen Ereignissen
-  - Alle regionsunabhängigen Daten
+## Implementierung
 
-## Implementierungsdetails
+### RegionTaggable Concern
+```ruby
+module RegionTaggable
+  extend ActiveSupport::Concern
 
-### Versionsmodell
+  included do
+    after_save :update_region_tagging
+    after_destroy :update_region_tagging
+  end
+
+  def find_associated_region_id
+    # Berechnet die region_id basierend auf dem Modelltyp
+  end
+
+  def global_context?
+    # Bestimmt, ob der Datensatz globalen Kontext hat
+  end
+end
+```
+
+### Versions-Scope
 ```ruby
 scope :for_region, ->(region_id) {
-  where("region_ids IS NULL OR region_ids = '{}' OR region_ids @> ARRAY[?]::integer[]", region_id)
+  where("region_id IS NULL OR region_id = ?", region_id)
 }
-
-def self.relevant_for_region?(region_id)
-  return true if region_ids.nil? || region_ids.empty?
-  region_ids.include?(region_id)
-end
 ```
-
-### API-Endpunkt
-```ruby
-def get_updates
-  # ... existierender Code ...
-  if params[:region_id].present?
-    version_query = version_query.for_region(params[:region_id])
-  end
-  # ... restlicher Code ...
-end
-```
-
-### Bereinigungsaufgabe
-Die Bereinigungsaufgabe stellt sicher, dass jeder lokale Server nur mit relevanten Daten startet durch:
-1. Identifizierung der zu behaltenden Regionen (lokal, DBU und Regionen mit globaler Ereignisbeteiligung)
-2. Entfernen von Datensätzen, die nicht mit diesen Regionen verbunden sind
-3. Aufrechterhaltung der Datenintegrität für globale Ereignisse
-4. Beibehaltung aller regionsunabhängigen Daten
 
 ## Verwendung
-1. Führen Sie die Bereinigungsaufgabe auf jedem lokalen Server aus:
-   ```bash
-   rake cleanup:remove_non_region_records
-   ```
-2. Konfigurieren Sie den lokalen Server mit seiner Regions-ID
-3. Das System verwaltet die Datenrelevanz automatisch durch den Synchronisierungsprozess
+
+### Rake Tasks
+```bash
+# Region-IDs für alle Modelle aktualisieren
+rails region_taggings:update_all_region_ids
+
+# Region-Tagging für alle Modelle aktualisieren
+rails region_taggings:update_all
+
+# Global Context für Datensätze setzen
+rails region_taggings:set_global_context
+
+# Region-Tagging verifizieren
+rails region_taggings:verify
+```
+
+### Modelle mit RegionTaggable
+- Region, Club, Tournament, League, Party
+- Location, LeagueTeam, Game, PartyGame, GameParticipation
+- Player, SeasonParticipation, Seeding
+
+## Migration von altem System
+
+Das System wurde von einem komplexen polymorphic `region_taggings` System zu einem einfachen `region_id` + `global_context` System migriert:
+
+1. **Altes System**: `region_ids` Array mit polymorphic `region_taggings` Tabelle
+2. **Neues System**: Einzelne `region_id` mit `global_context` Boolean
+
+### Vorteile des neuen Systems
+- Einfacher zu verstehen und zu warten
+- Bessere Performance durch direkte Indizes
+- Klarere Trennung zwischen regionalen und globalen Daten
+- Weniger Komplexität in der Synchronisierungslogik
