@@ -29,22 +29,21 @@ Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategi
 ## Hauptkomponenten
 
 ### 1. Regions-Tagging (RegionTaggable)
-- Datensätze werden mit einem `region_ids`-Array markiert, um ihre regionalen Zuordnungen zu verfolgen
-- Umfasst sowohl die lokale Region als auch die DBU-Region (Deutsche Billard-Union) wenn zutreffend
-- Datensätze ohne regionale Abhängigkeiten (region_ids ist NULL oder leeres Array) werden an alle Server synchronisiert
+- Datensätze werden mit einer `region_id`, bzw. global_context = true markiert, um ihre regionalen bzw. globalen (DBU - Deutsche Billard-Union) Zuordnungen zu verfolgen
+- Datensätze ohne regionale Abhängigkeiten (region_id ist NUL) werden an alle Server synchronisiert
 - Implementiert als Concern in `app/models/concerns/region_taggable.rb`
 
 ### 2. Versionsverwaltung
 - Nutzt PaperTrail für die Versionsverfolgung
-- Versionen werden mit `region_ids` markiert, um die regionale Relevanz zu verfolgen
-- Versionen mit NULL oder leerem region_ids werden als global betrachtet und an alle Server gesendet
+- Versionen werden mit `region_id` bzw. global_context = true markiert, um die regionale bzw. globale Relevanz zu verfolgen
+- Versionen mit region_id NULL werden als global betrachtet und an alle Server gesendet
 - Enthält Scopes und Methoden zum Filtern von Versionen nach Region
 
 ### 3. Synchronisierungsprozess
 - Lokale Server holen Updates über `Version.update_from_carambus_api`
 - API-Server filtert Versionen basierend auf regionaler Relevanz
 - Nur für die anfragende Region relevante Versionen werden übertragen
-- Globale Versionen (ohne regionale Abhängigkeiten) werden an alle Server übertragen
+- Globale Versionen (blobal_context = tue oder ohne regionale Abhängigkeiten) werden an alle Server übertragen
 
 ### 4. Datenbereinigung
 - Einmalige Bereinigungsaufgabe zum Entfernen von Daten fremder Regionen
@@ -59,13 +58,9 @@ Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategi
 ### Versionsmodell
 ```ruby
 scope :for_region, ->(region_id) {
-  where("region_ids IS NULL OR region_ids = '{}' OR region_ids @> ARRAY[?]::integer[]", region_id)
+  where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
 }
 
-def self.relevant_for_region?(region_id)
-  return true if region_ids.nil? || region_ids.empty?
-  region_ids.include?(region_id)
-end
 ```
 
 ### API-Endpunkt

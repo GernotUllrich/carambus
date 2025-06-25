@@ -2,7 +2,7 @@ class MigrateSettingsToYaml < ActiveRecord::Migration[7.0]
   def up
     return unless setting = Setting.first
 
-    yaml_path = Rails.root.join('config', 'carambus.yml')
+
     yaml = YAML.load_file(yaml_path)
 
     # Migrate data hash

@@ -349,7 +349,7 @@ class League < ApplicationRecord
             league.assign_attributes(attrs)
             league.source_url = staffel_link
             if league.changed?
-              league.region_ids |= [region.id]
+              league.region_id = region.id
               league.save
             end
 
@@ -392,22 +392,25 @@ class League < ApplicationRecord
       league_html = Net::HTTP.get(uri)
       league_doc = Nokogiri::HTML(league_html)
 
-      staffel_link = source_url
-      Rails.logger.info "reading #{staffel_link}"
-      uri = URI(staffel_link)
-      staffel_html = Net::HTTP.get(uri)
-      staffel_doc = Nokogiri::HTML(staffel_html)
-      details_table = staffel_doc.css("aside > section > table")[0]
-      skip = false
-      details_table.css("tr").each do |tr|
-        next unless tr.css("td")[0].text == "Quelle"
+      # TODO what's the following code about??
+      if source_url.present?
+        staffel_link = source_url
+        Rails.logger.info "reading #{staffel_link}"
+        uri = URI(staffel_link)
+        staffel_html = Net::HTTP.get(uri)
+        staffel_doc = Nokogiri::HTML(staffel_html)
+        details_table = staffel_doc.css("aside > section > table")[0]
+        skip = false
+        details_table.css("tr").each do |tr|
+          next unless tr.css("td")[0].text == "Quelle"
 
-        skip = true
-        ref = tr.css("a")[0].andand["href"]
-        Rails.logger.info "==== scrape ==== This league must be scraped from source #{ref}"
-        break
+          skip = true
+          ref = tr.css("a")[0].andand["href"]
+          Rails.logger.info "==== scrape ==== This league must be scraped from source #{ref}"
+          break
+        end
+        return if skip
       end
-      return if skip
 
       # scrape league teams
       team_table = league_doc.css("aside > section > table > tr > td > table")[0]
@@ -473,7 +476,7 @@ class League < ApplicationRecord
           club.cc_id = club_cc_id
         end
         if club.changed?
-          club.region_ids |= [region.id]
+          club.region_id = region.id
           club.save
         end
         clubs_cache << club if club.present?
@@ -488,7 +491,7 @@ class League < ApplicationRecord
         }
         league_team.assign_attributes(attrs)
         league_team.source_url = league_url
-        league_team.region_ids |= [region.id]
+        league_team.region_id = region.id
         league_team.save
         league_teams_cache << league_team
         league_team_players ||= {}
@@ -523,7 +526,7 @@ class League < ApplicationRecord
                     player.dbu_nr = player_dbu_nr
                     player.source_url = team_url
                     if player.changed?
-                      player.region_ids |= [region.id]
+                      player.region_id = region.id
                       player.save
                     end
                     sp_args = {
@@ -532,12 +535,12 @@ class League < ApplicationRecord
                       club_id: club.id
                     }
                     SeasonParticipation.where(sp_args).first ||
-                      (sp = SeasonParticipation.new(sp_args); sp.region_ids = [region.id]; sp.save)
+                      (sp = SeasonParticipation.new(sp_args); sp.region_id = region.id; sp.save)
                   else
                     player.assign_attributes(dbu_nr: player_dbu_nr)
                     player.source_url = team_url
                     if player.changed?
-                      player.region_ids |= [region.id]
+                      player.region_id = region.id
                       player.save
                     end
                   end
@@ -567,7 +570,7 @@ class League < ApplicationRecord
               break
             end
             if seeding.changed?
-              seeding.region_ids |= [region.id]
+              seeding.region_id = region.id
               seeding.save!
             end
           end
@@ -688,12 +691,12 @@ class League < ApplicationRecord
                 location.dbu_nr = location_dbu_nr if url =~ /billard-union.net/
                 location.source_url = url + location_link unless url =~ /billard-union.net/
                 if location.changed?
-                  location.region_ids |= [region.id]
+                  location.region_id = region.id
                   location.save
                 end
                 club_location = ClubLocation.where(club: club, location: location).first
                 unless club_location.present?
-                  (cl = ClubLocation.new(club: club, location: location); cl.region_ids = [region.id]; cl.save)
+                  (cl = ClubLocation.new(club: club, location: location); cl.region_id = region.id; cl.save)
                 end
               end
             end
@@ -718,7 +721,7 @@ class League < ApplicationRecord
               }.compact
               party.assign_attributes(party_attrs)
               if party.changed?
-                party.region_ids |= [region.id]
+                party.region_id = region.id
                 party.save
               end
               party_count += 1
@@ -1023,7 +1026,7 @@ class League < ApplicationRecord
                 ).first || PartyGame.new(party_id: party.id, seqno: seqno2)
                 party_game.assign_attributes(attrs)
                 if party_game.changed?
-                  party_game.region_ids |= [region.id]
+                  party_game.region_id = region.id
                   party_game.save
                 end
               end
@@ -1063,7 +1066,7 @@ class League < ApplicationRecord
             party ||= Party.new(league_id: id)
             party.assign_attributes(party_attrs.merge(date: date))
             if party.changed?
-              party.region_ids |= [region.id]
+              party.region_id = region.id
               party.save!
             end
             Party.where(party_attrs.merge(league_id: id, cc_id: nil)).destroy_all
@@ -1104,7 +1107,7 @@ class League < ApplicationRecord
         else
           gp.assign_attributes(footprint: footprint, data: game_plan)
           if gp.changed?
-            gp.region_ids |= [region.id]
+            gp.region_id = region.id
             gp.save
           end
           self.game_plan = gp

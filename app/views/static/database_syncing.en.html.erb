@@ -31,17 +31,17 @@ The system implements a region-based database partitioning strategy to optimize 
 <h3 class='font-bold mt-4'>1. region tagging (RegionTaggable)</h3>
 
 <ul>
-<li>Records are tagged with a <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> array to track their regional assignments</li>
-<li>Includes both the local region and the DBU region (German Billiard Union) if applicable</li>
-<li>Records without regional dependencies (region_ids is NULL or empty array) are synchronized to all servers</li>
+<li>Records are tagged with a <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> to track their regional assignments</li>
+<li>Records are tagged with globa_context = TRUE when associated with global events from the  DBU (German Billiard Union) if applicable</li>
+<li>Records without regional dependencies (region_id is NULL) are synchronized to all servers</li>
 <li>Implemented as a core in <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">app/models/concerns/region_taggable.rb</code></li>
 </ul>
 <h3 class='font-bold mt-4'>2. version management</h3>
 
 <ul>
 <li>Uses PaperTrail for version tracking</li>
-<li>Versions are tagged with <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> to track regional relevance</li>
-<li>Versions with NULL or empty region_ids are considered global and sent to all servers</li>
+<li>Versions are tagged with <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> to track regional relevance</li>
+<li>Versions with NULL or global_context = TRUE are considered global and sent to all servers</li>
 <li>Contains scopes and methods to filter versions by region</li>
 </ul>
 <h3 class='font-bold mt-4'>3. synchronization process</h3>
@@ -68,13 +68,9 @@ The system implements a region-based database partitioning strategy to optimize 
 <h2 class='font-bold mt-4'>Implementation details</h2>
 <h3 class='font-bold mt-4'>Version model</h3>
 <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">scope :for_region, -&gt;(region_id) {
-  where("region_ids IS NULL OR region_ids = '{}' OR region_ids @&gt; ARRAY[?]::integer[]", region_id)
+  where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
 }
 
-def self.relevant_for_region?(region_id)
-  return true if region_ids.nil? || region_ids.empty?
-  region_ids.include?(region_id)
-end
 </code></pre><h3 class='font-bold mt-4'>API endpoint</h3>
 <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">def get_updates
   # ... existing code ...

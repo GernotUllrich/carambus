@@ -31,17 +31,17 @@ Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategi
 <h3 class='font-bold mt-4'>1. Regions-Tagging (RegionTaggable)</h3>
 
 <ul>
-<li>Datensätze werden mit einem <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code>-Array markiert, um ihre regionalen Zuordnungen zu verfolgen</li>
-<li>Umfasst sowohl die lokale Region als auch die DBU-Region (Deutsche Billard-Union) wenn zutreffend</li>
-<li>Datensätze ohne regionale Abhängigkeiten (region_ids ist NULL oder leeres Array) werden an alle Server synchronisiert</li>
+<li>Datensätze werden mit einer <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> markiert, um ihre regionalen Zuordnungen zu verfolgen</li>
+<li>global_context ist TRUE wenn ein Zusammenhang zu einem DBU (Deutsche Billard-Union) Event besteht</li>
+<li>Datensätze ohne regionale Abhängigkeiten (region_id is nil) werden an alle Server synchronisiert</li>
 <li>Implementiert als Concern in <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">app/models/concerns/region_taggable.rb</code></li>
 </ul>
 <h3 class='font-bold mt-4'>2. Versionsverwaltung</h3>
 
 <ul>
 <li>Nutzt PaperTrail für die Versionsverfolgung</li>
-<li>Versionen werden mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_ids</code> markiert, um die regionale Relevanz zu verfolgen</li>
-<li>Versionen mit NULL oder leerem region_ids werden als global betrachtet und an alle Server gesendet</li>
+<li>Versionen werden ebenfalls mit <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">region_id</code> und global_context markiert, um die regionale bzw. globale Relevanz zu verfolgen</li>
+<li>Versionen mit region_id = nil werden als global betrachtet und an alle Server gesendet</li>
 <li>Enthält Scopes und Methoden zum Filtern von Versionen nach Region</li>
 </ul>
 <h3 class='font-bold mt-4'>3. Synchronisierungsprozess</h3>
@@ -68,13 +68,8 @@ Das System implementiert eine regionsbasierte Datenbank-Partitionierungsstrategi
 <h2 class='font-bold mt-4'>Implementierungsdetails</h2>
 <h3 class='font-bold mt-4'>Versionsmodell</h3>
 <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">scope :for_region, ->(region_id) {
-  where("region_ids IS NULL OR region_ids = '{}' OR region_ids @> ARRAY[?]::integer[]", region_id)
+  where("region_id IS NULL OR region_id = '?' OR global_context = TRUE", region_id)
 }
-
-def self.relevant_for_region?(region_id)
-  return true if region_ids.nil? || region_ids.empty?
-  region_ids.include?(region_id)
-end
 </code></pre><h3 class='font-bold mt-4'>API-Endpunkt</h3>
 <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto"><code class="language-ruby">def get_updates
   # ... existierender Code ...
