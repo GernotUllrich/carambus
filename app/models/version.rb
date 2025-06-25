@@ -15,7 +15,7 @@ require "net/http"
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  item_id        :bigint
-#  region_ids     :integer          :default: [], array: true
+#  region_id      :integer
 #
 # Indexes
 #
@@ -24,19 +24,12 @@ require "net/http"
 class Version < PaperTrail::Version
   belongs_to :region, optional: true
 
-  self.ignored_columns = ["region_ids"]
   # This scope finds all versions where:
-  # 1. region_ids is nil OR
-  # 2. region_ids is an empty array OR
-  # 3. region_ids contains the given region_id
+  # 1. region_id is nil OR
+  # 2. region_id matches the given region_id
   scope :for_region, ->(region_id) {
-    where("region_ids IS NULL OR region_ids = '{}' OR region_ids @> ARRAY[?]::integer[]", region_id)
+    where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
   }
-
-  def self.relevant_for_region?(region_id)
-    return true if region_ids.nil? || region_ids.empty?
-    region_ids.include?(region_id)
-  end
 
   def self.list_sequence
     sql = <<~SQL

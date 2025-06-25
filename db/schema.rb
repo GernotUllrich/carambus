@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_24_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -94,6 +94,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_club_locations_on_global_context"
+    t.index ["region_id"], name: "index_club_locations_on_region_id"
     t.index ["region_ids"], name: "index_club_locations_on_region_ids", using: :gin
   end
 
@@ -118,8 +122,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "source_url"
     t.datetime "sync_date"
     t.integer "region_ids", default: [], array: true
+    t.boolean "global_context", default: false
     t.index ["ba_id"], name: "index_clubs_on_ba_id", unique: true
     t.index ["ba_id"], name: "index_clubs_on_foreign_keys", unique: true
+    t.index ["global_context"], name: "index_clubs_on_global_context"
     t.index ["region_ids"], name: "index_clubs_on_region_ids", using: :gin
   end
 
@@ -208,7 +214,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.datetime "updated_at", null: false
     t.integer "sets"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
     t.index ["game_id", "player_id", "role"], name: "index_game_participations_on_foreign_keys", unique: true
+    t.index ["global_context"], name: "index_game_participations_on_global_context"
+    t.index ["region_id"], name: "index_game_participations_on_region_id"
     t.index ["region_ids"], name: "index_game_participations_on_region_ids", using: :gin
   end
 
@@ -277,6 +287,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.datetime "updated_at", null: false
     t.string "tournament_type"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_games_on_global_context"
+    t.index ["region_id"], name: "index_games_on_region_id"
     t.index ["region_ids"], name: "index_games_on_region_ids", using: :gin
   end
 
@@ -379,6 +393,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.integer "cc_id"
     t.text "data"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_league_teams_on_global_context"
+    t.index ["region_id"], name: "index_league_teams_on_region_id"
     t.index ["region_ids"], name: "index_league_teams_on_region_ids", using: :gin
   end
 
@@ -404,7 +422,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.text "game_parameters"
     t.boolean "game_plan_locked", default: false, null: false
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
+    t.index ["global_context"], name: "index_leagues_on_global_context"
+    t.index ["region_id"], name: "index_leagues_on_region_id"
     t.index ["region_ids"], name: "index_leagues_on_region_ids", using: :gin
   end
 
@@ -429,7 +451,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.integer "dbu_nr"
     t.integer "club_id"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_locations_on_global_context"
     t.index ["md5"], name: "index_locations_on_md5", unique: true
+    t.index ["region_id"], name: "index_locations_on_region_id"
     t.index ["region_ids"], name: "index_locations_on_region_ids", using: :gin
   end
 
@@ -511,6 +537,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.boolean "color_remains_with_set", default: true, null: false
     t.string "kickoff_switches_with"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_parties_on_global_context"
+    t.index ["region_id"], name: "index_parties_on_region_id"
     t.index ["region_ids"], name: "index_parties_on_region_ids", using: :gin
   end
 
@@ -558,6 +588,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "name"
     t.integer "discipline_id"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_party_games_on_global_context"
+    t.index ["region_id"], name: "index_party_games_on_region_id"
     t.index ["region_ids"], name: "index_party_games_on_region_ids", using: :gin
   end
 
@@ -647,8 +681,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "pin4"
     t.string "logo"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
     t.index ["ba_id"], name: "index_players_on_ba_id", unique: true
     t.index ["club_id"], name: "index_players_on_club_id"
+    t.index ["global_context"], name: "index_players_on_global_context"
+    t.index ["region_id"], name: "index_players_on_region_id"
     t.index ["region_ids"], name: "index_players_on_region_ids", using: :gin
   end
 
@@ -688,7 +726,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.integer "cc_id"
     t.text "scrape_data"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
     t.index ["country_id"], name: "index_regions_on_country_id"
+    t.index ["global_context"], name: "index_regions_on_global_context"
+    t.index ["region_id"], name: "index_regions_on_region_id"
     t.index ["region_ids"], name: "index_regions_on_region_ids", using: :gin
     t.index ["shortname"], name: "index_regions_on_shortname", unique: true
   end
@@ -741,7 +783,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "source_url"
     t.datetime "sync_date"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_season_participations_on_global_context"
     t.index ["player_id", "club_id", "season_id"], name: "index_season_participations_on_foreign_keys", unique: true
+    t.index ["region_id"], name: "index_season_participations_on_region_id"
     t.index ["region_ids"], name: "index_season_participations_on_region_ids", using: :gin
   end
 
@@ -771,6 +817,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "role"
     t.string "tournament_type"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_seedings_on_global_context"
+    t.index ["region_id"], name: "index_seedings_on_region_id"
     t.index ["region_ids"], name: "index_seedings_on_region_ids", using: :gin
   end
 
@@ -891,6 +941,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.datetime "scoreboard_off_at"
     t.boolean "heater_auto"
     t.integer "region_ids", default: [], array: true
+    t.integer "region_id"
+    t.boolean "global_context", default: false
+    t.index ["global_context"], name: "index_tables_on_global_context"
+    t.index ["region_id"], name: "index_tables_on_region_id"
     t.index ["region_ids"], name: "index_tables_on_region_ids", using: :gin
   end
 
@@ -1071,7 +1125,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
     t.string "kickoff_switches_with"
     t.string "source_url"
     t.integer "region_ids", default: [], array: true
+    t.boolean "global_context", default: false
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
+    t.index ["global_context"], name: "index_tournaments_on_global_context"
     t.index ["region_ids"], name: "index_tournaments_on_region_ids", using: :gin
   end
 
@@ -1153,12 +1209,27 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_074259) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "club_locations", "regions", validate: false
+  add_foreign_key "clubs", "regions", validate: false
+  add_foreign_key "game_participations", "regions", validate: false
+  add_foreign_key "games", "regions", validate: false
+  add_foreign_key "league_teams", "regions", validate: false
+  add_foreign_key "leagues", "regions", validate: false
+  add_foreign_key "locations", "regions", validate: false
+  add_foreign_key "parties", "regions", validate: false
+  add_foreign_key "party_games", "regions", validate: false
+  add_foreign_key "players", "regions", validate: false
+  add_foreign_key "regions", "regions", validate: false
+  add_foreign_key "season_participations", "regions", validate: false
+  add_foreign_key "seedings", "regions", validate: false
   add_foreign_key "settings", "clubs"
   add_foreign_key "settings", "regions"
   add_foreign_key "settings", "tournaments"
   add_foreign_key "tables", "locations"
+  add_foreign_key "tables", "regions", validate: false
   add_foreign_key "tables", "table_kinds"
   add_foreign_key "tournament_monitors", "tournaments"
   add_foreign_key "tournament_plan_games", "tournament_plans"
+  add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "users", "players"
 end

@@ -645,6 +645,63 @@ namespace :carambus do
     f.close
   end
 
+  desc "filter local changes from sql dump new"
+  task filter_local_changes_from_sql_dump_new: :environment do
+    database = ENV["DATABASE"]
+    in_copy_users_or_tournaments = false
+    priority_tables = []
+    File.open("#{Rails.root}/#{database}.sql", "r").each_line do |line|
+      if /^COPY/.match?(line)
+        in_copy_users_or_tournaments = case line
+                                       when /^COPY public.users /
+                                         true
+                                       when /^COPY public.tournaments /
+                                         true
+                                       else
+                                         false
+                                       end
+        priority_tables.push line if in_copy_users_or_tournaments
+      elsif /^\\\./.match?(line)
+        if in_copy_users_or_tournaments
+          priority_tables.push line
+          in_copy_users_or_tournaments = false
+        end
+      elsif in_copy_users_or_tournaments
+        priority_tables.push line if line.match(/^(\d+)\t/).andand[1].to_i > Setting::MIN_ID
+      end
+    end
+
+    f = File.new("#{Rails.root}/#{database}_50000000.sql", "w")
+    first_copy = true
+    in_copy_mode = false
+    File.open("#{Rails.root}/#{database}.sql", "r").each_line do |line|
+      if /^COPY/.match?(line)
+        in_copy_mode = true
+        if first_copy
+          f.write("#{priority_tables.join("")}\n")
+          first_copy = false
+        end
+        in_copy_users_or_tournaments = case line
+                                       when /^COPY public.users /
+                                         true
+                                       when /^COPY public.tournaments /
+                                         true
+                                       else
+                                         false
+                                       end
+        f.puts line unless in_copy_users_or_tournaments
+      elsif /^\\\./.match?(line)
+        in_copy_mode = false
+        f.puts line unless in_copy_users_or_tournaments
+      elsif in_copy_mode
+        f.puts line if !in_copy_users_or_tournaments && line.match(/^(\d+)\t/).andand[1].to_i > Setting::MIN_ID
+      else
+        f.puts line
+      end
+    end
+    f.close
+  end
+
   desc "fix game participations"
   task fix_game_participations: :environment do
     # Game.all.each do |game|
