@@ -91,13 +91,21 @@ class VersionsController < ApplicationController
     if last_version_id.present?
       attrs = []
       version_query = Version.where("id > ?", last_version_id.to_i)
+
+      # Filter versions by region using the new region_id system
       if params[:region_id].present?
         version_query = version_query.for_region(params[:region_id])
       end
+
       version_query.order(id: :asc).limit(20_000).all.each do |version|
         attr = version.attributes
         attr["object_changes"] = YAML.load(attr["object_changes"]).to_json if attr["object_changes"].present?
         attr["object"] = YAML.load(attr["object"]).to_json if attr["object"].present?
+
+        # Ensure region_id and global_context are included in the response
+        attr["region_id"] = version.region_id
+        attr["global_context"] = version.global_context
+
         attrs.push(attr)
       end
 
@@ -108,14 +116,6 @@ class VersionsController < ApplicationController
     end
   rescue Exception
     raise ActionController::RoutingError, "Not Found"
-  end
-
-  def self.sync_from_api(region_id = nil)
-    last_version_id = Setting.key_get_value("last_version_id").to_i
-    url = "#{Carambus.config.carambus_api_url}/versions?since=#{last_version_id}"
-    url += "&region_id=#{region_id}" if region_id.present?
-
-    # ... rest of the existing sync_from_api method ...
   end
 
   private

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_24_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -269,10 +269,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "region_ids", default: [], array: true
-    t.integer "region_id"
-    t.boolean "global_context", default: false
-    t.index ["global_context"], name: "index_game_plans_on_global_context"
-    t.index ["region_id"], name: "index_game_plans_on_region_id"
     t.index ["region_ids"], name: "index_game_plans_on_region_ids", using: :gin
   end
 
@@ -492,6 +488,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
     t.datetime "updated_at", null: false
     t.datetime "last_translated_at"
     t.string "slug", default: "", null: false
+    t.string "content_en"
     t.index ["author_type", "author_id"], name: "index_pages_on_author_type_and_author_id"
     t.index ["status"], name: "index_pages_on_status"
     t.index ["super_page_id"], name: "index_pages_on_super_page_id"
@@ -659,8 +656,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
     t.text "t_ids"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "global_context", default: false
-    t.index ["global_context"], name: "index_player_rankings_on_global_context"
   end
 
   create_table "players", force: :cascade do |t|
@@ -1209,11 +1204,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "region_ids", default: [], array: true
-    t.integer "region_id"
-    t.boolean "global_context", default: false
-    t.index ["global_context"], name: "index_versions_on_global_context"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
-    t.index ["region_id"], name: "index_versions_on_region_id"
     t.index ["region_ids"], name: "index_versions_on_region_ids", using: :gin
   end
 
@@ -1221,14 +1212,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
   add_foreign_key "game_participations", "regions", validate: false
-  add_foreign_key "game_plans", "regions", validate: false
   add_foreign_key "games", "regions", validate: false
   add_foreign_key "league_teams", "regions", validate: false
   add_foreign_key "leagues", "regions", validate: false
   add_foreign_key "locations", "regions", validate: false
   add_foreign_key "parties", "regions", validate: false
   add_foreign_key "party_games", "regions", validate: false
-  add_foreign_key "player_rankings", "regions", validate: false
   add_foreign_key "players", "regions", validate: false
   add_foreign_key "regions", "regions", validate: false
   add_foreign_key "season_participations", "regions", validate: false
@@ -1243,5 +1232,4 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_24_161301) do
   add_foreign_key "tournament_plan_games", "tournament_plans"
   add_foreign_key "tournaments", "regions", validate: false
   add_foreign_key "users", "players"
-  add_foreign_key "versions", "regions", validate: false
 end
