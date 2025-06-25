@@ -413,7 +413,7 @@ Region #{real_club.region&.shortname}, season #{season.name}!"
               player&.id, season.id, real_club.id
             )
               (sp = SeasonParticipation.new(player_id: player&.id, season_id: season.id,
-                                            club_id: real_club.id); sp.region_ids = [region.id]; sp.save)
+                                            club_id: real_club.id); sp.region_id = region.id; sp.save)
 
             end
           end
@@ -423,7 +423,7 @@ Region #{real_club.region&.shortname}, season #{season.name}!"
                                                                                     tournament.class.name)
           unless seeding.present?
             seeding = Seeding.new(player_id: player&.id, tournament: tournament, position: position)
-            seeding.region_ids = [region.id]
+            seeding.region_id = region.id
             seeding.save
           end
         end
@@ -439,20 +439,20 @@ added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club
 Region #{region.shortname}, season #{season.name}"
           if allow_players_outside_ba && allow_creates
             player_fixed = Player.new(lastname: lastname, firstname: firstname, club_id: club.id)
-            player_fixed.region_ids = [region.id]
+            player_fixed.region_id = region.id
             player_fixed.save
             player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
             sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id)
             unless sp.present?
               sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              sp.region_ids |= [region.id]
+              sp.region_id = region.id
               sp.save
             end
             if tournament.present?
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
-                seeding.region_ids = [region.id]
+                seeding.region_id = region.id
                 seeding.save
               end
             end
@@ -466,7 +466,7 @@ is not active in Club #{club_str} [#{club.ba_id}], region #{region.shortname} an
             sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id)
             unless sp.present?
               sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              sp.region_ids = [region.id]
+              sp.region_id = region.id
               sp.save
             end
             logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fixed: \
@@ -476,7 +476,7 @@ region #{region.shortname} and season #{season.name}"
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
-                seeding.region_ids = [region.id]
+                seeding.region_id = region.id
                 seeding.save
               end
             end
@@ -496,14 +496,14 @@ Assume Player #{lastname}, #{firstname} is active in Clubs [#{clubs_str}] "
             sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id)
             unless sp.present?
               sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              sp.region_ids = [region.id]
+              sp.region_id = region.id
               sp.save
             end
             if tournament.present?
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
-                seeding.region_ids = [region.id]
+                seeding.region_id = region.id
                 seeding.save
               end
             end
@@ -520,7 +520,7 @@ Assume Player #{lastname}, #{firstname} is active in Clubs [#{clubs_str}] "
               seeding = Seeding.find_by_player_id_and_tournament_id(player.id, tournament.id)
               unless seeding.present?
                 seeding = Seeding.new(player_id: player.id, tournament_id: tournament.id, position: position)
-                seeding.region_ids = [region.id]
+                seeding.region_id = region.id
                 seeding.save
               end
             end
@@ -539,14 +539,14 @@ and season #{season.name}"
                                                                                  fixed_club.id)
             unless sp.present?
               sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
-              sp.region_ids = [region.id]
+              sp.region_id = region.id
               sp.save
             end
             if tournament.present?
               seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
               unless seeding.present?
                 seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
-                seeding.region_ids = [region.id]
+                seeding.region_id = region.id
                 seeding.save
               end
             end
@@ -558,16 +558,16 @@ and season #{season.name}"
       logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fatal: Club #{club_str}, \
 region #{region.shortname} not found!! Typo?"
       fixed_club = region.clubs.new(name: club_str, shortname: club_str)
-      fixed_club.region_ids = [region.id]
+      fixed_club.region_id = region.id
       fixed_club.save
       if allow_creates
         player_fixed = Player.new(firstname: firstname, lastname: lastname)
-        player_fixed.region_ids = [region.id]
+        player_fixed.region_id = region.id
         player_fixed.save
         fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
         player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
         sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
-        sp.region_ids = [region.id]
+        sp.region_id = region.id
         sp.save
         logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Club #{club_str} created \
 in region #{region.shortname}"
@@ -577,7 +577,7 @@ in region #{region.shortname}"
           seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
           unless seeding.present?
             seeding = Seeding.new(player_id: player_fixed.id, tournament: tournament, position: position)
-            seeding.region_ids = [region.id]
+            seeding.region_id = region.id
             seeding.save
           end
         end

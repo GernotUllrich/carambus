@@ -33,7 +33,7 @@ class Page < ApplicationRecord
   belongs_to :author, polymorphic: true, optional: true
   belongs_to :super_page, class_name: 'Page', optional: true
   has_many :sub_pages, class_name: 'Page', foreign_key: 'super_page_id', dependent: :nullify
-
+  self.ignored_columns = ["content_en"]
   # Enums
   enum :status, {:draft=>"draft", :published=>"published", :archived=>"archived"}
   enum :content_type, {:markdown=>"markdown"}
@@ -230,7 +230,7 @@ class Page < ApplicationRecord
       # Process German content
       marked_content = add_front_matter(content)
       front_matter, translated_content = split_front_matter(marked_content)
-      
+
       # Use a custom renderer that preserves special constructs
       renderer = CarambusRender.new
       markdown = Redcarpet::Markdown.new(renderer, {
@@ -244,7 +244,7 @@ class Page < ApplicationRecord
         quote: true,
         footnotes: true
       })
-      
+
       html_content = markdown.render(translated_content)
       if html_content.present?
         File.write(published_path(:de), "<!--#{front_matter}-->\n#{html_content}")
@@ -254,7 +254,7 @@ class Page < ApplicationRecord
       marked_content = add_front_matter(content_en.presence || content)
       # Use DeepL for translation with special handling for code blocks
       front_matter, translated_content = DeeplTranslationService.translate(marked_content)
-      
+
       # Use the same renderer for English content
       html_content = markdown.render(translated_content)
       if html_content.present?

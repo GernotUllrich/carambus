@@ -257,7 +257,7 @@ or (regions.address ilike :search)",
                 location_id: location.id,
                 club_id: club.id
               )
-              cl.region_ids |= [self.id]
+              cl.region_id = self.id
               cl.save
             end
           end
@@ -272,7 +272,7 @@ or (regions.address ilike :search)",
   # scrape regions from Club Cloud Instances
   def self.scrape_regions
     Region.all.each do |region|
-      region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname], region_ids: [region.id])
+      region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname])
       region.save if region.changed?
     end
     Region.where.not(public_cc_url_base: nil).all.each do |region|
@@ -504,6 +504,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
 
   # scrape_clubs
   def scrape_clubs(season, opts = {})
+    return if self.shortname == "DBU"
     region_map_ = Region.region_map
     clubs_url = nil
     if Rails.env != "production" || opts[:from_background]
@@ -544,7 +545,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             club.region = self
             club.source_url = club_url
             if club.changed?
-              club.region_ids |= [self.id]
+              club.region_id ||= self.id
               club.save!
             end
             if club.present? && location.present?
@@ -612,7 +613,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             club.assign_attributes(name: club_name, shortname: club_shortname, region:, cc_id:)
             club.source_url = club_url
             if club.changed?
-              club.region_ids |= [self.id]
+              club.region_id ||= self.id
               club.save!
             end
             club_matches.reject { |c| c.id == club.id }.each do |c|
@@ -626,7 +627,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             end
             club.source_url = club_url
             if club.changed?
-              club.region_ids |= [self.id]
+              club.region_id ||= self.id
               club.save!
             end
 
@@ -681,10 +682,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         end
         assign_attributes("#{key_to_db_name[key]}": val) if key_to_db_name[key].present?
       end
-      self.region_ids |= [self.id]
+      self.region_id ||= self.id
       save!
       self.source_url = verband_url
-      self.region_ids |= [self.id]
+      self.region_id ||= self.id
       save! if changed?
       region_cc = RegionCc.find_by_shortname(shortname) || RegionCc.new(shortname:)
       region_cc.assign_attributes(name:, cc_id:, region_id: id, context: shortname.downcase, public_url: url,
@@ -841,7 +842,7 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     location.assign_attributes(attr)
     begin
       if location.changed?
-        location.region_ids |= [self.id]
+        location.region_id = self.id
         location.save!
       end
     rescue Exception => e
