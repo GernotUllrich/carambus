@@ -201,4 +201,19 @@ namespace :cleanup do
       puts "  Deleted: #{data[:deleted]}"
     end
   end
+
+  desc "Remove duplicate games, keeping the first with non-blank data (or earliest if all blank)"
+  task remove_duplicate_games: :environment do
+    duplicates = Game.select('MIN(id) as id, tournament_id, gname, seqno, COUNT(*) as count')
+      .group(:tournament_id, :gname, :seqno)
+      .having('COUNT(*) > 1')
+
+    duplicates.each do |dup|
+      games = Game.where(tournament_id: dup.tournament_id, gname: dup.gname, seqno: dup.seqno).order(:created_at)
+      keeper = games.detect { |g| g.data.present? } || games.first
+      games.where.not(id: keeper.id).destroy_all
+      puts "Removed duplicates for tournament_id=#{dup.tournament_id}, gname=#{dup.gname}, seqno=#{dup.seqno}, kept id=#{keeper.id}"
+    end
+    puts "Cleanup complete."
+  end
 end

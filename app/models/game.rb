@@ -325,4 +325,6 @@ class Game < ApplicationRecord
       game.destroy
     end
   end
+
+  validates :seqno, uniqueness: { scope: [:tournament_id, :gname], message: "Duplicate game in group" }
 end
