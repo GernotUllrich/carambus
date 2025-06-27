@@ -425,7 +425,7 @@ or (seasons.name ilike :search)",
     end
     tc.save
     self.region_id = self.id
-      save!
+    save!
     player_list = {}
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
@@ -444,9 +444,9 @@ or (seasons.name ilike :search)",
           player_lname, player_fname = player_fullname.match(/(.*), (.*)/)[1..2]
           club_name = tr.css("td")[3].text.gsub(nbsp, " ").strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
           player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname,
-                                                                                          season, region,
-                                                                                          club_name, self,
-                                                                                          true, true, ix)
+                                                                         season, region,
+                                                                         club_name, self,
+                                                                         true, true, ix)
           player_list[player.fl_name] = [player, club] if player.present?
         end
       end
@@ -470,8 +470,8 @@ or (seasons.name ilike :search)",
                                                                .match(%r{<strong>(.*), (.*)</strong><br>(.*)})[1..3]
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
-                                                                                        club_name.strip, self,
-                                                                                        true, true, ix)
+                                                                       club_name.strip, self,
+                                                                       true, true, ix)
         player_list[player.fl_name] = [player, club]
       end
     end
@@ -521,7 +521,9 @@ or (seasons.name ilike :search)",
         player = player_list[fl_name].andand[0]
         if player.present?
           player.assign_attributes(cc_id: k.to_i) unless organizer.shortname == "DBU"
-          player.source_url = result_url unless organizer.shortname == "DBU"
+          if player.new_recored?
+            player.source_url ||= result_url unless organizer.shortname == "DBU"
+          end
           player.region_id = region.id
           player.save
         else
@@ -1031,7 +1033,7 @@ or (seasons.name ilike :search)",
         td.css("div").text.gsub(nbsp, " ").strip
           .match(/(.*),\s*(.*)\s*\((.*)\)/).to_a[1..].map(&:strip)
       _player, club, _seeding, _state_ix = Player.fix_from_shortnames(lastname, firstname, season, region,
-                                                                                       club_str, self,
+                                                                      club_str, self,
                                                                       true, true, ix)
       if club.present?
         season_participations = SeasonParticipation.joins(:player).joins(:club).joins(:season).where(
@@ -1053,7 +1055,7 @@ or (seasons.name ilike :search)",
                                              position: ix + 1)
                 unless _sp.present?
                   sp = SeasonParticipation.new(player_id: player.id, season_id: season.id, club_id: real_club.id,
-                                                       position: ix + 1)
+                                               position: ix + 1)
                   sp.region_id = region.id
                   sp.save
                 end
@@ -1157,7 +1159,7 @@ or (seasons.name ilike :search)",
                                                                                fixed_club.id)
           unless sp.present?
             sp = SeasonParticipation.new(player_id: fixed_player.id, season_id: season.id,
-                                                 club_id: fixed_club.id)
+                                         club_id: fixed_club.id)
             sp.region_id = region.id
             sp.save
           end
@@ -1204,7 +1206,7 @@ or (seasons.name ilike :search)",
 
   def handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name, playerb_fl_name,
                   frame_points, points, result)
-    game = games.where(seqno: no).first
+    game = games.where(seqno: no, gname: group).first
     region_id = game.tournament.organizer.id if game&.tournament&.organizer.is_a?(Region)
     data = if frames.count > 1
              frame_data = []
