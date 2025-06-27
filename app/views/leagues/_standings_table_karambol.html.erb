@@ -1,0 +1,30 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Platz</th>
+      <th>Mannschaft</th>
+      <th>S</th>
+      <th>G</th>
+      <th>U</th>
+      <th>V</th>
+      <th>Pkt.</th>
+      <th>Diff.</th>
+      <th>Partien</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% standings.each do |row| %>
+      <tr>
+        <td><%= row[:platz] %></td>
+        <td><%= link_to row[:name], league_team_path(row[:team]) %></td>
+        <td><%= row[:spiele] %></td>
+        <td><%= row[:gewonnen] %></td>
+        <td><%= row[:unentschieden] %></td>
+        <td><%= row[:verloren] %></td>
+        <td><strong><%= row[:punkte] %></strong></td>
+        <td><%= row[:diff] > 0 ? "+#{row[:diff]}" : row[:diff] %></td>
+        <td><%= row[:partien] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table> 

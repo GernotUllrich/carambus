@@ -107,7 +107,7 @@ en:
         shortname: Kurzname
         single_or_league: Einzel oder Mannschaft
         state: Status
-        sync_date: zuletzt mit BA bzw. CC synchronisiert
+        source: Spource
         team_size: 'Teamgrösse:'
         timeout: Timeout (Sek.)
         timeouts: "# Timeouts"

@@ -52,5 +52,19 @@
 
     <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}") %></h3>
     <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}") %></h3>
+
+    <% if @league.discipline&.name == "Snooker" %>
+      <h2>Ligatabelle</h2>
+      <%= render partial: "standings_table_snooker", locals: { standings: @league.standings_table_snooker } %>
+    <% elsif @league.discipline&.name&.match?(/Karambol/i) %>
+      <h2>Ligatabelle</h2>
+      <%= render partial: "standings_table_karambol", locals: { standings: @league.standings_table_karambol } %>
+    <% elsif @league.discipline&.name&.match?(/Pool/i) %>
+      <h2>Ligatabelle</h2>
+      <%= render partial: "standings_table_pool", locals: { standings: @league.standings_table_pool } %>
+    <% end %>
+
+    <h2>Spielplan</h2>
+    <%= render partial: "schedule_table", locals: { schedule_by_rounds: @league.schedule_by_rounds } %>
   </div>
 </div>
