@@ -69,6 +69,10 @@ class Tournament < ApplicationRecord
   before_save :set_paper_trail_whodunnit
   MIN_ID = 50_000_000
 
+  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+  # This prevents unnecessary version records during scraping operations
+  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
+
   belongs_to :discipline, optional: true
   belongs_to :region, optional: true
   belongs_to :season
@@ -253,16 +257,20 @@ or (seasons.name ilike :search)",
   before_save do
     self.date = Time.at(0) if date.blank?
     self.organizer = region if organizer.blank?
-    %w[balls_goal innings_goal time_out_warm_up_first_min
-       time_out_warm_up_follow_up_min kickoff_switches_with fixed_display_left] +
-      %w[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
-         team_size kickoff_switches_with allow_follow_up
-         fixed_display_left color_remains_with_set].each do |meth|
-        if data[meth].present?
-          data_will_change!
-          write_attribute(meth, data.delete(meth))
+    
+    # Only process data if it's not nil and has content
+    if data.present?
+      %w[balls_goal innings_goal time_out_warm_up_first_min
+         time_out_warm_up_follow_up_min kickoff_switches_with fixed_display_left] +
+        %w[timeouts timeout gd_has_prio admin_controlled sets_to_play sets_to_win
+           team_size kickoff_switches_with allow_follow_up
+           fixed_display_left color_remains_with_set].each do |meth|
+          if data[meth].present?
+            data_will_change!
+            write_attribute(meth, data.delete(meth))
+          end
         end
-      end
+    end
   end
 
   def cc_id
@@ -668,8 +676,12 @@ or (seasons.name ilike :search)",
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
-    data_will_change!
-    self.data = JSON.parse(h.to_json)
+    
+    # Only call data_will_change! if the data actually changed
+    if h != data
+      data_will_change!
+      self.data = JSON.parse(h.to_json)
+    end
     # save!
   end
 
@@ -698,7 +710,12 @@ or (seasons.name ilike :search)",
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
     unless new_record? || (id.present? && id > Seeding::MIN_ID)
       self.unprotected = true
-      data_will_change!
+      
+      # Only call data_will_change! if data is not already empty
+      if data.present? && data != {}
+        data_will_change!
+      end
+      
       assign_attributes(tournament_plan_id: nil, state: "new_tournament", data: {})
       save
       self.unprotected = false

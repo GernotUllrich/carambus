@@ -51,6 +51,10 @@ class Party < ApplicationRecord
 
   self.ignored_columns = ["region_ids"]
 
+  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+  # This prevents unnecessary version records during scraping operations
+  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
+
   belongs_to :league, class_name: "League", foreign_key: :league_id
   has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
   belongs_to :league_team_a, class_name: "LeagueTeam", foreign_key: :league_team_a_id, optional: true

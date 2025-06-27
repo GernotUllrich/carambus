@@ -216,4 +216,46 @@ namespace :cleanup do
     end
     puts "Cleanup complete."
   end
+
+  desc "Clean up unnecessary PaperTrail version records that only contain timestamp changes"
+  task cleanup_paper_trail_versions: :environment do
+    puts "Cleaning up unnecessary PaperTrail version records..."
+    
+    # Models that we've configured to ignore updated_at and sync_date
+    models_with_ignore_config = [
+      'Tournament', 'Game', 'Party', 'League', 'Club', 'Location', 'Region', 'SeasonParticipation'
+    ]
+    
+    total_deleted = 0
+    
+    models_with_ignore_config.each do |model_name|
+      puts "\nProcessing #{model_name} versions..."
+      
+      # Find versions for this model
+      versions = PaperTrail::Version.where(item_type: model_name)
+      
+      # Count versions that only have updated_at or sync_date changes
+      unnecessary_versions = versions.select do |version|
+        next unless version.object_changes.present?
+        
+        changes = YAML.load(version.object_changes)
+        # Check if the only changes are updated_at or sync_date
+        change_keys = changes.keys
+        (change_keys == ['updated_at'] || change_keys == ['sync_date'] || change_keys == ['updated_at', 'sync_date']) &&
+        # Also check that data field is nil both before and after (for the specific case mentioned)
+        (changes['data']&.all?(&:nil?) || !changes.key?('data'))
+      end
+      
+      if unnecessary_versions.any?
+        version_ids = unnecessary_versions.map(&:id)
+        PaperTrail::Version.where(id: version_ids).delete_all
+        puts "  Deleted #{unnecessary_versions.count} unnecessary version records"
+        total_deleted += unnecessary_versions.count
+      else
+        puts "  No unnecessary version records found"
+      end
+    end
+    
+    puts "\nCleanup complete. Total deleted: #{total_deleted} version records"
+  end
 end

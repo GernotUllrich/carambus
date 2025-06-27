@@ -37,20 +37,28 @@ class Region < ApplicationRecord
   include RegionTaggable
   # TODO: check country association, because RuboCop complains
   # Unable to find an associated Rails Model for the ':country' association field
-  belongs_to :country
-  has_many :clubs
-  has_many :tournaments
+  belongs_to :country, optional: true
+  has_many :clubs, dependent: :destroy
+  has_many :tournaments, as: :organizer, dependent: :destroy
   has_many :player_rankings
-  has_many :locations, as: :organizer
-  has_many :organized_tournaments, as: :organizer, class_name: "Tournament"
-  has_many :organized_leagues, as: :organizer, class_name: "League"
+  has_many :locations, as: :organizer, dependent: :destroy
+  has_many :tables, through: :locations
+  has_many :organized_tournaments, as: :organizer, class_name: "Tournament", foreign_key: :organizer_id
+  has_many :organized_leagues, as: :organizer, class_name: "League", dependent: :destroy
   has_one :setting, dependent: :destroy
-  has_many :leagues, as: :organizer, class_name: "League"
+  has_many :leagues, as: :organizer, class_name: "League", dependent: :destroy
+  has_many :players, dependent: :destroy
+  has_many :season_participations, through: :players
+  has_many :league_teams, through: :clubs
   has_one :region_cc, dependent: :destroy
 
   serialize :scrape_data, coder: YAML, type: Hash
 
   self.ignored_columns = ["location_url", "region_ids"]
+
+  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+  # This prevents unnecessary version records during scraping operations
+  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
 
   NON_CC = {
     "BBV" => "https://billardbayern.de/",
