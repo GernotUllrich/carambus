@@ -286,6 +286,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_26_154401) do
     t.boolean "global_context", default: false
     t.index ["global_context"], name: "index_games_on_global_context"
     t.index ["region_id"], name: "index_games_on_region_id"
+    t.index ["tournament_id", "gname", "seqno"], name: "index_games_on_tournament_id_and_gname_and_seqno", unique: true
   end
 
   create_table "group_ccs", force: :cascade do |t|
