@@ -50,7 +50,7 @@ class Region < ApplicationRecord
 
   serialize :scrape_data, coder: YAML, type: Hash
 
-  self.ignored_columns = ["location_url"]
+  self.ignored_columns = ["location_url", "region_ids"]
 
   NON_CC = {
     "BBV" => "https://billardbayern.de/",

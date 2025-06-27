@@ -1,62 +1,82 @@
 namespace :region_taggings do
 
   desc "Update region_id for all models that include RegionTaggable"
-  task update_all_region_ids: :environment do
+  task update_all_region_id: :environment do
     dbu_id = Region.find_by_shortname("DBU").id
+    # clear all region_id tags
+    [
+      SeasonParticipation, Region, Player, ClubLocation, Location, Table,
+      Game, GameParticipation, Seeding, League, LeagueTeam, Party, PartyGame,
+      GamePlan
+    ].each do |model|
+      model.update_all(region_id: nil, global_context: false)
+    end
     Region.all.each do |region|
-      # next unless region.id  == 1
-      if region.id == dbu_id
-      else
-        party_ids = []
-        club_ids = []
-        league_ids = []
-        location_ids = []
-        seeding_ids = []
-        tournament_ids = []
+      # next unless region.id  == dbu_id
+      party_ids = []
+      club_ids = []
+      league_ids = []
+      location_ids = []
+      region_ids = [region.id]
+      seeding_ids = []
+      tournament_ids = []
+      global_player_ids = []
 
+      unless region.id == dbu_id
         club_ids |= region.club_ids
         SeasonParticipation.joins(:club).where(clubs: { id: club_ids }).update_all(region_id: region.id)
         Player.joins(:season_participations => :club).where(clubs: { id: club_ids }).update_all(region_id: region.id)
+        Club.where(id: club_ids).update_all(region_id: region.id)
         ClubLocation.joins(:club).where(clubs: { id: club_ids }).update_all(region_id: region.id)
         location_ids |= Location.joins(:club_locations => :club).where(clubs: { id: club_ids }).ids
-
-        tournament_ids |= region.tournament_ids
-        tournament_ids |= region.organized_tournament_ids
-        league_ids |= region.organized_league_ids
-
-        Tournament.where(id: tournament_ids).update_all(region_id: region.id)
-        Game.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
-        GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
-        Player.joins(:game_participations => {:game => :tournament}).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
-        Team.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
-        Seeding.where(tournament_id: tournament_ids , tournament_type: "Region").update_all(region_id: region.id)
-        Club.joins(:organized_tournaments).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
-
-        League.where(id: league_ids).update_all(region_id: region.id)
-        LeagueTeam.joins(:league).where(leagues: { id: league_ids }).update_all(region_id: region.id)
-        Party.joins(:league).where(leagues: { id: league_ids }).update_all(region_id: region.id)
-
-        region.organized_tournaments.update_all(region_id: region.id)
-        region.organized_leagues.update_all(region_id: region.id)
-
-        Club.where(id: club_ids).update_all(region_id: region.id)
-
+        location_ids |= Location.where(organizer_type: "Region", organizer_id: region.id).ids
         Location.where(id: location_ids).update_all(region_id: region.id)
-        Table.joins(:location).where(locations: {id: location_ids}).update_all(region_id: region.id)
-        party_ids |=Party.joins(:location).where(locations: {id: location_ids}).ids
-
-        Party.where(id: party_ids).update_all(region_id: region.id)
-        PartyGame.joins(:party).where(parties: { id: party_ids }).update_all(region_id: region.id)
-        seeding_ids |= Seeding.joins(:league_team => :parties_a).where(parties: { id: party_ids }).ids
-        seeding_ids |= Seeding.joins(:league_team => :parties_b).where(parties: { id: party_ids }).ids
-        seeding_ids |= Seeding.joins(:league_team => :parties_as_host).where(parties: { id: party_ids }).ids
-
-        Seeding.where(id: seeding_ids).update_all(region_id: region.id)
-
-        Player.joins(:seedings).where(seedings: { id: seeding_ids }).update_all(region_id: region.id)
-
-        Region.where(id: region.id).update_all(region_id: region.id)
+        Table.joins(:location).where(locations: { id: location_ids }).update_all(region_id: region.id)
       end
+
+      tournament_ids |= region.tournament_ids
+      tournament_ids |= region.organized_tournament_ids
+      tournament_ids |= Tournament.where(organizer_type: "Club", organizer_id: club_ids).ids
+      league_ids |= region.organized_league_ids
+
+      Tournament.where(id: tournament_ids).update_all(region_id: region.id)
+      Tournament.where(id: tournament_ids).update_all(global_context: true) if region.id == dbu_id
+      Game.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
+      Game.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(global_context: true) if region.id == dbu_id
+      GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_ids }).update_all(region_id: region.id)
+      GameParticipation.joins(:game => :tournament).where(tournaments: { id: tournament_ids }).update_all(global_context: true) if region.id == dbu_id
+      if region.id == dbu_id
+        global_player_ids |= Player.joins(:game_participations => { :game => :tournament }).where(tournaments: { id: tournament_ids }).ids
+      end
+      Team.joins(:tournament).where(tournaments: { id: tournament_ids }).update_all(global_context: true) if region.id == dbu_id
+      Seeding.where(tournament_id: tournament_ids, tournament_type: "Region").update_all(region_id: region.id)
+      Seeding.where(tournament_id: tournament_ids, tournament_type: "Region").update_all(global_context: true) if region.id == dbu_id
+
+      League.where(id: league_ids).update_all(region_id: region.id)
+      League.where(id: league_ids).update_all(global_context: true) if region.id == dbu_id
+      LeagueTeam.joins(:league).where(leagues: { id: league_ids }).update_all(region_id: region.id)
+      LeagueTeam.joins(:league).where(leagues: { id: league_ids }).update_all(global_context: true) if region.id == dbu_id
+      party_ids = Party.joins(:league).where(leagues: { id: league_ids }).ids
+      Party.where(id: party_ids).update_all(region_id: region.id)
+      Party.where(id: party_ids).update_all(global_context: true) if region.id == dbu_id
+      PartyGame.joins(:party).where(parties: { id: party_ids }).update_all(region_id: region.id)
+      PartyGame.joins(:party).where(parties: { id: party_ids }).update_all(global_context: true) if region.id == dbu_id
+      seeding_ids |= Seeding.joins(:league_team => :parties_a).where(parties: { id: party_ids }).ids
+      seeding_ids |= Seeding.joins(:league_team => :parties_b).where(parties: { id: party_ids }).ids
+      seeding_ids |= Seeding.joins(:league_team => :parties_as_host).where(parties: { id: party_ids }).ids
+      Seeding.where(id: seeding_ids).update_all(region_id: region.id)
+      Seeding.where(id: seeding_ids).update_all(global_context: true) if region.id == dbu_id
+      if region.id == dbu_id
+        global_player_ids |= Player.joins(:seedings).where(seedings: { id: seeding_ids }).ids
+      end
+      if region.id == dbu_id
+        Player.where(id: global_player_ids).update_all(global_context: true)
+        SeasonParticipation.joins(:player).where(players: { id: global_player_ids }).update_all(global_context: true)
+        Club.joins(:season_participations => :player).where(players: { id: global_player_ids }).update_all(global_context: true)
+        Region.joins(:clubs => { :season_participations => :player }).where(players: { id: global_player_ids }).update_all(global_context: true)
+      end
+
+      Region.where(id: region_ids).update_all(region_id: region.id)
     end
   end
 
@@ -106,11 +126,15 @@ namespace :region_taggings do
       # Process in batches to avoid memory issues
       records.find_each(batch_size: 1000).with_index do |record, index|
         begin
-          # Force update of region tagging
-          record.send(:update_region_tagging)
+          # Update region_id and global_context for the record
+          region_id = record.find_associated_region_id
+          global_context = record.global_context?
 
-          # Count successful updates
-          if record.region_id.present?
+          if record.region_id != region_id || record.global_context != global_context
+            record.update_columns(
+              region_id: region_id,
+              global_context: global_context
+            )
             total_updated += 1
           end
 
@@ -212,7 +236,7 @@ namespace :region_taggings do
   desc "Update existing versions with region_id and global_context"
   task update_existing_versions: :environment do
     puts "Updating existing versions with region_id and global_context..."
-    
+
     # Get all models that include RegionTaggable
     models_with_region_taggable = [
       Region, Club, Tournament, League, Party, Location,
@@ -224,18 +248,18 @@ namespace :region_taggings do
 
     models_with_region_taggable.each do |model_class|
       puts "\nProcessing versions for #{model_class.name}..."
-      
+
       model_class.find_each do |record|
         begin
           # Update the record's region_id and global_context
           region_id = record.find_associated_region_id
           global_context = record.global_context?
-          
+
           record.update_columns(
             region_id: region_id,
             global_context: global_context
           )
-          
+
           # Update all versions for this record
           record.versions.each do |version|
             version.update_columns(

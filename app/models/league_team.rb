@@ -20,6 +20,8 @@ class LeagueTeam < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  self.ignored_columns = ["region_ids"]
+
   belongs_to :league, optional: true
   belongs_to :club, optional: true
   has_many :parties_a, class_name: "Party", foreign_key: :league_team_a_id

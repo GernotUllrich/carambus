@@ -31,11 +31,11 @@ class Location < ApplicationRecord
   has_many :club_locations, dependent: :destroy
   has_many :clubs, through: :club_locations
   has_many :parties, foreign_key: :location_id
-  belongs_to :organizer, polymorphic: true
+  belongs_to :organizer, polymorphic: true, optional: true
   has_many :tables
   has_many :tournaments, foreign_key: :location_id
 
-  self.ignored_columns = ["club_id"]
+  self.ignored_columns = ["club_id", "region_ids"]
 
   # after_save :update_club_location
 

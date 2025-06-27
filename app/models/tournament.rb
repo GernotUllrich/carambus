@@ -145,6 +145,8 @@ class Tournament < ApplicationRecord
                    "Season" => "seasons.name"
   }.freeze
 
+  self.ignored_columns = ["region_ids"]
+
   def self.search_hash(params)
     {
       model: Tournament,
@@ -423,7 +425,7 @@ or (seasons.name ilike :search)",
     end
     tc.save
     self.region_id = self.id
-    save!
+      save!
     player_list = {}
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"

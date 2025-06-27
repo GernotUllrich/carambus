@@ -23,6 +23,8 @@ class Game < ApplicationRecord
   include LocalProtector
   include RegionTaggable
 
+  self.ignored_columns = ["region_ids"]
+
   # belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
@@ -182,12 +184,12 @@ class Game < ApplicationRecord
 
     legacy_roles.map do |alias_name, role_value|
       [
-        "LEFT JOIN game_participitions AS #{alias_name}_game_participitions ON
-        #{alias_name}_game_participitions.game_id = games.id AND
-        #{alias_name}_game_participitions.role = '#{role_value}'",
+        "LEFT JOIN game_participations AS #{alias_name}_game_participations ON
+        #{alias_name}_game_participations.game_id = games.id AND
+        #{alias_name}_game_participations.role = '#{role_value}'",
 
         "LEFT JOIN players AS #{alias_name}_players ON
-        #{alias_name}_game_participitions.player_id = #{alias_name}_players.id"
+        #{alias_name}_game_participations.player_id = #{alias_name}_players.id"
       ]
     end
   end
@@ -260,7 +262,7 @@ class Game < ApplicationRecord
     begin
       if tournament.present?
         game_participition_ids = game.game_participition_ids
-        game.game_participitions.delete_all if opts[:touch_games]
+        game.game_participations.delete_all if opts[:touch_games]
         player_a = Player.joins(seedings: :tournament).where(tournaments: { id: tournament.id })
                          .where("players.lastname||', '||players.firstname = :name", name: game.data["Heim"]).first
         if player_a.present?

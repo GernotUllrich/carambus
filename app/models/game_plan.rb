@@ -23,6 +23,10 @@ class GamePlan < ApplicationRecord
   has_many :leagues, dependent: :nullify
   serialize :data, coder: JSON, type: Hash
 
+  self.ignored_columns = ["region_ids"]
+
+  belongs_to :discipline, optional: true
+
   def update_footprint
     game_plan = data.sort.to_h
     self.footprint = Digest::MD5.hexdigest(game_plan.inspect)

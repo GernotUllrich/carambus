@@ -34,7 +34,9 @@ class Club < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
-  belongs_to :region
+  self.ignored_columns = ["region_ids"]
+
+  belongs_to :region, optional: true
   # has_many :players, -> { where(type: nil) }
   has_many :season_participations, dependent: :destroy
   has_many :players, through: :season_participations

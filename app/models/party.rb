@@ -48,6 +48,9 @@ class Party < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+
+  self.ignored_columns = ["region_ids"]
+
   belongs_to :league, class_name: "League", foreign_key: :league_id
   has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
   belongs_to :league_team_a, class_name: "LeagueTeam", foreign_key: :league_team_a_id, optional: true

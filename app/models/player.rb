@@ -22,6 +22,10 @@ class Player < ApplicationRecord
   has_one :admin_user, class_name: "User", foreign_key: "player_id", dependent: :nullify
   REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
 
+  self.ignored_columns = ["region_ids"]
+
+  belongs_to :region, optional: true
+
   validates :pin4,
             uniqueness: true,
             length: { is: 4 },

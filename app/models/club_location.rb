@@ -7,6 +7,8 @@ class ClubLocation < ApplicationRecord
   include LocalProtector
   include RegionTaggable
 
+  self.ignored_columns = ["region_ids"]
+
   # Broadcast changes in realtime with Hotwire
   after_create_commit lambda {
                         broadcast_prepend_later_to :club_locations,

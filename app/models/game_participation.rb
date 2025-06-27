@@ -74,6 +74,8 @@ class GameParticipation < ApplicationRecord
     "HS" => "game_participations.hs"
   }.freeze
 
+  self.ignored_columns = ["region_ids"]
+
   def self.search_hash(params)
     {
       model: GameParticipation,
