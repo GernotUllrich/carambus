@@ -34,14 +34,21 @@ class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+
+  self.ignored_columns = ["region_ids"]
+
+  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+  # This prevents unnecessary version records during scraping operations
+  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
+
+  belongs_to :discipline, optional: true
+  belongs_to :season, optional: true
+  has_one :league_cc, -> { where(context: "nbv") }, dependent: :destroy
   has_many :league_teams
   has_many :parties
   has_many :tournaments
   belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :game_plan, optional: true
-  belongs_to :discipline, optional: true
-  belongs_to :season, optional: true
-  has_one :league_cc, -> { where(context: "nbv") }, dependent: :destroy
 
   serialize :game_parameters, coder: YAML, type: Hash
 
@@ -258,8 +265,6 @@ class League < ApplicationRecord
     "CC_ID2" => "leagues.cc_id2",
     "Discipline" => "disciplines.name"
   }.freeze
-
-  self.ignored_columns = ["region_ids"]
 
   def self.search_hash(params)
     {

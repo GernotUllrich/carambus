@@ -25,6 +25,10 @@ class Game < ApplicationRecord
 
   self.ignored_columns = ["region_ids"]
 
+  # Configure PaperTrail to ignore automatic timestamp updates
+  # This prevents unnecessary version records during scraping operations
+  has_paper_trail ignore: [:updated_at] unless Carambus.config.carambus_api_url.present?
+
   # belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
@@ -211,8 +215,12 @@ class Game < ApplicationRecord
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
-    data_will_change!
-    self.data = JSON.parse(h.to_json)
+    
+    # Only call data_will_change! if the data actually changed
+    if h != data
+      data_will_change!
+      self.data = JSON.parse(h.to_json)
+    end
     # save!
   end
 
@@ -221,9 +229,13 @@ class Game < ApplicationRecord
     res = nil
     if h[key].present?
       res = h.delete(key)
-      data_will_change!
-      self.data = JSON.parse(h.to_json)
-      save!
+      
+      # Only call data_will_change! if the data actually changed
+      if h != data
+        data_will_change!
+        self.data = JSON.parse(h.to_json)
+        save!
+      end
     end
     res
   end
