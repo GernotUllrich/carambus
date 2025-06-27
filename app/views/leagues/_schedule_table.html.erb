@@ -1,0 +1,35 @@
+<table class="table table-striped">
+  <% schedule_by_rounds.each do |runde, parties| %>
+    <thead>
+      <tr>
+        <th colspan="6" style="background:#cfc"><%= runde %></th>
+      </tr>
+      <tr>
+        <th>ST</th>
+        <th>Termin</th>
+        <th>Heim</th>
+        <th>Erg.</th>
+        <th>Gast</th>
+        <th>Gastgeber</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% parties.each do |party| %>
+        <tr>
+          <td><%= party.day_seqno %></td>
+          <td><%= l(party.date, format: :short) if party.date %></td>
+          <td><%= link_to party.league_team_a.name, league_team_path(party.league_team_a) if party.league_team_a %></td>
+          <td>
+            <% if party.data["result"].present? %>
+              <strong><%= party.data["result"] %></strong>
+            <% else %>
+              &ndash;
+            <% end %>
+          </td>
+          <td><%= link_to party.league_team_b.name, league_team_path(party.league_team_b) if party.league_team_b %></td>
+          <td><%= party.host_league_team&.name %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  <% end %>
+</table> 
