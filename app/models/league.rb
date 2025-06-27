@@ -45,6 +45,23 @@ class League < ApplicationRecord
 
   serialize :game_parameters, coder: YAML, type: Hash
 
+  # Validations to ensure proper uniqueness
+  validates :name, presence: true
+  validates :shortname, presence: true, if: -> { organizer_type == 'Region' }
+
+  # Primary uniqueness: CC IDs are the most important identifiers from scraping
+  validates :cc_id, uniqueness: {
+    scope: [:cc_id2, :organizer_id, :organizer_type],
+    message: "must be unique within the same organizer (cc_id + cc_id2 combination)"
+  }, if: -> { cc_id.present? && organizer_type == 'Region' }
+
+  # Secondary uniqueness: Ensure no duplicate leagues with same name and staffel
+  # This is mainly for cases where cc_id might not be set yet
+  validates :name, uniqueness: {
+    scope: [:season_id, :organizer_id, :organizer_type, :staffel_text],
+    message: "must be unique within the same region, season, and staffel"
+  }, if: -> { organizer_type == 'Region' && cc_id.blank? }
+
   GAME_PARAMETER_DEFAULTS = {
     pool: {
       substitutes: true,
@@ -242,6 +259,8 @@ class League < ApplicationRecord
     "Discipline" => "disciplines.name"
   }.freeze
 
+  self.ignored_columns = ["region_ids"]
+
   def self.search_hash(params)
     {
       model: League,
@@ -283,7 +302,7 @@ class League < ApplicationRecord
       scrape_bbv_leagues(region, season, opts)
     else
       url = region.public_cc_url_base
-      leagues_url = "#{url}sb_spielplan.php"
+      leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
       uri = URI(leagues_url)
       leagues_html = Net::HTTP.get(uri)
@@ -335,15 +354,24 @@ class League < ApplicationRecord
           end
           cc_id2s = cc_id2s.presence || [nil]
           cc_id2s.each_with_index do |cc_id2, ix|
+            # Primary lookup: Find by CC IDs (most specific and reliable)
             attrs = { cc_id: league_cc_id, organizer: region, staffel_text: staffel_texts[ix], season: season,
                       cc_id2: cc_id2 }.compact
             league = League.where(attrs).first
+
             unless league.present?
-              league = League.where(season: season, name: title, staffel_text: staffel_texts[ix], discipline: branch,
-                                    organizer: region).first
+              # Secondary lookup: If not found by CC IDs, try by name and other attributes
+              # This handles cases where cc_id might not be set yet
+              attrs = { season: season, name: title, staffel_text: staffel_texts[ix],
+                        discipline: branch, organizer: region }.compact
+              league = League.where(attrs).first
+
+              # If still not found, create a new league
               league ||= League.new(season: season, name: title, staffel_text: staffel_texts[ix], discipline: branch,
                                     organizer: region)
             end
+
+            # Update league attributes - cc_id and cc_id2 are the primary identifiers
             attrs = { shortname: short, cc_id: league_cc_id, cc_id2: cc_id2, discipline: branch,
                       staffel_text: staffel_texts[ix] }.compact
             league.assign_attributes(attrs)

@@ -25,6 +25,7 @@ class Table < ApplicationRecord
   include LocalProtector
   include RegionTaggable
   include TpLink
+  self.ignored_columns = ["region_ids"]
   belongs_to :location
   belongs_to :table_kind
   belongs_to :table_monitor, optional: true

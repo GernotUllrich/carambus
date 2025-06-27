@@ -4,6 +4,8 @@ module RegionTaggable
   included do
     # Note: Version region_id and global_context are automatically set by PaperTrail initializer
     # No need for after_save callbacks here
+    after_save :update_version_region_data
+    after_destroy :update_version_region_data
   end
 
   def find_associated_region_id
@@ -68,9 +70,9 @@ module RegionTaggable
     when Player
       # Players participating in DBU events
       game_participations.joins(game: :tournament)
-                        .where(tournaments: { organizer_type: "Region" })
-                        .where(tournaments: { organizer: Region.find_by(shortname: "DBU") })
-                        .exists?
+                         .where(tournaments: { organizer_type: "Region" })
+                         .where(tournaments: { organizer: Region.find_by(shortname: "DBU") })
+                         .exists?
     else
       false
     end
@@ -87,18 +89,18 @@ module RegionTaggable
 
     models_with_region_taggable.each do |model_class|
       puts "Updating versions for #{model_class.name}..."
-      
+
       model_class.find_each do |record|
         begin
           # Update the record's region_id and global_context
           region_id = record.find_associated_region_id
           global_context = record.global_context?
-          
+
           record.update_columns(
             region_id: region_id,
             global_context: global_context
           )
-          
+
           # Update all versions for this record
           record.versions.each do |version|
             version.update_columns(
@@ -111,5 +113,25 @@ module RegionTaggable
         end
       end
     end
+  end
+
+  def update_version_region_data
+    return unless PaperTrail.request.enabled?
+
+    # Update the most recent version for this record
+    if versions.any?
+      latest_version = versions.last
+      if latest_version && previous_changes.present?
+        region_id = region_id if respond_to?(:region_id)
+        global_context = global_context? if respond_to?(:global_context?)
+
+        latest_version.update_columns(
+          region_id: region_id,
+          global_context: global_context
+        ) if respond_to?(:region_id) || respond_to?(:global_context?)
+      end
+    end
+  rescue StandardError => e
+    Rails.logger.warn("Error updating version region data: #{e.message}")
   end
 end

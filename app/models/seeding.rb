@@ -110,6 +110,8 @@ class Seeding < ApplicationRecord
     "Remarks" => "seeding.data"
   }.freeze
 
+  self.ignored_columns = ["region_ids"]
+
   def self.search_hash(params)
     {
       model: Seeding,

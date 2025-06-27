@@ -16,6 +16,9 @@
 class PartyGame < ApplicationRecord
   include LocalProtector
   include RegionTaggable
+
+  self.ignored_columns = ["region_ids"]
+
   belongs_to :party, optional: true
   belongs_to :player_a, class_name: "Player", optional: true
   belongs_to :player_b, class_name: "Player", optional: true

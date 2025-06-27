@@ -24,9 +24,12 @@ require "net/http"
 class Version < PaperTrail::Version
   belongs_to :region, optional: true
 
+  self.ignored_columns = ["region_ids"]
+
   # This scope finds all versions where:
   # 1. region_id is nil OR
-  # 2. region_id matches the given region_id
+  # 2. region_id is the given region_id OR
+  # 3. global_context is true
   scope :for_region, ->(region_id) {
     where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
   }

@@ -23,6 +23,9 @@
 class SeasonParticipation < ApplicationRecord
   include LocalProtector
   include RegionTaggable
+
+  self.ignored_columns = ["region_ids"]
+
   belongs_to :season
   belongs_to :player
   belongs_to :club
