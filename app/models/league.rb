@@ -552,7 +552,9 @@ class League < ApplicationRecord
                     player.firstname = fl_name.split(/\s+/)[0]
                     player.lastname = fl_name.split(/\s+/)[1..].join(" ")
                     player.dbu_nr = player_dbu_nr
-                    player.source_url = team_url
+                    if player.new_record?
+                      player.source_url ||= team_url
+                    end
                     if player.changed?
                       player.region_id = region.id
                       player.save
@@ -566,7 +568,9 @@ class League < ApplicationRecord
                       (sp = SeasonParticipation.new(sp_args); sp.region_id = region.id; sp.save)
                   else
                     player.assign_attributes(dbu_nr: player_dbu_nr)
-                    player.source_url = team_url
+                    if player.new_record?
+                      player.source_url ||= team_url
+                    end
                     if player.changed?
                       player.region_id = region.id
                       player.save
@@ -717,7 +721,7 @@ class League < ApplicationRecord
                   )
                 end
                 location.dbu_nr = location_dbu_nr if url =~ /billard-union.net/
-                location.source_url = url + location_link unless url =~ /billard-union.net/
+                location.source_url ||= url + location_link unless url =~ /billard-union.net/
                 if location.changed?
                   location.region_id = region.id
                   location.save
@@ -1184,6 +1188,200 @@ class League < ApplicationRecord
 
   def self.logger
     DEBUG_LOGGER
+  end
+
+  # Gibt die Tabelle für Karambol-Ligen zurück
+  def standings_table_karambol
+    teams = league_teams.to_a
+    stats = teams.map do |team|
+      parties_home = parties.where(league_team_a: team)
+      parties_away = parties.where(league_team_b: team)
+      parties_all = parties_home + parties_away
+      spiele = parties_all.size
+      gewonnen = 0
+      unentschieden = 0
+      verloren = 0
+      punkte = 0
+      diff = 0
+      partien_gewonnen = 0
+      partien_verloren = 0
+      partien_str = "0:0"
+
+      parties_all.each do |party|
+        # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
+        result = party.data["result"] || party.data[:result]
+        next unless result.present? && result.include?(":")
+        left, right = result.split(":").map(&:to_i)
+        if party.league_team_a_id == team.id
+          team_for = left
+          team_against = right
+        else
+          team_for = right
+          team_against = left
+        end
+        diff += team_for - team_against
+        partien_gewonnen += team_for
+        partien_verloren += team_against
+        if team_for > team_against
+          gewonnen += 1
+          punkte += 2
+        elsif team_for == team_against
+          unentschieden += 1
+          punkte += 1
+        else
+          verloren += 1
+        end
+      end
+      partien_str = "#{partien_gewonnen}:#{partien_verloren}"
+      {
+        team: team,
+        name: team.name,
+        spiele: spiele,
+        gewonnen: gewonnen,
+        unentschieden: unentschieden,
+        verloren: verloren,
+        punkte: punkte,
+        diff: diff,
+        partien: partien_str
+      }
+    end
+    # Sortierung: Punkte DESC, dann Diff DESC
+    stats.sort_by.with_index { |row, idx| [-row[:punkte], -row[:diff], idx] }.each_with_index.map do |row, ix|
+      row.merge(platz: ix + 1)
+    end
+  end
+
+  # Gibt die Tabelle für Snooker-Ligen zurück
+  def standings_table_snooker
+    teams = league_teams.to_a
+    stats = teams.map do |team|
+      parties_home = parties.where(league_team_a: team)
+      parties_away = parties.where(league_team_b: team)
+      parties_all = parties_home + parties_away
+      spiele = parties_all.size
+      gewonnen = 0
+      unentschieden = 0
+      verloren = 0
+      punkte = 0
+      diff = 0
+      frames_gewonnen = 0
+      frames_verloren = 0
+      frames_str = "0:0"
+
+      parties_all.each do |party|
+        # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
+        result = party.data["result"] || party.data[:result]
+        next unless result.present? && result.include?(":")
+        left, right = result.split(":").map(&:to_i)
+        if party.league_team_a_id == team.id
+          team_for = left
+          team_against = right
+        else
+          team_for = right
+          team_against = left
+        end
+        diff += team_for - team_against
+        frames_gewonnen += team_for
+        frames_verloren += team_against
+        if team_for > team_against
+          gewonnen += 1
+          punkte += 2
+        elsif team_for == team_against
+          unentschieden += 1
+          punkte += 1
+        else
+          verloren += 1
+        end
+      end
+      frames_str = "#{frames_gewonnen}:#{frames_verloren}"
+      {
+        team: team,
+        name: team.name,
+        spiele: spiele,
+        gewonnen: gewonnen,
+        unentschieden: unentschieden,
+        verloren: verloren,
+        punkte: punkte,
+        diff: diff,
+        frames: frames_str
+      }
+    end
+    # Sortierung: Punkte DESC, dann Diff DESC
+    stats.sort_by.with_index { |row, idx| [-row[:punkte], -row[:diff], idx] }.each_with_index.map do |row, ix|
+      row.merge(platz: ix + 1)
+    end
+  end
+
+  # Gibt die Tabelle für Pool-Ligen zurück
+  def standings_table_pool
+    teams = league_teams.to_a
+    stats = teams.map do |team|
+      parties_home = parties.where(league_team_a: team)
+      parties_away = parties.where(league_team_b: team)
+      parties_all = parties_home + parties_away
+      spiele = parties_all.size
+      gewonnen = 0
+      unentschieden = 0
+      verloren = 0
+      punkte = 0
+      diff = 0
+      partien_gewonnen = 0
+      partien_verloren = 0
+      partien_str = "0:0"
+
+      parties_all.each do |party|
+        # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
+        result = party.data["result"] || party.data[:result]
+        next unless result.present? && result.include?(":")
+        left, right = result.split(":").map(&:to_i)
+        if party.league_team_a_id == team.id
+          team_for = left
+          team_against = right
+        else
+          team_for = right
+          team_against = left
+        end
+        diff += team_for - team_against
+        partien_gewonnen += team_for
+        partien_verloren += team_against
+        if team_for > team_against
+          gewonnen += 1
+          punkte += 2
+        elsif team_for == team_against
+          unentschieden += 1
+          punkte += 1
+        else
+          verloren += 1
+        end
+      end
+      partien_str = "#{partien_gewonnen}:#{partien_verloren}"
+      {
+        team: team,
+        name: team.name,
+        spiele: spiele,
+        gewonnen: gewonnen,
+        unentschieden: unentschieden,
+        verloren: verloren,
+        punkte: punkte,
+        diff: diff,
+        partien: partien_str
+      }
+    end
+    # Sortierung: Punkte DESC, dann Diff DESC
+    stats.sort_by.with_index { |row, idx| [-row[:punkte], -row[:diff], idx] }.each_with_index.map do |row, ix|
+      row.merge(platz: ix + 1)
+    end
+  end
+
+  # Gibt den Spielplan gruppiert nach Hin- und Rückrunde zurück
+  def schedule_by_rounds
+    all_parties = parties.order(:day_seqno, :date).to_a
+    max_seqno = all_parties.map(&:day_seqno).max || 0
+    half = (max_seqno / 2.0).ceil
+    {
+      "Hinrunde" => all_parties.select { |p| p.day_seqno && p.day_seqno <= half },
+      "Rückrunde" => all_parties.select { |p| p.day_seqno && p.day_seqno > half }
+    }
   end
 
   private
