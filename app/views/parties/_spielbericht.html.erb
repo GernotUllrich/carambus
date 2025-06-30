@@ -1,0 +1,101 @@
+<div class="spielbericht">
+  <h2>
+    <%= party.league.name %> – <%= party.league_team_a.name %> vs. <%= party.league_team_b.name %>
+  </h2>
+  <div>
+    <strong>Datum:</strong> <%= l(party.date, format: :long) if party.date %>
+    <% if party.location %> | <strong>Ort:</strong> <%= party.location.name %> <% end %>
+  </div>
+
+  <table class="spielbericht-tabelle">
+    <thead>
+      <tr>
+        <th>Nr</th>
+        <th>Disziplin</th>
+        <th>Heim-Spieler</th>
+        <th>Erg.</th>
+        <th>Gast-Spieler</th>
+        <th>Punkte</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% regulare_heim = 0; regulare_gast = 0 %>
+      <% regulare_rows = spielbericht_rows(party).select { |row| row[:game] && row[:row] && row[:row]["game_points"] && !row[:type].to_s.downcase.include?("shootout") } %>
+      <% regulare_rows.each do |row| %>
+        <% regulare_heim += spielbericht_punkte_einfach(row[:game], row[:row], heim: true) || 0 %>
+        <% regulare_gast += spielbericht_punkte_einfach(row[:game], row[:row], heim: false) || 0 %>
+      <% end %>
+      <% shootout_row = spielbericht_shootout_row(party) %>
+      <% spielbericht_rows(party).each do |row| %>
+        <% if row[:type] == "Neue Runde" %>
+          <tr>
+            <td colspan="6" style="font-weight:bold; background:#eee;">
+              Runde <%= row[:r_no] %>
+            </td>
+          </tr>
+        <% elsif row[:type] == "Gesamtsumme" %>
+          <tr>
+            <td colspan="5" style="text-align:right; font-weight:bold;">Endstand:</td>
+            <td style="font-weight:bold;"><%= spielbericht_endstand_einfach(party).join(":") %></td>
+          </tr>
+        <% elsif row == shootout_row %>
+          <% if regulare_heim == regulare_gast %>
+            <tr>
+              <td><%= row[:game]&.seqno %></td>
+              <td><%= row[:type] %></td>
+              <td><%= row[:game]&.player_a&.fullname %></td>
+              <td>
+                <% if row[:game]&.data && row[:game].data["result"] %>
+                  <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+              <td><%= row[:game]&.player_b&.fullname %></td>
+              <td>
+                <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
+              </td>
+            </tr>
+          <% else %>
+            <tr>
+              <td><%= row[:game]&.seqno %></td>
+              <td><%= row[:type] %></td>
+              <td colspan="4" style="font-style:italic; color:#888;">Shootout entfällt (kein Unentschieden nach regulären Spielen)</td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td><%= row[:game]&.seqno %></td>
+            <td><%= row[:type] %></td>
+            <td><%= row[:game]&.player_a&.fullname %></td>
+            <td>
+              <% if row[:game]&.data && row[:game].data["result"] %>
+                <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+            <td><%= row[:game]&.player_b&.fullname %></td>
+            <td>
+              <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
+            </td>
+          </tr>
+          <% detail_keys = ["Bälle:", "Punkte:", "Aufn.:", "HS:", "GD:"] %>
+          <% is_detail_row = detail_keys.include?(row[:type].to_s) %>
+          <% if !is_detail_row && row[:game]&.data && row[:game].data["result"] && (row[:game].data["result"].keys - ["Ergebnis:"]).any? %>
+            <tr>
+              <td colspan="2"></td>
+              <td colspan="3" style="font-size:smaller;">
+                <% row[:game].data["result"].each do |k, v| %>
+                  <% next if k == "Ergebnis:" %>
+                  <strong><%= k.gsub(":","") %>:</strong> <%= v %> &nbsp;
+                <% end %>
+              </td>
+              <td></td>
+            </tr>
+          <% end %>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

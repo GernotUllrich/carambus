@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_26_154401) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_28_123456) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -528,6 +528,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_26_154401) do
     t.integer "region_id"
     t.boolean "global_context", default: false
     t.index ["global_context"], name: "index_parties_on_global_context"
+    t.index ["league_id", "day_seqno", "league_team_a_id", "league_team_b_id"], name: "index_parties_on_league_and_teams", unique: true
     t.index ["region_id"], name: "index_parties_on_region_id"
   end
 

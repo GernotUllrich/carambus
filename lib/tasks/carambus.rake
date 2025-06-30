@@ -722,12 +722,12 @@ namespace :carambus do
     Season.order(id: :asc).each do |season|
       # for all regions
       # TEST
-      next unless season.name == "2023/2024"
+      #next unless season.name == "2024/2025"
 
       Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
         # for all disciplines
         # TEST
-        next unless region.shortname == "NBV"
+        #next unless region.shortname == "NBV"
 
         Discipline.all.each do |discipline|
           # for all relevant tournaments
@@ -864,6 +864,11 @@ namespace :carambus do
     end
     range = (Tournament.where.not(ba_id: nil).order("tournaments.ba_id desc").first&.ba_id.to_i..(itest - 1))
     Season.last.scrape_tournaments(range.to_a)
+  end
+
+  desc "copy season participations to next season"
+  task copy_season_participations_to_next_season: :environment do
+    Season.current_season.copy_season_participations_to_next_season
   end
 end
 

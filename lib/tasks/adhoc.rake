@@ -89,7 +89,11 @@ namespace :adhoc do
     # League.joins(:parties).where(parties: {id:ids}).find_each do |league|
     #   league.scrape_single_league_from_cc(league_details: true)
     # end
-    Club[363].merge_clubs([1184,1465], force_merge: true)
+    # Club[363].merge_clubs([1184,1465], force_merge: true)
+    # League.where("source_url ilike 'https://westfalenbillard.net/sb_spielplan.php?p=12--2024/2025-200%'").all.each do |league|
+    #   league.scrape_single_league_from_cc(league_details: true)
+    # end
+    League[8044].scrape_single_league_from_cc(league_details: true)
   end
 
   desc "Sequence Reset"

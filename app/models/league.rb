@@ -306,6 +306,7 @@ class League < ApplicationRecord
     if region.shortname == "BBV"
       scrape_bbv_leagues(region, season, opts)
     else
+      # return unless region.shortname == "BVBW"
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
@@ -342,8 +343,9 @@ class League < ApplicationRecord
             if trx.css("td")[0].text == "Wettbewerb"
               branch_str = trx.css("td")[1].text.split(":")[0].strip
               branch = Branch.find_by_name(branch_str)
-              break
-            elsif trx.css("td")[0].text == "Quelle"
+              # do NOT break here, so we can still check for 'Quelle'
+            end
+            if trx.css("td")[0].text == "Quelle"
               skip = true
               break
             end
@@ -624,10 +626,12 @@ class League < ApplicationRecord
       remarks = nil
       non_shootout_games = 0
       # scrape game results
+      shift = 0
       party_count = 0
       table.css("tr").each do |tr|
         if tr.css("th").count > 1
           header = tr.css("th").map(&:text)
+          shift = tr.css("th")[0]['colspan'].to_i == 2 ? 1 : 0
         elsif tr.css("td").count.positive?
           break if tr.css("td").count < 3
 
@@ -652,27 +656,31 @@ class League < ApplicationRecord
             league_team_a = league_teams_cache.find { |lt| lt.name == league_team_a_name }
             league_team_b_name = tr.css("td")[6 + shift].text.strip
             league_team_b = league_teams_cache.find { |lt| lt.name == league_team_b_name }
+            next if league_team_a.nil? || league_team_b.nil?
             result_a = tr.css("td")[4 + shift].css("a")[0]
             result_text = tr.css("td")[4 + shift].text.strip
             points = tr.css("td")[7 + shift].text.strip
           elsif ["ST", "TERMIN", "HEIM", "", "GAST"] == header || ["ST", "TERMIN", "HEIM", "", "GAST", "GASTGEBER"] == header
-            td_ = tr.css("td")[0]
-            if (remark_a = td_.css("a")).present?
-              remarks = remark_a[0]["title"].gsub("Memo: ", "")
+            if shift == 1
+              td_ = tr.css("td")[0]
+              if (remark_a = td_.css("a")).present?
+                remarks = remark_a[0]["title"].gsub("Memo: ", "")
+              end
             end
-            day_seqno = tr.css("td")[1].text.to_i
+            day_seqno = tr.css("td")[shift+0].text.to_i
             date = begin
-                     DateTime.parse(tr.css("td")[2].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
+                     DateTime.parse(tr.css("td")[shift+1].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
                    rescue StandardError
                      nil
                    end
-            league_team_a_name = tr.css("td")[2].text.strip
+            league_team_a_name = tr.css("td")[shift+2].text.strip
             league_team_a = league_teams_cache.find { |lt| lt.name == league_team_a_name }
-            league_team_b_name = tr.css("td")[6].text.strip
+            league_team_b_name = tr.css("td")[shift+6].text.strip
             league_team_b = league_teams_cache.find { |lt| lt.name == league_team_b_name }
-            result_a = tr.css("td")[4].css("a")[0]
-            result_text = tr.css("td")[4].text.strip
-            points = tr.css("td")[8].andand.text.andand.strip
+            next if league_team_a.nil? || league_team_b.nil?
+            result_a = tr.css("td")[shift+4].css("a")[0]
+            result_text = tr.css("td")[shift+4].text.strip
+            points = tr.css("td")[shift+8].andand.text.andand.strip
           else
             Rails.logger.info "Error - ScrapeError problem with header #{header}"
             next
@@ -687,11 +695,26 @@ class League < ApplicationRecord
             params = game_report_link.split("p=")[1].split(/[-|]/)
             party_cc_id = params[5].to_i # 10--2022/2023-46-0-4181
             party_cc_id ||= last_cc_id + 1
+            # Find party by teams/date, regardless of cc_id
             party = parties.where(
               day_seqno: day_seqno,
               league_team_a: league_team_a,
               league_team_b: league_team_b
             ).first
+            # If a result/cc_id is now available, update the party
+            if party && party.cc_id.nil? && party_cc_id.present?
+              party.assign_attributes(cc_id: party_cc_id, data: { result: result, points: points }.compact)
+              party.save if party.changed?
+            elsif party.nil?
+              party = parties.new(
+                day_seqno: day_seqno,
+                league_team_a: league_team_a,
+                league_team_b: league_team_b,
+                cc_id: party_cc_id,
+                data: { result: result, points: points }.compact
+              )
+              party.save
+            end
             last_cc_id = party_cc_id
             game_report_url = url + game_report_link
             Rails.logger.info "reading #{game_report_url}"
@@ -762,7 +785,9 @@ class League < ApplicationRecord
                 party.save
               end
               party_count += 1
-              break if opts[:first_five_parties_only] && party_count > 5
+              if opts[:only_first_n_parties].present? && party_count > opts[:only_first_n_parties].to_i
+                break
+              end
 
               Party.where({
                             day_seqno: day_seqno,
@@ -853,7 +878,7 @@ class League < ApplicationRecord
                   if structure == "runde" && tr_g.css("td")[2]&.text&.match(/\d-\d/)
                     structure = "runde+brett"
                   end
-                  shift = structure == "runde+brett" ? 1 : 0
+                  shift2 = structure == "runde+brett" ? 1 : 0
                   seqno = tr_g.css("td")[0].text.strip.to_i if tr_g.css("td")[0].text.strip.present?
                   if tr_g.css("td")[0].text.strip.blank? && tr_g.css("td")[1].text.strip.present?
                     if /Bälle:|Punkte:/.match?(tr_g.text)
@@ -969,9 +994,9 @@ class League < ApplicationRecord
                       non_shootout_games += 1
                     end
 
-                    player_a_fl_name = tr_g.css("td")[2 + shift].text.strip
-                    player_b_fl_name = tr_g.css("td")[4 + shift].text.strip
-                    result = tr_g.css("td")[3 + shift].text.strip
+                    player_a_fl_name = tr_g.css("td")[2 + shift2].text.strip
+                    player_b_fl_name = tr_g.css("td")[4 + shift2].text.strip
+                    result = tr_g.css("td")[3 + shift2].text.strip
                     result = "0:0" if result == ":"
 
                     if result.present?
@@ -987,7 +1012,7 @@ class League < ApplicationRecord
                       end
                     end
 
-                    points = tr_g.css("td")[5 + shift].text.strip
+                    points = tr_g.css("td")[5 + shift2].text.strip
                     point_values = points.split(/\s*:\s*/).map(&:to_i)
                     if point_values.present?
                       if point_values[0] == point_values[1] && (point_values[0]).positive?
@@ -1136,20 +1161,14 @@ class League < ApplicationRecord
         footprint = Digest::MD5.hexdigest(game_plan.inspect)
         gp_name = "#{name} - #{branch.name} - #{self.organizer.shortname}"
         gp = GamePlan.find_by_name(gp_name) || GamePlan.new(name: gp_name)
-        gp.data_will_change!
-        if game_plan_locked?
-          if footprint != self.game_plan.footprint
-            Rails.logger.info "==== scrape ==== WARNING league_url: #{league_url} GamePlan would change if not locked on League!"
-          end
-        else
-          gp.assign_attributes(footprint: footprint, data: game_plan)
-          if gp.changed?
-            gp.region_id = region.id
-            gp.save
-          end
-          self.game_plan = gp
-          save!
+        gp.assign_attributes(footprint: footprint, data: game_plan)
+        gp.data_will_change! if gp.changes["data"].present? && gp.changes["data"][0] != gp.changes["data"][1]
+        if gp.changed?
+          gp.region_id = region.id
+          gp.save
         end
+        self.game_plan = gp
+        save!
       end
     end
     return
