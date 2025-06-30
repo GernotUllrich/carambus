@@ -12,18 +12,29 @@ namespace :scrape do
     Rails.logger.info "##-##-##-##-##-## UPDATE SEASON ##-##-##-##-##-##"
     Season.update_seasons if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
     season = Season.current_season
-    Rails.logger.info "##-##-##-##-##-## UPDATE REGION ##-##-##-##-##-##"
-    Region.scrape_regions
-    Rails.logger.info "##-##-##-##-##-## UPDATE LOCATIONS ##-##-##-##-##-##"
-    Location.scrape_locations
-    Rails.logger.info "##-##-##-##-##-## UPDATE CLUBS AND PLAYERS ##-##-##-##-##-##"
-    Club.scrape_clubs(season, from_background: true,  player_details: true)
-    Rails.logger.info "##-##-##-##-##-## UPDATE TOURNAMENTS ##-##-##-##-##-##"
-    season.scrape_single_tournaments_public_cc(optimize_api_access: false, reload_game_results: false)
-    Rails.logger.info "##-##-##-##-##-## UPDATE LEAGUES ##-##-##-##-##-##"
-    (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
-      League.scrape_leagues_from_cc(Region.find_by_shortname(shortname), season, league_details: true, optimize_api_access: false)
+    # Rails.logger.info "##-##-##-##-##-## UPDATE REGION ##-##-##-##-##-##"
+    # Region.scrape_regions
+    # Rails.logger.info "##-##-##-##-##-## UPDATE LOCATIONS ##-##-##-##-##-##"
+    # Location.scrape_locations
+    # Rails.logger.info "##-##-##-##-##-## UPDATE CLUBS AND PLAYERS ##-##-##-##-##-##"
+    # Club.scrape_clubs(season, from_background: true,  player_details: true)
+    # Rails.logger.info "##-##-##-##-##-## UPDATE TOURNAMENTS ##-##-##-##-##-##"
+    [13,14,15].reverse.each do |ix|
+      season = Season[ix]
+      # season.scrape_single_tournaments_public_cc(optimize_api_access: false, reload_game_results: false)
+      Rails.logger.info "##-##-##-##-##-## UPDATE LEAGUES ##-##-##-##-##-##"
+      (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
+        League.scrape_leagues_from_cc(Region.find_by_shortname(shortname), season, league_details: true, optimize_api_access: false, only_first_n_parties: 5)
+      end
     end
+    # [13, 14, 15].reverse.each do |ix|
+    #   season = Season[ix]
+    #   season.scrape_single_tournaments_public_cc(optimize_api_access: false, reload_game_results: false)
+    #   Rails.logger.info "##-##-##-##-##-## UPDATE LEAGUES ##-##-##-##-##-##"
+    #   (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
+    #     League.scrape_leagues_from_cc(Region.find_by_shortname(shortname), season, league_details: true, optimize_api_access: false, only_first_n_parties: 5)
+    #   end
+    # end
   end
 
   desc "Update Seasons"

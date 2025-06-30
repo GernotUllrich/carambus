@@ -54,6 +54,11 @@
     <div class="flex flex-row px-3 lg:px-0">
       <%= button_to I18n.t("tournaments.show.party_monitor"), party_monitor_party_path(@party), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
     </div>
-    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('party_party_games')}", party_games_path(sSearch: "party_id:#{@party.id}"), method: :get if @party.party_games.present? %></h3>
+    <div class="mt-6 mb-4">
+      <%= render partial: 'spielbericht', locals: { party: @party } %>
+    </div>
+    <div class="mt-6 mb-4">
+      <%= render partial: 'party_games/party_games_table', locals: { records: @party.party_games } if @party.party_games.present? %>
+    </div>
   </div>
 </div>

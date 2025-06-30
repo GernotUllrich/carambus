@@ -1,7 +1,7 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
     <% @party_games ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= pagy if defined?(pagy) && pagy.present? %>
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', params, class: 'text-gray-700' %></th>
@@ -21,8 +21,8 @@
         <td class="p-3"><%= custom_link_to party_game.name, party_game_path(party_game) %></td>
         <td class="p-3"><%= party_game.seqno %></td>
         <td class="p-3"><%= custom_link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) if party_game.discipline.present? %></td>
-        <td class="p-3"><%= custom_link_to party_game.player_a.fullname, player_path(party_game.player_a) %></td>
-        <td class="p-3"><%= custom_link_to party_game.player_b.fullname, player_path(party_game.player_b) %></td>
+        <td class="p-3"><%= custom_link_to(party_game.player_a.fullname, player_path(party_game.player_a)) if party_game.player_a.present? %></td>
+        <td class="p-3"><%= custom_link_to(party_game.player_b.fullname, player_path(party_game.player_b)) if party_game.player_b.present? %></td>
         <td class="p-3"><%= party_game.data.inspect %></td>
         <td class="p-3"><%= party_game.party_id %></td>
 
@@ -35,7 +35,7 @@
     </tbody>
   </table>
 </div>
-<% if @pagy.pages > 1 %>
+<% if defined?(@pagy) && @pagy.present? && @pagy.pages > 1 %>
   <div class="text-center my-6">
     <%== pagy_nav(@pagy) %>
   </div>

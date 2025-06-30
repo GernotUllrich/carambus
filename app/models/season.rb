@@ -53,7 +53,7 @@ class Season < ApplicationRecord
 
   def scrape_single_tournaments_public_cc(opts = {})
     (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
-      #next unless shortname == "NBV"
+      # next unless shortname == "NBV"
       region = Region.find_by_shortname(shortname)
       region&.scrape_single_tournament_public(self, opts)
     end
@@ -61,5 +61,25 @@ class Season < ApplicationRecord
 
   def previous
     @previous || Season.find_by_ba_id(ba_id - 1)
+  end
+
+  def next_season
+    @pnext_season || Season.find_by_ba_id(ba_id + 1)
+  end
+
+  def copy_season_participations_to_next_season
+    new_season = next_season
+    unless new_season.season_participations.present?
+      season_participations.each do |sp|
+        sp_new = SeasonParticipation.create(
+          player_id: sp.player_id,
+          season_id: new_season.id,
+          club_id: sp.club_id,
+          status: "temporary",
+          region_id: sp.region_id,
+          global_context: false
+        )
+      end
+    end
   end
 end
