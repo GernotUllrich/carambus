@@ -21,6 +21,9 @@ application.register("filter-popup", FilterPopupController)
 import ClipboardController from "./clipboard_controller"
 application.register("clipboard", ClipboardController)
 
+import PagyUrlController from "./pagy_url_controller"
+application.register("pagy-url", PagyUrlController)
+
 StimulusReflex.initialize(application, { 
   consumer, 
   controller, 
