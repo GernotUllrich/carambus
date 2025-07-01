@@ -406,6 +406,11 @@ class League < ApplicationRecord
   # scrape_single_league_from_cc
   def scrape_single_league_from_cc(opts = {})
     return unless opts[:league_details]
+    if opts[:cleanup]
+      self.parties.map{|p| p.party_games.destroy_all}
+      self.parties.destroy_all
+      self.league_teams.destroy_all
+    end
     organizer = self.organizer
     region = organizer if organizer.is_a?(Region)
     if organizer.is_a?(Region) && organizer.shortname == "BBV"
