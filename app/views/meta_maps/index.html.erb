@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Meta Maps</h1>
     <% @meta_maps ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @meta_maps.any? %>
       <%= button_to 'New Meta Map', new_meta_map_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>

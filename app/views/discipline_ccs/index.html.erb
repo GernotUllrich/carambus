@@ -3,7 +3,7 @@
     <h1 class="h3">Discipline Ccs</h1>
 
     <% @discipline_ccs ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @discipline_ccs.any? %>
       <%= button_to 'New Discipline Cc', new_discipline_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary"   %>
     <% end %>

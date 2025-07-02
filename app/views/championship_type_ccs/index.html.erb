@@ -1,6 +1,6 @@
 <div class="container mx-auto my-8 px-4">
   <% @championship_type_ccs ||= records %>
-  <% @pagy ||= pagy %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Championship Type Ccs</h1>
     <% if @championship_type_ccs.any? %>

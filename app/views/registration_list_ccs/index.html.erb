@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Registration List Ccs</h1>
     <% @registration_list_ccs ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @registration_list_ccs.any? %>
       <%= button_to 'New Registration List Cc', new_registration_list_cc_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>

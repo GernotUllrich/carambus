@@ -1,7 +1,7 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
     <% @leagues ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <thead>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :name,'Name', params, class: 'text-gray-700' %></th>
     <th class="p-3 uppercase text-left text-xs"><%= sortable @leagues, :organizer_id,'Organizer', params, class: 'text-gray-700' %></th>

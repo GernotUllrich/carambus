@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Region Ccs</h1>
     <% @region_ccs ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @region_ccs.any? %>
       <%= button_to 'New Region Cc', new_region_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>

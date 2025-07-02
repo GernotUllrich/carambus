@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Game Plan Row Ccs</h1>
     <% @game_plan_row_ccs ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @game_plan_row_ccs.any? %>
       <%= button_to 'New Game Plan Row Cc', new_game_plan_row_cc_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>

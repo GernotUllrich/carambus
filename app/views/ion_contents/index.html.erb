@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Ion Contents</h1>
     <% @ion_contents ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @ion_contents.any? %>
       <%= button_to 'New Ion Content', new_ion_content_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>
