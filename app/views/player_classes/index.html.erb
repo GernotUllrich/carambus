@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Player Classes</h1>
     <% @player_classes ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @player_classes.any? %>
       <%= button_to 'New Player Class', new_player_class_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
     <% end %>

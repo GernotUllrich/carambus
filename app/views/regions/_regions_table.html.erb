@@ -1,6 +1,6 @@
 <div>
   <% @regions ||= records %>
-  <% @pagy ||= pagy %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
   <div id="regions_table" class=" rounded shadow table-responsive">
     <table class="table">
       <thead>

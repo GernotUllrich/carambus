@@ -3,7 +3,7 @@
     <h1 class="h3"><%= t('country.index.countries') %></h1>
 
     <% @countries ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <% if @countries.any? %>
 <!--      <div class="flex-row w-2/4">
         <div class="flex flex-row">

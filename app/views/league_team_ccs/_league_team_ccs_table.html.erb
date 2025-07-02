@@ -1,7 +1,7 @@
 <div class=" rounded shadow table-responsive">
   <table class="table">
     <% @league_team_ccs ||= records %>
-    <% @pagy ||= pagy %>
+    <% @pagy ||= defined?(pagy) ? pagy : nil %>
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @league_team_ccs, :cc_id,'Cc', params, class: 'text-gray-700' %></th>

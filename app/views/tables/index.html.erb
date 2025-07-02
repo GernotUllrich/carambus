@@ -1,6 +1,6 @@
 <div class="container mx-auto my-8 px-4">
   <% @tables ||= records %>
-  <% @pagy ||= pagy %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
   <div class="flex justify-between items-center mb-4">
     <h1 class="h3">Tables</h1>
 
