@@ -59,6 +59,18 @@ class Season < ApplicationRecord
     end
   end
 
+  def scrape_tournaments_optimized(opts = {})
+    Rails.logger.info "===== scrape ===== Starting optimized tournament scraping for season #{name}"
+    
+    (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
+      region = Region.find_by_shortname(shortname)
+      next unless region.present?
+      
+      Rails.logger.info "===== scrape ===== Processing tournaments for region #{shortname}"
+      region.scrape_tournaments_optimized(self, opts)
+    end
+  end
+
   def previous
     @previous || Season.find_by_ba_id(ba_id - 1)
   end

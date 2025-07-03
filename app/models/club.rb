@@ -128,6 +128,22 @@ class Club < ApplicationRecord
     Player.where(type: nil).where("title ~ 'Frau.'").all.each { |p| p.update(title: "Frau") }
   end
 
+  def self.scrape_clubs_optimized(season, opts = {})
+    Rails.logger.info "===== scrape ===== Starting optimized club scraping for season #{season.name}"
+    
+    (Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
+      region = Region.find_by_shortname(shortname)
+      next unless region.present?
+      
+      Rails.logger.info "===== scrape ===== Processing region #{shortname}"
+      region.scrape_clubs_optimized(season, opts)
+    end
+
+    # fix title
+    Player.where(type: nil).where("title ~ 'Herr.'").all.each { |p| p.update(title: "Herr") }
+    Player.where(type: nil).where("title ~ 'Frau.'").all.each { |p| p.update(title: "Frau") }
+  end
+
   def scrape_club(season, ref = nil, url = nil, opts = {})
     region_ = region
     if ref.blank?
@@ -294,6 +310,161 @@ class Club < ApplicationRecord
           end
         end
       end
+    else
+      Rails.logger.info "== scrape == No Players for club #{name} #{players_url}"
+    end
+  end
+
+  def scrape_club_optimized(season, ref = nil, url = nil, opts = {})
+    # First, update club details if needed
+    scrape_club(season, ref, url, opts.merge(player_details: false))
+    
+    # Only scrape players if we haven't synced recently or if forced
+    last_sync = sync_date || 1.year.ago
+    force_sync = opts[:force] || last_sync < 1.day.ago
+    
+    unless force_sync
+      Rails.logger.info "===== scrape ===== Skipping player sync for club #{name} - last sync: #{last_sync}"
+      return
+    end
+    
+    Rails.logger.info "===== scrape ===== Syncing players for club #{name} - last sync: #{last_sync}"
+    
+    # Get existing players for this club and season
+    existing_player_ids = season_participations.where(season: season).pluck(:player_id).to_set
+    
+    # Scrape only new players
+    scrape_new_players_only(season, ref, url, opts, existing_player_ids)
+  end
+
+  def scrape_new_players_only(season, ref, url, opts, existing_player_ids)
+    return unless opts[:player_details].present?
+
+    region_ = region
+    if ref.blank?
+      region_ = Region.find_by_shortname("DBU") if %w[BBV HBU].include?(region_.shortname)
+      url ||= region_.public_cc_url_base
+      clubs_url = "#{url}verein-details.php?eps=100000"
+      uri = URI(clubs_url)
+      html_clubs = Net::HTTP.get(uri)
+      doc_clubs = Nokogiri::HTML(html_clubs)
+      club_table = doc_clubs.css("article table.silver")[1]
+      clubs = club_table.css("a")
+      found = false
+      clubs.each do |club_a|
+        ref = club_a.attributes["href"].value
+        next unless synonyms.split("\n").include?(club_a.text.strip)
+
+        params = ref.split("p=")[1].split("|")
+        self.cc_id = params[3].to_i
+        found = true
+        break
+      end
+      return unless found
+    end
+
+    players_url = (url.to_s + ref.to_s).gsub("details", "mitglieder")
+    u, p = players_url.split("p=")
+    params = p.split("|")
+    params[2] = season&.name
+    params[8] = params[7]
+    params[7] = params[6]
+    params[6] = params[5]
+    params[5] = ""
+    players_url = "#{u}p=#{params.join("|")}"
+    
+    Rails.logger.info "===== scrape ===== Checking for new players at #{players_url}"
+    
+    uri = URI(players_url)
+    html_players = Net::HTTP.get(uri)
+    doc_players = Nokogiri::HTML(html_players)
+    
+    if doc_players.present? && doc_players.css("aside table.silver")[1].present?
+      player_urls = doc_players.css("aside table.silver")[1].css("a.cc_bluelink")
+      new_players_count = 0
+      
+      player_urls.each do |pl_url_cc|
+        purl = pl_url_cc["href"]
+        name_ = pl_url_cc.text.strip
+        purl_params = purl.split("p=")[1].split("|")
+        cc_id = purl_params[5].to_i
+        
+        # Check if this player already exists for this club and season
+        existing_player = Player.joins(season_participations: %i[club season])
+                               .where(fl_name: name_, type: nil)
+                               .where(seasons: { id: season.id })
+                               .where(players: { cc_id: cc_id }, clubs: { id: id }).first
+        
+        next if existing_player.present? && existing_player_ids.include?(existing_player.id)
+        
+        # This is a new player, process them
+        player_url = url + purl
+        uri = URI(player_url)
+        html_url = Net::HTTP.get(uri)
+        doc_purl = Nokogiri::HTML(html_url)
+        dbu_nr = nil
+        full_name = doc_purl.css("article section table tr.even a.cc_bluelink")[0].text
+        lastname, firstname = full_name.split(",").map(&:strip)
+        doc_purl.css("aside table tr").each do |tr|
+          if tr.css("td")[0].text.strip == "DBU-Nr."
+            dbu_nr = tr.css("td")[1].text.strip.to_i
+          end
+        end
+        
+        player = if opts[:called_from_portal]
+                   players = Player.where(fl_name: name_, type: nil)
+                   p = if players.count > 1
+                         Rails.logger.info "===== scrape ===== ERROR cannot associate player - ambiguous: '#{name_}'"
+                         nil
+                       elsif players.count == 1
+                         players.first
+                       end
+                   if p.blank?
+                     p = Player.new(firstname: firstname, lastname: lastname, fl_name: name_, dbu_nr: dbu_nr,
+                                    cc_id: cc_id)
+                   end
+                   p
+                 else
+                   p1 = Player.where(firstname: firstname, lastname: lastname, fl_name: name_, type: nil,
+                                     ba_id: dbu_nr).first
+                   p1 ||= Player.where(firstname: firstname, lastname: lastname, fl_name: name_, type: nil,
+                                       dbu_nr: dbu_nr).first
+                   p1 ||= Player.where(type: nil).where(firstname: firstname, lastname: lastname, fl_name: name_,
+                                                        cc_id: cc_id).first
+                   if p1.blank?
+                     p1 = Player.new(firstname: firstname, lastname: lastname, fl_name: name_, dbu_nr: dbu_nr,
+                                       cc_id: cc_id)
+                   end
+                   p1
+                 end
+        
+        if player.present?
+          if player.new_record?
+            name_parts = name_.split(" ")
+            player.firstname = name_parts[0]
+            player.lastname = name_parts[1..].join(" ")
+            Rails.logger.info "===== scrape ===== New Player #{player.firstname} #{player.lastname}"
+            new_players_count += 1
+          end
+          
+          player.cc_id = cc_id unless opts[:called_from_portal]
+          player.dbu_nr = dbu_nr
+          player.source_url = player_url
+          player.region_id = region.id
+          player.save if player.changed?
+          
+          sp = SeasonParticipation.where(season: season, player: player, club: self).first
+          sp = SeasonParticipation.new(season: season, player: player, club: self) if sp.blank?
+          sp.status = "active"
+          sp.source_url = player_url
+          sp.region_id = region.id
+          sp.save if sp.changed?
+        else
+          Rails.logger.info "===== scrape ===== ERROR with Player #{name_}"
+        end
+      end
+      
+      Rails.logger.info "===== scrape ===== Found #{new_players_count} new players for club #{name}"
     else
       Rails.logger.info "== scrape == No Players for club #{name} #{players_url}"
     end

@@ -93,6 +93,20 @@ class Location < ApplicationRecord
     end
   end
 
+  def self.scrape_locations_optimized
+    Rails.logger.info "===== scrape ===== Starting optimized location scraping"
+    
+    Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
+      last_sync = region.sync_date || 1.year.ago
+      if last_sync < 1.day.ago
+        Rails.logger.info "===== scrape ===== Syncing locations for region #{region.shortname} (last sync: #{last_sync})"
+        region.scrape_locations
+      else
+        Rails.logger.info "===== scrape ===== Skipping locations for region #{region.shortname} - last sync: #{last_sync}"
+      end
+    end
+  end
+
   def self.merge_locations(location_ok_id, with_location_ids = [])
     with_locations = Location.where(id: with_location_ids)
     raise ArgumentError if with_locations.count == with_location_ids.count
