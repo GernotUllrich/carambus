@@ -403,6 +403,172 @@ class League < ApplicationRecord
 #{e} #{e.backtrace&.to_a&.join("/n")}"
   end
 
+  def self.scrape_leagues_optimized(region, season, opts = {})
+    Rails.logger.info "===== scrape ===== Starting optimized league scraping for region #{region.shortname}"
+    
+    if region.shortname == "BBV"
+      # BBV uses a different scraping method, use the original for now
+      scrape_leagues_from_cc(region, season, opts)
+    else
+      url = region.public_cc_url_base
+      leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
+      Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
+      uri = URI(leagues_url)
+      leagues_html = Net::HTTP.get(uri)
+      leagues_doc = Nokogiri::HTML(leagues_html)
+      table = leagues_doc.css("article table.silver")[1]
+
+      if table.present?
+        processed_leagues = 0
+        skipped_leagues = 0
+        
+        table.css("tr").each do |tr|
+          cc_id2s = []
+          staffel_texts = []
+          next unless (a = tr.css("td a.cc_bluelink")).present?
+
+          link = a[0]["href"]
+          params = link.split("p=")[1].split(/[-|]/)
+          region_cc_id = params[0].to_i
+          season_name = params[2]
+          league_cc_id = params[3].to_i
+          next if region_cc_id != region.cc_id || season_name != season.name
+
+          title = a[0].text.strip
+          short = tr.css("td")[1].text.strip
+          n_staffel = tr.css("td")[2].text.strip.to_i
+          staffel_link = url + link
+          
+          # Check if we need to scrape this league
+          league = League.find_by(cc_id: league_cc_id, organizer: region, season: season)
+          
+          if league.present?
+            last_sync = league.sync_date || 1.year.ago
+            force_sync = opts[:force] || last_sync < 1.day.ago
+            has_unreported_party_games = league.parties.joins(:party_games).where(party_games: { result: nil }).exists?
+            
+            if force_sync || has_unreported_party_games
+              Rails.logger.info "===== scrape ===== Syncing league #{league.name} (last sync: #{last_sync}, unreported party games: #{has_unreported_party_games})"
+              league.scrape_league_optimized(opts)
+              processed_leagues += 1
+            else
+              Rails.logger.info "===== scrape ===== Skipping league #{league.name} - last sync: #{last_sync}, no unreported party games"
+              skipped_leagues += 1
+            end
+          else
+            # New league, need to scrape it fully
+            Rails.logger.info "===== scrape ===== New league #{title}, scraping fully"
+            scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
+            processed_leagues += 1
+          end
+        end
+        
+        Rails.logger.info "===== scrape ===== Region #{region.shortname}: Processed #{processed_leagues} leagues, skipped #{skipped_leagues} leagues"
+      end
+    end
+  rescue StandardError => e
+    Rails.logger.info "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \
+#{e} #{e.backtrace&.to_a&.join("/n")}"
+    raise StandardError, "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \
+#{e} #{e.backtrace&.to_a&.join("/n")}"
+  end
+
+  def self.scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
+    Rails.logger.info "reading #{staffel_link}"
+    uri = URI(staffel_link)
+    staffel_html = Net::HTTP.get(uri)
+    staffel_doc = Nokogiri::HTML(staffel_html)
+    details_table = staffel_doc.css("aside > section > table")[0]
+    branch = nil
+    skip = false
+    details_table.css("tr").each do |trx|
+      if trx.css("td")[0].text == "Wettbewerb"
+        branch_str = trx.css("td")[1].text.split(":")[0].strip
+        branch = Branch.find_by_name(branch_str)
+      end
+      if trx.css("td")[0].text == "Quelle"
+        skip = true
+        break
+      end
+    end
+    return if skip
+
+    cc_id2s = []
+    staffel_texts = []
+    if n_staffel > 1
+      tabstrip_a = staffel_doc.css("aside > section > table.silver ul.tabstrip li a")
+      tabstrip_a.each do |ax|
+        cc_id2s << ax["href"].split("p=")[1].split(/[-|]/)[4].to_i
+        staffel_texts << ax.text.strip
+      end
+    end
+    cc_id2s = cc_id2s.presence || [nil]
+    cc_id2s.each_with_index do |cc_id2, ix|
+      # Primary lookup: Find by CC IDs (most specific and reliable)
+      attrs = { cc_id: league_cc_id, organizer: region, staffel_text: staffel_texts[ix], season: season,
+                cc_id2: cc_id2 }.compact
+      league = League.where(attrs).first
+
+      unless league.present?
+        # Secondary lookup: If not found by CC IDs, try by name and other attributes
+        attrs = { season: season, name: title, staffel_text: staffel_texts[ix],
+                  discipline: branch, organizer: region }.compact
+        league = League.where(attrs).first
+
+        # If still not found, create a new league
+        league ||= League.new(season: season, name: title, staffel_text: staffel_texts[ix], discipline: branch,
+                              organizer: region)
+      end
+
+      # Update league attributes - cc_id and cc_id2 are the primary identifiers
+      attrs = { shortname: short, cc_id: league_cc_id, cc_id2: cc_id2, discipline: branch,
+                staffel_text: staffel_texts[ix] }.compact
+      league.assign_attributes(attrs)
+      league.source_url = staffel_link
+      if league.changed?
+        league.region_id = region.id
+        league.save
+      end
+
+      if opts[:league_details]
+        # Collect all records from league details for batch tagging
+        league.scrape_single_league_from_cc(opts)
+      end
+    end
+  end
+
+  def scrape_league_optimized(opts = {})
+    # Check if we need to sync league teams (only if no party games have been reported)
+    has_reported_party_games = parties.joins(:party_games).where.not(party_games: { result: nil }).exists?
+    
+    if !has_reported_party_games
+      Rails.logger.info "===== scrape ===== Syncing league teams for league #{name} (no reported party games)"
+      scrape_league_teams_optimized(opts)
+    else
+      Rails.logger.info "===== scrape ===== Skipping league teams for league #{name} (has reported party games)"
+    end
+    
+    # Always check for new party games
+    scrape_party_games_optimized(opts)
+  end
+
+  def scrape_league_teams_optimized(opts = {})
+    # Only sync league teams if no party games have been reported
+    return if parties.joins(:party_games).where.not(party_games: { result: nil }).exists?
+    
+    Rails.logger.info "===== scrape ===== Syncing league teams for league #{name}"
+    # This would call the existing league team scraping logic
+    # For now, we'll use the existing method
+    scrape_single_league_from_cc(opts.merge(league_details: true))
+  end
+
+  def scrape_party_games_optimized(opts = {})
+    Rails.logger.info "===== scrape ===== Checking for new party games in league #{name}"
+    # This would call the existing party game scraping logic
+    # For now, we'll use the existing method
+    scrape_single_league_from_cc(opts.merge(league_details: true))
+  end
+
   # scrape_single_league_from_cc
   def scrape_single_league_from_cc(opts = {})
     return unless opts[:league_details]
@@ -1545,5 +1711,433 @@ class League < ApplicationRecord
     # league_html = league_html.force_encoding('ISO-8859-1').encode('UTF-8')
     league_doc = Nokogiri::HTML.fragment(league_html)
     return league_doc, league_uri
+  end
+
+  # Reconstruct GamePlan from existing parties and party_games data
+  # This method analyzes the existing data to rebuild the game plan structure
+  # without requiring a full re-scraping
+  def reconstruct_game_plan_from_existing_data
+    return unless discipline.present?
+    
+    Rails.logger.info "Reconstructing GamePlan for league: #{name} (ID: #{id})"
+    
+    # Start with default game parameters for the discipline type
+    branch_name = branch.name.downcase.to_sym
+    game_plan = GAME_PARAMETER_DEFAULTS[branch_name].dup
+    game_plan[:rows] = []
+    
+    # Track disciplines and their statistics
+    disciplines = {}
+    non_shootout_games = 0
+    games_per_round = 0
+    tables = 0
+    row_index = -1
+    game_seqno = 0
+    
+    # Get all parties with their party_games, ordered by day_seqno
+    parties_with_games = parties.includes(:party_games).order(:day_seqno, :id)
+    
+    # First, analyze one party to extract the structure (row headers)
+    # This is more efficient since structure doesn't change within a season
+    structure_analyzed = false
+    
+    parties_with_games.each do |party|
+      next unless party.party_games.any?
+      
+      # Analyze structure from the first party with games
+      unless structure_analyzed
+        analyze_game_plan_structure(party, game_plan, disciplines)
+        structure_analyzed = true
+        row_index = game_plan[:rows].length - 1
+        game_seqno = game_plan[:rows].select { |row| row[:type] != "Neue Runde" && row[:type] != "Gesamtsumme" }.length
+      end
+      
+      # Group party_games by discipline to identify rounds
+      games_by_discipline = party.party_games.group_by(&:discipline)
+      
+      games_by_discipline.each do |discipline, games|
+        next unless discipline.present?
+        
+        discipline_name = discipline.name
+        disciplines[discipline_name] ||= {}
+        
+        # Analyze each game in this discipline for statistics only
+        games.each do |party_game|
+          game_seqno += 1
+          games_per_round += 1
+          
+          # Extract game data for statistics
+          game_data = party_game.data || {}
+          result_data = game_data[:result] || game_data["result"] || {}
+          
+          # Extract result information
+          result = result_data["Ergebnis:"] || result_data["Ergebnis"] || "0:0"
+          points = result_data["Punkte:"] || result_data["Punkte"] || "0:0"
+          balls = result_data["Bälle:"] || result_data["Bälle"] || nil
+          innings = result_data["Aufn.:"] || result_data["Aufn."] || nil
+          
+          # Parse result and points
+          result_values = result.split(/\s*:\s*/).map(&:to_i)
+          point_values = points.split(/\s*:\s*/).map(&:to_i)
+          
+          # Update game points statistics
+          if point_values.present?
+            max_game_points = point_values.max
+            min_game_points = point_values.min
+            draw_game_points = point_values[0] == point_values[1] ? point_values[0] : 0
+            
+            # Update discipline statistics
+            if disciplines[discipline_name][:game_points].blank?
+              disciplines[discipline_name][:game_points] = {
+                win: max_game_points,
+                draw: draw_game_points,
+                lost: min_game_points
+              }
+            else
+              disciplines[discipline_name][:game_points][:win] = [disciplines[discipline_name][:game_points][:win].to_i, max_game_points].max
+              disciplines[discipline_name][:game_points][:lost] = [disciplines[discipline_name][:game_points][:lost].to_i, min_game_points].min
+              if draw_game_points > 0
+                disciplines[discipline_name][:game_points][:draw] = draw_game_points
+              end
+            end
+          end
+          
+          # Handle sets (for games that use sets)
+          if result_values.present? && result_values.max > 1
+            sets = result_values.max
+            if disciplines[discipline_name][:sets].blank?
+              disciplines[discipline_name][:sets] = sets
+              disciplines[discipline_name][:sets_occurence] = 1
+            elsif disciplines[discipline_name][:sets] == sets
+              disciplines[discipline_name][:sets_occurence] += 1
+            elsif disciplines[discipline_name][:sets] != sets
+              # Different number of sets found - mark as inconsistent
+              disciplines[discipline_name][:sets_no] = party.cc_id
+            end
+          end
+          
+          # Handle balls/score for disciplines that use them
+          if balls.present?
+            ball_values = balls.split(/\s*:\s*/).map(&:to_i)
+            max_balls = ball_values.max
+            if disciplines[discipline_name][:score].blank? || disciplines[discipline_name][:score].to_i < max_balls
+              disciplines[discipline_name][:score] = max_balls
+            end
+          end
+          
+          # Handle innings
+          if innings.present?
+            inning_values = innings.split(/\s*:\s*/).map(&:to_i)
+            max_innings = inning_values.max
+            if disciplines[discipline_name][:inning].blank? || disciplines[discipline_name][:inning].to_i < max_innings
+              disciplines[discipline_name][:inning] = max_innings
+              disciplines[discipline_name][:inning_occurence] = 1
+            elsif disciplines[discipline_name][:inning] == max_innings
+              disciplines[discipline_name][:inning_occurence] += 1
+            end
+          end
+          
+          # Handle partie points (Punkte)
+          if point_values.present?
+            if point_values[0] == point_values[1] && point_values[0] > 0
+              disciplines[discipline_name][:ppu] = point_values[0]
+            elsif point_values.max > 1
+              disciplines[discipline_name][:ppg] = [disciplines[discipline_name][:ppg].to_i, point_values.max].max
+              disciplines[discipline_name][:ppv] = [disciplines[discipline_name][:ppv].to_i, point_values.min].min
+            end
+          end
+          
+          # Track shootout vs non-shootout games
+          if /shootout/i.match?(discipline_name)
+            game_plan[:victory_to_nil] = [game_plan[:victory_to_nil].to_i, non_shootout_games].max
+            non_shootout_games = 0
+          else
+            non_shootout_games += 1
+          end
+        end
+      end
+      
+      # Analyze party-level data for match points
+      party_data = party.data || {}
+      party_result = party_data[:result] || party_data["result"]
+      party_points = party_data[:points] || party_data["points"]
+      
+      if party_points.present?
+        point_values = party_points.split(":").map(&:strip).map(&:to_i).sort
+        if point_values.present?
+          game_plan[:match_points][:win] = [game_plan[:match_points][:win].to_i, point_values[1]].max
+          game_plan[:match_points][:lost] = [game_plan[:match_points][:lost].to_i, point_values[0]].min
+          
+          # Check for shootout in this party
+          shootout_games = party.party_games.joins(:discipline).where("disciplines.name ILIKE ?", "%shootout%")
+          if shootout_games.any?
+            shootout_result = shootout_games.first.data&.dig(:result, "Ergebnis:") || shootout_games.first.data&.dig("result", "Ergebnis:")
+            if shootout_result.present? && shootout_result != "0:0"
+              game_plan[:extra_shootout_match_points] = {
+                win: point_values[1] - point_values[0],
+                lost: 0
+              }
+              game_plan[:match_points][:draw] = point_values.min
+            end
+          end
+        end
+      end
+    end
+    
+    # Update tables count
+    tables = [tables, games_per_round].max
+    game_plan[:tables] = tables
+    
+    # Clean up discipline statistics
+    disciplines.each do |discipline_name, stats|
+      # Remove inning if it appears less than 3 times
+      if stats[:inning_occurence].present? && stats[:inning_occurence] < 3
+        stats.delete(:inning)
+      end
+      stats.delete(:inning_occurence)
+      
+      # Remove sets if it appears less than 3 times
+      if stats[:sets_occurence].present? && stats[:sets_occurence] < 3
+        stats.delete(:sets)
+      end
+      stats.delete(:sets_occurence)
+      stats.delete(:sets_no)
+      
+      # Merge discipline stats into game plan rows
+      game_plan[:rows] = game_plan[:rows].map do |row|
+        if row[:type] == discipline_name
+          row.merge(stats).compact
+        else
+          row
+        end
+      end
+    end
+    
+    # Sort the game plan
+    game_plan = game_plan.sort.to_h
+    
+    # Create or update the GamePlan (shared across seasons)
+    footprint = Digest::MD5.hexdigest(game_plan.inspect)
+    gp_name = "#{name} - #{branch.name} - #{organizer.shortname}"
+    
+    # Look for existing GamePlan with same name (shared across seasons)
+    gp = GamePlan.find_by_name(gp_name)
+    if gp.present?
+      # Update existing GamePlan if data has changed
+      gp.assign_attributes(footprint: footprint, data: game_plan)
+      gp.data_will_change! if gp.changes["data"].present? && gp.changes["data"][0] != gp.changes["data"][1]
+    else
+      # Create new GamePlan
+      gp = GamePlan.new(name: gp_name, footprint: footprint, data: game_plan)
+    end
+    
+    if gp.changed?
+      gp.region_id = organizer.id if organizer.is_a?(Region)
+      gp.save!
+      Rails.logger.info "Updated GamePlan: #{gp_name} (ID: #{gp.id})"
+    else
+      Rails.logger.info "GamePlan unchanged: #{gp_name}"
+    end
+    
+    # Update league's game_plan reference
+    self.game_plan = gp
+    save!
+    
+    Rails.logger.info "GamePlan reconstruction completed for league: #{name}"
+    gp
+  rescue StandardError => e
+    Rails.logger.error "Error reconstructing GamePlan for league #{name} (ID: #{id}): #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    nil
+  end
+
+  # Analyze the structure of a party to extract game plan rows
+  # This is called once per league to determine the structure
+  def analyze_game_plan_structure(party, game_plan, disciplines)
+    Rails.logger.info "Analyzing structure from party #{party.id}"
+    
+    # Group party_games by discipline and analyze the structure
+    games_by_discipline = party.party_games.group_by(&:discipline)
+    
+    games_by_discipline.each do |discipline, games|
+      next unless discipline.present?
+      
+      discipline_name = discipline.name
+      disciplines[discipline_name] ||= {}
+      
+      # Create a row for this discipline
+      row = { type: discipline_name }
+      
+      # Analyze the first game to extract structure information
+      first_game = games.first
+      if first_game.present?
+        game_data = first_game.data || {}
+        result_data = game_data[:result] || game_data["result"] || {}
+        
+        # Extract basic structure info
+        result = result_data["Ergebnis:"] || result_data["Ergebnis"] || "0:0"
+        points = result_data["Punkte:"] || result_data["Punkte"] || "0:0"
+        
+        # Parse for sets
+        result_values = result.split(/\s*:\s*/).map(&:to_i)
+        if result_values.present? && result_values.max > 1
+          row[:sets] = result_values.max
+        end
+        
+        # Parse for game points
+        point_values = points.split(/\s*:\s*/).map(&:to_i)
+        if point_values.present?
+          row[:game_points] = {
+            win: point_values.max,
+            draw: point_values[0] == point_values[1] ? point_values[0] : 0,
+            lost: point_values.min
+          }
+        end
+        
+        # Extract balls/score if present
+        balls = result_data["Bälle:"] || result_data["Bälle"]
+        if balls.present?
+          ball_values = balls.split(/\s*:\s*/).map(&:to_i)
+          row[:score] = ball_values.max if ball_values.any?
+        end
+        
+        # Extract innings if present
+        innings = result_data["Aufn.:"] || result_data["Aufn."]
+        if innings.present?
+          inning_values = innings.split(/\s*:\s*/).map(&:to_i)
+          row[:inning] = inning_values.max if inning_values.any?
+        end
+        
+        # Handle partie points
+        if point_values.present?
+          if point_values[0] == point_values[1] && point_values[0] > 0
+            row[:ppu] = point_values[0]
+          elsif point_values.max > 1
+            row[:ppg] = point_values.max
+            row[:ppv] = point_values.min
+          end
+        end
+        
+        # Track shootout vs non-shootout
+        if /shootout/i.match?(discipline_name)
+          game_plan[:victory_to_nil] = 0  # Will be updated during full analysis
+        end
+      end
+      
+      game_plan[:rows] << row.compact
+    end
+    
+    # Add "Gesamtsumme" row at the end
+    game_plan[:rows] << { type: "Gesamtsumme" }
+  end
+
+  # Class method to reconstruct GamePlans for multiple leagues
+  def self.reconstruct_game_plans_for_season(season, opts = {})
+    leagues = League.where(season: season)
+    
+    # Filter by region shortname if specified
+    if opts[:region_shortname].present?
+      leagues = leagues.joins("INNER JOIN regions ON regions.id = leagues.organizer_id AND leagues.organizer_type = 'Region'")
+                      .where(regions: { shortname: opts[:region_shortname] })
+    end
+    
+    # Filter by discipline if specified
+    if opts[:discipline].present?
+      discipline_name = opts[:discipline].to_s.capitalize
+      leagues = leagues.joins(:discipline).where(disciplines: { name: discipline_name })
+    end
+    
+    Rails.logger.info "Starting GamePlan reconstruction for #{leagues.count} leagues in season #{season.name}"
+    Rails.logger.info "Filters: region=#{opts[:region_shortname]}, discipline=#{opts[:discipline]}" if opts[:region_shortname].present? || opts[:discipline].present?
+    
+    results = { success: 0, failed: 0, errors: [] }
+    
+    # Group leagues by their GamePlan name to handle shared GamePlans efficiently
+    leagues_by_gameplan = leagues.group_by do |league|
+      "#{league.name} - #{league.branch.name} - #{league.organizer.shortname}"
+    end
+    
+    leagues_by_gameplan.each do |gameplan_name, leagues_group|
+      Rails.logger.info "Processing GamePlan group: #{gameplan_name} (#{leagues_group.length} leagues)"
+      
+      # Use the first league in the group to reconstruct the GamePlan
+      representative_league = leagues_group.first
+      
+      begin
+        if representative_league.reconstruct_game_plan_from_existing_data
+          # Link all leagues in the group to the same GamePlan
+          game_plan = representative_league.game_plan
+          leagues_group.each do |league|
+            league.update_column(:game_plan_id, game_plan.id) unless league.game_plan_id == game_plan.id
+          end
+          results[:success] += leagues_group.length
+        else
+          results[:failed] += leagues_group.length
+        end
+      rescue StandardError => e
+        results[:failed] += leagues_group.length
+        results[:errors] << "GamePlan group #{gameplan_name}: #{e.message}"
+        Rails.logger.error "Failed to reconstruct GamePlan for group #{gameplan_name}: #{e.message}"
+      end
+    end
+    
+    Rails.logger.info "GamePlan reconstruction completed. Success: #{results[:success]}, Failed: #{results[:failed]}"
+    Rails.logger.info "Errors: #{results[:errors].join(', ')}" if results[:errors].any?
+    
+    results
+  end
+
+  # Find leagues that should share the same GamePlan
+  def self.find_leagues_with_same_gameplan(league)
+    return [] unless league.organizer.present? && league.discipline.present?
+    
+    League.where(
+      name: league.name,
+      organizer: league.organizer,
+      discipline: league.discipline
+    ).where.not(id: league.id)
+  end
+
+  # Find or create shared GamePlan for leagues with same structure
+  def self.find_or_create_shared_gameplan(league)
+    return nil unless league.organizer.present? && league.discipline.present?
+    
+    # Look for existing GamePlan with same name (shared across seasons)
+    gp_name = "#{league.name} - #{league.branch.name} - #{league.organizer.shortname}"
+    GamePlan.find_by_name(gp_name)
+  end
+
+  # Delete existing GamePlans for a season (useful before reconstruction)
+  def self.delete_game_plans_for_season(season, opts = {})
+    leagues = League.where(season: season)
+    
+    # Filter by region shortname if specified
+    if opts[:region_shortname].present?
+      leagues = leagues.joins("INNER JOIN regions ON regions.id = leagues.organizer_id AND leagues.organizer_type = 'Region'")
+                      .where(regions: { shortname: opts[:region_shortname] })
+    end
+    
+    # Filter by discipline if specified
+    if opts[:discipline].present?
+      discipline_name = opts[:discipline].to_s.capitalize
+      leagues = leagues.joins(:discipline).where(disciplines: { name: discipline_name })
+    end
+    
+    Rails.logger.info "Deleting GamePlans for #{leagues.count} leagues in season #{season.name}"
+    Rails.logger.info "Filters: region=#{opts[:region_shortname]}, discipline=#{opts[:discipline]}" if opts[:region_shortname].present? || opts[:discipline].present?
+    
+    deleted_count = 0
+    leagues.find_each do |league|
+      if league.game_plan.present?
+        game_plan_name = league.game_plan.name
+        league.game_plan.destroy
+        league.update_column(:game_plan_id, nil)
+        deleted_count += 1
+        Rails.logger.info "Deleted GamePlan: #{game_plan_name}"
+      end
+    end
+    
+    Rails.logger.info "Deleted #{deleted_count} GamePlans for season #{season.name}"
+    deleted_count
   end
 end
