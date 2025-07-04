@@ -88,6 +88,6 @@ class PartiesController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def party_params
     params.require(:party).permit(:date, :league_id, :remarks, :league_team_a_id, :league_team_b_id, :ba_id,
-                                  :day_seqno, :data, :host_league_team_id)
+                                  :day_seqno, :round_name, :data, :host_league_team_id)
   end
 end
