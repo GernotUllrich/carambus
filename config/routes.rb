@@ -90,6 +90,7 @@ Rails.application.routes.draw do
     member do
       post :reload_from_cc
       post :reload_from_cc_with_details
+      post :reload_from_cc_all_new
     end
   end
   resources :seedings do

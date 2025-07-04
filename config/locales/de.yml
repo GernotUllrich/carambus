@@ -426,6 +426,7 @@ de:
     show:
       reload_from_club_cloud: Datenabgleich mit der %{source}
       reload_from_club_cloud_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
+      reload_from_club_cloud_all_new: Datenabgleich mit der %{source} alles neu
   league_league_teams: Liga Mannschaften
   league_parties: Liga Wettkämpfe
   leagues_season: Aktuelle Ligaspiele in der Saison

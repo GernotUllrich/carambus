@@ -398,8 +398,9 @@ en:
       league: League
       leagues: Leagues
     show:
-      reload_from_club_cloud: Datenabgleich mit der %{source}
-      reload_from_club_cloud_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
+      reload_from_club_cloud: Data sync with mit der %{source}
+      reload_from_club_cloud_with_details: Data sync with %{source} incl. party games
+      reload_from_club_cloud_all_new: Data sync with %{source} all new
   league_league_teams: League Teams
   league_parties: League Parties
   leagues_season: League Tournaments of current Season

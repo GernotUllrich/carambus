@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
   include FiltersHelper
   before_action :admin_only_check, except: %i[show index]
-  before_action :set_league, only: %i[show edit update destroy reload_from_cc reload_from_cc_with_details]
+  before_action :set_league, only: %i[show edit update destroy reload_from_cc reload_from_cc_with_details reload_from_cc_all_new]
 
   # GET /leagues
   def index
@@ -71,6 +71,14 @@ class LeaguesController < ApplicationController
       Version.update_from_carambus_api(update_league_from_cc: @league.id, league_details: true)
     else
       @league.scrape_single_league_from_cc(league_details: true)
+    end
+    redirect_back_or_to(league_path(@league))
+  end
+  def reload_from_cc_all_new
+    if local_server?
+      Version.update_from_carambus_api(update_league_from_cc: @league.id, league_details: true)
+    else
+      @league.scrape_single_league_from_cc(league_details: true, cleanup: true)
     end
     redirect_back_or_to(league_path(@league))
   end

@@ -11,7 +11,7 @@ class PartyGamesController < ApplicationController
                             .joins('LEFT OUTER JOIN "parties" ON "parties"."id" = "party_games"."party_id"')
                             .joins('INNER JOIN "players" AS "player_a" ON "player_a"."id" = "party_games"."player_a_id"')
                             .joins('INNER JOIN "players" as "player_b" ON "player_b"."id" = "party_games"."player_b_id"')
-                            .order(seqno: :asc).sort_by_params(params[:sort], sort_direction)
+                            .sort_by_params(params[:sort], sort_direction)
     if @sSearch.present?
       @party_games = apply_filters(@party_games, PartyGame::COLUMN_NAMES,
                                    "(player_a.fl_name ilike :search) or (player_a.fl_name ilike :search)")

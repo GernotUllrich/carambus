@@ -11,6 +11,7 @@
 <!--      <th class="p-3 uppercase text-left text-xs"><%#= sortable @parties, :ba_id,'Ba', params, class: 'text-gray-700' %></th>-->
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :cc_id,'Cc', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :day_seqno,'Day seqno', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :round_name,'Round', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :date,'Datum', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :data,'Data', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @parties, :host_league_team_id,'Host league team', params, class: 'text-gray-700' %></th>
@@ -29,6 +30,7 @@
         <td class="p-3"><%= custom_link_to( party.league_team_b.andand.name, league_team_path(party.league_team_b)) if party.league_team_b.present? %></td>
         <td class="p-3"><%= custom_link_to party.cc_id, party.cc_link if party.cc_id.present? %></td>
         <td class="p-3"><%= party.day_seqno %></td>
+        <td class="p-3"><%= party.round_name %></td>
         <td class="p-3"><%= party.date %></td>
         <td class="p-3"><%= party.data %></td>
         <td class="p-3"><%= custom_link_to( party.host_league_team.name, league_team_path(party.host_league_team)) if party.host_league_team.present? %></td>
