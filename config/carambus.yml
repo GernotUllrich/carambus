@@ -18,23 +18,19 @@ default:
   :no_local_protection: 'false'
   :club_id: 357
 development:
-  carambus_api_url: https://api.carambus.de
-  location_id: 1
+  carambus_api_url:
+  location_id:
   application_name: Carambus
   support_email: gernot.ullrich@gmx.de
   business_name: Ullrich IT Consulting
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: carambus.de
   queue_adapter: async
-  small_table_no: 4
-  large_table_no: 4
-  pool_table_no: 0
-  snooker_table_no: 0
-  context: NBV
+  context:
   season_name: 2024/2025
   force_update: 'true'
   no_local_protection: 'true'
-  club_id: 357
+  club_id:
 test:
   carambus_api_url: https://api.carambus.de/
   location_id: 1

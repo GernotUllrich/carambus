@@ -93,7 +93,7 @@ namespace :adhoc do
     # League.where("source_url ilike 'https://westfalenbillard.net/sb_spielplan.php?p=12--2024/2025-200%'").all.each do |league|
     #   league.scrape_single_league_from_cc(league_details: true)
     # end
-    League[8044].scrape_single_league_from_cc(league_details: true)
+    League[8932].scrape_single_league_from_cc(league_details: true, cleanup:true)
   end
 
   desc "Sequence Reset"
