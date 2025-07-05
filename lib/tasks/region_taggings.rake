@@ -24,9 +24,9 @@ namespace :region_taggings do
         organic_region_ids = [region.id]
         organic_club_ids = region.club_ids
         organic_season_participation_ids = SeasonParticipation.joins(:club).where(clubs: { id: organic_club_ids }).ids
-        organic_player_ids = Player.joins(:season_participations => {id => organic_season_participation_ids}).ids
+        organic_player_ids = Player.joins(:season_participations).where(season_participations: {id: organic_season_participation_ids}).ids
         organic_club_location_ids = ClubLocation.joins(:club).where(clubs: { id: organic_club_ids }).ids
-        organic_location_ids = Location.joins(:club_locations => { id: organic_club_location_ids }).ids
+        organic_location_ids = Location.joins(:club_locations).where(club_locations:  { club_id: organic_club_location_ids }).ids
         organic_location_ids |= Location.where(organizer_type: "Region", organizer_id: region.id).ids
         organic_table_ids = Table.joins(:location).where(locations: { id: organic_location_ids }).ids
       end
@@ -39,17 +39,17 @@ namespace :region_taggings do
       # seeding -> player
 
       # organic_tournament_ids  = region.tournament_ids
-      organic_tournament_ids |= region.organized_tournament_ids
+      organic_tournament_ids = region.organized_tournament_ids
       organic_tournament_ids |= Tournament.where(organizer_type: "Club", organizer_id: organic_club_ids).ids
       organic_game_ids = Game.joins(:tournament).where(tournaments: { id: organic_tournament_ids }).ids
-      organic_game_participation_ids = GameParticipation.joins(:game => :tournament).where(tournaments: { id: organic_tournament_ids }).ids
-      tournament_player_ids = Player.joins(:game_participations => { id: organic_game_participation_ids }).ids
+      organic_game_participation_ids = GameParticipation.joins(game: :tournament).where(tournaments: { id: organic_tournament_ids }).ids
+      tournament_player_ids = Player.joins(:game_participations).where(game_participations: { id: organic_game_participation_ids }).ids
       tournament_team_ids = Team.where(id: tournament_player_ids).ids
         Team.where(id: tournament_team_ids).all.each do |team|
           tournament_player_ids |= team.data["players"].map { |h| h["player_id"] }
         end
-      organic_seeding_ids |= Seeding.where(tournament_id: organic_tournament_ids, tournament_type: "Region").ids
-      tournament_player_ids |= Player.joins(:seedings => { id: organic_seeding_ids }).ids
+      organic_seeding_ids |= Seeding.where(tournament_id: organic_tournament_ids, tournament_type: "Tournament").ids
+      tournament_player_ids |= Player.joins(:seedings).where(seedings: { id: organic_seeding_ids }).ids
 
       # compute organic region dependence top to bottom on region leagues
       # region -> league -> league_team
@@ -58,25 +58,27 @@ namespace :region_taggings do
       #
       organic_league_ids = region.organized_league_ids
       organic_league_team_ids = LeagueTeam.joins(:league).where(leagues: { id: organic_league_ids }).ids
+      organic_game_plan_ids = GamePlan.joins(:leagues).where(leagues: { id: organic_league_ids }).ids
       organic_party_ids = Party.joins(:league).where(leagues: { id: organic_league_ids }).ids
       organic_party_game_ids = PartyGame.joins(:party).where(parties: { id: organic_party_ids }).ids
+      organic_seeding_ids |= Seeding.where(tournament_id: organic_party_ids, tournament_type: "Party").ids
       organic_seeding_ids |= Seeding.joins(:league_team => :parties_a).where(parties: { id: organic_party_ids }).ids
       organic_seeding_ids |= Seeding.joins(:league_team => :parties_b).where(parties: { id: organic_party_ids }).ids
       organic_seeding_ids |= Seeding.joins(:league_team => :parties_as_host).where(parties: { id: organic_party_ids }).ids
       league_player_ids = Player.joins(:seedings).where(seedings: { id: organic_seeding_ids }).ids
-      league_player_ids |= Player.joins(:player_a_games).where(party_games: { id: organic_party_game_ids }).ids
-      league_player_ids |= Player.joins(:player_b_games).where(party_games: { id: organic_party_game_ids }).ids
+      league_player_ids |= Player.joins(:party_a_games).where(party_games: { id: organic_party_game_ids }).ids
+      league_player_ids |= Player.joins(:party_b_games).where(party_games: { id: organic_party_game_ids }).ids
 
       if region.id == dbu_id
 
         # find global relationships from DBU organs bottom up
         global_player_ids = tournament_player_ids + league_player_ids
         global_season_participation_ids = SeasonParticipation.where(player_id: global_player_ids).ids
-        global_club_ids = Club.joins(:season_participations, {id: global_season_participation_ids}).ids
-        global_location_ids = Location.joins(:tournaments).where(tournaments: {id: organic_tournament_ids})
-        global_location_ids |= Location.joins(:parties).where(parties: {id: organic_party_ids})
-        global_club_location_ids = ClubLocation.joins(:location).where(locations: {id: global_location_ids})
-        global_club_ids |= Club.joins(:club_locations, {id: global_club_location_ids}).ids
+        global_club_ids = Club.joins(:season_participations).where(season_participations: {id: global_season_participation_ids}).ids
+        global_location_ids = Location.joins(:tournaments).where(tournaments: {id: organic_tournament_ids}).ids
+        global_location_ids |= Location.joins(:parties).where(parties: {id: organic_party_ids}).ids
+        global_club_location_ids = ClubLocation.joins(:location).where(locations: {id: global_location_ids}).ids
+        global_club_ids |= Club.joins(:club_locations).where(club_locations: {id: global_club_location_ids}).ids
         global_region_ids = Region.joins(:clubs).where(clubs: {id: global_club_ids}).ids
         global_table_ids = Table.joins(:location).where(locations: { id: global_location_ids }).ids
 
@@ -96,7 +98,9 @@ namespace :region_taggings do
         Seeding.where(id: organic_seeding_ids).update_all(global_context: true)
         League.where(id: organic_league_ids).update_all(global_context: true)
         Party.where(id: organic_party_ids).update_all(global_context: true)
+        PartyGame.where(id: organic_party_game_ids).update_all(global_context: true)
         LeagueTeam.where(id: organic_league_team_ids).update_all(global_context: true)
+        GamePlan.where(id: organic_game_plan_ids).update_all(global_context: true)
       end
       Player.where(id: organic_player_ids).update_all(region_id: region.id)
       SeasonParticipation.where(id: organic_season_participation_ids).update_all(region_id: region.id)
@@ -111,7 +115,9 @@ namespace :region_taggings do
       Location.where(id: organic_location_ids).update_all(region_id: region.id)
       Table.where(id: organic_table_ids).update_all(region_id: region.id)
       Party.where(id: organic_party_ids).update_all(region_id: region.id)
+      PartyGame.where(id: organic_party_game_ids).update_all(region_id: region.id)
       LeagueTeam.where(id: organic_league_team_ids).update_all(region_id: region.id)
+      GamePlan.where(id: organic_game_plan_ids).update_all(region_id: region.id)
     end
   end
 
