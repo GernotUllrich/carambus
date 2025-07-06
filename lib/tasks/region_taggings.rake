@@ -24,9 +24,9 @@ namespace :region_taggings do
         organic_region_ids = [region.id]
         organic_club_ids = region.club_ids
         organic_season_participation_ids = SeasonParticipation.joins(:club).where(clubs: { id: organic_club_ids }).ids
-        organic_player_ids = Player.joins(:season_participations).where(season_participations: {id: organic_season_participation_ids}).ids
+        organic_player_ids = Player.joins(:season_participations).where(season_participations: { id: organic_season_participation_ids }).ids
         organic_club_location_ids = ClubLocation.joins(:club).where(clubs: { id: organic_club_ids }).ids
-        organic_location_ids = Location.joins(:club_locations).where(club_locations:  { club_id: organic_club_location_ids }).ids
+        organic_location_ids = Location.joins(:club_locations).where(club_locations: { club_id: organic_club_location_ids }).ids
         organic_location_ids |= Location.where(organizer_type: "Region", organizer_id: region.id).ids
         organic_table_ids = Table.joins(:location).where(locations: { id: organic_location_ids }).ids
       end
@@ -45,9 +45,9 @@ namespace :region_taggings do
       organic_game_participation_ids = GameParticipation.joins(game: :tournament).where(tournaments: { id: organic_tournament_ids }).ids
       tournament_player_ids = Player.joins(:game_participations).where(game_participations: { id: organic_game_participation_ids }).ids
       tournament_team_ids = Team.where(id: tournament_player_ids).ids
-        Team.where(id: tournament_team_ids).all.each do |team|
-          tournament_player_ids |= team.data["players"].map { |h| h["player_id"] }
-        end
+      Team.where(id: tournament_team_ids).all.each do |team|
+        tournament_player_ids |= team.data["players"].map { |h| h["player_id"] }
+      end
       organic_seeding_ids |= Seeding.where(tournament_id: organic_tournament_ids, tournament_type: "Tournament").ids
       tournament_player_ids |= Player.joins(:seedings).where(seedings: { id: organic_seeding_ids }).ids
 
@@ -74,51 +74,42 @@ namespace :region_taggings do
         # find global relationships from DBU organs bottom up
         global_player_ids = tournament_player_ids + league_player_ids
         global_season_participation_ids = SeasonParticipation.where(player_id: global_player_ids).ids
-        global_club_ids = Club.joins(:season_participations).where(season_participations: {id: global_season_participation_ids}).ids
-        global_location_ids = Location.joins(:tournaments).where(tournaments: {id: organic_tournament_ids}).ids
-        global_location_ids |= Location.joins(:parties).where(parties: {id: organic_party_ids}).ids
-        global_club_location_ids = ClubLocation.joins(:location).where(locations: {id: global_location_ids}).ids
-        global_club_ids |= Club.joins(:club_locations).where(club_locations: {id: global_club_location_ids}).ids
-        global_region_ids = Region.joins(:clubs).where(clubs: {id: global_club_ids}).ids
+        global_club_ids = Club.joins(:season_participations).where(season_participations: { id: global_season_participation_ids }).ids
+        global_location_ids = Location.joins(:tournaments).where(tournaments: { id: organic_tournament_ids }).ids
+        global_location_ids |= Location.joins(:parties).where(parties: { id: organic_party_ids }).ids
+        global_club_location_ids = ClubLocation.joins(:location).where(locations: { id: global_location_ids }).ids
+        global_club_ids |= Club.joins(:club_locations).where(club_locations: { id: global_club_location_ids }).ids
+        global_region_ids = Region.joins(:clubs).where(clubs: { id: global_club_ids }).ids
         global_table_ids = Table.joins(:location).where(locations: { id: global_location_ids }).ids
 
         # models which have global context from bottom up
-        Player.where(id: global_player_ids).update_all(global_context: true)
-        SeasonParticipation.where(id: global_season_participation_ids).update_all(global_context: true)
-        Club.where(id: global_club_ids).update_all(global_context: true)
-        ClubLocation.where(id: global_club_location_ids).update_all(global_context: true)
-        Region.where(id: global_region_ids).update_all(global_context: true)
-        Location.where(id: global_location_ids).update_all(global_context: true)
-        Table.where(id: global_table_ids).update_all(global_context: true)
+        [Player, SeasonParticipation, Club, ClubLocation, Region, Location, Table].each do |model|
+          tag_with_gobal_context(model, eval("global_#{model.name.underscore}_ids"))
+        end
 
         # models which have global context, because they are organic with respect to the DBU region
-        Tournament.where(id: organic_tournament_ids).update_all(global_context: true)
-        Game.where(id: organic_game_ids).update_all(global_context: true)
-        GameParticipation.where(id: organic_game_participation_ids).update_all(global_context: true)
-        Seeding.where(id: organic_seeding_ids).update_all(global_context: true)
-        League.where(id: organic_league_ids).update_all(global_context: true)
-        Party.where(id: organic_party_ids).update_all(global_context: true)
-        PartyGame.where(id: organic_party_game_ids).update_all(global_context: true)
-        LeagueTeam.where(id: organic_league_team_ids).update_all(global_context: true)
-        GamePlan.where(id: organic_game_plan_ids).update_all(global_context: true)
+        [Tournament, Game, GameParticipation, Seeding, League, Party, PartyGame, LeagueTeam, GamePlan].each do |model|
+          tag_with_gobal_context(model, eval("organic_#{model.name.underscore}_ids"))
+        end
       end
-      Player.where(id: organic_player_ids).update_all(region_id: region.id)
-      SeasonParticipation.where(id: organic_season_participation_ids).update_all(region_id: region.id)
-      # Club.where(id: organic_club_ids).update_all(region_id: region.id)
-      ClubLocation.where(id: organic_club_location_ids).update_all(region_id: region.id)
-      Region.where(id: organic_region_ids).update_all(region_id: region.id)
-      Tournament.where(id: organic_tournament_ids).update_all(region_id: region.id)
-      Game.where(id: organic_game_ids).update_all(region_id: region.id)
-      GameParticipation.where(id: organic_game_participation_ids).update_all(region_id: region.id)
-      Seeding.where(id: organic_seeding_ids).update_all(region_id: region.id)
-      League.where(id: organic_league_ids).update_all(region_id: region.id)
-      Location.where(id: organic_location_ids).update_all(region_id: region.id)
-      Table.where(id: organic_table_ids).update_all(region_id: region.id)
-      Party.where(id: organic_party_ids).update_all(region_id: region.id)
-      PartyGame.where(id: organic_party_game_ids).update_all(region_id: region.id)
-      LeagueTeam.where(id: organic_league_team_ids).update_all(region_id: region.id)
-      GamePlan.where(id: organic_game_plan_ids).update_all(region_id: region.id)
+
+      # tag with region where objects organically relate to
+      [Player, SeasonParticipation, ClubLocation, Region, Tournament, Game,
+      GameParticipation, Seeding, League, Location, Table,
+      Party,  PartyGame, LeagueTeam, GamePlan].each do |model|
+        tag_with_region(model, eval("organic_#{model.name.underscore}_ids"), region)
+      end
     end
+  end
+
+  def tag_with_gobal_context(model, ids)
+    model.where(id: ids).update_all(global_context: true)
+    PaperTrail::Version.where(item_type: model.name, item_id: ids).update_all(global_context: true)
+  end
+
+  def tag_with_region(model, ids, region)
+    model.where(id: ids).update_all(region_id: region.id)
+    PaperTrail::Version.where(item_type: model.name, item_id: ids).update_all(region_id: region.id)
   end
 
   desc "Update region tagging for all models that include RegionTaggable"
