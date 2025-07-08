@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Scoreboard exit script
 # This script kills the browser and shows the panel again
 
