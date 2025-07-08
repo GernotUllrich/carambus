@@ -22,6 +22,11 @@
     document.getElementById("modal-new-reservation" + "-bg").classList.toggle("flex");
   }
 
+  function open_kiosk_keyboard() {
+    Keyboard._setupKeyboard("kiosk");
+    Keyboard.open("", null, null);
+  }
+
   document.addEventListener('turbo:load', function () {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
@@ -173,6 +178,9 @@
     </div>
     <p>
       <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Exit Kiosk Mode", "javascript:open_kiosk_keyboard()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-2vw", id: "exit_kiosk", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.

@@ -15,7 +15,8 @@ const Keyboard = {
 
   properties: {
     value: "",
-    capsLock: false
+    capsLock: false,
+    altPressed: false
   },
 
   init() {
@@ -95,6 +96,12 @@ const Keyboard = {
       keyLayout = [
         "7", "8", "9", "br", "4", "5", "6", "br", "1", "2", "3", "br", "0", "backspace", "done"
       ];
+    } else if (keyboard_type == "kiosk") {
+      // Special keyboard for kiosk mode exit
+      keyLayout = [
+        "alt", "space", "br",
+        "exit_kiosk", "done"
+      ];
     } else {
       // No spacebar
       // keyLayout = [
@@ -130,6 +137,53 @@ const Keyboard = {
       keyElement.classList.add("keyboard__key");
 
       switch (key) {
+        case "alt":
+          keyElement.classList.add("keyboard__key--wide", "keyboard__key--activatable");
+          keyElement.textContent = "ALT";
+          keyElement.style.backgroundColor = "#4a5568";
+
+          keyElement.addEventListener("click", () => {
+            this.properties.altPressed = !this.properties.altPressed;
+            keyElement.classList.toggle("keyboard__key--active", this.properties.altPressed);
+            keyElement.style.backgroundColor = this.properties.altPressed ? "#2d3748" : "#4a5568";
+          });
+
+          break;
+
+        case "space":
+          keyElement.classList.add("keyboard__key--extra-wide");
+          keyElement.innerHTML = createIconHTML("space_bar");
+
+          keyElement.addEventListener("click", () => {
+            if (this.properties.altPressed) {
+              // Simulate ALT+SPACE combination
+              this._fireAltSpaceEvent();
+              this.properties.altPressed = false;
+              // Reset ALT key appearance
+              const altKey = this.elements.keysContainer.querySelector('.keyboard__key--activatable');
+              if (altKey) {
+                altKey.classList.remove("keyboard__key--active");
+                altKey.style.backgroundColor = "#4a5568";
+              }
+            } else {
+              this.properties.value += " ";
+              this._triggerEvent("oninput");
+            }
+          });
+
+          break;
+
+        case "exit_kiosk":
+          keyElement.classList.add("keyboard__key--wide", "keyboard__key--dark");
+          keyElement.textContent = "EXIT KIOSK";
+          keyElement.style.backgroundColor = "#e53e3e";
+
+          keyElement.addEventListener("click", () => {
+            this._fireAltSpaceEvent();
+          });
+
+          break;
+
         case "backspace":
           keyElement.classList.add("backspace-btn");
           keyElement.innerHTML = createIconHTML("backspace");
@@ -169,17 +223,6 @@ const Keyboard = {
 
           keyElement.addEventListener("click", () => {
             this.properties.value += "\n";
-            this._triggerEvent("oninput");
-          });
-
-          break;
-
-        case "space":
-          keyElement.classList.add("keyboard__key--extra-wide");
-          keyElement.innerHTML = createIconHTML("space_bar");
-
-          keyElement.addEventListener("click", () => {
-            this.properties.value += " ";
             this._triggerEvent("oninput");
           });
 
@@ -225,6 +268,70 @@ const Keyboard = {
 
 
     return fragment;
+  },
+
+  _fireAltSpaceEvent() {
+    // Create ALT keydown event
+    const altDownEvent = new KeyboardEvent("keydown", {
+      key: "Alt",
+      code: "AltLeft",
+      keyCode: 18,
+      which: 18,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create SPACE keydown event
+    const spaceDownEvent = new KeyboardEvent("keydown", {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create SPACE keyup event
+    const spaceUpEvent = new KeyboardEvent("keyup", {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create ALT keyup event
+    const altUpEvent = new KeyboardEvent("keyup", {
+      key: "Alt",
+      code: "AltLeft",
+      keyCode: 18,
+      which: 18,
+      altKey: false,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Dispatch events in sequence
+    document.dispatchEvent(altDownEvent);
+    setTimeout(() => {
+      document.dispatchEvent(spaceDownEvent);
+      setTimeout(() => {
+        document.dispatchEvent(spaceUpEvent);
+        setTimeout(() => {
+          document.dispatchEvent(altUpEvent);
+        }, 50);
+      }, 50);
+    }, 50);
+
+    console.log("ALT+SPACE combination fired to exit kiosk mode");
   },
 
   _fireKeyEvent() {
