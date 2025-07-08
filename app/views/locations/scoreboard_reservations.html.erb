@@ -6,9 +6,65 @@
         width: 100%;
         height: auto;
     }
+    
+    /* Kiosk Keyboard Styles */
+    .kiosk-keyboard {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #2d3748;
+        padding: 20px;
+        z-index: 1000;
+        display: none;
+    }
+    
+    .kiosk-keyboard.show {
+        display: block;
+    }
+    
+    .kiosk-keyboard .keyboard__keys {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .kiosk-keyboard .keyboard__key {
+        padding: 15px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .kiosk-keyboard .keyboard__key--wide {
+        min-width: 120px;
+    }
+    
+    .kiosk-keyboard .keyboard__key--extra-wide {
+        min-width: 200px;
+    }
+    
+    .kiosk-keyboard .keyboard__key--dark {
+        background: #e53e3e;
+        color: white;
+    }
+    
+    .kiosk-keyboard .keyboard__key--activatable {
+        background: #4a5568;
+        color: white;
+    }
+    
+    .kiosk-keyboard .keyboard__key--active {
+        background: #2d3748;
+    }
 </style>
 <!--<script src="/hotkeys.js"></script>-->
-<script src="/onscreen-keyboard.js"></script>
+<script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
 <script type="text/javascript">
 
   function new_reservation_mode() {
@@ -23,8 +79,132 @@
   }
 
   function open_kiosk_keyboard() {
-    Keyboard._setupKeyboard("kiosk");
-    Keyboard.open("", null, null);
+    console.log("Opening kiosk keyboard...");
+    console.log("Keyboard object available:", typeof Keyboard !== 'undefined');
+    
+    if (typeof Keyboard !== 'undefined' && Keyboard._setupKeyboard) {
+      console.log("Using main keyboard with kiosk layout");
+      Keyboard._setupKeyboard("kiosk");
+      Keyboard.open("", null, null);
+    } else {
+      console.log("Using fallback kiosk keyboard");
+      showFallbackKioskKeyboard();
+    }
+  }
+
+  function showFallbackKioskKeyboard() {
+    // Create fallback kiosk keyboard if it doesn't exist
+    let kioskKeyboard = document.getElementById('fallback-kiosk-keyboard');
+    if (!kioskKeyboard) {
+      kioskKeyboard = document.createElement('div');
+      kioskKeyboard.id = 'fallback-kiosk-keyboard';
+      kioskKeyboard.className = 'kiosk-keyboard';
+      kioskKeyboard.innerHTML = `
+        <div class="keyboard__keys">
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--activatable" id="alt-key">ALT</button>
+          <button type="button" class="keyboard__key keyboard__key--extra-wide" id="space-key">
+            <i class="material-icons">space_bar</i>
+          </button>
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="exit-kiosk-key">EXIT KIOSK</button>
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="close-kiosk-key">CLOSE</button>
+        </div>
+      `;
+      document.body.appendChild(kioskKeyboard);
+      
+      // Add event listeners
+      let altPressed = false;
+      
+      document.getElementById('alt-key').addEventListener('click', function() {
+        altPressed = !altPressed;
+        this.classList.toggle('keyboard__key--active', altPressed);
+        this.style.backgroundColor = altPressed ? '#2d3748' : '#4a5568';
+      });
+      
+      document.getElementById('space-key').addEventListener('click', function() {
+        if (altPressed) {
+          fireAltSpaceEvent();
+          altPressed = false;
+          document.getElementById('alt-key').classList.remove('keyboard__key--active');
+          document.getElementById('alt-key').style.backgroundColor = '#4a5568';
+        }
+      });
+      
+      document.getElementById('exit-kiosk-key').addEventListener('click', function() {
+        fireAltSpaceEvent();
+      });
+      
+      document.getElementById('close-kiosk-key').addEventListener('click', function() {
+        kioskKeyboard.classList.remove('show');
+      });
+    }
+    
+    kioskKeyboard.classList.add('show');
+  }
+
+  function fireAltSpaceEvent() {
+    console.log("Firing ALT+SPACE event...");
+    
+    // Create ALT keydown event
+    const altDownEvent = new KeyboardEvent("keydown", {
+      key: "Alt",
+      code: "AltLeft",
+      keyCode: 18,
+      which: 18,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create SPACE keydown event
+    const spaceDownEvent = new KeyboardEvent("keydown", {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create SPACE keyup event
+    const spaceUpEvent = new KeyboardEvent("keyup", {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Create ALT keyup event
+    const altUpEvent = new KeyboardEvent("keyup", {
+      key: "Alt",
+      code: "AltLeft",
+      keyCode: 18,
+      which: 18,
+      altKey: false,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+
+    // Dispatch events in sequence
+    document.dispatchEvent(altDownEvent);
+    setTimeout(() => {
+      document.dispatchEvent(spaceDownEvent);
+      setTimeout(() => {
+        document.dispatchEvent(spaceUpEvent);
+        setTimeout(() => {
+          document.dispatchEvent(altUpEvent);
+        }, 50);
+      }, 50);
+    }, 50);
+
+    console.log("ALT+SPACE combination fired to exit kiosk mode");
   }
 
   document.addEventListener('turbo:load', function () {
