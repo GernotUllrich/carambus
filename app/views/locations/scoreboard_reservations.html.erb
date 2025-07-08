@@ -430,6 +430,27 @@
     alert("Debug logs cleared!");
   }
 
+  function downloadDebugLogs() {
+    const logs = JSON.parse(localStorage.getItem('kioskDebugLogs') || '[]');
+    if (logs.length === 0) {
+      alert("No debug logs found. Try clicking 'Exit Kiosk Mode' first.");
+      return;
+    }
+    
+    const logText = logs.join('\n');
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'kiosk-debug-logs.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    logMessage("Debug logs downloaded as kiosk-debug-logs.txt");
+  }
+
   function tryLinuxWindowManagement() {
     logMessage("Trying Linux-specific window management...");
     
@@ -661,6 +682,9 @@
     </p>
     <p>
       <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_logs", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Download Debug Logs", "javascript:downloadDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "download_logs", tabindex: "1" %>
     </p>
     <p>
       <%= custom_link_to "Test Kiosk Exit", "javascript:fireAltSpaceEvent()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "test_exit", tabindex: "1" %>
