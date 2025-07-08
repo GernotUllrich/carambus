@@ -82,6 +82,12 @@
     logMessage("Opening kiosk keyboard...");
     logMessage("Keyboard object available: " + (typeof Keyboard !== 'undefined'));
     
+    // Force fallback keyboard for testing
+    logMessage("Forcing fallback keyboard for testing");
+    showFallbackKioskKeyboard();
+    
+    // Original logic (commented out for now)
+    /*
     if (typeof Keyboard !== 'undefined' && Keyboard._setupKeyboard) {
       logMessage("Using main keyboard with kiosk layout");
       Keyboard._setupKeyboard("kiosk");
@@ -90,6 +96,7 @@
       logMessage("Using fallback kiosk keyboard");
       showFallbackKioskKeyboard();
     }
+    */
   }
 
   function showFallbackKioskKeyboard() {
@@ -102,19 +109,31 @@
       kioskKeyboard = document.createElement('div');
       kioskKeyboard.id = 'fallback-kiosk-keyboard';
       kioskKeyboard.className = 'kiosk-keyboard';
+      kioskKeyboard.style.cssText = `
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: #2d3748 !important;
+        padding: 20px !important;
+        z-index: 9999 !important;
+        display: block !important;
+        border-top: 3px solid #e53e3e !important;
+      `;
       kioskKeyboard.innerHTML = `
-        <div class="keyboard__keys">
-          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--activatable" id="alt-key">ALT</button>
-          <button type="button" class="keyboard__key keyboard__key--extra-wide" id="space-key">
+        <div class="keyboard__keys" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--activatable" id="alt-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 120px; text-align: center; background: #4a5568; color: white;">ALT</button>
+          <button type="button" class="keyboard__key keyboard__key--extra-wide" id="space-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 200px; text-align: center; background: #718096; color: white;">
             <i class="material-icons">space_bar</i>
           </button>
-          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="exit-kiosk-key">EXIT KIOSK</button>
-          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="close-kiosk-key">CLOSE</button>
-          <button type="button" class="keyboard__key keyboard__key--wide" id="debug-key" style="background: #805ad5; color: white;">DEBUG</button>
-          <button type="button" class="keyboard__key keyboard__key--wide" id="logs-key" style="background: #38a169; color: white;">LOGS</button>
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="exit-kiosk-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 120px; text-align: center; background: #e53e3e; color: white;">EXIT KIOSK</button>
+          <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="close-kiosk-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 120px; text-align: center; background: #e53e3e; color: white;">CLOSE</button>
+          <button type="button" class="keyboard__key keyboard__key--wide" id="debug-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 120px; text-align: center; background: #805ad5; color: white;">DEBUG</button>
+          <button type="button" class="keyboard__key keyboard__key--wide" id="logs-key" style="padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; min-width: 120px; text-align: center; background: #38a169; color: white;">LOGS</button>
         </div>
       `;
       document.body.appendChild(kioskKeyboard);
+      logMessage("Keyboard element added to DOM");
       
       // Add event listeners
       let altPressed = false;
@@ -147,7 +166,7 @@
       
       document.getElementById('close-kiosk-key').addEventListener('click', function() {
         logMessage("CLOSE button clicked");
-        kioskKeyboard.classList.remove('show');
+        kioskKeyboard.style.display = 'none';
       });
       
       document.getElementById('debug-key').addEventListener('click', function() {
@@ -180,7 +199,7 @@
       logMessage("Fallback keyboard event listeners added");
     }
     
-    kioskKeyboard.classList.add('show');
+    kioskKeyboard.style.display = 'block';
     logMessage("Fallback keyboard shown");
   }
 
@@ -507,6 +526,12 @@
     </p>
     <p>
       <%= custom_link_to "Exit Kiosk Mode", "javascript:open_kiosk_keyboard()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-2vw", id: "exit_kiosk", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_logs", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Test Kiosk Exit", "javascript:fireAltSpaceEvent()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "test_exit", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
