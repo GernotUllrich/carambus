@@ -46,4 +46,5 @@ fi
 echo "Starting scoreboard at $(date)" >> /tmp/scoreboard-autostart.log
 $(dirname "$0")/start-scoreboard.sh
 
-echo "Autostart completed at $(date)" >> /tmp/scoreboard-autostart.log 
+echo "Autostart completed at $(date)" >> /tmp/scoreboard-autostart.log
+
