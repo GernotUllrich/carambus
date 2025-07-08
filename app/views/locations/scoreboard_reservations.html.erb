@@ -79,23 +79,26 @@
   }
 
   function open_kiosk_keyboard() {
-    console.log("Opening kiosk keyboard...");
-    console.log("Keyboard object available:", typeof Keyboard !== 'undefined');
+    logMessage("Opening kiosk keyboard...");
+    logMessage("Keyboard object available: " + (typeof Keyboard !== 'undefined'));
     
     if (typeof Keyboard !== 'undefined' && Keyboard._setupKeyboard) {
-      console.log("Using main keyboard with kiosk layout");
+      logMessage("Using main keyboard with kiosk layout");
       Keyboard._setupKeyboard("kiosk");
       Keyboard.open("", null, null);
     } else {
-      console.log("Using fallback kiosk keyboard");
+      logMessage("Using fallback kiosk keyboard");
       showFallbackKioskKeyboard();
     }
   }
 
   function showFallbackKioskKeyboard() {
+    logMessage("Creating fallback kiosk keyboard...");
+    
     // Create fallback kiosk keyboard if it doesn't exist
     let kioskKeyboard = document.getElementById('fallback-kiosk-keyboard');
     if (!kioskKeyboard) {
+      logMessage("Building new fallback keyboard...");
       kioskKeyboard = document.createElement('div');
       kioskKeyboard.id = 'fallback-kiosk-keyboard';
       kioskKeyboard.className = 'kiosk-keyboard';
@@ -107,6 +110,8 @@
           </button>
           <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="exit-kiosk-key">EXIT KIOSK</button>
           <button type="button" class="keyboard__key keyboard__key--wide keyboard__key--dark" id="close-kiosk-key">CLOSE</button>
+          <button type="button" class="keyboard__key keyboard__key--wide" id="debug-key" style="background: #805ad5; color: white;">DEBUG</button>
+          <button type="button" class="keyboard__key keyboard__key--wide" id="logs-key" style="background: #38a169; color: white;">LOGS</button>
         </div>
       `;
       document.body.appendChild(kioskKeyboard);
@@ -115,96 +120,237 @@
       let altPressed = false;
       
       document.getElementById('alt-key').addEventListener('click', function() {
+        logMessage("ALT key clicked, current state: " + altPressed);
         altPressed = !altPressed;
         this.classList.toggle('keyboard__key--active', altPressed);
         this.style.backgroundColor = altPressed ? '#2d3748' : '#4a5568';
+        logMessage("ALT key state changed to: " + altPressed);
       });
       
       document.getElementById('space-key').addEventListener('click', function() {
+        logMessage("SPACE key clicked, ALT pressed: " + altPressed);
         if (altPressed) {
+          logMessage("ALT+SPACE combination triggered");
           fireAltSpaceEvent();
           altPressed = false;
           document.getElementById('alt-key').classList.remove('keyboard__key--active');
           document.getElementById('alt-key').style.backgroundColor = '#4a5568';
+        } else {
+          logMessage("SPACE clicked without ALT");
         }
       });
       
       document.getElementById('exit-kiosk-key').addEventListener('click', function() {
+        logMessage("EXIT KIOSK button clicked");
         fireAltSpaceEvent();
       });
       
       document.getElementById('close-kiosk-key').addEventListener('click', function() {
+        logMessage("CLOSE button clicked");
         kioskKeyboard.classList.remove('show');
       });
+      
+      document.getElementById('debug-key').addEventListener('click', function() {
+        logMessage("DEBUG button clicked");
+        logMessage("Current window properties:");
+        logMessage("- document.fullscreenElement: " + document.fullscreenElement);
+        logMessage("- window.innerHeight: " + window.innerHeight);
+        logMessage("- window.innerWidth: " + window.innerWidth);
+        logMessage("- window.screen.height: " + window.screen.height);
+        logMessage("- window.screen.width: " + window.screen.width);
+        logMessage("- navigator.userAgent: " + navigator.userAgent.substring(0, 50) + "...");
+        
+        // Try to detect if we're in kiosk mode
+        const isKiosk = window.innerHeight === window.screen.height && window.innerWidth === window.screen.width;
+        logMessage("Detected kiosk mode: " + isKiosk);
+        
+        // Show alert with debug info
+        alert(`Debug Info:
+- Fullscreen: ${document.fullscreenElement ? 'Yes' : 'No'}
+- Window size: ${window.innerWidth}x${window.innerHeight}
+- Screen size: ${window.screen.width}x${window.screen.height}
+- Kiosk detected: ${isKiosk}
+- User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+      });
+      
+      document.getElementById('logs-key').addEventListener('click', function() {
+        showDebugLogs();
+      });
+      
+      logMessage("Fallback keyboard event listeners added");
     }
     
     kioskKeyboard.classList.add('show');
+    logMessage("Fallback keyboard shown");
   }
 
   function fireAltSpaceEvent() {
-    console.log("Firing ALT+SPACE event...");
+    logMessage("Firing ALT+SPACE event...");
     
-    // Create ALT keydown event
-    const altDownEvent = new KeyboardEvent("keydown", {
-      key: "Alt",
-      code: "AltLeft",
-      keyCode: 18,
-      which: 18,
-      altKey: true,
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
+    // Method 1: Try direct window.focus() first (sometimes works)
+    try {
+      window.focus();
+      logMessage("Window focus attempted");
+    } catch (e) {
+      logMessage("Window focus failed: " + e.message);
+    }
+    
+    // Method 2: Try to trigger window menu
+    try {
+      // Create a more aggressive ALT+SPACE event
+      const altDownEvent = new KeyboardEvent("keydown", {
+        key: "Alt",
+        code: "AltLeft",
+        keyCode: 18,
+        which: 18,
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        composed: true
+      });
 
-    // Create SPACE keydown event
-    const spaceDownEvent = new KeyboardEvent("keydown", {
-      key: " ",
-      code: "Space",
-      keyCode: 32,
-      which: 32,
-      altKey: true,
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
+      const spaceDownEvent = new KeyboardEvent("keydown", {
+        key: " ",
+        code: "Space",
+        keyCode: 32,
+        which: 32,
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        composed: true
+      });
 
-    // Create SPACE keyup event
-    const spaceUpEvent = new KeyboardEvent("keyup", {
-      key: " ",
-      code: "Space",
-      keyCode: 32,
-      which: 32,
-      altKey: true,
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
+      const spaceUpEvent = new KeyboardEvent("keyup", {
+        key: " ",
+        code: "Space",
+        keyCode: 32,
+        which: 32,
+        altKey: true,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        composed: true
+      });
 
-    // Create ALT keyup event
-    const altUpEvent = new KeyboardEvent("keyup", {
-      key: "Alt",
-      code: "AltLeft",
-      keyCode: 18,
-      which: 18,
-      altKey: false,
-      bubbles: true,
-      cancelable: true,
-      view: window
-    });
+      const altUpEvent = new KeyboardEvent("keyup", {
+        key: "Alt",
+        code: "AltLeft",
+        keyCode: 18,
+        which: 18,
+        altKey: false,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        composed: true
+      });
 
-    // Dispatch events in sequence
-    document.dispatchEvent(altDownEvent);
-    setTimeout(() => {
-      document.dispatchEvent(spaceDownEvent);
+      // Dispatch events in sequence with longer delays
+      logMessage("Dispatching ALT+SPACE events...");
+      document.dispatchEvent(altDownEvent);
       setTimeout(() => {
-        document.dispatchEvent(spaceUpEvent);
+        document.dispatchEvent(spaceDownEvent);
         setTimeout(() => {
-          document.dispatchEvent(altUpEvent);
-        }, 50);
-      }, 50);
-    }, 50);
+          document.dispatchEvent(spaceUpEvent);
+          setTimeout(() => {
+            document.dispatchEvent(altUpEvent);
+            logMessage("ALT+SPACE events completed");
+          }, 100);
+        }, 100);
+      }, 100);
+    } catch (e) {
+      logMessage("Method 2 failed: " + e.message);
+    }
+    
+    // Method 3: Try F11 to toggle fullscreen
+    setTimeout(() => {
+      try {
+        logMessage("Trying F11 to exit fullscreen...");
+        const f11Event = new KeyboardEvent("keydown", {
+          key: "F11",
+          code: "F11",
+          keyCode: 122,
+          which: 122,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(f11Event);
+      } catch (e) {
+        logMessage("F11 method failed: " + e.message);
+      }
+    }, 500);
+    
+    // Method 4: Try ESC key
+    setTimeout(() => {
+      try {
+        logMessage("Trying ESC key...");
+        const escEvent = new KeyboardEvent("keydown", {
+          key: "Escape",
+          code: "Escape",
+          keyCode: 27,
+          which: 27,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(escEvent);
+      } catch (e) {
+        logMessage("ESC method failed: " + e.message);
+      }
+    }, 1000);
+    
+    // Method 5: Try to open browser menu programmatically
+    setTimeout(() => {
+      try {
+        logMessage("Trying to open browser menu...");
+        // Try to trigger right-click context menu
+        const contextMenuEvent = new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: 10,
+          clientY: 10
+        });
+        document.dispatchEvent(contextMenuEvent);
+      } catch (e) {
+        logMessage("Context menu method failed: " + e.message);
+      }
+    }, 1500);
+    
+    logMessage("All exit methods attempted");
+  }
 
-    console.log("ALT+SPACE combination fired to exit kiosk mode");
+  // Simple logging function that saves to localStorage and shows in alert
+  function logMessage(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    
+    // Save to localStorage
+    let logs = JSON.parse(localStorage.getItem('kioskDebugLogs') || '[]');
+    logs.push(logEntry);
+    if (logs.length > 50) logs = logs.slice(-50); // Keep only last 50 entries
+    localStorage.setItem('kioskDebugLogs', JSON.stringify(logs));
+    
+    // Also log to console if available
+    console.log(logEntry);
+  }
+
+  function showDebugLogs() {
+    const logs = JSON.parse(localStorage.getItem('kioskDebugLogs') || '[]');
+    if (logs.length === 0) {
+      alert("No debug logs found. Try clicking 'Exit Kiosk Mode' first.");
+      return;
+    }
+    
+    const logText = logs.slice(-10).join('\n'); // Show last 10 entries
+    alert("Last 10 Debug Logs:\n\n" + logText);
+  }
+
+  function clearDebugLogs() {
+    localStorage.removeItem('kioskDebugLogs');
+    alert("Debug logs cleared!");
   }
 
   document.addEventListener('turbo:load', function () {
