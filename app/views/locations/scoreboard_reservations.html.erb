@@ -206,102 +206,139 @@
   function fireAltSpaceEvent() {
     logMessage("Firing ALT+SPACE event...");
     
-    // Method 1: Try direct window.focus() first (sometimes works)
+    // Method 1: Try ESC key FIRST (since physical ESC works)
     try {
-      window.focus();
-      logMessage("Window focus attempted");
+      logMessage("Trying ESC key (primary method)...");
+      const escEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        code: "Escape",
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      document.dispatchEvent(escEvent);
+      
+      // Also try keyup event
+      setTimeout(() => {
+        const escUpEvent = new KeyboardEvent("keyup", {
+          key: "Escape",
+          code: "Escape",
+          keyCode: 27,
+          which: 27,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(escUpEvent);
+        logMessage("ESC keyup event sent");
+      }, 50);
+      
     } catch (e) {
-      logMessage("Window focus failed: " + e.message);
+      logMessage("ESC method failed: " + e.message);
     }
     
-    // Method 2: Try to trigger window menu (Linux desktop environment)
-    try {
-      // Create a more aggressive ALT+SPACE event
-      const altDownEvent = new KeyboardEvent("keydown", {
-        key: "Alt",
-        code: "AltLeft",
-        keyCode: 18,
-        which: 18,
-        altKey: true,
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        composed: true
-      });
+    // Method 2: Try direct window.focus() 
+    setTimeout(() => {
+      try {
+        window.focus();
+        logMessage("Window focus attempted");
+      } catch (e) {
+        logMessage("Window focus failed: " + e.message);
+      }
+    }, 100);
+    
+    // Method 3: Try to trigger window menu (Linux desktop environment)
+    setTimeout(() => {
+      try {
+        // Create a more aggressive ALT+SPACE event
+        const altDownEvent = new KeyboardEvent("keydown", {
+          key: "Alt",
+          code: "AltLeft",
+          keyCode: 18,
+          which: 18,
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          composed: true
+        });
 
-      const spaceDownEvent = new KeyboardEvent("keydown", {
-        key: " ",
-        code: "Space",
-        keyCode: 32,
-        which: 32,
-        altKey: true,
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        composed: true
-      });
+        const spaceDownEvent = new KeyboardEvent("keydown", {
+          key: " ",
+          code: "Space",
+          keyCode: 32,
+          which: 32,
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          composed: true
+        });
 
-      const spaceUpEvent = new KeyboardEvent("keyup", {
-        key: " ",
-        code: "Space",
-        keyCode: 32,
-        which: 32,
-        altKey: true,
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        composed: true
-      });
+        const spaceUpEvent = new KeyboardEvent("keyup", {
+          key: " ",
+          code: "Space",
+          keyCode: 32,
+          which: 32,
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          composed: true
+        });
 
-      const altUpEvent = new KeyboardEvent("keyup", {
-        key: "Alt",
-        code: "AltLeft",
-        keyCode: 18,
-        which: 18,
-        altKey: false,
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        composed: true
-      });
+        const altUpEvent = new KeyboardEvent("keyup", {
+          key: "Alt",
+          code: "AltLeft",
+          keyCode: 18,
+          which: 18,
+          altKey: false,
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          composed: true
+        });
 
-      // Dispatch events in sequence with longer delays
-      logMessage("Dispatching ALT+SPACE events...");
-      document.dispatchEvent(altDownEvent);
-      setTimeout(() => {
-        document.dispatchEvent(spaceDownEvent);
+        // Dispatch events in sequence with longer delays
+        logMessage("Dispatching ALT+SPACE events...");
+        document.dispatchEvent(altDownEvent);
         setTimeout(() => {
-          document.dispatchEvent(spaceUpEvent);
+          document.dispatchEvent(spaceDownEvent);
           setTimeout(() => {
-            document.dispatchEvent(altUpEvent);
-            logMessage("ALT+SPACE events completed");
-            
-            // Method 2.1: Try to click on "Fullscreen" menu item after ALT+SPACE
+            document.dispatchEvent(spaceUpEvent);
             setTimeout(() => {
-              try {
-                logMessage("Trying to click on Fullscreen menu item...");
-                // Look for menu items that might contain "Fullscreen" text
-                const menuItems = document.querySelectorAll('*');
-                for (let item of menuItems) {
-                  if (item.textContent && item.textContent.toLowerCase().includes('fullscreen')) {
-                    logMessage("Found Fullscreen menu item, clicking...");
-                    item.click();
-                    break;
+              document.dispatchEvent(altUpEvent);
+              logMessage("ALT+SPACE events completed");
+              
+              // Method 2.1: Try to click on "Fullscreen" menu item after ALT+SPACE
+              setTimeout(() => {
+                try {
+                  logMessage("Trying to click on Fullscreen menu item...");
+                  // Look for menu items that might contain "Fullscreen" text
+                  const menuItems = document.querySelectorAll('*');
+                  for (let item of menuItems) {
+                    if (item.textContent && item.textContent.toLowerCase().includes('fullscreen')) {
+                      logMessage("Found Fullscreen menu item, clicking...");
+                      item.click();
+                      break;
+                    }
                   }
+                } catch (e) {
+                  logMessage("Menu item click failed: " + e.message);
                 }
-              } catch (e) {
-                logMessage("Menu item click failed: " + e.message);
-              }
-            }, 200);
-            
+              }, 200);
+              
+            }, 100);
           }, 100);
         }, 100);
-      }, 100);
-    } catch (e) {
-      logMessage("Method 2 failed: " + e.message);
-    }
+      } catch (e) {
+        logMessage("Method 2 failed: " + e.message);
+      }
+    }, 200);
     
-    // Method 3: Try F11 to toggle fullscreen
+    // Method 4: Try F11 to toggle fullscreen
     setTimeout(() => {
       try {
         logMessage("Trying F11 to exit fullscreen...");
@@ -319,25 +356,6 @@
         logMessage("F11 method failed: " + e.message);
       }
     }, 500);
-    
-    // Method 4: Try ESC key
-    setTimeout(() => {
-      try {
-        logMessage("Trying ESC key...");
-        const escEvent = new KeyboardEvent("keydown", {
-          key: "Escape",
-          code: "Escape",
-          keyCode: 27,
-          which: 27,
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        document.dispatchEvent(escEvent);
-      } catch (e) {
-        logMessage("ESC method failed: " + e.message);
-      }
-    }, 1000);
     
     // Method 5: Try Super+Down (Linux window management)
     setTimeout(() => {
@@ -357,7 +375,7 @@
       } catch (e) {
         logMessage("Super+Down method failed: " + e.message);
       }
-    }, 1500);
+    }, 1000);
     
     // Method 6: Try to exit fullscreen via browser API
     setTimeout(() => {
@@ -376,7 +394,7 @@
       } catch (e) {
         logMessage("Fullscreen exit API failed: " + e.message);
       }
-    }, 2000);
+    }, 1500);
     
     // Method 7: Try to open browser menu programmatically
     setTimeout(() => {
@@ -394,7 +412,7 @@
       } catch (e) {
         logMessage("Context menu method failed: " + e.message);
       }
-    }, 2500);
+    }, 2000);
     
     logMessage("All exit methods attempted");
   }
@@ -453,6 +471,8 @@
 
   function tryLinuxWindowManagement() {
     logMessage("Trying Linux-specific window management...");
+    logMessage("Session type: LXDE-pi-labwc");
+    logMessage("Browser started with --kiosk flag");
     
     // Method 1: Try ALT+F4 (close window)
     setTimeout(() => {
@@ -523,6 +543,76 @@
         logMessage("Parent window message failed: " + e.message);
       }
     }, 1500);
+    
+    // Method 5: Try to restart browser in non-kiosk mode
+    setTimeout(() => {
+      try {
+        logMessage("Trying to restart browser in non-kiosk mode...");
+        // This will only work if the browser was started with a script
+        window.location.href = 'about:restart';
+      } catch (e) {
+        logMessage("Browser restart failed: " + e.message);
+      }
+    }, 2000);
+  }
+
+  function showKioskInfo() {
+    const info = `
+Kiosk Mode Information:
+- Session: LXDE-pi-labwc
+- Browser: Chromium with --kiosk flag
+- Window Manager: labwc (lightweight)
+- Fullscreen: ${document.fullscreenElement ? 'Yes' : 'No'}
+- Window size: ${window.innerWidth}x${window.innerHeight}
+- Screen size: ${window.screen.width}x${window.screen.height}
+
+Solutions:
+1. Remove --kiosk flag from startup script
+2. Use --start-maximized instead
+3. Add physical exit button
+4. Use SSH to kill browser process
+
+Current startup command:
+/usr/bin/chromium-browser --kiosk --disable-restore-session-state
+    `;
+    alert(info);
+  }
+
+  function sendEscKey() {
+    logMessage("Sending ESC key (should work since physical ESC works)...");
+    
+    try {
+      // Send keydown event
+      const escDownEvent = new KeyboardEvent("keydown", {
+        key: "Escape",
+        code: "Escape",
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      document.dispatchEvent(escDownEvent);
+      logMessage("ESC keydown sent");
+      
+      // Send keyup event after a short delay
+      setTimeout(() => {
+        const escUpEvent = new KeyboardEvent("keyup", {
+          key: "Escape",
+          code: "Escape",
+          keyCode: 27,
+          which: 27,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(escUpEvent);
+        logMessage("ESC keyup sent");
+      }, 100);
+      
+    } catch (e) {
+      logMessage("ESC key sending failed: " + e.message);
+    }
   }
 
   document.addEventListener('turbo:load', function () {
@@ -691,6 +781,12 @@
     </p>
     <p>
       <%= custom_link_to "Try Linux Window Management", "javascript:tryLinuxWindowManagement()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_linux_wm", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Kiosk Info", "javascript:showKioskInfo()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "kiosk_info", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Send ESC Key (Physical ESC)", "javascript:sendEscKey()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "send_esc_key", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
