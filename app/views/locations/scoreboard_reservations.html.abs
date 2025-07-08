@@ -1,0 +1,181 @@
+  function showTemporaryExitSolutions() {
+    const solutions = `
+TEMPORARY EXIT SOLUTIONS:
+
+Goal: Exit scoreboard temporarily to access desktop, then return
+
+SOLUTIONS:
+
+1. APP MODE WITH EXIT BUTTON:
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
+   
+   - X button in top-right corner works
+   - ALT+F4 works to close
+   - Returns to desktop with panel visible
+
+2. MAXIMIZED MODE WITH EXIT:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security
+   
+   - ESC exits fullscreen
+   - ALT+F4 closes browser
+   - Panel remains visible
+
+3. HYBRID APPROACH:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)"
+   
+   - Combines app mode with maximized
+   - Multiple exit options
+
+4. DESKTOP ACCESS SCRIPT:
+   #!/bin/bash
+   # Create /usr/local/bin/exit-scoreboard.sh
+   pkill chromium-browser
+   sleep 2
+   # Optional: Start file manager or terminal
+   pcmanfm &
+   
+   # Create /usr/local/bin/restart-scoreboard.sh
+   pkill pcmanfm 2>/dev/null || true
+   /usr/local/bin/start-scoreboard.sh
+
+5. KEYBOARD SHORTCUTS:
+   # Add to ~/.config/openbox/rc.xml or labwc config
+   <keybind key="F12">
+     <action name="Execute">
+       <command>/usr/local/bin/exit-scoreboard.sh</command>
+     </action>
+   </keybind>
+   
+   <keybind key="F11">
+     <action name="Execute">
+       <command>/usr/local/bin/restart-scoreboard.sh</command>
+     </action>
+   </keybind>
+
+6. TOUCHSCREEN EXIT BUTTON:
+   # Add a small exit button to your scoreboard page
+   # That calls: window.close() or navigates to desktop
+
+7. SSH EXIT COMMANDS:
+   # From another computer:
+   ssh pi@scoreboard "pkill chromium-browser"
+   ssh pi@scoreboard "/usr/local/bin/restart-scoreboard.sh"
+
+RECOMMENDATION: Try option 1 (App Mode) first!
+    `;
+    alert(solutions);
+  }
+
+  function showTrueFullscreenSolutions() {
+    const solutions = `
+TRUE FULLSCREEN SOLUTIONS (No bars/lines):
+
+Goal: True fullscreen without any UI elements, but with exit capability
+
+SOLUTIONS:
+
+1. PANEL HIDE/SHOW SCRIPT:
+   #!/bin/bash
+   # /usr/local/bin/start-scoreboard.sh
+   
+   # Hide panel before starting
+   wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+   wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
+   
+   # Start browser in true fullscreen
+   /usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)" &
+   
+   # Wait for browser to start
+   sleep 3
+   
+   # Make sure it's fullscreen
+   wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+2. EXIT SCRIPT WITH PANEL RESTORE:
+   #!/bin/bash
+   # /usr/local/bin/exit-scoreboard.sh
+   
+   # Kill browser
+   pkill chromium-browser
+   sleep 2
+   
+   # Show panel again
+   wmctrl -r "panel" -b remove,hidden 2>/dev/null || true
+   wmctrl -r "lxpanel" -b remove,hidden 2>/dev/null || true
+   
+   # Start desktop environment
+   pcmanfm --desktop &
+
+3. RESTART SCRIPT:
+   #!/bin/bash
+   # /usr/local/bin/restart-scoreboard.sh
+   
+   # Kill desktop apps
+   pkill pcmanfm 2>/dev/null || true
+   
+   # Restart scoreboard
+   /usr/local/bin/start-scoreboard.sh
+
+4. LABWC CONFIGURATION:
+   # Edit ~/.config/labwc/rc.xml
+   <application name="chromium-browser">
+     <fullscreen>yes</fullscreen>
+     <decor>no</decor>
+     <skip_taskbar>yes</skip_taskbar>
+   </application>
+   
+   <application name="panel">
+     <skip_taskbar>yes</skip_taskbar>
+     <skip_pager>yes</skip_pager>
+   </application>
+
+5. KEYBOARD SHORTCUTS:
+   # Add to ~/.config/labwc/rc.xml
+   <keybind key="F12">
+     <action name="Execute">
+       <command>/usr/local/bin/exit-scoreboard.sh</command>
+     </action>
+   </keybind>
+   
+   <keybind key="F11">
+     <action name="Execute">
+       <command>/usr/local/bin/restart-scoreboard.sh</command>
+     </action>
+   </keybind>
+
+6. SYSTEMD SERVICE WITH PANEL CONTROL:
+   # /etc/systemd/system/scoreboard.service
+   [Unit]
+   Description=Scoreboard Browser
+   After=graphical-session.target
+   
+   [Service]
+   Type=simple
+   User=pi
+   Environment=DISPLAY=:0
+   ExecStartPre=/bin/bash -c "wmctrl -r panel -b add,hidden 2>/dev/null || true"
+   ExecStart=/usr/local/bin/start-scoreboard.sh
+   ExecStop=/bin/bash -c "wmctrl -r panel -b remove,hidden 2>/dev/null || true"
+   Restart=no
+   
+   [Install]
+   WantedBy=graphical-session.target
+
+7. TOUCHSCREEN EXIT BUTTON:
+   # Add to your scoreboard page
+   <button onclick="window.close()">Exit to Desktop</button>
+   # or
+   <button onclick="location.href='file:///home/pi/Desktop'">Exit to Desktop</button>
+
+WORKFLOW:
+1. Panel wird versteckt
+2. Browser startet in echtem Fullscreen
+3. F12 oder Touch-Button zum Exit
+4. Panel wird wieder sichtbar
+5. Desktop ist zugänglich
+6. F11 oder Script zum Restart
+
+RECOMMENDATION: Try option 1 first!
+    `;
+    alert(solutions);
+  } 
