@@ -615,6 +615,90 @@ Current startup command:
     }
   }
 
+  function triggerXButton() {
+    logMessage("Trying to trigger X button by mouse movement...");
+    
+    // Method 1: Move mouse to top of screen to trigger X button
+    try {
+      logMessage("Moving mouse to top of screen...");
+      const mouseMoveEvent = new MouseEvent("mousemove", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: window.innerWidth / 2,
+        clientY: 5
+      });
+      document.dispatchEvent(mouseMoveEvent);
+      logMessage("Mouse moved to top");
+      
+      // Wait a bit and then try to click where X button might appear
+      setTimeout(() => {
+        try {
+          logMessage("Trying to click where X button might be...");
+          const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: window.innerWidth - 30,
+            clientY: 15
+          });
+          document.dispatchEvent(clickEvent);
+          logMessage("Click sent to X button area");
+        } catch (e) {
+          logMessage("X button click failed: " + e.message);
+        }
+      }, 500);
+      
+    } catch (e) {
+      logMessage("Mouse movement failed: " + e.message);
+    }
+    
+    // Method 2: Try to find and click any close button
+    setTimeout(() => {
+      try {
+        logMessage("Looking for close buttons in DOM...");
+        const closeButtons = document.querySelectorAll('button, a, div');
+        for (let button of closeButtons) {
+          const text = button.textContent || button.title || '';
+          if (text.toLowerCase().includes('close') || 
+              text.toLowerCase().includes('exit') || 
+              text.toLowerCase().includes('x') ||
+              button.className.toLowerCase().includes('close') ||
+              button.id.toLowerCase().includes('close')) {
+            logMessage("Found potential close button: " + text);
+            button.click();
+            break;
+          }
+        }
+      } catch (e) {
+        logMessage("Close button search failed: " + e.message);
+      }
+    }, 1000);
+  }
+
+  function tryAlternativeStartup() {
+    logMessage("Trying to restart browser with alternative flags...");
+    
+    // Try to navigate to a special URL that might trigger restart
+    try {
+      // Method 1: Try chrome://restart
+      window.location.href = 'chrome://restart';
+      logMessage("Navigated to chrome://restart");
+    } catch (e) {
+      logMessage("chrome://restart failed: " + e.message);
+      
+      // Method 2: Try to reload with different parameters
+      try {
+        const currentUrl = window.location.href;
+        const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'exit_fullscreen=true';
+        window.location.href = newUrl;
+        logMessage("Reloaded with exit_fullscreen parameter");
+      } catch (e2) {
+        logMessage("Reload with parameter failed: " + e2.message);
+      }
+    }
+  }
+
   document.addEventListener('turbo:load', function () {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
@@ -787,6 +871,12 @@ Current startup command:
     </p>
     <p>
       <%= custom_link_to "Send ESC Key (Physical ESC)", "javascript:sendEscKey()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "send_esc_key", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Trigger X Button", "javascript:triggerXButton()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-2vw", id: "trigger_x_button", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Try Alternative Startup", "javascript:tryAlternativeStartup()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_alternative_startup", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
