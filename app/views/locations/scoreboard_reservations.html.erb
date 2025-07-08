@@ -699,6 +699,659 @@ Current startup command:
     }
   }
 
+  function showStartupOptions() {
+    const options = `
+Alternative Chromium Startup Options:
+
+1. Fullscreen ohne Kiosk:
+/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security
+
+2. App-Modus (Fullscreen):
+/usr/bin/chromium-browser --app=URL --disable-restore-session-state --disable-web-security
+
+3. Maximiert + Auto-Fullscreen:
+/usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --auto-open-devtools-for-tabs
+
+4. Kiosk mit Exit-Möglichkeit:
+/usr/bin/chromium-browser --kiosk --disable-restore-session-state --disable-web-security --disable-features=VizDisplayCompositor --enable-features=OverlayScrollbar
+
+5. Maximiert + JavaScript Fullscreen:
+/usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --allow-running-insecure-content
+
+6. App-Modus mit URL:
+/usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state
+
+7. Fullscreen mit Exit-Key:
+/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --disable-features=VizDisplayCompositor
+
+8. Maximiert + Auto-Enter-Fullscreen:
+/usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --disable-features=VizDisplayCompositor
+
+Empfehlung: Option 1 oder 7 testen!
+    `;
+    alert(options);
+  }
+
+  function tryEnterFullscreen() {
+    logMessage("Trying to enter fullscreen mode programmatically...");
+    
+    try {
+      // Method 1: Try standard fullscreen API
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+        logMessage("Standard fullscreen API called");
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+        logMessage("Webkit fullscreen API called");
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+        logMessage("Mozilla fullscreen API called");
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+        logMessage("MS fullscreen API called");
+      } else {
+        logMessage("No fullscreen API available");
+      }
+    } catch (e) {
+      logMessage("Fullscreen API failed: " + e.message);
+    }
+    
+    // Method 2: Try F11 key
+    setTimeout(() => {
+      try {
+        logMessage("Trying F11 to enter fullscreen...");
+        const f11Event = new KeyboardEvent("keydown", {
+          key: "F11",
+          code: "F11",
+          keyCode: 122,
+          which: 122,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(f11Event);
+      } catch (e) {
+        logMessage("F11 method failed: " + e.message);
+      }
+    }, 500);
+  }
+
+  function showCurrentStatus() {
+    const status = `
+Current Status Analysis:
+- Browser: Chromium with --start-fullscreen
+- Behavior: Like kiosk mode (only physical events work)
+- JavaScript events: Blocked by browser security
+- Physical ESC: Works
+- Physical ALT+F4: Should work
+
+SOLUTIONS (in order of recommendation):
+
+1. APP MODE (Best):
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state
+   - Fullscreen without browser UI
+   - ALT+F4 works to exit
+   - No JavaScript restrictions
+
+2. MAXIMIZED + JAVASCRIPT FULLSCREEN:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security
+   - Starts maximized
+   - JavaScript can control fullscreen
+   - ESC works to exit
+
+3. PHYSICAL EXIT BUTTON:
+   - USB button or GPIO button
+   - Sends ESC or ALT+F4
+   - Most reliable solution
+
+4. SSH EXIT SCRIPT:
+   #!/bin/bash
+   pkill chromium-browser
+   sleep 2
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state &
+
+5. CRON AUTO-RESTART:
+   0 */6 * * * pkill chromium-browser && sleep 5 && /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state &
+
+RECOMMENDATION: Try APP MODE first!
+    `;
+    alert(status);
+  }
+
+  function showAppModeSolutions() {
+    const solutions = `
+APP MODE WINDOW SIZING SOLUTIONS:
+
+Problem: App mode shows narrow strip at top, needs mouse to resize
+
+SOLUTIONS:
+
+1. APP MODE WITH WINDOW SIZE:
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=1920,1080 --window-position=0,0 --disable-restore-session-state
+
+2. APP MODE WITH SCREEN SIZE:
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
+
+3. APP MODE + WINDOW MANAGER COMMANDS:
+   #!/bin/bash
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state &
+   sleep 3
+   wmctrl -r "Chromium" -b add,fullscreen
+   # or
+   xdotool search --name "Chromium" windowactivate && xdotool key F11
+
+4. APP MODE + JAVASCRIPT FULLSCREEN:
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --start-maximized --disable-restore-session-state
+   # Then use JavaScript to enter fullscreen
+
+5. HYBRID APPROACH:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)"
+
+6. WINDOW MANAGER CONFIG:
+   # Add to ~/.config/labwc/rc.xml or similar
+   <application name="chromium-browser">
+     <fullscreen>yes</fullscreen>
+   </application>
+
+RECOMMENDATION: Try option 1 or 3!
+    `;
+    alert(solutions);
+  }
+
+  function showPanelHidingSolutions() {
+    const solutions = `
+SYSTEM PANEL HIDING SOLUTIONS:
+
+Problem: System panel/taskbar remains visible, window can't go fullscreen
+
+SOLUTIONS:
+
+1. HIDE PANEL VIA AUTOSTART SCRIPT:
+   #!/bin/bash
+   # Hide panel before starting browser
+   wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+   # or
+   xdotool search --name "panel" windowunmap 2>/dev/null || true
+   
+   # Start browser
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
+
+2. LABWC CONFIGURATION:
+   # Edit ~/.config/labwc/rc.xml
+   <application name="panel">
+     <decor>no</decor>
+     <skip_taskbar>yes</skip_taskbar>
+     <skip_pager>yes</skip_pager>
+   </application>
+   
+   <application name="chromium-browser">
+     <fullscreen>yes</fullscreen>
+     <decor>no</decor>
+   </application>
+
+3. LXDE PANEL CONFIG:
+   # Edit ~/.config/lxpanel/LXDE-pi/panels/panel
+   # Add: ToggleButton=0
+   # Or disable panel completely
+
+4. WINDOW MANAGER COMMANDS:
+   #!/bin/bash
+   # Kill panel process
+   pkill lxpanel 2>/dev/null || true
+   pkill lxpanelctl 2>/dev/null || true
+   
+   # Start browser
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
+
+5. ALTERNATIVE: USE OPENBOX INSTEAD OF LABWC:
+   # Install openbox
+   sudo apt install openbox
+   
+   # Configure openbox to hide panel
+   # Edit ~/.config/openbox/rc.xml
+
+6. FULLSCREEN SCRIPT:
+   #!/bin/bash
+   # Hide panel
+   wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+   
+   # Start browser
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state &
+   
+   # Wait and make fullscreen
+   sleep 3
+   wmctrl -r "Chromium" -b add,fullscreen
+
+RECOMMENDATION: Try option 1 or 4 first!
+    `;
+    alert(solutions);
+  }
+
+  function showLXDESolutions() {
+    const solutions = `
+LXDE PANEL PERMANENT DISABLE SOLUTIONS:
+
+Problem: lxpanel restarts automatically after being killed
+
+PERMANENT SOLUTIONS:
+
+1. DISABLE LXDE AUTOSTART:
+   # Edit ~/.config/lxsession/LXDE-pi/autostart
+   # Comment out or remove these lines:
+   # @lxpanel --profile LXDE-pi
+   # @pcmanfm --desktop --profile LXDE-pi
+   
+   # Add your browser startup instead:
+   @/usr/local/bin/start-scoreboard.sh
+
+2. DISABLE PANEL VIA CONFIG:
+   # Edit ~/.config/lxpanel/LXDE-pi/panels/panel
+   # Add at the top:
+   ToggleButton=0
+   # Or rename the file to disable it:
+   mv ~/.config/lxpanel/LXDE-pi/panels/panel ~/.config/lxpanel/LXDE-pi/panels/panel.disabled
+
+3. CREATE CUSTOM SESSION:
+   # Create ~/.config/lxsession/LXDE-pi/desktop.conf
+   [*]
+   window_manager=labwc
+   panel=
+   
+   # Create ~/.config/lxsession/LXDE-pi/autostart
+   @/usr/local/bin/start-scoreboard.sh
+
+4. SYSTEMD SERVICE APPROACH:
+   # Create /etc/systemd/system/scoreboard.service
+   [Unit]
+   Description=Scoreboard Browser
+   After=graphical-session.target
+   
+   [Service]
+   Type=simple
+   User=pi
+   Environment=DISPLAY=:0
+   ExecStartPre=/bin/bash -c "pkill lxpanel || true"
+   ExecStart=/usr/local/bin/start-scoreboard.sh
+   Restart=always
+   
+   [Install]
+   WantedBy=graphical-session.target
+
+5. LABWC CONFIGURATION:
+   # Edit ~/.config/labwc/rc.xml
+   <application name="lxpanel">
+     <skip_taskbar>yes</skip_taskbar>
+     <skip_pager>yes</skip_pager>
+     <decor>no</decor>
+   </application>
+   
+   <application name="panel">
+     <skip_taskbar>yes</skip_taskbar>
+     <skip_pager>yes</skip_pager>
+     <decor>no</decor>
+   </application>
+
+6. ALTERNATIVE: MINIMAL SESSION:
+   # Install minimal window manager
+   sudo apt install openbox
+   
+   # Create ~/.xinitrc
+   #!/bin/bash
+   /usr/local/bin/start-scoreboard.sh &
+   exec openbox-session
+
+RECOMMENDATION: Try option 1 or 2 first!
+    `;
+    alert(solutions);
+  }
+
+  function showTemporaryExitSolutions() {
+    const solutions = `
+TEMPORARY EXIT SOLUTIONS:
+
+Goal: Exit scoreboard temporarily to access desktop, then return
+
+SOLUTIONS:
+
+1. APP MODE WITH EXIT BUTTON:
+   /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
+   
+   - X button in top-right corner works
+   - ALT+F4 works to close
+   - Returns to desktop with panel visible
+
+2. MAXIMIZED MODE WITH EXIT:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security
+   
+   - ESC exits fullscreen
+   - ALT+F4 closes browser
+   - Panel remains visible
+
+3. HYBRID APPROACH:
+   /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)"
+   
+   - Combines app mode with maximized
+   - Multiple exit options
+
+4. DESKTOP ACCESS SCRIPT:
+   #!/bin/bash
+   # Create /usr/local/bin/exit-scoreboard.sh
+   pkill chromium-browser
+   sleep 2
+   # Optional: Start file manager or terminal
+   pcmanfm &
+   
+   # Create /usr/local/bin/restart-scoreboard.sh
+   pkill pcmanfm 2>/dev/null || true
+   /usr/local/bin/start-scoreboard.sh
+
+5. KEYBOARD SHORTCUTS:
+   # Add to ~/.config/openbox/rc.xml or labwc config
+   <keybind key="F12">
+     <action name="Execute">
+       <command>/usr/local/bin/exit-scoreboard.sh</command>
+     </action>
+   </keybind>
+   
+   <keybind key="F11">
+     <action name="Execute">
+       <command>/usr/local/bin/restart-scoreboard.sh</command>
+     </action>
+   </keybind>
+
+6. TOUCHSCREEN EXIT BUTTON:
+   # Add a small exit button to your scoreboard page
+   # That calls: window.close() or navigates to desktop
+
+7. SSH EXIT COMMANDS:
+   # From another computer:
+   ssh pi@scoreboard "pkill chromium-browser"
+   ssh pi@scoreboard "/usr/local/bin/restart-scoreboard.sh"
+
+RECOMMENDATION: Try option 1 (App Mode) first!
+    `;
+    alert(solutions);
+  }
+
+  function showTrueFullscreenSolutions() {
+    const solutions = `
+TRUE FULLSCREEN SOLUTIONS (No bars/lines):
+
+Goal: True fullscreen without any UI elements, but with exit capability
+
+SOLUTIONS:
+
+1. PANEL HIDE/SHOW SCRIPT:
+   #!/bin/bash
+   # /usr/local/bin/start-scoreboard.sh
+   
+   # Hide panel before starting
+   wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+   wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
+   
+   # Start browser in true fullscreen
+   /usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)" &
+   
+   # Wait for browser to start
+   sleep 3
+   
+   # Make sure it's fullscreen
+   wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+2. EXIT SCRIPT WITH PANEL RESTORE:
+   #!/bin/bash
+   # /usr/local/bin/exit-scoreboard.sh
+   
+   # Kill browser
+   pkill chromium-browser
+   sleep 2
+   
+   # Show panel again
+   wmctrl -r "panel" -b remove,hidden 2>/dev/null || true
+   wmctrl -r "lxpanel" -b remove,hidden 2>/dev/null || true
+   
+   # Start desktop environment
+   pcmanfm --desktop &
+
+3. RESTART SCRIPT:
+   #!/bin/bash
+   # /usr/local/bin/restart-scoreboard.sh
+   
+   # Kill desktop apps
+   pkill pcmanfm 2>/dev/null || true
+   
+   # Restart scoreboard
+   /usr/local/bin/start-scoreboard.sh
+
+4. LABWC CONFIGURATION:
+   # Edit ~/.config/labwc/rc.xml
+   <application name="chromium-browser">
+     <fullscreen>yes</fullscreen>
+     <decor>no</decor>
+     <skip_taskbar>yes</skip_taskbar>
+   </application>
+   
+   <application name="panel">
+     <skip_taskbar>yes</skip_taskbar>
+     <skip_pager>yes</skip_pager>
+   </application>
+
+5. KEYBOARD SHORTCUTS:
+   # Add to ~/.config/labwc/rc.xml
+   <keybind key="F12">
+     <action name="Execute">
+       <command>/usr/local/bin/exit-scoreboard.sh</command>
+     </action>
+   </keybind>
+   
+   <keybind key="F11">
+     <action name="Execute">
+       <command>/usr/local/bin/restart-scoreboard.sh</command>
+     </action>
+   </keybind>
+
+6. SYSTEMD SERVICE WITH PANEL CONTROL:
+   # /etc/systemd/system/scoreboard.service
+   [Unit]
+   Description=Scoreboard Browser
+   After=graphical-session.target
+   
+   [Service]
+   Type=simple
+   User=pi
+   Environment=DISPLAY=:0
+   ExecStartPre=/bin/bash -c "wmctrl -r panel -b add,hidden 2>/dev/null || true"
+   ExecStart=/usr/local/bin/start-scoreboard.sh
+   ExecStop=/bin/bash -c "wmctrl -r panel -b remove,hidden 2>/dev/null || true"
+   Restart=no
+   
+   [Install]
+   WantedBy=graphical-session.target
+
+7. TOUCHSCREEN EXIT BUTTON:
+   # Add to your scoreboard page
+   <button onclick="window.close()">Exit to Desktop</button>
+   # or
+   <button onclick="location.href='file:///home/pi/Desktop'">Exit to Desktop</button>
+
+WORKFLOW:
+1. Panel wird versteckt
+2. Browser startet in echtem Fullscreen
+3. F12 oder Touch-Button zum Exit
+4. Panel wird wieder sichtbar
+5. Desktop ist zugänglich
+6. F11 oder Script zum Restart
+
+RECOMMENDATION: Try option 1 first!
+    `;
+    alert(solutions);
+  }
+
+  function showAutostartConfiguration() {
+    const config = `
+AUTOSTART CONFIGURATION STEPS:
+
+To make scoreboard start automatically after boot:
+
+STEP 1: CREATE STARTUP SCRIPT
+# Create the startup script
+sudo nano /usr/local/bin/start-scoreboard.sh
+
+# Add this content:
+#!/bin/bash
+# Hide panel before starting
+wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
+
+# Start browser in true fullscreen
+/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)" &
+
+# Wait for browser to start
+sleep 3
+
+# Make sure it's fullscreen
+wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+# Make it executable
+sudo chmod +x /usr/local/bin/start-scoreboard.sh
+
+STEP 2: CREATE EXIT SCRIPT
+sudo nano /usr/local/bin/exit-scoreboard.sh
+
+# Add this content:
+#!/bin/bash
+# Kill browser
+pkill chromium-browser
+sleep 2
+
+# Show panel again
+wmctrl -r "panel" -b remove,hidden 2>/dev/null || true
+wmctrl -r "lxpanel" -b remove,hidden 2>/dev/null || true
+
+# Start desktop environment
+pcmanfm --desktop &
+
+# Make it executable
+sudo chmod +x /usr/local/bin/exit-scoreboard.sh
+
+STEP 3: CREATE RESTART SCRIPT
+sudo nano /usr/local/bin/restart-scoreboard.sh
+
+# Add this content:
+#!/bin/bash
+# Kill desktop apps
+pkill pcmanfm 2>/dev/null || true
+
+# Restart scoreboard
+/usr/local/bin/start-scoreboard.sh
+
+# Make it executable
+sudo chmod +x /usr/local/bin/restart-scoreboard.sh
+
+STEP 4: CONFIGURE AUTOSTART
+# Edit LXDE autostart file
+nano ~/.config/lxsession/LXDE-pi/autostart
+
+# Comment out or remove these lines:
+# @lxpanel --profile LXDE-pi
+# @pcmanfm --desktop --profile LXDE-pi
+
+# Add your scoreboard startup:
+@/usr/local/bin/start-scoreboard.sh
+
+STEP 5: ADD KEYBOARD SHORTCUTS (Optional)
+# Edit labwc configuration
+nano ~/.config/labwc/rc.xml
+
+# Add inside <keyboard> section:
+<keybind key="F12">
+  <action name="Execute">
+    <command>/usr/local/bin/exit-scoreboard.sh</command>
+  </action>
+</keybind>
+
+<keybind key="F11">
+  <action name="Execute">
+    <command>/usr/local/bin/restart-scoreboard.sh</command>
+  </action>
+</keybind>
+
+STEP 6: TEST THE SETUP
+# Test the startup script manually
+/usr/local/bin/start-scoreboard.sh
+
+# Test exit script
+/usr/local/bin/exit-scoreboard.sh
+
+# Test restart script
+/usr/local/bin/restart-scoreboard.sh
+
+STEP 7: REBOOT TO TEST
+sudo reboot
+
+# After reboot, scoreboard should start automatically in fullscreen
+
+TROUBLESHOOTING:
+- If it doesn't work, check logs: journalctl -u lxsession
+- If panel doesn't hide: install wmctrl: sudo apt install wmctrl
+- If browser doesn't start: check URL in config file
+- If fullscreen doesn't work: check labwc configuration
+
+RECOMMENDATION: Follow steps 1-7 in order!
+    `;
+    alert(config);
+  }
+
+  function tryResizeWindow() {
+    logMessage("Trying to resize window programmatically...");
+    
+    // Method 1: Try to resize window via window.resizeTo
+    try {
+      const screenWidth = window.screen.width;
+      const screenHeight = window.screen.height;
+      logMessage("Screen size: " + screenWidth + "x" + screenHeight);
+      
+      window.resizeTo(screenWidth, screenHeight);
+      window.moveTo(0, 0);
+      logMessage("Window resized to screen size");
+    } catch (e) {
+      logMessage("Window resize failed: " + e.message);
+    }
+    
+    // Method 2: Try to enter fullscreen via API
+    setTimeout(() => {
+      try {
+        logMessage("Trying to enter fullscreen after resize...");
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
+        logMessage("Fullscreen API called after resize");
+      } catch (e) {
+        logMessage("Fullscreen after resize failed: " + e.message);
+      }
+    }, 500);
+    
+    // Method 3: Try to click on maximize button area
+    setTimeout(() => {
+      try {
+        logMessage("Trying to click maximize button area...");
+        const maximizeClick = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: window.innerWidth - 30,
+          clientY: 15
+        });
+        document.dispatchEvent(maximizeClick);
+        logMessage("Maximize button click sent");
+      } catch (e) {
+        logMessage("Maximize button click failed: " + e.message);
+      }
+    }, 1000);
+  }
+
   document.addEventListener('turbo:load', function () {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
     if (!window.hotkeys) {
@@ -877,6 +1530,36 @@ Current startup command:
     </p>
     <p>
       <%= custom_link_to "Try Alternative Startup", "javascript:tryAlternativeStartup()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_alternative_startup", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Startup Options", "javascript:showStartupOptions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_startup_options", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Try Enter Fullscreen", "javascript:tryEnterFullscreen()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-success text-2vw", id: "try_fullscreen", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Current Status", "javascript:showCurrentStatus()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "show_status", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show App Mode Solutions", "javascript:showAppModeSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_app_solutions", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Panel Hiding Solutions", "javascript:showPanelHidingSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_panel_hiding_solutions", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Try Resize Window", "javascript:tryResizeWindow()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "try_resize_window", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show LXDE Solutions", "javascript:showLXDESolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_lxde_solutions", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Temporary Exit Solutions", "javascript:showTemporaryExitSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "show_temp_exit_solutions", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show True Fullscreen Solutions", "javascript:showTrueFullscreenSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_true_fullscreen_solutions", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Autostart Configuration", "javascript:showAutostartConfiguration()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_autostart_config", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
