@@ -214,7 +214,7 @@
       logMessage("Window focus failed: " + e.message);
     }
     
-    // Method 2: Try to trigger window menu
+    // Method 2: Try to trigger window menu (Linux desktop environment)
     try {
       // Create a more aggressive ALT+SPACE event
       const altDownEvent = new KeyboardEvent("keydown", {
@@ -275,6 +275,25 @@
           setTimeout(() => {
             document.dispatchEvent(altUpEvent);
             logMessage("ALT+SPACE events completed");
+            
+            // Method 2.1: Try to click on "Fullscreen" menu item after ALT+SPACE
+            setTimeout(() => {
+              try {
+                logMessage("Trying to click on Fullscreen menu item...");
+                // Look for menu items that might contain "Fullscreen" text
+                const menuItems = document.querySelectorAll('*');
+                for (let item of menuItems) {
+                  if (item.textContent && item.textContent.toLowerCase().includes('fullscreen')) {
+                    logMessage("Found Fullscreen menu item, clicking...");
+                    item.click();
+                    break;
+                  }
+                }
+              } catch (e) {
+                logMessage("Menu item click failed: " + e.message);
+              }
+            }, 200);
+            
           }, 100);
         }, 100);
       }, 100);
@@ -320,7 +339,46 @@
       }
     }, 1000);
     
-    // Method 5: Try to open browser menu programmatically
+    // Method 5: Try Super+Down (Linux window management)
+    setTimeout(() => {
+      try {
+        logMessage("Trying Super+Down (Linux window management)...");
+        const superDownEvent = new KeyboardEvent("keydown", {
+          key: "ArrowDown",
+          code: "ArrowDown",
+          keyCode: 40,
+          which: 40,
+          metaKey: true, // Super key
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(superDownEvent);
+      } catch (e) {
+        logMessage("Super+Down method failed: " + e.message);
+      }
+    }, 1500);
+    
+    // Method 6: Try to exit fullscreen via browser API
+    setTimeout(() => {
+      try {
+        logMessage("Trying to exit fullscreen via browser API...");
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        logMessage("Fullscreen exit API called");
+      } catch (e) {
+        logMessage("Fullscreen exit API failed: " + e.message);
+      }
+    }, 2000);
+    
+    // Method 7: Try to open browser menu programmatically
     setTimeout(() => {
       try {
         logMessage("Trying to open browser menu...");
@@ -336,7 +394,7 @@
       } catch (e) {
         logMessage("Context menu method failed: " + e.message);
       }
-    }, 1500);
+    }, 2500);
     
     logMessage("All exit methods attempted");
   }
@@ -370,6 +428,80 @@
   function clearDebugLogs() {
     localStorage.removeItem('kioskDebugLogs');
     alert("Debug logs cleared!");
+  }
+
+  function tryLinuxWindowManagement() {
+    logMessage("Trying Linux-specific window management...");
+    
+    // Method 1: Try ALT+F4 (close window)
+    setTimeout(() => {
+      try {
+        logMessage("Trying ALT+F4...");
+        const altF4Event = new KeyboardEvent("keydown", {
+          key: "F4",
+          code: "F4",
+          keyCode: 115,
+          which: 115,
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(altF4Event);
+      } catch (e) {
+        logMessage("ALT+F4 failed: " + e.message);
+      }
+    }, 100);
+    
+    // Method 2: Try Super+Space (KDE window menu)
+    setTimeout(() => {
+      try {
+        logMessage("Trying Super+Space...");
+        const superSpaceEvent = new KeyboardEvent("keydown", {
+          key: " ",
+          code: "Space",
+          keyCode: 32,
+          which: 32,
+          metaKey: true,
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        document.dispatchEvent(superSpaceEvent);
+      } catch (e) {
+        logMessage("Super+Space failed: " + e.message);
+      }
+    }, 500);
+    
+    // Method 3: Try to simulate mouse click on window title bar
+    setTimeout(() => {
+      try {
+        logMessage("Trying to click on window title bar...");
+        const titleBarClick = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: window.innerWidth / 2,
+          clientY: 5
+        });
+        document.dispatchEvent(titleBarClick);
+      } catch (e) {
+        logMessage("Title bar click failed: " + e.message);
+      }
+    }, 1000);
+    
+    // Method 4: Try to send message to parent window
+    setTimeout(() => {
+      try {
+        logMessage("Trying to send message to parent window...");
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({type: 'exitFullscreen'}, '*');
+          logMessage("Message sent to parent window");
+        }
+      } catch (e) {
+        logMessage("Parent window message failed: " + e.message);
+      }
+    }, 1500);
   }
 
   document.addEventListener('turbo:load', function () {
@@ -532,6 +664,9 @@
     </p>
     <p>
       <%= custom_link_to "Test Kiosk Exit", "javascript:fireAltSpaceEvent()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "test_exit", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Try Linux Window Management", "javascript:tryLinuxWindowManagement()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_linux_wm", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
