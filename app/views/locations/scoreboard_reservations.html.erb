@@ -1187,6 +1187,50 @@ RECOMMENDATION: Try option 1 first!
     alert(solutions);
   }
 
+  function showQuickStartGuide() {
+    const guide = `
+QUICK START GUIDE - BEGIN HERE:
+
+STEP 1: Install required tools
+sudo apt update
+sudo apt install wmctrl
+
+STEP 2: Create the startup script
+sudo nano /usr/local/bin/start-scoreboard.sh
+
+Copy and paste this content:
+#!/bin/bash
+# Hide panel
+wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
+
+# Start browser in fullscreen
+/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --app="http://localhost:3000/locations/1/scoreboard_reservations" &
+
+# Wait and ensure fullscreen
+sleep 3
+wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+STEP 3: Make it executable
+sudo chmod +x /usr/local/bin/start-scoreboard.sh
+
+STEP 4: Test it manually
+/usr/local/bin/start-scoreboard.sh
+
+STEP 5: If it works, add to autostart
+nano ~/.config/lxsession/LXDE-pi/autostart
+
+Add this line at the end:
+@/usr/local/bin/start-scoreboard.sh
+
+STEP 6: Reboot to test
+sudo reboot
+
+That's it! Start with these 6 steps.
+    `;
+    alert(guide);
+  }
+
   function showAutostartConfiguration() {
     const config = `
 AUTOSTART CONFIGURATION STEPS:
@@ -1560,6 +1604,9 @@ RECOMMENDATION: Follow steps 1-7 in order!
     </p>
     <p>
       <%= custom_link_to "Show Autostart Configuration", "javascript:showAutostartConfiguration()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_autostart_config", tabindex: "1" %>
+    </p>
+    <p>
+      <%= custom_link_to "Show Quick Start Guide", "javascript:showQuickStartGuide()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_quick_start_guide", tabindex: "1" %>
     </p>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
