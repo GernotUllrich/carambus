@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Scoreboard startup script
 # This script hides the panel and starts Chromium in fullscreen mode
 

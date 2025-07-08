@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Scoreboard restart script
 # This script kills desktop apps and restarts the scoreboard
 
