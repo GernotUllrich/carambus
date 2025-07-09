@@ -20,13 +20,17 @@ namespace :cleanup do
       LeagueTeam,
       Seeding,
       Player,
+      GamePlan,
       League,
       Tournament,
       Table,
+      ClubLocation,
       Location,
       Club,
       Region
     ]
+
+    stats = {}
 
     # Delete records in order
     deletion_order.each do |model|
@@ -34,19 +38,43 @@ namespace :cleanup do
       puts "\nProcessing #{model.name}..."
       total_before = model.count
 
-      keep_ids = model.where("region_id = '?' OR region_id is NULL OR global_context = TRUE", region_id).ids
-      deleted = total_before - keep_ids.count
-      model.where.not(id: keep_ids).delete_all
+      # Use optimized deletion approach for better performance
+      begin
+        # Use DELETE with direct WHERE clause instead of WHERE NOT IN
+        # This is much more efficient than loading all IDs into memory
+        deleted_count = model.where.not("region_id = #{region_id} OR region_id IS NULL OR global_context = TRUE").delete_all
+        
+        kept_count = total_before - deleted_count
+        
+        stats[model.name] = {
+          before: total_before,
+          after: kept_count,
+          deleted: deleted_count
+        }
 
-      stats[model.name] = {
-        before: total_before,
-        after: total_before - deleted,
-        deleted: deleted
-      }
+        puts "  Before: #{total_before}"
+        puts "  After: #{kept_count}"
+        puts "  Deleted: #{deleted_count}"
+        
+      rescue => e
+        puts "  Error processing #{model.name}: #{e.message}"
+        puts "  Falling back to original method..."
+        
+        # Fallback to original method if optimized approach fails
+        keep_ids = model.where("region_id = #{region_id} OR region_id is NULL OR global_context = TRUE").ids
+        deleted = total_before - keep_ids.count
+        model.where.not(id: keep_ids).delete_all
 
-      puts "  Before: #{total_before}"
-      puts "  After: #{total_before - deleted}"
-      puts "  Deleted: #{deleted}"
+        stats[model.name] = {
+          before: total_before,
+          after: total_before - deleted,
+          deleted: deleted
+        }
+
+        puts "  Before: #{total_before}"
+        puts "  After: #{total_before - deleted}"
+        puts "  Deleted: #{deleted}"
+      end
     end
 
     # Print summary
