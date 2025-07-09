@@ -95,7 +95,7 @@ class Location < ApplicationRecord
 
   def self.scrape_locations_optimized
     Rails.logger.info "===== scrape ===== Starting optimized location scraping"
-    
+
     Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
       last_sync = region.sync_date || 1.year.ago
       if last_sync < 1.day.ago
@@ -137,6 +137,7 @@ class Location < ApplicationRecord
     update(attrs)
     Tournament.where(location_id: with_location_ids).all.each { |l| l.update(location_id: id) }
     Table.where(location_id: with_location_ids).all.each { |l| l.update(location_id: id) }
+    ClubLocation.where(location_id: with_location_ids).all.each { |l| l.update(location_id: id) }
     Location.where(id: with_location_ids).destroy_all
     Rails.logger.info("REPORT Location.merge_locations(#{id}, #{with_location_ids.inspect})")
     reload
