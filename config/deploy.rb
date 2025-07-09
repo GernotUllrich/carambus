@@ -177,10 +177,10 @@ namespace :deploy do
             execute :yarn, "build"
             # Build CSS assets
             execute :yarn, "build:css"
-
+            
             # Ensure the builds directory exists for Rails asset pipeline
             execute :mkdir, "-p app/assets/builds"
-end
+          end
         end
       end
     end
