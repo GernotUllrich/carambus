@@ -137,22 +137,26 @@
 
 <!-- Scoreboard Menu -->
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
-  <% end %>
   <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
     <%= render_svg "icons/refresh", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "refresh/resize window (restores exit button)" %>
   <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
+    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
+  <% end %>
 </div>
 
+<!-- Language Switcher Bottom Right -->
+<% if I18n.locale.to_s == "en" %>
+  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;">
+    <%= custom_link_to image_tag("flag_de.png", style: "width: 40px; height: 28px;"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
+  </div>
+<% else %>
+  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;">
+    <%= custom_link_to image_tag("flag_en.png", style: "width: 40px; height: 28px;"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
+  </div>
+<% end %>
+
 <div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
-  <% if I18n.locale.to_s == "en" %>
-    <%= custom_link_to image_tag("flag_de.png"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-
-  <% else %>
-    <%= custom_link_to image_tag("flag_en.png"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-
-  <% end %>
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
   <p style="text-shadow: 2px 2px #000000" class="mb-6 text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
   <span>

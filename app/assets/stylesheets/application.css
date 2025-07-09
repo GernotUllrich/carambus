@@ -1,0 +1,31 @@
+/* Scoreboard menu styles */
+.scoreboard-menu {
+  gap: 0.5rem !important;
+}
+.scoreboard-menu-btn {
+  background: transparent;
+  border: none;
+  padding: 0.2em 0.2em;
+  border-radius: 0.5em;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scoreboard-menu-btn:active, .scoreboard-menu-btn-active {
+  background: #2d3748;
+  outline: 2px solid #e53e3e;
+}
+.scoreboard-menu-icon,
+.responsive-svg.icon-lg {
+  width: 1.5vw !important;
+  height: 1.5vw !important;
+  min-width: 20px;
+  min-height: 20px;
+  max-width: 40px;
+  max-height: 40px;
+  margin: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle;
+  color: #d1d5db !important; /* fallback for text-gray-300 */
+} 

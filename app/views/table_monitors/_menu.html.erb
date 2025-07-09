@@ -1,4 +1,4 @@
-<n%- table_monitor = local_assigns[:table_monitor] %>
+<%- table_monitor = local_assigns[:table_monitor] %>
 <div style="z-index:999" class="grid grid-cols-5 gap-4 mr-4 dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
   <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
     <%= render_svg "icons/refresh", styles: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-2 lg:m-2 mr-2 dark:text-gray-300 text-gray-300 inline-block", title: "refresh/resize window (restores exit button)" %>
