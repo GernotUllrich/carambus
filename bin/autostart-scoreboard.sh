@@ -20,7 +20,7 @@ sleep 5
 
 # Wait for Rails server (Puma) to be ready
 echo "Waiting for Rails server to start..." >> /tmp/scoreboard-autostart.log
-PUMA_MASTER_PID=$(systemctl show -p MainPID puma.service --value 2>/dev/null)
+PUMA_MASTER_PID=$(systemctl show -p MainPID puma-carambus.service --value 2>/dev/null)
 
 if [ -n "$PUMA_MASTER_PID" ]; then
     # check the number of worker processes
