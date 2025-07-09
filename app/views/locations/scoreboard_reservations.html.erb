@@ -1346,55 +1346,30 @@ RECOMMENDATION: Follow steps 1-7 in order!
     alert(config);
   }
 
-  function tryResizeWindow() {
-    logMessage("Trying to resize window programmatically...");
+
+
+  function toggleDebugMode() {
+    const debugToggle = document.getElementById('debug-toggle');
+    const debugButtons = document.getElementById('debug-buttons');
     
-    // Method 1: Try to resize window via window.resizeTo
-    try {
-      const screenWidth = window.screen.width;
-      const screenHeight = window.screen.height;
-      logMessage("Screen size: " + screenWidth + "x" + screenHeight);
-      
-      window.resizeTo(screenWidth, screenHeight);
-      window.moveTo(0, 0);
-      logMessage("Window resized to screen size");
-    } catch (e) {
-      logMessage("Window resize failed: " + e.message);
+    if (debugButtons.style.display === 'none') {
+      debugButtons.style.display = 'block';
+      debugToggle.textContent = 'Hide Debug Mode';
+      logMessage("Debug mode enabled");
+    } else {
+      debugButtons.style.display = 'none';
+      debugToggle.textContent = 'Show Debug Mode';
+      logMessage("Debug mode disabled");
     }
-    
-    // Method 2: Try to enter fullscreen via API
-    setTimeout(() => {
-      try {
-        logMessage("Trying to enter fullscreen after resize...");
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-          document.documentElement.webkitRequestFullscreen();
-        }
-        logMessage("Fullscreen API called after resize");
-      } catch (e) {
-        logMessage("Fullscreen after resize failed: " + e.message);
-      }
-    }, 500);
-    
-    // Method 3: Try to click on maximize button area
-    setTimeout(() => {
-      try {
-        logMessage("Trying to click maximize button area...");
-        const maximizeClick = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          clientX: window.innerWidth - 30,
-          clientY: 15
-        });
-        document.dispatchEvent(maximizeClick);
-        logMessage("Maximize button click sent");
-      } catch (e) {
-        logMessage("Maximize button click failed: " + e.message);
-      }
-    }, 1000);
   }
+
+  // Show debug toggle button after 10 seconds (for development)
+  setTimeout(() => {
+    const debugToggle = document.getElementById('debug-toggle');
+    if (debugToggle) {
+      debugToggle.style.display = 'block';
+    }
+  }, 10000);
 
   document.addEventListener('turbo:load', function () {
     console.log('Window.hotkeys in view:', window.hotkeys); // Check availability
@@ -1529,14 +1504,7 @@ RECOMMENDATION: Follow steps 1-7 in order!
     </div>
   </div>
 </div>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
-  <% end %>
-  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
-  <% end %>
-</div>
+<%= render 'shared/scoreboard_menu', location: @location %>
 <div class="p-7 lg:p-14 text-gray-200 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/bg_pool2-.jpg')">
   <h1 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 text-3vw"><%= t('home.index.reservation') %>
     - <%= @location.name %></h1>
@@ -1548,66 +1516,36 @@ RECOMMENDATION: Follow steps 1-7 in order!
     <p>
       <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
     </p>
-    <p>
-      <%= custom_link_to "Exit Kiosk Mode", "javascript:open_kiosk_keyboard()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-2vw", id: "exit_kiosk", tabindex: "1" %>
+    
+    <!-- Debug Mode Toggle (hidden by default) -->
+    <p id="debug-toggle" style="display: none;">
+      <%= custom_link_to "Toggle Debug Mode", "javascript:toggleDebugMode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-gray-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-1-5vw", id: "debug_toggle", tabindex: "1" %>
     </p>
-    <p>
-      <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_logs", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Download Debug Logs", "javascript:downloadDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "download_logs", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Test Kiosk Exit", "javascript:fireAltSpaceEvent()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "test_exit", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Try Linux Window Management", "javascript:tryLinuxWindowManagement()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_linux_wm", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Kiosk Info", "javascript:showKioskInfo()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "kiosk_info", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Send ESC Key (Physical ESC)", "javascript:sendEscKey()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "send_esc_key", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Trigger X Button", "javascript:triggerXButton()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-2vw", id: "trigger_x_button", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Try Alternative Startup", "javascript:tryAlternativeStartup()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "try_alternative_startup", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Startup Options", "javascript:showStartupOptions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_startup_options", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Try Enter Fullscreen", "javascript:tryEnterFullscreen()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-success text-2vw", id: "try_fullscreen", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Current Status", "javascript:showCurrentStatus()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "show_status", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show App Mode Solutions", "javascript:showAppModeSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_app_solutions", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Panel Hiding Solutions", "javascript:showPanelHidingSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "show_panel_hiding_solutions", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Try Resize Window", "javascript:tryResizeWindow()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-2vw", id: "try_resize_window", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show LXDE Solutions", "javascript:showLXDESolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_lxde_solutions", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Temporary Exit Solutions", "javascript:showTemporaryExitSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-2vw", id: "show_temp_exit_solutions", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show True Fullscreen Solutions", "javascript:showTrueFullscreenSolutions()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_true_fullscreen_solutions", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Autostart Configuration", "javascript:showAutostartConfiguration()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_autostart_config", tabindex: "1" %>
-    </p>
-    <p>
-      <%= custom_link_to "Show Quick Start Guide", "javascript:showQuickStartGuide()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-2vw", id: "show_quick_start_guide", tabindex: "1" %>
-    </p>
+    
+    <!-- Debug Buttons (hidden by default) -->
+    <div id="debug-buttons" style="display: none;">
+      <p>
+        <%= custom_link_to "Exit Kiosk Mode", "javascript:open_kiosk_keyboard()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-1-5vw", id: "exit_kiosk", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-1-5vw", id: "show_logs", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Download Debug Logs", "javascript:downloadDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-1-5vw", id: "download_logs", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Test Kiosk Exit", "javascript:fireAltSpaceEvent()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-yellow-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-1-5vw", id: "test_exit", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Show Kiosk Info", "javascript:showKioskInfo()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-1-5vw", id: "kiosk_info", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Send ESC Key", "javascript:sendEscKey()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-1-5vw", id: "send_esc_key", tabindex: "1" %>
+      </p>
+      <p>
+        <%= custom_link_to "Show Current Status", "javascript:showCurrentStatus()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-1-5vw", id: "show_status", tabindex: "1" %>
+      </p>
+    </div>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
       Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmail.com oder wcauel@gmail.com.

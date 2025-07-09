@@ -278,6 +278,34 @@ ssh pi@raspberrypi 'systemctl --user stop scoreboard.service'
 ssh pi@raspberrypi 'systemctl --user start scoreboard.service'
 ```
 
+## Exit Methods
+
+The scoreboard runs in fullscreen mode, and there are several ways to exit:
+
+### Primary Exit Methods
+1. **Physical Keyboard:** ALT+F4 or ESC (most reliable)
+2. **Remote SSH:** `systemctl --user restart scoreboard.service`
+
+### Fallback Exit Method
+3. **"Try Resize Window" Button:** 
+   - Click the refresh/resize button in the top menu
+   - This refreshes the Chromium window state
+   - Restores the circled X button in the top-right corner
+   - Click the X to exit to desktop
+
+### Why This Works
+- The "Try Resize Window" function refreshes the Chromium window state
+- This restores window controls that get hidden during scoreboard interactions
+- Provides a reliable mouse/touch-based exit method
+- Works when other exit methods fail
+
+### Button Location
+- **Table Monitors:** Top-right refresh button
+- **Scoreboard Pages:** Top-right refresh button
+- **All scoreboard interfaces:** Consistent exit method
+
+This gives users a reliable way to exit the scoreboard even without a keyboard!
+
 ## Troubleshooting
 
 ### Check if wmctrl is installed
