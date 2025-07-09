@@ -10,7 +10,8 @@ set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 set :branch, "master"
 
 set :default_env, {
-  path: "/var/www/.nvm/versions/node/v20.15.0/bin:$PATH"
+  path: "/var/www/.nvm/versions/node/v20.15.0/bin:$PATH",
+  NODE_ENV: "production"
 }
 
 # Default deploy_to directory is /var/www/my_app_name
@@ -135,42 +136,74 @@ namespace :puma do
   end
 end
 
-# Clear existing task so we can replace it rather than "add" to it.
+# Asset compilation configuration for capistrano-rails
+set :assets_roles, [:app]
+set :assets_prefix, 'assets'
 
-# Rake::Task["deploy:compile_assets"].clear
+# Configure asset compilation to use yarn
+set :assets_dependencies, %w(assets lib assets.rb config/locales.yml app/assets lib/assets vendor/assets tmp/cache/assets)
 
+# Ensure proper Node.js environment for asset compilation
 namespace :deploy do
-  # desc "Precompile assets locally and then rsync to web servers"
-  # task :compile_assets do
-  #   on roles(:app) do
-  #     rsync_host = host.to_s
-  #
-  #     run_locally do
-  #       with rails_env: :production do ## Set your env accordingly.
-  #         execute "RAILS_ENV=#{fetch(:stage)} /Users/gullrich/.rbenv/shims/bundle exec rake assets:precompile"
-  #       end
-  #       execute "rsync -av --delete -e \"ssh -p 8910\" ./public/assets/ #{fetch(:deploy_user)}@#{rsync_host}:#{shared_path}/public/assets/"
-  #       # execute "rm -rf public/assets"
-  #       # execute "rm -rf tmp/cache/assets" # in case you are not seeing changes
-  #     end
-  #   end
-  # end
-  # desc "Clear and precompile assets locally and then rsync to web servers"
-  # task :clear_and_compile_assets do
-  #   on roles(:web) do
-  #     rsync_host = host.to_s
-  #
-  #     run_locally do
-  #       with rails_env: :production do ## Set your env accordingly.
-  #         execute "rm -rf public/assets"
-  #         execute "rm -rf tmp/cache/assets"
-  #         execute "RAILS_ENV=#{fetch(:stage)} /Users/gullrich/.rbenv/shims/bundle exec rake assets:precompile"
-  #       end
-  #       execute "rsync -av --delete -e \"ssh -p 8910\" ./public/assets/ #{fetch(:deploy_user)}@#{rsync_host}:#{shared_path}/public/assets/"
-  #     end
-  #   end
-  # end
+  desc "Verify Node.js and Yarn setup"
+  task :verify_node do
+    on roles(:app) do
+      within release_path do
+        execute "node --version"
+        execute "yarn --version"
+      end
+    end
+  end
 end
+
+# Hook into the default asset compilation process
+namespace :deploy do
+  namespace :assets do
+    desc "Install yarn dependencies before asset compilation"
+    task :install_dependencies do
+      on roles(:app) do
+        within release_path do
+          execute :yarn, "install", "--production=false"
+        end
+      end
+    end
+
+    desc "Build JavaScript and CSS assets before Rails precompilation"
+    task :build_frontend_assets do
+      on roles(:app) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            # Build JavaScript assets
+            execute :yarn, "build"
+            # Build CSS assets
+            execute :yarn, "build:css"
+
+            # Ensure the builds directory exists for Rails asset pipeline
+            execute :mkdir, "-p app/assets/builds"
+end
+        end
+      end
+    end
+
+    desc "Verify manifest was created properly"
+    task :verify_manifest do
+      on roles(:app) do
+        within release_path do
+          execute :ls, "-la public/assets/"
+          execute :find, "public/assets", "-name '*.json'", "-o", "-name 'manifest*'"
+        end
+      end
+    end
+  end
+end
+
+# Hook into the default asset compilation process
+before "deploy:assets:precompile", "deploy:verify_node"
+before "deploy:assets:precompile", "deploy:assets:install_dependencies"
+before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
+
+# Ensure manifest is properly handled after precompilation
+after "deploy:assets:precompile", "deploy:assets:verify_manifest"
 
 desc "Check environment variables"
 task :debug_env_vars do
