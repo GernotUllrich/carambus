@@ -96,7 +96,7 @@ namespace :region_taggings do
       # tag with region where objects organically relate to
       [Player, SeasonParticipation, ClubLocation, Region, Tournament, Game,
       GameParticipation, Seeding, League, Location, Table,
-      Party,  PartyGame, LeagueTeam, GamePlan].each do |model|
+      Party,  PartyGame, LeagueTeam, Club, GamePlan].each do |model|
         tag_with_region(model, eval("organic_#{model.name.underscore}_ids"), region)
       end
     end
@@ -108,7 +108,7 @@ namespace :region_taggings do
   end
 
   def tag_with_region(model, ids, region)
-    model.where(id: ids).update_all(region_id: region.id)
+    model.where(id: ids).update_all(region_id: region.id) unless model == Club
     PaperTrail::Version.where(item_type: model.name, item_id: ids).update_all(region_id: region.id)
   end
 

@@ -69,6 +69,8 @@ class League < ApplicationRecord
     message: "must be unique within the same region, season, and staffel"
   }, if: -> { organizer_type == 'Region' && cc_id.blank? }
 
+  DBU_ID = Region.find_by_shortname("DBU").id.freeze
+
   GAME_PARAMETER_DEFAULTS = {
     pool: {
       substitutes: true,
@@ -571,6 +573,8 @@ class League < ApplicationRecord
 
   # scrape_single_league_from_cc
   def scrape_single_league_from_cc(opts = {})
+    region_id = (organizer_type == "Region" ? organizer_id : nil)
+    global_context = region_id == DBU_ID
     return unless opts[:league_details]
     if opts[:cleanup]
       destroy_method = Rails.env == "production" ? :destroy_all : :delete_all
@@ -579,7 +583,6 @@ class League < ApplicationRecord
       self.league_teams.send(destroy_method)
     end
     organizer = self.organizer
-    region = organizer if organizer.is_a?(Region)
     if organizer.is_a?(Region) && organizer.shortname == "BBV"
       league_url, league_taggings = scrape_single_bbv_league(organizer, opts)
     else
@@ -683,7 +686,11 @@ class League < ApplicationRecord
           club.cc_id = club_cc_id
         end
         if club.changed?
-          club.region_id = region.id
+
+          # usually clubs have a region_id, because they are scraped from the region
+          club.region_id ||= region_id
+
+          club.global_context = global_context
           club.save
         end
         clubs_cache << club if club.present?
@@ -698,7 +705,8 @@ class League < ApplicationRecord
         }
         league_team.assign_attributes(attrs)
         league_team.source_url = league_url
-        league_team.region_id = region.id
+        league_team.region_id = region_id
+        league_team.global_context = global_context
         league_team.save
         league_teams_cache << league_team
         league_team_players ||= {}
@@ -735,7 +743,8 @@ class League < ApplicationRecord
                       player.source_url ||= team_url
                     end
                     if player.changed?
-                      player.region_id = region.id
+                      player.region_id = region_id
+                      player.global_context = global_context
                       player.save
                     end
                     sp_args = {
@@ -744,14 +753,15 @@ class League < ApplicationRecord
                       club_id: club.id
                     }
                     SeasonParticipation.where(sp_args).first ||
-                      (sp = SeasonParticipation.new(sp_args); sp.region_id = region.id; sp.save)
+                      (sp = SeasonParticipation.new(sp_args); sp.region_id = region_id; sp.global_context = global_context; sp.save)
                   else
                     player.assign_attributes(dbu_nr: player_dbu_nr)
                     if player.new_record?
                       player.source_url ||= team_url
                     end
                     if player.changed?
-                      player.region_id = region.id
+                      player.region_id = region_id
+                      player.global_context = global_context
                       player.save
                     end
                   end
@@ -781,7 +791,8 @@ class League < ApplicationRecord
               break
             end
             if seeding.changed?
-              seeding.region_id = region.id
+              seeding.region_id = region_id
+              seeding.global_context = global_context
               seeding.save!
             end
           end
@@ -889,7 +900,9 @@ class League < ApplicationRecord
                 league_team_a: league_team_a,
                 league_team_b: league_team_b,
                 cc_id: party_cc_id,
-                data: { result: result, points: points }.compact
+                data: { result: result, points: points }.compact,
+                region_id: region_id,
+                global_context: global_context
               )
               party.save
             end
@@ -929,12 +942,13 @@ class League < ApplicationRecord
                 location.dbu_nr = location_dbu_nr if url =~ /billard-union.net/
                 location.source_url ||= url + location_link unless url =~ /billard-union.net/
                 if location.changed?
-                  location.region_id = region.id
+                  location.region_id = region_id
+                  location.global_context = global_context
                   location.save
                 end
                 club_location = ClubLocation.where(club: club, location: location).first
                 unless club_location.present?
-                  (cl = ClubLocation.new(club: club, location: location); cl.region_id = region.id; cl.save)
+                  (cl = ClubLocation.new(club: club, location: location); cl.region_id = region_id; cl.global_context = global_context; cl.save)
                 end
               end
             end
@@ -962,7 +976,8 @@ class League < ApplicationRecord
               }.compact
               party.assign_attributes(party_attrs)
               if party.changed?
-                party.region_id = region.id
+                party.region_id = region_id
+                party.global_context = global_context
                 party.save
               end
               party_count += 1
@@ -1273,7 +1288,8 @@ class League < ApplicationRecord
                 ).first || PartyGame.new(party_id: party.id, seqno: seqno2)
                 party_game.assign_attributes(attrs)
                 if party_game.changed?
-                  party_game.region_id = region.id
+                  party_game.region_id = region_id
+                  party_game.global_context = global_context
                   party_game.save
                 end
               end
@@ -1313,7 +1329,8 @@ class League < ApplicationRecord
             party ||= Party.new(league_id: id)
             party.assign_attributes(party_attrs.merge(date: date))
             if party.changed?
-              party.region_id = region.id
+              party.region_id = region_id
+              party.global_context = global_context
               party.save!
             end
             Party.where(party_attrs.merge(league_id: id, cc_id: nil)).destroy_all
@@ -1349,10 +1366,14 @@ class League < ApplicationRecord
         gp.assign_attributes(footprint: footprint, data: game_plan)
         gp.data_will_change! if gp.changes["data"].present? && gp.changes["data"][0] != gp.changes["data"][1]
         if gp.changed?
-          gp.region_id = region.id
+          gp.region_id = region_id
+          gp.global_context = global_context
           gp.save
         end
         self.game_plan = gp
+        if changed?
+          self.global_context = global_context
+        end
         save!
       end
     end
@@ -1964,7 +1985,8 @@ class League < ApplicationRecord
     end
 
     if gp.changed?
-      gp.region_id = organizer.id if organizer.is_a?(Region)
+      gp.region_id = region_id
+      gp.global_context = global_context
       gp.save!
       Rails.logger.info "Updated GamePlan: #{gp_name} (ID: #{gp.id})"
     else
