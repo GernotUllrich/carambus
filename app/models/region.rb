@@ -292,41 +292,6 @@ or (regions.address ilike :search)",
     region&.scrape_region_public
   end
 
-  def self.scrape_regions_optimized
-    Rails.logger.info "===== scrape ===== Starting optimized region scraping"
-    
-    # Update region URLs if needed
-    Region.all.each do |region|
-      region.assign_attributes(public_cc_url_base: SHORTNAMES_CC[region.shortname])
-      region.save if region.changed?
-    end
-    
-    # Only scrape regions that haven't been synced recently
-    Region.where.not(public_cc_url_base: nil).all.each do |region|
-      last_sync = region.sync_date || 1.year.ago
-      if last_sync < 1.day.ago
-        Rails.logger.info "===== scrape ===== Syncing region #{region.shortname} (last sync: #{last_sync})"
-        region.scrape_region_public
-      else
-        Rails.logger.info "===== scrape ===== Skipping region #{region.shortname} - last sync: #{last_sync}"
-      end
-    rescue StandardError => e
-      Rails.logger.info "!!!!!!!!! Error: Problem #{e} #{e.backtrace&.join("\n")}"
-    end
-    
-    # BBV region needs special handling
-    region = Region.find_by_shortname("BBV")
-    if region.present?
-      last_sync = region.sync_date || 1.year.ago
-      if last_sync < 1.day.ago
-        Rails.logger.info "===== scrape ===== Syncing BBV region (last sync: #{last_sync})"
-        region.scrape_region_public
-      else
-        Rails.logger.info "===== scrape ===== Skipping BBV region - last sync: #{last_sync}"
-      end
-    end
-  end
-
   def post_cc_public(action, post_options = {}, _opts = {})
     base_url = public_cc_url_base
     referer = post_options.delete(:referer)
@@ -511,7 +476,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       region_cc_id = params[0].to_i
       region_cc.assign_attributes(cc_id: region_cc_id) if region_cc.cc_id.zero? || region_cc.cc_id.blank?
       region_cc.save
-      name = tr.css("a")[0].text
+      name = tr.css("a")[0].text.strip
       tc = TournamentCc.where(cc_id:, context: region_cc.context).first
       tc ||= TournamentCc.new(cc_id:, name:, context: region_cc.context)
 
@@ -539,88 +504,6 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     end
   rescue StandardError => e
     Rails.logger.info "!!!!!!!!! Error #{e} tournament[#{tournament.andand.id}]#{e.backtrace&.join("\n")}"
-  end
-
-  def scrape_tournaments_optimized(season, opts = {})
-    Rails.logger.info "===== scrape ===== Starting optimized tournament scraping for region #{shortname}"
-    
-    url = public_cc_url_base
-    return unless url.present?
-    
-    einzel_url = url + "sb_meisterschaft.php?eps=100000&s=#{season.name}"
-    Rails.logger.info "reading #{einzel_url}"
-    uri = URI(einzel_url)
-    einzel_html = Net::HTTP.get(uri)
-    einzel_doc = Nokogiri::HTML(einzel_html)
-
-    # scrape branches (same as original)
-    einzel_doc.css("article ul.tabstrip li a").each do |a|
-      branch_cc_id = a.attributes["href"].value.split("p=")[1].split("-")[1].to_i
-      next if branch_cc_id.zero?
-
-      branch_cc_name = a.text.strip
-      branch_cc = BranchCc.where(context: region_cc.context, cc_id: branch_cc_id).first
-      if branch_cc.present?
-        if branch_cc.name != branch_cc_name
-          Rails.logger.info "===== scrape ===== Error: Problem with BranchCc #{{ "branch_cc_name" => branch_cc_name,
-                                                                                 "branch:cc" => branch_cc.attributes }
-                                                                                 .inspect}"
-        end
-      else
-        branch_cc = BranchCc.where(context: region_cc.context, name: branch_cc_name).first
-        branch_cc ||= BranchCc.new(context: region_cc.context, name: branch_cc_name, region_cc:,
-                                   discipline: Discipline.find_by_name(branch_cc_name))
-        branch_cc.update!(cc_id: branch_cc_id)
-      end
-    end
-    
-    processed_tournaments = 0
-    skipped_tournaments = 0
-    
-    einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
-      tournament_link = tr.css("a")[0].attributes["href"].value
-      params = tournament_link.split("p=")[1].split("-")
-      cc_id = params[3].to_i
-      name = tr.css("a")[0].text
-      
-      # Find existing tournament
-      tc = TournamentCc.where(cc_id:, context: region_cc.context).first
-      tournament = nil
-      
-      if tc.present?
-        tournament = tc.tournament
-      else
-        # New tournament, need to create it
-        tc = TournamentCc.new(cc_id:, name:, context: region_cc.context)
-        tc.save
-        tournament = Tournament.where(season:, organizer: self, title: name).first
-        unless tournament.present?
-          tournament = Tournament.create(season:, organizer: self, title: name)
-        end
-        TournamentCc.where(tournament_id: tournament.id).where.not(id: tc.id).destroy_all
-        tc.update(tournament:)
-      end
-      
-      # Check if we need to sync this tournament
-      if tournament.present?
-        last_sync = tournament.sync_date || 1.year.ago
-        force_sync = opts[:force] || last_sync < 1.day.ago
-        has_unreported_games = tournament.games.where(result: nil).exists?
-        
-        if force_sync || has_unreported_games
-          Rails.logger.info "===== scrape ===== Syncing tournament #{tournament.title} (last sync: #{last_sync}, unreported games: #{has_unreported_games})"
-          tournament.scrape_tournament_optimized(opts)
-          processed_tournaments += 1
-        else
-          Rails.logger.info "===== scrape ===== Skipping tournament #{tournament.title} - last sync: #{last_sync}, no unreported games"
-          skipped_tournaments += 1
-        end
-      end
-    rescue StandardError => e
-      Rails.logger.info "!!!!!!!!! Error #{e} tournament[#{tournament.andand.id}]#{e.backtrace&.join("\n")}"
-    end
-    
-    Rails.logger.info "===== scrape ===== Region #{shortname}: Processed #{processed_tournaments} tournaments, skipped #{skipped_tournaments} tournaments"
   end
 
   def self.scrape_regions_cc(season)
@@ -758,116 +641,6 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
 
             club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU"))
           end
-        else
-          Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
-        end
-      end
-    else
-      RegionScrapeClubsJob.perform_later(self, opts)
-    end
-    return
-  rescue StandardError => e
-    Rails.logger.info "===== scrape ===== FATAL Error clubs_url: #{clubs_url}  #{e}, #{e.backtrace&.join("\n")}"
-  end
-
-  def scrape_clubs_optimized(season, opts = {})
-    return if self.shortname == "DBU"
-    
-    Rails.logger.info "===== scrape ===== Starting optimized club scraping for region #{shortname}"
-    
-    region_map_ = Region.region_map
-    clubs_url = nil
-    
-    if Rails.env != "production" || opts[:from_background]
-      if shortname == "BBV"
-        # BBV uses a different scraping method, use the original for now
-        scrape_clubs(season, opts)
-      else
-        url = public_cc_url_base
-        if url.present?
-          clubs_url = "#{url}verein-details.php?eps=100000"
-          Rails.logger.info "reading #{clubs_url}"
-          uri = URI(clubs_url)
-          html_clubs = Net::HTTP.get(uri)
-          doc_clubs = Nokogiri::HTML(html_clubs)
-          clubs_table = doc_clubs.css("article table.silver")[1]
-          clubs = clubs_table.css("a")
-          
-          processed_clubs = 0
-          skipped_clubs = 0
-          
-          clubs.each do |club_a|
-            ref = club_a.attributes["href"].value
-            next if opts[:start_with_club_shortname].present? && (club_a.text.strip < opts[:start_with_club_shortname])
-            next if opts[:restrict_to_club_shortname].present? && club_a.text.strip != opts[:restrict_to_club_shortname]
-
-            club_shortname = club_a.text.strip
-            params = ref.split("p=")[1].split("|")
-            cc_id = params[3]
-            club_url = url + ref
-            
-            # Find or create the club
-            club = Club.find_by_cc_id(cc_id)
-            if club.blank?
-              # New club, need to scrape full details
-              Rails.logger.info "reading #{club_url} (new club)"
-              uri = URI(club_url)
-              html_club = Net::HTTP.get(uri)
-              doc_club = Nokogiri::HTML(html_club)
-              club_table = doc_club.css("aside table.silver")[0]
-              region = dbu_nr = club_name = nil
-              club_table.css("tr").each do |tr|
-                if %w[Mitgliedsverband Verband Landesverband].include? tr.css("td")[0].text.strip
-                  region_name = tr.css("td")[1].text.strip
-                  region_name = "BLMR" if %w[PBVRW KBVM PBVM].include?(region_name)
-                  region = region_map_[region_name]
-                  unless region.present?
-                    region = region_map_[region_name] =
-                      Region.find_by_name(region_name) || Region.create(name: region_name, country: Country.first)
-                  end
-                elsif tr.css("td")[0].text.strip == "Verein"
-                  club_name = tr.css("td")[1].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
-                elsif tr.css("td")[0].text.strip == "DBU-Nr."
-                  dbu_nr = tr.css("td")[1].text.strip.to_i
-                end
-              end
-              next unless club_name.present?
-
-              club_matches = Club.where("synonyms ilike ?", "%#{club_name.strip}%").to_a.select do |c|
-                c.synonyms.split("\n").include?(club_name.strip)
-              end
-              if club_matches.count > 1
-                club = club_matches.find { |c| c.region_id == region&.id }
-                club = club_matches.first if club.blank?
-              else
-                club = club_matches.first
-                club = Club.new(name: club_name, region:) if club.blank?
-              end
-              next unless club.present?
-
-              club.assign_attributes(name: club_name, shortname: club_shortname, region:, cc_id:)
-              club.source_url = club_url
-              if club.changed?
-                club.region_id ||= self.id
-                club.save!
-              end
-            end
-            
-            # Check if we need to sync this club
-            last_sync = club.sync_date || 1.year.ago
-            force_sync = opts[:force] || last_sync < 1.day.ago
-            
-            if force_sync
-              Rails.logger.info "===== scrape ===== Syncing club #{club.name} (last sync: #{last_sync})"
-              club.scrape_club_optimized(season, ref, url, opts.merge(called_from_portal: shortname == "DBU"))
-              processed_clubs += 1
-            else
-              Rails.logger.info "===== scrape ===== Skipping club #{club.name} - last sync: #{last_sync}"
-              skipped_clubs += 1
-            end
-          end
-          
-          Rails.logger.info "===== scrape ===== Region #{shortname}: Processed #{processed_clubs} clubs, skipped #{skipped_clubs} clubs"
         else
           Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
         end
