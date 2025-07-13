@@ -419,111 +419,249 @@ or (seasons.name ilike :search)",
           tc.championship_type_cc_name = name
         end
       when "Disziplin"
-        name = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-        discipline = Discipline.where("synonyms ilike ?", "%#{name}%").to_a.find do |dis|
-          dis.synonyms.split("\n").include?(name)
+        discipline_name = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
+        discipline = Discipline.where("synonyms ilike ?", "%#{discipline_name}%").to_a.find do |dis|
+          dis.synonyms.split("\n").include?(discipline_name)
         end
         unless discipline.present?
-          discipline = Discipline.create(name: name, super_discipline_id: branch_cc.andand.id)
+          discipline = Discipline.create(name: discipline_name, super_discipline_id: branch_cc.andand.id)
         end
         tc.discipline_id = self.discipline_id = discipline.id
-      when "Modus"
-        self.modus = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Spieler"
-        self.team_size = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Sätze"
-        self.sets_to_play = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Sätze zum Gewinnen"
-        self.sets_to_win = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Timeout"
-        self.timeout = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Aufwärmen erste Aufnahme"
-        self.time_out_warm_up_first_min = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Aufwärmen Folgende Aufnahmen"
-        self.time_out_warm_up_follow_up_min = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Bälle Ziel"
-        self.balls_goal = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Aufnahmen Ziel"
-        self.innings_goal = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Handicap Turnier"
-        self.handicap_tournier = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "GD hat Priorität"
-        self.gd_has_prio = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Farbe bleibt beim Satz"
-        self.color_remains_with_set = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Nachstoß erlaubt"
-        self.allow_follow_up = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Überlauf erlaubt"
-        self.allow_overflow = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Kontinuierliche Platzierungen"
-        self.continuous_placements = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Anstoß wechselt mit"
-        self.kickoff_switches_with = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Bälle Zähler Stapel"
-        self.balls_counter_stack = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Feste Anzeige links"
-        self.fixed_display_left = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Altersbeschränkung"
-        self.age_restriction = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Spielerklasse"
-        self.player_class = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Plan oder Show"
-        self.plan_or_show = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Einzel oder Liga"
-        self.single_or_league = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Admin gesteuert"
-        self.admin_controlled = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Manuelle Zuweisung"
-        self.manual_assignment = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip == "Ja"
-      when "Timeouts"
-        self.timeouts = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip.to_i
-      when "Location Text"
-        self.location_text = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-      when "Enddatum"
-        text = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-        date_time = DateTime.parse(text)
-        self.end_date = date_time
       else
         next
       end
     end
+    tc.save
+    self.region_id = self.id
+    save!
+    player_list = {}
+    registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
+    Rails.logger.info "reading #{url + registration_link}"
+    uri = URI(url + registration_link)
+    registration_html = Net::HTTP.get(uri)
+    registration_doc = Nokogiri::HTML(registration_html)
+    registration_table = registration_doc.css("aside table.silver table")[0]
+    _header = []
+    if registration_table.present?
+      registration_table.css("tr")[1..].each_with_index do |tr, ix|
+        if tr.css("th").count > 1
+          _header = tr.css("th").map(&:text)
+        elsif tr.css("td").count.positive?
+          _n = tr.css("td")[0].text.to_i
+          player_fullname = tr.css("td")[1].text.gsub(nbsp, " ").strip
+          player_lname, player_fname = player_fullname.match(/(.*), (.*)/)[1..2]
+          club_name = tr.css("td")[3].text.gsub(nbsp, " ").strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
+          player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname,
+                                                                         season, region,
+                                                                         club_name, self,
+                                                                         true, true, ix)
+          player_list[player.fl_name] = [player, club] if player.present?
+        end
+      end
+    end
+    # Meldeliste
+    if opts[:reload_game_results]
+      reload.seedings.destroy_all
+    else
+      reload.seedings.where.not(player: player_list.values.map { |v| v[0] }).each(&:destroy)
+      # reload.seedings.where.not(player: player_list.values.map { |v| v[0] }).destroy_all
+      reload.seedings.where(player: nil).destroy_all
+    end
+    # Teilnehmerliste
+    # player_list = {}
+    tournament_doc.css("aside .stanne table.silver table").each do |table|
+      next unless table.css("tr th")[0].andand.text.gsub(nbsp, " ").strip == "TEILNEHMERLISTE"
+
+      table.css("tr")[2..].each_with_index do |tr, ix|
+        _n = tr.css("td")[0].text.to_i
+        player_lname, player_fname, club_name = tr.css("td")[2].inner_html
+                                                               .match(%r{<strong>(.*), (.*)</strong><br>(.*)})[1..3]
+        club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
+        player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
+                                                                       club_name.strip, self,
+                                                                       true, true, ix)
+        player_list[player.fl_name] = [player, club]
+      end
+    end
+    reload
+    return if discipline&.name == "Biathlon"
+
+    # Ergebnisse
+    result_link = tournament_link.gsub("meisterschaft", "einzelergebnisse")
+    result_url = url + result_link
+    Rails.logger.info "reading #{result_url}"
+    uri = URI(result_url)
+    result_html = Net::HTTP.get(uri)
+    result_doc = Nokogiri::HTML(result_html)
+    table = result_doc.css("aside table.silver")[1]
+    if table.present?
+      group_options = result_doc.css('select[name="groupItemId"] > option').each_with_object({}) do |o, memo|
+        memo[o["value"]] = o.text unless o["value"] == "*"
+      end
+      group_option_values = group_options.values
+      group_cc = tc.group_cc
+      unless group_cc.present?
+        GroupCc.where(branch_cc: tc.branch_cc).each do |gcc|
+          if JSON.parse(gcc.data)["positions"].andand.values == group_option_values
+            group_cc = gcc
+            break
+          end
+        end
+      end
+      unless group_cc.present?
+        group_cc = GroupCc.create!(
+          context: region_cc.context,
+          name: "Unknown Group - scraped from TournamentCc[#{tc.id}]",
+          display: "Gruppen",
+          status: "Freigegeben",
+          branch_cc_id: tc.branch_cc_id,
+          data: { "positions" => group_options }.to_json
+        )
+        tc.assign_attributes(group_cc: group_cc)
+      end
+      player_options = result_doc.css('select[name="teilnehmerId"] > option').each_with_object({}) do |o, memo|
+        memo[o["value"]] = o.text unless o["value"] == "*"
+      end
+      player_options.each do |k, v|
+        lastname, firstname = v.split(",").map(&:strip)
+        firstname.gsub!(/\s*\((.*)\)/, "")
+        fl_name = "#{firstname} #{lastname}".strip
+        player = player_list[fl_name].andand[0]
+        if player.present?
+          player.assign_attributes(cc_id: k.to_i) unless organizer.shortname == "DBU"
+          if player.new_recored?
+            player.source_url ||= result_url unless organizer.shortname == "DBU"
+          end
+          player.region_id = region.id
+          player.save
+        else
+          Rails.logger.info("===== scrape ===== Inconsistent Playerlist Player #{[k, v].inspect}")
+        end
+      end
+      games.destroy_all if opts[:reload_game_results]
+      group = nil
+      frame1_lines = result_lines = td_lines = 0
+      result = nil
+      no = nil
+      playera_fl_name = nil
+      playerb_fl_name = nil
+      frames = []
+      frame_points = []
+      innings = []
+      hs = []
+      hb = []
+      mp = []
+      header = []
+      gd = []
+      points = []
+      frame_result = []
+      table.css("tr").each do |tr|
+        frame1_lines, frame_points, frame_result, frames, gd, group, hb, header, hs, mp, innings, nbsp, no,
+          player_list, playera_fl_name, playerb_fl_name, points, result, result_lines, result_url,
+          td_lines, _tr = parse_table_tr(
+          frame1_lines, frame_points, frame_result, frames, gd, group, hb,
+          header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
+          points, result, result_lines, result_url, td_lines, tr
+        )
+      end
+      if td_lines.positive? && no.present?
+        handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
+                    playerb_fl_name, frame_points, points, result)
+      end
+    end
+
+    # Rangliste
+    ranking_link = tournament_link.gsub("meisterschaft", "einzelrangliste")
+    Rails.logger.info "reading #{url + ranking_link}"
+    uri = URI(url + ranking_link)
+    ranking_html = Net::HTTP.get(uri)
+    ranking_doc = Nokogiri::HTML(ranking_html)
+    ranking_table = ranking_doc.css("aside table.silver table")[0]
+    header = []
+    if ranking_table.present?
+      ranking_table.css("tr")[1..].each do |tr|
+        if tr.css("th").count > 1
+          header = []
+          tr.css("th")[0..].each do |th|
+            header << th.text
+            colspan = th.attributes["colspan"].andand.value.to_i
+            next unless colspan > 1
+
+            (2..colspan).each do
+              header << ""
+            end
+          end
+        elsif tr.css("td").count.positive?
+          rang = g = v = rp = quote = points = innings = gd = bed = hs = hb = mp = player_fl_name = nil
+          header.each_with_index do |h, ii|
+            case h
+            when /\A(rang)\z/i
+              rang = tr.css("td")[ii].text.to_i
+            when /\A(rp)\z/i
+              rp = tr.css("td")[ii].text.to_i
+            when /\A(name|teilnehmer)\z/i
+              player_fl_name = tr.css("td")[ii].css("a").text.gsub(nbsp, " ").gsub(/\s*\((.*)\)/, "").strip
+            when /\A(g|f)\z/i
+              g = tr.css("td")[ii].text.to_i
+            when /\A(v)\z/i
+              v = tr.css("td")[ii].text.to_i
+            when /\A(quote)\z/i
+              quote = tr.css("td")[ii].text
+            when /\A(punkte)\z/i
+              points = tr.css("td")[ii].text.to_i
+            when /\A(aufn\.)\z/i
+              innings = tr.css("td")[ii].text.to_i
+            when /\A(hb)\z/i
+              hb = tr.css("td")[ii].text
+            when /\A(bed)\z/i
+              bed = tr.css("td")[ii].text.to_f.round(2)
+            when /\A(gd)\z/i
+              gd = tr.css("td")[ii].text.to_f.round(2)
+            when /\A(hs)\z/i
+              hs = tr.css("td")[ii].text
+            when /\A(mp)\z/i
+              mp = tr.css("td")[ii].text.to_i
+            end
+          end
+          seeding = seedings.where(player: player_list[player_fl_name][0]).first
+          if seeding.blank?
+            Rails.logger.info("===== scrape ===== seeding of player #{player_fl_name} should exist!")
+          else
+            seeding.assign_attributes(
+              data: {
+                "result" =>
+                  { "Gesamtrangliste" =>
+                      { "Rang" => rang,
+                        "RP" => rp,
+                        "Name" => player_list[player_fl_name][0].fullname,
+                        "Club" => player_list[player_fl_name].andand[1].andand.shortname,
+                        "Punkte" => points,
+                        "Frames" => frame_points,
+                        "Aufn." => innings,
+                        "G" => g,
+                        "V" => v,
+                        "Quote" => quote,
+                        "GD" => gd,
+                        "BED" => bed,
+                        "HS" => hs,
+                        "HB" => hb }.compact }
+              }
+            )
+            seeding.region_id = region.id
+            seeding.save if seeding.changed?
+          end
+        end
+      rescue StandardError => e
+        Rails.logger.info("===== scrape ===== something wrong: #{e} #{e.backtrace}")
+      end
+    end
+
     self.region_id = region.id
     save!
     tc.save!
   rescue StandardError => e
     Tournament.logger.info "===== scrape =====  StandardError #{e}:\n#{e.backtrace.to_a.join("\n")}"
     reset_tournament
-  end
-
-  def scrape_tournament_optimized(opts = {})
-    # Check if we need to sync this tournament
-    last_sync = sync_date || 1.year.ago
-    force_sync = opts[:force] || last_sync < 1.day.ago
-    
-    # Also check if there are any games that haven't been reported yet
-    has_unreported_games = games.where(result: nil).exists?
-    
-    if force_sync || has_unreported_games
-      Rails.logger.info "===== scrape ===== Syncing tournament #{title} (last sync: #{last_sync}, unreported games: #{has_unreported_games})"
-      scrape_single_tournament_public(opts)
-      
-      # If there are unreported games, also sync seedings
-      if has_unreported_games
-        scrape_tournament_seedings_optimized(opts)
-      end
-    else
-      Rails.logger.info "===== scrape ===== Skipping tournament #{title} - last sync: #{last_sync}, no unreported games"
-    end
-  end
-
-  def scrape_tournament_seedings_optimized(opts = {})
-    # Only sync seedings if there are no reported games
-    return if games.where.not(result: nil).exists?
-    
-    Rails.logger.info "===== scrape ===== Syncing seedings for tournament #{title}"
-    # This would call the existing seeding scraping logic
-    # For now, we'll use the existing method
-    scrape_single_tournament_public(opts)
   end
 
   def fix_location_from_location_text
