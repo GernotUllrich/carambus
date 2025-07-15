@@ -80,7 +80,7 @@ class Tournament < ApplicationRecord
   belongs_to :league, optional: true
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
   # has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
-  has_many :games, dependent: :destroy
+  has_many :games, { as: :tournament, dependent: :destroy }
   has_many :teams, dependent: :destroy
   has_one :tournament_monitor, dependent: :destroy
   has_one :tournament_cc, class_name: "TournamentCc", foreign_key: :tournament_id, dependent: :destroy
@@ -257,7 +257,7 @@ or (seasons.name ilike :search)",
   before_save do
     self.date = Time.at(0) if date.blank?
     self.organizer = region if organizer.blank?
-    
+
     # Only process data if it's not nil and has content
     if data.present?
       %w[balls_goal innings_goal time_out_warm_up_first_min
@@ -319,7 +319,7 @@ or (seasons.name ilike :search)",
     nbsp = ["c2a0"].pack("H*").force_encoding("UTF-8")
     return if organizer_type != "Region"
     return if Carambus.config.carambus_api_url.present?
-    region = organizer
+    region = organizer if organizer_type == "Region"
     url = organizer.public_cc_url_base
     region_cc = region.region_cc
     tournament_doc = opts[:tournament_doc]
@@ -383,11 +383,14 @@ or (seasons.name ilike :search)",
         ht = detail_tr.css("td")[1].inner_html
         location = nil
         location_name, location_address = ht.match(%r{<strong>(.*)</strong><br>(.*)})[1..2]
-        street = location_address.split("<br>").first.split(",").first.strip
+        street = location_address.split("<br>").first&.split(",")&.first&.strip
         location = Location.where("address ilike ?", "#{street}%").first if street.present?
         if !location.present? && location_name.present?
           location = Location.new(name: location_name, address: location_address, organizer: self)
           location.region_id = region.id
+          md5 = location.md5_from_attributes
+          loc_by_md5 = Location.where(md5: md5).first
+          location = loc_by_md5 if loc_by_md5.present?
         end
         self.location = tc.location = location
       when "Meldeschluss"
@@ -432,7 +435,7 @@ or (seasons.name ilike :search)",
       end
     end
     tc.save
-    self.region_id = self.id
+    self.region_id = region.id
     save!
     player_list = {}
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
@@ -474,8 +477,7 @@ or (seasons.name ilike :search)",
 
       table.css("tr")[2..].each_with_index do |tr, ix|
         _n = tr.css("td")[0].text.to_i
-        player_lname, player_fname, club_name = tr.css("td")[2].inner_html
-                                                               .match(%r{<strong>(.*), (.*)</strong><br>(.*)})[1..3]
+        player_lname, player_fname, club_name = tr.css("td")[2].inner_html.match(%r{<strong>(.*)[,\/](.*)</strong><br>(.*)})[1..3]
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
                                                                        club_name.strip, self,
@@ -523,22 +525,23 @@ or (seasons.name ilike :search)",
         memo[o["value"]] = o.text unless o["value"] == "*"
       end
       player_options.each do |k, v|
-        lastname, firstname = v.split(",").map(&:strip)
+        lastname, firstname = v.split(/[,\/]/).map(&:strip)
         firstname.gsub!(/\s*\((.*)\)/, "")
         fl_name = "#{firstname} #{lastname}".strip
         player = player_list[fl_name].andand[0]
         if player.present?
           player.assign_attributes(cc_id: k.to_i) unless organizer.shortname == "DBU"
-          if player.new_recored?
+          if player.new_record?
             player.source_url ||= result_url unless organizer.shortname == "DBU"
           end
-          player.region_id = region.id
-          player.save
+          player.region_id ||= region.id
+          player.save if player.changed?
         else
           Rails.logger.info("===== scrape ===== Inconsistent Playerlist Player #{[k, v].inspect}")
         end
       end
-      games.destroy_all if opts[:reload_game_results]
+      Game.where(tournament_id: self.id).where("tournament_type='Tournament' OR tournament_type is NULL").destroy_all if opts[:reload_game_results]
+      # games.destroy_all if opts[:reload_game_results]
       group = nil
       frame1_lines = result_lines = td_lines = 0
       result = nil
@@ -614,16 +617,20 @@ or (seasons.name ilike :search)",
             when /\A(hb)\z/i
               hb = tr.css("td")[ii].text
             when /\A(bed)\z/i
-              bed = tr.css("td")[ii].text.to_f.round(2)
+              bed = tr.css("td")[ii].text.gsub(",", ".").to_f.round(2)
             when /\A(gd)\z/i
-              gd = tr.css("td")[ii].text.to_f.round(2)
+              gd = tr.css("td")[ii].text.gsub(",", ".").to_f.round(2)
             when /\A(hs)\z/i
               hs = tr.css("td")[ii].text
             when /\A(mp)\z/i
               mp = tr.css("td")[ii].text.to_i
             end
           end
-          seeding = seedings.where(player: player_list[player_fl_name][0]).first
+          if player_fl_name =~ /\//
+            names = player_fl_name.split(/\//).map(&:strip)
+            player_fl_name = player_list[names.join(" ")].present? ? names.join(" ") : names.reverse.join(" ")
+          end
+           seeding = seedings.where(player: player_list[player_fl_name][0]).first if player_list[player_fl_name].present?
           if seeding.blank?
             Rails.logger.info("===== scrape ===== seeding of player #{player_fl_name} should exist!")
           else
@@ -657,8 +664,8 @@ or (seasons.name ilike :search)",
     end
 
     self.region_id = region.id
-    save!
-    tc.save!
+    save! if changed?
+    tc.save! if tc.changed?
   rescue StandardError => e
     Tournament.logger.info "===== scrape =====  StandardError #{e}:\n#{e.backtrace.to_a.join("\n")}"
     reset_tournament
@@ -676,7 +683,7 @@ or (seasons.name ilike :search)",
   def deep_merge_data!(hash)
     h = data.dup
     h.deep_merge!(hash)
-    
+
     # Only call data_will_change! if the data actually changed
     if h != data
       data_will_change!
@@ -710,12 +717,12 @@ or (seasons.name ilike :search)",
     games.where("games.id >= #{Game::MIN_ID}").destroy_all
     unless new_record? || (id.present? && id > Seeding::MIN_ID)
       self.unprotected = true
-      
+
       # Only call data_will_change! if data is not already empty
       if data.present? && data != {}
         data_will_change!
       end
-      
+
       assign_attributes(tournament_plan_id: nil, state: "new_tournament", data: {})
       save
       self.unprotected = false
@@ -1265,7 +1272,8 @@ or (seasons.name ilike :search)",
              }.compact
            end
     if game.present?
-      game.assign_attributes(tournament: self,
+      game.assign_attributes(tournament_id: self.id,
+                             tournament_type: "Tournament",
                              data: data,
                              seqno: no,
                              gname: group)
@@ -1275,13 +1283,14 @@ or (seasons.name ilike :search)",
       end
     else
       game = Game.new(
-        tournament: self,
+        tournament_id: self.id,
+        tournament_type: "Tournament",
         data: data,
         seqno: no,
         gname: group
       )
       game.region_id = region_id
-      game.save!
+      game.save! if game.changed?
     end
     unless game.game_participations.empty? &&
       player_list[playera_fl_name].present? &&
@@ -1305,7 +1314,7 @@ or (seasons.name ilike :search)",
       hs: hs[0].to_s.split("/")[0].andand.strip
     )
     gp.region_id = region_id
-    gp.save!
+    gp.save! if gp.changed?
     gp = game.game_participations.new(
       player_id: player_list[playerb_fl_name][0].id,
       role: "Gast",
@@ -1322,7 +1331,7 @@ or (seasons.name ilike :search)",
       hs: hs[0].to_s.split("/")[1].andand.strip
     )
     gp.region_id = region_id
-    gp.save!
+    gp.save! if gp.changed?
   end
 
   def before_all_events

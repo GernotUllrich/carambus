@@ -122,13 +122,14 @@ module RegionTaggable
     if versions.any?
       latest_version = versions.last
       if latest_version && previous_changes.present?
-        region_id = region_id if respond_to?(:region_id)
-        global_context = global_context? if respond_to?(:global_context?)
+         latest_item = latest_version.item
+        region_id = latest_item.region_id if latest_item.respond_to?(:region_id)
+        global_context = latest_item.global_context if latest_item.respond_to?(:global_context)
 
         latest_version.update_columns(
           region_id: region_id,
           global_context: global_context
-        ) if respond_to?(:region_id) || respond_to?(:global_context?)
+        ) if latest_item.respond_to?(:region_id) || latest_item.respond_to?(:global_context)
       end
     end
   rescue StandardError => e

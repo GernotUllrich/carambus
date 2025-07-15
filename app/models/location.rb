@@ -77,7 +77,11 @@ class Location < ApplicationRecord
 
   def add_md5
     self.synonyms = (synonyms.to_s.split("\n") + [name]).reject(&:blank?).sort.uniq.join("\n")
-    self.md5 ||= Digest::MD5.hexdigest(attributes.except("synonyms", "updated_at", "created_at").inspect)
+    self.md5 ||= md5_from_attributes
+  end
+
+  def md5_from_attributes
+    Digest::MD5.hexdigest(attributes.except("synonyms", "updated_at", "created_at").inspect)
   end
 
   def update_club_location
@@ -129,6 +133,7 @@ class Location < ApplicationRecord
   end
 
   def merge_locations(with_location_ids = [])
+    with_location_ids = Array(with_location_ids).map{|l| l.is_a?(Location) ? l.id : l}
     cc_id = Location.where(id: with_location_ids).all.map(&:cc_id).compact.uniq.first
     attrs = {
       synonyms: (Location.where(id: with_location_ids).map(&:name) | synonyms.split("\n"))

@@ -665,9 +665,9 @@ class League < ApplicationRecord
           end
           params_club = team_club_link.split("p=")[1].split(/[|-]/)
           club_cc_id = params_club[3].to_i
-          region_id = params_club[0].to_i
+          club_region_id = params_club[0].to_i
           club = team_club_dbu_nr&.positive? ? Club.where(dbu_nr: team_club_dbu_nr).first : nil
-          club ||= Club.where(cc_id: club_cc_id, region_id: region_id).first
+          club ||= Club.where(cc_id: club_cc_id, region_id: club_region_id).first
           club ||= Club.where(name: team_club_name).first
           if club.blank?
             club = Club.where("synonyms ilike ?", "%#{team_club_name}%").to_a.find do |cb|

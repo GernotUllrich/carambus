@@ -61,6 +61,7 @@ namespace :region_taggings do
       organic_game_plan_ids = GamePlan.joins(:leagues).where(leagues: { id: organic_league_ids }).ids
       organic_party_ids = Party.joins(:league).where(leagues: { id: organic_league_ids }).ids
       organic_party_game_ids = PartyGame.joins(:party).where(parties: { id: organic_party_ids }).ids
+      organic_seeding_ids |= Seeding.where(league_team_id: organic_league_team_ids).ids
       organic_seeding_ids |= Seeding.where(tournament_id: organic_party_ids, tournament_type: "Party").ids
       organic_seeding_ids |= Seeding.joins(:league_team => :parties_a).where(parties: { id: organic_party_ids }).ids
       organic_seeding_ids |= Seeding.joins(:league_team => :parties_b).where(parties: { id: organic_party_ids }).ids

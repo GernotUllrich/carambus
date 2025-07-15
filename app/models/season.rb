@@ -53,7 +53,7 @@ class Season < ApplicationRecord
 
   def scrape_single_tournaments_public_cc(opts = {})
     (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
-      # next unless shortname == "NBV"
+      #next unless shortname == "NBV"
       region = Region.find_by_shortname(shortname)
       region&.scrape_single_tournament_public(self, opts)
     end
@@ -61,11 +61,11 @@ class Season < ApplicationRecord
 
   def scrape_tournaments_optimized(opts = {})
     Rails.logger.info "===== scrape ===== Starting optimized tournament scraping for season #{name}"
-    
+
     (Region::SHORTNAMES_ROOF_ORGANIZATION + Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).each do |shortname|
       region = Region.find_by_shortname(shortname)
       next unless region.present?
-      
+
       Rails.logger.info "===== scrape ===== Processing tournaments for region #{shortname}"
       region.scrape_tournaments_optimized(self, opts)
     end
@@ -73,6 +73,12 @@ class Season < ApplicationRecord
 
   def previous
     @previous || Season.find_by_ba_id(ba_id - 1)
+  end
+
+  def includes_date(date)
+    @start_date ||= Date.parse("#{name.split("/")[0]}-07-01")
+    @end_date ||= Date.parse("#{name.split("/")[1]}-06-30")
+    date.is_a?(Date) && date >= @start_date && date <= @end_date
   end
 
   def next_season
