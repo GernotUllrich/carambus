@@ -253,8 +253,7 @@ or (regions.address ilike :search)",
             vereinslink = v["href"]
             # vereins_name = v.text.strip
             club_dbu_nr = vereinslink.split("p=")[1].split("-")[3].to_i
-            club = Club.find_by_dbu_nr(club_dbu_nr) if shortname == "DBU"
-            club = Club.find_by_cc_id(club_dbu_nr) if shortname != "DBU"
+            club = Club.find_by_dbu_nr(club_dbu_nr)
             next unless club.present?
 
             club_location = ClubLocation.find_by_location_id_and_club_id(location&.id, club.id)
@@ -460,9 +459,18 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
                                           .where(tournaments: { organizer_id: 1, organizer_type: "Region" })
                                           .where(games: { id: nil }).uniq.map(&:cc_id)
     einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+      date = DateTime.parse(tr.css("td")[1])
+      return unless season.includes_date(date)
       tournament_link = tr.css("a")[0].attributes["href"].value
       params = tournament_link.split("p=")[1].split("-")
       cc_id = params[3].to_i
+
+      # Skip if this cc_id is already marked as abandoned
+      if AbandonedTournamentCcSimple.is_abandoned?(cc_id, region_cc.context)
+        Rails.logger.info "===== scrape ===== Skipping abandoned cc_id #{cc_id} for tournament '#{tr.css("a")[0].text}'"
+        next
+      end
+
       if opts[:optimize_api_access] && (cc_id <= cc_id_max)
         date = DateTime.parse(tr.css("td")[1])
         next if date > Time.now
@@ -478,7 +486,24 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       region_cc.save
       name = tr.css("a")[0].text.strip
       tc = TournamentCc.where(cc_id:, context: region_cc.context).first
-      tc ||= TournamentCc.new(cc_id:, name:, context: region_cc.context)
+
+      # Check if there's already a TournamentCc for this tournament name but with different cc_id
+      existing_tc_for_tournament = TournamentCc.joins(:tournament)
+                                               .where(tournaments: { title: name, season: season, organizer: self })
+                                               .where.not(cc_id: cc_id)
+                                               .first
+
+      if existing_tc_for_tournament.present?
+        # We have a duplicate - mark the old cc_id as abandoned
+        old_cc_id = existing_tc_for_tournament.cc_id
+        AbandonedTournamentCcSimple.mark_abandoned!(old_cc_id, region_cc.context)
+        Rails.logger.info "===== scrape ===== Found duplicate tournament '#{name}', marked old cc_id #{old_cc_id} as abandoned, keeping cc_id #{cc_id}"
+
+        # Create new TournamentCc for the current cc_id
+        tc = TournamentCc.where(cc_id:, name:, context: region_cc.context).first || TournamentCc.new(cc_id:, name:, context: region_cc.context)
+      else
+        tc ||= TournamentCc.new(cc_id:, name:, context: region_cc.context)
+      end
 
       if tc.present?
         # some checks
@@ -691,14 +716,14 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         assign_attributes("#{key_to_db_name[key]}": val) if key_to_db_name[key].present?
       end
       self.region_id ||= self.id
-      save!
+      save! if changed?
       self.source_url = verband_url
       self.region_id ||= self.id
       save! if changed?
       region_cc = RegionCc.find_by_shortname(shortname) || RegionCc.new(shortname:)
       region_cc.assign_attributes(name:, cc_id:, region_id: id, context: shortname.downcase, public_url: url,
                                   base_url:)
-      region_cc.save!
+      region_cc.save! if region_cc.changed?
     else
       if shortname == "BBV" && false # TODO debug this, before releasing
         url = Region::NON_CC["BBV"]

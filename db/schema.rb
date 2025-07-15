@@ -10,9 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_03_154911) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "abandoned_tournament_cc_simples", force: :cascade do |t|
+    t.integer "cc_id", null: false
+    t.string "context", null: false
+    t.datetime "abandoned_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cc_id", "context"], name: "index_abandoned_cc_simples_on_cc_id_context", unique: true
+  end
+
+  create_table "abandoned_tournament_ccs", force: :cascade do |t|
+    t.integer "cc_id", null: false
+    t.string "context", null: false
+    t.string "region_shortname", null: false
+    t.string "season_name", null: false
+    t.string "tournament_name", null: false
+    t.datetime "abandoned_at", null: false
+    t.text "reason"
+    t.integer "replaced_by_cc_id"
+    t.integer "replaced_by_tournament_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["abandoned_at"], name: "index_abandoned_tournament_ccs_on_abandoned_at"
+    t.index ["cc_id", "context"], name: "index_abandoned_tournament_ccs_on_cc_id_and_context", unique: true
+    t.index ["region_shortname", "season_name", "tournament_name"], name: "index_abandoned_tournament_ccs_on_region_season_tournament"
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -378,7 +404,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_03_154911) do
   create_table "league_teams", force: :cascade do |t|
     t.string "name"
     t.string "shortname"
-    t.integer "league_id"
+    t.integer "league_id", null: false
     t.integer "ba_id"
     t.integer "club_id"
     t.datetime "created_at", null: false
@@ -486,7 +512,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_03_154911) do
 
   create_table "parties", force: :cascade do |t|
     t.datetime "date", precision: nil
-    t.integer "league_id"
+    t.integer "league_id", null: false
     t.text "remarks"
     t.integer "league_team_a_id"
     t.integer "league_team_b_id"

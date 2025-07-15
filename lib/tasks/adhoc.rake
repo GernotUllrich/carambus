@@ -4,6 +4,35 @@ require "#{Rails.root}/app/helpers/application_helper"
 require "aasm-diagram" if Rails.env == "development"
 
 namespace :adhoc do
+  desc "Find club_ids from season_participations that don't exist in clubs table"
+  task find_orphaned_club_ids: :environment do
+    # Get all club_ids from season_participations
+    participation_club_ids = SeasonParticipation.distinct.pluck(:club_id).compact
+
+    # Get all club_ids that exist in clubs table
+    existing_club_ids = Club.pluck(:id)
+
+    # Find orphaned club_ids (in season_participations but not in clubs)
+    orphaned_club_ids = participation_club_ids - existing_club_ids
+
+    puts "Total club_ids in season_participations: #{participation_club_ids.count}"
+    puts "Total club_ids in clubs table: #{existing_club_ids.count}"
+    puts "Orphaned club_ids: #{orphaned_club_ids.count}"
+
+    if orphaned_club_ids.any?
+      puts "\nOrphaned club_ids: #{orphaned_club_ids.sort}"
+
+      # Show some details about the orphaned records
+      orphaned_participations = SeasonParticipation.where(club_id: orphaned_club_ids)
+      puts "\nSample orphaned season_participations:"
+      orphaned_participations.limit(10).each do |sp|
+        puts "  ID: #{sp.id}, Club ID: #{sp.club_id}, Player: #{sp.player&.name}, Season: #{sp.season&.name}"
+      end
+    else
+      puts "\nNo orphaned club_ids found!"
+    end
+  end
+
   desc "Translate page content"
   task translate_page_content: :environment do
     page = Page[4]
@@ -93,7 +122,9 @@ namespace :adhoc do
     # League.where("source_url ilike 'https://westfalenbillard.net/sb_spielplan.php?p=12--2024/2025-200%'").all.each do |league|
     #   league.scrape_single_league_from_cc(league_details: true)
     # end
-    League[8932].scrape_single_league_from_cc(league_details: true, cleanup:true)
+    # League[8682].scrape_single_league_from_cc(league_details: true)
+    # Club[3013].update(region_id: 2)
+    Tournament[15799].scrape_single_tournament_public(reload_game_results: true)
   end
 
   desc "Sequence Reset"
