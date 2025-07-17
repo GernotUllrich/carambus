@@ -1,0 +1,158 @@
+# Cursor Rules für Carambus Rails-Anwendung
+# Optimiert für Ruby 3.2, Rails 7.2, PostgreSQL, Redis, Hotwire
+
+## Rails-spezifische Regeln
+
+### Code-Stil und Konventionen
+- Verwende Rails 7.2 Best Practices und Konventionen
+- Folge Ruby 3.2 Syntax und Features
+- Verwende `frozen_string_literal: true` in allen Ruby-Dateien
+- Verwende `ApplicationRecord` als Basis für alle Models
+- Verwende `ApplicationController` als Basis für alle Controller
+- Verwende `ApplicationHelper` für geteilte Helper-Methoden
+
+### Datenbank und Models
+- Verwende PostgreSQL-spezifische Features wo sinnvoll
+- Verwende `MIN_ID = 50_000_000` für lokale Datensätze
+- Implementiere `disallow_saving_global_records` in Models
+- Verwende `paper_trail` für Versionierung wo nötig
+- Verwende `aasm` für State Machines
+- Verwende `acts_as_list` für sortierbare Listen
+- Verwende `cable_ready` für Real-time Updates
+
+### Controller und Views
+- Verwende RESTful Controller-Patterns
+- Verwende `pundit` für Authorization
+- Verwende `devise` für Authentication
+- Verwende `pagy` für Pagination
+- Verwende `jbuilder` für JSON-APIs
+- Verwende `stimulus_reflex` für reaktive UI
+- Verwende `turbo-rails` für SPA-like Experience
+
+### Frontend und Assets
+- Verwende `importmap-rails` für JavaScript-Module
+- Verwende `stimulus-rails` für JavaScript-Controller
+- Verwende `tailwindcss` für Styling
+- Verwende `inline_svg` für SVG-Icons
+- Verwende `esbuild` für Asset-Kompilierung
+
+### Testing und Qualität
+- Verwende `rspec` für Unit-Tests
+- Verwende `capybara` für System-Tests
+- Verwende `factory_bot_rails` für Test-Daten
+- Verwende `standard` für Code-Formatierung
+- Verwende `rubocop-rails-omakase` für Rails-spezifische Linting
+- Verwende `brakeman` für Security-Scanning
+
+### Deployment und Konfiguration
+- Verwende `capistrano` für Deployment
+- Verwende `kamal` für Container-Deployment
+- Verwende `puma` als Web-Server
+- Verwende `redis` für Caching und Action Cable
+- Verwende `strong_migrations` für sichere Migrationen
+
+### Spezifische Projekt-Patterns
+- Verwende `RegionTaggable` Concern für regionsbasierte Daten
+- Verwende `LocalProtector` Concern für lokale Datensicherheit
+- Verwende `SourceHandler` Concern für externe Daten
+- Verwende `CableReady::Updatable` für Real-time Updates
+- Verwende `CableReady::Broadcaster` für Broadcasting
+
+### API und Integration
+- Verwende `jbuilder` für JSON-Responses
+- Verwende `devise_token_auth` für API-Authentication
+- Verwende `rack-cors` für CORS-Handling
+- Verwende `google-apis-calendar_v3` für Google Calendar Integration
+
+### Performance und Monitoring
+- Verwende `rack-mini-profiler` für Performance-Monitoring
+- Verwende `bullet` für N+1 Query Detection
+- Verwende `redis-session-store` für Session-Management
+- Verwende `kredis` für Redis-Datenstrukturen
+
+### Sicherheit
+- Verwende `invisible_captcha` für Bot-Schutz
+- Verwende `pretender` für User-Impersonation
+- Verwende `pundit` für Authorization
+- Verwende `strong_parameters` für Parameter-Validierung
+
+### Internationalisierung
+- Verwende `rails-i18n` für Übersetzungen
+- Verwende `devise-i18n` für Devise-Übersetzungen
+- Verwende `i18n_yaml_sort` für YAML-Sortierung
+- Verwende `i15r` für Internationalisierung
+
+### Code-Generierung
+- Generiere Models mit `rails generate model`
+- Generiere Controller mit `rails generate controller`
+- Generiere Migrationen mit `rails generate migration`
+- Verwende `annotate` für Model-Annotationen
+- Verwende `overcommit` für Git-Hooks
+
+### Debugging und Entwicklung
+- Verwende `debug` Gem für Debugging
+- Verwende `web-console` für Browser-Konsole
+- Verwende `letter_opener_web` für E-Mail-Preview
+- Verwende `aasm-diagram` für State Machine Visualisierung
+
+## AI-Modell-spezifische Regeln
+
+### Für Code-Generierung (Claude 3.5 Sonnet)
+- Fokussiere auf Rails-Konventionen und Best Practices
+- Verwende aktuelle Rails 7.2 Features
+- Berücksichtige die spezifischen Gems und Patterns des Projekts
+- Generiere Tests mit RSpec und FactoryBot
+- Verwende die vorhandenen Concerns und Helpers
+
+### Für Code-Review und Debugging (GPT-4)
+- Analysiere Performance-Probleme
+- Identifiziere Security-Issues
+- Überprüfe Database-Query-Optimierung
+- Bewerte Code-Qualität und Maintainability
+
+### Für Architektur-Entscheidungen (Claude 3.5 Sonnet)
+- Berücksichtige die bestehende Architektur
+- Verwende bewährte Rails-Patterns
+- Plane für Skalierbarkeit und Performance
+- Integriere mit bestehenden Services und APIs
+
+## Projekt-spezifische Regeln
+
+### Carambus-spezifische Features
+- Berücksichtige die Turnier-Management-Funktionalität
+- Verwende die Scoreboard-Integration
+- Berücksichtige die Multi-Region-Architektur
+- Verwende die vorhandenen Admin-Interfaces (Administrate)
+- Berücksichtige die Real-time Features (Action Cable)
+
+### Datenmodell-spezifische Regeln
+- Verwende die vorhandenen Model-Beziehungen
+- Berücksichtige die `MIN_ID`-Logik für lokale Datensätze
+- Verwende die vorhandenen Validierungen und Callbacks
+- Berücksichtige die Paper Trail Versionierung
+
+### Deployment-spezifische Regeln
+- Berücksichtige die Capistrano-Deployment-Pipeline
+- Verwende die vorhandenen Environment-Konfigurationen
+- Berücksichtige die Redis- und PostgreSQL-Setup
+- Verwende die vorhandenen Service-Konfigurationen
+
+## Kommunikation und Dokumentation
+
+### Code-Kommentare
+- Schreibe klare, präzise Kommentare auf Deutsch
+- Dokumentiere komplexe Business-Logik
+- Erkläre Rails-spezifische Patterns
+- Kommentiere API-Endpunkte und Parameter
+
+### Commit-Messages
+- Verwende konventionelle Commit-Messages
+- Beschreibe die Änderung klar und präzise
+- Referenziere Issue-Nummern wenn relevant
+- Verwende Deutsch für Business-Logik, Englisch für technische Begriffe
+
+### Dokumentation
+- Aktualisiere README-Dateien bei Änderungen
+- Dokumentiere neue Features und APIs
+- Erkläre komplexe Workflows und Prozesse
+- Verwende Markdown für Dokumentation 
