@@ -112,15 +112,18 @@ class Player < ApplicationRecord
     elsif players.count == 1
       players[0]
     else
-      args = { data: { "players" => players.map do |p|
-        {
-          "firstname" => p.firstname,
-          "lastname" => p.lastname,
-          "ba_id" => p.ba_id,
-          "cc_id" => p.cc_id,
-          "player_id" => p.id
-        }
-      end } }
+      args = { data:
+                 { "players" => players.map do |p|
+                   {
+                     firstname: p.firstname,
+                     lastname: p.lastname,
+                     ba_id: p.ba_id,
+                     cc_id: p.cc_id,
+                     player_id: p.id
+                   }
+                 end },
+               region_id: players[0].andand.region_id
+      }
 
       Team.where(args).first || Team.create!(args)
     end
@@ -384,7 +387,7 @@ class Player < ApplicationRecord
   def self.fix_from_shortnames(lastname, firstname, season, region,
                                club_str_, tournament, allow_players_outside_ba,
                                allow_creates, position)
-    if firstname.match(/.*\((.*)\)/)
+    if firstname&.match(/.*\((.*)\)/)
       firstname.gsub!(/\s*\((.*)\)/, "")
     end
     club_str = club_str_.strip.gsub("  ", " ")

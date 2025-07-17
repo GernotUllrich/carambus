@@ -459,11 +459,17 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
                                           .where(tournaments: { organizer_id: 1, organizer_type: "Region" })
                                           .where(games: { id: nil }).uniq.map(&:cc_id)
     einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+      lfnr = tr.css("td")[0].text.to_i
+
+      #TODO remove following after successfull test!!!
+      # next unless  (shortname == "SBV")
+
       date = DateTime.parse(tr.css("td")[1])
       return unless season.includes_date(date)
       tournament_link = tr.css("a")[0].attributes["href"].value
       params = tournament_link.split("p=")[1].split("-")
       cc_id = params[3].to_i
+      # next unless cc_id == 85
 
       # Skip if this cc_id is already marked as abandoned
       if AbandonedTournamentCcSimple.is_abandoned?(cc_id, region_cc.context)

@@ -477,7 +477,18 @@ or (seasons.name ilike :search)",
 
       table.css("tr")[2..].each_with_index do |tr, ix|
         _n = tr.css("td")[0].text.to_i
-        player_lname, player_fname, club_name = tr.css("td")[2].inner_html.match(%r{<strong>(.*)[,\/](.*)</strong><br>(.*)})[1..3]
+        name_match = tr.css("td")[2].inner_html.match(%r{<strong>(.*)[,\/](.*)</strong><br>(.*)})
+        if name_match
+          player_lname, player_fname, club_name = name_match[1..3]
+        else
+          name_match = tr.css("td")[2].inner_html.match(%r{<strong>(.*)\s+(\w+)</strong><br>(.*)})
+          if name_match
+            player_fname, player_lname, club_name = name_match[1..3]
+          else
+            name_match = tr.css("td")[2].inner_html.match(%r{<strong>(.*)</strong><br>(.*)})
+            player_lname, club_name = name_match[1..2]
+          end
+        end
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, season, region,
                                                                        club_name.strip, self,
@@ -526,7 +537,7 @@ or (seasons.name ilike :search)",
       end
       player_options.each do |k, v|
         lastname, firstname = v.split(/[,\/]/).map(&:strip)
-        firstname.gsub!(/\s*\((.*)\)/, "")
+        firstname&.gsub!(/\s*\((.*)\)/, "")
         fl_name = "#{firstname} #{lastname}".strip
         player = player_list[fl_name].andand[0]
         if player.present?
@@ -561,14 +572,14 @@ or (seasons.name ilike :search)",
       table.css("tr").each do |tr|
         frame1_lines, frame_points, frame_result, frames, gd, group, hb, header, hs, mp, innings, nbsp, no,
           player_list, playera_fl_name, playerb_fl_name, points, result, result_lines, result_url,
-          td_lines, _tr = parse_table_tr(
+          td_lines, _tr = parse_table_tr(region,
           frame1_lines, frame_points, frame_result, frames, gd, group, hb,
           header, hs, mp, innings, nbsp, no, player_list, playera_fl_name, playerb_fl_name,
           points, result, result_lines, result_url, td_lines, tr
         )
       end
       if td_lines.positive? && no.present?
-        handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
+        handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
                     playerb_fl_name, frame_points, points, result)
       end
     end
@@ -761,14 +772,14 @@ or (seasons.name ilike :search)",
 
   private
 
-  def parse_table_tr(frame1_lines, frame_points, frame_result, frames, gd, group, hb,
+  def parse_table_tr(region, frame1_lines, frame_points, frame_result, frames, gd, group, hb,
                      header, hs, mp, innings, nbsp, no,
                      player_list, playera_fl_name, playerb_fl_name,
                      points, result, result_lines, result_url, td_lines, tr)
     if tr.css("th").count == 1
       group_ = tr.css("th").text.gsub(nbsp, " ").strip
       if group.present? && no.present? && group_.present? && group_ != 0 && group != group_
-        handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
+        handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
                     playerb_fl_name, frame_points, points, result)
         result = nil
         playera_fl_name = nil
@@ -789,7 +800,7 @@ or (seasons.name ilike :search)",
     elsif tr.css("td").count.positive?
       no_ = tr.css("td")[0].text.to_i if tr.css("td")[0].text.present?
       if no.present? && no_.present? && no_ != 0 && no != no_
-        handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
+        handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name,
                     playerb_fl_name, frame_points, points, result)
         result = nil
         playera_fl_name = nil
@@ -1228,10 +1239,10 @@ or (seasons.name ilike :search)",
     end
   end
 
-  def handle_game(frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name, playerb_fl_name,
+  def handle_game(region, frame_result, frames, gd, group, hs, hb, mp, innings, no, player_list, playera_fl_name, playerb_fl_name,
                   frame_points, points, result)
     game = games.where(seqno: no, gname: group).first
-    region_id = game.tournament.organizer.id if game&.tournament&.organizer.is_a?(Region)
+    region_id = region.id
     data = if frames.count > 1
              frame_data = []
              frames.each_with_index do |_frame, ix|

@@ -197,9 +197,9 @@ namespace :region_taggings do
     models_to_verify = [
       Region, Club, Tournament, League, Party, Location,
       LeagueTeam, Game, PartyGame, GameParticipation,
-      Player, SeasonParticipation, Seeding
+      Player, SeasonParticipation, Seeding, ClubLocation, Table,
+      GamePlan
     ]
-
     models_to_verify.each do |model|
       puts "\nVerifying #{model.name}..."
 
