@@ -30,10 +30,18 @@ class Seeding < ApplicationRecord
     state :participated
     state :no_show
   end
-  belongs_to :player, optional: true
+  belongs_to :player
   belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
   belongs_to :league_team, optional: true
+
+  # Existing validations (from previous response)
+  validates :tournament_type, inclusion: {
+    in: %w[Tournament Party],
+    message: "%{value} is not a valid type (must be 'Tournament' or 'Party')"
+  }, if: -> { tournament_type.present? }
+
+  validate :exactly_one_association
 
   after_create :loggit
 
@@ -164,5 +172,41 @@ or (league_seasons.name ilike :search)
       ret << "</table>"
     end
     ret.join("\n").html_safe
+  end
+
+  private
+
+  def exactly_one_association
+    has_league_team = league_team_id.present?
+    has_tournament = tournament_id.present? && tournament_type.present?
+
+    if has_league_team && has_tournament
+      errors.add(:base, "Seeding cannot belong to both a league_team and a tournament")
+      return # Early return to avoid further checks if already invalid
+    elsif !has_league_team && !has_tournament
+      errors.add(:base, "Seeding must belong to either a league_team or a tournament")
+      return
+    elsif has_tournament && tournament_id.blank?
+      errors.add(:tournament_id, "must be present if tournament_type is set")
+      return
+    elsif has_tournament && tournament_type.blank?
+      errors.add(:tournament_type, "must be present if tournament_id is set")
+      return
+    end
+
+    # New: Check existence of the referenced record
+    if has_league_team
+      unless LeagueTeam.exists?(id: league_team_id)
+        errors.add(:league_team_id, "references a non-existent LeagueTeam (ID: #{league_team_id})")
+      end
+    elsif has_tournament
+      # Dynamically get the class from tournament_type and check existence
+      klass = tournament_type.safe_constantize
+      if klass.nil? || !klass.ancestors.include?(ApplicationRecord)
+        errors.add(:tournament_type, "references an invalid or non-model class (#{tournament_type})")
+      elsif !klass.exists?(id: tournament_id)
+        errors.add(:tournament_id, "references a non-existent #{tournament_type} (ID: #{tournament_id})")
+      end
+    end
   end
 end

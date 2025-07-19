@@ -525,7 +525,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       # tournament known but no cc entry yet?
       tournament = Tournament.where(season:, organizer: self, title: name).first
       unless tournament.present?
-        tournament = Tournament.create(season:, organizer: self, title: name)
+        tournament = Tournament.create(season:, organizer: self, title: name, region_id: self.id)
       end
       TournamentCc.where(tournament_id: tournament.id).where.not(id: tc.id).destroy_all
       tc.update(tournament:)
