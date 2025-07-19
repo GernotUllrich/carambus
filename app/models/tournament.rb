@@ -80,7 +80,7 @@ class Tournament < ApplicationRecord
   belongs_to :league, optional: true
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
   # has_many :games, as: :tournament, class_name: "Game", dependent: :destroy
-  has_many :games, { as: :tournament, dependent: :destroy }
+  has_many :games, as: :tournament, dependent: :destroy
   has_many :teams, dependent: :destroy
   has_one :tournament_monitor, dependent: :destroy
   has_one :tournament_cc, class_name: "TournamentCc", foreign_key: :tournament_id, dependent: :destroy
