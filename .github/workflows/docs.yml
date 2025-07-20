@@ -1,4 +1,4 @@
-name: Build Documentation
+name: Documentation Build
 
 on:
   push:
@@ -10,13 +10,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -32,6 +32,6 @@ jobs:
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v3
         with:
-          name: documentation
+          name: documentation-build
           path: ./site
           retention-days: 30 
