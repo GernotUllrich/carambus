@@ -9,6 +9,12 @@ Rails.application.configure do
       key_prefix: "session:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" }
     }
+
+  # Disable log rotation by assigning a new Logger without rotation options
+  config.logger = Logger.new(Rails.root.join('log', 'development.log'), shift_age = 0)
+
+  # Optional: set log level if needed
+  config.log_level = :debug
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time
