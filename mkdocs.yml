@@ -1,0 +1,127 @@
+# Site Basics
+site_name: Carambus Documentation
+site_description: Docs for Carambus - Billiards management with Ruby on Rails
+site_url: https://GernotUllrich.github.io/carambus-docs
+repo_url: https://github.com/GernotUllrich/carambus
+repo_name: GernotUllrich/carambus
+docs_dir: pages  # THIS DEFINES THE SUBFOLDER FOR .md FILES (instead of default 'docs')
+
+# Theme
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - search.suggest
+    - header.autohide
+  palette:
+    - scheme: default
+      primary: indigo
+    - scheme: slate
+      primary: indigo
+
+# Navigation (references files in 'pages/', with .de/.en handled by i18n)
+nav:
+  - Startseite: index.md
+  - Einführung:
+      - Über: about.md
+      - README: README.md
+  - Benutzerhandbuch:
+      - Turnierverwaltung: tournament.md
+      - Tischreservierung: table_reservation_heating_control.md
+      - Scoreboard Setup: scoreboard_autostart_setup.md
+      - Modus-Umschaltung: mode_switcher.md
+  - Entwicklerhandbuch:
+      - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+      - Datenbankdesign: database_design.md
+      - Datenbanksynchronisation: database_syncing.md
+      - Paper Trail Optimierung: paper_trail_optimization.md
+  - Admin-Handbuch:
+      - Admin-Rollen: admin_roles.md
+      - Datenverwaltung: data_management.md
+      - Filter-Popup Verwendung: filter_popup_usage.md
+  - Referenz:
+      - ER-Diagramm: er_diagram.md
+      - API: API.md
+      - AGB: terms.md
+      - Datenschutz: privacy.md
+
+# Plugins (ensure pip install mkdocs-static-i18n)
+plugins:
+  - search
+  - i18n:
+      languages:
+        - locale: de
+          name: Deutsch
+          default: true
+          build: true
+          nav:
+            - Startseite: index.md
+            - Einführung:
+                - Über: about.md
+                - README: README.md
+            - Benutzerhandbuch:
+                - Turnierverwaltung: tournament.md
+                - Tischreservierung: table_reservation_heating_control.md
+                - Scoreboard Setup: scoreboard_autostart_setup.md
+                - Modus-Umschaltung: mode_switcher.md
+            - Entwicklerhandbuch:
+                - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+                - Datenbankdesign: database_design.md
+                - Datenbanksynchronisation: database_syncing.md
+                - Paper Trail Optimierung: paper_trail_optimization.md
+            - Admin-Handbuch:
+                - Admin-Rollen: admin_roles.md
+                - Datenverwaltung: data_management.md
+                - Filter-Popup Verwendung: filter_popup_usage.md
+            - Referenz:
+                - ER-Diagramm: er_diagram.md
+                - API: API.md
+                - AGB: terms.md
+                - Datenschutz: privacy.md
+        - locale: en
+          name: English
+          build: true
+          nav:
+            - Home: index.md
+            - Introduction:
+                - About: about.md
+                - README: README.md
+            - User Guide:
+                - Tournament Management: tournament.md
+                - Table Reservation: table_reservation_heating_control.md
+                - Scoreboard Setup: scoreboard_autostart_setup.md
+                - Mode Switcher: mode_switcher.md
+            - Developer Guide:
+                - Developer Guide: DEVELOPER_GUIDE.md
+                - Database Design: database_design.md
+                - Database Syncing: database_syncing.md
+                - Paper Trail Optimization: paper_trail_optimization.md
+            - Admin Guide:
+                - Admin Roles: admin_roles.md
+                - Data Management: data_management.md
+                - Filter Popup Usage: filter_popup_usage.md
+            - Reference:
+                - ER Diagram: er_diagram.md
+                - API: API.md
+                - Terms: terms.md
+                - Privacy: privacy.md
+      reconfigure_material: true
+      docs_structure: folder
+
+# Markdown Extensions (for images, Mermaid ER Diagram, etc.)
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences  # Renders your ER Diagram interactively
+  - toc:
+      permalink: true
+  - admonition
+  - attr_list  # For image embeds like ![Alt](assets/image.png){width="100%"}
+  - md_in_html
+
+# Extras
+extra:
+  generator: false
+  edit_uri: edit/main/docs/pages
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GernotUllrich/carambus 
