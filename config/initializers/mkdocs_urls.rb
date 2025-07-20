@@ -14,22 +14,22 @@ module MkDocsUrls
     def tournament_doc_url(locale = I18n.locale)
       case locale.to_s
       when 'de'
-        "#{BASE_URL}/de/tournament/"
+        "#{BASE_URL}/tournament/"
       when 'en'
         "#{BASE_URL}/en/tournament/"
       else
-        "#{BASE_URL}/de/tournament/" # Default to German
+        "#{BASE_URL}/tournament/" # Default to German
       end
     end
 
     def league_doc_url(locale = I18n.locale)
       case locale.to_s
       when 'de'
-        "#{BASE_URL}/de/league/"
+        "#{BASE_URL}/league/"
       when 'en'
         "#{BASE_URL}/en/league/"
       else
-        "#{BASE_URL}/de/league/" # Default to German
+        "#{BASE_URL}/league/" # Default to German
       end
     end
 
