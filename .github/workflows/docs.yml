@@ -14,6 +14,7 @@ permissions:
   pages: write
   id-token: write
   actions: write
+  administration: write
 
 concurrency:
   group: "pages"
@@ -44,6 +45,14 @@ jobs:
         with:
           enablement: true
           static_site_generator: mkdocs
+          enablement_parameter: true
+
+      - name: Enable GitHub Pages
+        run: |
+          gh api repos/${{ github.repository }}/pages \
+            --method POST \
+            --field source.type=workflow \
+            --field source.branch=main
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
