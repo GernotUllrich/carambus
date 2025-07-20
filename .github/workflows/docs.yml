@@ -8,6 +8,7 @@ on:
       - 'pages/**'
       - 'mkdocs.yml'
       - 'requirements.txt'
+      - '.github/workflows/docs.yml'
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - 'pages/**'
       - 'mkdocs.yml'
       - 'requirements.txt'
+      - '.github/workflows/docs.yml'
 
 permissions:
   contents: read
