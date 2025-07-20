@@ -6,8 +6,8 @@
 
 module MkDocsUrls
   # Base URL for the MkDocs documentation
-  # This should be updated when the documentation is deployed
-  BASE_URL = ENV.fetch('MKDOCS_BASE_URL', 'https://gernotullrich.github.io/carambus-docs').freeze
+  # Use relative URLs for local deployment, or set MKDOCS_BASE_URL for external hosting
+  BASE_URL = ENV.fetch('MKDOCS_BASE_URL', '/docs').freeze
 
   # Documentation URLs for different languages and sections
   class << self
