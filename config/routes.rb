@@ -241,8 +241,7 @@ Rails.application.routes.draw do
     get :index_t
     get :island25
     get :training
-    get :doc_tournament
-    get :doc_league
+
     get :database_syncing
   end
 

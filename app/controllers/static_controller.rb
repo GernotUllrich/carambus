@@ -14,13 +14,7 @@ class StaticController < ApplicationController
     redirect_to root_path
   end
 
-  def doc_tournament
-    render 'tournament'
-  end
 
-  def doc_league
-    render 'league'
-  end
 
   def search
 

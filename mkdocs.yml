@@ -27,6 +27,7 @@ nav:
       - README: README.md
   - Benutzerhandbuch:
       - Turnierverwaltung: tournament.md
+      - Ligaspieltage: league.md
       - Tischreservierung: table_reservation_heating_control.md
       - Scoreboard Setup: scoreboard_autostart_setup.md
       - Modus-Umschaltung: mode_switcher.md
@@ -62,6 +63,7 @@ plugins:
                 - README: README.md
             - Benutzerhandbuch:
                 - Turnierverwaltung: tournament.md
+                - Ligaspieltage: league.md
                 - Tischreservierung: table_reservation_heating_control.md
                 - Scoreboard Setup: scoreboard_autostart_setup.md
                 - Modus-Umschaltung: mode_switcher.md
@@ -90,6 +92,7 @@ plugins:
                 - README: README.md
             - User Guide:
                 - Tournament Management: tournament.md
+                - League Match Days: league.md
                 - Table Reservation: table_reservation_heating_control.md
                 - Scoreboard Setup: scoreboard_autostart_setup.md
                 - Mode Switcher: mode_switcher.md
