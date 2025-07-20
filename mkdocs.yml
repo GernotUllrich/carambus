@@ -32,6 +32,7 @@ nav:
       - Modus-Umschaltung: mode_switcher.md
   - Entwicklerhandbuch:
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+      - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
       - Datenbanksynchronisation: database_syncing.md
       - Paper Trail Optimierung: paper_trail_optimization.md
@@ -66,6 +67,7 @@ plugins:
                 - Modus-Umschaltung: mode_switcher.md
             - Entwicklerhandbuch:
                 - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+                - MkDocs Dokumentation: mkdocs_dokumentation.md
                 - Datenbankdesign: database_design.md
                 - Datenbanksynchronisation: database_syncing.md
                 - Paper Trail Optimierung: paper_trail_optimization.md
@@ -93,6 +95,7 @@ plugins:
                 - Mode Switcher: mode_switcher.md
             - Developer Guide:
                 - Developer Guide: DEVELOPER_GUIDE.md
+                - MkDocs Documentation: mkdocs_documentation.md
                 - Database Design: database_design.md
                 - Database Syncing: database_syncing.md
                 - Paper Trail Optimization: paper_trail_optimization.md
