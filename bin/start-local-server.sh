@@ -56,8 +56,8 @@ mkdir -p log
 # Start the server
 log "Starting LOCAL mode server on port $PORT..."
 log "Environment: $ENVIRONMENT"
-log "Database: carambus_local_development"
-log "Log file: log/development-local.log"
+log "Database: carambus_development"
+log "Log file: log/development.log"
 log ""
 log "Server will be available at: http://localhost:$PORT"
 log "Press Ctrl+C to stop the server"
@@ -69,4 +69,4 @@ export RAILS_SERVE_STATIC_FILES=true
 export RAILS_LOG_TO_STDOUT=false
 
 # Start the server with the LOCAL environment
-bundle exec rails server -p $PORT -e $ENVIRONMENT 
+bundle exec rails server -p $PORT -e $ENVIRONMENT

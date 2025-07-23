@@ -2,7 +2,7 @@
 lock "3.19.2"
 
 set :application, "carambus"
-set :basename, File.basename(`pwd`).strip
+set :basename, "carambus"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 
 # Default branch is :master
@@ -177,7 +177,7 @@ namespace :deploy do
             execute :yarn, "build"
             # Build CSS assets
             execute :yarn, "build:css"
-            
+
             # Ensure the builds directory exists for Rails asset pipeline
             execute :mkdir, "-p app/assets/builds"
           end

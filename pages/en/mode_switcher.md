@@ -10,9 +10,9 @@ Instead of having separate `carambus` and `carambus_api` folders, you can now us
 
 ### **LOCAL Mode**
 - **carambus_api_url**: Empty (nil)
-- **Database**: `carambus_local_development`
+- **Database**: `carambus_development`
 - **Deploy Server**: Local testing server (`192.168.178.81`)
-- **Deploy Basename**: `carambus_local`
+- **Deploy Basename**: `carambus`
 - **Log File**: `development-local.log` (symbolic link)
 - **Server Port**: 3001
 - **Environment**: `development-local`
@@ -164,7 +164,7 @@ Edit the script files to change server addresses:
 ### **Customizing Database Names**
 Edit the database names in both script files:
 
-- **LOCAL database**: `carambus_local_development`
+- **LOCAL database**: `carambus_development`
 - **API database**: `carambus_api_development`
 
 ## 📋 **Workflow Examples**
@@ -213,8 +213,8 @@ bundle exec rails mode:status
 # Current Configuration:
 #   API URL: empty
 #   Context: LOCAL
-#   Database: carambus_local_development
-#   Deploy Basename: carambus_local
+#   Database: carambus_development
+#   Deploy Basename: carambus
 #   Log File: development-local.log
 # Current Mode: LOCAL
 ```
