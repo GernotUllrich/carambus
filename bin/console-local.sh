@@ -44,11 +44,11 @@ fi
 # Start the console
 log "Starting LOCAL mode console..."
 log "Environment: $ENVIRONMENT"
-log "Database: carambus_local_development"
+log "Database: carambus_development"
 log ""
 
 # Set environment variables
 export RAILS_ENV=development
 
 # Start the console with the LOCAL environment
-bundle exec rails console -e $ENVIRONMENT 
+bundle exec rails console -e $ENVIRONMENT
