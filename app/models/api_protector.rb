@@ -33,7 +33,7 @@ module ApiProtector
     after_destroy :disallow_saving_local_records
 
     def disallow_saving_local_records
-      raise ActiveRecord::Rollback if !ApplicationRecord.local_server? && !unprotected
+      raise ActiveRecord::Rollback if (new_record? || id > Seeding::MIN_ID) && !ApplicationRecord.local_server? && !unprotected
 
       true
     end
