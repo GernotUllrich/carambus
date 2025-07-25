@@ -1,132 +1,15 @@
 # frozen_string_literal: true
 
 namespace :mode do
-  desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
+  desc "Switch to LOCAL mode (set carambus_api_url, local database)"
   task local: :environment do
     puts "Switching to LOCAL mode..."
 
     # Update carambus.yml
-    carambus_config = {
-      "default" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0,
-        "context" => "NBV",
-        "season_name" => "2023/2024",
-        "force_update" => "true",
-        "no_local_protection" => "false",
-        "club_id" => 357
-      },
-      "development" => {
-        "carambus_api_url" => "https://api.carambus.de/",  # Set for local mode to fetch data from API
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "context" => "LOCAL",
-        "season_name" => "2024/2025",
-        "force_update" => "true",
-        "no_local_protection" => "true",
-        "club_id" => 357
-      },
-      "test" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0
-      },
-      "production" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0
-      }
-    }
-
-    File.write(Rails.root.join('config', 'carambus.yml'), carambus_config.to_yaml)
-    puts "✓ Updated carambus.yml"
+    update_carambus_yml(carambus_api_url="https://newapi.carambus.de/", basename="carambus", carambus_domain="carambus.de", location_id="1", application_name="carambus", context="NBV", club_id="357")
 
     # Update database.yml
-    database_config = {
-      "default" => {
-        "adapter" => "postgresql",
-        "encoding" => "unicode",
-        "pool" => "<%= ENV.fetch(\"RAILS_MAX_THREADS\") { 5 } %>"
-      },
-      "development" => {
-        "database" => "carambus_development",
-        "username" => "<%= ENV.fetch(\"DB_USERNAME\", nil) %>",
-        "password" => "<%= ENV.fetch(\"DB_PASSWORD\", nil) %>",
-        "host" => "<%= ENV.fetch(\"DB_HOST\", \"localhost\") %>"
-      },
-      "test" => {
-        "database" => "carambus_test",
-        "username" => "<%= ENV.fetch(\"DB_USERNAME\", nil) %>",
-        "password" => "<%= ENV.fetch(\"DB_PASSWORD\", nil) %>",
-        "host" => "<%= ENV.fetch(\"DB_HOST\", \"localhost\") %>"
-      },
-      "production" => {
-        "database" => "carambus2_api_production"
-      }
-    }
-    
-    # Generate YAML with proper anchor syntax
-    yaml_content = <<~YAML
-      ---
-      default: &default
-        adapter: postgresql
-        encoding: unicode
-        pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-      
-      development:
-        <<: *default
-        database: carambus_development
-        username: <%= ENV.fetch("DB_USERNAME", nil) %>
-        password: <%= ENV.fetch("DB_PASSWORD", nil) %>
-        host: <%= ENV.fetch("DB_HOST", "localhost") %>
-      
-      test:
-        <<: *default
-        database: carambus_test
-        username: <%= ENV.fetch("DB_USERNAME", nil) %>
-        password: <%= ENV.fetch("DB_PASSWORD", nil) %>
-        host: <%= ENV.fetch("DB_HOST", "localhost") %>
-      
-      production:
-        <<: *default
-        database: carambus2_api_production
-      YAML
-    
-        File.write(Rails.root.join('config', 'database.yml'), yaml_content)
-    puts "✓ Updated database.yml"
+    update_database_yml("carambus_development")
 
     # Update deploy.rb for LOCAL mode
     update_deploy_rb("carambus")
@@ -138,108 +21,15 @@ namespace :mode do
     puts "Current mode: LOCAL (carambus_api_url is set, local database)"
   end
 
-  desc "Switch to API mode (set carambus_api_url, API database)"
+  desc "Switch to API mode (empty carambus_api_url, API database)"
   task api: :environment do
     puts "Switching to API mode..."
 
     # Update carambus.yml
-    carambus_config = {
-      "default" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0,
-        "context" => "NBV",
-        "season_name" => "2023/2024",
-        "force_update" => "true",
-        "no_local_protection" => "false",
-        "club_id" => 357
-      },
-      "development" => {
-        "carambus_api_url" => nil,  # Empty for API mode (no external API calls)
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "context" => "API",
-        "season_name" => "2024/2025",
-        "force_update" => "true",
-        "no_local_protection" => "false",
-        "club_id" => 357
-      },
-      "test" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0
-      },
-      "production" => {
-        "carambus_api_url" => "https://api.carambus.de/",
-        "location_id" => 1,
-        "application_name" => "Carambus",
-        "support_email" => "gernot.ullrich@gmx.de",
-        "business_name" => "Ullrich IT Consulting",
-        "business_address" => "22869 Schenefeld, Sandstückenweg 15",
-        "carambus_domain" => "carambus.de",
-        "queue_adapter" => "async",
-        "small_table_no" => 0,
-        "large_table_no" => 0,
-        "pool_table_no" => 0,
-        "snooker_table_no" => 0
-      }
-    }
+    update_carambus_yml(carambus_api_url="nil", basename="carambus_api", carambus_domain="api.carambus.de", location_id="nil", application_name="carambus", context="nil", club_id="nil")
 
-        File.write(Rails.root.join('config', 'carambus.yml'), carambus_config.to_yaml)
-    puts "✓ Updated carambus.yml"
-    
     # Generate YAML with proper anchor syntax for API mode
-    yaml_content = <<~YAML
-      ---
-      default: &default
-        adapter: postgresql
-        encoding: unicode
-        pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-      
-      development:
-        <<: *default
-        database: carambus_api_development
-        username: <%= ENV.fetch("DB_USERNAME", nil) %>
-        password: <%= ENV.fetch("DB_PASSWORD", nil) %>
-        host: <%= ENV.fetch("DB_HOST", "localhost") %>
-      
-      test:
-        <<: *default
-        database: carambus_test
-        username: <%= ENV.fetch("DB_USERNAME", nil) %>
-        password: <%= ENV.fetch("DB_PASSWORD", nil) %>
-        host: <%= ENV.fetch("DB_HOST", "localhost") %>
-      
-      production:
-        <<: *default
-        database: carambus2_api_production
-      YAML
-    
-    File.write(Rails.root.join('config', 'database.yml'), yaml_content)
-    puts "✓ Updated database.yml"
+    update_database_yml("carambus_api_development")
 
     # Update deploy.rb for API mode
     update_deploy_rb("carambus_api")
@@ -330,17 +120,69 @@ namespace :mode do
   def update_deploy_rb(basename)
     deploy_file = Rails.root.join('config', 'deploy.rb')
 
-    if File.exist?(deploy_file)
-      content = File.read(deploy_file)
+    if File.exist?("#{deploy_file}.erb")
+      content = File.read("#{deploy_file}.erb")
       updated_content = content.gsub(
-        /set :basename, File\.basename\(`pwd`\)\.strip/,
-        "set :basename, \"#{basename}\""
+        /<%= basename %>/,
+        basename
       )
 
       File.write(deploy_file, updated_content)
       puts "✓ Updated deploy.rb basename to: #{basename}"
     else
-      puts "⚠️  deploy.rb not found, skipping basename update"
+      puts "⚠️  deploy.rb.erb not found, skipping basename update"
+    end
+  end
+
+  def update_database_yml(database)
+    database_yml_file = Rails.root.join('config', 'database.yml')
+
+    if File.exist?("#{database_yml_file}.erb")
+      content = File.read("#{database_yml_file}.erb")
+      updated_content = content.gsub(
+        /<%= database %>/,
+        database
+      )
+
+      File.write(database_yml_file, updated_content)
+      puts "✓ Updated database.yml with database: #{database}"
+    else
+      puts "⚠️  database.yml.erb not found, skipping database update"
+    end
+  end
+
+  def update_carambus_yml(carambus_api_url, basename, carambus_domain, location_id, application_name, context, club_id)
+    carambus_yml_file = Rails.root.join('config', 'carambus.yml')
+
+    if File.exist?("#{carambus_yml_file}.erb")
+      content = File.read("#{carambus_yml_file}.erb")
+      updated_content = content.gsub(
+        /<%= carambus_api_url %>/,
+        carambus_api_url
+      ).gsub(
+        /<%= location_id %>/,
+        location_id
+      ).gsub(
+        /<%= application_name %>/,
+        application_name
+      ).gsub(
+        /<%= basename %>/,
+        basename
+      ).gsub(
+        /<%= carambus_domain %>/,
+        carambus_domain
+      ).gsub(
+        /<%= context %>/,
+        context
+      ).gsub(
+        /<%= club_id %>/,
+        club_id
+      )
+
+      File.write(carambus_yml_file, updated_content)
+      puts "✓ Updated carambus.yml with new configuration"
+    else
+      puts "⚠️  carambus.yml.erb not found, skipping configuration update"
     end
   end
 
