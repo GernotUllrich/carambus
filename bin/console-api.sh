@@ -37,7 +37,7 @@ if [ -f "config/carambus.yml" ]; then
     api_url=$(grep -A 1 "development:" config/carambus.yml | grep "carambus_api_url:" | head -1 | sed 's/.*carambus_api_url: *//')
     if [ -z "$api_url" ] || [ "$api_url" = "" ]; then
         warn "Current mode appears to be LOCAL, not API"
-        warn "Consider running: ./bin/switch-mode.sh api"
+        warn "Consider running: bundle exec rails mode:api"
     fi
 fi
 
