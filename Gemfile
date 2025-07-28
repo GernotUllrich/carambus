@@ -94,7 +94,7 @@ gem "pretender", "~> 0.4"
 gem 'text'
 
 # We recommend using strong migrations when your app is in production
-gem "strong_migrations", "~> 0.7.6"
+gem "strong_migrations", "~> 2.5.0"
 
 group :development do
   gem "letter_opener_web", "~> 3.0"
