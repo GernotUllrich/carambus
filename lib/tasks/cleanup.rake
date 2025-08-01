@@ -305,6 +305,49 @@ namespace :cleanup do
     puts "Cleanup complete."
   end
 
+  desc "Clean up duplicate ClubLocation records, keeping the latest one"
+  task club_locations: :environment do
+    puts "Cleaning up duplicate ClubLocation records..."
+    
+    # Find all duplicate combinations of club_id and location_id using a simpler approach
+    duplicate_groups = ClubLocation.group(:club_id, :location_id)
+      .having('COUNT(*) > 1')
+      .pluck(:club_id, :location_id)
+    
+    duplicate_groups_count = duplicate_groups.count
+    total_duplicates = 0
+    total_deleted = 0
+    
+    duplicate_groups.each do |club_id, location_id|
+      # Get all records with this combination, ordered by created_at (latest first)
+      club_locations = ClubLocation.where(club_id: club_id, location_id: location_id)
+        .order(created_at: :desc)
+      
+      count = club_locations.count
+      puts "Processing duplicates for club_id: #{club_id}, location_id: #{location_id} (count: #{count})"
+      
+      # Keep the latest record (first in the ordered list)
+      keeper = club_locations.first
+      duplicates_to_delete = club_locations.where.not(id: keeper.id)
+      
+      deleted_count = duplicates_to_delete.count
+      duplicates_to_delete.destroy_all
+      
+      total_duplicates += count
+      total_deleted += deleted_count
+      
+      puts "  Kept record ID: #{keeper.id} (created: #{keeper.created_at})"
+      puts "  Deleted #{deleted_count} duplicate records"
+    end
+    
+    puts "\nCleanup Summary:"
+    puts "================="
+    puts "Total duplicate groups found: #{duplicate_groups_count}"
+    puts "Total duplicate records found: #{total_duplicates}"
+    puts "Total records deleted: #{total_deleted}"
+    puts "Cleanup complete."
+  end
+
   def hash_diff(first, second)
     first
       .dup

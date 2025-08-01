@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :mode do
-  desc "Switch to LOCAL mode (set carambus_api_url, local database)"
+  desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
   task local: :environment do
     puts "Switching to LOCAL mode..."
 
@@ -21,12 +21,12 @@ namespace :mode do
     puts "Current mode: LOCAL (carambus_api_url is set, local database)"
   end
 
-  desc "Switch to API mode (empty carambus_api_url, API database)"
+  desc "Switch to API mode (set carambus_api_url, API database)"
   task api: :environment do
     puts "Switching to API mode..."
 
     # Update carambus.yml
-    update_carambus_yml(carambus_api_url="nil", basename="carambus_api", carambus_domain="api.carambus.de", location_id="nil", application_name="carambus", context="nil", club_id="nil")
+    update_carambus_yml(carambus_api_url="", basename="carambus_api", carambus_domain="api.carambus.de", location_id="", application_name="carambus", context="", club_id="")
 
     # Generate YAML with proper anchor syntax for API mode
     update_database_yml("carambus_api_development")
@@ -145,9 +145,9 @@ namespace :mode do
       )
 
       File.write(database_yml_file, updated_content)
-      puts "✓ Updated database.yml with database: #{database}"
+      puts "✓ Updated database_yml.rb basename to: #{database}"
     else
-      puts "⚠️  database.yml.erb not found, skipping database update"
+      puts "⚠️  database_yml.rb.erb not found, skipping basename update"
     end
   end
 
@@ -180,9 +180,9 @@ namespace :mode do
       )
 
       File.write(carambus_yml_file, updated_content)
-      puts "✓ Updated carambus.yml with new configuration"
+      puts "✓ Updated carambus_yml basename to: \n#{updated_content}"
     else
-      puts "⚠️  carambus.yml.erb not found, skipping configuration update"
+      puts "⚠️  deploy.rb.erb not found, skipping basename update"
     end
   end
 
