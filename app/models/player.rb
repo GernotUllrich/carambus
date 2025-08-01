@@ -71,7 +71,10 @@ class Player < ApplicationRecord
       sort: params[:sort],
       direction: sort_direction(params[:direction]),
       search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: Player::COLUMN_NAMES,
+      column_names: Player::COLUMN_NAMES.merge({
+        "Region ID" => "players.region_id",
+        "Club ID" => "season_participations.club_id"
+      }),
       raw_sql: "(players.firstname ilike :search)
  or (players.nickname ilike :search)
  or (players.cc_id = :isearch)

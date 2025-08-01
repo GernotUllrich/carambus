@@ -73,7 +73,9 @@ class Club < ApplicationRecord
       sort: params[:sort],
       direction: sort_direction(params[:direction]),
       search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: Club::COLUMN_NAMES,
+      column_names: Club::COLUMN_NAMES.merge({
+        "Region ID" => "clubs.region_id"
+      }),
       raw_sql: "(regions.shortname ilike :search)
  or (clubs.name ilike :search)
  or (clubs.address ilike :search)

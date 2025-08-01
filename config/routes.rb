@@ -12,6 +12,21 @@ Rails.application.routes.draw do
                edit: 'edit'
              }
 
+  # API routes
+  namespace :api do
+    resources :players, only: [] do
+      collection do
+        get :autocomplete
+      end
+    end
+    
+    resources :locations, only: [] do
+      collection do
+        get :autocomplete
+      end
+    end
+  end
+
   resources :table_locals
   resources :slots
   resources :uploads

@@ -20,40 +20,36 @@
 
     <div class="space-y-4 max-h-96 overflow-y-auto">
       <% fields.each do |field| %>
-        <div class="filter-field">
+        <div class="filter-field" data-field-key="<%= field[:field_key] %>">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             <%= field[:display_name] %>
           </label>
 
           <% if field[:show_operators] %>
             <div class="flex space-x-2">
-              <%  operator, value = nil; operator, value = @search_components[field[:field_key]].andand.match(/(contains|=|>|>=|<|<=)([^<>=>]+)/).andand[1..2] if @search_components.present? %>
+              <% operator, value = nil; operator, value = @search_components[field[:field_key]].andand.match(/(contains|=|>|>=|<|<=)([^<>=>]+)/).andand[1..2] if @search_components.present? %>
               <% value = (Date.today - 7.days).to_s if value =~ /today/i %>
               <select name="<%= field[:field_key] %>_operator" class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-2">
-                <option value="contains" <%= "selected" if operator == "contains" %>>Contains</option <%= "selected" if operator == "=" %>>
+                <option value="contains" <%= "selected" if operator == "contains" %>>Contains</option>
                 <option value="=" <%= "selected" if operator == "=" %>>=</option>
                 <option value=">" <%= "selected" if operator == ">" %>>></option>
                 <option value=">=" <%= "selected" if operator == ">=" %>>>=</option>
-                <option value="<"<%= "selected" if operator == "<" %>><</option>
-                <option value="<="<%= "selected" if operator == "<=" %>><=</option>
+                <option value="<" <%= "selected" if operator == "<" %>><</option>
+                <option value="<=" <%= "selected" if operator == "<=" %>><=</option>
               </select>
 
-              <input
-                type="<%= field[:field_type] %>"
-                name="<%= field[:field_key] %>"
-                value="<%= value %>"
-                class="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
-                placeholder="<%= field[:display_name] %>"
-              >
+              <%= render_filter_input(field, value) %>
             </div>
           <% else %>
-            <input
-              type="<%= field[:field_type] %>"
-              name="<%= field[:field_key] %>"
-              value="<%= @search_components[field[:field_key]] if @search_components.present? %>"
-              class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
-              placeholder="<%= field[:display_name] %>"
-            >
+            <%= render_filter_input(field, @search_components.present? ? @search_components[field[:field_key]] : nil) %>
+
+            <!-- Recent selections for this field -->
+            <div class="recent-selections mt-1" data-field-key="<%= field[:field_key] %>" style="display: none;">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Recent:</div>
+              <div class="flex flex-wrap gap-1">
+                <!-- Recent selections will be populated by JavaScript -->
+              </div>
+            </div>
           <% end %>
         </div>
       <% end %>

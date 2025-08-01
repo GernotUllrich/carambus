@@ -19,7 +19,7 @@ default:
   club_id: nil
 development:
   carambus_api_url: https://newapi.carambus.de/
-  location_id: 1
+  location_id: 5101
   application_name: carambus
   basename: carambus
   support_email: gernot.ullrich@gmx.de
@@ -28,7 +28,7 @@ development:
   carambus_domain: carambus.de
   queue_adapter: async
   context: NBV
-  season_name: <%= season_name %>
+  season_name: 2025/2026
   force_update: 'true'
   no_local_protection: 'false'
-  club_id: 357
+  club_id: 358

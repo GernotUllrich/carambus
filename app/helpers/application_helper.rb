@@ -128,37 +128,319 @@ module ApplicationHelper
   def generate_filter_fields(model_class)
     return [] unless model_class.respond_to?(:search_hash) && model_class.search_hash({})[:column_names].present?
 
-    column_names = model_class.search_hash({})[:column_names]
+    search_hash = model_class.search_hash({})
+    column_names = search_hash[:column_names]
 
     fields = []
     column_names.each do |display_name, column_def|
-      next if column_def.blank?
-
-      # Extract the field key from the display name
-      # Remove any (*) or <br/> tags
-      clean_name = display_name.gsub(/\(\*\)/, '').gsub(/<br\/>.*/, '')
-      field_key = clean_name.parameterize(separator: '_').downcase
-
-      # Determine field type based on column definition
-      field_type = if column_def =~ /::date$/
-                     'date'
-                   elsif column_def =~ /_id$/ || column_def =~ /\.id$/
-                     'number'
-                   else
-                     'text'
-                   end
-
-      # Determine if comparison operators should be available
-      show_operators = field_type == 'date' || field_type == 'number'
-
-      fields << {
-        display_name: clean_name.strip,
+      input_type, input_type_name, options = detect_field_type_and_options(column_def, display_name, model_class)
+      
+      field_key = if column_def.include?('regions.shortname')
+                    'region_shortname'
+                  elsif column_def.include?('clubs.shortname')
+                    'club_shortname'
+                  else
+                    column_def.split('.').last
+                  end
+      max_options = options.is_a?(Array) ? options.length : nil
+      
+      field = {
+        display_name: display_name,
         field_key: field_key,
-        field_type: field_type,
-        show_operators: show_operators
+        column_def: column_def,
+        input_type: input_type,
+        input_type_name: input_type_name,
+        options: options,
+        max_options: max_options,
+        show_operators: should_show_operators(input_type),
+        model_class: model_class
       }
+      
+      fields << field
     end
 
     fields
+  end
+
+  def render_filter_input(field, value = nil)
+    case field[:input_type]
+    when 'select'
+      render_select_input(field, value)
+    when 'autocomplete'
+      render_autocomplete_input(field, value)
+    when 'date'
+      render_date_input(field, value)
+    when 'number'
+      render_number_input(field, value)
+    else
+      render_text_input(field, value)
+    end
+  end
+
+  def render_select_input(field, value)
+    options = field[:options] || []
+    
+    # Add special data attributes for club fields to enable dynamic filtering
+    data_attributes = { 
+      action: "change->filter-popup#saveRecentSelection",
+      field_key: field[:field_key]
+    }
+    
+    # If this is a club field, add data attributes for Stimulus Reflex filtering
+    if field[:field_key] == 'shortname'
+      # Club field is the target for morphing, no reflex trigger needed
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+    end
+    
+    # If this is a region field, add data attributes for triggering club filtering
+    if field[:field_key] == 'region'
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region'
+    end
+
+    # If this is a region field for locations page, add data attributes for triggering club filtering
+    if field[:field_key] == 'region_shortname' && field[:model_class] == Location
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region_for_locations'
+    end
+
+    # If this is a region field for clubs page, add data attributes for triggering club filtering
+    if field[:field_key] == 'region_shortname' && field[:model_class] == Club
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region'
+    end
+
+    # If this is a region field for players page, add data attributes for triggering club filtering
+    if field[:field_key] == 'region_shortname' && field[:model_class] == Player
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region_for_players'
+    end
+    
+    # Build options with data-id attributes for reference fields
+    select_options = options.map do |option|
+      if option[:id].present?
+        # For reference fields, include data-id attribute
+        content_tag(:option, option[:label], value: option[:value], 'data-id': option[:id])
+      else
+        # For non-reference fields, use standard option
+        content_tag(:option, option[:label], value: option[:value])
+      end
+    end.join.html_safe
+    
+    select_tag field[:field_key], 
+      select_options,
+      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      include_blank: "Select #{field[:display_name]}",
+      data: data_attributes,
+      id: get_select_id(field)
+  end
+
+  def get_select_id(field)
+    case field[:field_key]
+    when 'region_shortname'
+      if field[:model_class] == Location
+        'region-dropdown-locations'
+      elsif field[:model_class] == Club
+        'region-dropdown-clubs'
+      elsif field[:model_class] == Player
+        'region-dropdown-players'
+      else
+        'region-dropdown'
+      end
+    when 'club_shortname'
+      if field[:model_class] == Location
+        'club-dropdown-locations'
+      elsif field[:model_class] == Club
+        'club-dropdown'
+      elsif field[:model_class] == Player
+        'club-dropdown-players'
+      else
+        'club-dropdown'
+      end
+    when 'shortname'
+      'club-dropdown'
+    when 'name'
+      'location-dropdown'
+    else
+      nil
+    end
+  end
+
+  def render_autocomplete_input(field, value)
+    text_field_tag field[:field_key], value,
+      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      placeholder: field[:options]&.dig(:placeholder) || field[:display_name],
+      data: { 
+        action: "input->filter-popup#handleAutocomplete",
+        endpoint: field[:options]&.dig(:endpoint),
+        field_key: field[:field_key]
+      }
+  end
+
+  def render_date_input(field, value)
+    date_field_tag field[:field_key], value,
+      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      placeholder: field[:display_name],
+      data: { 
+        action: "change->filter-popup#saveRecentSelection",
+        field_key: field[:field_key]
+      }
+  end
+
+  def render_number_input(field, value)
+    number_field_tag field[:field_key], value,
+      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      placeholder: field[:display_name],
+      data: { 
+        action: "change->filter-popup#saveRecentSelection",
+        field_key: field[:field_key]
+      }
+  end
+
+  def render_text_input(field, value)
+    text_field_tag field[:field_key], value,
+      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      placeholder: field[:display_name],
+      data: { 
+        action: "change->filter-popup#saveRecentSelection",
+        field_key: field[:field_key]
+      }
+  end
+
+  private
+
+  def detect_field_type_and_options(column_def, display_name, model_class)
+    # Date fields
+    if column_def =~ /::date$/
+      return 'date', 'date', nil
+    end
+
+    # Numeric fields
+    if column_def =~ /_id$/ || column_def =~ /\.id$/ || column_def =~ /\.balls$/ || column_def =~ /\.innings$/
+      return 'number', 'number', nil
+    end
+
+    # Region fields
+    if column_def.include?('regions.shortname')
+      regions = Region.order(:shortname).limit(50).pluck(:id, :shortname, :name)
+      region_options = regions.map { |id, shortname, name| { value: shortname, label: "#{shortname} (#{name})", id: id } }
+      
+      # Sort alphabetically by label
+      region_options.sort_by! { |option| option[:label].downcase }
+      
+      return 'select', 'select', region_options
+    end
+
+    # Location fields with cascading filters
+    if column_def.include?('locations.name')
+      # For location names, we'll use autocomplete since there are many locations
+      return 'text', 'autocomplete', { 
+        endpoint: '/api/locations/autocomplete',
+        placeholder: 'Search locations...'
+      }
+    end
+
+    # Location address field
+    if column_def.include?('locations.address')
+      return 'text', 'text', nil
+    end
+
+    # Club fields (for locations page)
+    if column_def.include?('clubs.shortname') && model_class == Location
+      # For locations page, clubs depend on region selection
+      clubs = Club.includes(:region)
+                  .where.not(shortname: [nil, ''])
+                  .order(:shortname)
+                  .limit(50)
+                  .pluck(:id, :shortname, :name, 'regions.shortname')
+      
+      club_options = clubs.map do |id, shortname, name, region|
+        next if shortname.blank?
+        display_name = name.present? ? "#{shortname} (#{name})" : shortname
+        region_info = region.present? ? " - #{region}" : ""
+        { value: shortname, label: "#{display_name}#{region_info}", id: id }
+      end.compact
+      
+      # Sort alphabetically by label
+      club_options.sort_by! { |option| option[:label].downcase }
+      
+      return 'select', 'select', club_options
+    end
+
+    # Club fields (for clubs page)
+    if column_def.include?('clubs.shortname') && model_class == Club
+      clubs = Club.includes(:region)
+                  .where.not(shortname: [nil, ''])
+                  .order(:shortname)
+                  .limit(50)
+                  .pluck(:id, :shortname, :name, 'regions.shortname')
+      
+      club_options = clubs.map do |id, shortname, name, region|
+        next if shortname.blank?
+        display_name = name.present? ? "#{shortname} (#{name})" : shortname
+        region_info = region.present? ? " - #{region}" : ""
+        { value: shortname, label: "#{display_name}#{region_info}", id: id }
+      end.compact
+      
+      # Sort alphabetically by label
+      club_options.sort_by! { |option| option[:label].downcase }
+      
+      return 'select', 'select', club_options
+    end
+
+    # Club fields (for players page)
+    if column_def.include?('clubs.shortname') && model_class == Player
+      clubs = Club.includes(:region)
+                  .where.not(shortname: [nil, ''])
+                  .order(:shortname)
+                  .limit(50)
+                  .pluck(:id, :shortname, :name, 'regions.shortname')
+      
+      club_options = clubs.map do |id, shortname, name, region|
+        next if shortname.blank?
+        display_name = name.present? ? "#{shortname} (#{name})" : shortname
+        region_info = region.present? ? " - #{region}" : ""
+        { value: shortname, label: "#{display_name}#{region_info}", id: id }
+      end.compact
+      
+      # Sort alphabetically by label
+      club_options.sort_by! { |option| option[:label].downcase }
+      
+      return 'select', 'select', club_options
+    end
+
+    # Season fields
+    if column_def.include?('seasons.name')
+      seasons = Season.order(id: :desc).limit(10).pluck(:name)
+      return 'select', 'select', seasons.map { |name| { value: name, label: name } }
+    end
+
+    # Discipline fields
+    if column_def.include?('disciplines.name')
+      disciplines = Discipline.order(:name).pluck(:name)
+      return 'select', 'select', disciplines.map { |name| { value: name, label: name } }
+    end
+
+    # Player fields (complex concatenated fields)
+    if column_def.include?('players.lastname') || column_def.include?('players.firstname')
+      return 'text', 'autocomplete', { 
+        endpoint: '/api/players/autocomplete',
+        placeholder: 'Start typing player name...'
+      }
+    end
+
+    # Default to text input
+    ['text', 'text', nil]
+  end
+
+  def should_show_operators(input_type)
+    case input_type
+    when 'number', 'date'
+      true  # Show operators for numbers and dates
+    when 'select', 'autocomplete', 'text'
+      false # Don't show operators for text-based fields
+    else
+      false # Default to false for unknown types
+    end
   end
 end

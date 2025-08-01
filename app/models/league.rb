@@ -58,9 +58,9 @@ class League < ApplicationRecord
 
   # Primary uniqueness: CC IDs are the most important identifiers from scraping
   validates :cc_id, uniqueness: {
-    scope: [:cc_id2, :organizer_id, :organizer_type],
-    message: "must be unique within the same organizer (cc_id + cc_id2 combination)"
-  }, if: -> { cc_id.present? && organizer_type == 'Region' }
+    scope: [:cc_id2, :organizer_id, :organizer_type, :season_id],
+    message: "must be unique within the same organizer (cc_id + cc_id2 - season_id combination)"
+   }, if: -> { cc_id.present? && organizer_type == 'Region' }
 
   # Secondary uniqueness: Ensure no duplicate leagues with same name and staffel
   # This is mainly for cases where cc_id might not be set yet
@@ -387,7 +387,8 @@ class League < ApplicationRecord
             league.source_url = staffel_link
             if league.changed?
               league.region_id = region.id
-              league.save
+              Rails.logger.info "League[#{league.attributes.inspect}]"
+              league.save!
             end
 
             if opts[:league_details]
@@ -587,7 +588,7 @@ class League < ApplicationRecord
       league_url, league_taggings = scrape_single_bbv_league(organizer, opts)
     else
       logger = opts[:logger] || Logger.new("#{Rails.root}/log/scrape.log")
-      season = self.season
+        season = self.season
       organizer = self.organizer
       league_url = nil
       if organizer.blank? || !organizer.is_a?(Region)
@@ -701,7 +702,8 @@ class League < ApplicationRecord
         league_team ||= league_teams.new(cc_id: team_cc_id)
         attrs = {
           name: team_name,
-          club_id: club.id
+          club_id: club.id,
+          league_id: self.id
         }
         league_team.assign_attributes(attrs)
         league_team.source_url = league_url
