@@ -50,7 +50,8 @@ class Location < ApplicationRecord
   REFLECTION_KEYS = %w[club region].freeze
   # TODO: Filters
   COLUMN_NAMES = { "Id" => "clubs.id",
-                   "Clubs" => "clubs.shortname",
+                   "Region" => "regions.shortname",
+                   "Club" => "clubs.shortname",
                    "Address" => "locations.address",
                    "Name" => "locations.name" }.freeze
   def self.search_hash(params)
@@ -59,13 +60,16 @@ class Location < ApplicationRecord
       sort: params[:sort],
       direction: sort_direction(params[:direction]),
       search: params[:sSearch],
-      column_names: Location::COLUMN_NAMES,
+      column_names: Location::COLUMN_NAMES.merge({
+        "Region ID" => "regions.id",
+        "Club ID" => "clubs.id"
+      }),
       raw_sql: "(locations.name ilike :search)
  or (locations.address ilike :search)
  or (locations.synonyms ilike :search)
  or (clubs.shortname ilike :search)",
       # joins: [{ club_locations: :club }],
-      joins: ['LEFT OUTER JOIN "club_locations" ON "club_locations"."location_id" = "locations"."id"', 'LEFT OUTER JOIN "clubs" ON "clubs"."id" = "club_locations"."club_id"']
+      joins: ['LEFT OUTER JOIN "club_locations" ON "club_locations"."location_id" = "locations"."id"', 'LEFT OUTER JOIN "clubs" ON "clubs"."id" = "club_locations"."club_id"', 'LEFT OUTER JOIN "regions" ON "regions"."id" = "clubs"."region_id"']
     }
   end
 

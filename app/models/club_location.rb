@@ -21,5 +21,8 @@ class ClubLocation < ApplicationRecord
   belongs_to :club
   belongs_to :location
 
+  # Validate uniqueness of club_id and location_id combination
+  validates :club_id, uniqueness: { scope: :location_id, message: "Club-Location combination already exists" }
+
   # default status is nil - status:"closed"
 end
