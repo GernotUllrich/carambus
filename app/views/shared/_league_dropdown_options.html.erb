@@ -1,0 +1,4 @@
+<option value="">Select League</option>
+<% leagues.each do |league| %>
+  <option value="<%= league[:value] %>" <%= "data-id=\"#{league[:id]}\"".html_safe if league[:id].present? %>><%= league[:label] %></option>
+<% end %> 

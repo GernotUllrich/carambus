@@ -6,17 +6,15 @@ class PartyGamesController < ApplicationController
 
   # GET /party_games
   def index
-    @party_games = PartyGame.includes(:party, :discipline, :player_a, :player_b)
-                            .joins(:party).joins('LEFT OUTER JOIN "disciplines" ON "disciplines"."id" = "party_games"."discipline_id"')
-                            .joins('LEFT OUTER JOIN "parties" ON "parties"."id" = "party_games"."party_id"')
-                            .joins('INNER JOIN "players" AS "player_a" ON "player_a"."id" = "party_games"."player_a_id"')
-                            .joins('INNER JOIN "players" as "player_b" ON "player_b"."id" = "party_games"."player_b_id"')
-                            .sort_by_params(params[:sort], sort_direction)
-    if @sSearch.present?
-      @party_games = apply_filters(@party_games, PartyGame::COLUMN_NAMES,
-                                   "(player_a.fl_name ilike :search) or (player_a.fl_name ilike :search)")
-    end
-    @pagy, @party_games = pagy(@party_games)
+    # Use SearchService for consistent filtering with SearchReflex
+    search_params = { sSearch: @sSearch, sort: params[:sort], direction: sort_direction }
+    results = SearchService.call(PartyGame.search_hash(search_params))
+    @pagy, @party_games = pagy(results)
+    
+    # Include necessary associations to avoid N+1 queries
+    # Note: organizer is polymorphic, so we can't eager load it directly
+    @party_games = @party_games.includes(:party, :discipline, :player_a, :player_b, 
+                                        party: { league: :season })
 
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @party_games.any? in the view will use the loaded records to check existence instead of making an extra DB call.

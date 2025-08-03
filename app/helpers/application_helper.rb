@@ -139,6 +139,20 @@ module ApplicationHelper
                     'region_shortname'
                   elsif column_def.include?('clubs.shortname')
                     'club_shortname'
+                  elsif column_def.include?('seasons.name')
+                    'season_name'
+                  elsif column_def.include?('leagues.shortname')
+                    'league_shortname'
+                  elsif column_def.include?('parties.id')
+                    'party_shortname'
+                  elsif column_def.include?('regions.id')
+                    'region_id'
+                  elsif column_def.include?('seasons.id')
+                    'season_id'
+                  elsif column_def.include?('clubs.id')
+                    'club_id'
+                  elsif column_def.include?('leagues.id')
+                    'league_id'
                   else
                     column_def.split('.').last
                   end
@@ -207,13 +221,36 @@ module ApplicationHelper
     # If this is a region field for clubs page, add data attributes for triggering club filtering
     if field[:field_key] == 'region_shortname' && field[:model_class] == Club
       data_attributes[:action] = "change->filter-popup#saveRecentSelection"
-      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region'
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region_for_clubs'
     end
 
     # If this is a region field for players page, add data attributes for triggering club filtering
     if field[:field_key] == 'region_shortname' && field[:model_class] == Player
       data_attributes[:action] = "change->filter-popup#saveRecentSelection"
       data_attributes[:reflex] = 'change->FilterPopupReflex#filter_clubs_by_region_for_players'
+    end
+
+    # If this is a region field for party_games page, add data attributes for triggering season filtering
+    if field[:field_key] == 'region_shortname' && field[:model_class] == PartyGame
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_seasons_by_region_for_party_games'
+    end
+
+    # If this is a season field for party_games page, add data attributes for triggering league filtering
+    if field[:field_key] == 'season_name' && field[:model_class] == PartyGame
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_leagues_by_season_for_party_games'
+    end
+
+    # If this is a league field for party_games page, add data attributes for triggering party filtering
+    if field[:field_key] == 'league_shortname' && field[:model_class] == PartyGame
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
+      data_attributes[:reflex] = 'change->FilterPopupReflex#filter_parties_by_league_for_party_games'
+    end
+
+    # If this is a party field for party_games page, add data attributes for saving selection
+    if field[:field_key] == 'party_shortname' && field[:model_class] == PartyGame
+      data_attributes[:action] = "change->filter-popup#saveRecentSelection"
     end
     
     # Build options with data-id attributes for reference fields
@@ -244,6 +281,8 @@ module ApplicationHelper
         'region-dropdown-clubs'
       elsif field[:model_class] == Player
         'region-dropdown-players'
+      elsif field[:model_class] == PartyGame
+        'region-dropdown-party-games'
       else
         'region-dropdown'
       end
@@ -256,6 +295,24 @@ module ApplicationHelper
         'club-dropdown-players'
       else
         'club-dropdown'
+      end
+    when 'season_name'
+      if field[:model_class] == PartyGame
+        'season-dropdown-party-games'
+      else
+        'season-dropdown'
+      end
+    when 'league_shortname'
+      if field[:model_class] == PartyGame
+        'league-dropdown-party-games'
+      else
+        'league-dropdown'
+      end
+    when 'party_shortname'
+      if field[:model_class] == PartyGame
+        'party-dropdown-party-games'
+      else
+        'party-dropdown'
       end
     when 'shortname'
       'club-dropdown'
@@ -288,8 +345,11 @@ module ApplicationHelper
   end
 
   def render_number_input(field, value)
+    css_class = "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
+    css_class += " hidden" if field[:field_key].end_with?('_id') || field[:field_key] == 'id'
+    
     number_field_tag field[:field_key], value,
-      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      class: css_class,
       placeholder: field[:display_name],
       data: { 
         action: "change->filter-popup#saveRecentSelection",
@@ -298,8 +358,11 @@ module ApplicationHelper
   end
 
   def render_text_input(field, value)
+    css_class = "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3"
+    css_class += " hidden" if field[:field_key].end_with?('_id') || field[:field_key] == 'id'
+    
     text_field_tag field[:field_key], value,
-      class: "flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm py-1 px-3",
+      class: css_class,
       placeholder: field[:display_name],
       data: { 
         action: "change->filter-popup#saveRecentSelection",
@@ -313,6 +376,13 @@ module ApplicationHelper
     # Date fields
     if column_def =~ /::date$/
       return 'date', 'date', nil
+    end
+
+    # Party fields (for PartyGame model) - must be checked before numeric fields
+    if column_def.include?('parties.id') && model_class == PartyGame
+      # For cascading filters, start with empty options
+      # The options will be populated by StimulusReflex when a league is selected
+      return 'select', 'select', []
     end
 
     # Numeric fields
@@ -330,6 +400,31 @@ module ApplicationHelper
       
       return 'select', 'select', region_options
     end
+
+    # Season fields (for PartyGame model)
+    if column_def.include?('seasons.name') && model_class == PartyGame
+      # For cascading filters, Season is the first dropdown after Region, so populate with all seasons
+      seasons = Season.where.not(name: [nil, ''])
+                     .order(id: :desc)
+                     .limit(50)
+      
+      season_options = seasons.map do |season|
+        next if season.name.blank?
+        { value: season.name, label: season.name, id: season.id }
+      end.compact
+      
+      season_options.sort_by! { |option| option[:label].downcase }
+      return 'select', 'select', season_options
+    end
+
+    # League fields (for PartyGame model)
+    if column_def.include?('leagues.shortname') && model_class == PartyGame
+      # For cascading filters, start with empty options
+      # The options will be populated by StimulusReflex when a season is selected
+      return 'select', 'select', []
+    end
+
+
 
     # Location fields with cascading filters
     if column_def.include?('locations.name')
@@ -351,7 +446,7 @@ module ApplicationHelper
       clubs = Club.includes(:region)
                   .where.not(shortname: [nil, ''])
                   .order(:shortname)
-                  .limit(50)
+                  .limit(300)
                   .pluck(:id, :shortname, :name, 'regions.shortname')
       
       club_options = clubs.map do |id, shortname, name, region|
@@ -372,7 +467,7 @@ module ApplicationHelper
       clubs = Club.includes(:region)
                   .where.not(shortname: [nil, ''])
                   .order(:shortname)
-                  .limit(50)
+                  .limit(300)
                   .pluck(:id, :shortname, :name, 'regions.shortname')
       
       club_options = clubs.map do |id, shortname, name, region|
@@ -393,7 +488,7 @@ module ApplicationHelper
       clubs = Club.includes(:region)
                   .where.not(shortname: [nil, ''])
                   .order(:shortname)
-                  .limit(50)
+                  .limit(300)
                   .pluck(:id, :shortname, :name, 'regions.shortname')
       
       club_options = clubs.map do |id, shortname, name, region|

@@ -61,8 +61,8 @@ class Location < ApplicationRecord
       direction: sort_direction(params[:direction]),
       search: params[:sSearch],
       column_names: Location::COLUMN_NAMES.merge({
-        "Region ID" => "regions.id",
-        "Club ID" => "clubs.id"
+        "region_id" => "regions.id",
+        "club_id" => "clubs.id"
       }),
       raw_sql: "(locations.name ilike :search)
  or (locations.address ilike :search)

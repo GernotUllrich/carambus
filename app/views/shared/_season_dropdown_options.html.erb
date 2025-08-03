@@ -1,0 +1,4 @@
+<option value="">Select Season</option>
+<% seasons.each do |season| %>
+  <option value="<%= season[:value] %>" <%= "data-id=\"#{season[:id]}\"".html_safe if season[:id].present? %>><%= season[:label] %></option>
+<% end %> 

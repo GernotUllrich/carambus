@@ -60,8 +60,7 @@ class Club < ApplicationRecord
                    "BA_ID" => "clubs.ba_id",
                    "CC_ID" => "clubs.cc_id",
                    "Region" => "regions.shortname",
-                   "Name" => "clubs.name",
-                   "Shortname" => "clubs.shortname",
+                   "Club" => "clubs.shortname",
                    "Address" => "clubs.address",
                    "Homepage" => "",
                    "Status" => "",
@@ -74,10 +73,10 @@ class Club < ApplicationRecord
       direction: sort_direction(params[:direction]),
       search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
       column_names: Club::COLUMN_NAMES.merge({
-        "Region ID" => "clubs.region_id"
+        "region_id" => "clubs.region_id",
+        "club_id" => "clubs.id"
       }),
       raw_sql: "(regions.shortname ilike :search)
- or (clubs.name ilike :search)
  or (clubs.address ilike :search)
  or (clubs.shortname ilike :search)
  or (clubs.email ilike :search)

@@ -1,0 +1,4 @@
+<option value="">Select Party</option>
+<% parties.each do |party| %>
+  <option value="<%= party[:value] %>" <%= "data-id=\"#{party[:id]}\"".html_safe if party[:id].present? %>><%= party[:label] %></option>
+<% end %> 

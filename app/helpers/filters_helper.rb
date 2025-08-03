@@ -23,7 +23,7 @@ module FiltersHelper
                 int_name.split(" as ").map(&:strip)
                 # no search on virtual columns
                 # query = query.where("(#{tempname} ilike :search)", search: "%#{value}%")
-              elsif /^#{key.strip}/i.match?(ext_name)
+              elsif ext_name == key.strip
                   query = if int_name =~ /id$/ || %w[players points sets ba_id ba2_id cc_id balls innings hs sp_g
                                                    sp_v g v].include?(int_name.split(".").last)
                           query.where("(#{int_name} #{comp.present? ? comp : "="} :isearch)", isearch: (value.to_i != 0 ? value.to_i : -7_235_553))
