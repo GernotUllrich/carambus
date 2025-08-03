@@ -111,16 +111,29 @@ fi
 check_sd_card() {
     log "Prüfe SD-Karte..."
     
-    if [[ ! -b "$SD_CARD_PATH" ]]; then
+    # Prüfe ob es ein Block-Device oder gemountetes Verzeichnis ist
+    if [[ ! -b "$SD_CARD_PATH" && ! -d "$SD_CARD_PATH" ]]; then
         error "SD-Karte nicht gefunden: $SD_CARD_PATH"
     fi
     
-    # SD-Karten-Größe prüfen
-    SIZE=$(df -h "$SD_CARD_PATH" | awk 'NR==2 {print $2}' | sed 's/G//')
-    if [[ $SIZE -lt 16 ]]; then
-        warning "SD-Karte ist kleiner als 16GB: ${SIZE}GB"
+    # Wenn es ein Block-Device ist, mounte es
+    if [[ -b "$SD_CARD_PATH" ]]; then
+        log "Block-Device erkannt: $SD_CARD_PATH"
+        # SD-Karten-Größe prüfen
+        SIZE=$(df -h "$SD_CARD_PATH" | awk 'NR==2 {print $2}' | sed 's/G//')
+        if [[ $SIZE -lt 16 ]]; then
+            warning "SD-Karte ist kleiner als 16GB: ${SIZE}GB"
+        else
+            log "✅ SD-Karte gefunden: ${SIZE}GB"
+        fi
     else
-        log "✅ SD-Karte gefunden: ${SIZE}GB"
+        log "Gemountetes Verzeichnis erkannt: $SD_CARD_PATH"
+        # Prüfe ob es das Boot-Verzeichnis ist
+        if [[ -f "$SD_CARD_PATH/cmdline.txt" ]]; then
+            log "✅ Boot-Verzeichnis gefunden"
+        else
+            error "Kein gültiges Boot-Verzeichnis: $SD_CARD_PATH"
+        fi
     fi
 }
 
@@ -128,20 +141,32 @@ check_sd_card() {
 mount_sd_card() {
     log "Mounte SD-Karte..."
     
-    # Boot-Partition finden
-    BOOT_PARTITION=""
-    for partition in ${SD_CARD_PATH}*; do
-        if [[ -d "$partition" && -f "$partition/cmdline.txt" ]]; then
-            BOOT_PARTITION="$partition"
-            break
-        fi
-    done
-    
-    if [[ -z "$BOOT_PARTITION" ]]; then
-        error "Boot-Partition nicht gefunden"
+    # Wenn es bereits ein gemountetes Verzeichnis ist
+    if [[ -d "$SD_CARD_PATH" && -f "$SD_CARD_PATH/cmdline.txt" ]]; then
+        BOOT_PARTITION="$SD_CARD_PATH"
+        log "✅ Boot-Partition bereits gemountet: $BOOT_PARTITION"
+        return
     fi
     
-    log "✅ Boot-Partition gefunden: $BOOT_PARTITION"
+    # Wenn es ein Block-Device ist, mounte es
+    if [[ -b "$SD_CARD_PATH" ]]; then
+        # Boot-Partition finden
+        BOOT_PARTITION=""
+        for partition in ${SD_CARD_PATH}*; do
+            if [[ -d "$partition" && -f "$partition/cmdline.txt" ]]; then
+                BOOT_PARTITION="$partition"
+                break
+            fi
+        done
+        
+        if [[ -z "$BOOT_PARTITION" ]]; then
+            error "Boot-Partition nicht gefunden"
+        fi
+        
+        log "✅ Boot-Partition gefunden: $BOOT_PARTITION"
+    else
+        error "Unbekannter SD-Karten-Typ: $SD_CARD_PATH"
+    fi
 }
 
 # SSH aktivieren
@@ -188,12 +213,13 @@ EOF
 unmount_sd_card() {
     log "Unmounte SD-Karte..."
     
-    # Sicher unmounten
-    if [[ -n "$BOOT_PARTITION" ]]; then
+    # Nur unmounten wenn es ein Block-Device war
+    if [[ -b "$SD_CARD_PATH" && -n "$BOOT_PARTITION" ]]; then
         sudo umount "$BOOT_PARTITION" 2>/dev/null || true
+        log "✅ SD-Karte unmounted"
+    else
+        log "SD-Karte bleibt gemountet (bereits gemountetes Verzeichnis)"
     fi
-    
-    log "✅ SD-Karte unmounted"
 }
 
 # SD-Karten-Informationen anzeigen
