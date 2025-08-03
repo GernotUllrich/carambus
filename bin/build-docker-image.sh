@@ -101,13 +101,16 @@ check_prerequisites() {
         error "Docker ist nicht installiert"
     fi
     
-    # Docker daemon prüfen
+    # Docker daemon prüfen (optional)
     if ! docker info > /dev/null 2>&1; then
-        error "Docker daemon ist nicht erreichbar"
+        warning "Docker daemon ist nicht erreichbar - nur Konfigurationsvalidierung"
+        DOCKER_AVAILABLE=false
+    else
+        DOCKER_AVAILABLE=true
     fi
     
     # Buildx prüfen
-    if ! docker buildx version > /dev/null 2>&1; then
+    if [[ "$DOCKER_AVAILABLE" == true ]] && ! docker buildx version > /dev/null 2>&1; then
         warning "Docker buildx nicht verfügbar, verwende Standard builder"
     fi
     
@@ -117,6 +120,12 @@ check_prerequisites() {
 # Docker-Image bauen
 build_image() {
     log "Baue Docker-Image für Plattform: $PLATFORM"
+    
+    if [[ "$DOCKER_AVAILABLE" == false ]]; then
+        log "Docker nicht verfügbar - führe nur Konfigurationsvalidierung durch"
+        validate_configuration
+        return
+    fi
     
     case $PLATFORM in
         "raspberry-pi")
@@ -132,6 +141,41 @@ build_image() {
             error "Unbekannte Plattform: $PLATFORM"
             ;;
     esac
+}
+
+# Konfigurationsvalidierung
+validate_configuration() {
+    log "Validiere Docker-Konfiguration..."
+    
+    # Dockerfile prüfen
+    if [[ "$PLATFORM" == "raspberry-pi" ]]; then
+        if [[ ! -f "Dockerfile.raspberry-pi" ]]; then
+            error "Dockerfile.raspberry-pi nicht gefunden"
+        fi
+        log "✅ Dockerfile.raspberry-pi gefunden"
+    else
+        if [[ ! -f "Dockerfile" ]]; then
+            error "Dockerfile nicht gefunden"
+        fi
+        log "✅ Dockerfile gefunden"
+    fi
+    
+    # Docker-Compose prüfen
+    if [[ "$PLATFORM" == "raspberry-pi" ]]; then
+        if [[ ! -f "docker-compose.raspberry-pi.yml" ]]; then
+            error "docker-compose.raspberry-pi.yml nicht gefunden"
+        fi
+        log "✅ docker-compose.raspberry-pi.yml gefunden"
+    fi
+    
+    # Nginx-Konfiguration prüfen
+    if [[ ! -f "nginx.conf" ]]; then
+        warning "nginx.conf nicht gefunden"
+    else
+        log "✅ nginx.conf gefunden"
+    fi
+    
+    log "Konfigurationsvalidierung erfolgreich"
 }
 
 # Raspberry Pi Image bauen
@@ -191,6 +235,11 @@ build_multi_platform_image() {
 
 # Image testen
 test_image() {
+    if [[ "$DOCKER_AVAILABLE" == false ]]; then
+        log "Docker nicht verfügbar - überspringe Image-Test"
+        return
+    fi
+    
     log "Teste Docker-Image..."
     
     # Container starten
@@ -217,6 +266,11 @@ test_image() {
 # Image pushen
 push_image() {
     if [[ "$PUSH" == true ]]; then
+        if [[ "$DOCKER_AVAILABLE" == false ]]; then
+            warning "Docker nicht verfügbar - überspringe Push"
+            return
+        fi
+        
         log "Pushe Docker-Image..."
         
         # Login prüfen
@@ -239,13 +293,23 @@ show_image_info() {
     echo "Name: ${IMAGE_NAME}"
     echo "Tag: ${TAG}-${PLATFORM}"
     echo "Plattform: $PLATFORM"
-    echo "Größe: $(docker images ${IMAGE_NAME}:${TAG}-${PLATFORM} --format 'table {{.Size}}' | tail -1)"
+    
+    if [[ "$DOCKER_AVAILABLE" == true ]]; then
+        echo "Größe: $(docker images ${IMAGE_NAME}:${TAG}-${PLATFORM} --format 'table {{.Size}}' | tail -1)"
+    else
+        echo "Größe: Nicht verfügbar (Docker nicht erreichbar)"
+    fi
+    
     echo ""
     echo "Verwendung:"
     echo "docker run -d -p 3000:3000 ${IMAGE_NAME}:${TAG}-${PLATFORM}"
     echo ""
     echo "Docker-Compose:"
-    echo "docker-compose -f docker-compose.raspberry-pi.yml up -d"
+    if [[ "$PLATFORM" == "raspberry-pi" ]]; then
+        echo "docker-compose -f docker-compose.raspberry-pi.yml up -d"
+    else
+        echo "docker-compose up -d"
+    fi
 }
 
 # Cleanup

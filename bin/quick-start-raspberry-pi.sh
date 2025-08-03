@@ -97,16 +97,29 @@ fi
 test_ssh_connection() {
     log "Teste SSH-Verbindung zu pi@$RASPBERRY_PI_IP..."
     
-    if ! ssh -o ConnectTimeout=10 -o BatchMode=yes pi@$RASPBERRY_PI_IP "echo 'SSH-Verbindung erfolgreich'" > /dev/null 2>&1; then
-        error "SSH-Verbindung zu $RASPBERRY_PI_IP fehlgeschlagen"
-        error "Bitte prüfen Sie:"
-        error "1. Raspberry Pi ist gestartet"
-        error "2. IP-Adresse ist korrekt"
-        error "3. SSH ist aktiviert"
-        error "4. Netzwerk-Verbindung funktioniert"
+    # Erste Verbindung ohne BatchMode (erlaubt Passwort-Eingabe)
+    if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no pi@$RASPBERRY_PI_IP "echo 'SSH-Verbindung erfolgreich'" 2>/dev/null; then
+        log "✅ SSH-Verbindung erfolgreich"
+        return 0
+    else
+        log "SSH-Verbindung fehlgeschlagen - möglicherweise Passwort erforderlich"
+        log "Versuche manuelle SSH-Verbindung..."
+        log "Bitte geben Sie das Passwort ein (Standard: raspberry)"
+        log "Nach der Verbindung können Sie 'exit' eingeben"
+        
+        if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no pi@$RASPBERRY_PI_IP; then
+            log "✅ Manuelle SSH-Verbindung erfolgreich"
+            return 0
+        else
+            error "SSH-Verbindung zu $RASPBERRY_PI_IP fehlgeschlagen"
+            error "Bitte prüfen Sie:"
+            error "1. Raspberry Pi ist gestartet"
+            error "2. IP-Adresse ist korrekt"
+            error "3. SSH ist aktiviert"
+            error "4. Netzwerk-Verbindung funktioniert"
+            return 1
+        fi
     fi
-    
-    log "✅ SSH-Verbindung erfolgreich"
 }
 
 # Repository klonen
