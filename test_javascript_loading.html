@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Test</title>
+</head>
+<body>
+    <h1>JavaScript Loading Test</h1>
+    <div data-controller="filter-popup">
+        <p>Filter popup controller should be connected</p>
+    </div>
+    
+    <script>
+        // Test if Stimulus is working
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded")
+            setTimeout(() => {
+                console.log("Checking for Stimulus controllers...")
+                const controllers = document.querySelectorAll('[data-controller]')
+                console.log("Found controllers:", controllers.length)
+                controllers.forEach(c => {
+                    console.log("Controller:", c.dataset.controller)
+                })
+            }, 1000)
+        })
+    </script>
+    
+    <script src="/assets/application.js"></script>
+</body>
+</html> 

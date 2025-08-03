@@ -5,12 +5,12 @@
     <thead>
     <tr>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :party_id, 'Party', params, class: 'text-gray-700' %></th>
+      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :name, 'Name', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :seqno, 'Seqno', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :discipline_id, 'Discipline', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_a_id, 'Player a', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :player_b_id, 'Player b', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :data, 'Data', params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @party_games, :tournament_id, 'Tournament', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs text-gray-700 w-20">Actions</th>
     </tr>
     </thead>
@@ -18,13 +18,13 @@
     <tbody>
     <% @party_games.each do |party_game| %>
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <td class="p-3"><%= custom_link_to party_game.party.name, party_path(party_game.party) %></td>
         <td class="p-3"><%= custom_link_to party_game.name, party_game_path(party_game) %></td>
         <td class="p-3"><%= party_game.seqno %></td>
         <td class="p-3"><%= custom_link_to party_game.discipline.andand.name, discipline_path(party_game.discipline) if party_game.discipline.present? %></td>
         <td class="p-3"><%= custom_link_to(party_game.player_a.fullname, player_path(party_game.player_a)) if party_game.player_a.present? %></td>
         <td class="p-3"><%= custom_link_to(party_game.player_b.fullname, player_path(party_game.player_b)) if party_game.player_b.present? %></td>
         <td class="p-3"><%= party_game.data.inspect %></td>
-        <td class="p-3"><%= party_game.party_id %></td>
 
         <td>
           <%= custom_link_to "View", party_game, class: "btn btn-link no-underline" %>

@@ -55,15 +55,15 @@ class Player < ApplicationRecord
     a: {},
     b: {}
   }
-  COLUMN_NAMES = { "Id" => "players.id",
+  COLUMN_NAMES = { "Region" => "regions.shortname",
+                   "Club" => "clubs.shortname",
                    "CC_ID" => "players.cc_id",
                    "DBU_ID" => "players.dbu_nr",
                    "Nickname" => "players.nickname",
                    "Firstname" => "players.firstname",
                    "Lastname" => "players.lastname",
                    "Title" => "players.title",
-                   "Club" => "clubs.shortname",
-                   "Region" => "regions.shortname" }.freeze
+  }.freeze
 
   def self.search_hash(params)
     {
@@ -72,14 +72,15 @@ class Player < ApplicationRecord
       direction: sort_direction(params[:direction]),
       search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
       column_names: Player::COLUMN_NAMES.merge({
-        "Region ID" => "players.region_id",
-        "Club ID" => "season_participations.club_id"
-      }),
+                                                 "region_id" => "regions.id",
+                                                 "club_id" => "season_participations.club_id"
+                                               }),
       raw_sql: "(players.firstname ilike :search)
  or (players.nickname ilike :search)
  or (players.cc_id = :isearch)
  or (players.lastname ilike :search)",
-      joins: []
+      joins: [:season_participations, :region],
+      distinct: true
     }
   end
 

@@ -10,10 +10,12 @@ Rails.application.configure do
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" }
     }
 
-  # Disable log rotation by assigning a new Logger without rotation options
-  config.logger = Logger.new(Rails.root.join('log', 'development.log'), shift_age = 0)
+  # Log to STDOUT for development
+  config.logger = ActiveSupport::Logger.new($stdout)
+    .tap { |logger| logger.formatter = ::Logger::Formatter.new }
+    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
-  # Optional: set log level if needed
+  # Set log level
   config.log_level = :debug
   # Settings specified here will take precedence over those in config/application.rb.
 

@@ -1,4 +1,4 @@
 <option value="">Select Shortname</option>
 <% clubs.each do |club| %>
-  <option value="<%= club[:value] %>"><%= club[:label] %></option>
+  <option value="<%= club[:value] %>" <%= "data-id=\"#{club[:id]}\"".html_safe if club[:id].present? %>><%= club[:label] %></option>
 <% end %> 

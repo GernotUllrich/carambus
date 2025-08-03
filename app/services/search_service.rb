@@ -11,12 +11,14 @@ class SearchService < ApplicationService
     @column_names = options[:column_names]
     @raw_sql = options[:raw_sql]
     @joins = options[:joins]
+    @distinct = options[:distinct]
   end
 
   def call
     results = @model
     results = results.joins(@joins) if @joins
     results = results.sort_by_params(@sort, @direction)
+    results = results.distinct if @distinct
 
     if @sSearch.present?
       results_no_query = results

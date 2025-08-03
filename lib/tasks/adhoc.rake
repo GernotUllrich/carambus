@@ -160,7 +160,11 @@ namespace :adhoc do
     # end
     # League[8682].scrape_single_league_from_cc(league_details: true)
     # Club[3013].update(region_id: 2)
-    Tournament[15799].scrape_single_tournament_public(reload_game_results: true)
+    # Tournament[15799].scrape_single_tournament_public(reload_game_results: true)
+    t = TableMonitor.last
+    puts "try to delete TableMonitor[#{t.id}]"
+    t.destroy
+    puts "last is still: #{TableMonitor.last.id}"
   end
 
   desc "Sequence Reset"

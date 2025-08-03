@@ -35,23 +35,26 @@ class PartyGame < ApplicationRecord
                    party_game_cc]
 
   COLUMN_NAMES = {
+    # Cascading references
+    "Region" => "regions.shortname",
+    "Season" => "seasons.name",
+    "League" => "leagues.shortname",
+    #  party_id      :integer
+    "Party" => "parties.id",
     #  name          :string
-    "name" => "party_games.name",
+    "Name" => "party_games.name",
     #  seqno         :integer
-    "seqno" => "party_games.seqno",
+    "Seqno" => "party_games.seqno",
     #  created_at    :datetime         not null
     #  updated_at    :datetime         not null
     #  discipline_id :integer
-    "discipline" => "disciplines.name",
-    #  party_id      :integer
-    "party_id" => "party_games.party_id",
-    "party" => "parties.name",
+    "Discipline" => "disciplines.name",
     #  player_a_id   :integer
-    "player_a" => "player_a.name",
+    "Player A" => "player_a.name",
     #  player_b_id   :integer
-    "player_b" => "player_b.name",
+    "Player B" => "player_b.name",
     #  tournament_id :integer
-    "tournament" => "tournaments.name"
+    "Tournament" => "tournaments.name",
   }
 
   # data 14.1 endlos
@@ -65,6 +68,24 @@ class PartyGame < ApplicationRecord
   # def name
   #   "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
   # end
+
+  def self.search_hash(params)
+    {
+      model: PartyGame,
+      sort: params[:sort],
+      direction: sort_direction(params[:direction]),
+      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
+      column_names: PartyGame::COLUMN_NAMES.merge({
+        "region_id" => "regions.id",
+        "season_id" => "seasons.id",
+        "league_id" => "leagues.id",
+        "party_id" => "parties.id"
+      }),
+      raw_sql: "(leagues.shortname ilike :search) or (parties.id = :isearch) or (party_games.name ilike :search) or (disciplines.name ilike :search) or (regions.shortname ilike :search) or (seasons.name ilike :search)",
+      joins: "INNER JOIN parties ON parties.id = party_games.party_id INNER JOIN leagues ON leagues.id = parties.league_id INNER JOIN seasons ON seasons.id = leagues.season_id INNER JOIN regions ON regions.id = leagues.organizer_id AND leagues.organizer_type = 'Region'",
+      distinct: true
+    }
+  end
 
   def update_discipline_from_name
     name_str = read_attribute(:name)

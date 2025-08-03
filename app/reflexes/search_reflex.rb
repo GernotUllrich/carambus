@@ -50,6 +50,6 @@ class SearchReflex < ApplicationReflex
     instance_variable_set("@search_params", search_params)
 
     # Render partial
-    render partial: "#{model_name.underscore.pluralize}/#{model_name.underscore.pluralize}_table", locals: {pagy: @pagy, model_class: @model, records: records}
+    render partial: "#{model_name.underscore.pluralize}_table", locals: {pagy: @pagy, model_class: @model, records: records}
   end
 end
