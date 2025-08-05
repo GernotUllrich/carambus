@@ -102,8 +102,8 @@ cd /home/$SUDO_USER
 if [ -d "carambus" ]; then
     log_warning "Verzeichnis carambus existiert bereits. Überspringe..."
 else
-    # Verwende SSH-URL für dein Repository
-    git clone git@github.com:GernotUllrich/carambus.git || {
+    # Verwende SSH-URL für dein Repository (als pi User)
+    sudo -u $SUDO_USER git clone git@github.com:GernotUllrich/carambus.git || {
         log_warning "SSH-Klon fehlgeschlagen!"
         log_error "Bitte konfiguriere SSH-Key für GitHub:"
         log_info "1. ssh-keygen -t ed25519 -C 'pi@raspberrypi'"
