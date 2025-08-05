@@ -99,17 +99,26 @@ log_success "Firewall konfiguriert"
 # Carambus Repository klonen
 log_info "Klone Carambus Repository..."
 cd /home/$SUDO_USER
-if [ -d "carambus_api" ]; then
-    log_warning "Verzeichnis carambus_api existiert bereits. Überspringe..."
+if [ -d "carambus" ]; then
+    log_warning "Verzeichnis carambus existiert bereits. Überspringe..."
 else
-    git clone https://github.com/your-repo/carambus_api.git
-    chown -R $SUDO_USER:$SUDO_USER carambus_api
+    # Verwende SSH-URL für dein Repository
+    git clone git@github.com:GernotUllrich/carambus.git || {
+        log_warning "SSH-Klon fehlgeschlagen!"
+        log_error "Bitte konfiguriere SSH-Key für GitHub:"
+        log_info "1. ssh-keygen -t ed25519 -C 'pi@raspberrypi'"
+        log_info "2. cat ~/.ssh/id_ed25519.pub"
+        log_info "3. Füge Key zu GitHub hinzu: Settings → SSH and GPG keys"
+        log_info "4. Führe dann manuell aus: git clone git@github.com:GernotUllrich/carambus.git"
+        exit 1
+    }
+    chown -R $SUDO_USER:$SUDO_USER carambus
 fi
 log_success "Repository geklont"
 
 # Umgebungsvariablen konfigurieren
 log_info "Konfiguriere Umgebungsvariablen..."
-cd carambus_api
+cd carambus
 if [ ! -f ".env" ]; then
     cp env.example .env
     log_warning "Bitte bearbeite .env mit deinen Werten!"
