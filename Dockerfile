@@ -1,71 +1,90 @@
-# syntax = docker/dockerfile:1
+# Carambus Rails Application Dockerfile
+# Optimiert für Raspberry Pi ARM64 und Produktionsumgebung
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t my-app .
-# docker run -d -p 80:80 -p 443:443 --name my-app -e RAILS_MASTER_KEY=<value from config/master.key> my-app
+# Multi-stage build für optimierte Größe
+FROM debian:bookworm-slim AS base
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# Setze Umgebungsvariablen
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RAILS_ENV=production
+ENV NODE_ENV=production
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
-ARG RUBY_VERSION=3.3
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim AS base
+# Installiere System-Abhängigkeiten
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    build-essential \
+    libpq-dev \
+    libssl-dev \
+    pkg-config \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Rails app lives here
-WORKDIR /rails
+# Installiere Node.js und Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update \
+    && apt-get install -y yarn \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install base packages
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# Installiere rbenv und Ruby 3.2.1
+RUN git clone https://github.com/rbenv/rbenv.git /usr/local/rbenv \
+    && echo 'export PATH="/usr/local/rbenv/bin:$PATH"' >> /etc/bash.bashrc \
+    && echo 'eval "$(rbenv init -)"' >> /etc/bash.bashrc \
+    && git clone https://github.com/rbenv/ruby-build.git /usr/local/rbenv/plugins/ruby-build \
+    && export PATH="/usr/local/rbenv/bin:$PATH" \
+    && eval "$(rbenv init -)" \
+    && rbenv install 3.2.1 \
+    && rbenv global 3.2.1 \
+    && echo 'gem: --no-document' >> ~/.gemrc
 
-# Set production environment
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+# Setze Ruby-Pfad
+ENV PATH="/usr/local/rbenv/shims:/usr/local/rbenv/bin:$PATH"
+ENV RBENV_ROOT="/usr/local/rbenv"
 
-# Throw-away build stage to reduce size of final image
-FROM base AS build
+# Installiere Bundler
+RUN gem install bundler
 
-# Install packages needed to build gems and node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev node-gyp pkg-config python-is-python3 imagemagick libvips libvips-dev libvips-tools poppler-utils && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# Erstelle Anwendungsverzeichnis
+WORKDIR /app
 
-# Install JavaScript dependencies
-ARG NODE_VERSION=20.14.0
-ARG YARN_VERSION=1.22.22
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    npm install -g yarn@$YARN_VERSION && \
-    rm -rf /tmp/node-build-master
+# Kopiere Gemfiles zuerst (für besseres Caching)
+COPY Gemfile Gemfile.lock ./
 
-# Install application gems
-COPY Gemfile Gemfile.lock ./.ruby-version ./
-RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    bundle exec bootsnap precompile --gemfile
+# Installiere Ruby-Gems
+RUN bundle config set --local deployment 'true' \
+    && bundle config set --local path 'vendor/bundle' \
+    && bundle install --jobs 4 --retry 3
 
-# Install node modules
+# Kopiere package.json und yarn.lock
 COPY package.json yarn.lock ./
+
+# Installiere Node.js-Abhängigkeiten
 RUN yarn install --frozen-lockfile
 
-# Copy application code
+# Kopiere Anwendungscode
 COPY . .
 
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
+# Precompile Assets
+RUN bundle exec rails assets:precompile
 
-# Nicht-Root-Benutzer erstellen
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
-USER 1000:1000
+# Erstelle nicht-root User
+RUN groupadd -r rails && useradd -r -g rails rails \
+    && chown -R rails:rails /app
 
-# Entrypoint prepares the database.
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# Wechsle zu nicht-root User
+USER rails
 
-# Start the server by default, this can be overwritten at runtime
+# Exponiere Port
 EXPOSE 3000
-CMD ["./bin/rails", "server"]
+
+# Health Check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Starte Anwendung
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
