@@ -1,8 +1,7 @@
 # Carambus Rails Application Dockerfile
-# Optimiert für Raspberry Pi ARM64 und Produktionsumgebung
+# Optimiert für Ruby 3.2.1 und Produktionsumgebung
 
-# Multi-stage build für optimierte Größe
-FROM debian:bookworm-slim AS base
+FROM ruby:3.2.1-slim AS base
 
 # Setze Umgebungsvariablen
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,15 +10,15 @@ ENV NODE_ENV=production
 
 # Installiere System-Abhängigkeiten
 RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    ca-certificates \
     build-essential \
     libpq-dev \
     libssl-dev \
     pkg-config \
     git \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Installiere Node.js und Yarn
@@ -31,29 +30,22 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y yarn \
     && rm -rf /var/lib/apt/lists/*
 
-# Installiere rbenv und Ruby 3.2.1
-RUN git clone https://github.com/rbenv/rbenv.git /usr/local/rbenv \
-    && echo 'export PATH="/usr/local/rbenv/bin:$PATH"' >> /etc/bash.bashrc \
-    && echo 'eval "$(rbenv init -)"' >> /etc/bash.bashrc \
-    && git clone https://github.com/rbenv/ruby-build.git /usr/local/rbenv/plugins/ruby-build \
-    && export PATH="/usr/local/rbenv/bin:$PATH" \
-    && eval "$(rbenv init -)" \
-    && rbenv install 3.2.1 \
-    && rbenv global 3.2.1 \
-    && echo 'gem: --no-document' >> ~/.gemrc
+# Erstelle nicht-root User
+RUN groupadd -r rails && useradd -r -g rails rails
 
-# Setze Ruby-Pfad
-ENV PATH="/usr/local/rbenv/shims:/usr/local/rbenv/bin:$PATH"
-ENV RBENV_ROOT="/usr/local/rbenv"
+# Erstelle Anwendungsverzeichnis, Log- und Temp-Verzeichnisse und setze Rechte
+RUN mkdir -p /app/log /app/tmp/cache/assets \
+    && touch /app/log/production.log \
+    && chown -R rails:rails /app
 
-# Installiere Bundler
-RUN gem install bundler
+# Wechsle zu nicht-root User
+USER rails
 
-# Erstelle Anwendungsverzeichnis
+# Setze Arbeitsverzeichnis
 WORKDIR /app
 
 # Kopiere Gemfiles zuerst (für besseres Caching)
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock .ruby-version ./
 
 # Installiere Ruby-Gems
 RUN bundle config set --local deployment 'true' \
@@ -69,15 +61,17 @@ RUN yarn install --frozen-lockfile
 # Kopiere Anwendungscode
 COPY . .
 
+# Setze Rechte für Log- und Temp-Verzeichnisse als root
+USER root
+RUN mkdir -p /app/log /app/tmp/cache/assets \
+    && touch /app/log/production.log \
+    && chown -R rails:rails /app/log /app/tmp /app/public
+
+# Wechsle zurück zu rails User
+USER rails
+
 # Precompile Assets
 RUN bundle exec rails assets:precompile
-
-# Erstelle nicht-root User
-RUN groupadd -r rails && useradd -r -g rails rails \
-    && chown -R rails:rails /app
-
-# Wechsle zu nicht-root User
-USER rails
 
 # Exponiere Port
 EXPOSE 3000
