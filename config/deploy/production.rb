@@ -3,10 +3,10 @@
 # Defines a single server with a list of roles and multiple properties.
 # You can define all roles on a single server, or split them:
 
-#server '192.168.178.48', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
+server '192.168.178.53', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
 #server 'bc-wedel-duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
 #server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global local and api
-server 'api.carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
+#server 'api.carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global
 
 # Configuration
 # =============

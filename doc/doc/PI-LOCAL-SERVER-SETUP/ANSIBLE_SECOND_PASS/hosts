@@ -1,0 +1,169 @@
+carambus8 ansible_host=192.168.178.48  node_name=pj.carambus.de provider=raspi php_time_zone="Europe/Berlin"
+carambus ansible_host=192.168.178.53  node_name=gu.carambus.de provider=raspi php_time_zone="Europe/Berlin"
+#api ansible_host=135.181.96.129  node_name=api.carambus.de provider=hetzner php_time_zone="Europe/Berlin"
+api ansible_host=91.107.139.41 node_name=api.carambus.de provider=hetzner php_time_zone="Europe/Berlin"
+carambus2 ansible_host=116.203.56.157  node_name=web2.carambus.de provider=domainfactory php_time_zone="Europe/Berlin"
+carambus3 ansible_host=192.168.178.89  node_name=web3.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+carambus4 ansible_host=192.168.178.81  node_name=web4.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+carambus5 ansible_host=192.168.178.107  node_name=web5.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+carambus6 ansible_host=192.168.178.63  node_name=web6.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+carambus7 ansible_host=192.168.178.77  node_name=web7.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+#web5 ansible_host=46.252.27.206  node_name=web5.heibel-ticker.de provider=domainfactory php_time_zone="Europe/Berlin"
+web6 ansible_host=87.177.197.237	 node_name=web6.carambus.de provider=raspira php_time_zone="Europe/Berlin"
+#web4 ansible_host=46.252.16.179	 node_name=web4.heibel-ticker.de provider=domainfactory php_time_zone="Europe/Berlin"
+mail ansible_host=159.69.200.29 domain_name=mail.heibel-ticker.de node_name=mail.heibel-ticker.de provider=hetzner php_time_zone="Europe/Berlin"
+web11 ansible_host=159.69.200.43 domain_name=heibel-ticker.de node_name=web11.heibel-ticker.de provider=hetzner php_time_zone="Europe/Berlin"
+web12 ansible_host=78.46.162.236 domain_name=animusx.de node_name=web12.heibel-ticker.de provider=hetzner php_time_zone="Europe/Berlin"
+
+[dbservers]
+api
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+carambus3
+carambus1
+carambus2
+#web4
+#web6
+web11
+web12
+
+[webservers]
+api
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+carambus3
+carambus1
+carambus2
+#web4
+#web6
+web11
+web12
+
+[loadbalancer]
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+api
+carambus1
+carambus2
+#web6
+web11
+
+[beanstalkd_server]
+#web4
+#web6
+web11
+web12
+
+[py3_hosts]
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+api
+carambus1
+carambus2
+#web4
+#web5
+#web6
+mail
+web11
+web12
+
+[py3_hosts:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+[mailhost]
+api
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+carambus1
+carambus2
+#web5
+#web6
+#web4
+mail
+web11
+web12
+
+[mailmaster]
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+api
+carambus1
+carambus2
+#web5
+mail
+
+[mailrelay]
+#web5
+mail
+
+[mailclients]
+api
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+carambus3
+carambus1
+carambus2
+#web6
+#web4
+web11
+web12
+
+[ispconfig_master]
+carambus1
+carambus2
+#web5
+mail
+
+[ht]
+#web6
+web11
+[ht:vars]
+postgres_version=10
+
+[ax]
+#web4
+web12
+[ax:vars]
+postgres_version=10
+
+[ca]
+api
+carambus
+carambus8
+carambus7
+carambus6
+carambus5
+carambus4
+carambus3
+carambus1
+carambus2
+[ca:vars]
+postgres_version=14

@@ -49,8 +49,9 @@ COPY package.json yarn.lock ./
 # Node-Module installieren
 RUN yarn install --frozen-lockfile
 
-# Anwendungscode kopieren
+# Anwendungscode kopieren und Verzeichnisse erstellen
 COPY . .
+RUN mkdir -p log storage tmp
 
 # Bootsnap-Code vorcompilieren für schnellere Boot-Zeiten
 RUN bundle exec bootsnap precompile app/ lib/
