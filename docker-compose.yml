@@ -43,9 +43,14 @@ services:
     container_name: carambus_web
     environment:
       RAILS_ENV: production
-      DATABASE_URL: postgresql://carambus:${POSTGRES_PASSWORD:-carambus_password}@postgres:5432/carambus_production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: carambus_production
+      POSTGRES_USER: carambus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
       REDIS_URL: redis://redis:6379/0
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
     volumes:
