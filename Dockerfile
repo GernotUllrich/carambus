@@ -38,11 +38,11 @@ RUN mkdir -p /app/log /app/tmp/cache/assets \
     && touch /app/log/production.log \
     && chown -R rails:rails /app
 
-# Wechsle zu nicht-root User
-USER rails
-
 # Setze Arbeitsverzeichnis
 WORKDIR /app
+
+# Wechsle zu nicht-root User (auskommentiert für tmp-Rechte)
+# USER rails
 
 # Kopiere Gemfiles zuerst (für besseres Caching)
 COPY Gemfile Gemfile.lock .ruby-version ./
