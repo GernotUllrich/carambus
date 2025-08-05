@@ -70,8 +70,8 @@ RUN mkdir -p /app/log /app/tmp/cache/assets \
 # Wechsle zurück zu rails User
 USER rails
 
-# Precompile Assets
-RUN bundle exec rails assets:precompile
+# Precompile Assets (mit temporärem secret_key_base)
+RUN SECRET_KEY_BASE=dummy_key_for_build_only bundle exec rails assets:precompile
 
 # Exponiere Port
 EXPOSE 3000
