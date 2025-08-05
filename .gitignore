@@ -66,3 +66,4 @@ yarn-debug.log*
 /config/carambus.yml
 /config/database.yml
 /config/deploy.rb
+/ansible/**
