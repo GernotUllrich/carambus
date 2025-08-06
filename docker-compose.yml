@@ -16,7 +16,7 @@ services:
       - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U carambus"]
+      test: ["CMD-SHELL", "pg_isready -U carambus -d carambus_production"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,8 +49,8 @@ services:
       POSTGRES_USER: carambus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
       REDIS_URL: redis://redis:6379/0
-      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      RAILS_MASTER_KEY: 411296fb04860ea0d3d5cb1e6800f7e6
+      SECRET_KEY_BASE: 0e89b3956a771ed0df3f2849fa7d5220f79ad76f96e707fe4c298d29645451d7fb9b43de0f73e9e10f4df134aeb2402b83addfa6ff31fd72afc2107a76f8d226
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
     volumes:
@@ -59,6 +59,7 @@ services:
       - ./tmp:/app/tmp
     ports:
       - "3000:3000"
+    command: bundle exec rails server -b 0.0.0.0
     depends_on:
       postgres:
         condition: service_healthy

@@ -22,7 +22,6 @@ test:
 
 production:
   <<: *default
-  url: <%= ENV['DATABASE_URL'] %>
   database: <%= ENV.fetch("POSTGRES_DB", "carambus_production") %>
   username: <%= ENV.fetch("POSTGRES_USER", "carambus") %>
   password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>

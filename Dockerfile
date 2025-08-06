@@ -67,11 +67,11 @@ RUN mkdir -p /app/log /app/tmp/cache/assets \
     && touch /app/log/production.log \
     && chown -R rails:rails /app/log /app/tmp /app/public
 
-# Wechsle zurück zu rails User
-USER rails
-
 # Precompile Assets (mit temporärem secret_key_base)
 RUN SECRET_KEY_BASE=dummy_key_for_build_only bundle exec rails assets:precompile
+
+# Wechsle zu rails User für sicheren Betrieb
+USER rails
 
 # Exponiere Port
 EXPOSE 3000
