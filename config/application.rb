@@ -100,7 +100,7 @@ module CarambusApp
       app.message_verifier("ActiveStorage").rotate(digest: "SHA1")
     end
 
-    # Credentials are handled via environment variables in Docker
+    # Use Rails credentials as normal
 
     # Support older SHA1 digests for ActiveRecord::Encryption
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
