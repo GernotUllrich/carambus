@@ -49,7 +49,6 @@ services:
       POSTGRES_USER: carambus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
       REDIS_URL: redis://redis:6379/0
-      RAILS_MASTER_KEY: cb39954ef6102d709a758ba32c9153d2
       SECRET_KEY_BASE: dummy_key_for_docker_only
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
@@ -57,7 +56,6 @@ services:
       - ./storage:/app/storage
       - ./log:/app/log
       - ./tmp:/app/tmp
-      - ./config/credentials:/app/config/credentials:ro
     ports:
       - "3000:3000"
     command: bundle exec rails server -b 0.0.0.0
