@@ -117,10 +117,11 @@ Rails.application.configure do
   end
 
 
-  config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
+  # Use environment variable for secret_key_base in Docker
+  config.secret_key_base = ENV.fetch('SECRET_KEY_BASE') { 'dummy_key_for_development' }
 
-  config.credentials.content_path = config.root.join('config/credentials/development.yml.enc')
-  config.credentials.key_path = config.root.join('config/credentials/development.key')
+  # Disable credentials for Docker environment
+  config.credentials.content_path = nil
 
   config.i18n.fallbacks = true
   config.i18n.raise_on_missing_translations = true
