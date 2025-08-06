@@ -49,7 +49,7 @@ services:
       POSTGRES_USER: carambus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
       REDIS_URL: redis://redis:6379/0
-      RAILS_MASTER_KEY: dummy_key_for_docker_only
+      RAILS_MASTER_KEY: bba48d96c53881788df28af2ecadd271
       SECRET_KEY_BASE: dummy_key_for_docker_only
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
