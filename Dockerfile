@@ -68,7 +68,8 @@ RUN mkdir -p /app/log /app/tmp/cache/assets \
     && chown -R rails:rails /app/log /app/tmp /app/public
 
 # Precompile Assets (mit temporärem secret_key_base)
-RUN SECRET_KEY_BASE=dummy_key_for_build_only bundle exec rails assets:precompile
+# Skip asset precompilation for now to avoid credentials issues
+# RUN SECRET_KEY_BASE=dummy_key_for_build_only bundle exec rails assets:precompile
 
 # Wechsle zu rails User für sicheren Betrieb
 USER rails
