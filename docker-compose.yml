@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15
     container_name: carambus_postgres
@@ -11,17 +10,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d
+      - ./docker-production-data/carambus_production_20250805_224054.sql.gz:/docker-entrypoint-initdb.d/carambus_production.sql.gz:ro
     ports:
       - "5432:5432"
-    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U carambus -d carambus_production"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: carambus_redis
@@ -30,19 +27,22 @@ services:
       - redis_data:/data
     ports:
       - "6379:6379"
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  # Rails Application
   web:
     build: .
     container_name: carambus_web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      RAILS_ENV: development
+      RAILS_ENV: production
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: carambus_production
@@ -55,36 +55,22 @@ services:
       - ./storage:/app/storage
       - ./log:/app/log
       - ./tmp:/app/tmp
-      - ./config/credentials:/app/config/credentials:ro
+      - ./docker-production-data/shared/config/credentials:/app/config/credentials:ro
     ports:
       - "3000:3000"
     command: bundle exec rails server -b 0.0.0.0
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-  # Nginx Reverse Proxy (optional)
   nginx:
     image: nginx:alpine
     container_name: carambus_nginx
+    depends_on:
+      - web
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - ./public:/var/www/html:ro
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - web
-    restart: unless-stopped
 
 volumes:
   postgres_data:
