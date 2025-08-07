@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: carambus_api_production
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: toS6E7tARQafHCXz
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./carambus_api_production.sql.gz:/docker-entrypoint-initdb.d/carambus_api_production.sql.gz:ro
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgresql://www_data:toS6E7tARQafHCXz@postgres:5432/carambus_api_production
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./shared/config/credentials:/app/config/credentials:ro
+      - ./log:/app/log
+      - ./storage:/app/storage
+      - ./tmp:/app/tmp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.api.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  redis_data: 

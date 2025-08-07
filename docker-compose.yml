@@ -3,80 +3,69 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: carambus_postgres
     environment:
       POSTGRES_DB: carambus_production
-      POSTGRES_USER: carambus
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: toS6E7tARQafHCXz
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker-production-data/carambus_production_20250805_224054.sql.gz:/docker-entrypoint-initdb.d/carambus_production.sql.gz:ro
-    ports:
-      - "5432:5432"
+      - ./doc/doc-local/docker/carambus_production_20250805_224054.sql.gz:/docker-entrypoint-initdb.d/carambus_production.sql.gz:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U carambus -d carambus_production"]
+      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_production"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: carambus_redis
-    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
   web:
     build: .
-    container_name: carambus_web
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       RAILS_ENV: production
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: carambus_production
-      POSTGRES_USER: carambus
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carambus_password}
-      REDIS_URL: redis://redis:6379/0
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
+      DATABASE_URL: postgresql://www_data:toS6E7tARQafHCXz@postgres:5432/carambus_production
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - ./storage:/app/storage
       - ./log:/app/log
       - ./tmp:/app/tmp
-      - ./docker-production-data/shared/config/credentials:/app/config/credentials:ro
+      - ./doc/doc-local/docker/shared/config/credentials:/app/config/credentials:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "3000:3000"
-    command: bundle exec rails server -b 0.0.0.0
 
-  nginx:
-    image: nginx:alpine
-    container_name: carambus_nginx
-    depends_on:
-      - web
+  cron:
+    build: .
+    user: root
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgresql://www_data:toS6E7tARQafHCXz@postgres:5432/carambus_production
+      REDIS_URL: redis://redis:6379/0
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./public:/var/www/html:ro
-    ports:
-      - "80:80"
-      - "443:443"
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+      - ./doc/doc-local/docker/shared/config/credentials:/app/config/credentials:rw
+      - ./crontab:/etc/cron.d/carambus:ro
+      - ./cron-startup.sh:/usr/local/bin/cron-startup.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["/usr/local/bin/cron-startup.sh"]
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
 
 networks:
   default:

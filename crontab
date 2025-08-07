@@ -1,0 +1,25 @@
+# Carambus Docker Cron Jobs
+# Format: minute hour day month weekday command
+
+# Copy credentials and load crontab on startup
+@reboot cp /app/config/credentials/production.* /app/config/credentials/ 2>/dev/null || true && crontab /etc/cron.d/carambus
+
+# Daily update at 2:00 AM
+0 2 * * * cd /app && bundle exec rake scrape:daily_update >> /app/log/cron.log 2>&1
+
+# Cleanup paper trail versions weekly on Sunday at 3:00 AM
+0 3 * * 0 cd /app && bundle exec rake cleanup:cleanup_paper_trail_versions >> /app/log/cron.log 2>&1
+
+# Scrape tournaments weekly on Monday at 4:00 AM
+0 4 * * 1 cd /app && bundle exec rake scrape:scrape_tournaments_optimized >> /app/log/cron.log 2>&1
+
+# Scrape clubs weekly on Tuesday at 4:00 AM
+0 4 * * 2 cd /app && bundle exec rake scrape:scrape_clubs_optimized >> /app/log/cron.log 2>&1
+
+# Scrape leagues weekly on Wednesday at 4:00 AM
+0 4 * * 3 cd /app && bundle exec rake scrape:scrape_leagues_optimized >> /app/log/cron.log 2>&1
+
+# Backup configuration monthly on the first of the month at 5:00 AM
+0 5 1 * * cd /app && bundle exec rake mode:backup >> /app/log/cron.log 2>&1
+
+# Empty line required at end of file 

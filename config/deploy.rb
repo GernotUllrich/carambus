@@ -2,7 +2,7 @@
 lock "3.19.2"
 
 set :application, "carambus"
-set :basename, "carambus"
+set :basename, "carambus_api"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 
 # Default branch is :master
@@ -45,9 +45,8 @@ append :linked_dirs, ".bundle"
 
 set :rbenv_type, :local
 set :rbenv_ruby, "3.2.1"
-set :rbenv_path, "/var/www/.rbenv"
 set :maintenance_tournament_plan_path, "#{current_path}/config/maintenance_pages/maintenance.html.erb"
-set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} /usr/bin/rbenv exec"
+set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w[rake gem bundle ruby rails]
 
 # path to customized templates (see below for details)

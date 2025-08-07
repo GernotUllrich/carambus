@@ -18,17 +18,17 @@ default:
   no_local_protection: 'false'
   club_id: nil
 development:
-  carambus_api_url: https://newapi.carambus.de/
-  location_id: 1
+  carambus_api_url: 
+  location_id: 
   application_name: carambus
-  basename: carambus
+  basename: carambus_api
   support_email: gernot.ullrich@gmx.de
   business_name: Ullrich IT Consulting
   business_address: 22869 Schenefeld, Sandstückenweg 15
-  carambus_domain: carambus.de
+  carambus_domain: api.carambus.de
   queue_adapter: async
-  context: NBV
+  context: 
   season_name: <%= season_name %>
   force_update: 'true'
   no_local_protection: 'false'
-  club_id: 357
+  club_id: 

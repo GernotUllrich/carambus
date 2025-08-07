@@ -6,24 +6,18 @@ default: &default
 
 development:
   <<: *default
-  database: carambus_development
-  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
-  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
-  port: <%= ENV.fetch("POSTGRES_PORT", "5432") %>
+  database: carambus_api_development
+  username: <%= ENV.fetch("DB_USERNAME", nil) %>
+  password: <%= ENV.fetch("DB_PASSWORD", nil) %>
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
 
 test:
   <<: *default
   database: carambus_test
-  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
-  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
-  port: <%= ENV.fetch("POSTGRES_PORT", "5432") %>
+  username: <%= ENV.fetch("DB_USERNAME", nil) %>
+  password: <%= ENV.fetch("DB_PASSWORD", nil) %>
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
 
 production:
   <<: *default
-  database: <%= ENV.fetch("POSTGRES_DB", "carambus_production") %>
-  username: <%= ENV.fetch("POSTGRES_USER", "carambus") %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
-  host: <%= ENV.fetch("POSTGRES_HOST", "postgres") %>
-  port: <%= ENV.fetch("POSTGRES_PORT", "5432") %>
+  database: carambus2_api_production
