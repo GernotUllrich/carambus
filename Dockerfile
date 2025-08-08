@@ -12,10 +12,13 @@ RUN apt-get update -qq && apt-get install -y \
     build-essential \
     libpq-dev \
     nodejs \
-    yarn \
+    npm \
     cron \
     git \
     && rm -rf /var/lib/apt/lists/*
+
+# Install yarn globally
+RUN npm install -g yarn
 
 # Create rails user and group
 RUN groupadd -r rails && useradd -r -g rails rails
@@ -27,9 +30,9 @@ WORKDIR /app
 COPY Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install --jobs 4 --retry 3
 
-# Copy package.json and install Node.js dependencies
+# Copy package.json and install Node.js dependencies (if they exist)
 COPY package.json yarn.lock ./
-RUN yarn install
+RUN if [ -f "package.json" ]; then yarn install; else echo "No package.json found, skipping yarn install"; fi
 
 # Copy application code
 COPY . .
@@ -38,8 +41,8 @@ COPY . .
 RUN mkdir -p log storage tmp/cache/assets app/assets/builds && \
     chown -R rails:rails log storage tmp app/assets/builds
 
-# Build assets using the correct process
-RUN yarn build:css && yarn build
+# Build assets using the correct process (if package.json exists)
+RUN if [ -f "package.json" ]; then yarn build:css && yarn build; else echo "No package.json found, skipping asset build"; fi
 
 # Create startup script for cron service
 RUN echo '#!/bin/bash\ncron -f' > /usr/local/bin/cron-start.sh && \
