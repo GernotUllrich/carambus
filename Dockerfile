@@ -11,11 +11,14 @@ ENV RAILS_LOG_TO_STDOUT=true
 RUN apt-get update -qq && apt-get install -y \
     build-essential \
     libpq-dev \
-    nodejs \
-    npm \
     cron \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18.x
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
 
 # Install yarn globally
 RUN npm install -g yarn
