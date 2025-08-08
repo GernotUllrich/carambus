@@ -1,17 +1,31 @@
-version: '3.8'
+# Carambus Docker Compose Configuration
+# Usage: docker compose -f docker-compose.yml up -d
+# 
+# Environment variables can be set via .env file or environment:
+# - DEPLOYMENT_NAME: Name of the deployment (default: carambus)
+# - DATABASE_NAME: Database name (default: carambus_production)
+# - DATABASE_USER: Database user (default: www_data)
+# - DATABASE_PASSWORD: Database password (default: carambus_production_password)
+# - REDIS_DB: Redis database number (default: 0)
+# - WEB_PORT: Web server port (default: 3000)
+# - POSTGRES_PORT: PostgreSQL port (default: 5432)
+# - REDIS_PORT: Redis port (default: 6379)
+# - DOMAIN: Domain name for SSL (optional)
 
 services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: carambus_production
-      POSTGRES_USER: www_data
-      POSTGRES_PASSWORD: toS6E7tARQafHCXz
+      POSTGRES_DB: ${DATABASE_NAME:-carambus_production}
+      POSTGRES_USER: ${DATABASE_USER:-www_data}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_production_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./doc/doc-local/docker/carambus_production_20250805_224054.sql.gz:/docker-entrypoint-initdb.d/carambus_production.sql.gz:ro
+      - ./doc/doc-local/docker/${DB_DUMP_FILE:-carambus_production_fixed.sql.gz}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE:-carambus_production_fixed.sql.gz}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_production"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-www_data} -d ${DATABASE_NAME:-carambus_production}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,53 +34,50 @@ services:
     image: redis:7-alpine
     volumes:
       - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       RAILS_ENV: production
+      DATABASE_URL: postgresql://${DATABASE_USER:-www_data}:${DATABASE_PASSWORD:-carambus_production_password}@postgres:5432/${DATABASE_NAME:-carambus_production}
+      REDIS_URL: redis://redis:6379/${REDIS_DB:-0}
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
-      DATABASE_URL: postgresql://www_data:toS6E7tARQafHCXz@postgres:5432/carambus_production
-      REDIS_URL: redis://redis:6379/0
     volumes:
+      - ./config/credentials:/app/config/credentials:ro
       - ./storage:/app/storage
       - ./log:/app/log
       - ./tmp:/app/tmp
-      - ./doc/doc-local/docker/shared/config/credentials:/app/config/credentials:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
     ports:
-      - "3000:3000"
-
-  cron:
-    build: .
-    user: root
-    environment:
-      RAILS_ENV: production
-      DATABASE_URL: postgresql://www_data:toS6E7tARQafHCXz@postgres:5432/carambus_production
-      REDIS_URL: redis://redis:6379/0
-    volumes:
-      - ./storage:/app/storage
-      - ./log:/app/log
-      - ./tmp:/app/tmp
-      - ./doc/doc-local/docker/shared/config/credentials:/app/config/credentials:rw
-      - ./crontab:/etc/cron.d/carambus:ro
-      - ./cron-startup.sh:/usr/local/bin/cron-startup.sh:ro
+      - "${WEB_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
-    command: ["/usr/local/bin/cron-startup.sh"]
+        condition: service_healthy
+    command: ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-  redis_data:
-
-networks:
-  default:
-    name: carambus_network 
+  redis_data: 
