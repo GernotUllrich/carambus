@@ -1,0 +1,4 @@
+upstream docker_carambus_newapi {
+  least_conn;
+  server 127.0.0.1:3001 fail_timeout=0;
+}
