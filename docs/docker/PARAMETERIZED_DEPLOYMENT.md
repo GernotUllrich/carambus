@@ -17,6 +17,131 @@ Diese Lösung ermöglicht es, Carambus mit Docker auf verschiedenen Zielumgebung
 2. **carambus_newapi** - API-Server auf Hetzner
 3. **carambus_local** - Lokale Entwicklung/Test
 
+## Parameter-Konfiguration
+
+### Wo werden Parameter gesetzt?
+
+Die Parameter werden an **drei Stellen** konfiguriert:
+
+#### 1. Script-Parameter (deploy-docker.sh)
+```bash
+./deploy-docker.sh [deployment_name] [target_server] [target_path]
+```
+
+**Beispiele:**
+```bash
+./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_newapi
+./deploy-docker.sh carambus_raspberry pi@192.168.178.53 /home/pi/carambus
+./deploy-docker.sh carambus_local localhost /tmp/carambus_test
+```
+
+#### 2. Automatische Konfiguration (deploy-docker.sh)
+Basierend auf dem `DEPLOYMENT_NAME` werden automatisch gesetzt:
+
+```bash
+# Configuration based on deployment name
+case $DEPLOYMENT_NAME in
+    carambus_raspberry|carambus_pi)
+        DB_DUMP_FILE="carambus_production_fixed.sql.gz"
+        DATABASE_NAME="carambus_production"
+        DATABASE_USER="www_data"
+        WEB_PORT="3000"
+        POSTGRES_PORT="5432"
+        REDIS_PORT="6379"
+        DOMAIN=""
+        ;;
+    carambus_newapi|newapi)
+        DB_DUMP_FILE="carambus_api_development_20250804_0218.sql.gz"
+        DATABASE_NAME="carambus_api_production"
+        DATABASE_USER="www_data"
+        WEB_PORT="3000"
+        POSTGRES_PORT="5432"
+        REDIS_PORT="6379"
+        DOMAIN="newapi.carambus.de"
+        ;;
+    carambus_local|local)
+        DB_DUMP_FILE="carambus_production_fixed.sql.gz"
+        DATABASE_NAME="carambus_development"
+        DATABASE_USER="www_data"
+        WEB_PORT="3000"
+        POSTGRES_PORT="5432"
+        REDIS_PORT="6379"
+        DOMAIN=""
+        ;;
+esac
+```
+
+#### 3. .env Datei (automatisch generiert)
+Das Script erstellt automatisch eine `.env` Datei mit allen Parametern:
+
+```bash
+# Carambus Docker Environment Configuration
+# Deployment: carambus_newapi
+# Target: www-data@carambus.de:8910:/var/www/carambus_newapi
+
+DEPLOYMENT_NAME=carambus_newapi
+DATABASE_NAME=carambus_api_production
+DATABASE_USER=www_data
+DATABASE_PASSWORD=carambus_newapi_production_password
+REDIS_DB=0
+WEB_PORT=3000
+POSTGRES_PORT=5432
+REDIS_PORT=6379
+DB_DUMP_FILE=carambus_api_development_20250804_0218.sql.gz
+DOMAIN=newapi.carambus.de
+```
+
+### Parameter-Übersicht
+
+| Parameter | Beschreibung | Beispiel |
+|-----------|--------------|----------|
+| `DEPLOYMENT_NAME` | Name des Deployments | `carambus_newapi` |
+| `TARGET_SERVER` | Ziel-Server (user@host:port) | `www-data@carambus.de:8910` |
+| `TARGET_PATH` | Ziel-Verzeichnis | `/var/www/carambus_newapi` |
+| `DATABASE_NAME` | Datenbankname | `carambus_api_production` |
+| `DATABASE_USER` | Datenbankbenutzer | `www_data` |
+| `DATABASE_PASSWORD` | Datenbankpasswort | `carambus_newapi_production_password` |
+| `DB_DUMP_FILE` | Datenbank-Dump Datei | `carambus_api_development_20240804_0218.sql.gz` |
+| `WEB_PORT` | Web-Server Port | `3000` |
+| `POSTGRES_PORT` | PostgreSQL Port | `5432` |
+| `REDIS_PORT` | Redis Port | `6379` |
+| `DOMAIN` | Domain-Name für SSL | `newapi.carambus.de` |
+| `USE_HTTPS` | HTTPS aktivieren | `true` oder `false` |
+| `REDIS_DB` | Redis Datenbanknummer | `0` |
+
+## SSL-Zertifikate
+
+### Automatische Zertifikats-Verwaltung
+
+Das Script kopiert automatisch Let's Encrypt Zertifikate, wenn:
+- `USE_HTTPS=true` gesetzt ist
+- Eine `DOMAIN` konfiguriert ist
+- Zertifikate lokal unter `/etc/letsencrypt/live/${DOMAIN}` existieren
+
+### Zertifikats-Kopierung
+
+```bash
+# Lokale Zertifikate werden kopiert nach:
+$DEPLOY_PATH/ssl-certs/
+
+# Auf dem Ziel-Server werden Symlinks erstellt:
+/etc/letsencrypt/live/${DOMAIN} -> $DEPLOY_PATH/ssl-certs/${DOMAIN}
+/etc/letsencrypt/archive/${DOMAIN} -> $DEPLOY_PATH/ssl-certs/archive_${DOMAIN}
+```
+
+### Manuelle Zertifikats-Installation
+
+Falls lokale Zertifikate nicht verfügbar sind:
+
+```bash
+# Auf dem Ziel-Server
+sudo mkdir -p /etc/letsencrypt/live/newapi.carambus.de
+sudo mkdir -p /etc/letsencrypt/archive/newapi.carambus.de
+
+# Zertifikate manuell kopieren oder certbot verwenden
+sudo certbot certonly --standalone -d newapi.carambus.de
+```
+
 ## Verwendung
 
 ### Automatisches Deployment
@@ -26,7 +151,7 @@ Diese Lösung ermöglicht es, Carambus mit Docker auf verschiedenen Zielumgebung
 ./deploy-docker.sh carambus_raspberry pi@192.168.178.53 /home/pi/carambus
 
 # API-Server Deployment
-./deploy-docker.sh carambus_newapi www-data@carambus-de:8910 /home/www-data/carambus_newapi
+./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_newapi
 
 # Lokales Test-Deployment
 ./deploy-docker.sh carambus_local localhost /tmp/carambus_test
