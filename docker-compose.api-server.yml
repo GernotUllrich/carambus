@@ -1,0 +1,64 @@
+# Carambus API Server Docker Compose Configuration
+# Für den zentralen API-Server (newapi.carambus.de -> api.carambus.de)
+# Läuft unter www-data User
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: carambus_api_production
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_api_production_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/api-server/${DB_DUMP_FILE:-carambus_api_production.sql.gz}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE:-carambus_api_production.sql.gz}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_api_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgresql://www_data:${DATABASE_PASSWORD:-carambus_api_production_password}@postgres:5432/carambus_api_production
+      REDIS_URL: redis://redis:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: API_SERVER
+    volumes:
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "production"]
+    user: "33:33"  # www-data user
+
+volumes:
+  postgres_data:
+  redis_data: 

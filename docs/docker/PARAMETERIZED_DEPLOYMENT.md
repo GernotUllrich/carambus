@@ -31,7 +31,7 @@ Die Parameter werden an **drei Stellen** konfiguriert:
 **Beispiele:**
 ```bash
 ./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_newapi
-./deploy-docker.sh carambus_raspberry pi@192.168.178.53 /home/pi/carambus
+./deploy-docker.sh carambus_raspberry www-data@192.168.178.53:8910 /var/www/carambus
 ./deploy-docker.sh carambus_local localhost /tmp/carambus_test
 ```
 
@@ -148,7 +148,7 @@ sudo certbot certonly --standalone -d newapi.carambus.de
 
 ```bash
 # Raspberry Pi Deployment
-./deploy-docker.sh carambus_raspberry pi@192.168.178.53 /home/pi/carambus
+./deploy-docker.sh carambus_raspberry www-data@192.168.178.53:8910 /var/www/carambus
 
 # API-Server Deployment
 ./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_newapi

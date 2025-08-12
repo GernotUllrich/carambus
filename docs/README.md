@@ -1,152 +1,145 @@
-# Carambus Documentation
+# 📚 Carambus Dokumentation
 
-This directory contains the MkDocs-generated documentation for the Carambus project.
+## 🏗️ Neue, konsolidierte Struktur
 
-## 📚 Documentation Structure
+Die Dokumentation wurde neu organisiert, um Redundanzen zu eliminieren und eine klare Hierarchie zu schaffen.
 
-The documentation is built using MkDocs with the Material theme and supports both German and English languages.
+## 📁 Verzeichnisstruktur
 
-### Available Documentation
+```
+docs/
+├── INSTALLATION/           # 🚀 Installation und Setup
+│   ├── QUICKSTART.md       # Haupt-Installations-Guide
+│   ├── RASPBERRY_PI_SETUP.md  # Raspberry Pi Setup
+│   ├── DOCKER_SETUP.md     # Docker Setup
+│   └── API_SERVER_SETUP.md # API-Server Setup
+├── DEVELOPMENT/            # 🔧 Entwicklung
+│   ├── DOCKER_STRUCTURE.md # Docker-Struktur
+│   ├── CASCADING_FILTERS.md # Filter-Entwicklung
+│   └── API_REFERENCE.md    # API-Dokumentation
+├── MAINTENANCE/            # 🛠️ Wartung
+│   ├── TROUBLESHOOTING.md  # Fehlerbehebung
+│   ├── BACKUP_RESTORE.md   # Backup-Verfahren
+│   └── UPDATES.md          # Update-Prozesse
+└── README.md               # Diese Datei
+```
 
-- **Tournament Management** (`/docs/tournament/`) - Tournament administration and management
-- **League Match Days** (`/docs/league/`) - League match day management
-- **Developer Guide** (`/docs/DEVELOPER_GUIDE/`) - Complete developer documentation
-- **API Documentation** (`/docs/API/`) - API reference and examples
-- **Database Design** (`/docs/database_design/`) - Database schema and design
-- **MkDocs Documentation** (`/docs/mkdocs_dokumentation/`) - Documentation about the documentation system
+## 🚀 Schnellstart
 
-### Language Support
+### 1. Installation
+- **[QUICKSTART.md](INSTALLATION/QUICKSTART.md)** - Haupt-Installations-Guide
+- **[RASPBERRY_PI_SETUP.md](INSTALLATION/RASPBERRY_PI_SETUP.md)** - Raspberry Pi Setup
 
-- **German**: `/docs/de/` - Deutsche Dokumentation
-- **English**: `/docs/en/` - English documentation
+### 2. Docker
+- **[DOCKER_SETUP.md](INSTALLATION/DOCKER_SETUP.md)** - Docker Setup und Konfiguration
+- **[DOCKER_STRUCTURE.md](DEVELOPMENT/DOCKER_STRUCTURE.md)** - Detaillierte Docker-Struktur
 
-## 🚀 Deployment
+### 3. Entwicklung
+- **[CASCADING_FILTERS.md](DEVELOPMENT/CASCADING_FILTERS.md)** - Filter-Entwicklung
+- **[API_REFERENCE.md](DEVELOPMENT/API_REFERENCE.md)** - API-Dokumentation
 
-### Quick Start
+## 🔄 Was wurde konsolidiert?
 
-1. **Deploy documentation**:
-   ```bash
-   ./bin/deploy-docs.sh
-   ```
+### Vorher (Redundanz)
+- 3 verschiedene `RASPBERRY_PI_SETUP.md` Dateien
+- Überlappende Installation Guides
+- Verstreute Docker-Dokumentation
+- Doppelte Sprachen (Deutsch/Englisch)
 
-2. **Start Rails server** (if not running):
-   ```bash
-   bundle exec rails server
-   # or
-   ./bin/start-local-server.sh
-   ```
+### Jetzt (Konsolidiert)
+- **1 Raspberry Pi Setup** - Alle Informationen in einer Datei
+- **1 Quickstart Guide** - Alle Installation-Aspekte
+- **1 Docker Setup** - Alle Docker-Informationen
+- **Klare Struktur** - Installation, Development, Maintenance
 
-3. **Access documentation**:
-   - Main: http://localhost:3000/docs/
-   - German: http://localhost:3000/docs/de/
-   - English: http://localhost:3000/docs/en/
+## 🎯 Neue Features
 
-### Manual Deployment
+### Korrekte Architektur (wie besprochen)
+```
+Production-Modi (2 verschiedene Systeme):
+├── API-Server: Ist der zentrale API-Server (newapi.carambus.de)
+└── Local-Server: Hat eine Carambus API URL, die auf den API-Server verweist
 
+Development-Modus (übergeordnet):
+├── Beide Production-Modi können im Development-Modus getestet werden
+├── Auf dem Mac Mini parallel lauffähig
+└── Für Inter-System-Kommunikation (z.B. Region-Filter-Tests)
+```
+
+### Parallele Development-Systeme (Mac Mini)
 ```bash
-# Clean previous builds
-bundle exec rake mkdocs:clean
+# Alle drei Systeme gleichzeitig starten
+./start-development-parallel.sh
 
-# Build documentation
-bundle exec rake mkdocs:build
-
-# Or use the combined task
-bundle exec rake mkdocs:deploy
+# Ports:
+# - API-Server: 3001 (PostgreSQL: 5433, Redis: 6380)
+# - Local-Server: 3000 (PostgreSQL: 5432, Redis: 6379)
+# - Web-Client: 3002 (PostgreSQL: 5434, Redis: 6381)
 ```
 
-### Development
+### Inter-System-Kommunikation
+- **Local-Server ↔ API-Server** Kommunikation über Carambus API URL
+- Test von Region-Filtern
+- Synchronisierung zwischen Systemen
+- **Beide Production-Modi im Development-Modus testbar**
 
-For development with live reload:
+## 📖 Bestehende Dokumentation
 
-```bash
-bundle exec rake mkdocs:serve
-```
+### Installation & Setup
+- **[CARAMBUS_INSTALLATION_GUIDE.md](CARAMBUS_INSTALLATION_GUIDE.md)** - Detaillierter Installations-Guide
+- **[RASPBERRY_PI_INITIAL_SETUP.md](RASPBERRY_PI_INITIAL_SETUP.md)** - Initial Setup
+- **[RASPBERRY_PI_REAL_TEST_GUIDE.md](RASPBERRY_PI_REAL_TEST_GUIDE.md)** - Test-Guide
+- **[RASPBERRY_PI_TESTING_GUIDE.md](RASPBERRY_PI_TESTING_GUIDE.md)** - Testing
 
-This starts the MkDocs development server at http://127.0.0.1:8000/carambus-docs/
+### Docker
+- **[DOCKER_ARCHITECTURE.md](DOCKER_ARCHITECTURE.md)** - Docker-Architektur
+- **[DOCKER_DEPLOYMENT_GUIDE.md](DOCKER_DEPLOYMENT_GUIDE.md)** - Deployment
+- **[docker/](docker/)** - Docker-spezifische Dokumentation
 
-## 🔧 Configuration
+### Entwicklung
+- **[CASCADING_FILTERS_DEVELOPER_GUIDE.md](CASCADING_FILTERS_DEVELOPER_GUIDE.md)** - Filter-Entwicklung
+- **[cascading_filters.md](cascading_filters.md)** - Filter-Übersicht
+- **[dynamic_club_filtering.md](dynamic_club_filtering.md)** - Club-Filtering
+- **[enhanced_filter_popup.md](enhanced_filter_popup.md)** - Filter-Popup
+- **[stimulus_reflex_filtering.md](stimulus_reflex_filtering.md)** - Stimulus Reflex
 
-### MkDocs Configuration
+### System-Management
+- **[SYSTEM_MANAGER_GUIDE.md](SYSTEM_MANAGER_GUIDE.md)** - System-Management
+- **[SD_CARD_PREPARATION_GUIDE.md](SD_CARD_PREPARATION_GUIDE.md)** - SD-Karten-Vorbereitung
 
-The documentation is configured in `mkdocs.yml` at the project root:
+## 🔧 Migration
 
-- **Theme**: Material theme with custom styling
-- **Plugins**: mkdocs-static-i18n for multilingual support
-- **Navigation**: Hierarchical navigation structure
-- **Search**: Full-text search in both languages
+### Für bestehende Benutzer
+Die alten Dateien bleiben verfügbar, aber es wird empfohlen, die neue Struktur zu verwenden:
 
-### Rails Integration
+- **Raspberry Pi Setup**: Verwenden Sie `INSTALLATION/RASPBERRY_PI_SETUP.md`
+- **Docker Setup**: Verwenden Sie `INSTALLATION/DOCKER_SETUP.md`
+- **Installation**: Verwenden Sie `INSTALLATION/QUICKSTART.md`
 
-The documentation URLs are configured in `config/initializers/mkdocs_urls.rb`:
+### Für neue Benutzer
+Beginnen Sie mit der neuen Struktur:
 
-```ruby
-# Base URL for documentation
-BASE_URL = ENV.fetch('MKDOCS_BASE_URL', '/docs')
+1. **[QUICKSTART.md](INSTALLATION/QUICKSTART.md)** - Übersicht über alle Installation-Typen
+2. **[RASPBERRY_PI_SETUP.md](INSTALLATION/RASPBERRY_PI_SETUP.md)** - Spezifisches Pi-Setup
+3. **[DOCKER_SETUP.md](INSTALLATION/DOCKER_SETUP.md)** - Docker-Konfiguration
 
-# Language-specific URLs
-MkDocsUrls.tournament_doc_url(locale)  # /docs/de/tournament/ or /docs/en/tournament/
-MkDocsUrls.league_doc_url(locale)      # /docs/de/league/ or /docs/en/league/
-```
+## 🆘 Hilfe
 
-### Environment Variables
+### Bei Problemen
+1. Prüfen Sie die **[Troubleshooting](../MAINTENANCE/TROUBLESHOOTING.md)**-Seite
+2. Logs anschauen: `docker compose logs`
+3. Container-Status: `docker compose ps`
 
-- `MKDOCS_BASE_URL`: Base URL for documentation (default: `/docs`)
-- `RAILS_ENV`: Rails environment for deployment
+### Für Entwickler
+- Verwenden Sie die parallelen Development-Systeme auf dem Mac Mini
+- Testen Sie Inter-System-Kommunikation (Local-Server ↔ API-Server über Carambus API URL)
+- Nutzen Sie die neue Docker-Struktur
+- **Beide Production-Modi im Development-Modus testbar**
 
-## 📝 Adding New Documentation
+---
 
-1. **Create Markdown file** in `pages/de/` and `pages/en/`
-2. **Update navigation** in `mkdocs.yml`
-3. **Deploy documentation**:
-   ```bash
-   ./bin/deploy-docs.sh
-   ```
+**🎉 Die Dokumentation ist jetzt sauber organisiert und redundanzfrei!**
 
-## 🛠️ Troubleshooting
+**💡 Tipp**: Für die Entwicklung verwenden Sie `./start-development-parallel.sh` für alle drei Systeme gleichzeitig auf dem Mac Mini.
 
-### Common Issues
-
-1. **MkDocs not installed**:
-   ```bash
-   pip install mkdocs-material mkdocs-static-i18n pymdown-extensions
-   ```
-
-2. **Build errors**:
-   ```bash
-   mkdocs build --strict
-   ```
-
-3. **Rails server not running**:
-   ```bash
-   bundle exec rails server
-   ```
-
-### File Structure
-
-```
-public/docs/                    # Deployed documentation
-├── index.html                 # Main documentation page
-├── de/                        # German documentation
-│   ├── tournament/
-│   ├── league/
-│   └── ...
-├── en/                        # English documentation
-│   ├── tournament/
-│   ├── league/
-│   └── ...
-└── assets/                    # Static assets (CSS, JS, images)
-
-pages/                         # Source documentation
-├── de/                        # German source files
-├── en/                        # English source files
-└── assets/                    # Source assets
-
-mkdocs.yml                     # MkDocs configuration
-```
-
-## 🔗 Links
-
-- **GitHub Actions**: Automatic documentation builds
-- **Material Theme**: https://squidfunk.github.io/mkdocs-material/
-- **MkDocs**: https://www.mkdocs.org/
-- **mkdocs-static-i18n**: https://github.com/ultrabug/mkdocs-static-i18n 
+**🏗️ Architektur**: 2 Production-Modi - API-Server (zentral) und Local-Server (mit Carambus API URL), beide im Development-Modus testbar! 

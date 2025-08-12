@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: carambus_postgres_dev
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-carambus_development}
+      POSTGRES_USER: ${DATABASE_USER:-www_data}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_development_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      # Development: Keine initiale Datenbank, da wir sie manuell aufbauen
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - carambus_network_dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-www_data} -d ${DATABASE_NAME:-carambus_development}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: carambus_redis_dev
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data_dev:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - carambus_network_dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        RAILS_ENV: development
+    container_name: carambus_web_dev
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://${DATABASE_USER:-www_data}:${DATABASE_PASSWORD:-carambus_development_password}@postgres:5432/${DATABASE_NAME:-carambus_development}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      RAILS_SERVE_STATIC_FILES: "true"
+      RAILS_LOG_TO_STDOUT: "true"
+      SECRET_KEY_BASE: development_secret_key_base_for_docker
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
+      # Debug-Environment
+      RAILS_LOG_LEVEL: debug
+      WEB_CONSOLE_WHITELISTED_IPS: 0.0.0.0/0
+      WEB_CONSOLE_WHITELISTED_ORIGINS: "*"
+    volumes:
+      # Live Code-Änderungen
+      - .:/app
+      - bundle_cache_dev:/usr/local/bundle
+      - node_modules_cache_dev:/app/node_modules
+      - storage_data_dev:/app/storage
+      - log_data_dev:/app/log
+      - tmp_data_dev:/app/tmp
+      # Debug-Volumes
+      - ./tmp:/app/tmp
+      - ./log:/app/log
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+      # Debug-Ports
+      - "12345:12345"  # Ruby Debug
+      - "26162:26162"  # RubyMine Remote Debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - carambus_network_dev
+    restart: unless-stopped
+    # Development: Keine Healthchecks, da wir manuell debuggen
+    stdin_open: true
+    tty: true
+    # Debug-Command
+    command: >
+      bash -c "
+        echo 'Development Container gestartet'
+        echo 'Verfügbare Befehle:'
+        echo '  - Rails Console: bundle exec rails console'
+        echo '  - Rails Server: bundle exec rails server -b 0.0.0.0'
+        echo '  - Rake Tasks: bundle exec rake -T'
+        echo '  - Debug: bundle exec rdebug-ide -- bin/rails server -b 0.0.0.0'
+        echo ''
+        echo 'Container läuft im interaktiven Modus...'
+        bash
+      "
+
+  # Optional: Nginx für Development (kann auskommentiert werden)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: carambus_nginx_dev
+  #   volumes:
+  #     - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - web
+  #   networks:
+  #     - carambus_network_dev
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
+  bundle_cache_dev:
+    driver: local
+  node_modules_cache_dev:
+    driver: local
+  storage_data_dev:
+    driver: local
+  log_data_dev:
+    driver: local
+  tmp_data_dev:
+    driver: local
+
+networks:
+  carambus_network_dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16 

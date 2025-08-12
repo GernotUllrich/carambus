@@ -1,0 +1,191 @@
+# Carambus Development Parallel Systems Docker Compose Configuration
+# Für parallele Entwicklungsumgebungen auf dem Mac
+# Lädt alle drei Systeme gleichzeitig: API-Server, Local-Server, Web-Client
+
+version: '3.8'
+
+services:
+  # API Server
+  postgres_api:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: carambus_api_development
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: carambus_api_development_password
+    volumes:
+      - postgres_api_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/development/carambus_api_development.sql.gz:/docker-entrypoint-initdb.d/carambus_api_development.sql.gz
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_api_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_api:
+    image: redis:7-alpine
+    volumes:
+      - redis_api_data:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://www_data:carambus_api_development_password@postgres_api:5432/carambus_api_development
+      REDIS_URL: redis://redis_api:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: API_SERVER
+      RAILS_HOST: 0.0.0.0
+      RAILS_PORT: 3001
+    volumes:
+      - .:/app
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      postgres_api:
+        condition: service_healthy
+      redis_api:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
+    user: "33:33"
+
+  # Local Server
+  postgres_local:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: carambus_local_development
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: carambus_local_development_password
+    volumes:
+      - postgres_local_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/development/carambus_local_development.sql.gz:/docker-entrypoint-initdb.d/carambus_local_development.sql.gz
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_local_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_local:
+    image: redis:7-alpine
+    volumes:
+      - redis_local_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web_local:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://www_data:carambus_local_development_password@postgres_local:5432/carambus_local_development
+      REDIS_URL: redis://redis_local:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: LOCAL_SERVER
+      RAILS_HOST: 0.0.0.0
+      RAILS_PORT: 3000
+    volumes:
+      - .:/app
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres_local:
+        condition: service_healthy
+      redis_local:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
+    user: "33:33"
+
+  # Web Client
+  postgres_web:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: carambus_web_development
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: carambus_web_development_password
+    volumes:
+      - postgres_web_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/development/carambus_web_development.sql.gz:/docker-entrypoint-initdb.d/carambus_web_development.sql.gz
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_web_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_web:
+    image: redis:7-alpine
+    volumes:
+      - redis_web_data:/data
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web_client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://www_data:carambus_web_development_password@postgres_web:5432/carambus_web_development
+      REDIS_URL: redis://redis_web:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: WEB_CLIENT
+      RAILS_HOST: 0.0.0.0
+      RAILS_PORT: 3002
+    volumes:
+      - .:/app
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+    ports:
+      - "127.0.0.1:3002:3000"
+    depends_on:
+      postgres_web:
+        condition: service_healthy
+      redis_web:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
+    user: "33:33"
+
+volumes:
+  postgres_api_data:
+  redis_api_data:
+  postgres_local_data:
+  redis_local_data:
+  postgres_web_data:
+  redis_web_data: 

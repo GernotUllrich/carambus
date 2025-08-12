@@ -2,7 +2,7 @@
 
 ## Inhaltsverzeichnis
 
-1. [Übersicht](#übersicht)
+1. [Übersicht](#uebersicht)
 2. [Architektur](#architektur)
 3. [Erste Schritte](#erste-schritte)
 4. [Datenbankdesign](#datenbankdesign)
@@ -12,7 +12,7 @@
 8. [Deployment](#deployment)
 9. [Mitwirken](#mitwirken)
 
-## Übersicht
+## Übersicht {#uebersicht}
 
 Carambus ist ein umfassendes Billard-Turnierverwaltungssystem, das mit Ruby on Rails entwickelt wurde. Es bietet eine vollständige Automatisierung der Billard-Betriebsabläufe von der Turnierplanung bis zur Datenerfassung und Ergebnisübertragung.
 
@@ -234,7 +234,7 @@ Das Scoreboard-System bietet Live-Updates für Turnier-Anzeigen:
 - **WebSocket-Integration**: Live-Updates über Action Cable
 
 #### Einrichtung
-Siehe [Scoreboard Autostart Setup](scoreboard_autostart_setup.md) für detaillierte Konfiguration.
+Siehe [Docker-Installation](docker_installation.md) für detaillierte Konfiguration.
 
 ### Datensynchronisation
 Integration mit externen Billard-Datenbanken:
@@ -393,9 +393,9 @@ sudo systemctl status carambus
 
 ### Dokumentation
 - [Datenbankdesign](database_design.md): Detailliertes Datenbankschema
-- [Scoreboard-Setup](scoreboard_autostart_setup.md): Scoreboard-Konfiguration
+- [Docker-Installation](docker_installation.md): Docker-Installation
 - [Turnierverwaltung](tournament.md): Turnier-Workflows
-- [Datenverwaltung](data_management.md): Datenbehandlungsmuster
+- [Installationsübersicht](installation_overview.md): Installationsübersicht
 
 ### Externe Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

@@ -1,0 +1,67 @@
+# Carambus Production Docker Compose Configuration
+# Für Produktionsumgebungen
+# Unterstützt alle Deployment-Typen: API_SERVER, LOCAL_SERVER, WEB_CLIENT
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER:-www_data}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/${DB_DUMP_FILE}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-www_data} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-production}
+      DATABASE_URL: postgresql://${DATABASE_USER:-www_data}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_URL: redis://redis:6379/${REDIS_DB:-0}
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE}
+      LOCATION_CODE: ${LOCATION_CODE}
+      # Production-spezifische Konfiguration
+      RAILS_HOST: 0.0.0.0
+      RAILS_PORT: ${WEB_PORT:-3000}
+    volumes:
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "${RAILS_ENV:-production}"]
+
+volumes:
+  postgres_data:
+  redis_data: 

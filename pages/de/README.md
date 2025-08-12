@@ -12,35 +12,23 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 ### Kern-Dokumentation
 - **[database_design.md](database_design.md)**: Datenbankschema und Beziehungen
 - **[tournament.md](tournament.md)**: Turnierverwaltungs-Workflows
-- **[scoreboard_autostart_setup.md](scoreboard_autostart_setup.md)**: Scoreboard-Konfiguration
-- **[data_management.md](data_management.md)**: Datenbehandlungsmuster
+- **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)**: Einzelturnierverwaltung
+- **[verwaltung-von-ligaspieltagen.md](verwaltung-von-ligaspieltagen.md)**: Ligaspieltage
 
 ### Technische Dokumentation
-- **[database_syncing.md](database_syncing.md)**: Datensynchronisation mit externen Quellen
-- **[paper_trail_optimization.md](paper_trail_optimization.md)**: Versionsverfolgung-Optimierung
-- **[filter_popup_usage.md](filter_popup_usage.md)**: UI-Komponenten-Dokumentation
-- **[region_tagging_cleanup_summary.md](region_tagging_cleanup_summary.md)**: Regionsverwaltung
+- **[datenbank-partitionierung-und-synchronisierung.md](datenbank-partitionierung-und-synchronisierung.md)**: Datenbank-Partitionierung
+- **[docker_installation.md](docker_installation.md)**: Docker-Installation
+- **[installation_overview.md](installation_overview.md)**: Installationsübersicht
 
 ### Deployment & Betrieb
-- **[Runbook](../doc/doc/Runbook)**: Produktions-Deployment-Anleitung
-- **[Tournament.en.mds](../doc/doc/Tournament.en.mds)**: Turnierverwaltungs-Anleitung
-- **[League.en.mds](../doc/doc/League.en.mds)**: Ligaverwaltungs-Anleitung
-- **[tischreservierung_heizungssteuerung.md](tischreservierung_heizungssteuerung.md)**: Tischreservierung und Heizungssteuerung (BC Wedel)
-
-### Admin-Dokumentation
-- **[admin/user_management.md](admin/user_management.md)**: Benutzerverwaltung
-- **[admin_roles.md](admin_roles.md)**: Rollenbasierte Zugriffskontrolle
+- **[docker_installation.md](docker_installation.md)**: Produktions-Deployment-Anleitung
+- **[installation_overview.md](installation_overview.md)**: Installationsübersicht
 
 ### Rechtliches & Datenschutz
 - **[terms.md](terms.md)**: Nutzungsbedingungen
-- **[terms.de.md](terms.de.md)**: Nutzungsbedingungen (Deutsch)
-- **[terms.en.md](terms.en.md)**: Nutzungsbedingungen (Englisch)
-- **[privacy.md](privacy.md)**: Datenschutzerklärung
 
 ### Projektinformationen
 - **[about.md](about.md)**: Projekt-Hintergrund und Entwicklerinformationen
-- **[about.de.md](about.de.md)**: Projektinformationen (Deutsch)
-- **[about.en.md](about.en.md)**: Projektinformationen (Englisch)
 
 ## 🎯 Schnelle Navigation
 
@@ -51,49 +39,41 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 4. Prüfen Sie **[API.md](API.md)** für Integrationsmöglichkeiten
 
 ### Für Systemadministratoren
-1. Überprüfen Sie **[Runbook](../doc/doc/Runbook)** für Deployment
-2. Lesen Sie **[scoreboard_autostart_setup.md](scoreboard_autostart_setup.md)** für Scoreboard-Setup
-3. Prüfen Sie **[tischreservierung_heizungssteuerung.md](tischreservierung_heizungssteuerung.md)** für Tischreservierung und Heizungssteuerung
-4. Prüfen Sie **[data_management.md](data_management.md)** für Datenbehandlung
+1. Überprüfen Sie **[docker_installation.md](docker_installation.md)** für Deployment
+2. Lesen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
+3. Prüfen Sie **[table_reservation_heating_control.md](table_reservation_heating_control.md)** für Tischreservierung und Heizungssteuerung
 
 ### Für Turnierorganisatoren
 1. Lesen Sie **[tournament.md](tournament.md)** für Turnier-Workflows
-2. Überprüfen Sie **[Tournament.en.mds](../doc/doc/Tournament.en.mds)** für detaillierte Anleitung
-3. Prüfen Sie **[League.en.mds](../doc/doc/League.en.mds)** für Ligaverwaltung
+2. Überprüfen Sie **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)** für detaillierte Anleitung
+3. Prüfen Sie **[verwaltung-von-ligaspieltagen.md](verwaltung-von-ligaspieltagen.md)** für Ligaverwaltung
 
 ### Für API-Benutzer
 1. Beginnen Sie mit **[API.md](API.md)** für vollständige API-Dokumentation
 2. Überprüfen Sie **[database_design.md](database_design.md)** für Datenstruktur
-3. Prüfen Sie **[data_management.md](data_management.md)** für Datenmuster
 
 ## 📖 Dokumentationsstruktur
 
 ```
-docs/
+pages/
 ├── README.md                           # Diese Datei - Dokumentationsindex
 ├── DEVELOPER_GUIDE.md                  # Haupt-Entwicklerdokumentation
 ├── API.md                              # API-Dokumentation
 ├── database_design.md                  # Datenbankschema
 ├── tournament.md                       # Turnier-Workflows
-├── scoreboard_autostart_setup.md       # Scoreboard-Konfiguration
-├── tischreservierung_heizungssteuerung.md # Tischreservierung und Heizungssteuerung
-├── data_management.md                  # Datenbehandlung
-├── database_syncing.md                 # Externe Datensynchronisation
-├── paper_trail_optimization.md         # Versionsverfolgung
-├── filter_popup_usage.md               # UI-Komponenten
-├── region_tagging_cleanup_summary.md   # Regionsverwaltung
-├── admin_roles.md                      # Zugriffskontrolle
-├── privacy.md                          # Datenschutzerklärung
+├── einzelturnierverwaltung.md          # Einzelturnierverwaltung
+├── verwaltung-von-ligaspieltagen.md    # Ligaspieltage
+├── docker_installation.md              # Docker-Installation
+├── installation_overview.md            # Installationsübersicht
+├── table_reservation_heating_control.md # Tischreservierung
 ├── terms.md                            # Nutzungsbedingungen
-├── about.md                            # Projektinformationen
-└── admin/                              # Admin-Dokumentation
-    └── user_management.md              # Benutzerverwaltung
+└── about.md                            # Projektinformationen
 ```
 
 ## 🔄 Dokumentationswartung
 
 ### Beitrag zur Dokumentation
-- Folgen Sie dem [Beitragsleitfaden](../docs/DEVELOPER_GUIDE.md#mitwirken)
+- Folgen Sie dem [Beitragsleitfaden](DEVELOPER_GUIDE.md#mitwirken)
 - Aktualisieren Sie relevante Dokumentation beim Hinzufügen von Features
 - Fügen Sie Code-Beispiele für neue APIs ein
 - Behalten Sie Konsistenz über alle Dokumente hinweg
@@ -118,7 +98,7 @@ docs/
 ### Technischer Support
 - Prüfen Sie den [Entwicklerleitfaden](DEVELOPER_GUIDE.md) für häufige Probleme
 - Überprüfen Sie die [API-Dokumentation](API.md) für Integrationshilfe
-- Konsultieren Sie das [Runbook](../doc/doc/Runbook) für Deployment-Probleme
+- Konsultieren Sie die [Docker-Installation](docker_installation.md) für Deployment-Probleme
 
 ### Community-Ressourcen
 - **GitHub Issues**: Bug-Reports und Feature-Requests

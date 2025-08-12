@@ -670,10 +670,10 @@ async function updateScore(tableId, player, points) {
 
 For API support and questions:
 
-- **Documentation**: [docs/API.md](docs/API.md)
+- **Documentation**: [API.md](API.md)
 - **Issues**: [GitHub Issues](https://github.com/your-username/carambus/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/carambus/discussions)
 
 ---
 
-*This API documentation is maintained by the Carambus development team. For questions or contributions, please see the [Contributing Guide](docs/DEVELOPER_GUIDE.md#contributing).* 
+*This API documentation is maintained by the Carambus development team. For questions or contributions, please see the [Contributing Guide](DEVELOPER_GUIDE.md#contributing).* 

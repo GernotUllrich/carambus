@@ -393,9 +393,9 @@ sudo systemctl status carambus
 
 ### Documentation
 - [Database Design](database_design.md): Detailed database schema
-- [Scoreboard Setup](scoreboard_autostart_setup.md): Scoreboard configuration
+- [Docker Installation](docker_installation.md): Docker installation
 - [Tournament Management](tournament.md): Tournament workflows
-- [Data Management](data_management.md): Data handling patterns
+- [Installation Overview](installation_overview.md): Installation overview
 
 ### External Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

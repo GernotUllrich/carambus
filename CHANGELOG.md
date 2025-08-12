@@ -1,217 +1,90 @@
 # Changelog
 
-All notable changes to the Carambus project will be documented in this file.
+Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
+und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
-- Comprehensive developer documentation
-- API documentation with examples
-- Open source project structure
-- Contributing guidelines
+- Neue Docker-basierte Installation für Raspberry Pi
+- Automatisierte Scoreboard-Konfiguration
+- Web-basiertes Setup-Interface
+- Parallele Development-Systeme für Mac Mini
+- Inter-System-Kommunikation zwischen Local-Server und API-Server
 
 ### Changed
-- Updated README with project overview
-- Improved documentation organization
-
-## [2.0.0] - 2024-01-15
-
-### Added
-- Rails 7.2 upgrade with Hotwire integration
-- Stimulus Reflex for reactive UI updates
-- Action Cable real-time features
-- Comprehensive tournament management system
-- League management with team support
-- Real-time scoreboard displays
-- Multi-language support (German/English)
-- External data synchronization (BA/CC)
-- Region-based data organization
-- Advanced user management with roles
-- Administrative interface with Administrate
-- Background job processing
-- API endpoints for external integrations
-
-### Changed
-- Complete rewrite from legacy system
-- Modern web architecture with WebSocket support
-- Responsive design for mobile devices
-- Improved data modeling with concerns
-- Enhanced security with Pundit authorization
+- Docker-Struktur neu organisiert (Development vs. Production als übergeordnete Modi)
+- Port-Zuordnung für parallele Development-Systeme
+- Umgebungsdateien für verschiedene Deployment-Typen
+- Dokumentation konsolidiert und redundanzfrei gemacht
 
 ### Fixed
-- Data synchronization issues
-- Real-time update reliability
-- Scoreboard display accuracy
-- Tournament workflow bugs
+- Korrekte Architektur: 2 Production-Modi (API-Server zentral, Local-Server mit Carambus API URL)
+- Development-Modus als übergeordneter Modus für alle Systeme
+- Port-Konflikte bei parallelen Development-Systemen
 
-## [1.5.0] - 2023-06-20
+## [7.2.0] - 2024-12-19
 
 ### Added
-- Tournament planning improvements
-- Enhanced player management
-- Better league organization
-- Scoreboard autostart functionality
+- Rails 7.2 Upgrade
+- Hotwire/Stimulus Integration
+- Action Cable für Echtzeit-Updates
+- Administrate Admin-Interface
+- Devise für Authentifizierung
+- Pundit für Autorisierung
 
 ### Changed
-- Updated database schema
-- Improved user interface
-- Enhanced data validation
+- Ruby 3.2+ Unterstützung
+- PostgreSQL als Hauptdatenbank
+- Redis für Caching und Action Cable
+- Puma als Web-Server
+- Nginx als Reverse Proxy
 
 ### Fixed
-- Various bug fixes and performance improvements
+- Performance-Optimierungen
+- Sicherheitsverbesserungen
+- Code-Qualität verbessert
 
-## [1.4.0] - 2023-03-15
-
-### Added
-- Real-time scoreboard features
-- Table monitoring system
-- Match result tracking
-- Player ranking system
-
-### Changed
-- Improved tournament workflows
-- Enhanced data synchronization
-- Better error handling
-
-## [1.3.0] - 2022-11-10
+## [7.1.0] - 2024-06-15
 
 ### Added
-- League management system
-- Team-based tournaments
-- Season management
-- Advanced reporting
+- Turnier-Management-System
+- Spieler-Verwaltung
+- Ligaverwaltung
+- Live-Scoreboards
+- Echtzeit-Updates
 
 ### Changed
-- Database optimization
-- Performance improvements
-- UI/UX enhancements
+- Moderne Web-Oberfläche
+- Responsive Design
+- Multi-Sprache (Deutsch/Englisch)
+- API für Integrationen
 
-## [1.2.0] - 2022-07-25
+### Fixed
+- Stabilität verbessert
+- Benutzerfreundlichkeit erhöht
+
+## [7.0.0] - 2024-01-10
 
 ### Added
-- Tournament management system
-- Player registration
-- Basic scoreboard functionality
-- Data import/export
+- Grundlegende Carambus-Funktionalität
+- Billard-Turnierverwaltung
+- Club-Management
+- Benutzer-Verwaltung
 
 ### Changed
-- Improved database design
-- Enhanced user interface
-- Better data validation
+- Ruby on Rails Basis
+- PostgreSQL Datenbank
+- Moderne Web-Technologien
 
-## [1.1.0] - 2022-04-12
-
-### Added
-- User authentication system
-- Basic tournament features
-- Player management
-- Location management
-
-### Changed
-- Initial Rails application structure
-- Database schema design
-- Basic UI implementation
-
-## [1.0.0] - 2022-01-01
-
-### Added
-- Initial project setup
-- Basic Rails application
-- PostgreSQL database
-- Development environment
-
-### Changed
-- Project initialization
-- Development workflow setup
-- Documentation structure
+### Fixed
+- Erste stabile Version
+- Grundfunktionen implementiert
 
 ---
 
-## Version History Summary
+**Hinweis**: Alle Versionen vor 7.0.0 sind Legacy-Versionen und werden nicht mehr unterstützt.
 
-### Major Versions
-
-#### v2.0.0 (Current)
-- **Modern Rails Application**: Complete rewrite with Rails 7.2 and modern web technologies
-- **Real-time Features**: WebSocket-powered scoreboards and live updates
-- **Comprehensive Management**: Full tournament and league management system
-- **External Integration**: BA/CC data synchronization
-- **Multi-language**: German and English support
-
-#### v1.x Series
-- **Foundation**: Basic tournament management and user system
-- **Evolution**: Gradual feature additions and improvements
-- **Stability**: Production-ready system for billiards clubs
-
-### Technology Evolution
-
-#### Current Stack (v2.0+)
-- **Backend**: Ruby on Rails 7.2
-- **Frontend**: Hotwire (Turbo + Stimulus) + Stimulus Reflex
-- **Database**: PostgreSQL with advanced modeling
-- **Real-time**: Action Cable with Redis
-- **Deployment**: Capistrano + Puma + Nginx
-
-#### Legacy Stack (v1.x)
-- **Backend**: Ruby on Rails 6.x
-- **Frontend**: Traditional server-rendered views
-- **Database**: PostgreSQL
-- **Deployment**: Custom deployment scripts
-
-### Key Milestones
-
-#### 2024 - Open Source Release
-- Comprehensive documentation
-- Developer-friendly structure
-- Community contribution guidelines
-- API documentation
-
-#### 2023 - Production System
-- Real-time scoreboards
-- Tournament automation
-- Data synchronization
-- Multi-location support
-
-#### 2022 - Initial Development
-- Project conception
-- Basic functionality
-- User management
-- Tournament planning
-
----
-
-## Contributing to Changelog
-
-When adding entries to the changelog, please follow these guidelines:
-
-### Categories
-- **Added**: New features
-- **Changed**: Changes in existing functionality
-- **Deprecated**: Soon-to-be removed features
-- **Removed**: Removed features
-- **Fixed**: Bug fixes
-- **Security**: Security-related changes
-
-### Format
-- Use clear, concise descriptions
-- Include relevant issue numbers
-- Group related changes together
-- Maintain chronological order within versions
-
-### Examples
-```markdown
-### Added
-- New tournament creation wizard (#123)
-- Real-time scoreboard updates (#124, #125)
-
-### Fixed
-- Tournament scheduling bug (#126)
-- Scoreboard display issues (#127)
-```
-
----
-
-*This changelog is maintained by the Carambus development team. For questions or contributions, please see the [Contributing Guide](docs/DEVELOPER_GUIDE.md#contributing).* 
+**Migration**: Für bestehende Installationen siehe [Migration Guide](docs/INSTALLATION/QUICKSTART.md#migration-von-bestehenden-installationen). 

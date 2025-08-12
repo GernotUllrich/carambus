@@ -1,0 +1,67 @@
+# Carambus Development Docker Compose Configuration
+# Für Entwicklungsumgebung auf dem Mac
+# Unterstützt sowohl API-Server als auch Local Server Entwicklung
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-carambus_development}
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_development_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/development/${DB_DUMP_FILE:-carambus_development.sql.gz}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE:-carambus_development.sql.gz}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d ${DATABASE_NAME:-carambus_development}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://www_data:${DATABASE_PASSWORD:-carambus_development_password}@postgres:5432/${DATABASE_NAME:-carambus_development}
+      REDIS_URL: redis://redis:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:-LOCAL_SERVER}
+      LOCATION_CODE: ${LOCATION_CODE}
+    volumes:
+      - .:/app
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
+    user: "33:33"  # www-data user
+
+volumes:
+  postgres_data:
+  redis_data: 

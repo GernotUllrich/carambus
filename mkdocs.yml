@@ -25,27 +25,23 @@ nav:
   - Einführung:
       - Über: about.md
       - README: README.md
+  - Installation:
+      - Übersicht: installation_overview.md
+      - Docker Installation: docker_installation.md
   - Benutzerhandbuch:
       - Turnierverwaltung: tournament.md
       - Ligaspieltage: league.md
       - Tischreservierung: table_reservation_heating_control.md
-      - Scoreboard Setup: scoreboard_autostart_setup.md
-      - Modus-Umschaltung: mode_switcher.md
+      - Einzelturnierverwaltung: einzelturnierverwaltung.md
+      - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
   - Entwicklerhandbuch:
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
-      - Datenbanksynchronisation: database_syncing.md
-      - Paper Trail Optimierung: paper_trail_optimization.md
-  - Admin-Handbuch:
-      - Admin-Rollen: admin_roles.md
-      - Datenverwaltung: data_management.md
-      - Filter-Popup Verwendung: filter_popup_usage.md
+      - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md
   - Referenz:
-      - ER-Diagramm: er_diagram.md
       - API: API.md
       - AGB: terms.md
-      - Datenschutz: privacy.md
 
 # Plugins (ensure pip install mkdocs-static-i18n)
 plugins:
@@ -61,27 +57,23 @@ plugins:
             - Einführung:
                 - Über: about.md
                 - README: README.md
+            - Installation:
+                - Übersicht: installation_overview.md
+                - Docker Installation: docker_installation.md
             - Benutzerhandbuch:
                 - Turnierverwaltung: tournament.md
                 - Ligaspieltage: league.md
                 - Tischreservierung: table_reservation_heating_control.md
-                - Scoreboard Setup: scoreboard_autostart_setup.md
-                - Modus-Umschaltung: mode_switcher.md
+                - Einzelturnierverwaltung: einzelturnierverwaltung.md
+                - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
             - Entwicklerhandbuch:
                 - Entwicklerhandbuch: DEVELOPER_GUIDE.md
                 - MkDocs Dokumentation: mkdocs_dokumentation.md
                 - Datenbankdesign: database_design.md
-                - Datenbanksynchronisation: database_syncing.md
-                - Paper Trail Optimierung: paper_trail_optimization.md
-            - Admin-Handbuch:
-                - Admin-Rollen: admin_roles.md
-                - Datenverwaltung: data_management.md
-                - Filter-Popup Verwendung: filter_popup_usage.md
+                - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md
             - Referenz:
-                - ER-Diagramm: er_diagram.md
                 - API: API.md
                 - AGB: terms.md
-                - Datenschutz: privacy.md
         - locale: en
           name: English
           build: true
@@ -90,6 +82,9 @@ plugins:
             - Introduction:
                 - About: about.md
                 - README: README.md
+            - Installation:
+                - Overview: installation_overview.md
+                - Docker Installation: docker_installation.md
             - User Guide:
                 - Tournament Management: tournament.md
                 - League Match Days: league.md

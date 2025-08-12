@@ -1,0 +1,70 @@
+# Carambus Development Web Client Docker Compose Configuration
+# Für Entwicklungsumgebung des Web-Clients (Scoreboard/Display) auf dem Mac
+# Kann parallel zu anderen Development-Systemen laufen
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-carambus_web_development}
+      POSTGRES_USER: www_data
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_web_development_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./doc/doc-local/docker/databases/development/${DB_DUMP_FILE:-carambus_web_development.sql.gz}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE:-carambus_web_development.sql.gz}
+    ports:
+      - "5434:5432"  # Anderer Port für parallele Entwicklung
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U www_data -d ${DATABASE_NAME:-carambus_web_development}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6381:6379"  # Anderer Port für parallele Entwicklung
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://www_data:${DATABASE_PASSWORD:-carambus_web_development_password}@postgres:5432/${DATABASE_NAME:-carambus_web_development}
+      REDIS_URL: redis://redis:6379/0
+      RAILS_SERVE_STATIC_FILES: true
+      RAILS_LOG_TO_STDOUT: true
+      DEPLOYMENT_TYPE: WEB_CLIENT
+      LOCATION_CODE: ${LOCATION_CODE}
+      # Development-spezifische Konfiguration
+      RAILS_HOST: 0.0.0.0
+      RAILS_PORT: 3002
+    volumes:
+      - .:/app
+      - ./config/credentials:/app/config/credentials:ro
+      - ./storage:/app/storage
+      - ./log:/app/log
+      - ./tmp:/app/tmp
+    ports:
+      - "127.0.0.1:3002:3000"  # Externer Port 3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
+    user: "33:33"  # www-data user
+
+volumes:
+  postgres_data:
+  redis_data: 

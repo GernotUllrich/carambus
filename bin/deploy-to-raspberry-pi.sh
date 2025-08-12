@@ -31,9 +31,9 @@ info() {
 
 # Variablen
 RASPBERRY_PI_HOST=""
-RASPBERRY_PI_USER="pi"
-RASPBERRY_PI_PORT="22"
-DEPLOY_DIR="/opt/carambus"
+RASPBERRY_PI_USER="www-data"
+RASPBERRY_PI_PORT="8910"
+DEPLOY_DIR="/var/www/carambus"
 BACKUP_EXISTING=true
 SKIP_TESTS=false
 
@@ -47,16 +47,16 @@ Verwendung:
 
 Optionen:
   -h, --host HOST              Raspberry Pi Hostname/IP
-  -u, --user USER              SSH-User (Standard: pi)
-  -p, --port PORT              SSH-Port (Standard: 22)
-  -d, --dir DIR                Deploy-Verzeichnis (Standard: /opt/carambus)
+  -u, --user USER              SSH-User (Standard: www-data)
+  -p, --port PORT              SSH-Port (Standard: 8910)
+  -d, --dir DIR                Deploy-Verzeichnis (Standard: /var/www/carambus)
   --no-backup                  Kein Backup der bestehenden Installation
   --skip-tests                 Tests überspringen
   -h, --help                   Diese Hilfe anzeigen
 
 Beispiele:
   $0 192.168.1.100                    # Standard-Deployment
-  $0 -h carambus-pi.local -u admin    # Custom Host/User
+  $0 -h carambus-pi.local -u www-data # Standard User
   $0 -h 192.168.1.100 --no-backup     # Ohne Backup
   $0 -h 192.168.1.100 --skip-tests    # Ohne Tests
 EOF

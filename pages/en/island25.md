@@ -14,7 +14,6 @@ position: 0
 id: 9
 ---
 
-![Eyvindarholt](Eyvindarholt.png)
 # Linksammlung Island
 
 [Eyvindarholt Hill House and Cabins](https://www.google.com/maps/place/Eyvindarholt+Hill+House+and+Cabins/@63.6488652,-19.9403233,3a,75y/data=!3m8!1e2!3m6!1sAF1QipODH9bbv86CRhvUtIkrphQvKQa83b3jYiaWlu3j!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipODH9bbv86CRhvUtIkrphQvKQa83b3jYiaWlu3j%3Dw203-h114-k-no!7i5159!8i2902!4m9!3m8!1s0x48d71f0d105d38e9:0x6503637cbea04770!8m2!3d63.648853!4d-19.9396457!10e5!14m1!1BCgIgARICEAE!16s%2Fg%2F11j118yvm5?entry=ttu&g_ep=EgoyMDI1MDMwOC4wIKXMDSoASAFQAw%3D%3D)

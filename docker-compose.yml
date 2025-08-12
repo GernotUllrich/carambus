@@ -1,31 +1,36 @@
 # Carambus Docker Compose Configuration
-# Usage: docker compose -f docker-compose.yml up -d
 # 
-# Environment variables can be set via .env file or environment:
-# - DEPLOYMENT_NAME: Name of the deployment (default: carambus)
-# - DATABASE_NAME: Database name (default: carambus_production)
-# - DATABASE_USER: Database user (default: www_data)
-# - DATABASE_PASSWORD: Database password (default: carambus_production_password)
-# - REDIS_DB: Redis database number (default: 0)
-# - WEB_PORT: Web server port (default: 3000)
-# - POSTGRES_PORT: PostgreSQL port (default: 5432)
-# - REDIS_PORT: Redis port (default: 6379)
-# - DOMAIN: Domain name for SSL (optional)
+# Deployment-Typen:
+# - API_SERVER: Zentraler API-Server (newapi.carambus.de)
+# - LOCAL_SERVER: Lokaler Server für Turniere/Clubs
+# - WEB_CLIENT: Scoreboard/Display (kann auf Local Server laufen)
+#
+# Environment variables können über .env Datei oder Umgebung gesetzt werden:
+# - DEPLOYMENT_TYPE: API_SERVER, LOCAL_SERVER, oder WEB_CLIENT
+# - DATABASE_NAME: Datenbankname (wird automatisch gesetzt)
+# - DATABASE_USER: Datenbankbenutzer (Standard: www_data)
+# - DATABASE_PASSWORD: Datenbankpasswort
+# - REDIS_DB: Redis Datenbanknummer (Standard: 0)
+# - WEB_PORT: Webserver Port (Standard: 3000)
+# - POSTGRES_PORT: PostgreSQL Port (Standard: 5432)
+# - REDIS_PORT: Redis Port (Standard: 6379)
+# - DOMAIN: Domain-Name für SSL (optional)
+# - LOCATION_CODE: Location-spezifischer Code für lokale Erweiterungen (optional)
 
 services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-carambus_production}
+      POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USER:-www_data}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-carambus_production_password}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./doc/doc-local/docker/${DB_DUMP_FILE:-carambus_production_fixed.sql.gz}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE:-carambus_production_fixed.sql.gz}
+      - ./doc/doc-local/docker/${DB_DUMP_FILE}:/docker-entrypoint-initdb.d/${DB_DUMP_FILE}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-www_data} -d ${DATABASE_NAME:-carambus_production}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-www_data} -d ${DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,11 +52,12 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      RAILS_ENV: development
-      DATABASE_URL: postgresql://${DATABASE_USER:-www_data}:${DATABASE_PASSWORD:-carambus_production_password}@postgres:5432/${DATABASE_NAME:-carambus_production}
+      RAILS_ENV: ${RAILS_ENV:-production}
+      DATABASE_URL: postgresql://${DATABASE_USER:-www_data}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
       REDIS_URL: redis://redis:6379/${REDIS_DB:-0}
       RAILS_SERVE_STATIC_FILES: true
       RAILS_LOG_TO_STDOUT: true
+      LOCATION_CODE: ${LOCATION_CODE}
     volumes:
       - ./config/credentials:/app/config/credentials:ro
       - ./storage:/app/storage
@@ -63,7 +69,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "production"]
+    command: ["bundle", "exec", "puma", "-p", "3000", "-e", "${RAILS_ENV:-production}"]
 
 # Nginx wird vom Host-System verwaltet, nicht von Docker
 

@@ -11,7 +11,7 @@ Carambus ist ein Billard-Management-System mit Ruby on Rails.
 ./deploy-docker.sh carambus_newapi www-data@carambus.de /var/www/carambus_newapi
 
 # Auf Raspberry Pi deployen  
-./deploy-docker.sh carambus_raspberry pi@192.168.178.53 /home/pi/carambus
+./deploy-docker.sh carambus_raspberry www-data@192.168.178.53:8910 /var/www/carambus
 
 # Lokal testen
 ./deploy-docker.sh carambus_local localhost /tmp/carambus_test
