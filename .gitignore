@@ -67,3 +67,7 @@ yarn-debug.log*
 /config/database.yml
 /config/deploy.rb
 /ansible/**
+
+# Ignore local development and production data folders
+/docker-development-local/
+/docker-production-data/

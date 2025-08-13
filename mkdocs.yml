@@ -35,6 +35,7 @@ nav:
       - Einzelturnierverwaltung: einzelturnierverwaltung.md
       - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
   - Entwicklerhandbuch:
+      - Getting Started: GETTING_STARTED_DEVELOPER.md
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
@@ -67,6 +68,7 @@ plugins:
                 - Einzelturnierverwaltung: einzelturnierverwaltung.md
                 - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
             - Entwicklerhandbuch:
+                - Getting Started: GETTING_STARTED_DEVELOPER.md
                 - Entwicklerhandbuch: DEVELOPER_GUIDE.md
                 - MkDocs Dokumentation: mkdocs_dokumentation.md
                 - Datenbankdesign: database_design.md
@@ -92,22 +94,10 @@ plugins:
                 - Scoreboard Setup: scoreboard_autostart_setup.md
                 - Mode Switcher: mode_switcher.md
             - Developer Guide:
+                - Getting Started: GETTING_STARTED_DEVELOPER.md
                 - Developer Guide: DEVELOPER_GUIDE.md
                 - MkDocs Documentation: mkdocs_documentation.md
                 - Database Design: database_design.md
-                - Database Syncing: database_syncing.md
-                - Paper Trail Optimization: paper_trail_optimization.md
-            - Admin Guide:
-                - Admin Roles: admin_roles.md
-                - Data Management: data_management.md
-                - Filter Popup Usage: filter_popup_usage.md
-            - Reference:
-                - ER Diagram: er_diagram.md
-                - API: API.md
-                - Terms: terms.md
-                - Privacy: privacy.md
-      reconfigure_material: true
-      docs_structure: folder
 
 # Markdown Extensions (for images, Mermaid ER Diagram, etc.)
 markdown_extensions:
