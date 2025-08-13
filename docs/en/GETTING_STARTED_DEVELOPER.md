@@ -82,10 +82,28 @@ rails server
 
 **Important:** You need the `development.key` and `credentials.yml.enc` from a working system.
 
+### **Step 1: Create local folders**
 ```bash
-# Copy these files to config/credentials/:
+# Create local folders in carambus directory
+mkdir -p docker-development-api/config/credentials
+mkdir -p docker-development-api/database
+```
+
+### **Step 2: Copy credentials**
+```bash
+# Copy these files to docker-development-api/config/credentials/:
 # - development.key
 # - credentials.yml.enc
+
+# Example (from another system):
+cp /path/to/working/system/config/credentials/development.key docker-development-api/config/credentials/
+cp /path/to/working/system/config/credentials/credentials.yml.enc docker-development-api/config/credentials/
+```
+
+### **Step 3: Copy database dump**
+```bash
+# Copy database dump to docker-development-api/database/:
+cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database/
 ```
 
 **Where to get them?**

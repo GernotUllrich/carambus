@@ -11,6 +11,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Lokale Datenbank-Dumps einbinden
+      - ./docker-development-api/database:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U www_data -d carambus_api_development"]
       interval: 10s
@@ -52,6 +54,10 @@ services:
       - "127.0.0.1:3001:3000"
     volumes:
       - .:/app
+      # Lokale Credentials einbinden
+      - ./docker-development-api/config/credentials:/app/config/credentials:ro
+      # Lokale Datenbank-Dumps einbinden
+      - ./docker-development-api/database:/app/database:ro
       - bundle_cache:/usr/local/bundle
       - node_modules:/app/node_modules
     depends_on:

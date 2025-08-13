@@ -82,10 +82,28 @@ rails server
 
 **Wichtig:** Du brauchst die `development.key` und `credentials.yml.enc` von einem funktionierenden System.
 
+### **Schritt 1: Lokale Ordner erstellen**
 ```bash
-# Diese Dateien in config/credentials/ kopieren:
+# Im carambus-Ordner lokale Ordner erstellen
+mkdir -p docker-development-api/config/credentials
+mkdir -p docker-development-api/database
+```
+
+### **Schritt 2: Credentials kopieren**
+```bash
+# Diese Dateien in docker-development-api/config/credentials/ kopieren:
 # - development.key
 # - credentials.yml.enc
+
+# Beispiel (von einem anderen System):
+cp /path/to/working/system/config/credentials/development.key docker-development-api/config/credentials/
+cp /path/to/working/system/config/credentials/credentials.yml.enc docker-development-api/config/credentials/
+```
+
+### **Schritt 3: Datenbank-Dump kopieren**
+```bash
+# Datenbank-Dump in docker-development-api/database/ kopieren:
+cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database/
 ```
 
 **Woher bekommen?**
