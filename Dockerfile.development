@@ -1,0 +1,43 @@
+FROM ruby:3.2.1-slim
+
+# Install system dependencies
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    nodejs \
+    npm \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18 and Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g yarn
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY Gemfile Gemfile.lock .ruby-version ./
+RUN bundle install --jobs 4 --retry 3
+
+# Copy package files and install Node dependencies
+COPY package.json yarn.lock ./
+RUN if [ -f "package.json" ]; then yarn install; else echo "No package.json found"; fi
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p log storage app/assets/builds \
+    && mkdir -p tmp/cache tmp/pids tmp/sockets
+
+# Build assets
+RUN if [ -f "package.json" ]; then yarn build:css && yarn build; else echo "No package.json found"; fi
+
+# Expose port
+EXPOSE 3000
+
+# Default command
+CMD ["rails", "server", "-b", "0.0.0.0", "-p", "3000"] 

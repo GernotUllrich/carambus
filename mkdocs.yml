@@ -4,7 +4,7 @@ site_description: Docs for Carambus - Billiards management with Ruby on Rails
 site_url: https://GernotUllrich.github.io/carambus-docs
 repo_url: https://github.com/GernotUllrich/carambus
 repo_name: GernotUllrich/carambus
-docs_dir: pages  # THIS DEFINES THE SUBFOLDER FOR .md FILES (instead of default 'docs')
+docs_dir: docs  # THIS DEFINES THE SUBFOLDER FOR .md FILES (instead of default 'docs')
 
 # Theme
 theme:
@@ -19,31 +19,6 @@ theme:
     - scheme: slate
       primary: indigo
 
-# Navigation (references files in 'pages/', with .de/.en handled by i18n)
-nav:
-  - Startseite: index.md
-  - Einführung:
-      - Über: about.md
-      - README: README.md
-  - Installation:
-      - Übersicht: installation_overview.md
-      - Docker Installation: docker_installation.md
-  - Benutzerhandbuch:
-      - Turnierverwaltung: tournament.md
-      - Ligaspieltage: league.md
-      - Tischreservierung: table_reservation_heating_control.md
-      - Einzelturnierverwaltung: einzelturnierverwaltung.md
-      - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
-  - Entwicklerhandbuch:
-      - Getting Started: GETTING_STARTED_DEVELOPER.md
-      - Entwicklerhandbuch: DEVELOPER_GUIDE.md
-      - MkDocs Dokumentation: mkdocs_dokumentation.md
-      - Datenbankdesign: database_design.md
-      - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md
-  - Referenz:
-      - API: API.md
-      - AGB: terms.md
-
 # Plugins (ensure pip install mkdocs-static-i18n)
 plugins:
   - search
@@ -56,48 +31,53 @@ plugins:
           nav:
             - Startseite: index.md
             - Einführung:
-                - Über: about.md
-                - README: README.md
+                - Über: de/about.md
+                - README: de/README.md
             - Installation:
-                - Übersicht: installation_overview.md
-                - Docker Installation: docker_installation.md
+                - Übersicht: de/installation_overview.md
+                - Docker Installation: de/docker_installation.md
             - Benutzerhandbuch:
-                - Turnierverwaltung: tournament.md
-                - Ligaspieltage: league.md
-                - Tischreservierung: table_reservation_heating_control.md
-                - Einzelturnierverwaltung: einzelturnierverwaltung.md
-                - Verwaltung von Ligaspieltagen: verwaltung-von-ligaspieltagen.md
+                - Turnierverwaltung: de/tournament.md
+                - Ligaspieltage: de/league.md
+                - Tischreservierung: de/table_reservation_heating_control.md
+                - Einzelturnierverwaltung: de/einzelturnierverwaltung.md
+                - Verwaltung von Ligaspieltagen: de/verwaltung-von-ligaspieltagen.md
+                - Modus-Umschalter: de/mode_switcher.md
             - Entwicklerhandbuch:
-                - Getting Started: GETTING_STARTED_DEVELOPER.md
-                - Entwicklerhandbuch: DEVELOPER_GUIDE.md
-                - MkDocs Dokumentation: mkdocs_dokumentation.md
-                - Datenbankdesign: database_design.md
-                - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md
+                - Getting Started: de/GETTING_STARTED_DEVELOPER.md
+                - Entwicklerhandbuch: de/DEVELOPER_GUIDE.md
+                - MkDocs Dokumentation: de/mkdocs_dokumentation.md
+                - Datenbankdesign: de/database_design.md
+                - Datenbank-Partitionierung: de/datenbank-partitionierung-und-synchronisierung.md
             - Referenz:
-                - API: API.md
-                - AGB: terms.md
+                - API: de/API.md
+                - AGB: de/terms.md
         - locale: en
           name: English
           build: true
           nav:
             - Home: index.md
             - Introduction:
-                - About: about.md
-                - README: README.md
+                - About: en/about.md
+                - README: en/README.md
             - Installation:
-                - Overview: installation_overview.md
-                - Docker Installation: docker_installation.md
+                - Overview: en/installation_overview.md
+                - Docker Installation: en/docker_installation.md
             - User Guide:
-                - Tournament Management: tournament.md
-                - League Match Days: league.md
-                - Table Reservation: table_reservation_heating_control.md
-                - Scoreboard Setup: scoreboard_autostart_setup.md
-                - Mode Switcher: mode_switcher.md
+                - Tournament Management: en/tournament.md
+                - League Match Days: en/league.md
+                - Table Reservation: en/table_reservation_heating_control.md
+                - Scoreboard Setup: en/scoreboard_autostart_setup.md
+                - Mode Switcher: en/mode_switcher.md
             - Developer Guide:
-                - Getting Started: GETTING_STARTED_DEVELOPER.md
-                - Developer Guide: DEVELOPER_GUIDE.md
-                - MkDocs Documentation: mkdocs_documentation.md
-                - Database Design: database_design.md
+                - Getting Started: en/GETTING_STARTED_DEVELOPER.md
+                - Developer Guide: en/DEVELOPER_GUIDE.md
+                - MkDocs Documentation: en/mkdocs_documentation.md
+                - Database Design: en/database_design.md
+                - Database Partitioning: en/database_syncing.md
+            - Reference:
+                - API: en/API.md
+                - Terms: en/terms.md
 
 # Markdown Extensions (for images, Mermaid ER Diagram, etc.)
 markdown_extensions:
@@ -112,7 +92,7 @@ markdown_extensions:
 # Extras
 extra:
   generator: false
-  edit_uri: edit/main/docs/pages
+  edit_uri: edit/main/docs
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/GernotUllrich/carambus 
