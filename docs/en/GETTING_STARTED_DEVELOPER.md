@@ -115,7 +115,11 @@ cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database
 
 ```bash
 # Import database dump (if available)
-gunzip -c carambus_api_development_dump.sql.gz | rails db:execute
+# Option 1: Via psql directly
+gunzip -c docker-development-api/database/carambus_api_development_dump.sql.gz | psql -h localhost -p 5433 -U www_data -d carambus_api_development
+
+# Option 2: Via Docker container (if PostgreSQL is running)
+gunzip -c docker-development-api/database/carambus_api_development_dump.sql.gz | docker exec -i carambus-postgres-1 psql -U www_data -d carambus_api_development
 
 # Or start with empty database
 rails db:create
@@ -191,8 +195,8 @@ rails db:drop
 rails db:create
 rails db:migrate
 
-# Or import dump
-gunzip -c dump.sql.gz | rails db:execute
+# Or import dump (via psql)
+gunzip -c docker-development-api/database/dump.sql.gz | psql -h localhost -p 5433 -U www_data -d carambus_api_development
 ```
 
 ## 🔍 **First Steps After Setup**
