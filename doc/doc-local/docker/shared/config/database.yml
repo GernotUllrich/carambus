@@ -1,0 +1,7 @@
+production:
+  host: pj.carambus.de
+  adapter: postgresql
+  database: carambus_production_nbv
+  port: 5432
+  username: www_data
+  password: toS6E7tARQafHCXz

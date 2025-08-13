@@ -1,0 +1,53 @@
+# Logfile created on 2025-08-06 20:02:52 +0200 by logger.rb/v1.6.6
+D, [2025-08-06T20:09:25.871770 #34440] DEBUG -- :   [1m[36mLocation Load (8.0ms)[0m  [1m[34mSELECT "locations"."id", "locations"."address", "locations"."data", "locations"."name", "locations"."created_at", "locations"."updated_at", "locations"."organizer_type", "locations"."organizer_id", "locations"."md5", "locations"."synonyms", "locations"."source_url", "locations"."sync_date", "locations"."cc_id", "locations"."dbu_nr", "locations"."region_id", "locations"."global_context" FROM "locations" WHERE "locations"."id" = $1 LIMIT $2[0m  [["id", 1], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.872488 #34440] DEBUG -- :   ↳ config/initializers/location.rb:6:in `block in <main>'
+D, [2025-08-06T20:09:25.903917 #34440] DEBUG -- :   [1m[36mTable Load (3.4ms)[0m  [1m[34mSELECT "tables"."id", "tables"."location_id", "tables"."table_kind_id", "tables"."name", "tables"."data", "tables"."ip_address", "tables"."created_at", "tables"."updated_at", "tables"."table_monitor_id", "tables"."tpl_ip_address", "tables"."event_id", "tables"."event_summary", "tables"."event_creator", "tables"."event_start", "tables"."event_end", "tables"."heater_on_reason", "tables"."heater_off_reason", "tables"."heater_switched_on_at", "tables"."heater_switched_off_at", "tables"."heater", "tables"."manual_heater_on_at", "tables"."manual_heater_off_at", "tables"."scoreboard", "tables"."scoreboard_on_at", "tables"."scoreboard_off_at", "tables"."heater_auto", "tables"."region_id", "tables"."global_context" FROM "tables" WHERE "tables"."location_id" = $1[0m  [["location_id", 1]]
+D, [2025-08-06T20:09:25.904091 #34440] DEBUG -- :   ↳ config/initializers/location.rb:7:in `block in <main>'
+D, [2025-08-06T20:09:25.927274 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.927470 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.932580 #34440] DEBUG -- :   [1m[36mTableMonitor Load (1.7ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 21], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.932715 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.939882 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.940000 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.940172 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.940327 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.940586 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.2ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 22], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.940709 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.940899 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.940998 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.941144 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.941283 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.941537 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.2ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 23], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.941650 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.941810 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.941906 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.942028 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.942173 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.942365 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.2ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 24], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.947843 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.948239 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.948351 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.948529 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.948676 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.949009 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.3ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 25], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.949126 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.949320 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.949426 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.949556 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.949699 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.949980 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.2ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 26], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.950092 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.950435 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.950564 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.950709 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.951236 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.951417 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.1ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 27], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.951538 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.951721 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.951829 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
+D, [2025-08-06T20:09:25.951946 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+D, [2025-08-06T20:09:25.952083 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.952219 #34440] DEBUG -- :   [1m[36mTableMonitor Load (0.1ms)[0m  [1m[34mSELECT "table_monitors".* FROM "table_monitors" WHERE "table_monitors"."id" = $1 LIMIT $2[0m  [["id", 28], ["LIMIT", 1]]
+D, [2025-08-06T20:09:25.952332 #34440] DEBUG -- :   ↳ app/models/table.rb:249:in `block in table_monitor!'
+D, [2025-08-06T20:09:25.952476 #34440] DEBUG -- :   [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+D, [2025-08-06T20:09:25.952568 #34440] DEBUG -- :   ↳ app/models/table.rb:248:in `table_monitor!'
