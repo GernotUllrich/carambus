@@ -8,6 +8,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/changelog/CHANGELOG/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/changelog/CHANGELOG/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/changelog/CHANGELOG/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
@@ -412,6 +419,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/changelog/CHANGELOG/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/changelog/CHANGELOG/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/changelog/CHANGELOG/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/</loc>
