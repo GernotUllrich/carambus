@@ -63,7 +63,6 @@ plugins:
                 - AGB: de/terms.md
                 - Datenschutz: de/privacy.md
             - Sonstiges:
-                - Island25: de/island25.md
                 - Tischreservierung Heizung: de/tischreservierung_heizungssteuerung.md
         - locale: en
           name: English
@@ -102,7 +101,6 @@ plugins:
                 - Terms: en/terms.md
                 - Privacy: en/privacy.md
             - Other:
-                - Island25: en/island25.md
                 - Table Reservation Heating: en/tischreservierung_heizungssteuerung.md
 
 # Markdown extensions
@@ -133,4 +131,4 @@ extra_css:
 extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js 
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

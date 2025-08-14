@@ -20,7 +20,7 @@
     
     
       
-        <title>Er diagram - Carambus Documentation</title>
+        <title>ER Diagram of the Carambus Database - Carambus Documentation</title>
       
     
     
@@ -73,6 +73,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#er-diagram-of-the-carambus-database" class="md-skip">
+          Zum Inhalt
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -103,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Er diagram
+              ER Diagram of the Carambus Database
             
           </span>
         </div>
@@ -355,7 +360,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/island25/" class="md-tabs__link">
+        <a href="../../de/tischreservierung_heizungssteuerung/" class="md-tabs__link">
           
   
   
@@ -1343,29 +1348,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/island25/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Island25
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../de/tischreservierung_heizungssteuerung/" class="md-nav__link">
         
   
@@ -1406,6 +1388,442 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-change-player-club-relationship" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Change: Player-Club Relationship
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-er-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete ER Diagram
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relationship Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relationship Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-one-to-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:1 (One-to-One)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1n-one-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:N (One-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nm-many-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      N:M (Many-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-changes-in-the-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Changes in the Data Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Important Changes in the Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#playerclub_id-historical" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player.club_id (HISTORICAL)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seasonparticipation-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      SeasonParticipation (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages-of-the-new-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages of the New Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#primary-keys-pk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Keys (PK)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foreign-keys-fk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foreign Keys (FK)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Integrity
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Integrity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#referential-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Referential Integrity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Business Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-old-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration from the Old Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration from the Old Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#old-structure-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Old Structure (DEPRECATED)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-structure-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      New Structure (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extended-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extended Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extended Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#polymorphic-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Polymorphic Relationships
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#junction-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Junction Tables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Indexes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Model Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migrations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modeling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modeling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary of Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary of Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-has-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      What has changed?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-remains-the-same" class="md-nav__link">
+    <span class="md-ellipsis">
+      What remains the same?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1424,8 +1842,22 @@
   
 
 
-  <h1>Er diagram</h1>
-
+<h1 id="er-diagram-of-the-carambus-database">ER Diagram of the Carambus Database<a class="headerlink" href="#er-diagram-of-the-carambus-database" title="Permanent link">&para;</a></h1>
+<p>This document shows the Entity-Relationship diagram of the Carambus database structure.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The ER diagram shows the relationships between the main entities in the Carambus system:
+- <strong>Regions</strong> organize clubs, tournaments and leagues
+- <strong>Clubs</strong> have locations and organize tournaments
+- <strong>Tournaments</strong> are held at locations and belong to leagues
+- <strong>Leagues</strong> have match days (parties) and teams
+- <strong>Match days</strong> consist of games between teams
+- <strong>Games</strong> are played by players</p>
+<h2 id="important-change-player-club-relationship">Important Change: Player-Club Relationship<a class="headerlink" href="#important-change-player-club-relationship" title="Permanent link">&para;</a></h2>
+<p><strong>⚠️ IMPORTANT</strong>: The relationship between players and clubs has changed:
+- <strong>Historically</strong>: Players belonged directly to a club (<code>Player.club_id</code>)
+- <strong>Currently</strong>: Players belong to clubs through <code>SeasonParticipation</code>
+- <strong>Advantage</strong>: A player can play for different clubs in different seasons</p>
+<h2 id="complete-er-diagram">Complete ER Diagram<a class="headerlink" href="#complete-er-diagram" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>erDiagram
     Region ||--o{ Club : &quot;has many&quot;
     Region ||--o{ Tournament : &quot;organizes&quot;
@@ -1462,11 +1894,13 @@
     Game ||--o{ GameParticipation : &quot;has many&quot;
     Game ||--o{ PartyGame : &quot;has many&quot;
 
-    Player ||--o{ GameParticipation : &quot;has many&quot;
+    %% IMPORTANT: Player has N:M relationship to Club through SeasonParticipation
     Player ||--o{ SeasonParticipation : &quot;has many&quot;
+    Player ||--o{ GameParticipation : &quot;has many&quot;
     Player ||--o{ Seeding : &quot;has many&quot;
     Player ||--o{ PartyGame : &quot;plays in&quot;
 
+    %% SeasonParticipation connects Player, Club and Season (N:M:N)
     SeasonParticipation ||--o{ Player : &quot;belongs to&quot;
     SeasonParticipation ||--o{ Club : &quot;belongs to&quot;
     SeasonParticipation ||--o{ Season : &quot;belongs to&quot;
@@ -1525,55 +1959,31 @@
     Location {
         int id PK
         string name
-        string address
-        int organizer_id FK
-        string organizer_type
+        int club_id FK
     }
 
     LeagueTeam {
         int id PK
-        string name
-        int club_id FK
         int league_id FK
-    }
-
-    Game {
-        int id PK
-        int tournament_id FK
-        string tournament_type
-        string gname
-    }
-
-    Player {
-        int id PK
-        string firstname
-        string lastname
-        string fl_name
-    }
-
-    SeasonParticipation {
-        int id PK
-        int player_id FK
         int club_id FK
-        int season_id FK
-    }
-
-    Seeding {
-        int id PK
-        int player_id FK
-        int tournament_id FK
-        string tournament_type
-        int league_team_id FK
-        int position
+        string name
     }
 
     PartyGame {
         int id PK
         int party_id FK
-        int player_a_id FK
-        int player_b_id FK
+        int player_id FK
         int discipline_id FK
-        int seqno
+        int game_id FK
+    }
+
+    Game {
+        int id PK
+        int tournament_id FK
+        int party_id FK
+        string status
+        datetime start_time
+        datetime end_time
     }
 
     GameParticipation {
@@ -1581,10 +1991,247 @@
         int game_id FK
         int player_id FK
         string role
-        int points
-        int result
+        int score
+    }
+
+    Player {
+        int id PK
+        string name
+        string email
+        %% HISTORICAL: club_id (no longer used)
+        %% int club_id FK
+        %% CURRENT: Relationship through SeasonParticipation
+    }
+
+    Seeding {
+        int id PK
+        int tournament_id FK
+        int player_id FK
+        int league_team_id FK
+        int discipline_id FK
+        int position
+    }
+
+    SeasonParticipation {
+        int id PK
+        int season_id FK
+        int player_id FK
+        int club_id FK
+        string status
+        %% Status: &quot;active&quot;, &quot;passive&quot;, &quot;guest&quot;
+    }
+
+    Discipline {
+        int id PK
+        string name
+        string description
     }
 </code></pre></div>
+<h2 id="relationship-types">Relationship Types<a class="headerlink" href="#relationship-types" title="Permanent link">&para;</a></h2>
+<h3 id="11-one-to-one">1:1 (One-to-One)<a class="headerlink" href="#11-one-to-one" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>One player</strong> has <strong>one email address</strong></li>
+<li><strong>One game</strong> has <strong>one status</strong></li>
+</ul>
+<h3 id="1n-one-to-many">1:N (One-to-Many)<a class="headerlink" href="#1n-one-to-many" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>One region</strong> has <strong>many clubs</strong></li>
+<li><strong>One club</strong> has <strong>many locations</strong></li>
+<li><strong>One tournament</strong> has <strong>many games</strong></li>
+</ul>
+<h3 id="nm-many-to-many">N:M (Many-to-Many)<a class="headerlink" href="#nm-many-to-many" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Clubs</strong> have <strong>many locations</strong> through <code>club_locations</code></li>
+<li><strong>Players</strong> play in <strong>many games</strong> through <code>game_participations</code></li>
+<li><strong>Games</strong> belong to <strong>many match days</strong> through <code>party_games</code></li>
+<li><strong>⚠️ NEW: Players belong to many clubs</strong> through <code>season_participations</code></li>
+</ul>
+<h2 id="important-changes-in-the-data-model">Important Changes in the Data Model<a class="headerlink" href="#important-changes-in-the-data-model" title="Permanent link">&para;</a></h2>
+<h3 id="playerclub_id-historical">Player.club_id (HISTORICAL)<a class="headerlink" href="#playerclub_id-historical" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is NO LONGER used</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Player</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="c1"># belongs_to :club  # DEPRECATED</span>
+<span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:season_participations</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:clubs</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:season_participations</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="seasonparticipation-current">SeasonParticipation (CURRENT)<a class="headerlink" href="#seasonparticipation-current" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is CURRENTLY used</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeasonParticipation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:season</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+
+<span class="w">  </span><span class="c1"># Status: &quot;active&quot;, &quot;passive&quot;, &quot;guest&quot;</span>
+<span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:status</span><span class="p">,</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="advantages-of-the-new-structure">Advantages of the New Structure<a class="headerlink" href="#advantages-of-the-new-structure" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Flexibility</strong>: Players can play for different clubs in different seasons</li>
+<li><strong>Historical Data</strong>: Complete history of club memberships</li>
+<li><strong>Status Management</strong>: Different statuses (active, passive, guest)</li>
+<li><strong>Season-based Management</strong>: Clear separation by seasons</li>
+</ol>
+<h2 id="key-attributes">Key Attributes<a class="headerlink" href="#key-attributes" title="Permanent link">&para;</a></h2>
+<h3 id="primary-keys-pk">Primary Keys (PK)<a class="headerlink" href="#primary-keys-pk" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>id</code>: Unique identification of each entity</li>
+<li>Auto-increment integer values</li>
+</ul>
+<h3 id="foreign-keys-fk">Foreign Keys (FK)<a class="headerlink" href="#foreign-keys-fk" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>region_id</code>: Reference to the parent region</li>
+<li><code>club_id</code>: Reference to the associated club (in SeasonParticipation)</li>
+<li><code>tournament_id</code>: Reference to the tournament</li>
+<li><code>league_id</code>: Reference to the league</li>
+<li><code>location_id</code>: Reference to the location</li>
+<li><code>player_id</code>: Reference to the player</li>
+</ul>
+<h2 id="data-integrity">Data Integrity<a class="headerlink" href="#data-integrity" title="Permanent link">&para;</a></h2>
+<h3 id="referential-integrity">Referential Integrity<a class="headerlink" href="#referential-integrity" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All foreign keys reference valid primary keys</li>
+<li>CASCADE deletions for dependent records</li>
+<li>RESTRICT deletions for critical relationships</li>
+</ul>
+<h3 id="business-rules">Business Rules<a class="headerlink" href="#business-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>⚠️ CHANGED</strong>: A player can play for different clubs in different seasons</li>
+<li>A tournament can only take place at one location</li>
+<li>A match day belongs to exactly one league</li>
+</ul>
+<h2 id="migration-from-the-old-structure">Migration from the Old Structure<a class="headerlink" href="#migration-from-the-old-structure" title="Permanent link">&para;</a></h2>
+<h3 id="old-structure-deprecated">Old Structure (DEPRECATED)<a class="headerlink" href="#old-structure-deprecated" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is NO LONGER used</span>
+<span class="no">Player</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">club</span><span class="w">  </span><span class="c1"># Direct club membership</span>
+</code></pre></div>
+<h3 id="new-structure-current">New Structure (CURRENT)<a class="headerlink" href="#new-structure-current" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is CURRENTLY used</span>
+<span class="n">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Player</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Current club (last active SeasonParticipation)</span>
+<span class="n">player</span><span class="o">.</span><span class="n">club</span><span class="w">  </span><span class="c1"># Method in Player model</span>
+
+<span class="c1"># All club memberships</span>
+<span class="n">player</span><span class="o">.</span><span class="n">season_participations</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="ss">:club</span><span class="p">,</span><span class="w"> </span><span class="ss">:season</span><span class="p">)</span>
+
+<span class="c1"># Club in specific season</span>
+<span class="n">player</span><span class="o">.</span><span class="n">season_participations</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">season</span><span class="p">:</span><span class="w"> </span><span class="n">current_season</span><span class="p">)</span><span class="o">&amp;.</span><span class="n">club</span>
+</code></pre></div>
+<h2 id="extended-relationships">Extended Relationships<a class="headerlink" href="#extended-relationships" title="Permanent link">&para;</a></h2>
+<h3 id="polymorphic-relationships">Polymorphic Relationships<a class="headerlink" href="#polymorphic-relationships" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Tournament can be organized by Region or Club</span>
+<span class="n">belongs_to</span><span class="w"> </span><span class="ss">:organizer</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+
+<span class="c1"># Usage</span>
+<span class="n">tournament</span><span class="o">.</span><span class="n">organizer_type</span><span class="w"> </span><span class="c1"># &quot;Region&quot; or &quot;Club&quot;</span>
+<span class="n">tournament</span><span class="o">.</span><span class="n">organizer_id</span><span class="w">   </span><span class="c1"># ID of the organizing entity</span>
+</code></pre></div>
+<h3 id="junction-tables">Junction Tables<a class="headerlink" href="#junction-tables" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># club_locations connects Clubs and Locations</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClubLocation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:location</span>
+<span class="k">end</span>
+
+<span class="c1"># season_participations connects Players, Clubs and Seasons</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeasonParticipation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:season</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="performance-optimizations">Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">&para;</a></h2>
+<h3 id="indexes">Indexes<a class="headerlink" href="#indexes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All foreign keys are indexed</li>
+<li>Composite indexes for frequent queries</li>
+<li>Unique indexes for business rules</li>
+<li><strong>⚠️ NEW</strong>: <code>index_season_participations_on_foreign_keys</code> for (player_id, club_id, season_id)</li>
+</ul>
+<h3 id="query-optimization">Query Optimization<a class="headerlink" href="#query-optimization" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Eager Loading to avoid N+1 problem</li>
+<li>Scopes for frequent filters</li>
+<li>Counter Caches for counts</li>
+<li><strong>⚠️ NEW</strong>: Optimized queries through SeasonParticipation</li>
+</ul>
+<h2 id="data-model-changes">Data Model Changes<a class="headerlink" href="#data-model-changes" title="Permanent link">&para;</a></h2>
+<h3 id="migrations">Migrations<a class="headerlink" href="#migrations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create new table</span>
+rails<span class="w"> </span>generate<span class="w"> </span>migration<span class="w"> </span>CreateNewTable
+
+<span class="c1"># Add column</span>
+rails<span class="w"> </span>generate<span class="w"> </span>migration<span class="w"> </span>AddColumnToTable
+
+<span class="c1"># Run migration</span>
+rails<span class="w"> </span>db:migrate
+</code></pre></div>
+<h3 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Undo last migration</span>
+rails<span class="w"> </span>db:rollback
+
+<span class="c1"># Go back to specific version</span>
+rails<span class="w"> </span>db:migrate<span class="w"> </span><span class="nv">VERSION</span><span class="o">=</span><span class="m">20231201000000</span>
+</code></pre></div>
+<h2 id="monitoring-and-maintenance">Monitoring and Maintenance<a class="headerlink" href="#monitoring-and-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="database-size">Database Size<a class="headerlink" href="#database-size" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Regular checking of table sizes</li>
+<li>Archiving old data</li>
+<li>Cleanup of deleted records</li>
+</ul>
+<h3 id="performance-monitoring">Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Identify slow queries</li>
+<li>Optimize indexes</li>
+<li>Analyze query plans</li>
+<li><strong>⚠️ NEW</strong>: Monitor SeasonParticipation queries</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="modeling">Modeling<a class="headerlink" href="#modeling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Normalization</strong>: Avoid redundancy</li>
+<li><strong>Denormalization</strong>: For performance when needed</li>
+<li><strong>Consistency</strong>: Uniform naming conventions</li>
+<li><strong>⚠️ NEW</strong>: Use SeasonParticipation for Player-Club relationships</li>
+</ul>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Migrations</strong>: Always make them reversible</li>
+<li><strong>Validations</strong>: At model and database level</li>
+<li><strong>Tests</strong>: Test database logic</li>
+<li><strong>⚠️ NEW</strong>: Test SeasonParticipation logic</li>
+</ul>
+<h3 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Backups</strong>: Regular backups</li>
+<li><strong>Updates</strong>: Plan database updates</li>
+<li><strong>Monitoring</strong>: Continuously monitor performance</li>
+<li><strong>⚠️ NEW</strong>: Monitor SeasonParticipation performance</li>
+</ul>
+<h2 id="summary-of-changes">Summary of Changes<a class="headerlink" href="#summary-of-changes" title="Permanent link">&para;</a></h2>
+<h3 id="what-has-changed">What has changed?<a class="headerlink" href="#what-has-changed" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Player.club_id</strong>: No longer used (historical)</li>
+<li><strong>SeasonParticipation</strong>: New N:M relationship between Player, Club and Season</li>
+<li><strong>Flexibility</strong>: Players can play for different clubs in different seasons</li>
+<li><strong>Status Management</strong>: Different statuses for club membership</li>
+</ol>
+<h3 id="what-remains-the-same">What remains the same?<a class="headerlink" href="#what-remains-the-same" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Basic Structure</strong>: All other relationships remain unchanged</li>
+<li><strong>API</strong>: Existing API endpoints continue to work</li>
+<li><strong>Views</strong>: Existing views continue to work</li>
+</ol>
+<h3 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Use SeasonParticipation</strong> for all Player-Club relationships</li>
+<li><strong>Avoid direct access</strong> to Player.club_id</li>
+<li><strong>Test all queries</strong> with the new structure</li>
+<li><strong>Document the changes</strong> for the team </li>
+</ol>
 
 
 
