@@ -43,6 +43,20 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/about/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/admin_roles/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/admin_roles/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/admin_roles/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/data_management/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/data_management/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/data_management/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/database_design/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
@@ -71,11 +85,39 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/einzelturnierverwaltung/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/er_diagram/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/er_diagram/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/er_diagram/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/filter_popup_usage/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/filter_popup_usage/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/filter_popup_usage/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/game_plan_reconstruction/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/game_plan_reconstruction/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/game_plan_reconstruction/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/installation_overview/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/installation_overview/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/installation_overview/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/island25/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/island25/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/island25/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/league/</loc>
@@ -99,6 +141,27 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/mode_switcher/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/paper_trail_optimization/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/paper_trail_optimization/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/paper_trail_optimization/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/privacy/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/privacy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/privacy/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/region_tagging_cleanup_summary/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/region_tagging_cleanup_summary/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/region_tagging_cleanup_summary/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/scoreboard_autostart_setup/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
@@ -120,11 +183,25 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/terms/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/tischreservierung_heizungssteuerung/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tischreservierung_heizungssteuerung/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tischreservierung_heizungssteuerung/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/tournament/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tournament/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tournament/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/de/tournament_duplicate_handling/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tournament_duplicate_handling/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tournament_duplicate_handling/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/de/verwaltung-von-ligaspieltagen/</loc>
@@ -372,6 +449,20 @@
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/about/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/admin_roles/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/admin_roles/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/admin_roles/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/data_management/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/data_management/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/data_management/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/database_design/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
@@ -400,11 +491,39 @@
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/einzelturnierverwaltung/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/er_diagram/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/er_diagram/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/er_diagram/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/filter_popup_usage/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/filter_popup_usage/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/filter_popup_usage/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/game_plan_reconstruction/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/game_plan_reconstruction/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/game_plan_reconstruction/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/installation_overview/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/installation_overview/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/installation_overview/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/island25/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/island25/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/island25/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/league/</loc>
@@ -428,6 +547,27 @@
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/mode_switcher/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/paper_trail_optimization/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/paper_trail_optimization/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/paper_trail_optimization/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/privacy/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/privacy/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/privacy/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/region_tagging_cleanup_summary/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/region_tagging_cleanup_summary/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/region_tagging_cleanup_summary/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/scoreboard_autostart_setup/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
@@ -449,11 +589,25 @@
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/terms/"/>
     </url>
     <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/tischreservierung_heizungssteuerung/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tischreservierung_heizungssteuerung/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tischreservierung_heizungssteuerung/"/>
+    </url>
+    <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/tournament/</loc>
         <lastmod>2025-08-14</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tournament/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tournament/"/>
+    </url>
+    <url>
+        <loc>https://GernotUllrich.github.io/carambus-docs/en/de/tournament_duplicate_handling/</loc>
+        <lastmod>2025-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://GernotUllrich.github.io/carambus-docs/en/de/tournament_duplicate_handling/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://GernotUllrich.github.io/carambus-docs/de/tournament_duplicate_handling/"/>
     </url>
     <url>
         <loc>https://GernotUllrich.github.io/carambus-docs/en/de/verwaltung-von-ligaspieltagen/</loc>

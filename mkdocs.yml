@@ -43,16 +43,28 @@ plugins:
                 - Einzelturnierverwaltung: de/einzelturnierverwaltung.md
                 - Verwaltung von Ligaspieltagen: de/verwaltung-von-ligaspieltagen.md
                 - Modus-Umschalter: de/mode_switcher.md
-                - Scoreboard Einrichtung: de/scoreboard_autostart_setup.md
+                - Scoreboard Setup: de/scoreboard_autostart_setup.md
             - Entwicklerhandbuch:
                 - Getting Started: de/GETTING_STARTED_DEVELOPER.md
                 - Entwicklerhandbuch: de/DEVELOPER_GUIDE.md
                 - MkDocs Dokumentation: de/mkdocs_dokumentation.md
                 - Datenbankdesign: de/database_design.md
                 - Datenbank-Partitionierung: de/datenbank-partitionierung-und-synchronisierung.md
+                - Admin-Rollen: de/admin_roles.md
+                - Datenverwaltung: de/data_management.md
+                - Spielplan-Rekonstruktion: de/game_plan_reconstruction.md
+                - PaperTrail Optimierung: de/paper_trail_optimization.md
+                - ER-Diagramm: de/er_diagram.md
+                - Filter-Popup: de/filter_popup_usage.md
+                - Turnier-Duplikate: de/tournament_duplicate_handling.md
+                - Regions-Tagging: de/region_tagging_cleanup_summary.md
             - Referenz:
                 - API: de/API.md
                 - AGB: de/terms.md
+                - Datenschutz: de/privacy.md
+            - Sonstiges:
+                - Island25: de/island25.md
+                - Tischreservierung Heizung: de/tischreservierung_heizungssteuerung.md
         - locale: en
           name: English
           build: true
@@ -68,9 +80,9 @@ plugins:
                 - Tournament Management: en/tournament.md
                 - League Match Days: en/league.md
                 - Table Reservation: en/table_reservation_heating_control.md
-                - Individual Tournament Management: en/einzelturnierverwaltung.md
                 - Scoreboard Setup: en/scoreboard_autostart_setup.md
                 - Mode Switcher: en/mode_switcher.md
+                - Individual Tournament: en/einzelturnierverwaltung.md
             - Developer Guide:
                 - Getting Started: en/GETTING_STARTED_DEVELOPER.md
                 - Developer Guide: en/DEVELOPER_GUIDE.md
@@ -80,32 +92,45 @@ plugins:
                 - Admin Roles: en/admin_roles.md
                 - Data Management: en/data_management.md
                 - Game Plan Reconstruction: en/game_plan_reconstruction.md
-                - Paper Trail Optimization: en/paper_trail_optimization.md
+                - PaperTrail Optimization: en/paper_trail_optimization.md
                 - ER Diagram: en/er_diagram.md
-                - Privacy: en/privacy.md
-                - Region Tagging Cleanup: en/region_tagging_cleanup_summary.md
                 - Filter Popup Usage: en/filter_popup_usage.md
-                - Island25: en/island25.md
                 - Tournament Duplicate Handling: en/tournament_duplicate_handling.md
-                - Tischreservierung Heizungssteuerung: en/tischreservierung_heizungssteuerung.md
+                - Region Tagging Cleanup: en/region_tagging_cleanup_summary.md
             - Reference:
                 - API: en/API.md
                 - Terms: en/terms.md
+                - Privacy: en/privacy.md
+            - Other:
+                - Island25: en/island25.md
+                - Table Reservation Heating: en/tischreservierung_heizungssteuerung.md
 
-# Markdown Extensions (for images, Mermaid ER Diagram, etc.)
+# Markdown extensions
 markdown_extensions:
   - pymdownx.highlight
-  - pymdownx.superfences  # Renders your ER Diagram interactively
+  - pymdownx.superfences
+  - pymdownx.arithmatex
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
   - toc:
       permalink: true
-  - admonition
-  - attr_list  # For image embeds like ![Alt](assets/image.png){width="100%"}
-  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
 
-# Extras
-extra:
-  generator: false
-  edit_uri: edit/main/docs
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/GernotUllrich/carambus 
+# Extra CSS and JS
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js 
