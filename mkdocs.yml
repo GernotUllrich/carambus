@@ -43,6 +43,7 @@ plugins:
                 - Einzelturnierverwaltung: de/einzelturnierverwaltung.md
                 - Verwaltung von Ligaspieltagen: de/verwaltung-von-ligaspieltagen.md
                 - Modus-Umschalter: de/mode_switcher.md
+                - Scoreboard Einrichtung: de/scoreboard_autostart_setup.md
             - Entwicklerhandbuch:
                 - Getting Started: de/GETTING_STARTED_DEVELOPER.md
                 - Entwicklerhandbuch: de/DEVELOPER_GUIDE.md
@@ -67,6 +68,7 @@ plugins:
                 - Tournament Management: en/tournament.md
                 - League Match Days: en/league.md
                 - Table Reservation: en/table_reservation_heating_control.md
+                - Individual Tournament Management: en/einzelturnierverwaltung.md
                 - Scoreboard Setup: en/scoreboard_autostart_setup.md
                 - Mode Switcher: en/mode_switcher.md
             - Developer Guide:
@@ -75,6 +77,17 @@ plugins:
                 - MkDocs Documentation: en/mkdocs_documentation.md
                 - Database Design: en/database_design.md
                 - Database Partitioning: en/database_syncing.md
+                - Admin Roles: en/admin_roles.md
+                - Data Management: en/data_management.md
+                - Game Plan Reconstruction: en/game_plan_reconstruction.md
+                - Paper Trail Optimization: en/paper_trail_optimization.md
+                - ER Diagram: en/er_diagram.md
+                - Privacy: en/privacy.md
+                - Region Tagging Cleanup: en/region_tagging_cleanup_summary.md
+                - Filter Popup Usage: en/filter_popup_usage.md
+                - Island25: en/island25.md
+                - Tournament Duplicate Handling: en/tournament_duplicate_handling.md
+                - Tischreservierung Heizungssteuerung: en/tischreservierung_heizungssteuerung.md
             - Reference:
                 - API: en/API.md
                 - Terms: en/terms.md
