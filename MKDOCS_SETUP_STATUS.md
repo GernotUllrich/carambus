@@ -42,7 +42,7 @@ Die GitHub Pages-Funktionalität muss im Repository aktiviert werden:
 ### 2. GitHub Actions Workflow
 Der aktualisierte Workflow (`.github/workflows/build-docs.yml`) ist bereit und wird:
 
-- Bei jedem Push auf den `main` Branch ausgeführt
+- Bei jedem Push auf den `master` Branch ausgeführt
 - MkDocs-Dokumentation bauen
 - Auf GitHub Pages deployen
 - Die URL wird in den Workflow-Logs angezeigt
@@ -50,11 +50,11 @@ Der aktualisierte Workflow (`.github/workflows/build-docs.yml`) ist bereit und w
 ### 3. Erste Deployment
 Nach der Aktivierung von GitHub Pages:
 
-1. **Push auf main Branch**:
+1. **Push auf master Branch**:
    ```bash
    git add .
    git commit -m "Update mkdocs workflow and remove breadcrumbs"
-   git push origin main
+   git push carambus master
    ```
 
 2. **Workflow überwachen**:
@@ -91,7 +91,7 @@ bin/rails test test/system/docs_page_test.rb
 
 ### Diese Woche
 1. **GitHub Pages aktivieren** (Repository-Einstellungen)
-2. **Ersten Deployment testen** (Push auf main)
+2. **Ersten Deployment testen** (Push auf master)
 3. **URL bestätigen** und in der Anwendung testen
 
 ### Nächste Woche
@@ -101,13 +101,18 @@ bin/rails test test/system/docs_page_test.rb
 
 ## Technische Details
 
+### Git-Konfiguration
+- **Remote**: `carambus` (nicht `origin`)
+- **Branch**: `master` (nicht `main`)
+- **Push-Befehl**: `git push carambus master`
+
 ### MkDocs-URLs
 - **Lokale Entwicklung**: `http://localhost:3000/docs_page/tournament`
 - **GitHub Pages**: `https://GernotUllrich.github.io/carambus-docs`
 - **Integrierte Anzeige**: `/docs_page/tournament` (im Carambus-Layout)
 
 ### Workflow-Trigger
-- **Automatisch**: Bei jedem Push auf `main`
+- **Automatisch**: Bei jedem Push auf `master`
 - **Manuell**: Über GitHub Actions UI mit "workflow_dispatch"
 
 ### Deployment-Zeit
@@ -117,4 +122,4 @@ bin/rails test test/system/docs_page_test.rb
 
 ## Fazit
 
-Die MkDocs-Integration ist technisch vollständig implementiert. Es fehlt nur noch die Aktivierung von GitHub Pages im Repository. Nach der Aktivierung wird die Dokumentation automatisch bei jedem Push auf den main Branch aktualisiert.
+Die MkDocs-Integration ist technisch vollständig implementiert. Es fehlt nur noch die Aktivierung von GitHub Pages im Repository. Nach der Aktivierung wird die Dokumentation automatisch bei jedem Push auf den master Branch aktualisiert.
