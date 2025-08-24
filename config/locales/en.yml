@@ -1264,3 +1264,14 @@ en:
     lastname: "Last Name"
     firstname: "First Name"
     nickname: "Nickname"
+
+  # New translations for integrated documentation
+  common:
+    home: "Home"
+    documentation: "Documentation"
+    language: "Language"
+    view_in_mkdocs: "View in MkDocs"
+    last_updated: "Last updated"
+    edit_in_mkdocs: "Edit in MkDocs"
+    back_to_documentation: "Back to Documentation"
+    related_documentation: "Related Documentation"

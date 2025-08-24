@@ -1334,3 +1334,14 @@ de:
     lastname: "Nachname"
     firstname: "Vorname"
     nickname: "Spitzname"
+
+  # Neue Übersetzungen für integrierte Dokumentation
+  common:
+    home: "Startseite"
+    documentation: "Dokumentation"
+    language: "Sprache"
+    view_in_mkdocs: "In MkDocs anzeigen"
+    last_updated: "Zuletzt aktualisiert"
+    edit_in_mkdocs: "In MkDocs bearbeiten"
+    back_to_documentation: "Zurück zur Dokumentation"
+    related_documentation: "Verwandte Dokumentation"

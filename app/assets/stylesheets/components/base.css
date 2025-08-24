@@ -46,3 +46,47 @@ ol {
 .table-responsive {
   @apply block w-full overflow-x-auto;
 }
+
+/* Browser UI Elements - Selektive Korrekturen */
+/* Nur die problematischen Elemente korrigieren, ohne Layout zu zerstören */
+
+/* Chrome Bookmark Star Icon */
+.bookmark-star,
+.bookmark-star *,
+.bookmark-star button,
+.bookmark-star svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Chrome Refresh/Update Icons */
+.refresh-icon,
+.update-icon,
+.refresh-button,
+.update-button {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Chrome Home Icon */
+.home-icon,
+.home-button {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Chrome Bookmark Bar Icons */
+.bookmark-bar button,
+.bookmark-bar a,
+.bookmark-bar svg,
+.bookmark-bar img {
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Chrome Toolbar Icons */
+.toolbar button,
+.toolbar svg {
+  width: auto !important;
+  height: auto !important;
+}

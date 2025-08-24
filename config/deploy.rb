@@ -2,7 +2,7 @@
 lock "3.19.2"
 
 set :application, "carambus"
-set :basename, "carambus_api"
+set :basename, "carambus"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 
 # Default branch is :master

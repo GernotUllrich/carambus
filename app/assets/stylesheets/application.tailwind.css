@@ -1,4 +1,7 @@
+/* TailwindCSS mit sanfterem Reset */
 @import "tailwindcss/base";
+
+/* Sanftere Basis-Styles */
 @import "tailwindcss/components";
 
 /*

@@ -1,0 +1,2699 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus-docs/en/en/docker_installation/">
+      
+      
+        <link rel="prev" href="../installation_overview/">
+      
+      
+        <link rel="next" href="../tournament/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Docker Installation - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#docker-installation-for-carambus" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Docker Installation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../docker_installation/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Other
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Docker Installation
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Installation
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-modes-2-different-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Modes (2 different systems)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Modes (2 different systems)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-api-server-newapicarambusde" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. API Server (newapi.carambus.de)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-local-server-local-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Local Server (local installations)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-combined-installation-api-server-local-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Combined Installation (API Server + Local Server)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-mode-overarching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Mode (overarching)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Installation Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Installation Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-based-installation-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker-based Installation (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker-based Installation (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-process-docker-based" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Installation Process (Docker-based)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Installation Process (Docker-based)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Preparation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Preparation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-platform-specific-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Platform-specific Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-www-data-account-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 www-data Account Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-ssh-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 SSH Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-automatic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Automatic Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Automatic Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-network-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Network Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-localization" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Localization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-carambus-api-url-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Carambus API URL Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-language-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Language Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-scoreboard-setup-only-for-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Scoreboard Setup (only for local servers)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-environment-computer-with-macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Development Environment (Computer with macOS)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Development Environment (Computer with macOS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallel-systems-development-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parallel Systems (Development Mode)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inter-system-communication-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inter-System Communication Testing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Problems
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#container-wont-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container won't start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-wont-start-only-for-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard won't start (only for local servers)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network problems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-existing-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Migration from Existing Installations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Migration from Existing Installations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Create Backup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-new-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: New Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restore-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Restore Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      📖 Further Documentation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Match Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mode_switcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Mode Switcher
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_syncing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicate Handling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging Cleanup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Other
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Other
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-modes-2-different-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Modes (2 different systems)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Modes (2 different systems)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-api-server-newapicarambusde" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. API Server (newapi.carambus.de)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-local-server-local-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Local Server (local installations)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-combined-installation-api-server-local-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Combined Installation (API Server + Local Server)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-mode-overarching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Mode (overarching)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Installation Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Installation Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-based-installation-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker-based Installation (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker-based Installation (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-process-docker-based" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Installation Process (Docker-based)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Installation Process (Docker-based)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Preparation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Preparation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-platform-specific-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Platform-specific Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-www-data-account-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 www-data Account Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-ssh-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 SSH Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-automatic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Automatic Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Automatic Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-network-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Network Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-localization" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Localization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-carambus-api-url-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Carambus API URL Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-language-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Language Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-scoreboard-setup-only-for-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Scoreboard Setup (only for local servers)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-environment-computer-with-macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Development Environment (Computer with macOS)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Development Environment (Computer with macOS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallel-systems-development-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parallel Systems (Development Mode)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inter-system-communication-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inter-System Communication Testing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Problems
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#container-wont-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container won't start
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-wont-start-only-for-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard won't start (only for local servers)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network problems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-existing-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Migration from Existing Installations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Migration from Existing Installations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Create Backup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-new-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: New Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restore-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Restore Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      📖 Further Documentation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="docker-installation-for-carambus">🐳 Docker Installation for Carambus<a class="headerlink" href="#docker-installation-for-carambus" title="Permanent link">&para;</a></h1>
+<h2 id="overview">📋 Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This document describes the automated processes for:
+1. <strong>Fresh installation</strong> of a Carambus server on various platforms
+2. <strong>Migration</strong> of existing installations to new major versions
+3. <strong>Development environment</strong> for local development on a computer with macOS</p>
+<p>The goal is to simplify these processes so that a local system manager without deep technical knowledge can perform these tasks.</p>
+<h2 id="architecture-overview">🏗️ Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<h3 id="production-modes-2-different-systems">Production Modes (2 different systems)<a class="headerlink" href="#production-modes-2-different-systems" title="Permanent link">&para;</a></h3>
+<h4 id="1-api-server-newapicarambusde">1. <strong>API Server</strong> (newapi.carambus.de)<a class="headerlink" href="#1-api-server-newapicarambusde" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Purpose</strong>: Central API for all local servers</li>
+<li><strong>Features</strong>: Is the central API server</li>
+<li><strong>Usage</strong>: Production API server</li>
+<li><strong>Domain</strong>: newapi.carambus.de</li>
+<li><strong>Installation path</strong>: <code>/var/www/carambus_api</code></li>
+</ul>
+<h4 id="2-local-server-local-installations">2. <strong>Local Server</strong> (local installations)<a class="headerlink" href="#2-local-server-local-installations" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Purpose</strong>: Local servers for tournaments/clubs</li>
+<li><strong>Features</strong>: Has a Carambus API URL that points to the API server</li>
+<li><strong>Usage</strong>: Raspberry Pi scoreboards, local servers</li>
+<li><strong>Domain</strong>: localhost or local IP</li>
+<li><strong>API-URL</strong>: Points to newapi.carambus.de</li>
+<li><strong>Installation path</strong>: <code>/var/www/carambus</code></li>
+</ul>
+<h4 id="3-combined-installation-api-server-local-server">3. <strong>Combined Installation</strong> (API Server + Local Server)<a class="headerlink" href="#3-combined-installation-api-server-local-server" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Purpose</strong>: API server with additional local server for hosting</li>
+<li><strong>Usage</strong>: For locations without their own server</li>
+<li><strong>Installation paths</strong>: </li>
+<li>API Server: <code>/var/www/carambus_api</code></li>
+<li>Local Server: <code>/var/www/carambus</code></li>
+<li><strong>Advantage</strong>: Central management with local hosting functionality</li>
+</ul>
+<p><strong>Note</strong>: Both server types can run on the same hardware. The API server can also function as a hosting server for local Carambus instances that don't have their own server.</p>
+<h3 id="development-mode-overarching">Development Mode (overarching)<a class="headerlink" href="#development-mode-overarching" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Both production modes can be tested in development mode</li>
+<li><strong>Platform</strong>: Computer with macOS for local development</li>
+<li><strong>Advantage</strong>: Parallel testing of both modes possible</li>
+<li><strong>Usage</strong>: Inter-system communication testing (Local Server ↔ API Server)</li>
+</ul>
+<h2 id="installation-types">🚀 Installation Types<a class="headerlink" href="#installation-types" title="Permanent link">&para;</a></h2>
+<h3 id="docker-based-installation-recommended">Docker-based Installation (Recommended)<a class="headerlink" href="#docker-based-installation-recommended" title="Permanent link">&para;</a></h3>
+<h4 id="advantages">Advantages<a class="headerlink" href="#advantages" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ Consistent environment</li>
+<li>✅ Easy migration</li>
+<li>✅ Minimal technical effort</li>
+<li>✅ Reproducible installations</li>
+<li>✅ Automatic updates</li>
+</ul>
+<h4 id="process">Process<a class="headerlink" href="#process" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Automatic configuration</strong> on first boot</li>
+<li><strong>Web-based localization</strong> (only for local servers)</li>
+<li><strong>Automatic scoreboard startup</strong> (only for local servers)</li>
+</ol>
+<h2 id="installation-process-docker-based">📋 Installation Process (Docker-based)<a class="headerlink" href="#installation-process-docker-based" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-preparation">Phase 1: Preparation<a class="headerlink" href="#phase-1-preparation" title="Permanent link">&para;</a></h3>
+<h4 id="11-platform-specific-prerequisites">1.1 Platform-specific Prerequisites<a class="headerlink" href="#11-platform-specific-prerequisites" title="Permanent link">&para;</a></h4>
+<p><strong>Raspberry Pi:</strong>
+- Raspberry Pi Imager with custom image
+- Optional: SSH configuration with standard account
+- Optional: WiFi connection with fixed IP in router</p>
+<p><strong>Ubuntu Server (e.g., Hetzner):</strong>
+- Base installation already completed by hosting provider
+- Network configuration already completed by hosting provider
+- SSH access via standard port 22</p>
+<h4 id="12-www-data-account-configuration">1.2 www-data Account Configuration<a class="headerlink" href="#12-www-data-account-configuration" title="Permanent link">&para;</a></h4>
+<p><strong>Important</strong>: All Carambus installations use the standard <code>www-data</code> account (uid=33, gid=33), which is already defined in both operating systems:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># The www-data user already exists:</span>
+<span class="c1"># www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</span>
+
+<span class="c1"># Activate shell for SSH access (home directory remains /var/www)</span>
+sudo<span class="w"> </span>chsh<span class="w"> </span>-s<span class="w"> </span>/bin/bash<span class="w"> </span>www-data
+
+<span class="c1"># Create wheel group (if not present)</span>
+sudo<span class="w"> </span>groupadd<span class="w"> </span>wheel
+
+<span class="c1"># Configure wheel group for passwordless sudo</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;%wheel ALL=(ALL) NOPASSWD: ALL&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/sudoers
+
+<span class="c1"># Add www-data to wheel group</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>wheel<span class="w"> </span>www-data
+
+<span class="c1"># Set up SSH keys for passwordless access</span>
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/var/www/.ssh
+sudo<span class="w"> </span>chown<span class="w"> </span>www-data:www-data<span class="w"> </span>/var/www/.ssh
+sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>/var/www/.ssh
+<span class="c1"># Copy public key from development system</span>
+</code></pre></div>
+<h4 id="13-ssh-configuration">1.3 SSH Configuration<a class="headerlink" href="#13-ssh-configuration" title="Permanent link">&para;</a></h4>
+<p><strong>Development system scripts</strong> always assume the following SSH configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Standard SSH access for all scripts</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@host
+
+<span class="c1"># No direct root access possible</span>
+<span class="c1"># No passwordless root access possible</span>
+<span class="c1"># From www-data, use sudo su if needed</span>
+</code></pre></div>
+<p><strong>SSH configuration on target system:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># /etc/ssh/sshd_config</span>
+Port<span class="w"> </span><span class="m">8910</span>
+PermitRootLogin<span class="w"> </span>no
+<span class="c1"># PasswordAuthentication no  # Commented out for initial configuration</span>
+PubkeyAuthentication<span class="w"> </span>yes
+AllowUsers<span class="w"> </span>www-data
+</code></pre></div>
+<p><strong>Note</strong>: This configuration corresponds to the Ansible rules used for deployment. The <code>wheel</code> group enables passwordless sudo for the <code>www-data</code> user.</p>
+<h3 id="phase-2-automatic-configuration">Phase 2: Automatic Configuration<a class="headerlink" href="#phase-2-automatic-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="21-network-configuration">2.1 Network Configuration<a class="headerlink" href="#21-network-configuration" title="Permanent link">&para;</a></h4>
+<p><strong>Note</strong>: Network connection already occurs when loading the base OS:
+- <strong>Raspberry Pi</strong>: Optional SSH configuration and WiFi connection (preferably fixed IP in router)
+- <strong>Ubuntu Server</strong>: Via hosting provider administration</p>
+<p>For Docker installation, a <code>www-data</code> account is always present, through which the Rails application also runs.</p>
+<h4 id="22-localization">2.2 Localization<a class="headerlink" href="#22-localization" title="Permanent link">&para;</a></h4>
+<p><strong>Important</strong>: Only local servers have regionalization (region_id or context) for setting the data filter.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># config/localization.yml</span>
+<span class="nt">location</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{location_id}&quot;</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{location_name}&quot;</span>
+<span class="w">  </span><span class="nt">timezone</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Europe/Berlin&quot;</span>
+<span class="w">  </span><span class="nt">region_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{region_id}&quot;</span><span class="w">  </span><span class="c1"># Only relevant for local servers</span>
+</code></pre></div>
+<p><strong>Localization is only necessary for scoreboards</strong>, as these are assigned to a location so that the corresponding table selection can be made for the location.</p>
+<p><strong>Note</strong>: There were problems with <code>assets:precompile</code> that required a <code>location_id</code> to be specified. This needs to be reviewed and eliminated.</p>
+<h4 id="23-carambus-api-url-configuration">2.3 Carambus API URL Configuration<a class="headerlink" href="#23-carambus-api-url-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># config/api.yml</span>
+<span class="nt">carambus_api</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://newapi.carambus.de&quot;</span>
+<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="w">  </span><span class="nt">retry_attempts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</code></pre></div>
+<h4 id="24-language-configuration">2.4 Language Configuration<a class="headerlink" href="#24-language-configuration" title="Permanent link">&para;</a></h4>
+<p><strong>German is always the default locale</strong>. Users can select their own locale (DE or EN) through their profile. Switching is possible in the webapp and is irrelevant for installation.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># config/application.yml</span>
+<span class="nt">default_locale</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;de&quot;</span>
+<span class="nt">available_locales</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;de&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;en&quot;</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<h3 id="phase-3-scoreboard-setup-only-for-local-servers">Phase 3: Scoreboard Setup (only for local servers)<a class="headerlink" href="#phase-3-scoreboard-setup-only-for-local-servers" title="Permanent link">&para;</a></h3>
+<p><strong>Note</strong>: Desktop configurations need to be reviewed separately. We focus on passive installation from a headless server.</p>
+<h2 id="development-environment-computer-with-macos">🔧 Development Environment (Computer with macOS)<a class="headerlink" href="#development-environment-computer-with-macos" title="Permanent link">&para;</a></h2>
+<h3 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start single system</span>
+docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.development.local-server.yml<span class="w"> </span>up
+
+<span class="c1"># Start all systems in parallel (for inter-system testing)</span>
+./start-development-parallel.sh
+</code></pre></div>
+<h3 id="parallel-systems-development-mode">Parallel Systems (Development Mode)<a class="headerlink" href="#parallel-systems-development-mode" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># All three systems simultaneously on macOS computer</span>
+docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.development.parallel.yml<span class="w"> </span>up
+
+<span class="c1"># Ports:</span>
+<span class="c1"># - API Server: 3001 (PostgreSQL: 5433, Redis: 6380)</span>
+<span class="c1"># - Local Server: 3000 (PostgreSQL: 5432, Redis: 6379)</span>
+<span class="c1"># - Web Client: 3002 (PostgreSQL: 5434, Redis: 6381)</span>
+
+<span class="c1"># Installation paths:</span>
+<span class="c1"># - API Server: /var/www/carambus_api</span>
+<span class="c1"># - Local Server: /var/www/carambus</span>
+</code></pre></div>
+<h3 id="inter-system-communication-testing">Inter-System Communication Testing<a class="headerlink" href="#inter-system-communication-testing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Local server communicates with API server via Carambus API URL</span>
+<span class="c1"># For region filter tests</span>
+<span class="c1"># For synchronization tests</span>
+<span class="c1"># Local server has API URL that points to API server</span>
+</code></pre></div>
+<h2 id="monitoring-and-maintenance">📊 Monitoring and Maintenance<a class="headerlink" href="#monitoring-and-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="system-monitoring">System Monitoring<a class="headerlink" href="#system-monitoring" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Container status</span>
+docker<span class="w"> </span>compose<span class="w"> </span>ps
+
+<span class="c1"># Resource consumption</span>
+docker<span class="w"> </span>stats
+
+<span class="c1"># System resources</span>
+htop
+</code></pre></div>
+<h3 id="automatic-updates">Automatic Updates<a class="headerlink" href="#automatic-updates" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Crontab for automatic updates</span>
+crontab<span class="w"> </span>-e
+
+<span class="c1"># Update daily at 2:00 AM</span>
+<span class="c1"># For Local Server:</span>
+<span class="m">0</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/var/www/carambus<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>pull<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
+<span class="c1"># For API Server:</span>
+<span class="c1"># 0 2 * * * cd /var/www/carambus_api &amp;&amp; git pull &amp;&amp; docker compose up -d --build</span>
+</code></pre></div>
+<h3 id="backup-system">Backup System<a class="headerlink" href="#backup-system" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Automatic localization backup</span>
+<span class="c1">#!/bin/bash</span>
+<span class="c1"># backup-localization.sh</span>
+
+<span class="nv">LOCATION_ID</span><span class="o">=</span><span class="k">$(</span>grep<span class="w"> </span><span class="s2">&quot;LOCATION_ID&quot;</span><span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;=&#39;</span><span class="w"> </span>-f2<span class="k">)</span>
+<span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/backup/localization&quot;</span>
+<span class="nv">DATE</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>
+
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
+tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/localization_</span><span class="si">${</span><span class="nv">LOCATION_ID</span><span class="si">}</span><span class="s2">_</span><span class="si">${</span><span class="nv">DATE</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>config/localization.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>.env<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>storage/
+
+<span class="c1"># For combined installations (API Server + Local Server):</span>
+<span class="c1"># Backup both directories</span>
+<span class="c1"># tar -czf &quot;$BACKUP_DIR/carambus_combined_${DATE}.tar.gz&quot; \</span>
+<span class="c1">#   /var/www/carambus_api \</span>
+<span class="c1">#   /var/www/carambus</span>
+</code></pre></div>
+<h2 id="troubleshooting">🚨 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-problems">Common Problems<a class="headerlink" href="#common-problems" title="Permanent link">&para;</a></h3>
+<h4 id="container-wont-start">Container won't start<a class="headerlink" href="#container-wont-start" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check Docker status</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>docker
+
+<span class="c1"># View logs</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs
+
+<span class="c1"># Restart container</span>
+docker<span class="w"> </span>compose<span class="w"> </span>restart
+</code></pre></div>
+<h4 id="scoreboard-wont-start-only-for-local-servers">Scoreboard won't start (only for local servers)<a class="headerlink" href="#scoreboard-wont-start-only-for-local-servers" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clear browser cache</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>~/.cache/chromium
+
+<span class="c1"># Restart browser</span>
+pkill<span class="w"> </span>chromium
+chromium-browser<span class="w"> </span>--start-fullscreen<span class="w"> </span>--app<span class="o">=</span>http://localhost:3000/scoreboard
+</code></pre></div>
+<h4 id="network-problems">Network problems<a class="headerlink" href="#network-problems" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check IP address</span>
+ip<span class="w"> </span>addr<span class="w"> </span>show
+
+<span class="c1"># Restart network</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>networking
+</code></pre></div>
+<h3 id="log-analysis">Log Analysis<a class="headerlink" href="#log-analysis" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># All logs</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f
+
+<span class="c1"># Only Rails logs</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>web
+
+<span class="c1"># Only database logs</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>postgres
+</code></pre></div>
+<h2 id="migration-from-existing-installations">🔄 Migration from Existing Installations<a class="headerlink" href="#migration-from-existing-installations" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-create-backup">Step 1: Create Backup<a class="headerlink" href="#step-1-create-backup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Backup localization</span>
+tar<span class="w"> </span>-czf<span class="w"> </span>localization_backup.tar.gz<span class="w"> </span>config/localization.yml<span class="w"> </span>.env
+
+<span class="c1"># Backup database</span>
+docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>www_data<span class="w"> </span>carambus<span class="w"> </span>&gt;<span class="w"> </span>carambus_backup.sql
+</code></pre></div>
+<h3 id="step-2-new-installation">Step 2: New Installation<a class="headerlink" href="#step-2-new-installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Execute new deployment</span>
+<span class="c1"># For Local Server:</span>
+./deploy-docker.sh<span class="w"> </span>carambus_raspberry<span class="w"> </span>www-data@192.168.178.53:8910<span class="w"> </span>/var/www/carambus
+<span class="c1"># For API Server:</span>
+<span class="c1"># ./deploy-docker.sh carambus_api_server www-data@newapi.carambus.de:8910 /var/www/carambus_api</span>
+</code></pre></div>
+<h3 id="step-3-restore-data">Step 3: Restore Data<a class="headerlink" href="#step-3-restore-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Restore localization</span>
+tar<span class="w"> </span>-xzf<span class="w"> </span>localization_backup.tar.gz
+
+<span class="c1"># Restore database</span>
+docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>www_data<span class="w"> </span>carambus<span class="w"> </span>&lt;<span class="w"> </span>carambus_backup.sql
+</code></pre></div>
+<h2 id="further-documentation">📖 Further Documentation<a class="headerlink" href="#further-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><a href="../installation_overview/">Installation Overview</a></strong> - Installation overview</li>
+<li><strong><a href="../DEVELOPER_GUIDE/">Developer Guide</a></strong> - Developer documentation</li>
+<li><strong><a href="../API/">API Documentation</a></strong> - API reference</li>
+</ul>
+<h2 id="support">🆘 Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>If you have problems:
+1. Check the <strong><a href="../installation_overview/">Installation Overview</a></strong> page
+2. View logs: <code>docker compose logs</code>
+3. Container status: <code>docker compose ps</code>
+4. Restart system: <code>sudo reboot</code></p>
+<hr />
+<p><strong>🎉 That's it! With this guide, you can easily install and manage Carambus.</strong></p>
+<p><strong>💡 Tip</strong>: For development, use the parallel Docker systems on the macOS computer to test inter-system communication!</p>
+<p><strong>🏗️ Architecture</strong>: 2 production modes - API server (central) and local server (with Carambus API URL), both testable in development mode!</p>
+<p><strong>🔑 Important</strong>: All installations use the standard <code>www-data</code> account and are accessible via SSH port 8910. Localization is only relevant for local servers with scoreboards. API server and local server can run on the same hardware with different installation paths (<code>/var/www/carambus_api</code> and <code>/var/www/carambus</code>).</p>
+<p><strong>📝 Note</strong>: All deploy scripts and documentation have been updated accordingly. Please use the updated commands with <code>www-data@</code> and the correct paths. </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

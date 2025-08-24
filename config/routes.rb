@@ -19,7 +19,7 @@ Rails.application.routes.draw do
         get :autocomplete
       end
     end
-    
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
@@ -254,10 +254,13 @@ Rails.application.routes.draw do
     get :privacy
     get :search
     get :index_t
-    get :island25
     get :training
 
     get :database_syncing
+
+    # Neue Routen für integrierte MkDocs-Dokumentation
+    get 'docs_page/:locale/:path' => :docs_page, as: :docs_page_with_locale, constraints: { locale: /de|en/ }
+    get 'docs_page/:path' => :docs_page, as: :docs_page, defaults: { locale: 'de' }
   end
 
   match "/404", to: "errors#not_found", via: :all
@@ -267,6 +270,12 @@ Rails.application.routes.draw do
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", :as => :rails_health_check
+
+  # MkDocs documentation routes
+  get "docs/*path" => "docs#show", constraints: ->(req) { req.path.start_with?("/docs/") }
+
+  # MkDocs assets routes (CSS, JS, Bilder)
+  get "carambus-docs/*path" => "docs#assets", constraints: ->(req) { req.path.start_with?("/carambus-docs/") }
 
   # Render dynamic PWA files from app/views/pwa/*
   get "service-worker" => "rails/pwa#service_worker", :as => :pwa_service_worker

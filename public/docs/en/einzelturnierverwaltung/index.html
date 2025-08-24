@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="de" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -46,6 +46,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -72,8 +74,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#-" class="md-skip">
-          Skip to content
+        <a href="#tournament-management" class="md-skip">
+          Zum Inhalt
         </a>
       
     </div>
@@ -85,8 +87,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -138,20 +140,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../einzelturnierverwaltung/" hreflang="de" class="md-select__link">
+            <a href="./" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../en/einzelturnierverwaltung/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -172,16 +174,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Suche">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -194,7 +196,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Suche wird initialisiert
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -206,7 +208,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -227,7 +229,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -237,13 +239,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../" class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Startseite
 
       </a>
     </li>
@@ -258,11 +260,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../about/" class="md-tabs__link">
+        <a href="../../de/about/" class="md-tabs__link">
           
   
   
-  Introduction
+  Einführung
 
         </a>
       </li>
@@ -278,11 +280,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../tournament/" class="md-tabs__link">
+        <a href="../../de/installation_overview/" class="md-tabs__link">
           
   
   
-  User Guide
+  Installation
 
         </a>
       </li>
@@ -298,11 +300,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../DEVELOPER_GUIDE/" class="md-tabs__link">
+        <a href="../../de/tournament/" class="md-tabs__link">
           
   
   
-  Developer Guide
+  Benutzerhandbuch
 
         </a>
       </li>
@@ -318,11 +320,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../admin_roles/" class="md-tabs__link">
+        <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
           
   
   
-  Admin Guide
+  Entwicklerhandbuch
 
         </a>
       </li>
@@ -338,11 +340,31 @@
     
     
       <li class="md-tabs__item">
-        <a href="../er_diagram/" class="md-tabs__link">
+        <a href="../../de/API/" class="md-tabs__link">
           
   
   
-  Reference
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../de/tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
 
         </a>
       </li>
@@ -372,7 +394,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -382,7 +404,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -402,12 +424,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Home
+    Startseite
     
   </span>
   
@@ -443,7 +465,7 @@
   
   
   <span class="md-ellipsis">
-    Introduction
+    Einführung
     
   </span>
   
@@ -454,7 +476,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Introduction
+            Einführung
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -465,12 +487,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../de/about/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -488,7 +510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../de/" class="md-nav__link">
         
   
   
@@ -537,7 +559,7 @@
   
   
   <span class="md-ellipsis">
-    User Guide
+    Installation
     
   </span>
   
@@ -548,7 +570,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            User Guide
+            Installation
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -559,12 +581,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../tournament/" class="md-nav__link">
+      <a href="../../de/installation_overview/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Management
+    Übersicht
     
   </span>
   
@@ -582,81 +604,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../league/" class="md-nav__link">
+      <a href="../../de/docker_installation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    League Match Days
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../table_reservation_heating_control/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Table Reservation
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Scoreboard Setup
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mode_switcher/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Mode Switcher
+    Docker Installation
     
   </span>
   
@@ -700,7 +653,7 @@
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Benutzerhandbuch
     
   </span>
   
@@ -711,7 +664,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Developer Guide
+            Benutzerhandbuch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -722,12 +675,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+      <a href="../../de/tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Turnierverwaltung
     
   </span>
   
@@ -745,12 +698,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../mkdocs_documentation/" class="md-nav__link">
+      <a href="../../de/league/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    MkDocs Documentation
+    Ligaspieltage
     
   </span>
   
@@ -768,12 +721,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database_design/" class="md-nav__link">
+      <a href="../../de/table_reservation_heating_control/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Design
+    Tischreservierung
     
   </span>
   
@@ -791,12 +744,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database_syncing/" class="md-nav__link">
+      <a href="../../de/einzelturnierverwaltung/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Syncing
+    Einzelturnierverwaltung
     
   </span>
   
@@ -814,12 +767,58 @@
   
   
     <li class="md-nav__item">
-      <a href="../paper_trail_optimization/" class="md-nav__link">
+      <a href="../../de/verwaltung-von-ligaspieltagen/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Paper Trail Optimization
+    Verwaltung von Ligaspieltagen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/mode_switcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modus-Umschalter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
     
   </span>
   
@@ -863,7 +862,7 @@
   
   
   <span class="md-ellipsis">
-    Admin Guide
+    Entwicklerhandbuch
     
   </span>
   
@@ -874,7 +873,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Admin Guide
+            Entwicklerhandbuch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -885,12 +884,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../admin_roles/" class="md-nav__link">
+      <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Admin Roles
+    Getting Started
     
   </span>
   
@@ -908,12 +907,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../data_management/" class="md-nav__link">
+      <a href="../../de/DEVELOPER_GUIDE/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Data Management
+    Entwicklerhandbuch
     
   </span>
   
@@ -931,12 +930,242 @@
   
   
     <li class="md-nav__item">
-      <a href="../filter_popup_usage/" class="md-nav__link">
+      <a href="../../de/mkdocs_dokumentation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Filter Popup Usage
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
     
   </span>
   
@@ -980,7 +1209,7 @@
   
   
   <span class="md-ellipsis">
-    Reference
+    Referenz
     
   </span>
   
@@ -991,7 +1220,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            Reference
+            Referenz
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1002,30 +1231,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../er_diagram/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    ER Diagram
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../API/" class="md-nav__link">
+      <a href="../../de/API/" class="md-nav__link">
         
   
   
@@ -1048,12 +1254,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../terms/" class="md-nav__link">
+      <a href="../../de/terms/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Terms
+    AGB
     
   </span>
   
@@ -1071,12 +1277,83 @@
   
   
     <li class="md-nav__item">
-      <a href="../privacy/" class="md-nav__link">
+      <a href="../../de/privacy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Privacy
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
     
   </span>
   
@@ -1107,37 +1384,20 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Inhaltsverzeichnis
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#-" class="md-nav__link">
-    <span class="md-ellipsis">
-      ---
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#turnierverwaltung" class="md-nav__link">
-    <span class="md-ellipsis">
-      Turnierverwaltung
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Turnierverwaltung">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#account" class="md-nav__link">
     <span class="md-ellipsis">
       Account
@@ -1145,48 +1405,48 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#abgleich-mit-der-clubcloud" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#synchronization-with-clubcloud" class="md-nav__link">
     <span class="md-ellipsis">
-      Abgleich mit der ClubCloud
+      Synchronization with ClubCloud
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Abgleich mit der ClubCloud">
+    <nav class="md-nav" aria-label="Synchronization with ClubCloud">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#das-turnier-ist-noch-nicht-in-der-clubcloud-eingetragen" class="md-nav__link">
+  <a href="#the-tournament-is-not-yet-entered-in-clubcloud" class="md-nav__link">
     <span class="md-ellipsis">
-      Das Turnier ist noch nicht in der ClubCloud eingetragen
+      The tournament is not yet entered in ClubCloud
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#der-zentrale-carambus-api-server-kennt-das-turnier-noch-nicht" class="md-nav__link">
+  <a href="#the-central-carambus-api-server-does-not-yet-know-the-tournament" class="md-nav__link">
     <span class="md-ellipsis">
-      Der zentrale Carambus API Server kennt das Turnier noch nicht.
+      The central Carambus API server does not yet know the tournament
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#das-turnier-ist-noch-nicht-auf-den-lokalen-location-server-ubertragen" class="md-nav__link">
+  <a href="#the-tournament-has-not-yet-been-transferred-to-the-local-location-server" class="md-nav__link">
     <span class="md-ellipsis">
-      Das Turnier ist noch nicht auf den lokalen Location Server übertragen
+      The tournament has not yet been transferred to the local location server
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#aktualisieren-von-regionalverband-club-spieler-turnier-setzlisten" class="md-nav__link">
+  <a href="#updating-regional-association-club-player-tournament-seeding-lists" class="md-nav__link">
     <span class="md-ellipsis">
-      Aktualisieren von Regionalverband, Club, Spieler, Turnier, Setzlisten
+      Updating Regional Association, Club, Player, Tournament, Seeding Lists
     </span>
   </a>
   
@@ -1196,84 +1456,111 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#turnierverwaltung_1" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#tournament-management_1" class="md-nav__link">
     <span class="md-ellipsis">
-      TurnierVerwaltung
+      Tournament Management
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="TurnierVerwaltung">
+    <nav class="md-nav" aria-label="Tournament Management">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#abgleich-mit-der-clubcloud_1" class="md-nav__link">
+  <a href="#synchronization-with-clubcloud_1" class="md-nav__link">
     <span class="md-ellipsis">
-      Abgleich mit der ClubCloud
+      Synchronization with ClubCloud
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#uberprufung-der-relevanten-daten" class="md-nav__link">
+  <a href="#verification-of-relevant-data" class="md-nav__link">
     <span class="md-ellipsis">
-      Überprüfung der relevanten Daten
+      Verification of relevant data
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#sortierung-der-setzliste-gemass-rankings" class="md-nav__link">
+  <a href="#sorting-of-the-seeding-list-according-to-rankings" class="md-nav__link">
     <span class="md-ellipsis">
-      Sortierung der Setzliste gemäss Rankings
+      Sorting of the seeding list according to rankings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#auswahl-des-turniermodus" class="md-nav__link">
+  <a href="#selection-of-tournament-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Auswahl des Turniermodus
+      Selection of tournament mode
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#lokale-anpassung-der-turnierparameter" class="md-nav__link">
+  <a href="#local-adjustment-of-tournament-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      Lokale Anpassung der Turnierparameter
+      Local adjustment of tournament parameters
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#email-mit-den-spielergebnissen-csv-an-den-turnierleiter" class="md-nav__link">
+  <a href="#check-of-local-scoreboards" class="md-nav__link">
     <span class="md-ellipsis">
-      eMail mit den Spielergebnissen (csv) an den Turnierleiter
+      Check of local scoreboards
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#upload-der-spielergebnisse-csv-in-die-clubcloud" class="md-nav__link">
+  <a href="#start-of-the-tournament" class="md-nav__link">
     <span class="md-ellipsis">
-      Upload der Spielergebnisse (csv) in die ClubCloud
+      Start of the tournament
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#abgleich-mit-der-clubcloud-zum-letzten-check" class="md-nav__link">
+  <a href="#synchronization-of-match-results-with-game-protocols" class="md-nav__link">
     <span class="md-ellipsis">
-      Abgleich mit der ClubCloud zum letzten Check
+      Synchronization of match results with game protocols
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-with-game-results-csv-to-the-tournament-director" class="md-nav__link">
+    <span class="md-ellipsis">
+      Email with game results (csv) to the tournament director
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-of-game-results-csv-to-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload of game results (csv) to ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#final-synchronization-with-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Final synchronization with ClubCloud
     </span>
   </a>
   
@@ -1281,6 +1568,85 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tournament-not-loading-from-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament not loading from ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#result-synchronization-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Result synchronization problems
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-starting-a-tournament" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before starting a tournament
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-the-tournament" class="md-nav__link">
+    <span class="md-ellipsis">
+      During the tournament
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-the-tournament" class="md-nav__link">
+    <span class="md-ellipsis">
+      After the tournament
+    </span>
+  </a>
   
 </li>
         
@@ -1308,11 +1674,8 @@
   
 
 
-<h2 id="-">---<a class="headerlink" href="#-" title="Permanent link">&para;</a></h2>
-<p>title: Einzelturnierverwaltung
-summary: Die Einzelturnierverwaltung stellt eine Brücke zwischen der Turnierplanung
-  in der ClubCloud, den Carambus Scoreboards und dem Ergebnisdienst der ClubClud dar.  In
-  diesem Dokument werden die Abläufe im Detail beschrieben
+<p>title: Individual Tournament Management
+summary: Individual tournament management provides a bridge between tournament planning in ClubCloud, Carambus Scoreboards, and the ClubCloud results service. This document describes the processes in detail.
 version:
 published_at: !ruby/object:ActiveSupport::TimeWithZone
   utc: 2025-03-05 14:49:55.360649000 Z
@@ -1324,114 +1687,188 @@ metadata: {}
 position: 1
 id: 3</p>
 <hr />
-<h1 id="turnierverwaltung">Turnierverwaltung<a class="headerlink" href="#turnierverwaltung" title="Permanent link">&para;</a></h1>
+<h1 id="tournament-management">Tournament Management<a class="headerlink" href="#tournament-management" title="Permanent link">&para;</a></h1>
 <h2 id="account">Account<a class="headerlink" href="#account" title="Permanent link">&para;</a></h2>
-<p>Für das Carambus Turniermanagement ist ein Account mit Admin-Rechten auf dem Carambus Location Server erforderlich.
-Dieser kann vom Club-Vorsitzenden oder <a href="mailto:gernot.ullrich@gmx.de">Carambus-Entwickler</a> eingerichtet werden.
-URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel http://192.168.2.143:3131 .</p>
-<h2 id="abgleich-mit-der-clubcloud">Abgleich mit der ClubCloud<a class="headerlink" href="#abgleich-mit-der-clubcloud" title="Permanent link">&para;</a></h2>
-<p>Die Turniere findet man am besten über die <code>Regionaverbände -&gt; Suchen -&gt; Ansehen</code>.</p>
-<p>Dort sind die aktuell bekannten Turniere der laufenden Saison gelistet. Das Turnier kann über den Titel  ausgewählt werden.
-Sollte ein Turnier noch nicht gelistet sein, so kann das mehrere Gründe haben:</p>
+<p>For Carambus tournament management, an account with admin rights on the Carambus location server is required.
+This can be set up by the club chairman or <a href="mailto:gernot.ullrich@gmx.de">Carambus developer</a>.
+The URL is derivable from the scoreboard URLs, e.g., in Wedel http://192.168.2.143:3131.</p>
+<h2 id="synchronization-with-clubcloud">Synchronization with ClubCloud<a class="headerlink" href="#synchronization-with-clubcloud" title="Permanent link">&para;</a></h2>
+<p>Tournaments can best be found via <code>Regional Associations -&gt; Search -&gt; View</code>.</p>
+<p>There, the currently known tournaments of the running season are listed. The tournament can be selected via the title.
+If a tournament is not yet listed, this can have several reasons:</p>
 <ul>
-<li>Das Turnier ist noch nicht in der ClubCloud eingetragen</li>
-<li>Der zentrale Carambus API Server kennt das Turnier noch nicht.</li>
-<li>Das Turnier ist noch nicht auf den lokalen Location Server übertragen.</li>
+<li>The tournament is not yet entered in ClubCloud</li>
+<li>The central Carambus API server does not yet know the tournament</li>
+<li>The tournament has not yet been transferred to the local location server</li>
 </ul>
-<h3 id="das-turnier-ist-noch-nicht-in-der-clubcloud-eingetragen">Das Turnier ist noch nicht in der ClubCloud eingetragen<a class="headerlink" href="#das-turnier-ist-noch-nicht-in-der-clubcloud-eingetragen" title="Permanent link">&para;</a></h3>
-<p>Aufgabe des Landessportwartes ist es, die Turniere mit den Teilnehmerlisten in der ClubCloud einzupflegen.</p>
-<h3 id="der-zentrale-carambus-api-server-kennt-das-turnier-noch-nicht">Der zentrale Carambus API Server kennt das Turnier noch nicht.<a class="headerlink" href="#der-zentrale-carambus-api-server-kennt-das-turnier-noch-nicht" title="Permanent link">&para;</a></h3>
-<p>Der Api Server wird derzeit vom Carambus-Entwickler (mailto: gernot.ullrich@gmx.de) betreut.<br />
-Turnierdaten der Carambus nutzenden Regionen werden automatisiert täglich um 20:00 aus dem zugehörigen regionalen ClubCloud Server aktualisiert.</p>
-<p>Lokale Server fordern Updates aus der ClubCloud immer über den zentralen API Server (api.carambus.de) an.
-Dieser greift die Daten von den verschiedenen ClubCloud Instanzen ab.  Mit den spezifischen Updates werden immer auch alle Updates übertragen, die zwischenzeitlich auf dem API Server gemacht wurden.</p>
-<h3 id="das-turnier-ist-noch-nicht-auf-den-lokalen-location-server-ubertragen">Das Turnier ist noch nicht auf den lokalen Location Server übertragen<a class="headerlink" href="#das-turnier-ist-noch-nicht-auf-den-lokalen-location-server-ubertragen" title="Permanent link">&para;</a></h3>
-<p>Ein lokal nicht vorhandenes Turnier, welches aber auf dem API Server existiert, wird automatisch bei jeder Update-Anfrage an den API Server geladen, denn bei jeder Anfrage an den API Server wird der gesammte Datenbestand synchronisiert.
-So eine explizite Anfrage kann z.B. das Aktualisieren der Club-Daten sein:
-<code>Clubs -&gt; Suchen -&gt; Ansehen -&gt; "Datenabgleich mit der ClubCloud mit allen Details"</code></p>
-<h3 id="aktualisieren-von-regionalverband-club-spieler-turnier-setzlisten">Aktualisieren von Regionalverband, Club, Spieler, Turnier, Setzlisten<a class="headerlink" href="#aktualisieren-von-regionalverband-club-spieler-turnier-setzlisten" title="Permanent link">&para;</a></h3>
-<p>Beim expliziten Abholen von Daten werden auf dem API Server die angeforderten Daten mit der Billars Area abggeglichen.</p>
-<p>Folgenden explizte Datenanfragen sind implementiert:</p>
+<h3 id="the-tournament-is-not-yet-entered-in-clubcloud">The tournament is not yet entered in ClubCloud<a class="headerlink" href="#the-tournament-is-not-yet-entered-in-clubcloud" title="Permanent link">&para;</a></h3>
+<p>It is the task of the state sports supervisor to enter the tournaments with participant lists in ClubCloud.</p>
+<h3 id="the-central-carambus-api-server-does-not-yet-know-the-tournament">The central Carambus API server does not yet know the tournament<a class="headerlink" href="#the-central-carambus-api-server-does-not-yet-know-the-tournament" title="Permanent link">&para;</a></h3>
+<p>The API server is currently maintained by the Carambus developer (mailto: gernot.ullrich@gmx.de).
+Tournament data from Carambus-using regions are automatically updated daily at 20:00 from the associated regional ClubCloud server.</p>
+<p>Local servers always request updates from ClubCloud via the central API server (api.carambus.de).
+This server retrieves data from the various ClubCloud instances. With the specific updates, all updates that have been made on the API server in the meantime are also always transmitted.</p>
+<h3 id="the-tournament-has-not-yet-been-transferred-to-the-local-location-server">The tournament has not yet been transferred to the local location server<a class="headerlink" href="#the-tournament-has-not-yet-been-transferred-to-the-local-location-server" title="Permanent link">&para;</a></h3>
+<p>A locally non-existent tournament that exists on the API server is automatically loaded with every update request to the API server, because with every request to the API server, the entire database is synchronized.
+Such an explicit request can be, for example, updating club data:
+<code>Clubs -&gt; Search -&gt; View -&gt; "Data synchronization with ClubCloud with all details"</code></p>
+<h3 id="updating-regional-association-club-player-tournament-seeding-lists">Updating Regional Association, Club, Player, Tournament, Seeding Lists<a class="headerlink" href="#updating-regional-association-club-player-tournament-seeding-lists" title="Permanent link">&para;</a></h3>
+<p>When explicitly retrieving data, the requested data is compared with the Billiards Area on the API server.</p>
+<p>The following explicit data requests are implemented:</p>
 <ul>
-<li><code>Club -&gt; Datenabgleich mit der ClubCloud</code></li>
-<li><code>Club -&gt; Datenabgleich mit der ClubCloud mit allen Details</code></li>
-<li><code>Regionalverband -&gt; Datenabgleich mit der ClubCloud inkl. Clubs</code></li>
-<li><code>Regionalverband -&gt; Datenabgleich mit der ClubCloud inkl. Clubs und Spieler</code></li>
-<li><code>Turnier -&gt; Datenabgleich mit der ClubCloud</code></li>
+<li><code>Club -&gt; Data synchronization with ClubCloud</code></li>
+<li><code>Club -&gt; Data synchronization with ClubCloud with all details</code></li>
+<li><code>Regional Association -&gt; Data synchronization with ClubCloud incl. Clubs</code></li>
+<li><code>Regional Association -&gt; Data synchronization with ClubCloud incl. Clubs and Players</code></li>
+<li><code>Tournament -&gt; Data synchronization with ClubCloud</code></li>
 </ul>
-<h2 id="turnierverwaltung_1">TurnierVerwaltung<a class="headerlink" href="#turnierverwaltung_1" title="Permanent link">&para;</a></h2>
-<p>Ein Turnier wird generell in folgenden Phasen verwaltet:</p>
+<h2 id="tournament-management_1">Tournament Management<a class="headerlink" href="#tournament-management_1" title="Permanent link">&para;</a></h2>
+<p>A tournament is generally managed in the following phases:</p>
 <ul>
-<li>Abgleich mit der ClubCloud</li>
-<li>Überprüfung der relevanten Daten</li>
-<li>Sortierung der Setzliste gemäss Rankings</li>
-<li>Auswahl des Turniermodus</li>
-<li>Lokale Anpassung der Turnierparameter</li>
-<li>Check der lokalen Scoreboards</li>
-<li>Start des Turniers</li>
-<li>Abgleich der Partieergebnisse mit den Spielprotokollen</li>
-<li>eMail mit den Spielergebnissen (csv) an den Turnierleiter</li>
-<li>Upload der Spielergebnisse (csv) in die ClubCloud</li>
-<li>Abgleich mit der ClubCloud zum letzten Check.</li>
+<li>Synchronization with ClubCloud</li>
+<li>Verification of relevant data</li>
+<li>Sorting of the seeding list according to rankings</li>
+<li>Selection of tournament mode</li>
+<li>Local adjustment of tournament parameters</li>
+<li>Check of local scoreboards</li>
+<li>Start of the tournament</li>
+<li>Synchronization of match results with game protocols</li>
+<li>Email with game results (csv) to the tournament director</li>
+<li>Upload of game results (csv) to ClubCloud</li>
+<li>Final synchronization with ClubCloud for last check.</li>
 </ul>
-<h3 id="abgleich-mit-der-clubcloud_1">Abgleich mit der ClubCloud<a class="headerlink" href="#abgleich-mit-der-clubcloud_1" title="Permanent link">&para;</a></h3>
-<p>Wie oben beschrieben kann das Turnier erstmalig geladen werden z.B. durch Abgleich der Clubdaten</p>
-<p>Wenn ein Turnier bereits lokal bekannt ist, kann jederzeit eine Aktualisierung erneut angefordert werden:
-<code>Region -&gt; Turnier -&gt; Datenabgleich mit der ClubCloud</code></p>
-<h3 id="uberprufung-der-relevanten-daten">Überprüfung der relevanten Daten<a class="headerlink" href="#uberprufung-der-relevanten-daten" title="Permanent link">&para;</a></h3>
-<p>Für den Ablauf eines Turnieres sind folgende Daten wichtig:</p>
+<h3 id="synchronization-with-clubcloud_1">Synchronization with ClubCloud<a class="headerlink" href="#synchronization-with-clubcloud_1" title="Permanent link">&para;</a></h3>
+<p>As described above, the tournament can first be loaded, for example, by synchronizing club data</p>
+<p>If a tournament is already locally known, an update can be requested again at any time:
+<code>Region -&gt; Tournament -&gt; Data synchronization with ClubCloud</code></p>
+<h3 id="verification-of-relevant-data">Verification of relevant data<a class="headerlink" href="#verification-of-relevant-data" title="Permanent link">&para;</a></h3>
+<p>For the course of a tournament, the following data are important:</p>
 <ul>
-<li>Veranstalter (Regionalverband oder Club)</li>
-<li>Disziplin (für die Tischzuordnungen)</li>
-<li>Datum</li>
-<li>Saison</li>
-<li>Spielort (für die Tischzuordnungen)</li>
+<li>Organizer (Regional Association or Club)</li>
+<li>Discipline (for table assignments)</li>
+<li>Date</li>
+<li>Season</li>
+<li>Venue (for table assignments)</li>
 </ul>
-<p>Diese Daten werden in der Regel automatisiert von der ClubCloud gezogen. Ein Sonderfall ist der Spielort.
-Leider ist bezgl. des Spielortes auf der ClubCloud eine freie Texteingaben möglich.
-Für die Tischzuordnung ist in Carambus jedoch die Auswahl eines formal definierten Spielortes mit Konfigurierung der Tische notwendig (Tischnahme, Tischart)
-Weiterhin ist anzugeben, ob es sich um ein Vorgabetournier handelt.</p>
-<p>Diese Daten müssen über
-<code>Turnier -&gt; Edit -&gt; Turnier aktualisieren</code>
-ergänzt werden</p>
-<h3 id="sortierung-der-setzliste-gemass-rankings">Sortierung der Setzliste gemäss Rankings<a class="headerlink" href="#sortierung-der-setzliste-gemass-rankings" title="Permanent link">&para;</a></h3>
-<p>Mit dem BA-Abgleich wird die Teilnehmerliste (Setzliste) übertragen.</p>
-<p>Für Vorgabeturniere können die Handicaps eingetragen werden:
-<code>Tournament -&gt; Setzliste aktualisieren</code>
-Diese Liste kann jetzt lokal entsprechend der Spielerrankings sortiert werden:
-<code>Tournament -&gt; Ordne nach Rangliste bzw. Handicap</code></p>
-<p>Die Reihenfolge kann jetzt noch geändert werden durch Tausch von Plätzen mit den Pfeilen oben/unten.</p>
-<p>Die Reihenfolge wird dann endgültig abgeschlossen mit
-<code>Turnier -&gt; Abschluss der Rangliste (nicht umkehrbar)</code></p>
-<h3 id="auswahl-des-turniermodus">Auswahl des Turniermodus<a class="headerlink" href="#auswahl-des-turniermodus" title="Permanent link">&para;</a></h3>
-<p>Jetzt in die Turniermodusauswahl springen:
-<code>Turnier -&gt; Turniermodus festlegen</code></p>
-<p>In der Regel stehen mehrere Möglichkeiten zur Verfügung.  Der Tournierleiter kann einen Modus auswählen - in der Regel schon vom Landessportwart vorgegeben bei Turnieren der Regionalverbände.</p>
-<p>Auswahl duch Klick z.B. <code>Weiter mit T07</code></p>
-<h3 id="lokale-anpassung-der-turnierparameter">Lokale Anpassung der Turnierparameter<a class="headerlink" href="#lokale-anpassung-der-turnierparameter" title="Permanent link">&para;</a></h3>
-<p>Folgende Parameter können nun noch angepasst werden:</p>
+<p>This data is usually automatically pulled from ClubCloud. A special case is the venue.
+Unfortunately, regarding the venue in ClubCloud, free text input is possible.
+However, for table assignment in Carambus, the selection of a formally defined venue with table configuration is necessary (table capture, table type)
+Furthermore, it must be specified whether it is a handicap tournament.</p>
+<h3 id="sorting-of-the-seeding-list-according-to-rankings">Sorting of the seeding list according to rankings<a class="headerlink" href="#sorting-of-the-seeding-list-according-to-rankings" title="Permanent link">&para;</a></h3>
+<p>The seeding list is automatically sorted according to the current rankings of the players.
+The ranking system used is the one from the Billiards Area.
+If a player does not have a ranking, he is placed at the end of the list.</p>
+<h3 id="selection-of-tournament-mode">Selection of tournament mode<a class="headerlink" href="#selection-of-tournament-mode" title="Permanent link">&para;</a></h3>
+<p>Carambus supports various tournament modes:</p>
 <ul>
-<li>Zuordnung der Tische (Mapping interner Tischname zu extern Namen)</li>
-<li>Ballziel (ggf. bereits für Turnier vorgegeben)</li>
-<li>Aufnahmebegrenzung (ggf. bereits für Turnier vorgegeben)</li>
-<li>Timeout in sec (0 oder keine eingabe, wenn keine Timeouts)</li>
-<li>Timeouts (n Timeoutverlängerungen maximal)</li>
-<li>Checkbox "Tournament manager checks results before acceptance"</li>
-<li>Einspielzeit</li>
-<li>verkürzte Einspielzeit (bei Wechsel an einen bereits bespielten Tisch)</li>
+<li><strong>Single Elimination</strong>: Players are eliminated after one loss</li>
+<li><strong>Double Elimination</strong>: Players are eliminated after two losses</li>
+<li><strong>Round Robin</strong>: All players play against each other</li>
+<li><strong>Swiss System</strong>: Players with similar scores play against each other</li>
 </ul>
-<p>Zur Checkbox:  Normalerweise können die Spieler des Spielstatus fortschreiben z.B. nach <code>Partie beendet - OK?</code>.
-Wenn ein Check von Turniermanager erforderlich ist, wird dieses unterbunden und der Turnierleiter kann nach Abgleich mit dem Spielprotokoll den Tisch freigeben.</p>
-<p>Die neuen Spielpaarungen erscheinen jeweils automatisch auf den Scoreboards.
-Erst ganz am Ende:</p>
-<h3 id="email-mit-den-spielergebnissen-csv-an-den-turnierleiter">eMail mit den Spielergebnissen (csv) an den Turnierleiter<a class="headerlink" href="#email-mit-den-spielergebnissen-csv-an-den-turnierleiter" title="Permanent link">&para;</a></h3>
-<p>Nach Abschluss des Turniers erhält der Turnierleiter automatisch per eMail eine CSV-Datei mit den Ergebnissen in dem Format, welches für den Upload in die ClubCloud notwendig ist.
-Diese Datei wird auch auf dem lokalen Server gespeichert ({carambus}/tmp/result-{ba_id}.csv)</p>
-<h3 id="upload-der-spielergebnisse-csv-in-die-clubcloud">Upload der Spielergebnisse (csv) in die ClubCloud<a class="headerlink" href="#upload-der-spielergebnisse-csv-in-die-clubcloud" title="Permanent link">&para;</a></h3>
-<p>Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen (er weiss wie das geht ;-)</p>
-<h3 id="abgleich-mit-der-clubcloud-zum-letzten-check">Abgleich mit der ClubCloud zum letzten Check<a class="headerlink" href="#abgleich-mit-der-clubcloud-zum-letzten-check" title="Permanent link">&para;</a></h3>
-<p>Als letzten Schritt kann nocheinmal ein Abgleich mit der ClubCloud erfolgen.
-Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.</p>
+<p>The tournament mode is automatically determined from ClubCloud, but can be changed locally if necessary.</p>
+<h3 id="local-adjustment-of-tournament-parameters">Local adjustment of tournament parameters<a class="headerlink" href="#local-adjustment-of-tournament-parameters" title="Permanent link">&para;</a></h3>
+<p>After loading from ClubCloud, the following parameters can be adjusted locally:</p>
+<ul>
+<li><strong>Table assignments</strong>: Which tables are used for which matches</li>
+<li><strong>Match times</strong>: When matches start and how long they last</li>
+<li><strong>Break times</strong>: How long breaks between matches last</li>
+<li><strong>Scoring system</strong>: How points are awarded</li>
+</ul>
+<h3 id="check-of-local-scoreboards">Check of local scoreboards<a class="headerlink" href="#check-of-local-scoreboards" title="Permanent link">&para;</a></h3>
+<p>Before starting the tournament, it must be ensured that:</p>
+<ul>
+<li>All scoreboards are operational</li>
+<li>Table assignments are correctly configured</li>
+<li>Players can log in to their assigned tables</li>
+<li>The tournament mode is correctly set</li>
+</ul>
+<h3 id="start-of-the-tournament">Start of the tournament<a class="headerlink" href="#start-of-the-tournament" title="Permanent link">&para;</a></h3>
+<p>Once all checks are complete, the tournament can be started:</p>
+<ol>
+<li><strong>Activate tournament mode</strong> on all scoreboards</li>
+<li><strong>Assign players</strong> to their starting positions</li>
+<li><strong>Start first round</strong> of matches</li>
+<li><strong>Monitor progress</strong> and handle any issues</li>
+</ol>
+<h3 id="synchronization-of-match-results-with-game-protocols">Synchronization of match results with game protocols<a class="headerlink" href="#synchronization-of-match-results-with-game-protocols" title="Permanent link">&para;</a></h3>
+<p>After each match, the results are automatically:</p>
+<ul>
+<li><strong>Recorded</strong> on the scoreboard</li>
+<li><strong>Transmitted</strong> to the local server</li>
+<li><strong>Stored</strong> in the local database</li>
+<li><strong>Compared</strong> with the game protocols from ClubCloud</li>
+</ul>
+<h3 id="email-with-game-results-csv-to-the-tournament-director">Email with game results (csv) to the tournament director<a class="headerlink" href="#email-with-game-results-csv-to-the-tournament-director" title="Permanent link">&para;</a></h3>
+<p>At the end of each round, an email is automatically sent to the tournament director containing:</p>
+<ul>
+<li><strong>Match results</strong> in CSV format</li>
+<li><strong>Current standings</strong> of all players</li>
+<li><strong>Next round</strong> schedule</li>
+<li><strong>Any issues</strong> that need attention</li>
+</ul>
+<h3 id="upload-of-game-results-csv-to-clubcloud">Upload of game results (csv) to ClubCloud<a class="headerlink" href="#upload-of-game-results-csv-to-clubcloud" title="Permanent link">&para;</a></h3>
+<p>After the tournament is complete, all results are:</p>
+<ul>
+<li><strong>Compiled</strong> into a comprehensive CSV file</li>
+<li><strong>Uploaded</strong> to ClubCloud via the API server</li>
+<li><strong>Verified</strong> for accuracy and completeness</li>
+<li><strong>Archived</strong> for future reference</li>
+</ul>
+<h3 id="final-synchronization-with-clubcloud">Final synchronization with ClubCloud<a class="headerlink" href="#final-synchronization-with-clubcloud" title="Permanent link">&para;</a></h3>
+<p>The final step ensures that:</p>
+<ul>
+<li><strong>All results</strong> are correctly stored in ClubCloud</li>
+<li><strong>Rankings</strong> are updated based on tournament performance</li>
+<li><strong>Statistics</strong> are updated for future tournaments</li>
+<li><strong>Data consistency</strong> is maintained across all systems</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="tournament-not-loading-from-clubcloud">Tournament not loading from ClubCloud<a class="headerlink" href="#tournament-not-loading-from-clubcloud" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check internet connection to ClubCloud</li>
+<li>Verify API server is accessible</li>
+<li>Check if tournament exists in ClubCloud</li>
+<li>Verify user permissions</li>
+</ul>
+<h3 id="scoreboard-issues">Scoreboard issues<a class="headerlink" href="#scoreboard-issues" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check table assignments</li>
+<li>Verify player logins</li>
+<li>Check tournament mode settings</li>
+<li>Restart scoreboards if necessary</li>
+</ul>
+<h3 id="result-synchronization-problems">Result synchronization problems<a class="headerlink" href="#result-synchronization-problems" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check local database connectivity</li>
+<li>Verify API server communication</li>
+<li>Check CSV file format</li>
+<li>Verify email delivery</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="before-starting-a-tournament">Before starting a tournament<a class="headerlink" href="#before-starting-a-tournament" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Complete all data synchronization</strong> with ClubCloud</li>
+<li><strong>Verify all scoreboards</strong> are operational</li>
+<li><strong>Test player logins</strong> on all tables</li>
+<li><strong>Confirm table assignments</strong> are correct</li>
+<li><strong>Review tournament parameters</strong> and adjust if needed</li>
+</ol>
+<h3 id="during-the-tournament">During the tournament<a class="headerlink" href="#during-the-tournament" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Monitor all matches</strong> for any issues</li>
+<li><strong>Handle player requests</strong> promptly</li>
+<li><strong>Keep backup of results</strong> in case of technical issues</li>
+<li><strong>Communicate with tournament director</strong> regularly</li>
+</ol>
+<h3 id="after-the-tournament">After the tournament<a class="headerlink" href="#after-the-tournament" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Verify all results</strong> are recorded correctly</li>
+<li><strong>Complete result upload</strong> to ClubCloud</li>
+<li><strong>Archive tournament data</strong> for future reference</li>
+<li><strong>Update local statistics</strong> and rankings</li>
+<li><strong>Prepare summary report</strong> for organizers </li>
+</ol>
 
 
 
@@ -1461,19 +1898,9 @@ Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rank
       <div class="md-copyright">
   
   
-</div>
-      
-        <div class="md-social">
-  
-    
-    
-    
-    
-      
-      
-    
-    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
     </a>
   
 </div>
@@ -1490,10 +1917,16 @@ Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rank
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

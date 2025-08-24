@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="de" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -13,10 +13,6 @@
         <link rel="canonical" href="https://GernotUllrich.github.io/carambus-docs/en/er_diagram/">
       
       
-        <link rel="prev" href="../filter_popup_usage/">
-      
-      
-        <link rel="next" href="../API/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -24,7 +20,7 @@
     
     
       
-        <title>ER Diagram - Carambus Documentation</title>
+        <title>ER Diagram of the Carambus Database - Carambus Documentation</title>
       
     
     
@@ -49,6 +45,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -75,6 +73,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#er-diagram-of-the-carambus-database" class="md-skip">
+          Zum Inhalt
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -84,8 +87,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ER Diagram
+              ER Diagram of the Carambus Database
             
           </span>
         </div>
@@ -137,20 +140,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="/carambus-docs/" hreflang="de" class="md-select__link">
+            <a href="./" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../en/er_diagram/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -171,16 +174,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Suche">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -193,7 +196,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Suche wird initialisiert
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -205,7 +208,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -226,7 +229,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -236,13 +239,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../" class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Startseite
 
       </a>
     </li>
@@ -257,11 +260,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../about/" class="md-tabs__link">
+        <a href="../../de/about/" class="md-tabs__link">
           
   
   
-  Introduction
+  Einführung
 
         </a>
       </li>
@@ -277,11 +280,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../tournament/" class="md-tabs__link">
+        <a href="../../de/installation_overview/" class="md-tabs__link">
           
   
   
-  User Guide
+  Installation
 
         </a>
       </li>
@@ -297,11 +300,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../DEVELOPER_GUIDE/" class="md-tabs__link">
+        <a href="../../de/tournament/" class="md-tabs__link">
           
   
   
-  Developer Guide
+  Benutzerhandbuch
 
         </a>
       </li>
@@ -317,11 +320,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../admin_roles/" class="md-tabs__link">
+        <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
           
   
   
-  Admin Guide
+  Entwicklerhandbuch
 
         </a>
       </li>
@@ -333,17 +336,35 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../de/API/" class="md-tabs__link">
           
   
   
-  Reference
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../de/tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
 
         </a>
       </li>
@@ -373,7 +394,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -383,7 +404,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -403,12 +424,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Home
+    Startseite
     
   </span>
   
@@ -444,7 +465,7 @@
   
   
   <span class="md-ellipsis">
-    Introduction
+    Einführung
     
   </span>
   
@@ -455,7 +476,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Introduction
+            Einführung
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -466,12 +487,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../de/about/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -489,7 +510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../de/" class="md-nav__link">
         
   
   
@@ -538,7 +559,7 @@
   
   
   <span class="md-ellipsis">
-    User Guide
+    Installation
     
   </span>
   
@@ -549,7 +570,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            User Guide
+            Installation
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -560,12 +581,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../tournament/" class="md-nav__link">
+      <a href="../../de/installation_overview/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Management
+    Übersicht
     
   </span>
   
@@ -583,81 +604,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../league/" class="md-nav__link">
+      <a href="../../de/docker_installation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    League Match Days
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../table_reservation_heating_control/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Table Reservation
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Scoreboard Setup
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mode_switcher/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Mode Switcher
+    Docker Installation
     
   </span>
   
@@ -701,7 +653,7 @@
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Benutzerhandbuch
     
   </span>
   
@@ -712,7 +664,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Developer Guide
+            Benutzerhandbuch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -723,12 +675,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+      <a href="../../de/tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Turnierverwaltung
     
   </span>
   
@@ -746,12 +698,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../mkdocs_documentation/" class="md-nav__link">
+      <a href="../../de/league/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    MkDocs Documentation
+    Ligaspieltage
     
   </span>
   
@@ -769,12 +721,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database_design/" class="md-nav__link">
+      <a href="../../de/table_reservation_heating_control/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Design
+    Tischreservierung
     
   </span>
   
@@ -792,12 +744,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database_syncing/" class="md-nav__link">
+      <a href="../../de/einzelturnierverwaltung/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Syncing
+    Einzelturnierverwaltung
     
   </span>
   
@@ -815,12 +767,58 @@
   
   
     <li class="md-nav__item">
-      <a href="../paper_trail_optimization/" class="md-nav__link">
+      <a href="../../de/verwaltung-von-ligaspieltagen/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Paper Trail Optimization
+    Verwaltung von Ligaspieltagen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/mode_switcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modus-Umschalter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
     
   </span>
   
@@ -864,7 +862,7 @@
   
   
   <span class="md-ellipsis">
-    Admin Guide
+    Entwicklerhandbuch
     
   </span>
   
@@ -875,7 +873,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Admin Guide
+            Entwicklerhandbuch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,12 +884,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../admin_roles/" class="md-nav__link">
+      <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Admin Roles
+    Getting Started
     
   </span>
   
@@ -909,12 +907,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../data_management/" class="md-nav__link">
+      <a href="../../de/DEVELOPER_GUIDE/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Data Management
+    Entwicklerhandbuch
     
   </span>
   
@@ -932,12 +930,242 @@
   
   
     <li class="md-nav__item">
-      <a href="../filter_popup_usage/" class="md-nav__link">
+      <a href="../../de/mkdocs_dokumentation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Filter Popup Usage
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
     
   </span>
   
@@ -959,34 +1187,29 @@
       
   
   
-    
   
   
-  
     
     
     
     
       
-        
-        
-      
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
-    Reference
+    Referenz
     
   </span>
   
@@ -994,43 +1217,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            Reference
+            Referenz
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    ER Diagram
-    
-  </span>
-  
-
-      </a>
-      
-    </li>
-  
-
-              
             
               
                 
@@ -1039,7 +1231,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../API/" class="md-nav__link">
+      <a href="../../de/API/" class="md-nav__link">
         
   
   
@@ -1062,12 +1254,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../terms/" class="md-nav__link">
+      <a href="../../de/terms/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Terms
+    AGB
     
   </span>
   
@@ -1085,12 +1277,83 @@
   
   
     <li class="md-nav__item">
-      <a href="../privacy/" class="md-nav__link">
+      <a href="../../de/privacy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Privacy
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de/tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
     
   </span>
   
@@ -1121,10 +1384,446 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-change-player-club-relationship" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Change: Player-Club Relationship
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-er-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete ER Diagram
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relationship Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relationship Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-one-to-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:1 (One-to-One)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1n-one-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:N (One-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nm-many-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      N:M (Many-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-changes-in-the-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Changes in the Data Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Important Changes in the Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#playerclub_id-historical" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player.club_id (HISTORICAL)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seasonparticipation-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      SeasonParticipation (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages-of-the-new-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages of the New Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#primary-keys-pk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Keys (PK)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foreign-keys-fk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foreign Keys (FK)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Integrity
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Integrity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#referential-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Referential Integrity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Business Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-old-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration from the Old Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration from the Old Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#old-structure-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Old Structure (DEPRECATED)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-structure-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      New Structure (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extended-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extended Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extended Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#polymorphic-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Polymorphic Relationships
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#junction-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Junction Tables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Indexes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Model Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migrations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modeling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modeling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary of Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary of Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-has-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      What has changed?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-remains-the-same" class="md-nav__link">
+    <span class="md-ellipsis">
+      What remains the same?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1143,8 +1842,22 @@
   
 
 
-  <h1>ER Diagram</h1>
-
+<h1 id="er-diagram-of-the-carambus-database">ER Diagram of the Carambus Database<a class="headerlink" href="#er-diagram-of-the-carambus-database" title="Permanent link">&para;</a></h1>
+<p>This document shows the Entity-Relationship diagram of the Carambus database structure.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The ER diagram shows the relationships between the main entities in the Carambus system:
+- <strong>Regions</strong> organize clubs, tournaments and leagues
+- <strong>Clubs</strong> have locations and organize tournaments
+- <strong>Tournaments</strong> are held at locations and belong to leagues
+- <strong>Leagues</strong> have match days (parties) and teams
+- <strong>Match days</strong> consist of games between teams
+- <strong>Games</strong> are played by players</p>
+<h2 id="important-change-player-club-relationship">Important Change: Player-Club Relationship<a class="headerlink" href="#important-change-player-club-relationship" title="Permanent link">&para;</a></h2>
+<p><strong>⚠️ IMPORTANT</strong>: The relationship between players and clubs has changed:
+- <strong>Historically</strong>: Players belonged directly to a club (<code>Player.club_id</code>)
+- <strong>Currently</strong>: Players belong to clubs through <code>SeasonParticipation</code>
+- <strong>Advantage</strong>: A player can play for different clubs in different seasons</p>
+<h2 id="complete-er-diagram">Complete ER Diagram<a class="headerlink" href="#complete-er-diagram" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>erDiagram
     Region ||--o{ Club : &quot;has many&quot;
     Region ||--o{ Tournament : &quot;organizes&quot;
@@ -1181,11 +1894,13 @@
     Game ||--o{ GameParticipation : &quot;has many&quot;
     Game ||--o{ PartyGame : &quot;has many&quot;
 
-    Player ||--o{ GameParticipation : &quot;has many&quot;
+    %% IMPORTANT: Player has N:M relationship to Club through SeasonParticipation
     Player ||--o{ SeasonParticipation : &quot;has many&quot;
+    Player ||--o{ GameParticipation : &quot;has many&quot;
     Player ||--o{ Seeding : &quot;has many&quot;
     Player ||--o{ PartyGame : &quot;plays in&quot;
 
+    %% SeasonParticipation connects Player, Club and Season (N:M:N)
     SeasonParticipation ||--o{ Player : &quot;belongs to&quot;
     SeasonParticipation ||--o{ Club : &quot;belongs to&quot;
     SeasonParticipation ||--o{ Season : &quot;belongs to&quot;
@@ -1244,55 +1959,31 @@
     Location {
         int id PK
         string name
-        string address
-        int organizer_id FK
-        string organizer_type
+        int club_id FK
     }
 
     LeagueTeam {
         int id PK
-        string name
-        int club_id FK
         int league_id FK
-    }
-
-    Game {
-        int id PK
-        int tournament_id FK
-        string tournament_type
-        string gname
-    }
-
-    Player {
-        int id PK
-        string firstname
-        string lastname
-        string fl_name
-    }
-
-    SeasonParticipation {
-        int id PK
-        int player_id FK
         int club_id FK
-        int season_id FK
-    }
-
-    Seeding {
-        int id PK
-        int player_id FK
-        int tournament_id FK
-        string tournament_type
-        int league_team_id FK
-        int position
+        string name
     }
 
     PartyGame {
         int id PK
         int party_id FK
-        int player_a_id FK
-        int player_b_id FK
+        int player_id FK
         int discipline_id FK
-        int seqno
+        int game_id FK
+    }
+
+    Game {
+        int id PK
+        int tournament_id FK
+        int party_id FK
+        string status
+        datetime start_time
+        datetime end_time
     }
 
     GameParticipation {
@@ -1300,10 +1991,247 @@
         int game_id FK
         int player_id FK
         string role
-        int points
-        int result
+        int score
+    }
+
+    Player {
+        int id PK
+        string name
+        string email
+        %% HISTORICAL: club_id (no longer used)
+        %% int club_id FK
+        %% CURRENT: Relationship through SeasonParticipation
+    }
+
+    Seeding {
+        int id PK
+        int tournament_id FK
+        int player_id FK
+        int league_team_id FK
+        int discipline_id FK
+        int position
+    }
+
+    SeasonParticipation {
+        int id PK
+        int season_id FK
+        int player_id FK
+        int club_id FK
+        string status
+        %% Status: &quot;active&quot;, &quot;passive&quot;, &quot;guest&quot;
+    }
+
+    Discipline {
+        int id PK
+        string name
+        string description
     }
 </code></pre></div>
+<h2 id="relationship-types">Relationship Types<a class="headerlink" href="#relationship-types" title="Permanent link">&para;</a></h2>
+<h3 id="11-one-to-one">1:1 (One-to-One)<a class="headerlink" href="#11-one-to-one" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>One player</strong> has <strong>one email address</strong></li>
+<li><strong>One game</strong> has <strong>one status</strong></li>
+</ul>
+<h3 id="1n-one-to-many">1:N (One-to-Many)<a class="headerlink" href="#1n-one-to-many" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>One region</strong> has <strong>many clubs</strong></li>
+<li><strong>One club</strong> has <strong>many locations</strong></li>
+<li><strong>One tournament</strong> has <strong>many games</strong></li>
+</ul>
+<h3 id="nm-many-to-many">N:M (Many-to-Many)<a class="headerlink" href="#nm-many-to-many" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Clubs</strong> have <strong>many locations</strong> through <code>club_locations</code></li>
+<li><strong>Players</strong> play in <strong>many games</strong> through <code>game_participations</code></li>
+<li><strong>Games</strong> belong to <strong>many match days</strong> through <code>party_games</code></li>
+<li><strong>⚠️ NEW: Players belong to many clubs</strong> through <code>season_participations</code></li>
+</ul>
+<h2 id="important-changes-in-the-data-model">Important Changes in the Data Model<a class="headerlink" href="#important-changes-in-the-data-model" title="Permanent link">&para;</a></h2>
+<h3 id="playerclub_id-historical">Player.club_id (HISTORICAL)<a class="headerlink" href="#playerclub_id-historical" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is NO LONGER used</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Player</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="c1"># belongs_to :club  # DEPRECATED</span>
+<span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:season_participations</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:clubs</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:season_participations</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="seasonparticipation-current">SeasonParticipation (CURRENT)<a class="headerlink" href="#seasonparticipation-current" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is CURRENTLY used</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeasonParticipation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:season</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+
+<span class="w">  </span><span class="c1"># Status: &quot;active&quot;, &quot;passive&quot;, &quot;guest&quot;</span>
+<span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:status</span><span class="p">,</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="advantages-of-the-new-structure">Advantages of the New Structure<a class="headerlink" href="#advantages-of-the-new-structure" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Flexibility</strong>: Players can play for different clubs in different seasons</li>
+<li><strong>Historical Data</strong>: Complete history of club memberships</li>
+<li><strong>Status Management</strong>: Different statuses (active, passive, guest)</li>
+<li><strong>Season-based Management</strong>: Clear separation by seasons</li>
+</ol>
+<h2 id="key-attributes">Key Attributes<a class="headerlink" href="#key-attributes" title="Permanent link">&para;</a></h2>
+<h3 id="primary-keys-pk">Primary Keys (PK)<a class="headerlink" href="#primary-keys-pk" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>id</code>: Unique identification of each entity</li>
+<li>Auto-increment integer values</li>
+</ul>
+<h3 id="foreign-keys-fk">Foreign Keys (FK)<a class="headerlink" href="#foreign-keys-fk" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>region_id</code>: Reference to the parent region</li>
+<li><code>club_id</code>: Reference to the associated club (in SeasonParticipation)</li>
+<li><code>tournament_id</code>: Reference to the tournament</li>
+<li><code>league_id</code>: Reference to the league</li>
+<li><code>location_id</code>: Reference to the location</li>
+<li><code>player_id</code>: Reference to the player</li>
+</ul>
+<h2 id="data-integrity">Data Integrity<a class="headerlink" href="#data-integrity" title="Permanent link">&para;</a></h2>
+<h3 id="referential-integrity">Referential Integrity<a class="headerlink" href="#referential-integrity" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All foreign keys reference valid primary keys</li>
+<li>CASCADE deletions for dependent records</li>
+<li>RESTRICT deletions for critical relationships</li>
+</ul>
+<h3 id="business-rules">Business Rules<a class="headerlink" href="#business-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>⚠️ CHANGED</strong>: A player can play for different clubs in different seasons</li>
+<li>A tournament can only take place at one location</li>
+<li>A match day belongs to exactly one league</li>
+</ul>
+<h2 id="migration-from-the-old-structure">Migration from the Old Structure<a class="headerlink" href="#migration-from-the-old-structure" title="Permanent link">&para;</a></h2>
+<h3 id="old-structure-deprecated">Old Structure (DEPRECATED)<a class="headerlink" href="#old-structure-deprecated" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is NO LONGER used</span>
+<span class="no">Player</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">club</span><span class="w">  </span><span class="c1"># Direct club membership</span>
+</code></pre></div>
+<h3 id="new-structure-current">New Structure (CURRENT)<a class="headerlink" href="#new-structure-current" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># This relationship is CURRENTLY used</span>
+<span class="n">player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Player</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Current club (last active SeasonParticipation)</span>
+<span class="n">player</span><span class="o">.</span><span class="n">club</span><span class="w">  </span><span class="c1"># Method in Player model</span>
+
+<span class="c1"># All club memberships</span>
+<span class="n">player</span><span class="o">.</span><span class="n">season_participations</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="ss">:club</span><span class="p">,</span><span class="w"> </span><span class="ss">:season</span><span class="p">)</span>
+
+<span class="c1"># Club in specific season</span>
+<span class="n">player</span><span class="o">.</span><span class="n">season_participations</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">season</span><span class="p">:</span><span class="w"> </span><span class="n">current_season</span><span class="p">)</span><span class="o">&amp;.</span><span class="n">club</span>
+</code></pre></div>
+<h2 id="extended-relationships">Extended Relationships<a class="headerlink" href="#extended-relationships" title="Permanent link">&para;</a></h2>
+<h3 id="polymorphic-relationships">Polymorphic Relationships<a class="headerlink" href="#polymorphic-relationships" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Tournament can be organized by Region or Club</span>
+<span class="n">belongs_to</span><span class="w"> </span><span class="ss">:organizer</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+
+<span class="c1"># Usage</span>
+<span class="n">tournament</span><span class="o">.</span><span class="n">organizer_type</span><span class="w"> </span><span class="c1"># &quot;Region&quot; or &quot;Club&quot;</span>
+<span class="n">tournament</span><span class="o">.</span><span class="n">organizer_id</span><span class="w">   </span><span class="c1"># ID of the organizing entity</span>
+</code></pre></div>
+<h3 id="junction-tables">Junction Tables<a class="headerlink" href="#junction-tables" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># club_locations connects Clubs and Locations</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClubLocation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:location</span>
+<span class="k">end</span>
+
+<span class="c1"># season_participations connects Players, Clubs and Seasons</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeasonParticipation</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:season</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span>
+<span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:club</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="performance-optimizations">Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">&para;</a></h2>
+<h3 id="indexes">Indexes<a class="headerlink" href="#indexes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All foreign keys are indexed</li>
+<li>Composite indexes for frequent queries</li>
+<li>Unique indexes for business rules</li>
+<li><strong>⚠️ NEW</strong>: <code>index_season_participations_on_foreign_keys</code> for (player_id, club_id, season_id)</li>
+</ul>
+<h3 id="query-optimization">Query Optimization<a class="headerlink" href="#query-optimization" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Eager Loading to avoid N+1 problem</li>
+<li>Scopes for frequent filters</li>
+<li>Counter Caches for counts</li>
+<li><strong>⚠️ NEW</strong>: Optimized queries through SeasonParticipation</li>
+</ul>
+<h2 id="data-model-changes">Data Model Changes<a class="headerlink" href="#data-model-changes" title="Permanent link">&para;</a></h2>
+<h3 id="migrations">Migrations<a class="headerlink" href="#migrations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create new table</span>
+rails<span class="w"> </span>generate<span class="w"> </span>migration<span class="w"> </span>CreateNewTable
+
+<span class="c1"># Add column</span>
+rails<span class="w"> </span>generate<span class="w"> </span>migration<span class="w"> </span>AddColumnToTable
+
+<span class="c1"># Run migration</span>
+rails<span class="w"> </span>db:migrate
+</code></pre></div>
+<h3 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Undo last migration</span>
+rails<span class="w"> </span>db:rollback
+
+<span class="c1"># Go back to specific version</span>
+rails<span class="w"> </span>db:migrate<span class="w"> </span><span class="nv">VERSION</span><span class="o">=</span><span class="m">20231201000000</span>
+</code></pre></div>
+<h2 id="monitoring-and-maintenance">Monitoring and Maintenance<a class="headerlink" href="#monitoring-and-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="database-size">Database Size<a class="headerlink" href="#database-size" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Regular checking of table sizes</li>
+<li>Archiving old data</li>
+<li>Cleanup of deleted records</li>
+</ul>
+<h3 id="performance-monitoring">Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Identify slow queries</li>
+<li>Optimize indexes</li>
+<li>Analyze query plans</li>
+<li><strong>⚠️ NEW</strong>: Monitor SeasonParticipation queries</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="modeling">Modeling<a class="headerlink" href="#modeling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Normalization</strong>: Avoid redundancy</li>
+<li><strong>Denormalization</strong>: For performance when needed</li>
+<li><strong>Consistency</strong>: Uniform naming conventions</li>
+<li><strong>⚠️ NEW</strong>: Use SeasonParticipation for Player-Club relationships</li>
+</ul>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Migrations</strong>: Always make them reversible</li>
+<li><strong>Validations</strong>: At model and database level</li>
+<li><strong>Tests</strong>: Test database logic</li>
+<li><strong>⚠️ NEW</strong>: Test SeasonParticipation logic</li>
+</ul>
+<h3 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Backups</strong>: Regular backups</li>
+<li><strong>Updates</strong>: Plan database updates</li>
+<li><strong>Monitoring</strong>: Continuously monitor performance</li>
+<li><strong>⚠️ NEW</strong>: Monitor SeasonParticipation performance</li>
+</ul>
+<h2 id="summary-of-changes">Summary of Changes<a class="headerlink" href="#summary-of-changes" title="Permanent link">&para;</a></h2>
+<h3 id="what-has-changed">What has changed?<a class="headerlink" href="#what-has-changed" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Player.club_id</strong>: No longer used (historical)</li>
+<li><strong>SeasonParticipation</strong>: New N:M relationship between Player, Club and Season</li>
+<li><strong>Flexibility</strong>: Players can play for different clubs in different seasons</li>
+<li><strong>Status Management</strong>: Different statuses for club membership</li>
+</ol>
+<h3 id="what-remains-the-same">What remains the same?<a class="headerlink" href="#what-remains-the-same" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Basic Structure</strong>: All other relationships remain unchanged</li>
+<li><strong>API</strong>: Existing API endpoints continue to work</li>
+<li><strong>Views</strong>: Existing views continue to work</li>
+</ol>
+<h3 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Use SeasonParticipation</strong> for all Player-Club relationships</li>
+<li><strong>Avoid direct access</strong> to Player.club_id</li>
+<li><strong>Test all queries</strong> with the new structure</li>
+<li><strong>Document the changes</strong> for the team </li>
+</ol>
 
 
 
@@ -1333,19 +2261,9 @@
       <div class="md-copyright">
   
   
-</div>
-      
-        <div class="md-social">
-  
-    
-    
-    
-    
-      
-      
-    
-    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
     </a>
   
 </div>
@@ -1362,10 +2280,16 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

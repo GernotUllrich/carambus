@@ -251,6 +251,168 @@
     <LOAD_PATH number="0" />
     <I18N_FOLDERS number="1" string0="$MODULE_DIR$/config/locales" />
   </component>
+  <component name="RailsGeneratorsCache">
+    <option name="generators">
+      <list>
+        <option value="aasm" />
+        <option value="active_record:aasm" />
+        <option value="active_record:application_record" />
+        <option value="active_record:devise" />
+        <option value="active_record:multi_db" />
+        <option value="administrate:assets" />
+        <option value="administrate:assets:javascripts" />
+        <option value="administrate:assets:stylesheets" />
+        <option value="administrate:dashboard" />
+        <option value="administrate:field" />
+        <option value="administrate:view" />
+        <option value="administrate:views" />
+        <option value="administrate:views:edit" />
+        <option value="administrate:views:field" />
+        <option value="administrate:views:form" />
+        <option value="administrate:views:index" />
+        <option value="administrate:views:layout" />
+        <option value="administrate:views:navigation" />
+        <option value="administrate:views:new" />
+        <option value="administrate:views:show" />
+        <option value="annotate:install" />
+        <option value="application_record" />
+        <option value="benchmark" />
+        <option value="cable_ready:channel" />
+        <option value="cancan:ability" />
+        <option value="capistrano:nginx_puma:config" />
+        <option value="channel" />
+        <option value="controller" />
+        <option value="devcontainer" />
+        <option value="devise" />
+        <option value="devise:controllers" />
+        <option value="devise:i18n:locale" />
+        <option value="devise:i18n:views" />
+        <option value="devise:install" />
+        <option value="devise:views" />
+        <option value="factory_bot:model" />
+        <option value="generator" />
+        <option value="helper" />
+        <option value="integration_test" />
+        <option value="jbuilder" />
+        <option value="job" />
+        <option value="kaminari:config" />
+        <option value="kaminari:views" />
+        <option value="mailbox" />
+        <option value="mailer" />
+        <option value="migration" />
+        <option value="model" />
+        <option value="mongoid:aasm" />
+        <option value="mongoid:devise" />
+        <option value="nobrainer:aasm" />
+        <option value="paper_trail:install" />
+        <option value="paper_trail:migration" />
+        <option value="paper_trail:update_item_subtype" />
+        <option value="pundit:install" />
+        <option value="pundit:policy" />
+        <option value="rack_mini_profiler:install" />
+        <option value="rack_profiler:install" />
+        <option value="resource" />
+        <option value="responders:install" />
+        <option value="responders_controller" />
+        <option value="rspec:policy" />
+        <option value="scaffold" />
+        <option value="scaffold_controller" />
+        <option value="scss:assets" />
+        <option value="scss:scaffold" />
+        <option value="stimulus" />
+        <option value="stimulus_reflex" />
+        <option value="strong_migrations:install" />
+        <option value="system_test" />
+        <option value="task" />
+        <option value="test_unit:channel" />
+        <option value="test_unit:generator" />
+        <option value="test_unit:install" />
+        <option value="test_unit:mailbox" />
+        <option value="test_unit:plugin" />
+        <option value="test_unit:policy" />
+      </list>
+    </option>
+    <option name="myGenerators">
+      <list>
+        <option value="aasm" />
+        <option value="active_record:aasm" />
+        <option value="active_record:application_record" />
+        <option value="active_record:devise" />
+        <option value="active_record:multi_db" />
+        <option value="administrate:assets" />
+        <option value="administrate:assets:javascripts" />
+        <option value="administrate:assets:stylesheets" />
+        <option value="administrate:dashboard" />
+        <option value="administrate:field" />
+        <option value="administrate:view" />
+        <option value="administrate:views" />
+        <option value="administrate:views:edit" />
+        <option value="administrate:views:field" />
+        <option value="administrate:views:form" />
+        <option value="administrate:views:index" />
+        <option value="administrate:views:layout" />
+        <option value="administrate:views:navigation" />
+        <option value="administrate:views:new" />
+        <option value="administrate:views:show" />
+        <option value="annotate:install" />
+        <option value="application_record" />
+        <option value="benchmark" />
+        <option value="cable_ready:channel" />
+        <option value="cancan:ability" />
+        <option value="capistrano:nginx_puma:config" />
+        <option value="channel" />
+        <option value="controller" />
+        <option value="devcontainer" />
+        <option value="devise" />
+        <option value="devise:controllers" />
+        <option value="devise:i18n:locale" />
+        <option value="devise:i18n:views" />
+        <option value="devise:install" />
+        <option value="devise:views" />
+        <option value="factory_bot:model" />
+        <option value="generator" />
+        <option value="helper" />
+        <option value="integration_test" />
+        <option value="jbuilder" />
+        <option value="job" />
+        <option value="kaminari:config" />
+        <option value="kaminari:views" />
+        <option value="mailbox" />
+        <option value="mailer" />
+        <option value="migration" />
+        <option value="model" />
+        <option value="mongoid:aasm" />
+        <option value="mongoid:devise" />
+        <option value="nobrainer:aasm" />
+        <option value="paper_trail:install" />
+        <option value="paper_trail:migration" />
+        <option value="paper_trail:update_item_subtype" />
+        <option value="pundit:install" />
+        <option value="pundit:policy" />
+        <option value="rack_mini_profiler:install" />
+        <option value="rack_profiler:install" />
+        <option value="resource" />
+        <option value="responders:install" />
+        <option value="responders_controller" />
+        <option value="rspec:policy" />
+        <option value="scaffold" />
+        <option value="scaffold_controller" />
+        <option value="scss:assets" />
+        <option value="scss:scaffold" />
+        <option value="stimulus" />
+        <option value="stimulus_reflex" />
+        <option value="strong_migrations:install" />
+        <option value="system_test" />
+        <option value="task" />
+        <option value="test_unit:channel" />
+        <option value="test_unit:generator" />
+        <option value="test_unit:install" />
+        <option value="test_unit:mailbox" />
+        <option value="test_unit:plugin" />
+        <option value="test_unit:policy" />
+      </list>
+    </option>
+  </component>
   <component name="RailsPaths" isManagedAutomatically="true">
     <entry key="app">
       <value>file://$MODULE_DIR$/app</value>
@@ -338,7 +500,7 @@
     </entry>
     <entry key="test/mailers/previews">
       <value>file://$MODULE_DIR$/test/mailers/previews</value>
-      <value>file:///Volumes/EXT2TB/gullrich/DEV/projects/carambus_api/test/mailers/previews</value>
+      <value>file://$MODULE_DIR$/test/mailers/previews</value>
     </entry>
     <entry key="tmp">
       <value>file://$MODULE_DIR$/tmp</value>

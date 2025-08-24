@@ -92,6 +92,14 @@ module ApplicationHelper
     markdown.render(text).html_safe
   end
 
+  # Helper method for creating links to documentation pages
+  def docs_page_link(path, locale: nil, text: nil, options: {})
+    text ||= path.humanize
+    locale ||= I18n.locale.to_s
+    
+    link_to text, docs_page_path(path: path, locale: locale), options
+  end
+
   def custom_link_to(*args, &block)
     begin
       options = block_given? ? args[1] : args[2]
@@ -110,15 +118,34 @@ module ApplicationHelper
 
   def language_switcher
     available_locales = [:de, :en]
-    links = available_locales.map do |locale|
-      if locale == I18n.locale
-        content_tag(:span, locale.to_s.upcase, class: 'current-locale')
-      else
-        link_to locale.to_s.upcase, url_for(locale: locale), class: 'locale-link'
-      end
+    current_locale = I18n.locale
+    
+    content_tag :div, class: 'language-switcher' do
+      available_locales.map do |locale|
+        if locale == current_locale
+          content_tag :span, locale.to_s.upcase, class: 'current-locale'
+        else
+          link_to locale.to_s.upcase, url_for(locale: locale), class: 'locale-link'
+        end
+      end.join(' | ').html_safe
     end
+  end
 
-    safe_join(links, ' | ')
+  # Hilfsmethode für Links zu integrierten Dokumentationsseiten
+  def docs_page_link(path, locale: nil, text: nil, options: {})
+    locale ||= I18n.locale.to_s
+    text ||= path.split('/').last.humanize
+    
+    link_to text, docs_page_path(path: path, locale: locale), options
+  end
+
+  # Hilfsmethode für externe MkDocs-Links
+  def mkdocs_link(path, locale: nil, text: nil, options: {})
+    locale ||= I18n.locale.to_s
+    text ||= path.split('/').last.humanize
+    
+    url = "https://GernotUllrich.github.io/carambus-docs/#{locale}/#{path}/"
+    link_to text, url, options.merge(target: '_blank', rel: 'noopener')
   end
 
   def debug_translation(key)

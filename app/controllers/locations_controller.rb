@@ -64,10 +64,10 @@ class LocationsController < ApplicationController
              end
     end
     if game.present? && game.tournament.blank?
-      game.table_monitor.andand.reset_table_monitor
+      game.table_monitor&.reset_table_monitor
       game.destroy
-    elsif game.present? && game.tournament.present? && !game.table_monitor.andand.playing?
-      game.table_monitor.andand.reset_table_monitor
+    elsif game.present? && game.tournament.present? && !game.table_monitor&.playing?
+      game.table_monitor&.reset_table_monitor
     end
     if local_server?
 
@@ -193,7 +193,9 @@ class LocationsController < ApplicationController
     bypass_sign_in @user, scope: :user
     Current.user = @user
     scoreboard_current = scoreboard_location_url(@location.md5, sb_state: "welcome")
-    scoreboard_url = File.read("#{Rails.root}/config/scoreboard_url").to_s.strip
+    scoreboard_url = if File.exist?("#{Rails.root}/config/scoreboard_url")
+                       File.read("#{Rails.root}/config/scoreboard_url").to_s.strip
+                     end
     unless scoreboard_current == scoreboard_url
       File.write("#{Rails.root}/config/scoreboard_url", scoreboard_location_url(@location.md5, sb_state: "welcome"))
     end
@@ -249,8 +251,8 @@ class LocationsController < ApplicationController
         @pairs = @pairs.sort_by { |a| "#{a[1]} - #{a[2]}" }
       end
     else
-      redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",
-                                player_a_id: @player_a.andand.id, player_b_id: @player_b.andand.id)
+              redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",
+                                player_a_id: @player_a&.id, player_b_id: @player_b&.id)
     end
   end
 
@@ -330,7 +332,7 @@ class LocationsController < ApplicationController
 
   def add_tables_to
     table_kind = TableKind.find(params[:table_kind_id])
-    next_name = (@location.tables.order(:name).last.andand.name || "Table 0").succ
+            next_name = (@location.tables.order(:name).last&.name || "Table 0").succ
     (1..params[:number].to_i).each do |_i|
       Table.create!(location: @location, name: next_name, table_kind: table_kind)
       @location.reload

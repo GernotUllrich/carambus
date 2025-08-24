@@ -1,0 +1,50 @@
+# Carambus Rails Application Development Dockerfile
+# Optimiert für Ruby 3.2.1 und Entwicklungsumgebung
+
+FROM ruby:3.2.1-slim
+
+ENV RAILS_ENV=development
+ENV RAILS_SERVE_STATIC_FILES=true
+ENV RAILS_LOG_TO_STDOUT=true
+
+# Install system dependencies
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    git \
+    curl \
+    vim \
+    less \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18.x
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# Install yarn globally
+RUN npm install -g yarn
+
+# Set working directory
+WORKDIR /app
+
+# Copy Gemfile and install gems
+COPY Gemfile Gemfile.lock .ruby-version ./
+RUN bundle install --jobs 4 --retry 3
+
+# Copy package.json and install Node.js dependencies
+COPY package.json yarn.lock ./
+RUN yarn install
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p log storage app/assets/builds && \
+    mkdir -p tmp/cache/assets tmp/cache tmp/pids tmp/sockets tmp/sessions && \
+    mkdir -p tmp/cache/bootsnap tmp/cache/bootsnap-compile-cache tmp/cache/bootsnap-load-path-cache
+
+# Expose port
+EXPOSE 3000
+
+# Default command (will be overridden by docker-compose)
+CMD ["bash"]

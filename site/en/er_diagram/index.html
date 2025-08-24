@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="de" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -13,18 +13,22 @@
         <link rel="canonical" href="https://GernotUllrich.github.io/carambus-docs/en/er_diagram/">
       
       
+        <link rel="prev" href="../paper_trail_optimization/">
+      
+      
+        <link rel="next" href="../filter_popup_usage/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
     
     
       
-        <title>ER Diagram of the Carambus Database - Carambus Documentation</title>
+        <title>ER-Diagramm - Carambus Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -75,7 +79,7 @@
       
         
         <a href="#er-diagram-of-the-carambus-database" class="md-skip">
-          Zum Inhalt
+          Skip to content
         </a>
       
     </div>
@@ -87,8 +91,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
-    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ER Diagram of the Carambus Database
+              ER-Diagramm
             
           </span>
         </div>
@@ -140,20 +144,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="de" class="md-select__link">
+            <a href="../../er_diagram/" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../en/er_diagram/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -174,16 +178,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Suche">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -196,7 +200,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Suche wird initialisiert
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -208,10 +212,10 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     GernotUllrich/carambus
@@ -229,7 +233,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -239,7 +243,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../" class="md-tabs__link">
         
   
   
@@ -260,7 +264,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/about/" class="md-tabs__link">
+        <a href="../about/" class="md-tabs__link">
           
   
   
@@ -280,7 +284,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/installation_overview/" class="md-tabs__link">
+        <a href="../installation_overview/" class="md-tabs__link">
           
   
   
@@ -300,7 +304,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/tournament/" class="md-tabs__link">
+        <a href="../tournament/" class="md-tabs__link">
           
   
   
@@ -316,11 +320,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
           
   
   
@@ -340,7 +346,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/API/" class="md-tabs__link">
+        <a href="../API/" class="md-tabs__link">
           
   
   
@@ -360,7 +366,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../de/tischreservierung_heizungssteuerung/" class="md-tabs__link">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
           
   
   
@@ -394,7 +400,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -404,10 +410,10 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     GernotUllrich/carambus
@@ -424,7 +430,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -487,7 +493,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/about/" class="md-nav__link">
+      <a href="../about/" class="md-nav__link">
         
   
   
@@ -510,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -581,7 +587,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/installation_overview/" class="md-nav__link">
+      <a href="../installation_overview/" class="md-nav__link">
         
   
   
@@ -604,7 +610,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/docker_installation/" class="md-nav__link">
+      <a href="../docker_installation/" class="md-nav__link">
         
   
   
@@ -675,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/tournament/" class="md-nav__link">
+      <a href="../tournament/" class="md-nav__link">
         
   
   
@@ -698,7 +704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/league/" class="md-nav__link">
+      <a href="../league/" class="md-nav__link">
         
   
   
@@ -721,7 +727,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/table_reservation_heating_control/" class="md-nav__link">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
         
   
   
@@ -744,7 +750,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/einzelturnierverwaltung/" class="md-nav__link">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
         
   
   
@@ -767,30 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/verwaltung-von-ligaspieltagen/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Verwaltung von Ligaspieltagen
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../de/mode_switcher/" class="md-nav__link">
+      <a href="../mode_switcher/" class="md-nav__link">
         
   
   
@@ -813,7 +796,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/scoreboard_autostart_setup/" class="md-nav__link">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
         
   
   
@@ -840,24 +823,29 @@
       
   
   
+    
   
   
+  
     
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -870,7 +858,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             Entwicklerhandbuch
@@ -884,7 +872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
         
   
   
@@ -907,7 +895,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/DEVELOPER_GUIDE/" class="md-nav__link">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
         
   
   
@@ -930,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/mkdocs_dokumentation/" class="md-nav__link">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
         
   
   
@@ -953,7 +941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/database_design/" class="md-nav__link">
+      <a href="../database_design/" class="md-nav__link">
         
   
   
@@ -976,7 +964,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
         
   
   
@@ -999,7 +987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/admin_roles/" class="md-nav__link">
+      <a href="../admin_roles/" class="md-nav__link">
         
   
   
@@ -1022,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/data_management/" class="md-nav__link">
+      <a href="../data_management/" class="md-nav__link">
         
   
   
@@ -1045,7 +1033,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/game_plan_reconstruction/" class="md-nav__link">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
         
   
   
@@ -1068,7 +1056,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/paper_trail_optimization/" class="md-nav__link">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
         
   
   
@@ -1088,10 +1076,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../de/er_diagram/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1102,6 +1112,452 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-change-player-club-relationship" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Change: Player-Club Relationship
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-er-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete ER Diagram
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relationship Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relationship Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-one-to-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:1 (One-to-One)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1n-one-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      1:N (One-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nm-many-to-many" class="md-nav__link">
+    <span class="md-ellipsis">
+      N:M (Many-to-Many)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-changes-in-the-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Changes in the Data Model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Important Changes in the Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#playerclub_id-historical" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player.club_id (HISTORICAL)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seasonparticipation-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      SeasonParticipation (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advantages-of-the-new-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages of the New Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#primary-keys-pk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Keys (PK)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foreign-keys-fk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foreign Keys (FK)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Integrity
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Integrity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#referential-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Referential Integrity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Business Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-old-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration from the Old Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration from the Old Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#old-structure-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Old Structure (DEPRECATED)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-structure-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      New Structure (CURRENT)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extended-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extended Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extended Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#polymorphic-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Polymorphic Relationships
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#junction-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Junction Tables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Indexes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Model Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migrations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modeling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modeling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary of Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary of Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-has-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      What has changed?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-remains-the-same" class="md-nav__link">
+    <span class="md-ellipsis">
+      What remains the same?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1114,7 +1570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/filter_popup_usage/" class="md-nav__link">
+      <a href="../filter_popup_usage/" class="md-nav__link">
         
   
   
@@ -1137,7 +1593,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/tournament_duplicate_handling/" class="md-nav__link">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
         
   
   
@@ -1160,7 +1616,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/region_tagging_cleanup_summary/" class="md-nav__link">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
         
   
   
@@ -1231,7 +1687,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/API/" class="md-nav__link">
+      <a href="../API/" class="md-nav__link">
         
   
   
@@ -1254,7 +1710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/terms/" class="md-nav__link">
+      <a href="../terms/" class="md-nav__link">
         
   
   
@@ -1277,7 +1733,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/privacy/" class="md-nav__link">
+      <a href="../privacy/" class="md-nav__link">
         
   
   
@@ -1348,7 +1804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../de/tischreservierung_heizungssteuerung/" class="md-nav__link">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
         
   
   
@@ -1384,7 +1840,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1393,7 +1849,7 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Inhaltsverzeichnis
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
@@ -2280,10 +2736,10 @@ rails<span class="w"> </span>db:migrate<span class="w"> </span><span class="nv">
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
       
         <script src="../../javascripts/mathjax.js"></script>
       

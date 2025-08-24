@@ -37,8 +37,8 @@ services:
 
   web_api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: docker/Dockerfile
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgresql://www_data:carambus_api_development_password@postgres_api:5432/carambus_api_development
@@ -62,7 +62,7 @@ services:
       redis_api:
         condition: service_healthy
     command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
-    user: "33:33"
+    # user: "33:33"  # Temporär deaktiviert für Development
 
   # Local Server
   postgres_local:
@@ -96,8 +96,8 @@ services:
 
   web_local:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: docker/Dockerfile
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgresql://www_data:carambus_local_development_password@postgres_local:5432/carambus_local_development
@@ -121,7 +121,7 @@ services:
       redis_local:
         condition: service_healthy
     command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
-    user: "33:33"
+    # user: "33:33"  # Temporär deaktiviert für Development
 
   # Web Client
   postgres_web:
@@ -155,8 +155,8 @@ services:
 
   web_client:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: docker/Dockerfile
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgresql://www_data:carambus_web_development_password@postgres_web:5432/carambus_web_development
@@ -180,7 +180,7 @@ services:
       redis_web:
         condition: service_healthy
     command: ["bundle", "exec", "puma", "-p", "3000", "-e", "development"]
-    user: "33:33"
+    # user: "33:33"  # Temporär deaktiviert für Development
 
 volumes:
   postgres_api_data:
