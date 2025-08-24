@@ -91,7 +91,7 @@ git push carambus master
 ## 🔧 Technische Details
 
 ### GitHub Pages URL
-- **Standard**: `https://gernotullrich.github.io/carambus-docs`
+- **Standard**: `https://gernotullrich.github.io/carambus`
 - **Deployment**: Automatisch bei jedem Push auf `master`
 - **Build-Zeit**: ~5-10 Minuten nach Push
 
@@ -101,7 +101,7 @@ git push carambus master
 
 ### MkDocs-URLs
 - **Lokale Entwicklung**: `http://localhost:3000/docs_page/tournament`
-- **GitHub Pages**: `https://gernotullrich.github.io/carambus-docs`
+- **GitHub Pages**: `https://gernotullrich.github.io/carambus`
 - **Integrierte Anzeige**: `/docs_page/tournament` (im Carambus-Layout)
 
 ## 🎯 Fazit

@@ -144,7 +144,7 @@ module ApplicationHelper
     locale ||= I18n.locale.to_s
     text ||= path.split('/').last.humanize
     
-    url = "https://GernotUllrich.github.io/carambus-docs/#{locale}/#{path}/"
+    url = "https://gernotullrich.github.io/carambus/#{locale}/#{path}/"
     link_to text, url, options.merge(target: '_blank', rel: 'noopener')
   end
 

@@ -9,7 +9,7 @@ Thank you for your interest in contributing to Carambus! This document provides 
 Before creating an issue, please:
 
 1. **Search existing issues** to see if your problem has already been reported
-2. **Check the documentation** at [https://gernotullrich.github.io/carambus-docs/](https://gernotullrich.github.io/carambus-docs/)
+2. **Check the documentation** at [https://gernotullrich.github.io/carambus/](https://gernotullrich.github.io/carambus/)
 3. **Provide detailed information** including:
    - Rails version
    - Ruby version
@@ -231,7 +231,7 @@ bin/rails db:seed                  # Seed database
 
 ### Getting Help
 
-- **Documentation**: Check [MkDocs documentation](https://gernotullrich.github.io/carambus-docs/)
+- **Documentation**: Check [MkDocs documentation](https://gernotullrich.github.io/carambus/)
 - **Issues**: Search existing issues on GitHub
 - **Discussions**: Use GitHub Discussions for questions
 - **Community**: Reach out to maintainers

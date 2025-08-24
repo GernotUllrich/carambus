@@ -1,7 +1,7 @@
 # Carambus - Billiards Management System
 
 [![Build Status](https://github.com/GernotUllrich/carambus/workflows/Build%20and%20Deploy%20Documentation/badge.svg)](https://github.com/GernotUllrich/carambus/actions)
-[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://gernotullrich.github.io/carambus-docs/)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://gernotullrich.github.io/carambus/)
 
 Carambus is a comprehensive billiards management system built with Ruby on Rails, designed to handle tournaments, leagues, clubs, and player management for billiards organizations.
 
@@ -59,9 +59,9 @@ Carambus is a comprehensive billiards management system built with Ruby on Rails
 
 ## 📚 Documentation
 
-- **User Guide**: [Tournament Management](https://gernotullrich.github.io/carambus-docs/de/user_guide/tournament/)
-- **Developer Guide**: [Getting Started](https://gernotullrich.github.io/carambus-docs/de/developer_guide/getting_started/)
-- **API Documentation**: [API Reference](https://gernotullrich.github.io/carambus-docs/de/reference/api/)
+- **User Guide**: [Tournament Management](https://gernotullrich.github.io/carambus/de/user_guide/tournament/)
+- **Developer Guide**: [Getting Started](https://gernotullrich.github.io/carambus/de/developer_guide/getting_started/)
+- **API Documentation**: [API Reference](https://gernotullrich.github.io/carambus/de/reference/api/)
 
 ## 🏗️ Architecture
 
