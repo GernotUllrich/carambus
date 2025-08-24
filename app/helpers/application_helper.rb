@@ -144,7 +144,9 @@ module ApplicationHelper
     locale ||= I18n.locale.to_s
     text ||= path.split('/').last.humanize
     
-    url = "https://gernotullrich.github.io/carambus/#{locale}/#{path}/"
+    # Korrekte URL-Struktur für MkDocs-Seiten
+    # Beispiel: path = "about" -> https://gernotullrich.github.io/carambus/about/
+    url = "https://gernotullrich.github.io/carambus/#{path}/"
     link_to text, url, options.merge(target: '_blank', rel: 'noopener')
   end
 
