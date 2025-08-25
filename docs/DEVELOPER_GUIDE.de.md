@@ -92,6 +92,13 @@ Die Anwendung verwendet Rails Concerns, um Funktionalität zu teilen:
    cp config/database.yml.example config/database.yml
    # database.yml mit Ihren PostgreSQL-Zugangsdaten bearbeiten
    
+   # Option 1: Bestehenden Datenbank-Dump importieren (empfohlen)
+   # Stellen Sie sicher, dass Sie eine Datenbank-Dump-Datei haben (z.B., carambus_api_development_YYYYMMDD_HHMMSS.sql)
+   # Datenbank erstellen und Dump importieren:
+   createdb carambus_development
+   psql -d carambus_development -f /pfad/zu/ihrem/dump.sql
+   
+   # Option 2: Neue Datenbank erstellen (falls kein Dump verfügbar)
    rails db:create
    rails db:migrate
    rails db:seed

@@ -92,6 +92,13 @@ The application uses Rails concerns to share functionality:
    cp config/database.yml.example config/database.yml
    # Edit database.yml with your PostgreSQL credentials
    
+   # Option 1: Import existing database dump (recommended)
+   # Ensure you have a database dump file (e.g., carambus_api_development_YYYYMMDD_HHMMSS.sql)
+   # Create database and import dump:
+   createdb carambus_development
+   psql -d carambus_development -f /path/to/your/dump.sql
+   
+   # Option 2: Create fresh database (if no dump available)
    rails db:create
    rails db:migrate
    rails db:seed

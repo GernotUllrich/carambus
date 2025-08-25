@@ -53,6 +53,19 @@ We welcome feature suggestions! Please:
 
 3. **Setup database**
    ```bash
+   # Option 1: Import existing database dump (recommended)
+   # Ensure you have a database dump file (e.g., carambus_api_development_YYYYMMDD_HHMMSS.sql)
+   # Create database and import dump:
+   createdb carambus_development
+   psql -d carambus_development -f /path/to/your/dump.sql
+   
+   # Note: Some errors during import are normal and can be ignored:
+   # - "relation already exists" - table already exists
+   # - "multiple primary keys not allowed" - primary key already defined
+   # - "index already exists" - index already exists
+   # - "constraint already exists" - constraint already defined
+   
+   # Option 2: Create fresh database (if no dump available)
    bin/rails db:create
    bin/rails db:migrate
    bin/rails db:seed

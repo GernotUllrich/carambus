@@ -1,6 +1,10 @@
 class ChangeIndexCcIdOnTournamentCcs < ActiveRecord::Migration[7.0]
+  disable_ddl_transaction!
+
   def change
-    remove_index :tournament_ccs, ["cc_id"], unique: true
-    add_index :tournament_ccs, ["cc_id", "context"], unique: true
+    safety_assured do
+      remove_index :tournament_ccs, :cc_id
+      add_index :tournament_ccs, :cc_id, algorithm: :concurrently
+    end
   end
 end

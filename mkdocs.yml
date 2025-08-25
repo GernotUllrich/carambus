@@ -51,6 +51,7 @@ nav:
   - Entwicklerhandbuch:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+      - Datenbank-Setup: DATABASE_SETUP.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
       - Datenbank-Partitionierung: datenbank-partitionierung-und-synchronisierung.md

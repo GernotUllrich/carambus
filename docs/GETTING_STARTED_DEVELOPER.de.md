@@ -70,6 +70,13 @@ bundle install
 yarn install
 
 # Datenbank einrichten
+# Option 1: Bestehenden Datenbank-Dump importieren (empfohlen)
+# Stellen Sie sicher, dass Sie eine Datenbank-Dump-Datei haben (z.B., carambus_api_development_YYYYMMDD_HHMMSS.sql)
+# Datenbank erstellen und Dump importieren:
+createdb carambus_development
+psql -d carambus_development -f /pfad/zu/ihrem/dump.sql
+
+# Option 2: Neue Datenbank erstellen (falls kein Dump verfügbar)
 rails db:create
 rails db:migrate
 rails db:seed
@@ -212,6 +219,15 @@ rails db:migrate
 # Oder Dump importieren (über psql)
 gunzip -c docker-development-api/database/dump.sql.gz | psql -h localhost -p 5433 -U www_data -d carambus_api_development
 ```
+
+**Hinweis zu Dump-Import-Fehlern**: Beim Import eines Datenbank-Dumps können einige Fehler auftreten, die ignoriert werden können:
+- `relation "table_name" already exists` - Tabelle existiert bereits
+- `multiple primary keys for table "table_name" are not allowed` - Primärschlüssel bereits definiert
+- `relation "index_name" already exists` - Index existiert bereits
+- `constraint "constraint_name" for relation "table_name" already exists` - Constraint bereits definiert
+- `duplicate key value violates unique constraint` - Metadaten bereits gesetzt
+
+Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wurde.
 
 ## 🔍 **Erste Schritte nach dem Setup**
 

@@ -202,6 +202,11 @@ bundle exec rails mode:status
 
 1. **Database Creation**: You need to create both databases:
    ```bash
+   # Option 1: Import existing database dump (recommended)
+   createdb carambus_development
+   psql -d carambus_development -f /path/to/your/dump.sql
+   
+   # Option 2: Create fresh database (if no dump available)
    bundle exec rails db:create RAILS_ENV=development
    # Then switch modes and create the other database
    ```
@@ -231,6 +236,11 @@ bundle exec rails mode:status
 
 2. **Database Connection Errors**: Ensure both databases exist:
    ```bash
+   # Option 1: Import existing database dump (recommended)
+   createdb carambus_development
+   psql -d carambus_development -f /path/to/your/dump.sql
+   
+   # Option 2: Create fresh database (if no dump available)
    bundle exec rails db:create RAILS_ENV=development
    ```
 
