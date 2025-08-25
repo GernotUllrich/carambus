@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_24_213620) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,75 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.index ["region_shortname", "season_name", "tournament_name"], name: "index_abandoned_tournament_ccs_on_region_season_tournament"
   end
 
+  create_table "account_invitations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "invited_by_id"
+    t.string "token"
+    t.string "name"
+    t.string "email"
+    t.jsonb "roles", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "email"], name: "index_account_invitations_on_account_id_and_email", unique: true
+    t.index ["invited_by_id"], name: "index_account_invitations_on_invited_by_id"
+    t.index ["token"], name: "index_account_invitations_on_token", unique: true
+  end
+
+  create_table "account_users", force: :cascade do |t|
+    t.bigint "account_id"
+    t.bigint "user_id"
+    t.jsonb "roles", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "user_id"], name: "index_account_users_on_account_id_and_user_id", unique: true
+  end
+
+  create_table "accounts", force: :cascade do |t|
+    t.string "name"
+    t.bigint "owner_id"
+    t.boolean "personal", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "processor"
+    t.string "processor_id"
+    t.datetime "trial_ends_at", precision: nil
+    t.string "card_type"
+    t.string "card_last4"
+    t.string "card_exp_month"
+    t.string "card_exp_year"
+    t.text "extra_billing_info"
+    t.string "domain"
+    t.string "subdomain"
+    t.integer "account_users_count", default: 0
+    t.index ["owner_id"], name: "index_accounts_on_owner_id"
+  end
+
+  create_table "action_mailbox_inbound_emails", force: :cascade do |t|
+    t.integer "status", default: 0, null: false
+    t.string "message_id", null: false
+    t.string "message_checksum", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
+  end
+
+  create_table "action_text_embeds", force: :cascade do |t|
+    t.string "url"
+    t.jsonb "fields"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "action_text_rich_texts", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "body"
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
+  end
+
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -55,10 +124,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.string "filename", null: false
     t.string "content_type"
     t.text "metadata"
+    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum"
-    t.datetime "created_at", precision: nil, null: false
-    t.string "service_name", null: false
+    t.datetime "created_at", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -66,6 +135,28 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "announcements", force: :cascade do |t|
+    t.string "kind"
+    t.string "title"
+    t.datetime "published_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token"
+    t.string "name"
+    t.jsonb "metadata", default: {}
+    t.boolean "transient", default: false
+    t.datetime "last_used_at", precision: nil
+    t.datetime "expires_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_api_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_api_tokens_on_user_id"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -160,6 +251,25 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["branch_cc_id", "cc_id", "context"], name: "index_competition_ccs_on_branch_cc_id_and_cc_id_and_context", unique: true
+  end
+
+  create_table "connected_accounts", force: :cascade do |t|
+    t.bigint "owner_id"
+    t.string "provider"
+    t.string "uid"
+    t.string "encrypted_access_token"
+    t.string "encrypted_access_token_iv"
+    t.string "encrypted_access_token_secret"
+    t.string "encrypted_access_token_secret_iv"
+    t.string "refresh_token"
+    t.datetime "expires_at", precision: nil
+    t.text "auth"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.string "owner_type"
+    t.index ["encrypted_access_token_iv"], name: "index_connected_accounts_access_token_iv", unique: true
+    t.index ["encrypted_access_token_secret_iv"], name: "index_connected_accounts_access_token_secret_iv", unique: true
+    t.index ["owner_id", "owner_type"], name: "index_connected_accounts_on_owner_id_and_owner_type"
   end
 
   create_table "countries", force: :cascade do |t|
@@ -485,6 +595,20 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "recipient_type", null: false
+    t.bigint "recipient_id", null: false
+    t.string "type"
+    t.jsonb "params"
+    t.datetime "read_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "interacted_at", precision: nil
+    t.index ["account_id"], name: "index_notifications_on_account_id"
+    t.index ["recipient_type", "recipient_id"], name: "index_notifications_on_recipient_type_and_recipient_id"
+  end
+
   create_table "pages", force: :cascade do |t|
     t.string "title", null: false
     t.text "content"
@@ -604,6 +728,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.integer "discipline_id"
     t.integer "region_id"
     t.boolean "global_context", default: false
+    t.integer "tournament_id"
     t.index ["global_context"], name: "index_party_games_on_global_context"
     t.index ["region_id"], name: "index_party_games_on_region_id"
   end
@@ -628,6 +753,48 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "color_remains_with_set", default: true, null: false
     t.string "kickoff_switches_with"
+  end
+
+  create_table "pay_charges", force: :cascade do |t|
+    t.bigint "owner_id"
+    t.string "processor", null: false
+    t.string "processor_id", null: false
+    t.integer "amount", null: false
+    t.integer "amount_refunded"
+    t.string "card_type"
+    t.string "card_last4"
+    t.string "card_exp_month"
+    t.string "card_exp_year"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.string "owner_type"
+    t.index ["owner_id"], name: "index_pay_charges_on_owner_id"
+  end
+
+  create_table "pay_subscriptions", id: :serial, force: :cascade do |t|
+    t.integer "owner_id"
+    t.string "name", null: false
+    t.string "processor", null: false
+    t.string "processor_id", null: false
+    t.string "processor_plan", null: false
+    t.integer "quantity", default: 1, null: false
+    t.datetime "trial_ends_at", precision: nil
+    t.datetime "ends_at", precision: nil
+    t.datetime "created_at", precision: nil
+    t.datetime "updated_at", precision: nil
+    t.string "status"
+    t.string "owner_type"
+  end
+
+  create_table "plans", force: :cascade do |t|
+    t.string "name"
+    t.integer "amount", default: 0, null: false
+    t.string "interval"
+    t.jsonb "details", default: {}, null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.integer "trial_period_days", default: 0
+    t.boolean "charge_per_unit"
   end
 
   create_table "player_classes", force: :cascade do |t|
@@ -790,7 +957,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "status"
-    t.integer "ba_id"
+    t.string "ba_id"
     t.string "source_url"
     t.datetime "sync_date"
     t.integer "region_id"
@@ -988,7 +1155,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.string "branch_cc_name"
     t.string "category_cc_name"
     t.string "championship_type_cc_name"
-    t.index ["cc_id", "context"], name: "index_tournament_ccs_on_cc_id_and_context", unique: true
+    t.index ["cc_id"], name: "index_tournament_ccs_on_cc_id"
     t.index ["tournament_id"], name: "index_tournament_ccs_on_tournament_id", unique: true
   end
 
@@ -1126,12 +1293,15 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.boolean "color_remains_with_set", default: true, null: false
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "continuous_placements", default: false, null: false
-    t.boolean "manual_assignment", default: false
+    t.boolean "manual_assignment", default: false, null: false
     t.string "kickoff_switches_with"
     t.string "source_url"
     t.boolean "global_context", default: false
+    t.datetime "last_ba_sync_date"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["global_context"], name: "index_tournaments_on_global_context"
+    t.index ["organizer_id", "organizer_type", "season_id", "title"], name: "tournaments_title_index", unique: true
+    t.index ["title", "season_id", "region_id"], name: "index_tournaments_on_foreign_keys"
   end
 
   create_table "uploads", force: :cascade do |t|
@@ -1179,14 +1349,14 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.datetime "last_sign_in_at", precision: nil
     t.inet "current_sign_in_ip"
     t.inet "last_sign_in_ip"
+    t.jsonb "preferences"
+    t.string "code"
     t.boolean "otp_required_for_login"
     t.string "otp_secret"
     t.integer "last_otp_timestep"
     t.text "otp_backup_codes"
-    t.string "code"
-    t.jsonb "preferences"
-    t.virtual "name", type: :string, as: "(((first_name)::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)", stored: true
     t.integer "role", default: 0
+    t.virtual "name", type: :string, as: "(((first_name)::text || ' '::text) || (COALESCE(last_name, ''::character varying))::text)", stored: true
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
@@ -1213,7 +1383,13 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_12_160000) do
     t.index ["region_id"], name: "index_versions_on_region_id"
   end
 
+  add_foreign_key "account_invitations", "accounts"
+  add_foreign_key "account_invitations", "users", column: "invited_by_id"
+  add_foreign_key "account_users", "accounts"
+  add_foreign_key "account_users", "users"
+  add_foreign_key "accounts", "users", column: "owner_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "api_tokens", "users"
   add_foreign_key "club_locations", "regions", validate: false
   add_foreign_key "clubs", "regions", validate: false
   add_foreign_key "game_participations", "regions", validate: false

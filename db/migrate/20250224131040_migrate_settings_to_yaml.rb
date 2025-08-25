@@ -2,6 +2,8 @@ class MigrateSettingsToYaml < ActiveRecord::Migration[7.0]
   def up
     return unless setting = Setting.first
 
+    yaml_path = Rails.root.join('config', 'settings.yml')
+    return unless File.exist?(yaml_path)
 
     yaml = YAML.load_file(yaml_path)
 

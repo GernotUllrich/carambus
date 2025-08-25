@@ -7,7 +7,11 @@ class AddSourceToLeagues < ActiveRecord::Migration[7.0]
     add_column :parties, :sync_date, :datetime
 
     add_column :tournaments, :source_url, :string
+
+    # Use safety_assured for the rename operation
+    safety_assured do
     rename_column :tournaments, :last_ba_sync_date, :sync_date
+    end
 
     add_column :players, :source_url, :string
     add_column :players, :sync_date, :datetime
