@@ -5,12 +5,13 @@
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [Getting Started](#getting-started)
-4. [Database Design](#database-design)
-5. [Core Models](#core-models)
-6. [Key Features](#key-features)
-7. [Development Workflow](#development-workflow)
-8. [Deployment](#deployment)
-9. [Contributing](#contributing)
+4. [Database Setup](#database-setup)
+5. [Database Design](#database-design)
+6. [Core Models](#core-models)
+7. [Key Features](#key-features)
+8. [Development Workflow](#development-workflow)
+9. [Deployment](#deployment)
+10. [Contributing](#contributing)
 
 ## Overview
 
@@ -127,6 +128,30 @@ The application uses Rails concerns to share functionality:
 - **RSpec**: Unit and integration tests
 - **Capybara**: System tests
 - **Factory Bot**: Test data factories
+
+## Database Setup {#database-setup}
+
+For setting up a new development database, it is recommended to import an existing database dump. Detailed instructions can be found in the separate documentation:
+
+**[🗄️ Database Setup Guide](DATABASE_SETUP.en.md)**
+
+### Quick Start
+```bash
+# Create database
+createdb carambus_development
+
+# Import dump
+psql -d carambus_development -f /path/to/your/dump.sql
+```
+
+### Expected Errors
+During import, the following errors may occur and can be ignored:
+- `relation "table_name" already exists` - Table already exists
+- `multiple primary keys for table "table_name" are not allowed` - Primary key already defined
+- `relation "index_name" already exists` - Index already exists
+- `constraint "constraint_name" for relation "table_name" already exists` - Constraint already defined
+
+These errors are normal if the database has already been partially initialized.
 
 ## Database Design
 
