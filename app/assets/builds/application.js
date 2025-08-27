@@ -20768,7 +20768,7 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     // }
   };
 
-  // rails:/app/app/javascript/controllers/**/*_controller.js
+  // rails:/Volumes/EXT2TB/gullrich/DEV/projects/carambus_api/app/javascript/controllers/**/*_controller.js
   var module11 = __toESM(require_scoreboard_controller());
 
   // controllers/search_parser_controller.js
@@ -24347,7 +24347,7 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     }
   };
 
-  // rails:/app/app/javascript/controllers/**/*_controller.js
+  // rails:/Volumes/EXT2TB/gullrich/DEV/projects/carambus_api/app/javascript/controllers/**/*_controller.js
   var modules = [{ name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "scoreboard", module: module11, filename: "scoreboard_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tabmon", module: tabmon_controller_exports, filename: "tabmon_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
   var controller_default = modules;
 
