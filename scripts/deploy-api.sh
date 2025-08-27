@@ -25,13 +25,7 @@ print_warning() {
 
 print_info "Deployment für API Server (newapi.carambus.de) wird gestartet..."
 
-# 1. Assets für Production bauen
-print_info "Baue Production-Assets..."
-yarn build
-yarn build:css
-rails assets:precompile
-
-# 2. Capistrano-Deployment starten
+# Capistrano-Deployment starten (Assets werden automatisch auf dem Server gebaut)
 print_info "Starte Capistrano-Deployment..."
 bundle exec cap api deploy
 
@@ -39,3 +33,5 @@ print_success "API Server Deployment abgeschlossen!"
 print_info "Die Anwendung läuft jetzt auf newapi.carambus.de"
 print_info "Nginx neu laden: sudo systemctl reload nginx"
 print_info "Puma-Status prüfen: sudo systemctl status puma_carambus_api"
+print_info ""
+print_info "Hinweis: Assets werden automatisch auf dem Server im Production-Environment gebaut"

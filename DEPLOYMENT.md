@@ -16,14 +16,7 @@ Carambus verwendet **Capistrano** für alle Deployments. Docker wurde entfernt, 
 
 ## Deployment
 
-### 1. Assets bauen
-```bash
-yarn build
-yarn build:css
-rails assets:precompile
-```
-
-### 2. Deployen
+### Einfach deployen
 
 #### API Server (newapi.carambus.de)
 ```bash
@@ -43,12 +36,23 @@ bundle exec cap api deploy
 bundle exec cap local deploy
 ```
 
+## Asset-Building
+
+**Wichtig**: Assets werden **automatisch auf dem Server** während des Deployments gebaut:
+
+1. **Yarn-Dependencies installieren** - `yarn install --production=false`
+2. **JavaScript bauen** - `yarn build`
+3. **CSS bauen** - `yarn build:css`
+4. **Rails Assets precompilieren** - `rails assets:precompile`
+
+Du musst **nichts lokal** bauen - Capistrano übernimmt das alles!
+
 ## Konfiguration
 
 ### Capistrano-Konfigurationen
 - `config/deploy/api.rb` - API Server
 - `config/deploy/local.rb` - Local Server
-- `config/deploy.rb` - Gemeinsame Einstellungen
+- `config/deploy.rb` - Gemeinsame Einstellungen (inkl. Asset-Building)
 
 ### Nginx-Konfigurationen
 - `nginx-host-config/newapi.carambus.de` - API Server
@@ -78,6 +82,7 @@ sudo systemctl status puma_carambus
 ## Vorteile des neuen Setups
 
 ✅ **Einfach** - Ein Befehl deployt alles  
+✅ **Automatisch** - Assets werden auf dem Server gebaut  
 ✅ **Übersichtlich** - Keine Docker-Komplexität  
 ✅ **Standard** - Normale Rails-Deployment-Pipeline  
 ✅ **Wartbar** - Weniger Konfigurationsdateien  
@@ -95,3 +100,15 @@ sudo systemctl status puma_carambus
 Für lokale Entwicklung:
 - **API Mode**: `RAILS_ENV=development rails server -p 3000`
 - **Local Mode**: `RAILS_ENV=development rails server -p 3001`
+
+## Asset-Building Details
+
+Das Asset-Building läuft in dieser Reihenfolge ab:
+
+1. **Node.js/Yarn verifizieren** - Prüft ob Node.js 20.15.0 verfügbar ist
+2. **Dependencies installieren** - `yarn install` im Release-Verzeichnis
+3. **Frontend-Assets bauen** - `yarn build` und `yarn build:css`
+4. **Rails Assets precompilieren** - Standard Rails Asset Pipeline
+5. **Manifest verifizieren** - Prüft ob Assets korrekt erstellt wurden
+
+Alle Tasks laufen automatisch im Production-Environment auf dem Server.
