@@ -1,7 +1,7 @@
 server {
     server_name newapi.carambus.de;
 
-    root /var/www/carambus_newapi/public/;
+    root /var/www/carambus_api/current/public/;
 
     error_log /var/log/nginx/newapi.carambus.de_error.log;
     access_log /var/log/nginx/newapi.carambus.de_access.log combined;
@@ -14,7 +14,7 @@ server {
         access_log off;
         log_not_found off;
         auth_basic off;
-        root /var/www/carambus_newapi/public;
+        root /var/www/carambus_api/current/public;
         autoindex off;
         index index.html;
         try_files $uri $uri/ =404;
@@ -33,7 +33,7 @@ server {
     }
 
     location /cable {
-        proxy_pass http://docker_carambus_newapi/cable;
+        proxy_pass http://127.0.0.1:3000/cable;
         proxy_http_version 1.1;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $host;
@@ -50,11 +50,11 @@ server {
     }
 
     location / {
-        root /var/www/carambus_newapi/public;
-        try_files $uri @docker_carambus_newapi;
+        root /var/www/carambus_api/current/public;
+        try_files $uri @puma;
     }
 
-    location @docker_carambus_newapi {
+    location @puma {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -67,7 +67,7 @@ server {
 
         proxy_redirect off;
 
-        proxy_pass http://docker_carambus_newapi;
+        proxy_pass http://127.0.0.1:3000;
         access_log /var/log/nginx/newapi.carambus.de_access.log;
         error_log /var/log/nginx/newapi.carambus.de_error.log;
     }
