@@ -1,0 +1,71 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Schiri;Schreiber;;;;;;;;;;;;;;T1;;T2;;T3;;T4;;;;;;;;;;;;;;
+Doc Jörg;Achim;;;;;;;;;;;;;;Schiri;Schreiber;Schiri;Schreiber;Schiri;Schreiber;Schiri;Schreiber;;;;Freitag;Samstag;Sonntag;Gesamt;;;Freitag;Samstag;Sonntag;Gesamt
+Gernot;Andreas;;;;;;;;;;;;;Uhrzeit;;;;;;;;;;;;;;;50;;;in %;;;
+HaJo;Christian Pe.;;;;;;;;;;;;Freitag;9:30;Rolf;Georg;Bruno;Günter;HaJo;Wilfried;Manni;James;24;SCHIRIS;Andi;2;2;1;5;;5;8,33;10,00;16,67;12,82
+Manni;Christian Pu.;;;;;;;;;;;;;11:30;Eröffnung;;;;;;;;;;Bruno;3;0;0;3;*nur ein Tag;3;12,50;0,00;0,00;7,69
+Martin;Georg;;;;;;;;;;;;;12:00;HaJo;Andreas;Andi;Achim;Dennis;James;Doc Jörg;Werner;;;Dennis;3;2;1;6;;6;12,50;10,00;16,67;15,38
+Andi;Günter;;;;;;;;;;;;;14:00;Nils R.;Georg;Rolf;Günter;Bruno;Wilfried;Manni;Michael;;;Doc Jörg;2;2;1;5;;5;8,33;10,00;16,67;12,82
+Nils  L.;Heinrich;;;;;;;;;;;;;16:00;HaJo;Andreas;Dennis;Gernot;Bruno;Achim;Rolf;Michael;;;HaJo;3;2;1;6;;6;12,50;10,00;16,67;15,38
+Nils R.;Jochen;;;;;;;;;;;;;18:00;Andi;James;Nils R.;Günter;Ulf;Wilfried;Doc Jörg;Werner;;;Manni;3;2;0;5;;5;12,50;10,00;0,00;12,82
+Rolf;Kay ?;;;;;;;;;;;;;20:00;Manni;Achim;Dennis;Andreas;Nils R.;Gernot;Ulf;Michael;;;Nils L.;0;3;0;3;*nur ein Tag;3;12,50;15,00;0,00;7,69
+Ulf;Max ?;;;;;;;;;;;;;;;;;;;;;;;;Nils R.;3;2;1;6;;6;0,00;10,00;16,67;15,38
+Bruno;Michael;;;;;;;;;;;;;;;;;;;;;;;;Rolf;3;2;0;5;*zwei Tage;5;12,50;10,00;0,00;12,82
+;Werner;;;;;;;;;;;;;;;;;;;;;;;;Ulf;2;3;1;6;;6;12,50;15,00;16,67;15,38
+;Wilfried;;;;;;;;;;;;;;;;;;;;;;;SCHREIBER;Achim;3;2;0;5;;5;8,33;16,67;0,00;12,82
+;;;;;;;;;;;;;Samstag;9:30;Rolf;Gernot;Nils L.;James;Ulf;Georg;Doc Jörg;Achim;20;;Andreas;3;2;0;5;;5;12,50;16,67;0,00;12,82
+;;;;;;;;;;;;;;11:30;Nils L.;Wilfried;Dennis;Andreas;Andi;James;Rolf;Michael;12;;Christian Pe.;0;0;0;0;Springer;0;12,50;0,00;0,00;0,00
+;;;;;;;;;;;;;;13:30;HaJo;Achim;Manni;Andreas;Ulf;Georg;Nils R.;Günter;;;Georg;2;2;0;4;;4;0,00;16,67;0,00;10,26
+Dennis;;;;;;;;;;;;;;;Pause;;;;;;;;;;Gernot;2;1;0;3;;3;8,33;8,33;0,00;7,69
+Peter;;;;;;;;;;;;;;17:00;Dennis;Doc Jörg;Nils L.;Ulf;Manni;Andi;HaJo;Nils R.;;;Günter;3;1;0;4;;4;8,33;8,33;0,00;10,26
+;;;;;;;;;;;;;;;;;;;;;;;;;Holger;0;0;0;0;;0;12,50;0,00;0,00;0,00
+;;;;;;;;;;;;;;;;;;;;;;;;;Jochen;0;0;0;0;;0;;0,00;0,00;0,00
+;;;;;;;;;;;;;;;;;;;;;;;;;James;3;2;0;5;;5;0,00;16,67;0,00;12,82
+;;;;;;;;;;;;;;;;;;;;;;;;;Michael;3;1;0;4;;4;12,50;8,33;0,00;10,26
+;;;;;;;;;;;;;;;;;;;;;;;;;Werner;2;0;0;2;;2;12,50;0,00;0,00;5,13
+;;;;;;;;;;;;;;;;;;;;;;;;;Wilfried;3;1;0;4;Springer;4;8,33;8,33;0,00;10,26
+;;;;;;;;;;;;;Sonntag;10:00;Nils R.;HaJo;;;;;;;6;;;;;;36;;;;;;
+;;;;;;;;;;;;;;12:00;Ulf;Dennis;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;Pause;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;16:00;Doc Jörg;Andi;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;Gesamt;;;;;;;;;;;;
+
+;;T1;;T2;;T3;;T4;
+;;Schiri;Schreiber;Schiri;Schreiber;Schiri;Schreiber;Schiri;Schreiber
+;Uhrzeit;;;;;;;;
+Freitag;9:30;Rolf;Georg;Bruno;Günter;HaJo;Wilfried;Manni;James
+;11:30;Eröffnung;;;;;;;
+;12:00;HaJo;Andreas;Andi;Achim;Dennis;James;Doc Jörg;Werner
+;14:00;Nils R.;Georg;Rolf;Günter;Bruno;Wilfried;Manni;Michael
+;16:00;HaJo;Andreas;Dennis;Gernot;Bruno;Achim;Rolf;Michael
+;18:00;Andi;James;Nils R.;Günter;Ulf;Wilfried;Doc Jörg;Werner
+;20:00;Manni;Achim;Dennis;Andreas;Nils R.;Gernot;Ulf;Michael
+;;;;;;;;;
+Samstag;9:30;Rolf;Gernot;Nils L.;James;Ulf;Georg;Doc Jörg;Achim
+;11:30;Nils L.;Wilfried;Dennis;Andreas;Andi;James;Rolf;Michael
+;13:30;HaJo;Achim;Manni;Andreas;Ulf;Georg;Nils R.;Günter
+;;Pause;;;;;;;
+;17:00;Dennis;Doc Jörg;Nils L.;Ulf;Manni;Andi;HaJo;Nils R.
+;;;;;;;;;
+;;;;;;Sonntag;10:00;Nils R.;HaJo
+;;;;;;;12:00;Ulf;Dennis
+;;;;;;;;Pause;
+;;;;;;;16:00;Doc Jörg;Andi
+
+
+Verfügbarkeiten Schiris und Schreiber beim Gran Prix;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+Schiri;29.8.;30.8.;31.8.;;Schreiber;29.8.;30.8.;31.8.;;;;;
+Andi;x;x;x;;Achim;x;x;x;;;;;
+Bruno;x;?;-;;Andreas;ab 11;ab 11;x;;;;;
+Dennis;x;x;x;;Christian Pe.;Tresen;Tresen;Tresen;;;;;
+Doc Jörg;x;x;x;;Georg;x;x;-;;;;;
+HaJo;x;x;x;;Günter;x;x;x;;;;;
+Manni;x;nachmittag;x;;Gernot;x;x;x;;;;;
+Nils  L.;-;x;;;Jochen;x;x;x;;;;;
+Nisl R.;x;x;-;;Michael;x;x;x;;;;;
+Rolf;vorm. - vier;vorm.;-;;Werner;?;?;?;;;;;
+Ulf;x;x;x;;Wilfried;x;x;x;;;;;
+;;;;;Holger;?;?;?;;;;;

@@ -1,0 +1,49 @@
+Tag,Datum,Tisch,Zeit,Schiedsrichter,Schreiber,Status,Bemerkungen
+Freitag,29.08.2025,T1,09:30-11:30,Rolf,Georg,Wettkampf,1. Schicht
+Freitag,29.08.2025,T2,09:30-11:30,Bruno,Günter,Wettkampf,1. Schicht
+Freitag,29.08.2025,T3,09:30-11:30,HaJo,Wilfried,Wettkampf,1. Schicht
+Freitag,29.08.2025,T4,09:30-11:30,Manni,James,Wettkampf,1. Schicht
+Freitag,29.08.2025,Alle,11:30-12:00,Alle,Alle,Wettkampf,Eröffnung
+Freitag,29.08.2025,T1,12:00-14:00,HaJo,Andreas,Wettkampf,2. Schicht
+Freitag,29.08.2025,T2,12:00-14:00,Andi,Achim,Wettkampf,2. Schicht
+Freitag,29.08.2025,T3,12:00-14:00,Dennis,James,Wettkampf,2. Schicht
+Freitag,29.08.2025,T4,12:00-14:00,Doc Jörg,Werner,Wettkampf,2. Schicht
+Freitag,29.08.2025,T1,14:00-16:00,Nils R.,Georg,Wettkampf,3. Schicht
+Freitag,29.08.2025,T2,14:00-16:00,Rolf,Günter,Wettkampf,3. Schicht
+Freitag,29.08.2025,T3,14:00-16:00,Bruno,Wilfried,Wettkampf,3. Schicht
+Freitag,29.08.2025,T4,14:00-16:00,Manni,Michael,Wettkampf,3. Schicht
+Freitag,29.08.2025,T1,16:00-18:00,HaJo,Andreas,Wettkampf,4. Schicht
+Freitag,29.08.2025,T2,16:00-18:00,Dennis,Gernot,Wettkampf,4. Schicht
+Freitag,29.08.2025,T3,16:00-18:00,Bruno,Achim,Wettkampf,4. Schicht
+Freitag,29.08.2025,T4,16:00-18:00,Rolf,Michael,Wettkampf,4. Schicht
+Freitag,29.08.2025,T1,18:00-20:00,Andi,James,Wettkampf,5. Schicht
+Freitag,29.08.2025,T2,18:00-20:00,Nils R.,Günter,Wettkampf,5. Schicht
+Freitag,29.08.2025,T3,18:00-20:00,Ulf,Wilfried,Wettkampf,5. Schicht
+Freitag,29.08.2025,T4,18:00-20:00,Doc Jörg,Werner,Wettkampf,5. Schicht
+Freitag,29.08.2025,T1,20:00-22:00,Manni,Achim,Wettkampf,6. Schicht
+Freitag,29.08.2025,T2,20:00-22:00,Dennis,Andreas,Wettkampf,6. Schicht
+Freitag,29.08.2025,T3,20:00-22:00,Nils R.,Gernot,Wettkampf,6. Schicht
+Freitag,29.08.2025,T4,20:00-22:00,Ulf,Michael,Wettkampf,6. Schicht
+Samstag,30.08.2025,T1,09:30-11:30,Rolf,Gernot,Wettkampf,1. Schicht
+Samstag,30.08.2025,T2,09:30-11:30,Nils L.,James,Wettkampf,1. Schicht
+Samstag,30.08.2025,T3,09:30-11:30,Ulf,Georg,Wettkampf,1. Schicht
+Samstag,30.08.2025,T4,09:30-11:30,Doc Jörg,Achim,Wettkampf,1. Schicht
+Samstag,30.08.2025,T1,11:30-13:30,Nils L.,Wilfried,Wettkampf,2. Schicht
+Samstag,30.08.2025,T2,11:30-13:30,Dennis,Andreas,Wettkampf,2. Schicht
+Samstag,30.08.2025,T3,11:30-13:30,Andi,James,Wettkampf,2. Schicht
+Samstag,30.08.2025,T4,11:30-13:30,Rolf,Michael,Wettkampf,2. Schicht
+Samstag,30.08.2025,Alle,13:30-17:00,Alle,Alle,Wettkampf,Pause
+Samstag,30.08.2025,T1,17:00-19:00,Dennis,Doc Jörg,Wettkampf,3. Schicht
+Samstag,30.08.2025,T2,17:00-19:00,Nils L.,Ulf,Wettkampf,3. Schicht
+Samstag,30.08.2025,T3,17:00-19:00,Manni,Andi,Wettkampf,3. Schicht
+Samstag,30.08.2025,T4,17:00-19:00,HaJo,Nils R.,Wettkampf,3. Schicht
+Sonntag,31.08.2025,T1,10:00-12:00,Nils R.,HaJo,Wettkampf,1. Schicht
+Sonntag,31.08.2025,T2,10:00-12:00,Ulf,Dennis,Wettkampf,1. Schicht
+Sonntag,31.08.2025,T3,10:00-12:00,Doc Jörg,Andi,Wettkampf,1. Schicht
+Sonntag,31.08.2025,T4,10:00-12:00,HaJo,Nils R.,Wettkampf,1. Schicht
+Sonntag,31.08.2025,Alle,12:00-16:00,Alle,Alle,Wettkampf,Pause
+Sonntag,31.08.2025,T1,16:00-18:00,Doc Jörg,Andi,Wettkampf,2. Schicht
+Sonntag,31.08.2025,T2,16:00-18:00,HaJo,Nils R.,Wettkampf,2. Schicht
+Sonntag,31.08.2025,T3,16:00-18:00,Doc Jörg,Andi,Wettkampf,2. Schicht
+Sonntag,31.08.2025,T4,16:00-18:00,HaJo,Nils R.,Wettkampf,2. Schicht
+Sonntag,31.08.2025,Alle,18:00-19:00,DocJörg,Alle,Wettkampf,Siegerehrung
