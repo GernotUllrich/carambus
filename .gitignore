@@ -10,6 +10,7 @@
 
 # production
 /build
+app/assets/builds/*
 
 # misc
 .DS_Store
@@ -48,6 +49,10 @@ pickle-email-*.html
 
 # Ignore application configuration
 /config/application.yml
+
+# Ignore configuration created by rake mode:{api|local}
+/doc/doc-local/carambus.yml
+/doc/doc-local/database.yml
 
 # Ignore environment files
 .env*
