@@ -2,17 +2,33 @@
 
 namespace :mode do
   desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
-  task local: :environment do
+  task  :local, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :host, :port, :branch] => :environment do |task, args|
+    season_name = args.season_name || "2025/2026"
+    application_name = args.application_name || 'carambus'
+    context = args.context || 'NBV'
+    api_url = args.api_url || 'https://newapi.carambus.de/'
+    basename = args.basename || 'carambus'
+    database = args.database || 'carambus_production'
+    domain = args.domain || 'carambus.de'
+    location_id = args.location_id || '1'
+    club_id = args.club_id || '357'
+    rails_env = args.rails_env || 'production'
+    host = args.host || 'new.carambus.de'
+    port = args.port || '3000'
+    branch = args.branch || 'master'
     puts "Switching to LOCAL mode..."
 
     # Update carambus.yml
-    update_carambus_yml(carambus_api_url="https://newapi.carambus.de/", basename="carambus", carambus_domain="carambus.de", location_id="1", application_name="carambus", context="NBV", club_id="357")
+    update_carambus_yml(season_name=season_name, carambus_api_url=api_url, basename=basename, carambus_domain=domain, location_id=location_id, application_name=application_name, context=context, club_id=club_id)
 
     # Update database.yml
-    update_database_yml("carambus_development")
+    update_database_yml(database)
 
     # Update deploy.rb for LOCAL mode
-    update_deploy_rb("carambus")
+    update_deploy_rb(basename)
+
+    # Update deploy.rb for LOCAL mode
+    update_deploy_environment_rb(rails_env, host, port, branch)
 
     # Manage log files for LOCAL mode
     manage_log_files("local")
@@ -134,6 +150,30 @@ namespace :mode do
     end
   end
 
+  def update_deploy_environment_rb(rails_env, host, port, branch)
+    deploy_environment_file = Rails.root.join('config', 'deploy', "#{rails_env}.rb")
+
+    if File.exist?("#{deploy_environment_file}.erb")
+      content = File.read("#{deploy_environment_file}.erb")
+      updated_content = content.gsub(
+        /<%= host %>/,
+        host
+      ).gsub(
+        /<%= port %>/,
+        port
+      ).gsub(
+        /<%= branch %>/,
+        branch
+      )
+
+      File.write(deploy_environment_file, updated_content)
+      puts "✓ Updated deploy/#{rails_env}.rb \nhost to: #{host} \nport to: #{port} \nbranch to: #{branch} "
+
+    else
+      puts "⚠️  deploy.rb.erb not found, skipping basename update"
+    end
+  end
+
   def update_database_yml(database)
     database_yml_file = Rails.root.join('config', 'database.yml')
 
@@ -151,7 +191,7 @@ namespace :mode do
     end
   end
 
-  def update_carambus_yml(carambus_api_url, basename, carambus_domain, location_id, application_name, context, club_id)
+  def update_carambus_yml(season_name, carambus_api_url, basename, carambus_domain, location_id, application_name, context, club_id)
     carambus_yml_file = Rails.root.join('config', 'carambus.yml')
 
     if File.exist?("#{carambus_yml_file}.erb")
@@ -159,6 +199,9 @@ namespace :mode do
       updated_content = content.gsub(
         /<%= carambus_api_url %>/,
         carambus_api_url
+      ).gsub(
+        /<%= season_name %>/,
+        season_name
       ).gsub(
         /<%= location_id %>/,
         location_id

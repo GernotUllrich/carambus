@@ -8,6 +8,11 @@
 #server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global local and api
 server '<%= host %>', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "<%= port %>"} # carambus global
 
+# Puma auf Port ...
+set :puma_port, "<%= port %>"
+set :rails_env, '<%= rails_env %>'
+set :branch, '<%= branch %>'
+
 # Configuration
 # =============
 # You can set any configuration variable like in config/deploy.rb

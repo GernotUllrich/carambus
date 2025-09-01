@@ -50,9 +50,13 @@ pickle-email-*.html
 # Ignore application configuration
 /config/application.yml
 
+# Ignore deployment environment
+/config/deploy.rb
+/config/deploy/production.rb
+
 # Ignore configuration created by rake mode:{api|local}
-/doc/doc-local/carambus.yml
-/doc/doc-local/database.yml
+/config/carambus.yml
+/config/database.yml
 
 # Ignore environment files
 .env*
