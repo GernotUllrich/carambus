@@ -318,7 +318,11 @@ show_usage() {
 
 # Main script logic
 main() {
-    case "${1:-help}" in
+    # Normalize command (replace underscores with hyphens)
+    local command="${1:-help}"
+    command=$(echo "$command" | tr '_' '-')
+    
+    case "$command" in
         "create-env")
             if [ -z "$2" ] || [ -z "$3" ]; then
                 print_error "Environment name and repository name required"
