@@ -708,4 +708,94 @@ namespace :mode do
     
     nil
   end
+
+  desc "Prepare database dump for deployment"
+  task :prepare_db_dump, [:database_name] => :environment do |task, args|
+    database_name = args.database_name || 'carambus_production'
+    dump_dir = Rails.root.join('db', 'dumps')
+    FileUtils.mkdir_p(dump_dir)
+
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    dump_file = dump_dir.join("#{database_name}_#{timestamp}.sql.gz")
+
+    puts "📦 Creating database dump..."
+    puts "Database: #{database_name}"
+    puts "Output: #{dump_file}"
+
+    # Create database dump
+    system("pg_dump #{database_name} | gzip > #{dump_file}")
+
+    if $?.success?
+      puts "✅ Database dump created: #{dump_file}"
+      puts "📋 To deploy this dump to production:"
+      puts "   scp -P 8910 #{dump_file} www-data@carambus.de:/var/www/carambus/shared/db_dumps/"
+      puts "   ssh -p 8910 www-data@carambus.de 'gunzip -c /var/www/carambus/shared/db_dumps/#{File.basename(dump_file)} | psql carambus_production'"
+    else
+      puts "❌ Failed to create database dump"
+      exit 1
+    end
+  end
+
+  desc "List available database dumps"
+  task :list_db_dumps => :environment do
+    dump_dir = Rails.root.join('db', 'dumps')
+    
+    if Dir.exist?(dump_dir)
+      dumps = Dir.glob(File.join(dump_dir, '*.sql.gz'))
+      
+      if dumps.any?
+        puts "📦 Available database dumps:"
+        puts "-" * 50
+        dumps.sort.reverse.each do |dump|
+          size = File.size(dump)
+          date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
+          puts "#{File.basename(dump)} (#{date}, #{size} bytes)"
+        end
+      else
+        puts "📭 No database dumps found in #{dump_dir}"
+      end
+    else
+      puts "📁 Dump directory not found: #{dump_dir}"
+    end
+  end
+
+  desc "Validate production configuration before deployment"
+  task :validate_deployment => :environment do
+    puts "🔍 Validating production configuration for deployment..."
+    
+    # Check if carambus.yml has proper production section
+    carambus_content = File.read(Rails.root.join('config', 'carambus.yml'))
+    if carambus_content.include?('production:') && !carambus_content.include?('<%=')
+      puts "✅ carambus.yml production section is properly configured"
+    else
+      puts "⚠️  carambus.yml production section needs to be generated"
+      puts "   Run: ./bin/mode-params.sh pre_deploy detailed"
+      puts "   Then: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
+      exit 1
+    end
+    
+    # Check if database.yml has proper production section
+    database_content = File.read(Rails.root.join('config', 'database.yml'))
+    if database_content.include?('production:') && database_content.include?('database: carambus_production')
+      puts "✅ database.yml production section is properly configured"
+    else
+      puts "⚠️  database.yml production section needs to be generated"
+      puts "   Run: ./bin/mode-params.sh pre_deploy detailed"
+      puts "   Then: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
+      exit 1
+    end
+    
+    # Check if deploy/production.rb is properly configured
+    deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+    if !deploy_content.include?('<%=')
+      puts "✅ deploy/production.rb is properly configured"
+    else
+      puts "⚠️  deploy/production.rb needs to be generated"
+      puts "   Run: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
+      exit 1
+    end
+    
+    puts "✅ All production configuration files are ready for deployment"
+    puts "🚀 You can now run: bundle exec cap production deploy"
+  end
 end

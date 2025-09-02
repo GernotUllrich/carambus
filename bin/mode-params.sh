@@ -200,6 +200,19 @@ case "$1" in
     "backup")
         bundle exec rails mode:backup
         ;;
+    "db_dump")
+        if [ -z "$2" ]; then
+            bundle exec rails "mode:prepare_db_dump"
+        else
+            bundle exec rails "mode:prepare_db_dump[$2]"
+        fi
+        ;;
+    "list_dumps")
+        bundle exec rails mode:list_db_dumps
+        ;;
+    "validate")
+        bundle exec rails mode:validate_deployment
+        ;;
     *)
         echo "Carambus Mode Parameters Manager"
         echo ""
@@ -216,6 +229,9 @@ case "$1" in
         echo "  $0 post_deploy             - Show production deployment configuration (post-deployment verification)"
         echo "  $0 post_deploy detailed    - Show detailed production deployment configuration"
         echo "  $0 backup                  - Create backup of current configuration"
+        echo "  $0 db_dump [database]      - Create database dump for deployment"
+        echo "  $0 list_dumps              - List available database dumps"
+        echo "  $0 validate                - Validate production configuration before deployment"
         echo ""
         echo "Examples:"
         echo "  $0 local local_hetzner     - Switch to LOCAL mode for Hetzner server"
@@ -224,6 +240,8 @@ case "$1" in
         echo "  $0 status detailed          - Show detailed parameter breakdown"
         echo "  $0 pre_deploy detailed      - Validate configuration before deployment"
         echo "  $0 post_deploy detailed     - Verify configuration after deployment"
+        echo "  $0 db_dump carambus_production - Create database dump"
+        echo "  $0 list_dumps               - List available dumps"
         echo ""
         echo "Parameter format:"
         echo "  season_name,app_name,context,api_url,basename,database,domain,location_id,club_id,rails_env,host,port,branch,puma_script"

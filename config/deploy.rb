@@ -115,11 +115,6 @@ set :puma_workers, 2
 # default value: none (will be prompted if not set)
 # set :nginx_ssl_certificate_key_local_path, "/home/ivalkeen/ssl/myssl.key"
 
-# Disable the default capistrano3-puma tasks and use our custom implementation
-Rake::Task["puma:restart"].clear if Rake::Task.task_defined?("puma:restart")
-Rake::Task["puma:start"].clear if Rake::Task.task_defined?("puma:start")
-Rake::Task["puma:stop"].clear if Rake::Task.task_defined?("puma:stop")
-
 after 'deploy:publishing', 'puma:restart'
 
 namespace :deploy do
@@ -138,10 +133,10 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      # Use the specific API management script for better control
+      # Use the specific manage-puma.sh script for better control
       # The script expects to be run from the current directory
       within current_path do
-        execute "./bin/manage-puma-api.sh"
+        execute "./bin/manage-puma.sh"
       end
     end
   end
@@ -149,21 +144,21 @@ namespace :puma do
   desc "Start application"
   task :start do
     on roles(:app) do
-      execute "sudo systemctl start puma-#{fetch(:basename)}.service"
+      execute "sudo systemctl start puma-carambus.service"
     end
   end
 
   desc "Stop application"
   task :stop do
     on roles(:app) do
-      execute "sudo systemctl stop puma-#{fetch(:basename)}.service"
+      execute "sudo systemctl stop puma-carambus.service"
     end
   end
 
   desc "Status of application"
   task :status do
     on roles(:app) do
-      execute "sudo systemctl status puma-#{fetch(:basename)}.service"
+      execute "sudo systemctl status puma-carambus.service"
     end
   end
 end
@@ -209,10 +204,10 @@ namespace :deploy do
           with rails_env: fetch(:rails_env) do
             # Since we're using pre-built assets, just ensure the build directory exists
             execute :mkdir, "-p build"
-            
+
             # Copy pre-built assets if they exist
             execute :echo, "Using pre-built assets from build/ directory"
-            
+
             # Ensure the builds directory exists for Rails asset pipeline
             execute :mkdir, "-p app/assets/builds"
           end
