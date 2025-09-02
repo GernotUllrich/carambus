@@ -22,7 +22,7 @@ namespace :mode do
     puts "Switching to LOCAL mode..."
 
     # Update carambus.yml
-    update_carambus_yml(season_name=season_name, carambus_api_url=api_url, basename=basename, carambus_domain=domain, location_id=location_id, application_name=application_name, context=context, club_id=club_id)
+    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
 
     # Update database.yml
     update_database_yml(database)
@@ -62,7 +62,7 @@ namespace :mode do
     puts "Switching to API mode..."
 
     # Update carambus.yml
-    update_carambus_yml(season_name=season_name, carambus_api_url=api_url, basename=basename, carambus_domain=domain, location_id=location_id, application_name=application_name, context=context, club_id=club_id)
+    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
 
     # Update database.yml
     update_database_yml(database)
@@ -226,12 +226,21 @@ namespace :mode do
 
     if File.exist?("#{deploy_environment_file}.erb")
       content = File.read("#{deploy_environment_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      host = host.to_s
+      port = port.to_s
+      branch = branch.to_s
+      
       updated_content = content.gsub(
         /<%= host %>/,
         host
       ).gsub(
         /<%= port %>/,
         port
+      ).gsub(
+        /<%= rails_env %>/,
+        rails_env
       ).gsub(
         /<%= branch %>/,
         branch
@@ -241,7 +250,7 @@ namespace :mode do
       puts "✓ Updated deploy/#{rails_env}.rb \nhost to: #{host} \nport to: #{port} \nbranch to: #{branch} "
 
     else
-      puts "⚠️  deploy.rb.erb not found, skipping basename update"
+      puts "⚠️  deploy/#{rails_env}.rb.erb not found, skipping environment update"
     end
   end
 
@@ -250,15 +259,19 @@ namespace :mode do
 
     if File.exist?("#{database_yml_file}.erb")
       content = File.read("#{database_yml_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      database = database.to_s
+      
       updated_content = content.gsub(
         /<%= database %>/,
         database
       )
 
       File.write(database_yml_file, updated_content)
-      puts "✓ Updated database_yml.rb basename to: #{database}"
+      puts "✓ Updated database.yml with database: #{database}"
     else
-      puts "⚠️  database_yml.rb.erb not found, skipping basename update"
+      puts "⚠️  database.yml.erb not found, skipping database.yml update"
     end
   end
 
@@ -267,6 +280,19 @@ namespace :mode do
 
     if File.exist?("#{carambus_yml_file}.erb")
       content = File.read("#{carambus_yml_file}.erb")
+      
+
+      
+      # Handle nil values by converting to empty string
+      season_name = season_name.to_s
+      carambus_api_url = carambus_api_url.to_s
+      basename = basename.to_s
+      carambus_domain = carambus_domain.to_s
+      location_id = location_id.to_s
+      application_name = application_name.to_s
+      context = context.to_s
+      club_id = club_id.to_s
+      
       updated_content = content.gsub(
         /<%= carambus_api_url %>/,
         carambus_api_url
@@ -294,9 +320,9 @@ namespace :mode do
       )
 
       File.write(carambus_yml_file, updated_content)
-      puts "✓ Updated carambus_yml basename to: \n#{updated_content}"
+      puts "✓ Updated carambus_yml with parameters"
     else
-      puts "⚠️  deploy.rb.erb not found, skipping basename update"
+      puts "⚠️  carambus.yml.erb not found, skipping carambus.yml update"
     end
   end
 

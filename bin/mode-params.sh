@@ -126,11 +126,15 @@ execute_mode() {
         
         # Execute the appropriate rake task
         if [[ $mode == *"local"* ]]; then
-            bundle exec rails "mode:local[${ARGS[*]}]"
+            # Join array elements with commas for rake task arguments
+            rake_args=$(IFS=','; echo "${ARGS[*]}")
+            bundle exec rails "mode:local[${rake_args}]"
         elif [[ $mode == *"api"* ]]; then
-            bundle exec rails "mode:api[${ARGS[*]}]"
+            # Join array elements with commas for rake task arguments
+            rake_args=$(IFS=','; echo "${ARGS[*]}")
+            bundle exec rails "mode:api[${rake_args}]"
         else
-            echo "❌ Unknown mode type: $mode"
+            echo "❌ Unknown type: $mode"
             exit 1
         fi
     else
