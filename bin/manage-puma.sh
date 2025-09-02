@@ -7,12 +7,6 @@ if [ -z "$BASENAME" ]; then
   exit 1
 fi
 
-# Debug output
-echo "DEBUG: Checking for socket file: /var/www/${BASENAME}/shared/sockets/puma-production.sock"
-echo "DEBUG: Socket file exists: $([ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && echo "YES" || echo "NO")"
-echo "DEBUG: Checking for puma process with pattern: puma.*${BASENAME}"
-echo "DEBUG: Puma process found: $(pgrep -f "puma.*${BASENAME}" > /dev/null && echo "YES" || echo "NO")"
-
 # Check if the puma service is running by looking for the socket file
 if [ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && pgrep -f "puma.*${BASENAME}" > /dev/null
 then
