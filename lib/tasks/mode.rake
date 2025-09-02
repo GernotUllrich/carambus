@@ -22,7 +22,7 @@ namespace :mode do
     
     # New parameters for NGINX and Puma
     nginx_port = params[:nginx_port] || '80'  # NGINX web port
-    puma_port = params[:puma_port] || '3000'  # Puma application port
+    puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
     ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
     scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
     
@@ -45,10 +45,13 @@ namespace :mode do
     update_puma_configuration(puma_script, basename)
 
     # Update NGINX configuration
-    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
 
     # Update Puma service configuration
-    update_puma_service_configuration(basename, puma_port, rails_env)
+    update_puma_service_configuration(basename, puma_socket, rails_env)
+
+    # Update Puma.rb configuration
+    update_puma_rb_configuration(basename, rails_env)
 
     # Update scoreboard URL configuration
     update_scoreboard_url_configuration(scoreboard_url)
@@ -81,7 +84,7 @@ namespace :mode do
     
     # New parameters for NGINX and Puma
     nginx_port = params[:nginx_port] || '80'  # NGINX web port
-    puma_port = params[:puma_port] || '3001'  # Puma application port
+    puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
     ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
     scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
     
@@ -104,10 +107,13 @@ namespace :mode do
     update_puma_configuration(puma_script, basename)
 
     # Update NGINX configuration
-    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
 
     # Update Puma service configuration
-    update_puma_service_configuration(basename, puma_port, rails_env)
+    update_puma_service_configuration(basename, puma_socket, rails_env)
+
+    # Update Puma.rb configuration
+    update_puma_rb_configuration(basename, rails_env)
 
     # Update scoreboard URL configuration
     update_scoreboard_url_configuration(scoreboard_url)
@@ -519,17 +525,20 @@ namespace :mode do
     # Default parameters
     basename = deploy_config[:basename]
     nginx_port = '80'
-    puma_port = basename == 'carambus_api' ? '3001' : '3000'
+    puma_socket = basename == 'carambus_api' ? "puma-production.sock" : "puma-#{deploy_config[:rails_env]}.sock"
     ssl_enabled = 'false'
     rails_env = deploy_config[:rails_env] || 'production'
     scoreboard_url = generate_scoreboard_url(location_id)
     
     # Generate NGINX configuration
-    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
     
     # Generate Puma service configuration
-    update_puma_service_configuration(basename, puma_port, rails_env)
+    update_puma_service_configuration(basename, puma_socket, rails_env)
     
+    # Generate Puma.rb configuration
+    update_puma_rb_configuration(basename, rails_env)
+
     # Generate scoreboard URL configuration
     update_scoreboard_url_configuration(scoreboard_url)
     
@@ -546,7 +555,7 @@ namespace :mode do
     params = {}
     
     # Parse from environment variables
-    %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script nginx_port puma_port ssl_enabled scoreboard_url].each do |param|
+    %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script nginx_port puma_port ssl_enabled scoreboard_url puma_socket].each do |param|
       env_var = "MODE_#{param.to_s.upcase}"
       params[param] = ENV[env_var] if ENV[env_var]
     end
@@ -628,7 +637,7 @@ namespace :mode do
     puts "  MODE_BRANCH          - Git branch"
     puts "  MODE_PUMA_SCRIPT     - Puma management script"
     puts "  MODE_NGINX_PORT      - NGINX web port (default: 80)"
-    puts "  MODE_PUMA_PORT       - Puma application port (default: 3000/3001)"
+    puts "  MODE_PUMA_SOCKET     - Puma socket name (default: puma-{rails_env}.sock)"
     puts "  MODE_SSL_ENABLED     - SSL enabled (true/false, default: false)"
     puts "  MODE_SCOREBOARD_URL  - Scoreboard URL (auto-generated from location_id)"
     puts ""
@@ -639,7 +648,7 @@ namespace :mode do
     puts "  bundle exec rails 'mode:load[api_hetzner]'"
     puts ""
     puts "In-house Server Example:"
-    puts "  bundle exec rails 'mode:local' MODE_HOST=192.168.1.100 MODE_PORT=22 MODE_NGINX_PORT=3131 MODE_PUMA_PORT=3000 MODE_SSL_ENABLED=false"
+    puts "  bundle exec rails 'mode:local' MODE_HOST=192.168.1.100 MODE_PORT=22 MODE_NGINX_PORT=3131 MODE_PUMA_SOCKET=puma-production.sock MODE_SSL_ENABLED=false"
   end
 
   # Include all the necessary methods from the original mode.rake
@@ -831,6 +840,31 @@ namespace :mode do
       end
     else
       puts "⚠️  deploy.rb not found, skipping Puma configuration update"
+    end
+  end
+
+  def update_puma_rb_configuration(basename, rails_env)
+    puma_rb_file = Rails.root.join('config', 'puma.rb')
+
+    if File.exist?("#{puma_rb_file}.erb")
+      content = File.read("#{puma_rb_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      basename = basename.to_s
+      rails_env = rails_env.to_s
+      
+      updated_content = content.gsub(
+        /<%= basename %>/,
+        basename
+      ).gsub(
+        /<%= rails_env %>/,
+        rails_env
+      )
+
+      File.write(puma_rb_file, updated_content)
+      puts "✓ Updated puma.rb with parameters"
+    else
+      puts "⚠️  puma.rb.erb not found, skipping puma.rb update"
     end
   end
 
@@ -1130,7 +1164,7 @@ namespace :mode do
     end
   end
 
-  def update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+  def update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
     nginx_config_file = Rails.root.join('config', 'nginx.conf')
 
     if File.exist?("#{nginx_config_file}.erb")
@@ -1140,7 +1174,7 @@ namespace :mode do
       basename = basename.to_s
       domain = domain.to_s
       nginx_port = nginx_port.to_s
-      puma_port = puma_port.to_s
+      puma_socket = puma_socket.to_s
       ssl_enabled = ssl_enabled.to_s
       
       updated_content = content.gsub(
@@ -1153,8 +1187,8 @@ namespace :mode do
         /<%= nginx_port %>/,
         nginx_port
       ).gsub(
-        /<%= puma_port %>/,
-        puma_port
+        /<%= puma_socket %>/,
+        puma_socket
       ).gsub(
         /<%= ssl_enabled %>/,
         ssl_enabled
@@ -1167,7 +1201,7 @@ namespace :mode do
     end
   end
 
-  def update_puma_service_configuration(basename, puma_port, rails_env)
+  def update_puma_service_configuration(basename, puma_socket, rails_env)
     puma_service_file = Rails.root.join('config', 'puma.service')
 
     if File.exist?("#{puma_service_file}.erb")
@@ -1175,15 +1209,15 @@ namespace :mode do
       
       # Handle nil values by converting to empty string
       basename = basename.to_s
-      puma_port = puma_port.to_s
+      puma_socket = puma_socket.to_s
       rails_env = rails_env.to_s
       
       updated_content = content.gsub(
         /<%= basename %>/,
         basename
       ).gsub(
-        /<%= puma_port %>/,
-        puma_port
+        /<%= puma_socket %>/,
+        puma_socket
       ).gsub(
         /<%= rails_env %>/,
         rails_env

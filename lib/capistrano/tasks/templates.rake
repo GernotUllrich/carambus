@@ -42,10 +42,34 @@ namespace :deploy do
     end
   end
 
+  desc "Deploy Puma.rb configuration"
+  task :puma_rb_config do
+    on roles(:app) do
+      puma_rb_file = "#{shared_path}/config/puma.rb"
+      puma_rb_target = "#{shared_path}/puma.rb"
+      
+      # Copy Puma.rb config
+      execute :cp, puma_rb_file, puma_rb_target
+      
+      # Ensure socket directory exists
+      execute :mkdir, "-p", "#{shared_path}/sockets"
+      execute :mkdir, "-p", "#{shared_path}/pids"
+      execute :mkdir, "-p", "#{shared_path}/log"
+      
+      # Set proper permissions
+      execute :chown, "-R", "www-data:www-data", "#{shared_path}/sockets"
+      execute :chown, "-R", "www-data:www-data", "#{shared_path}/pids"
+      execute :chown, "-R", "www-data:www-data", "#{shared_path}/log"
+      
+      puts "✅ Puma.rb configuration deployed"
+    end
+  end
+
   desc "Deploy all templates and configurations"
   task :deploy_templates do
     invoke "deploy:nginx_config"
     invoke "deploy:puma_service_config"
+    invoke "deploy:puma_rb_config"
   end
 end
 

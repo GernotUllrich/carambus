@@ -13,5 +13,10 @@ ExecReload=/bin/kill -USR1 $MAINPID
 Restart=always
 RestartSec=1
 
+# Ensure socket directory exists
+ExecStartPre=/bin/mkdir -p /var/www/carambus_api/shared/sockets
+ExecStartPre=/bin/mkdir -p /var/www/carambus_api/shared/pids
+ExecStartPre=/bin/mkdir -p /var/www/carambus_api/shared/log
+
 [Install]
 WantedBy=multi-user.target

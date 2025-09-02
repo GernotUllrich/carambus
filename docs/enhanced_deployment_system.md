@@ -1,39 +1,68 @@
-# Carambus Enhanced Mode System - Deployment Integration
+# Carambus Enhanced Mode System - Socket-Based Deployment Integration
 
 ## 🎯 **Übersicht**
 
-Das erweiterte Mode System integriert sich nahtlos in das Capistrano Deployment und überträgt automatisch alle generierten Templates und Konfigurationen.
+Das erweiterte Mode System verwendet **Unix Sockets** für die effiziente Kommunikation zwischen NGINX und Puma, basierend auf der bewährten carambus2-Architektur.
 
-## 🚀 **Automatisches Deployment**
+## 🚀 **Socket-basiertes Deployment**
 
 ### **Template-Generierung und -Übertragung**
 
 Das System generiert und überträgt automatisch:
 
 1. **NGINX Konfiguration** (`config/nginx.conf`)
+   - Verwendet Unix Socket: `unix:/var/www/{basename}/shared/sockets/{puma_socket}`
    - Kopiert nach `/etc/nginx/sites-available/{basename}`
    - Erstellt Symlink in `/etc/nginx/sites-enabled/`
    - Testet Konfiguration und lädt NGINX neu
 
-2. **Puma Service Konfiguration** (`config/puma.service`)
+2. **Puma.rb Konfiguration** (`config/puma.rb`)
+   - Bindet an Unix Socket: `unix://{shared_dir}/sockets/puma-{rails_env}.sock`
+   - Erstellt Socket-Verzeichnisse automatisch
+   - Setzt korrekte Socket-Berechtigungen (0666)
+   - Konfiguriert PID- und State-Dateien
+
+3. **Puma Service Konfiguration** (`config/puma.service`)
    - Kopiert nach `/etc/systemd/system/puma-{basename}.service`
+   - Erstellt Socket-Verzeichnisse vor Service-Start
    - Lädt systemd daemon neu
    - Aktiviert den Service
 
-3. **Scoreboard URL** (`config/scoreboard_url`)
+4. **Scoreboard URL** (`config/scoreboard_url`)
    - Kopiert nach `/var/www/{basename}/shared/config/scoreboard_url`
 
 ### **Deployment-Workflow**
 
 ```bash
-# 1. Mode konfigurieren (generiert Templates)
+# 1. Mode konfigurieren (generiert Socket-basierte Templates)
 bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_HOST=newapi.carambus.de
 
 # 2. Templates für Deployment generieren
 bundle exec rails mode:generate_templates
 
-# 3. Deployment ausführen (überträgt automatisch Templates)
+# 3. Deployment ausführen (überträgt automatisch Socket-Templates)
 bundle exec cap production deploy
+```
+
+## 🔧 **Socket-basierte Konfiguration**
+
+### **Unix Socket Vorteile**
+- ✅ **Effizienter** - Keine TCP/IP Overhead
+- ✅ **Sicherer** - Nur lokale Kommunikation
+- ✅ **Schneller** - Direkte Kernel-Kommunikation
+- ✅ **Skalierbarer** - Bessere Performance unter Last
+
+### **Socket-Pfad Struktur**
+```
+/var/www/{basename}/shared/
+├── sockets/
+│   └── puma-{rails_env}.sock    # Unix Socket
+├── pids/
+│   ├── puma-{rails_env}.pid     # Process ID
+│   └── puma-{rails_env}.state   # State File
+└── log/
+    ├── puma.stdout.log          # Standard Output
+    └── puma.stderr.log          # Standard Error
 ```
 
 ## 🔧 **Manuelle Template-Verwaltung**
@@ -42,13 +71,13 @@ bundle exec cap production deploy
 ```bash
 bundle exec rails mode:copy_templates
 ```
-Kopiert generierte Templates nach `/local_storage/`
+Kopiert generierte Socket-Templates nach `/local_storage/`
 
 ### **Templates manuell deployen**
 ```bash
 bundle exec rails mode:deploy_templates
 ```
-Deployt Templates aus `/local_storage/` zum Server
+Deployt Socket-Templates aus `/local_storage/` zum Server
 
 ### **Templates über Capistrano deployen**
 ```bash
@@ -57,6 +86,9 @@ bundle exec cap production deploy:deploy_templates
 
 # Nur NGINX
 bundle exec cap production deploy:nginx_config
+
+# Nur Puma.rb
+bundle exec cap production deploy:puma_rb_config
 
 # Nur Puma Service
 bundle exec cap production deploy:puma_service_config
@@ -68,6 +100,7 @@ bundle exec cap production deploy:puma_service_config
 
 Die folgenden Dateien werden automatisch übertragen:
 - `config/nginx.conf` → `/var/www/{basename}/shared/config/nginx.conf`
+- `config/puma.rb` → `/var/www/{basename}/shared/puma.rb`
 - `config/puma.service` → `/var/www/{basename}/shared/config/puma.service`
 - `config/scoreboard_url` → `/var/www/{basename}/shared/config/scoreboard_url`
 
@@ -84,6 +117,7 @@ after "deploy:published", "deploy:deploy_templates"
 # Template-Deployment
 cap deploy:deploy_templates              # Alle Templates deployen
 cap deploy:nginx_config                  # NGINX Konfiguration deployen
+cap deploy:puma_rb_config                # Puma.rb Konfiguration deployen
 cap deploy:puma_service_config           # Puma Service deployen
 
 # Puma Management
@@ -100,8 +134,8 @@ cap puma:status                          # Puma Status anzeigen
 - `MODE_SSL_ENABLED` - SSL aktiviert (true/false, default: false)
 - `MODE_DOMAIN` - Domain-Name
 
-### **Puma Parameter**
-- `MODE_PUMA_PORT` - Application-Port (default: 3000/3001)
+### **Puma Socket Parameter**
+- `MODE_PUMA_SOCKET` - Socket-Name (default: puma-{rails_env}.sock)
 - `MODE_RAILS_ENV` - Rails Environment
 
 ### **Scoreboard Parameter**
@@ -117,7 +151,7 @@ bundle exec rails 'mode:local' \
   MODE_HOST=192.168.1.100 \
   MODE_PORT=22 \
   MODE_NGINX_PORT=3131 \
-  MODE_PUMA_PORT=3000 \
+  MODE_PUMA_SOCKET=puma-production.sock \
   MODE_SSL_ENABLED=false
 
 # 2. Templates generieren
@@ -134,6 +168,7 @@ bundle exec rails 'mode:api' \
   MODE_BASENAME=carambus_api \
   MODE_HOST=newapi.carambus.de \
   MODE_PORT=8910 \
+  MODE_PUMA_SOCKET=puma-production.sock \
   MODE_SSL_ENABLED=true
 
 # 2. Templates generieren
@@ -145,7 +180,16 @@ bundle exec cap production deploy
 
 ## 🔍 **Troubleshooting**
 
-### **NGINX Konfiguration testen**
+### **Socket-Berechtigungen prüfen**
+```bash
+# Socket-Verzeichnis prüfen
+ls -la /var/www/carambus_api/shared/sockets/
+
+# Socket-Berechtigungen prüfen
+ls -la /var/www/carambus_api/shared/sockets/puma-production.sock
+```
+
+### **NGINX Socket-Konfiguration testen**
 ```bash
 # Lokal testen
 sudo nginx -t
@@ -154,32 +198,31 @@ sudo nginx -t
 ssh -p 8910 www-data@newapi.carambus.de 'sudo nginx -t'
 ```
 
-### **Puma Service Status**
+### **Puma Socket Status**
 ```bash
+# Socket-Verbindung prüfen
+ssh -p 8910 www-data@newapi.carambus.de 'netstat -an | grep puma'
+
 # Service Status
 ssh -p 8910 www-data@newapi.carambus.de 'sudo systemctl status puma-carambus_api.service'
-
-# Service starten
-ssh -p 8910 www-data@newapi.carambus.de 'sudo systemctl start puma-carambus_api.service'
 ```
 
-### **Templates manuell aktualisieren**
+### **Socket-Verzeichnisse erstellen**
 ```bash
-# Templates neu generieren
-bundle exec rails mode:generate_templates
-
-# Templates manuell deployen
-bundle exec rails mode:deploy_templates
+# Manuell Socket-Verzeichnisse erstellen
+ssh -p 8910 www-data@newapi.carambus.de 'sudo mkdir -p /var/www/carambus_api/shared/sockets /var/www/carambus_api/shared/pids /var/www/carambus_api/shared/log'
 ```
 
 ## 📁 **Dateistruktur**
 
 ```
 config/
-├── nginx.conf.erb          # NGINX Template
+├── nginx.conf.erb          # NGINX Template (Socket-basiert)
+├── puma.rb.erb             # Puma.rb Template (Socket-basiert)
 ├── puma.service.erb        # Puma Service Template
 ├── scoreboard_url.erb      # Scoreboard URL Template
 ├── nginx.conf              # Generierte NGINX Konfiguration
+├── puma.rb                 # Generierte Puma.rb Konfiguration
 ├── puma.service            # Generierter Puma Service
 └── scoreboard_url          # Generierte Scoreboard URL
 
@@ -193,11 +236,13 @@ lib/capistrano/tasks/
 └── templates.rake          # Capistrano Template-Tasks
 ```
 
-## ✅ **Vorteile**
+## ✅ **Vorteile der Socket-basierten Architektur**
 
-1. **Automatisierung** - Templates werden automatisch generiert und übertragen
-2. **Konsistenz** - Alle Server verwenden die gleichen Konfigurationen
-3. **Flexibilität** - Unterstützung für verschiedene Server-Typen
-4. **Debugging** - Vollständige RubyMine-Integration
-5. **Sicherheit** - Templates werden getestet vor Aktivierung
-6. **Wartbarkeit** - Zentrale Template-Verwaltung
+1. **Performance** - Unix Sockets sind schneller als TCP/IP
+2. **Sicherheit** - Keine Netzwerk-Exposition
+3. **Effizienz** - Weniger Overhead
+4. **Skalierbarkeit** - Bessere Performance unter Last
+5. **Kompatibilität** - Bewährte carambus2-Architektur
+6. **Automatisierung** - Vollständige Template-Generierung
+7. **Debugging** - Vollständige RubyMine-Integration
+8. **Wartbarkeit** - Zentrale Socket-Verwaltung
