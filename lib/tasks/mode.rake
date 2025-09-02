@@ -498,6 +498,48 @@ namespace :mode do
     puts "\n🎯 DEPLOYMENT VALIDATION COMPLETE"
   end
 
+  desc "Generate templates for deployment"
+  task :generate_templates => :environment do
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    puts "🔧 Generating templates for deployment..."
+    puts "Basename: #{deploy_config[:basename]}"
+    
+    # Read current configuration to get parameters
+    carambus_config = read_local_deployment_config('carambus.yml')
+    if carambus_config
+      domain = carambus_config.dig('production', 'carambus_domain') || 'carambus.de'
+      location_id = carambus_config.dig('production', 'location_id') || '1'
+    else
+      domain = 'carambus.de'
+      location_id = '1'
+    end
+    
+    # Default parameters
+    basename = deploy_config[:basename]
+    nginx_port = '80'
+    puma_port = basename == 'carambus_api' ? '3001' : '3000'
+    ssl_enabled = 'false'
+    rails_env = deploy_config[:rails_env] || 'production'
+    scoreboard_url = generate_scoreboard_url(location_id)
+    
+    # Generate NGINX configuration
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+    
+    # Generate Puma service configuration
+    update_puma_service_configuration(basename, puma_port, rails_env)
+    
+    # Generate scoreboard URL configuration
+    update_scoreboard_url_configuration(scoreboard_url)
+    
+    puts "✅ Templates generated successfully"
+    puts "📁 Generated files:"
+    puts "  - config/nginx.conf"
+    puts "  - config/puma.service"
+    puts "  - config/scoreboard_url"
+  end
+
   private
 
   def parse_named_parameters_from_env
