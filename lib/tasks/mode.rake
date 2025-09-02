@@ -16,9 +16,15 @@ namespace :mode do
     club_id = params[:club_id] || '357'
     rails_env = params[:rails_env] || 'production'
     host = params[:host] || 'new.carambus.de'
-    port = (params[:port] || '').presence
+    port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'
+    
+    # New parameters for NGINX and Puma
+    nginx_port = params[:nginx_port] || '80'  # NGINX web port
+    puma_port = params[:puma_port] || '3000'  # Puma application port
+    ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
     
     puts "🚀 Switching to LOCAL mode with named parameters..."
     puts "Parameters: #{params.inspect}"
@@ -37,6 +43,15 @@ namespace :mode do
 
     # Update Puma configuration for LOCAL mode
     update_puma_configuration(puma_script, basename)
+
+    # Update NGINX configuration
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+
+    # Update Puma service configuration
+    update_puma_service_configuration(basename, puma_port, rails_env)
+
+    # Update scoreboard URL configuration
+    update_scoreboard_url_configuration(scoreboard_url)
 
     # Manage log files for LOCAL mode
     manage_log_files("local")
@@ -60,9 +75,15 @@ namespace :mode do
     club_id = params[:club_id] || ''
     rails_env = params[:rails_env] || 'production'
     host = params[:host] || 'newapi.carambus.de'
-    port = params[:port] || '3001'
+    port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma-api.sh'
+    
+    # New parameters for NGINX and Puma
+    nginx_port = params[:nginx_port] || '80'  # NGINX web port
+    puma_port = params[:puma_port] || '3001'  # Puma application port
+    ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
     
     puts "🚀 Switching to API mode with named parameters..."
     puts "Parameters: #{params.inspect}"
@@ -81,6 +102,15 @@ namespace :mode do
 
     # Update Puma configuration for API mode
     update_puma_configuration(puma_script, basename)
+
+    # Update NGINX configuration
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+
+    # Update Puma service configuration
+    update_puma_service_configuration(basename, puma_port, rails_env)
+
+    # Update scoreboard URL configuration
+    update_scoreboard_url_configuration(scoreboard_url)
 
     # Manage log files for LOCAL mode
     manage_log_files("api")
@@ -307,6 +337,118 @@ namespace :mode do
     end
   end
 
+  desc "Copy templates to local storage"
+  task :copy_templates => :environment do
+    local_storage_dir = Rails.root.join('local_storage')
+    FileUtils.mkdir_p(local_storage_dir)
+    
+    templates = {
+      'nginx_configs' => ['config/nginx.conf'],
+      'puma_configs' => ['config/puma.service'],
+      'scoreboard_configs' => ['config/scoreboard_url']
+    }
+    
+    templates.each do |subdir, files|
+      target_dir = local_storage_dir.join(subdir)
+      FileUtils.mkdir_p(target_dir)
+      
+      files.each do |file|
+        source = Rails.root.join(file)
+        if File.exist?(source)
+          target = target_dir.join(File.basename(file))
+          FileUtils.cp(source, target)
+          puts "✓ Copied #{file} to #{target}"
+        else
+          puts "⚠️  Source file not found: #{file}"
+        end
+      end
+    end
+    
+    puts "✅ Templates copied to local storage"
+  end
+
+  desc "Deploy templates to production server"
+  task :deploy_templates => :environment do
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    local_storage_dir = Rails.root.join('local_storage')
+    return puts "❌ Local storage directory not found" unless Dir.exist?(local_storage_dir)
+    
+    puts "🚀 Deploying templates to production server..."
+    puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    puts "Basename: #{deploy_config[:basename]}"
+    
+    # Deploy NGINX configuration
+    nginx_source = local_storage_dir.join('nginx_configs', 'nginx.conf')
+    if File.exist?(nginx_source)
+      nginx_target = "/etc/nginx/sites-available/#{deploy_config[:basename]}"
+      deploy_file(nginx_source, nginx_target, deploy_config)
+      puts "✓ NGINX config deployed to #{nginx_target}"
+    end
+    
+    # Deploy Puma service configuration
+    puma_source = local_storage_dir.join('puma_configs', 'puma.service')
+    if File.exist?(puma_source)
+      puma_target = "/etc/systemd/system/puma-#{deploy_config[:basename]}.service"
+      deploy_file(puma_source, puma_target, deploy_config)
+      puts "✓ Puma service config deployed to #{puma_target}"
+    end
+    
+    # Deploy scoreboard configuration
+    scoreboard_source = local_storage_dir.join('scoreboard_configs', 'scoreboard_url')
+    if File.exist?(scoreboard_source)
+      scoreboard_target = "/var/www/#{deploy_config[:basename]}/shared/config/scoreboard_url"
+      deploy_file(scoreboard_source, scoreboard_target, deploy_config)
+      puts "✓ Scoreboard config deployed to #{scoreboard_target}"
+    end
+    
+    puts "✅ Templates deployed successfully"
+  end
+
+  desc "Deploy database dump to production server"
+  task :deploy_db_dump, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250101_120000.sql.gz]'"
+      exit 1
+    end
+    
+    unless File.exist?(dump_file)
+      puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    puts "🚀 Deploying database dump to production server..."
+    puts "Dump file: #{dump_file}"
+    puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    
+    # Copy dump file to server
+    remote_dump_dir = "/var/www/#{deploy_config[:basename]}/shared/database_dumps"
+    remote_dump_file = "#{remote_dump_dir}/#{File.basename(dump_file)}"
+    
+    # Create remote directory
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'mkdir -p #{remote_dump_dir}'")
+    
+    # Copy file
+    system("scp -P #{deploy_config[:port]} #{dump_file} www-data@#{deploy_config[:host]}:#{remote_dump_file}")
+    
+    if $?.success?
+      puts "✅ Database dump deployed successfully"
+      puts "📁 Remote location: #{remote_dump_file}"
+      puts ""
+      puts "To restore the database:"
+      puts "ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'gunzip -c #{remote_dump_file} | psql #{deploy_config[:basename]}_production'"
+    else
+      puts "❌ Failed to deploy database dump"
+      exit 1
+    end
+  end
+
   desc "Validate deployment configuration locally"
   task :validate_deployment => :environment do
     puts "🔍 VALIDATING DEPLOYMENT CONFIGURATION"
@@ -362,7 +504,7 @@ namespace :mode do
     params = {}
     
     # Parse from environment variables
-    %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script].each do |param|
+    %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script nginx_port puma_port ssl_enabled scoreboard_url].each do |param|
       env_var = "MODE_#{param.to_s.upcase}"
       params[param] = ENV[env_var] if ENV[env_var]
     end
@@ -439,16 +581,23 @@ namespace :mode do
     puts "  MODE_LOCATION_ID     - Location ID"
     puts "  MODE_CLUB_ID         - Club ID"
     puts "  MODE_RAILS_ENV       - Rails environment"
-    puts "  MODE_HOST            - Server hostname"
-    puts "  MODE_PORT            - Server port"
+    puts "  MODE_HOST            - Server hostname (SSH access)"
+    puts "  MODE_PORT            - Server SSH port (default: 8910)"
     puts "  MODE_BRANCH          - Git branch"
     puts "  MODE_PUMA_SCRIPT     - Puma management script"
+    puts "  MODE_NGINX_PORT      - NGINX web port (default: 80)"
+    puts "  MODE_PUMA_PORT       - Puma application port (default: 3000/3001)"
+    puts "  MODE_SSL_ENABLED     - SSL enabled (true/false, default: false)"
+    puts "  MODE_SCOREBOARD_URL  - Scoreboard URL (auto-generated from location_id)"
     puts ""
     puts "Examples:"
-    puts "  bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001"
+    puts "  bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=8910"
     puts "  bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'"
-    puts "  bundle exec rails 'mode:save[api_hetzner]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001"
+    puts "  bundle exec rails 'mode:save[api_hetzner]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=8910"
     puts "  bundle exec rails 'mode:load[api_hetzner]'"
+    puts ""
+    puts "In-house Server Example:"
+    puts "  bundle exec rails 'mode:local' MODE_HOST=192.168.1.100 MODE_PORT=22 MODE_NGINX_PORT=3131 MODE_PUMA_PORT=3000 MODE_SSL_ENABLED=false"
   end
 
   # Include all the necessary methods from the original mode.rake
@@ -922,5 +1071,112 @@ namespace :mode do
       rails_env: rails_env_match ? rails_env_match[1] : nil,
       branch: branch_match ? branch_match[1] : nil
     }
+  end
+
+  def deploy_file(source, target, deploy_config)
+    begin
+      `ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} "mkdir -p $(dirname #{target}) && cat #{source} > #{target}"`
+      if $?.success?
+        puts "✓ Deployed #{source} to #{target}"
+      else
+        puts "❌ Failed to deploy #{source} to #{target}"
+        exit 1
+      end
+    rescue => e
+      puts "❌ Error deploying #{source} to #{target}: #{e.message}"
+      exit 1
+    end
+  end
+
+  def update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_port)
+    nginx_config_file = Rails.root.join('config', 'nginx.conf')
+
+    if File.exist?("#{nginx_config_file}.erb")
+      content = File.read("#{nginx_config_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      basename = basename.to_s
+      domain = domain.to_s
+      nginx_port = nginx_port.to_s
+      puma_port = puma_port.to_s
+      ssl_enabled = ssl_enabled.to_s
+      
+      updated_content = content.gsub(
+        /<%= basename %>/,
+        basename
+      ).gsub(
+        /<%= domain %>/,
+        domain
+      ).gsub(
+        /<%= nginx_port %>/,
+        nginx_port
+      ).gsub(
+        /<%= puma_port %>/,
+        puma_port
+      ).gsub(
+        /<%= ssl_enabled %>/,
+        ssl_enabled
+      )
+
+      File.write(nginx_config_file, updated_content)
+      puts "✓ Updated nginx.conf with parameters"
+    else
+      puts "⚠️  nginx.conf.erb not found, skipping nginx.conf update"
+    end
+  end
+
+  def update_puma_service_configuration(basename, puma_port, rails_env)
+    puma_service_file = Rails.root.join('config', 'puma.service')
+
+    if File.exist?("#{puma_service_file}.erb")
+      content = File.read("#{puma_service_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      basename = basename.to_s
+      puma_port = puma_port.to_s
+      rails_env = rails_env.to_s
+      
+      updated_content = content.gsub(
+        /<%= basename %>/,
+        basename
+      ).gsub(
+        /<%= puma_port %>/,
+        puma_port
+      ).gsub(
+        /<%= rails_env %>/,
+        rails_env
+      )
+
+      File.write(puma_service_file, updated_content)
+      puts "✓ Updated puma.service with parameters"
+    else
+      puts "⚠️  puma.service.erb not found, skipping puma.service update"
+    end
+  end
+
+  def update_scoreboard_url_configuration(scoreboard_url)
+    scoreboard_config_file = Rails.root.join('config', 'scoreboard_url')
+
+    if File.exist?("#{scoreboard_config_file}.erb")
+      content = File.read("#{scoreboard_config_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      scoreboard_url = scoreboard_url.to_s
+      
+      updated_content = content.gsub(
+        /<%= scoreboard_url %>/,
+        scoreboard_url
+      )
+
+      File.write(scoreboard_config_file, updated_content)
+      puts "✓ Updated scoreboard_url with URL: #{scoreboard_url}"
+    else
+      puts "⚠️  scoreboard_url.erb not found, skipping scoreboard_url update"
+    end
+  end
+
+  def generate_scoreboard_url(location_id)
+    return "https://scoreboard.carambus.de" if location_id.blank?
+    "https://scoreboard.carambus.de/locations/#{Digest::MD5.hexdigest(location_id.to_s)}"
   end
 end

@@ -1,0 +1,2327 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus-docs/en/de/tournament_duplicate_handling/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Turnier-Duplikat-Behandlungssystem - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#turnier-duplikat-behandlungssystem" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Turnier-Duplikat-Behandlungssystem
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../de/tournament_duplicate_handling/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../en/tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Other
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/docker_installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Match Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/mode_switcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Mode Switcher
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/mkdocs_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/database_syncing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicate Handling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging Cleanup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Other
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Other
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../en/tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wie-es-funktioniert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie es funktioniert
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wie es funktioniert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-duplikat-erkennung" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Duplikat-Erkennung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-auswahllogik" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Auswahllogik
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-verlassenheits-verfolgung" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Verlassenheits-Verfolgung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbankschema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbankschema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Datenbankschema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#abandonedtournamentcc-modell" class="md-nav__link">
+    <span class="md-ellipsis">
+      AbandonedTournamentCc Modell
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verwendung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verwendung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verwendung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-behandlung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Behandlung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manuelle-verwaltung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manuelle Verwaltung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manuelle Verwaltung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#duplikate-analysieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Duplikate analysieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verlassene-turniere-auflisten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verlassene Turniere auflisten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manuell-als-verlassen-markieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manuell als verlassen markieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alte-datensatze-bereinigen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alte Datensätze bereinigen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementierungsdetails" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementierungsdetails
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementierungsdetails">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modifizierte-methoden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modifizierte Methoden
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Modifizierte Methoden">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regionscrape_tournaments_optimized" class="md-nav__link">
+    <span class="md-ellipsis">
+      Region#scrape_tournaments_optimized
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neue-private-methoden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neue private Methoden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#abandonedtournamentcc-modell_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      AbandonedTournamentCc Modell
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erweiterte-funktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erweiterte Funktionen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erweiterte Funktionen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#duplikat-analyse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Duplikat-Analyse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Duplikat-Analyse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-erkennung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Erkennung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manuelle-uberprufung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manuelle Überprüfung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bereinigungsstrategien" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bereinigungsstrategien
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bereinigungsstrategien">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zeitbasierte-bereinigung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zeitbasierte Bereinigung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regionsbasierte-bereinigung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regionsbasierte Bereinigung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-und-berichterstattung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring und Berichterstattung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring und Berichterstattung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#duplikat-statistiken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Duplikat-Statistiken
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metriken" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance-Metriken
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#haufige-probleme" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Probleme
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Häufige Probleme">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-duplikate-werden-nicht-erkannt" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Duplikate werden nicht erkannt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-falsche-auswahl-bei-duplikaten" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Falsche Auswahl bei Duplikaten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-performance-probleme" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Performance-Probleme
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logs-aktivieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logs aktivieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manuelle-uberprufung_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manuelle Überprüfung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fur-entwickler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Entwickler
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Für Entwickler">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-duplikat-erkennung_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Duplikat-Erkennung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-datenqualitat" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Datenqualität
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fur-administratoren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Administratoren
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Für Administratoren">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-regelmaige-wartung" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Regelmäßige Wartung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-datenbankpflege" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Datenbankpflege
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-benutzerkommunikation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Benutzerkommunikation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zukunftige-verbesserungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zukünftige Verbesserungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zukünftige Verbesserungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#geplante-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Geplante Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Geplante Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-intelligente-duplikat-erkennung" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Intelligente Duplikat-Erkennung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-erweiterte-bereinigungsstrategien" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Erweiterte Bereinigungsstrategien
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-verbessertes-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Verbessertes Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-q1-2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1 (Q1 2025)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-q2-2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2 (Q2 2025)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-q3-2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3 (Q3 2025)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="turnier-duplikat-behandlungssystem">Turnier-Duplikat-Behandlungssystem<a class="headerlink" href="#turnier-duplikat-behandlungssystem" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Dieses System befasst sich mit dem Problem von doppelten Turnieren mit unterschiedlichen <code>cc_id</code> Werten während des Scrapings. Wenn die Quelle mehrere Turniere mit demselben Namen, Datum und derselben Disziplin, aber unterschiedlichen <code>cc_id</code> Werten enthält, erkennt und behandelt dieses System sie automatisch, um das Hin- und Herwechseln zwischen verschiedenen Versionen zu verhindern.</p>
+<h2 id="wie-es-funktioniert">Wie es funktioniert<a class="headerlink" href="#wie-es-funktioniert" title="Permanent link">&para;</a></h2>
+<h3 id="1-duplikat-erkennung">1. Duplikat-Erkennung<a class="headerlink" href="#1-duplikat-erkennung" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Während des Scrapings werden Turniere nach Namen gruppiert</li>
+<li>Wenn mehrere Turniere denselben Namen haben, werden sie als Duplikate identifiziert</li>
+<li>Das System analysiert jedes Duplikat, um zu bestimmen, welches behalten werden soll</li>
+</ul>
+<h3 id="2-auswahllogik">2. Auswahllogik<a class="headerlink" href="#2-auswahllogik" title="Permanent link">&para;</a></h3>
+<p>Das System priorisiert Turniere in dieser Reihenfolge:
+1. <strong>Hat Spiele</strong> - Dies ist die definitive Version, das Turnier ist aktiv und wird verwendet
+2. <strong>Hat Setzlisten</strong> - Turniermanager haben begonnen, an dieser Version zu arbeiten (Vor-Turnier-Setup)
+3. <strong>Keine Setzlisten und keine Spiele</strong> - Saubere Turniere (niedrigste Priorität)
+4. <strong>Höchste cc_id</strong> - Wenn alle denselben Datenstatus haben, ist die höchste cc_id normalerweise die richtige</p>
+<h3 id="3-verlassenheits-verfolgung">3. Verlassenheits-Verfolgung<a class="headerlink" href="#3-verlassenheits-verfolgung" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Verlassene <code>cc_id</code> Werte werden in der <code>abandoned_tournament_ccs</code> Tabelle gespeichert</li>
+<li>Zukünftige Scraping-Läufe überspringen diese verlassenen <code>cc_id</code> Werte</li>
+<li>Dies verhindert das Hin- und Herwechseln, das Sie erlebt haben</li>
+</ul>
+<h2 id="datenbankschema">Datenbankschema<a class="headerlink" href="#datenbankschema" title="Permanent link">&para;</a></h2>
+<h3 id="abandonedtournamentcc-modell">AbandonedTournamentCc Modell<a class="headerlink" href="#abandonedtournamentcc-modell" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Felder:</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">cc_id</span><span class="p">:</span><span class="w"> </span><span class="no">Die</span><span class="w"> </span><span class="n">verlassene</span><span class="w"> </span><span class="no">Turnier</span><span class="o">-</span><span class="n">cc_id</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="no">Der</span><span class="w"> </span><span class="no">Regions</span><span class="o">-</span><span class="no">Kontext</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="w"> </span><span class="s1">&#39;dbu&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;nbv&#39;</span><span class="p">)</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">region_shortname</span><span class="p">:</span><span class="w"> </span><span class="no">Der</span><span class="w"> </span><span class="no">Regions</span><span class="o">-</span><span class="no">Kurzname</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">season_name</span><span class="p">:</span><span class="w"> </span><span class="no">Der</span><span class="w"> </span><span class="no">Saisonname</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">tournament_name</span><span class="p">:</span><span class="w"> </span><span class="no">Der</span><span class="w"> </span><span class="no">Turniername</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">abandoned_at</span><span class="p">:</span><span class="w"> </span><span class="no">Wann</span><span class="w"> </span><span class="n">es</span><span class="w"> </span><span class="n">als</span><span class="w"> </span><span class="n">verlassen</span><span class="w"> </span><span class="n">markiert</span><span class="w"> </span><span class="n">wurde</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">reason</span><span class="p">:</span><span class="w"> </span><span class="no">Warum</span><span class="w"> </span><span class="n">es</span><span class="w"> </span><span class="n">verlassen</span><span class="w"> </span><span class="n">wurde</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">replaced_by_cc_id</span><span class="p">:</span><span class="w"> </span><span class="no">Welche</span><span class="w"> </span><span class="n">cc_id</span><span class="w"> </span><span class="n">es</span><span class="w"> </span><span class="n">ersetzt</span><span class="w"> </span><span class="n">hat</span>
+<span class="o">-</span><span class="w"> </span><span class="ss">replaced_by_tournament_id</span><span class="p">:</span><span class="w"> </span><span class="no">Welches</span><span class="w"> </span><span class="no">Turnier</span><span class="w"> </span><span class="n">es</span><span class="w"> </span><span class="n">ersetzt</span><span class="w"> </span><span class="n">hat</span>
+</code></pre></div>
+<h2 id="verwendung">Verwendung<a class="headerlink" href="#verwendung" title="Permanent link">&para;</a></h2>
+<h3 id="automatische-behandlung">Automatische Behandlung<a class="headerlink" href="#automatische-behandlung" title="Permanent link">&para;</a></h3>
+<p>Das System funktioniert automatisch, wenn Sie ausführen:
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span>scrape:tournaments_optimized
+</code></pre></div></p>
+<h3 id="manuelle-verwaltung">Manuelle Verwaltung<a class="headerlink" href="#manuelle-verwaltung" title="Permanent link">&para;</a></h3>
+<h4 id="duplikate-analysieren">Duplikate analysieren<a class="headerlink" href="#duplikate-analysieren" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span>scrape:analyze_duplicates<span class="w"> </span><span class="nv">REGION</span><span class="o">=</span>NBV<span class="w"> </span><span class="nv">SEASON</span><span class="o">=</span><span class="m">2023</span>/2024
+</code></pre></div>
+<h4 id="verlassene-turniere-auflisten">Verlassene Turniere auflisten<a class="headerlink" href="#verlassene-turniere-auflisten" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span>scrape:list_abandoned_tournaments<span class="w"> </span><span class="nv">REGION</span><span class="o">=</span>NBV<span class="w"> </span><span class="nv">SEASON</span><span class="o">=</span><span class="m">2023</span>/2024
+</code></pre></div>
+<h4 id="manuell-als-verlassen-markieren">Manuell als verlassen markieren<a class="headerlink" href="#manuell-als-verlassen-markieren" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span>scrape:mark_tournament_abandoned<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CC_ID</span><span class="o">=</span><span class="m">123</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CONTEXT</span><span class="o">=</span>nbv<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">REGION</span><span class="o">=</span>NBV<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">SEASON</span><span class="o">=</span><span class="m">2023</span>/2024<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">TOURNAMENT</span><span class="o">=</span><span class="s2">&quot;Turniername&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">REASON</span><span class="o">=</span><span class="s2">&quot;Manuelle Bereinigung&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">REPLACED_BY_CC_ID</span><span class="o">=</span><span class="m">456</span>
+</code></pre></div>
+<h4 id="alte-datensatze-bereinigen">Alte Datensätze bereinigen<a class="headerlink" href="#alte-datensatze-bereinigen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Datensätze älter als 365 Tage bereinigen (Standard)</span>
+rake<span class="w"> </span>scrape:cleanup_abandoned_tournaments
+
+<span class="c1"># Datensätze älter als 180 Tage bereinigen</span>
+rake<span class="w"> </span>scrape:cleanup_abandoned_tournaments<span class="w"> </span><span class="nv">DAYS</span><span class="o">=</span><span class="m">180</span>
+</code></pre></div>
+<h2 id="implementierungsdetails">Implementierungsdetails<a class="headerlink" href="#implementierungsdetails" title="Permanent link">&para;</a></h2>
+<h3 id="modifizierte-methoden">Modifizierte Methoden<a class="headerlink" href="#modifizierte-methoden" title="Permanent link">&para;</a></h3>
+<h4 id="regionscrape_tournaments_optimized">Region#scrape_tournaments_optimized<a class="headerlink" href="#regionscrape_tournaments_optimized" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Gruppiert jetzt Turniere nach Namen vor der Verarbeitung</li>
+<li>Erkennt Duplikate und wendet Auswahllogik an</li>
+<li>Markiert verlassene cc_ids für zukünftige Läufe</li>
+</ul>
+<h4 id="neue-private-methoden">Neue private Methoden<a class="headerlink" href="#neue-private-methoden" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>process_single_tournament</code>: Behandelt einzelne Turniere</li>
+<li><code>process_duplicate_tournaments</code>: Behandelt Duplikatgruppen</li>
+</ul>
+<h3 id="abandonedtournamentcc-modell_1">AbandonedTournamentCc Modell<a class="headerlink" href="#abandonedtournamentcc-modell_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>is_abandoned?</code>: Überprüft, ob eine cc_id verlassen ist</li>
+<li><code>mark_abandoned!</code>: Markiert eine cc_id als verlassen</li>
+<li><code>analyze_duplicates</code>: Analysiert Duplikate für eine Region/Saison</li>
+<li><code>cleanup_old_records</code>: Entfernt alte verlassene Datensätze</li>
+</ul>
+<h2 id="erweiterte-funktionen">Erweiterte Funktionen<a class="headerlink" href="#erweiterte-funktionen" title="Permanent link">&para;</a></h2>
+<h3 id="duplikat-analyse">Duplikat-Analyse<a class="headerlink" href="#duplikat-analyse" title="Permanent link">&para;</a></h3>
+<h4 id="automatische-erkennung">Automatische Erkennung<a class="headerlink" href="#automatische-erkennung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Duplikate für eine Region/Saison analysieren</span>
+<span class="n">duplicates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">analyze_duplicates</span><span class="p">(</span><span class="s1">&#39;NBV&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2023/2024&#39;</span><span class="p">)</span>
+
+<span class="n">duplicates</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">duplicate</span><span class="o">|</span>
+<span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Turnier: </span><span class="si">#{</span><span class="n">duplicate</span><span class="o">.</span><span class="n">tournament_name</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Verlassene cc_id: </span><span class="si">#{</span><span class="n">duplicate</span><span class="o">.</span><span class="n">cc_id</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Ersetzt durch: </span><span class="si">#{</span><span class="n">duplicate</span><span class="o">.</span><span class="n">replaced_by_cc_id</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Grund: </span><span class="si">#{</span><span class="n">duplicate</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">end</span>
+</code></pre></div>
+<h4 id="manuelle-uberprufung">Manuelle Überprüfung<a class="headerlink" href="#manuelle-uberprufung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Bestimmte cc_id als verlassen markieren</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">mark_abandoned!</span><span class="p">(</span>
+<span class="w">  </span><span class="ss">cc_id</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;nbv&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">region_shortname</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;NBV&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">season_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2023/2024&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">tournament_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Beispielturnier&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">reason</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Manuelle Bereinigung&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">replaced_by_cc_id</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="bereinigungsstrategien">Bereinigungsstrategien<a class="headerlink" href="#bereinigungsstrategien" title="Permanent link">&para;</a></h3>
+<h4 id="zeitbasierte-bereinigung">Zeitbasierte Bereinigung<a class="headerlink" href="#zeitbasierte-bereinigung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Standard: 365 Tage</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">cleanup_old_records</span>
+
+<span class="c1"># Benutzerdefiniert: 180 Tage</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">cleanup_old_records</span><span class="p">(</span><span class="ss">days</span><span class="p">:</span><span class="w"> </span><span class="mi">180</span><span class="p">)</span>
+
+<span class="c1"># Sehr aggressiv: 90 Tage</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">cleanup_old_records</span><span class="p">(</span><span class="ss">days</span><span class="p">:</span><span class="w"> </span><span class="mi">90</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="regionsbasierte-bereinigung">Regionsbasierte Bereinigung<a class="headerlink" href="#regionsbasierte-bereinigung" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Nur bestimmte Region bereinigen</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">region_shortname</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;NBV&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cleanup_old_records</span>
+
+<span class="c1"># Mehrere Regionen bereinigen</span>
+<span class="n">regions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s1">&#39;NBV&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;BBV&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;SBV&#39;</span><span class="o">]</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">region_shortname</span><span class="p">:</span><span class="w"> </span><span class="n">regions</span><span class="p">)</span><span class="o">.</span><span class="n">cleanup_old_records</span>
+</code></pre></div>
+<h2 id="monitoring-und-berichterstattung">Monitoring und Berichterstattung<a class="headerlink" href="#monitoring-und-berichterstattung" title="Permanent link">&para;</a></h2>
+<h3 id="duplikat-statistiken">Duplikat-Statistiken<a class="headerlink" href="#duplikat-statistiken" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Anzahl der Duplikate pro Region</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="ss">:region_shortname</span><span class="p">)</span><span class="o">.</span><span class="n">count</span>
+
+<span class="c1"># Anzahl der Duplikate pro Saison</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="ss">:season_name</span><span class="p">)</span><span class="o">.</span><span class="n">count</span>
+
+<span class="c1"># Häufigste Gründe für Verlassenheit</span>
+<span class="no">AbandonedTournamentCc</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="ss">:reason</span><span class="p">)</span><span class="o">.</span><span class="n">count</span>
+</code></pre></div>
+<h3 id="performance-metriken">Performance-Metriken<a class="headerlink" href="#performance-metriken" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Durchschnittliche Verarbeitungszeit für Duplikate</span>
+<span class="n">start_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">current</span>
+<span class="c1"># Duplikat-Verarbeitung</span>
+<span class="n">end_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">current</span>
+<span class="n">processing_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span>
+
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Duplikat-Verarbeitung dauerte: </span><span class="si">#{</span><span class="n">processing_time</span><span class="si">}</span><span class="s2"> Sekunden&quot;</span>
+</code></pre></div>
+<h2 id="fehlerbehebung">Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="haufige-probleme">Häufige Probleme<a class="headerlink" href="#haufige-probleme" title="Permanent link">&para;</a></h3>
+<h4 id="1-duplikate-werden-nicht-erkannt">1. Duplikate werden nicht erkannt<a class="headerlink" href="#1-duplikate-werden-nicht-erkannt" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Ursache</strong>: Unterschiedliche Namensformatierung</li>
+<li><strong>Lösung</strong>: Namensnormalisierung implementieren</li>
+<li><strong>Beispiel</strong>: "Turnier 2024" vs "Turnier-2024"</li>
+</ul>
+<h4 id="2-falsche-auswahl-bei-duplikaten">2. Falsche Auswahl bei Duplikaten<a class="headerlink" href="#2-falsche-auswahl-bei-duplikaten" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Ursache</strong>: Unvollständige Datenanalyse</li>
+<li><strong>Lösung</strong>: Zusätzliche Kriterien hinzufügen</li>
+<li><strong>Beispiel</strong>: Berücksichtigung von Teilnehmerzahlen</li>
+</ul>
+<h4 id="3-performance-probleme">3. Performance-Probleme<a class="headerlink" href="#3-performance-probleme" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Ursache</strong>: Große Datenmengen</li>
+<li><strong>Lösung</strong>: Batch-Verarbeitung implementieren</li>
+<li><strong>Beispiel</strong>: Verarbeitung in Chunks von 1000</li>
+</ul>
+<h3 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h3>
+<h4 id="logs-aktivieren">Logs aktivieren<a class="headerlink" href="#logs-aktivieren" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Debug-Logging für Duplikat-Verarbeitung</span>
+<span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Logger</span><span class="o">::</span><span class="no">DEBUG</span>
+
+<span class="c1"># Spezifische Logs für Duplikate</span>
+<span class="no">Rails</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="w"> </span><span class="s2">&quot;Verarbeite Duplikatgruppe: </span><span class="si">#{</span><span class="n">duplicate_group</span><span class="o">.</span><span class="n">inspect</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h4 id="manuelle-uberprufung_1">Manuelle Überprüfung<a class="headerlink" href="#manuelle-uberprufung_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Duplikate für eine bestimmte Region analysieren</span>
+rails<span class="w"> </span>console
+<span class="nv">region</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Region.find_by<span class="o">(</span>shortname:<span class="w"> </span><span class="s1">&#39;NBV&#39;</span><span class="o">)</span>
+<span class="nv">duplicates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>region.analyze_tournament_duplicates<span class="o">(</span><span class="s1">&#39;2023/2024&#39;</span><span class="o">)</span>
+puts<span class="w"> </span>duplicates.inspect
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="fur-entwickler">Für Entwickler<a class="headerlink" href="#fur-entwickler" title="Permanent link">&para;</a></h3>
+<h4 id="1-duplikat-erkennung_1">1. Duplikat-Erkennung<a class="headerlink" href="#1-duplikat-erkennung_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Robuste Logik</strong>: Implementieren Sie mehrere Erkennungskriterien</li>
+<li><strong>Fallback-Strategien</strong>: Haben Sie Backup-Logik für Edge Cases</li>
+<li><strong>Performance</strong>: Optimieren Sie für große Datenmengen</li>
+</ul>
+<h4 id="2-datenqualitat">2. Datenqualität<a class="headerlink" href="#2-datenqualitat" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Validierung</strong>: Überprüfen Sie alle Eingabedaten</li>
+<li><strong>Konsistenz</strong>: Halten Sie Datenformate konsistent</li>
+<li><strong>Backup</strong>: Sichern Sie Daten vor der Verarbeitung</li>
+</ul>
+<h4 id="3-monitoring">3. Monitoring<a class="headerlink" href="#3-monitoring" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Logs</strong>: Protokollieren Sie alle wichtigen Aktionen</li>
+<li><strong>Metriken</strong>: Überwachen Sie Performance und Erfolgsraten</li>
+<li><strong>Alerts</strong>: Benachrichtigen Sie bei Problemen</li>
+</ul>
+<h3 id="fur-administratoren">Für Administratoren<a class="headerlink" href="#fur-administratoren" title="Permanent link">&para;</a></h3>
+<h4 id="1-regelmaige-wartung">1. Regelmäßige Wartung<a class="headerlink" href="#1-regelmaige-wartung" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Tägliche Überprüfung</strong>: Überprüfen Sie Scraping-Ergebnisse</li>
+<li><strong>Wöchentliche Bereinigung</strong>: Führen Sie Bereinigungsaufgaben aus</li>
+<li><strong>Monatliche Analyse</strong>: Analysieren Sie Trends und Probleme</li>
+</ul>
+<h4 id="2-datenbankpflege">2. Datenbankpflege<a class="headerlink" href="#2-datenbankpflege" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Indizes</strong>: Stellen Sie sicher, dass alle Abfragen indiziert sind</li>
+<li><strong>Partitionierung</strong>: Erwägen Sie Partitionierung für große Tabellen</li>
+<li><strong>Archivierung</strong>: Archivieren Sie alte verlassene Datensätze</li>
+</ul>
+<h4 id="3-benutzerkommunikation">3. Benutzerkommunikation<a class="headerlink" href="#3-benutzerkommunikation" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Transparenz</strong>: Informieren Sie Benutzer über Duplikat-Behandlung</li>
+<li><strong>Dokumentation</strong>: Dokumentieren Sie alle Änderungen</li>
+<li><strong>Schulungen</strong>: Schulen Sie Benutzer im Umgang mit Duplikaten</li>
+</ul>
+<h2 id="zukunftige-verbesserungen">Zukünftige Verbesserungen<a class="headerlink" href="#zukunftige-verbesserungen" title="Permanent link">&para;</a></h2>
+<h3 id="geplante-features">Geplante Features<a class="headerlink" href="#geplante-features" title="Permanent link">&para;</a></h3>
+<h4 id="1-intelligente-duplikat-erkennung">1. Intelligente Duplikat-Erkennung<a class="headerlink" href="#1-intelligente-duplikat-erkennung" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Machine Learning</strong>: Automatische Erkennung von Duplikaten</li>
+<li><strong>Fuzzy Matching</strong>: Erkennung ähnlicher Namen</li>
+<li><strong>Kontextanalyse</strong>: Berücksichtigung von Turnier-Kontext</li>
+</ul>
+<h4 id="2-erweiterte-bereinigungsstrategien">2. Erweiterte Bereinigungsstrategien<a class="headerlink" href="#2-erweiterte-bereinigungsstrategien" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Automatische Bereinigung</strong>: Intelligente Zeitplanung</li>
+<li><strong>Benutzerdefinierte Regeln</strong>: Konfigurierbare Bereinigungsrichtlinien</li>
+<li><strong>Rollback-Funktionalität</strong>: Wiederherstellung gelöschter Datensätze</li>
+</ul>
+<h4 id="3-verbessertes-monitoring">3. Verbessertes Monitoring<a class="headerlink" href="#3-verbessertes-monitoring" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Dashboard</strong>: Echtzeit-Überwachung der Duplikat-Behandlung</li>
+<li><strong>Berichte</strong>: Detaillierte Analysen und Statistiken</li>
+<li><strong>Integration</strong>: Anbindung an externe Monitoring-Tools</li>
+</ul>
+<h3 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h3>
+<h4 id="phase-1-q1-2025">Phase 1 (Q1 2025)<a class="headerlink" href="#phase-1-q1-2025" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Grundlegende Duplikat-Erkennung implementieren</li>
+<li>Basis-Bereinigungsfunktionen hinzufügen</li>
+<li>Einfaches Monitoring einrichten</li>
+</ul>
+<h4 id="phase-2-q2-2025">Phase 2 (Q2 2025)<a class="headerlink" href="#phase-2-q2-2025" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Intelligente Auswahllogik verbessern</li>
+<li>Erweiterte Bereinigungsstrategien implementieren</li>
+<li>Dashboard für Administratoren entwickeln</li>
+</ul>
+<h4 id="phase-3-q3-2025">Phase 3 (Q3 2025)<a class="headerlink" href="#phase-3-q3-2025" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Machine Learning Integration</li>
+<li>Vollautomatische Duplikat-Behandlung</li>
+<li>Erweiterte Berichterstattung </li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

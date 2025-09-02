@@ -1,0 +1,17 @@
+[Unit]
+Description=Puma HTTP Server for <%= basename %>
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/<%= basename %>/current
+Environment=PATH=/var/www/<%= basename %>/current/bin:/usr/local/bin:/usr/bin:/bin
+Environment=RAILS_ENV=<%= rails_env %>
+ExecStart=/var/www/<%= basename %>/current/bin/puma -C /var/www/<%= basename %>/shared/puma.rb
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
