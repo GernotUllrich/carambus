@@ -10,7 +10,7 @@ namespace :mode do
     context = args.context || 'NBV'
     api_url = args.api_url || 'https://newapi.carambus.de/'
     basename = args.basename || 'carambus'
-    database = args.database || 'carambus_production'
+    database = args.database || 'carambus_api_production'
     domain = args.domain || 'carambus.de'
     location_id = args.location_id || '1'
     club_id = args.club_id || '357'
@@ -711,7 +711,7 @@ namespace :mode do
 
   desc "Prepare database dump for deployment"
   task :prepare_db_dump, [:database_name] => :environment do |task, args|
-    database_name = args.database_name || 'carambus_production'
+    database_name = args.database_name || 'carambus_api_production'
     dump_dir = Rails.root.join('db', 'dumps')
     FileUtils.mkdir_p(dump_dir)
 
@@ -729,7 +729,7 @@ namespace :mode do
       puts "✅ Database dump created: #{dump_file}"
       puts "📋 To deploy this dump to production:"
       puts "   scp -P 8910 #{dump_file} www-data@carambus.de:/var/www/carambus/shared/db_dumps/"
-      puts "   ssh -p 8910 www-data@carambus.de 'gunzip -c /var/www/carambus/shared/db_dumps/#{File.basename(dump_file)} | psql carambus_production'"
+      puts "   ssh -p 8910 www-data@carambus.de 'gunzip -c /var/www/carambus/shared/db_dumps/#{File.basename(dump_file)} | psql carambus_api_production'"
     else
       puts "❌ Failed to create database dump"
       exit 1
@@ -776,7 +776,7 @@ namespace :mode do
     
     # Check if database.yml has proper production section
     database_content = File.read(Rails.root.join('config', 'database.yml'))
-    if database_content.include?('production:') && database_content.include?('database: carambus_production')
+    if database_content.include?('production:') && database_content.include?('database: carambus_api_production')
       puts "✅ database.yml production section is properly configured"
     else
       puts "⚠️  database.yml production section needs to be generated"

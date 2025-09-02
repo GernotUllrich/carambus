@@ -6,18 +6,18 @@ default: &default
 
 development:
   <<: *default
-  database: carambus_production
+  database: carambus_api_development
   username: <%= ENV.fetch("DB_USERNAME", nil) %>
   password: <%= ENV.fetch("DB_PASSWORD", nil) %>
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
 
 test:
   <<: *default
-  database: carambus_test
+  database: carambus_api_test
   username: <%= ENV.fetch("DB_USERNAME", nil) %>
   password: <%= ENV.fetch("DB_PASSWORD", nil) %>
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
 
 production:
   <<: *default
-  database: carambus_production
+  database: carambus_api_production
