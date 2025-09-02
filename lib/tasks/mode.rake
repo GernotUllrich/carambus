@@ -24,7 +24,7 @@ namespace :mode do
     nginx_port = params[:nginx_port] || '80'  # NGINX web port
     puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
     ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
-    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id, basename, rails_env)
     
     puts "🚀 Switching to LOCAL mode with named parameters..."
     puts "Parameters: #{params.inspect}"
@@ -86,7 +86,7 @@ namespace :mode do
     nginx_port = params[:nginx_port] || '80'  # NGINX web port
     puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
     ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
-    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id)
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id, basename, rails_env)
     
     puts "🚀 Switching to API mode with named parameters..."
     puts "Parameters: #{params.inspect}"
@@ -528,7 +528,7 @@ namespace :mode do
     puma_socket = basename == 'carambus_api' ? "puma-production.sock" : "puma-#{deploy_config[:rails_env]}.sock"
     ssl_enabled = 'false'
     rails_env = deploy_config[:rails_env] || 'production'
-    scoreboard_url = generate_scoreboard_url(location_id)
+    scoreboard_url = generate_scoreboard_url(location_id, basename, rails_env)
     
     # Generate NGINX configuration
     update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
@@ -1251,7 +1251,13 @@ namespace :mode do
     end
   end
 
-  def generate_scoreboard_url(location_id)
+  def generate_scoreboard_url(location_id, basename = nil, rails_env = nil)
+    # TODO: Disallow scoreboard access on API server
+    # API servers should not have scoreboard functionality
+    if basename == 'carambus_api' && rails_env == 'production'
+      return ''  # Empty string for API servers
+    end
+    
     return "https://scoreboard.carambus.de" if location_id.blank?
     "https://scoreboard.carambus.de/locations/#{Digest::MD5.hexdigest(location_id.to_s)}"
   end
