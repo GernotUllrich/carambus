@@ -2,10 +2,10 @@
 lock "3.19.2"
 
 set :application, "carambus"
-set :basename, "carambus"
+set :basename, "carambus_api"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 set :deploy_to, "/var/www/#{fetch(:basename)}"
-set :nginx_server_name, "<%= domain %>"
+set :nginx_server_name, "api.carambus.de"
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
@@ -133,10 +133,10 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      # Use the specific manage-puma.sh script for better control
+      # Use the specific manage-puma-api.sh script for better control
       # The script expects to be run from the current directory
       within current_path do
-        execute "./bin/manage-puma.sh"
+        execute "./bin/manage-puma-api.sh"
       end
     end
   end
@@ -144,21 +144,21 @@ namespace :puma do
   desc "Start application"
   task :start do
     on roles(:app) do
-      execute "sudo systemctl start puma-carambus.service"
+      execute "sudo systemctl start puma-carambus_api.service"
     end
   end
 
   desc "Stop application"
   task :stop do
     on roles(:app) do
-      execute "sudo systemctl stop puma-carambus.service"
+      execute "sudo systemctl stop puma-carambus_api.service"
     end
   end
 
   desc "Status of application"
   task :status do
     on roles(:app) do
-      execute "sudo systemctl status puma-carambus.service"
+      execute "sudo systemctl status puma-carambus_api.service"
     end
   end
 end

@@ -18,18 +18,21 @@ rake mode:parallel
 ### **1. Entwicklungsumgebung starten:**
 
 #### **API Server Mode:**
+
 ```bash
 cd docker/development
 docker-compose -f docker-compose.mode.api.yml up --build
 ```
 
 #### **Local Server Mode:**
+
 ```bash
 cd docker/development
 docker-compose -f docker-compose.mode.local.yml up --build
 ```
 
 #### **Beide parallel (falls verfügbar):**
+
 ```bash
 cd docker/development
 docker-compose -f docker-compose.development.parallel.yml up --build
@@ -38,6 +41,7 @@ docker-compose -f docker-compose.development.parallel.yml up --build
 ## 🔧 **Mode-System erklärt**
 
 ### **Was macht `rake mode:*`?**
+
 - **Konfigurationsdateien** generiert
 - **Ports** werden angepasst
 - **Umgebungsvariablen** gesetzt
@@ -46,12 +50,14 @@ docker-compose -f docker-compose.development.parallel.yml up --build
 ### **Port-Zuordnung:**
 
 #### **API Server Mode:**
-- **Rails App**: http://localhost:3001
+
+- **Rails App**: <http://localhost:3001>
 - **PostgreSQL**: localhost:5433
 - **Redis**: localhost:6380
 
 #### **Local Server Mode:**
-- **Rails App**: http://localhost:3000
+
+- **Rails App**: <http://localhost:3000>
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 
@@ -70,6 +76,7 @@ docker/development/
 ## 🎯 **Asset-Build-Prozess**
 
 Der Container führt automatisch aus:
+
 1. **yarn build:css** - TailwindCSS kompilieren
 2. **yarn build** - esbuild JavaScript bauen
 3. **rails assets:precompile** - Rails Assets vorbereiten
@@ -78,6 +85,7 @@ Der Container führt automatisch aus:
 ## 🐛 **Debugging**
 
 ### **Logs anzeigen:**
+
 ```bash
 # API Server
 docker-compose -f docker-compose.mode.api.yml logs -f web
@@ -87,6 +95,7 @@ docker-compose -f docker-compose.mode.local.yml logs -f web
 ```
 
 ### **Container-Bash:**
+
 ```bash
 # API Server
 docker-compose -f docker-compose.mode.api.yml exec web bash
@@ -96,6 +105,7 @@ docker-compose -f docker-compose.mode.local.yml exec web bash
 ```
 
 ### **Rails Console:**
+
 ```bash
 # API Server
 docker-compose -f docker-compose.mode.api.yml exec web bundle exec rails console
@@ -107,6 +117,7 @@ docker-compose -f docker-compose.mode.local.yml exec web bundle exec rails conso
 ## 🧹 **Aufräumen**
 
 ### **Container stoppen:**
+
 ```bash
 # API Server
 docker-compose -f docker-compose.mode.api.yml down
@@ -116,6 +127,7 @@ docker-compose -f docker-compose.mode.local.yml down
 ```
 
 ### **Alles löschen (inkl. Daten):**
+
 ```bash
 # API Server
 docker-compose -f docker-compose.mode.api.yml down -v
@@ -136,8 +148,10 @@ docker-compose -f docker-compose.mode.local.yml down -v
 ## 🔄 **Asset-Updates**
 
 Bei Änderungen an CSS/JS:
+
 1. **Container neu starten** (Assets werden automatisch neu gebaut)
 2. **Oder manuell im Container:**
+
    ```bash
    docker-compose -f docker-compose.mode.api.yml exec web yarn build:css
    docker-compose -f docker-compose.mode.api.yml exec web yarn build
@@ -146,6 +160,7 @@ Bei Änderungen an CSS/JS:
 ## 🎯 **Workflow für verschiedene Modi**
 
 ### **Nur API Server testen:**
+
 ```bash
 rake mode:api
 cd docker/development
@@ -153,6 +168,7 @@ docker-compose -f docker-compose.mode.api.yml up --build
 ```
 
 ### **Nur Local Server testen:**
+
 ```bash
 rake mode:local
 cd docker/development
@@ -160,6 +176,7 @@ docker-compose -f docker-compose.mode.local.yml up --build
 ```
 
 ### **Beide parallel testen:**
+
 ```bash
 rake mode:parallel
 cd docker/development

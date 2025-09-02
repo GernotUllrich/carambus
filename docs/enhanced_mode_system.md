@@ -1,508 +1,236 @@
-# Enhanced Carambus Mode System with Puma Integration
+# Carambus Enhanced Mode System
 
-## 🎯 **Overview**
+## 🎯 **Übersicht**
 
-The enhanced Carambus Mode System now includes integrated Puma management, making it easier to deploy and manage different server configurations with the correct Puma restart scripts. This system eliminates the need to manually remember complex parameter strings and ensures consistent deployment across different environments.
+Das **Enhanced Mode System** ermöglicht das einfache Umschalten zwischen verschiedenen Deployment-Konfigurationen für Carambus. Es verwendet **Ruby/Rake Tasks** für maximale Debugging-Unterstützung und Robustheit.
 
-## 🚀 **Quick Start**
+## 🚀 **Schnellstart**
 
-### **Using the Mode Parameters Manager (Recommended)**
+### **Ruby/Rake Named Parameters System (Empfohlen)**
 
 ```bash
-# List available modes
-./bin/mode-params.sh list
+# API Server Mode
+bundle exec rails 'mode:named:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
 
-# Switch to LOCAL mode for Hetzner server
-./bin/mode-params.sh local local_hetzner
-
-# Switch to API mode for Hetzner server
-./bin/mode-params.sh api api_hetzner
-
-# Check current status
-./bin/mode-params.sh status
+# Local Server Mode
+bundle exec rails 'mode:named:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'
 ```
 
-### **Using Named Parameters (Recommended)**
+## 📋 **Verfügbare Parameter**
 
+### **Alle Parameter (alphabetisch)**
+- `MODE_API_URL` - API URL für LOCAL Mode
+- `MODE_APPLICATION_NAME` - Anwendungsname
+- `MODE_BASENAME` - Deploy Basename
+- `MODE_BRANCH` - Git Branch
+- `MODE_CLUB_ID` - Club ID
+- `MODE_CONTEXT` - Context Identifier
+- `MODE_DATABASE` - Datenbankname
+- `MODE_DOMAIN` - Domain Name
+- `MODE_HOST` - Server Hostname
+- `MODE_LOCATION_ID` - Location ID
+- `MODE_PORT` - Server Port
+- `MODE_PUMA_SCRIPT` - Puma Management Script
+- `MODE_RAILS_ENV` - Rails Environment
+- `MODE_SEASON_NAME` - Season Identifier
+
+## 🎯 **Verwendungsbeispiele**
+
+### **1. API Server Deployment**
 ```bash
-# API Mode with named parameters (robust and self-documenting)
-./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
-
-# LOCAL Mode with named parameters
-./bin/mode-named.sh local --season-name='2025/2026' --context=NBV --api-url='https://newapi.carambus.de/' --basename=carambus --database=carambus_api_development
+bundle exec rails 'mode:named:api' \
+  MODE_BASENAME=carambus_api \
+  MODE_DATABASE=carambus_api_production \
+  MODE_HOST=newapi.carambus.de \
+  MODE_PORT=3001 \
+  MODE_DOMAIN=api.carambus.de \
+  MODE_RAILS_ENV=production \
+  MODE_BRANCH=master \
+  MODE_PUMA_SCRIPT=manage-puma-api.sh
 ```
 
-### **Using Rake Tasks Directly (Legacy)**
-
+### **2. Local Server Deployment**
 ```bash
-# Your original deployment command (now enhanced with Puma integration)
-bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh]"
-
-# API mode with Puma integration
-bundle exec rails "mode:api[2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.carambus.de,,,production,newapi.carambus.de,3001,master,manage-puma-api.sh]"
+bundle exec rails 'mode:named:local' \
+  MODE_SEASON_NAME='2025/2026' \
+  MODE_APPLICATION_NAME=carambus \
+  MODE_CONTEXT=NBV \
+  MODE_API_URL='https://newapi.carambus.de/' \
+  MODE_BASENAME=carambus \
+  MODE_DATABASE=carambus_api_development \
+  MODE_DOMAIN=carambus.de \
+  MODE_LOCATION_ID=1 \
+  MODE_CLUB_ID=357 \
+  MODE_HOST=new.carambus.de \
+  MODE_RAILS_ENV=production
 ```
 
-## 🔧 **Enhanced Parameters**
-
-The mode system now includes a **14th parameter** for Puma script configuration:
-
-### **Parameter Order:**
-1. `season_name` - Season identifier (e.g., "2025/2026")
-2. `application_name` - Application name (e.g., "carambus", "carambus_api")
-3. `context` - Context identifier (e.g., "NBV", "")
-4. `api_url` - API URL for LOCAL mode (e.g., "https://newapi.carambus.de/", "")
-5. `basename` - Deploy basename (e.g., "carambus", "carambus_api")
-6. `database` - Database name (e.g., "carambus_api_development", "carambus_api_production")
-7. `domain` - Domain name (e.g., "carambus.de", "api.carambus.de")
-8. `location_id` - Location ID (e.g., "1", "")
-9. `club_id` - Club ID (e.g., "357", "")
-10. `rails_env` - Rails environment (e.g., "production", "development")
-11. `host` - Server ssh hostname or ip-address (e.g., "new.carambus.de", "localhost")
-12. `port` - Server ssh port (e.g., "", "8910")
-13. `branch` - Git branch (e.g., "master")
-14. `puma_script` - **NEW**: Puma management script (e.g., "manage-puma.sh", "manage-puma-api.sh")
-
-## 📋 **Pre-configured Modes**
-
-### **Default Modes Available:**
-
-#### **local_hetzner** (Local Server on Hetzner)
+### **3. Entwicklungsumgebung**
 ```bash
-Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh
+bundle exec rails 'mode:named:api' \
+  MODE_BASENAME=carambus_api \
+  MODE_DATABASE=carambus_api_development \
+  MODE_HOST=localhost \
+  MODE_PORT=3001 \
+  MODE_RAILS_ENV=development
 ```
 
-#### **api_hetzner** (API Server on Hetzner)
+## 💾 **Konfigurationen Verwalten**
+
+### **Konfiguration Speichern**
 ```bash
-Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.carambus.de,,,production,newapi.carambus.de,3001,master,manage-puma-api.sh
+bundle exec rails 'mode:named:save[production_api]' \
+  MODE_BASENAME=carambus_api \
+  MODE_DATABASE=carambus_api_production \
+  MODE_HOST=newapi.carambus.de \
+  MODE_PORT=3001
 ```
 
-#### **local_dev** (Local Development)
+### **Gespeicherte Konfigurationen Auflisten**
 ```bash
-Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,development,localhost,3000,master,manage-puma.sh
+bundle exec rails 'mode:named:list'
 ```
 
-#### **api_dev** (API Development)
+### **Konfiguration Laden**
 ```bash
-Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_development,api.carambus.de,,,development,localhost,3001,master,manage-puma-api.sh
+bundle exec rails 'mode:named:load[production_api]'
 ```
 
-## 🛠️ **Mode Parameters Manager**
+## 🔧 **RubyMine Debugging**
 
-### **Named Parameters System (Recommended)**
+### **Vollständige Debugging-Unterstützung**
 
-The new named parameters system eliminates the error-prone positional parameter ordering:
+Das Ruby/Rake-System bietet **perfekte RubyMine-Integration**:
 
-```bash
-# API Mode with named parameters (robust and self-documenting)
-./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
-
-# LOCAL Mode with named parameters
-./bin/mode-named.sh local --season-name='2025/2026' --context=NBV --api-url='https://newapi.carambus.de/' --basename=carambus --database=carambus_api_development
-
-# Save configurations
-./bin/mode-named.sh save api_hetzner --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
-
-# Load saved configurations
-./bin/mode-named.sh load api_hetzner
-
-# List saved configurations
-./bin/mode-named.sh list
+#### **1. Breakpoints setzen**
+```ruby
+# In lib/tasks/mode_named.rake
+def parse_named_parameters_from_env
+  params = {}
+  
+  # Setze Breakpoint hier
+  %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script].each do |param|
+    env_var = "MODE_#{param.to_s.upcase}"
+    params[param] = ENV[env_var] if ENV[env_var]
+  end
+  
+  params  # Setze Breakpoint hier
+end
 ```
 
-**Benefits:**
-- ✅ Self-documenting parameters
-- ✅ Order-independent
-- ✅ Only specify needed parameters
-- ✅ Robust against errors
-- ✅ Easy to read and understand
-
-### **Legacy Positional Parameters Manager**
-
-### **Commands:**
-
-```bash
-# List all available modes
-./bin/mode-params.sh list
-
-# Show parameters for a specific mode
-./bin/mode-params.sh show local_hetzner
-
-# Save custom parameters for a mode
-./bin/mode-params.sh save my_custom_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
-
-# Switch to LOCAL mode using saved/default parameters
-./bin/mode-params.sh local local_hetzner
-
-# Switch to API mode using saved/default parameters
-./bin/mode-params.sh api api_hetzner
-
-# Check current mode status
-./bin/mode-params.sh status
-
-# Create backup of current configuration
-./bin/mode-params.sh backup
+#### **2. RubyMine Run Configuration**
+```
+Run -> Edit Configurations -> Rake
+Task: mode:named:api
+Environment Variables:
+  MODE_BASENAME=carambus_api
+  MODE_DATABASE=carambus_api_production
+  MODE_HOST=newapi.carambus.de
+  MODE_PORT=3001
 ```
 
-### **Custom Mode Management:**
+#### **3. Step-by-Step Debugging**
+- **Step Into**: Gehe in Methoden hinein
+- **Step Over**: Überspringe Methoden
+- **Step Out**: Gehe aus Methoden heraus
+- **Variables Inspector**: Sehe alle Parameter-Werte
 
+## 🎯 **Best Practices**
+
+### **1. RubyMine Debugging Workflow**
 ```bash
-# Save your current deployment parameters
-./bin/mode-params.sh save my_hetzner_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
-
-# Use your saved mode
-./bin/mode-params.sh local my_hetzner_local
+# 1. Setze Breakpoints in lib/tasks/mode_named.rake
+# 2. Erstelle RubyMine Run Configuration
+# 3. Debugge step-by-step
+# 4. Inspiziere Variablen
+# 5. Teste verschiedene Parameter-Kombinationen
 ```
 
-## 🔄 **Puma Integration**
-
-### **What's New:**
-
-1. **Automatic Puma Script Selection**: The system now automatically configures the correct Puma management script based on the mode
-2. **Enhanced Deploy Configuration**: The `deploy.rb` file is automatically updated with the correct Puma restart configuration
-3. **Mode-specific Puma Scripts**: 
-   - LOCAL mode uses `manage-puma.sh` (generic script)
-   - API mode uses `manage-puma-api.sh` (API-specific script)
-
-### **Puma Management Commands:**
-
-After switching modes, you can use these Capistrano commands:
-
+### **2. Konfigurationen Speichern**
 ```bash
-# Restart Puma (uses the configured script)
-bundle exec cap production puma:restart
-
-# Check Puma status
-bundle exec cap production puma:status
-
-# Start Puma manually
-bundle exec cap production puma:start
-
-# Stop Puma manually
-bundle exec cap production puma:stop
+# Speichere häufig verwendete Konfigurationen
+bundle exec rails 'mode:named:save[production_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
+bundle exec rails 'mode:named:save[development_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development MODE_HOST=localhost MODE_PORT=3001
 ```
 
-## 📁 **Files Modified by Mode System**
-
-### **Configuration Files:**
-1. **`config/carambus.yml`** - Application configuration
-2. **`config/database.yml`** - Database configuration
-3. **`config/deploy.rb`** - Deployment configuration (now includes Puma settings)
-4. **`config/deploy/production.rb`** - Production-specific deployment settings
-5. **`log/development.log`** - Symbolic link to mode-specific log file
-
-### **Puma Scripts:**
-1. **`bin/manage-puma.sh`** - Generic Puma management script
-2. **`bin/manage-puma-api.sh`** - API-specific Puma management script
-
-## 🎯 **Workflow Examples**
-
-### **Deploying to Hetzner Local Server:**
-
+### **3. Nur Änderungen Angeben**
 ```bash
-# 1. Switch to LOCAL mode for Hetzner
-./bin/mode-params.sh local local_hetzner
+# Nur die Parameter angeben, die sich von den Defaults unterscheiden
+bundle exec rails 'mode:named:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS_ENV=development
+```
 
-# 2. Deploy the application
+## 🚀 **Deployment Workflow**
+
+### **1. Konfiguration Vorbereiten**
+```bash
+# Lade gespeicherte Konfiguration
+bundle exec rails 'mode:named:load[api_hetzner]'
+```
+
+### **2. Konfiguration Anwenden**
+```bash
+# Wende die geladenen Parameter an
+bundle exec rails 'mode:named:api'
+```
+
+### **3. Konfiguration Validieren**
+```bash
+# Überprüfe die aktuelle Konfiguration
+bundle exec rails 'mode:status'
+```
+
+### **4. Deployment Ausführen**
+```bash
+# Deploy mit der validierten Konfiguration
 bundle exec cap production deploy
-
-# 3. Check Puma status
-bundle exec cap production puma:status
-
-# 4. Restart Puma if needed
-bundle exec cap production puma:restart
 ```
 
-### **Deploying to Hetzner API Server:**
+## 📁 **Dateistruktur**
 
-```bash
-# 1. Switch to API mode for Hetzner
-./bin/mode-params.sh api api_hetzner
-
-# 2. Deploy the application
-bundle exec cap production deploy
-
-# 3. Check Puma status
-bundle exec cap production puma:status
-
-# 4. Restart Puma if needed
-bundle exec cap production puma:restart
+### **Konfigurationsdateien**
+```
+config/
+├── named_modes/           # Gespeicherte Named-Konfigurationen
+│   ├── api_hetzner.yml
+│   ├── local_hetzner.yml
+│   └── development.yml
+├── carambus.yml.erb      # ERB Template
+├── database.yml.erb      # ERB Template
+├── deploy.rb.erb         # ERB Template
+└── deploy/
+    └── production.rb.erb # ERB Template
 ```
 
-### **Development Workflow:**
-
-```bash
-# 1. Switch to development mode
-./bin/mode-params.sh local local_dev
-
-# 2. Start development server
-bundle exec rails server -p 3000 -e development-local
-
-# 3. Switch to API development mode
-./bin/mode-params.sh api api_dev
-
-# 4. Start API development server
-bundle exec rails server -p 3001 -e development-api
+### **Rake Tasks**
+```
+lib/tasks/
+├── mode.rake             # Legacy positionelle Parameter
+└── mode_named.rake       # Neue Named Parameters (Ruby)
 ```
 
-## 🔍 **Status and Monitoring**
+## ✅ **Vorteile des Ruby/Rake Systems**
 
-### **Basic Status:**
-The basic status command shows a summary of the current configuration.
+1. **RubyMine Integration**: Perfekte Debugging-Unterstützung
+2. **Type Safety**: Ruby-Typisierung und Validierung
+3. **Error Handling**: Robuste Fehlerbehandlung
+4. **Debugging**: Step-by-Step Debugging mit Breakpoints
+5. **Variable Inspection**: Vollständige Variablen-Inspektion
+6. **Call Stack**: Call Stack Navigation
+7. **IDE Support**: Vollständige IDE-Unterstützung
+8. **Maintainability**: Einfache Wartung und Erweiterung
 
-### **Pre-Deployment Validation Workflow:**
+## 🎉 **Fazit**
 
-The system now supports a complete deployment validation workflow:
+Das **Ruby Named Parameters System** ist die **ideale Lösung** für RubyMine-Nutzer:
 
-#### **1. Pre-Deployment Validation:**
-```bash
-# Check what will be deployed (local configuration)
-bundle exec rails "mode:pre_deploy_status[detailed]"
-# or
-./bin/mode-params.sh pre_deploy detailed
-```
+- ✅ **Vollständige Debugging-Unterstützung**
+- ✅ **Robuste Parameter-Behandlung**
+- ✅ **Einfache Wartung**
+- ✅ **IDE-Integration**
+- ✅ **Type Safety**
 
-This shows the configuration that will be deployed to production, allowing you to:
-- Validate all parameters before deployment
-- Ensure correct database names, domains, etc.
-- Verify Puma script selection
-- Check that all required parameters are configured
+**Empfehlung**: Verwende das Ruby/Rake-System für alle neuen Entwicklungen.
 
-#### **2. Post-Deployment Verification:**
-```bash
-# Verify what was actually deployed (production configuration)
-bundle exec rails "mode:post_deploy_status[detailed]"
-# or
-./bin/mode-params.sh post_deploy detailed
-```
+Das Ruby/Rake-System macht die Deployment-Konfiguration **debuggbar, wartbar und robust**! 🚀
 
-This shows the actual configuration deployed on the production server, allowing you to:
-- Verify that deployment was successful
-- Confirm all parameters were deployed correctly
-- Detect any deployment issues or missing configurations
-- Compare pre-deployment vs post-deployment settings
-
-#### **3. Complete Workflow Example:**
-```bash
-# 1. Set up your configuration
-bundle exec rails "mode:api[2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh]"
-
-# 2. Validate before deployment
-./bin/mode-params.sh pre_deploy detailed
-
-# 3. Deploy to production
-bundle exec cap production deploy
-
-# 4. Verify after deployment
-./bin/mode-params.sh post_deploy detailed
-```
-
-### **Detailed Status:**
-The detailed status command provides a comprehensive breakdown of all 14 parameters, making it easy to:
-- See exactly what each parameter is set to
-- Copy the complete parameter string for reuse
-- Identify any missing or misconfigured parameters
-- Get ready-to-use commands for switching modes or saving configurations
-- **Read from production server**: Shows actual deployed configuration, not local development config
-
-#### **Configuration Sources:**
-The system can read from different sources:
-
-**Local Deployment Configuration:**
-- **carambus.yml**: Read from `config/carambus.yml` (production section)
-- **database.yml**: Read from `config/database.yml` (production section)
-- **deploy.rb**: Read from local config to determine server connection details
-- **production.rb**: Read from local config to determine host and port
-
-**Production Server Configuration:**
-- **carambus.yml**: Read from `/var/www/{basename}/shared/config/carambus.yml`
-- **database.yml**: Read from `/var/www/{basename}/shared/config/database.yml`
-- **deploy.rb**: Read from local config to determine server connection details
-- **production.rb**: Read from local config to determine host and port
-
-This ensures you can validate **what will be deployed** and verify **what was actually deployed**.
-
-### **Check Current Configuration:**
-
-```bash
-# Show current mode status
-./bin/mode-params.sh status
-
-# Show detailed parameter breakdown
-./bin/mode-params.sh status detailed
-
-# Or use the rake task directly
-bundle exec rails mode:status
-bundle exec rails "mode:status[detailed]"
-```
-
-### **Example Output:**
-
-#### **Basic Status:**
-```
-Current Configuration:
-  API URL: https://newapi.carambus.de/
-  Context: NBV
-  Database: carambus_production
-  Deploy Basename: carambus
-  Log File: development-local.log
-  Puma Script: manage-puma.sh
-Current Mode: LOCAL
-```
-
-#### **Detailed Status:**
-```
-Current Configuration:
-  API URL: empty
-  Context: NBV
-  Database: carambus_production
-  Deploy Basename: carambus
-  Log File: development-api.log
-  Puma Script: manage-puma-api.sh
-Current Mode: API
-
-📡 CONFIGURATION SOURCE:
-----------------------------------------
-Reading from production server: 192.168.178.48:8910
-Deploy path: /var/www/carambus/shared/config/
-
-============================================================
-DETAILED PARAMETER BREAKDOWN
-============================================================
-
-📋 PARAMETER DETAILS:
-----------------------------------------
-1.  season_name:     2025/2026
-2.  application_name: carambus
-3.  context:         NBV
-4.  api_url:         ❌ Not configured
-5.  basename:        carambus
-6.  database:        carambus2_api_production
-7.  domain:          carambus.de
-8.  location_id:     1
-9.  club_id:         357
-10. rails_env:       production
-11. host:            192.168.178.48
-12. port:            8910
-13. branch:          master
-14. puma_script:     manage-puma-api.sh
-
-🔄 COMPLETE PARAMETER STRING:
-----------------------------------------
-✅ All parameters configured
-2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh
-
-📝 USAGE:
-----------------------------------------
-To switch to this exact configuration:
-bundle exec rails "mode:api[2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh]"
-
-Or save this configuration:
-./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh"
-```
-
-## 🛡️ **Backup and Recovery**
-
-### **Create Backup:**
-
-```bash
-# Create backup of current configuration
-./bin/mode-params.sh backup
-
-# Or use the rake task directly
-bundle exec rails mode:backup
-```
-
-### **Restore from Backup:**
-
-```bash
-# Restore from a specific backup
-cp tmp/mode_backups/config_backup_TIMESTAMP/* config/
-```
-
-## ⚠️ **Important Notes**
-
-1. **Puma Script Compatibility**: Ensure the Puma scripts (`manage-puma.sh`, `manage-puma-api.sh`) are compatible with your server configuration
-2. **Systemd Services**: The Puma management assumes systemd services named `puma-{basename}.service`
-3. **SSH Access**: Ensure SSH access is configured for the target servers
-4. **Database Setup**: Create the required databases before switching modes
-5. **ERB Templates**: Ensure all required ERB template files exist
-
-## 🔧 **Troubleshooting**
-
-### **Common Issues:**
-
-1. **Puma Script Not Found**: Ensure the Puma scripts exist in the `bin/` directory
-2. **Systemd Service Not Found**: Check that the systemd service exists on the target server
-3. **SSH Connection Issues**: Verify SSH configuration and host key acceptance
-4. **Database Connection Errors**: Ensure the target database exists and is accessible
-
-### **Debugging Commands:**
-
-```bash
-# Check Puma script content
-cat bin/manage-puma.sh
-cat bin/manage-puma-api.sh
-
-# Check deploy.rb configuration
-grep -A 10 "namespace :puma" config/deploy.rb
-
-# Check systemd service status (on server)
-sudo systemctl status puma-carambus.service
-
-# Test SSH connection
-ssh -p 8910 www-data@new.carambus.de "echo 'SSH connection successful'"
-```
-
-## 🎉 **Benefits of Enhanced System**
-
-1. **Simplified Deployment**: No need to remember complex parameter strings
-2. **Consistent Configuration**: Pre-configured modes ensure consistency
-3. **Integrated Puma Management**: Automatic Puma script configuration
-4. **Easy Mode Switching**: Simple commands to switch between environments
-5. **Backup and Recovery**: Automatic backup system for configuration changes
-6. **Development Support**: Separate development and production configurations
-7. **Documentation**: Clear documentation and examples for all use cases
-
-## 🆚 **System Comparison**
-
-### **Named Parameters vs Positional Parameters**
-
-#### **Named Parameters (Recommended)**
-```bash
-./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
-```
-
-**Advantages:**
-- ✅ Self-documenting
-- ✅ Order-independent
-- ✅ Only specify needed parameters
-- ✅ Robust against errors
-- ✅ Easy to read and understand
-- ✅ Configuration saving/loading
-
-#### **Positional Parameters (Legacy)**
-```bash
-bundle exec rails "mode:api[2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.carambus.de,,,production,newapi.carambus.de,3001,master,manage-puma-api.sh]"
-```
-
-**Disadvantages:**
-- ❌ Error-prone ordering
-- ❌ Hard to read and understand
-- ❌ Must specify all parameters
-- ❌ Fragile to changes
-- ❌ No self-documentation
-
-### **Migration Path**
-
-You can use both systems in parallel:
-- **New**: `./bin/mode-named.sh api --basename=carambus_api --host=newapi.carambus.de`
-- **Legacy**: `./bin/mode-params.sh api api_hetzner`
-
-## 📚 **Documentation**
-
-- **Named Parameters**: `docs/named_parameters_system.md`
-- **Enhanced Mode System**: `docs/enhanced_mode_system.md` (this file)
-
----
-
-*This enhanced mode system integrates the Puma management improvements while maintaining backward compatibility with your existing deployment workflow. The new named parameters system provides a more robust and user-friendly alternative.*
+**Weitere Dokumentation**: `docs/ruby_named_parameters_system.md`

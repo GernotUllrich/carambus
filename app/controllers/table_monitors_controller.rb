@@ -55,6 +55,12 @@ class TableMonitorsController < ApplicationController
     redirect_back fallback_location: @table_monitor
   end
 
+  def demo_scoreboard
+    @navbar = false
+    @footer = false
+    render 'demo_scoreboard', layout: 'application'
+  end
+
   def start_game
     p = params.permit(params.keys)
     p = p.slice(:player_a_id, :player_b_id, :timeouts, :timeout,

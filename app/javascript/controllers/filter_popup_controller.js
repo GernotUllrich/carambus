@@ -108,7 +108,10 @@ export default class extends ApplicationController {
               // Use ID-based field name for reference fields
               let idFieldName
               if (name === 'region_shortname') {
-                idFieldName = 'region_id'
+                // For Tournament model, use 'Region' (exact case from COLUMN_NAMES) instead of 'region_id'
+                // Check if we're on the tournaments page
+                const isTournamentsPage = window.location.pathname.includes('/tournaments')
+                idFieldName = isTournamentsPage ? 'Region' : 'region_id'
               } else if (name === 'club_shortname') {
                 idFieldName = 'club_id'
                                         } else if (name === 'season_name') {

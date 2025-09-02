@@ -7,18 +7,21 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 ## 🚀 Features
 
 ### Turnier-Management
+
 - **Spieler-Verwaltung**: Vollständige Spielerdatenbank mit Statistiken
 - **Turnier-Organisation**: Flexible Turnierformate und Spielpläne
 - **Live-Scoreboards**: Echtzeit-Updates für Zuschauer und Spieler
 - **Ergebnisverfolgung**: Automatische Berechnung von Ranglisten
 
 ### Club-Management
+
 - **Club-Verwaltung**: Mehrere Clubs und Standorte
 - **Tisch-Management**: Spieltische mit verschiedenen Disziplinen
 - **Benutzer-Rollen**: Admin, Club-Manager, Spieler
 - **Berichte**: Detaillierte Statistiken und Auswertungen
 
 ### Technische Features
+
 - **Responsive Design**: Funktioniert auf allen Geräten
 - **Real-time Updates**: Live-Updates über WebSockets
 - **Multi-Sprache**: Deutsch und Englisch
@@ -27,6 +30,7 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 ## 🏗️ Architektur
 
 ### System-Komponenten
+
 - **Web-Anwendung**: Rails 7.2 mit Hotwire/Stimulus
 - **Datenbank**: PostgreSQL mit erweiterten Features
 - **Cache**: Redis für Session-Management und Caching
@@ -34,6 +38,7 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 - **Scoreboard**: Vollbild-Browser-Interface
 
 ### Deployment
+
 - **Docker**: Containerisierte Bereitstellung
 - **Docker Compose**: Multi-Service-Orchestrierung
 - **Umgebungsvariablen**: Flexible Konfiguration
@@ -42,6 +47,7 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 ## 📋 Voraussetzungen
 
 ### System-Anforderungen
+
 - **Betriebssystem**: Linux (Ubuntu 20.04+), macOS, Windows mit WSL2
 - **Docker**: Version 20.10+
 - **Docker Compose**: Version 2.0+
@@ -49,6 +55,7 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 - **Speicher**: Mindestens 10GB freier Speicher
 
 ### Für Raspberry Pi
+
 - **Modell**: Raspberry Pi 4 (2GB RAM minimum, 4GB empfohlen)
 - **SD-Karte**: 32GB minimum, Class 10 empfohlen
 - **Betriebssystem**: Raspberry Pi OS (Desktop für Scoreboard, Lite für Server)
@@ -56,12 +63,14 @@ Carambus ist ein umfassendes Turnier-Management-System für Billard-Clubs und -T
 ## 🚀 Schnellstart
 
 ### 1. Repository klonen
+
 ```bash
 git clone https://github.com/your-repo/carambus_api.git
 cd carambus_api
 ```
 
 ### 2. Umgebungsvariablen konfigurieren
+
 ```bash
 cp env.example .env
 # Bearbeite .env mit deinen Werten
@@ -69,11 +78,13 @@ nano .env
 ```
 
 ### 3. Container starten
+
 ```bash
 docker-compose up -d
 ```
 
 ### 4. Datenbank einrichten
+
 ```bash
 # Migrationen ausführen
 docker-compose exec web bundle exec rails db:migrate
@@ -83,14 +94,16 @@ docker-compose exec web bundle exec rails db:seed
 ```
 
 ### 5. Anwendung aufrufen
-- **Web-Interface**: http://localhost:3000
-- **Scoreboard**: http://localhost:3000/scoreboard
+
+- **Web-Interface**: <http://localhost:3000>
+- **Scoreboard**: <http://localhost:3000/scoreboard>
 
 ## 🔧 Konfiguration
 
 ### Umgebungsvariablen
 
 #### Basis-Konfiguration
+
 ```bash
 # Datenbank
 DATABASE_NAME=carambus_development
@@ -106,6 +119,7 @@ RAILS_MASTER_KEY=your_master_key
 ```
 
 #### Deployment-spezifische Konfiguration
+
 ```bash
 # Für API-Server
 DEPLOYMENT_TYPE=API_SERVER
@@ -122,6 +136,7 @@ DEPLOYMENT_TYPE=WEB_CLIENT
 ### Docker-Compose-Konfiguration
 
 #### Development-Modus
+
 ```bash
 # Einzelnes System
 docker-compose -f docker-compose.development.local-server.yml up
@@ -131,6 +146,7 @@ docker-compose -f docker-compose.development.local-server.yml up
 ```
 
 #### Production-Modus
+
 ```bash
 # API-Server
 docker-compose -f docker-compose.production.api-server.yml up
@@ -142,6 +158,7 @@ docker-compose -f docker-compose.production.local-server.yml up
 ## 📱 Scoreboard-Setup
 
 ### Raspberry Pi Konfiguration
+
 ```bash
 # Auto-Login aktivieren
 sudo raspi-config
@@ -161,6 +178,7 @@ EOF
 ```
 
 ### Display-Optimierung
+
 ```bash
 # Bildschirmauflösung anpassen
 sudo raspi-config
@@ -178,6 +196,7 @@ sudo raspi-config
 ## 🔄 Updates
 
 ### Automatische Updates
+
 ```bash
 # Crontab für automatische Updates
 crontab -e
@@ -187,6 +206,7 @@ crontab -e
 ```
 
 ### Manuelle Updates
+
 ```bash
 # Repository aktualisieren
 git pull
@@ -201,6 +221,7 @@ docker-compose up -d --build
 ### Häufige Probleme
 
 #### Container startet nicht
+
 ```bash
 # Docker-Status prüfen
 sudo systemctl status docker
@@ -213,6 +234,7 @@ docker compose restart
 ```
 
 #### Scoreboard startet nicht
+
 ```bash
 # Browser-Cache leeren
 rm -rf ~/.cache/chromium
@@ -223,6 +245,7 @@ chromium-browser --start-fullscreen --app=http://localhost:3000/scoreboard
 ```
 
 #### Netzwerk-Probleme
+
 ```bash
 # IP-Adresse prüfen
 ip addr show
@@ -232,6 +255,7 @@ sudo systemctl restart networking
 ```
 
 ### Log-Analyse
+
 ```bash
 # Alle Logs
 docker compose logs -f
@@ -246,6 +270,7 @@ docker compose logs -f postgres
 ## 📊 Monitoring
 
 ### System-Überwachung
+
 ```bash
 # Container-Status
 docker compose ps
@@ -258,6 +283,7 @@ htop
 ```
 
 ### Health Checks
+
 ```bash
 # Anwendungs-Status
 curl http://localhost:3000/health
@@ -272,6 +298,7 @@ docker compose exec redis redis-cli ping
 ## 🔒 Sicherheit
 
 ### Firewall-Konfiguration
+
 ```bash
 # Nur notwendige Ports öffnen
 sudo ufw allow 22/tcp    # SSH
@@ -280,6 +307,7 @@ sudo ufw enable
 ```
 
 ### SSL/TLS (für Production)
+
 ```bash
 # SSL-Zertifikate konfigurieren
 # Nginx-Konfiguration anpassen
@@ -289,27 +317,32 @@ sudo ufw enable
 ## 📚 Dokumentation
 
 ### Installation & Setup
+
 - **[Quickstart Guide](docs/INSTALLATION/QUICKSTART.md)** - Haupt-Installations-Guide
 - **[Raspberry Pi Setup](docs/INSTALLATION/RASPBERRY_PI_SETUP.md)** - Detaillierte Pi-Anleitung
 - **[Docker Setup](docs/INSTALLATION/DOCKER_SETUP.md)** - Docker-Konfiguration
 
 ### Entwicklung
+
 - **[Docker Structure](docs/DEVELOPMENT/DOCKER_STRUCTURE.md)** - Docker-Architektur
 - **[API Reference](docs/DEVELOPMENT/API_REFERENCE.md)** - API-Dokumentation
 
 ### Wartung
+
 - **[Troubleshooting](docs/MAINTENANCE/TROUBLESHOOTING.md)** - Fehlerbehebung
 - **[Backup & Restore](docs/MAINTENANCE/BACKUP_RESTORE.md)** - Backup-Verfahren
 
 ## 🤝 Beitragen
 
 ### Entwicklung
+
 1. Repository forken
 2. Feature-Branch erstellen
 3. Änderungen committen
 4. Pull Request erstellen
 
 ### Bug Reports
+
 - GitHub Issues verwenden
 - Reproduzierbare Schritte beschreiben
 - Logs und Screenshots beifügen
@@ -321,12 +354,14 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) fü
 ## 🆘 Support
 
 ### Bei Problemen
+
 1. Prüfen Sie die **[Troubleshooting](docs/MAINTENANCE/TROUBLESHOOTING.md)**-Seite
 2. Logs anschauen: `docker compose logs`
 3. Container-Status: `docker compose ps`
 4. GitHub Issues durchsuchen
 
 ### Community
+
 - **GitHub Discussions**: Für Fragen und Diskussionen
 - **Wiki**: Für detaillierte Anleitungen
 - **Code of Conduct**: Für ein respektvolles Miteinander
@@ -337,4 +372,4 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) fü
 
 **💡 Tipp**: Für die Entwicklung verwenden Sie die parallelen Docker-Systeme, um Inter-System-Kommunikation zu testen!
 
-**🏗️ Architektur**: 2 Production-Modi - API-Server (zentral) und Local-Server (mit Carambus API URL), beide im Development-Modus testbar! 
+**🏗️ Architektur**: 2 Production-Modi - API-Server (zentral) und Local-Server (mit Carambus API URL), beide im Development-Modus testbar!

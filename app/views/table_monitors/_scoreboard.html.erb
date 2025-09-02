@@ -46,12 +46,12 @@
           </div>
         <%- end %>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_a", id: table_monitor.id }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1 do %>
+      <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#key_a", id: table_monitor.id }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1, onclick: "console.time('key_a_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex-1 text-left font-bold text-red-400">
               <div class="text-<%= vw8 %> p-4">
-                <%= left_player_active ? table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1] : "" %>
+                <span class="inning-score" data-player="<%= left_player_id %>"><%= left_player_active ? table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
               </div>
               <div class="text-<%= vw2 %>">
                 <%- to_play = left_player[:balls_goal].to_i - (left_player[:result].to_i + Array(table_monitor.data[left_player_id].andand["innings_redo_list"])[-1].to_i) %>
@@ -81,8 +81,8 @@
               </div>
             </div>
           </div>
-          <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold", style: "letter-spacing: -5px;" do %>
-            <%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %>
+          <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", style: "letter-spacing: -5px;", data: { player: left_player_id, score: left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i } do %>
+            <span class="main-score" data-player="<%= left_player_id %>"><%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %></span>
           <%- end %>
           <%- if fullscreen %>
             <%- if showing_timer_a.blank? %>
@@ -202,7 +202,7 @@
           <div class="flex-nowrap w-full mr-4 text-right <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && right_player[:fullname].andand.length.to_i < 20 %> text-<%= vw3 %>"><%= right_player[:fullname] %></div>
         </div>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_b", id: table_monitor.id }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1 do %>
+      <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#key_b", id: table_monitor.id }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %>">
@@ -221,7 +221,7 @@
             </div>
             <div class="flex-1 text-right font-bold text-red-400">
               <div class="text-<%= vw8 %> p-4">
-                <%= right_player_active ? table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1] : "" %>
+                <span class="inning-score" data-player="<%= right_player_id %>"><%= right_player_active ? table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
               </div>
               <div class="text-<%= vw2 %>">
                 <%- to_play = right_player[:balls_goal].to_i > 0 ? right_player[:balls_goal].to_i - (right_player[:result].to_i + Array(table_monitor.data[right_player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
@@ -234,12 +234,12 @@
               </div>
             </div>
           </div>
-          <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold", title: "playerb", style:
-            "letter-spacing: -5px;", tabindex: 1 do %>
+          <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", title: "playerb", style:
+            "letter-spacing: -5px;", tabindex: 1, data: { player: right_player_id, score: right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i } do %>
             <%- if options['free_game_form'] == 'pool' && left_player["discipline"] != "14.1 endlos" %>
               <%= options["current_sets_b"] %>
             <%- else %>
-              <%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %>
+              <span class="main-score" data-player="<%= right_player_id %>"><%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %></span>
             <%- end %>
           <%- end %>
           <%- if fullscreen %>
@@ -270,6 +270,9 @@
       <% end %>
     </div>
   </div>
+  
+
+  
   <%- if fullscreen %>
     <%- showing_timer = if showing_timer_a.blank?
                           showing_timer_a

@@ -378,4 +378,7 @@ Rails.application.routes.draw do
   end
 
   resources :rankings, only: [:index, :show]
+
+  # Demo route for testing optimistic updates
+  get 'demo/scoreboard', to: 'table_monitors#demo_scoreboard'
 end

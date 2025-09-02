@@ -22,7 +22,7 @@ class TableMonitorReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
   #
-  DEBUG = false
+  DEBUG = true
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
       Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
@@ -101,7 +101,7 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def key_a
-    Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
@@ -163,11 +163,12 @@ class TableMonitorReflex < ApplicationReflex
         end
       end
       @table_monitor.save
+      Rails.logger.info "key_a completed"
     end
   end
 
   def key_b
-    Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
@@ -189,6 +190,7 @@ class TableMonitorReflex < ApplicationReflex
           when "playerb"
             @table_monitor.reset_timer!
             if @table_monitor.data["current_left_player"] == "playera"
+              #+++++++
               @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
             else
               @table_monitor.data[current_role]["fouls_1"] = 0
@@ -199,6 +201,7 @@ class TableMonitorReflex < ApplicationReflex
           when "playera"
             @table_monitor.reset_timer!
             if @table_monitor.data["current_left_player"] == "playerb"
+              #+++++++
               @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
             else
               @table_monitor.data[current_role]["fouls_1"] = 0
@@ -227,6 +230,7 @@ class TableMonitorReflex < ApplicationReflex
         end
       end
       @table_monitor.save
+      Rails.logger.info "key_b completed"
     end
   end
 

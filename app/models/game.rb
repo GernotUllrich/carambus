@@ -338,5 +338,11 @@ class Game < ApplicationRecord
     end
   end
 
-  validates :seqno, uniqueness: { scope: [:tournament_id, :gname], message: "Duplicate game in group" }
+  # Allow NULL values for tournament_id and gname (for training games)
+  # But maintain uniqueness when values are present
+  validates :seqno, uniqueness: { 
+    scope: [:tournament_id, :gname], 
+    message: "Duplicate game in group",
+    allow_nil: true
+  }
 end

@@ -47,11 +47,11 @@ export default class extends ApplicationController {
    *   reflexId - a UUID4 or developer-provided unique identifier for each Reflex
    */
   key_a () {
-    console.log('KEY_A')
+    console.log('KEY_A called')
     this.stimulate('TableMonitor#key_a')
   }
   key_b () {
-    console.log('KEY_B')
+    console.log('KEY_B called')
     this.stimulate('TableMonitor#key_b')
   }
   key_c () {

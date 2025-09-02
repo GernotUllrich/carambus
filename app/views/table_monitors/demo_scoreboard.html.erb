@@ -1,0 +1,249 @@
+<!-- Demo Scoreboard for Testing Optimistic Updates -->
+<div class="demo-scoreboard p-8 bg-gray-900 text-white min-h-screen">
+  <h1 class="text-3xl font-bold mb-8 text-center">Scoreboard Optimistic Updates Demo</h1>
+  
+  <div class="max-w-4xl mx-auto">
+    <!-- Player A (Left) -->
+    <div class="grid grid-cols-3 gap-8 mb-8">
+      <div class="bg-blue-800 p-6 rounded-lg text-center">
+        <h2 class="text-xl font-bold mb-4">Player A</h2>
+        <div class="text-6xl font-bold mb-4 score-display" data-player="playera" data-score="0">0</div>
+        <button 
+          class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded font-bold text-lg"
+          onclick="addPoint('playera', 1)">
+          Add Point (A)
+        </button>
+      </div>
+      
+      <!-- Center Controls -->
+      <div class="bg-gray-700 p-6 rounded-lg text-center">
+        <h3 class="text-lg font-bold mb-4">Controls</h3>
+        <div class="space-y-3">
+          <button 
+            class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded font-bold w-full"
+            onclick="addPoint('playera', 5)">
+            +5 Points
+          </button>
+          <button 
+            class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-bold w-full"
+            onclick="addPoint('playera', -2)">
+            -2 Points
+          </button>
+          <button 
+            class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded font-bold w-full"
+            onclick="changePlayer()">
+            Change Player
+          </button>
+          <button 
+            class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded font-bold w-full"
+            onclick="undo()">
+            Undo
+          </button>
+        </div>
+      </div>
+      
+      <!-- Player B (Right) -->
+      <div class="bg-red-800 p-6 rounded-lg text-center">
+        <h2 class="text-xl font-bold mb-4">Player B</h2>
+        <div class="text-6xl font-bold mb-4 score-display" data-player="playerb" data-score="0">0</div>
+        <button 
+          class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded font-bold text-lg"
+          onclick="addPoint('playerb', 1)">
+          Add Point (B)
+        </button>
+      </div>
+    </div>
+    
+    <!-- Status Display -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h3 class="text-lg font-bold mb-4">Status & Debug Info</h3>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <strong>Current Player:</strong> 
+          <span id="current-player" class="text-green-400">Player A</span>
+        </div>
+        <div>
+          <strong>Last Action:</strong> 
+          <span id="last-action" class="text-blue-400">None</span>
+        </div>
+        <div>
+          <strong>Update History:</strong> 
+          <span id="update-count" class="text-purple-400">0</span>
+        </div>
+        <div>
+          <strong>Status:</strong> 
+          <span id="status" class="text-yellow-400">Ready</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="bg-gray-800 p-6 rounded-lg mt-6">
+      <h3 class="text-lg font-bold mb-4">How to Test Optimistic Updates</h3>
+      <ol class="list-decimal list-inside space-y-2 text-sm">
+        <li><strong>Click "Add Point (A)" or "Add Point (B)"</strong> - You should see the score change immediately</li>
+        <li><strong>Click "+5 Points" or "-2 Points"</strong> - Score should update instantly</li>
+        <li><strong>Click "Change Player"</strong> - Active player indicator should change immediately</li>
+        <li><strong>Click "Undo"</strong> - Should revert the last score change</li>
+        <li><strong>Watch the status display</strong> - You'll see real-time updates</li>
+      </ol>
+      <p class="mt-4 text-yellow-400">
+        <strong>Note:</strong> This is a demo - the server calls are simulated. In the real scoreboard, 
+        background validation would happen automatically.
+      </p>
+    </div>
+    
+    <!-- Back to Real Scoreboard -->
+    <div class="bg-gray-800 p-6 rounded-lg mt-6 text-center">
+      <h3 class="text-lg font-bold mb-4">Test Real Scoreboard</h3>
+      <p class="mb-4 text-sm">Once you're satisfied with the demo, test the optimistic updates on your real scoreboard:</p>
+      <a href="/table_monitors/21" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-bold text-lg inline-block">
+        Go to Real Scoreboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simple demo functionality without Stimulus
+let currentPlayer = 'playera';
+let updateHistory = [];
+let scores = { playera: 0, playerb: 0 };
+
+// Update status display
+function updateStatus(action, details = '') {
+  document.getElementById('last-action').textContent = action;
+  document.getElementById('update-count').textContent = updateHistory.length;
+  document.getElementById('status').textContent = 'Updated';
+  
+  console.log(`Demo Action: ${action} - ${details}`);
+  
+  // Reset status after 2 seconds
+  setTimeout(() => {
+    document.getElementById('status').textContent = 'Ready';
+  }, 2000);
+}
+
+// Add points with optimistic update
+function addPoint(playerId, points) {
+  console.log(`Adding ${points} points to ${playerId}`);
+  
+  // Store previous score for undo
+  const previousScore = scores[playerId] || 0;
+  
+  // Calculate new score
+  let newScore;
+  if (points < 0) {
+    newScore = Math.max(0, previousScore + points);
+  } else {
+    newScore = previousScore + points;
+  }
+  
+  // Update score display immediately (optimistic)
+  const scoreElement = document.querySelector(`[data-player="${playerId}"]`);
+  if (scoreElement) {
+    scoreElement.textContent = newScore;
+    scoreElement.classList.add('score-updated');
+    
+    // Remove highlight after animation
+    setTimeout(() => {
+      scoreElement.classList.remove('score-updated');
+    }, 500);
+  }
+  
+  // Store in history for undo
+  updateHistory.push({
+    playerId,
+    previousScore,
+    newScore,
+    points,
+    timestamp: Date.now()
+  });
+  
+  // Update local state
+  scores[playerId] = newScore;
+  
+  // Update status
+  updateStatus(`Added ${points} points to ${playerId}`, `Score: ${previousScore} → ${newScore}`);
+  
+  // Simulate server response delay
+  setTimeout(() => {
+    console.log(`Server confirmed: ${playerId} score updated to ${newScore}`);
+  }, 1000 + Math.random() * 2000);
+}
+
+// Change player
+function changePlayer() {
+  console.log('Changing player');
+  
+  // Store previous player
+  const previousPlayer = currentPlayer;
+  
+  // Update current player
+  currentPlayer = currentPlayer === 'playera' ? 'playerb' : 'playera';
+  
+  // Update display
+  const currentPlayerSpan = document.getElementById('current-player');
+  if (currentPlayerSpan) {
+    currentPlayerSpan.textContent = currentPlayer === 'playera' ? 'Player A' : 'Player B';
+  }
+  
+  // Store in history
+  updateHistory.push({
+    type: 'player_change',
+    previousPlayer,
+    newPlayer: currentPlayer,
+    timestamp: Date.now()
+  });
+  
+  // Update status
+  updateStatus('Player Changed', `${previousPlayer} → ${currentPlayer}`);
+  
+  // Simulate server response delay
+  setTimeout(() => {
+    console.log(`Server confirmed: player changed to ${currentPlayer}`);
+  }, 1000 + Math.random() * 2000);
+}
+
+// Undo last action
+function undo() {
+  if (updateHistory.length === 0) {
+    updateStatus('Undo Failed', 'No actions to undo');
+    return;
+  }
+  
+  const lastAction = updateHistory.pop();
+  console.log('Undoing:', lastAction);
+  
+  if (lastAction.type === 'player_change') {
+    // Undo player change
+    currentPlayer = lastAction.previousPlayer;
+    const currentPlayerSpan = document.getElementById('current-player');
+    if (currentPlayerSpan) {
+      currentPlayerSpan.textContent = currentPlayer === 'playera' ? 'Player A' : 'Player B';
+    }
+    updateStatus('Undone Player Change', `${lastAction.newPlayer} → ${currentPlayer}`);
+  } else {
+    // Undo score change
+    const previousScore = lastAction.previousScore;
+    scores[lastAction.playerId] = previousScore;
+    
+    const scoreElement = document.querySelector(`[data-player="${lastAction.playerId}"]`);
+    if (scoreElement) {
+      scoreElement.textContent = previousScore;
+      scoreElement.classList.add('score-updated');
+      setTimeout(() => {
+        scoreElement.classList.remove('score-updated');
+      }, 500);
+    }
+    
+    updateStatus('Undone Score Change', `${lastAction.playerId}: ${lastAction.newScore} → ${previousScore}`);
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Demo scoreboard loaded!');
+  updateStatus('Initialized', 'Demo ready for testing');
+});
+</script>

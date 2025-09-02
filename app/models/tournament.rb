@@ -149,7 +149,7 @@ class Tournament < ApplicationRecord
                    "Season" => "seasons.name"
   }.freeze
 
-  self.ignored_columns = ["region_ids"]
+  self.ignored_columns = ["region_id"]
 
   def self.search_hash(params)
     {

@@ -48,6 +48,11 @@ export default class extends Controller {
 
   reflexSuccess (element, reflex, noop, id) {
     // show success message
+    if (reflex.includes('TableMonitor#key_a')) {
+      console.timeEnd('key_a_click')
+    } else if (reflex.includes('TableMonitor#key_b')) {
+      console.timeEnd('key_b_click')
+    }
   }
 
   reflexError (element, reflex, error, id) {

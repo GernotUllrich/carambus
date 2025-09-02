@@ -25,9 +25,31 @@ print_warning() {
 
 print_info "Deployment für API Server (newapi.carambus.de) wird gestartet..."
 
+# Prüfen ob es das erste Deployment ist
+print_info "Prüfe Server-Setup..."
+if ! ssh -p 8910 www-data@carambus.de "test -f /var/www/carambus_api/shared/config/database.yml"; then
+    print_warning "Erstes Deployment - erstelle notwendige Verzeichnisse und Konfigurationsdateien..."
+    
+    # Verzeichnisse erstellen
+    ssh -p 8910 www-data@carambus.de "mkdir -p /var/www/carambus_api/shared/config/credentials"
+    
+    print_info "Bitte kopiere die folgenden Dateien manuell auf den Server:"
+    print_info "  - config/database.yml → /var/www/carambus_api/shared/config/"
+    print_info "  - config/carambus.yml → /var/www/carambus_api/shared/config/"
+    print_info "  - config/scoreboard_url → /var/www/carambus_api/shared/config/"
+    print_info "  - config/credentials/production.key → /var/www/carambus_api/shared/config/credentials/"
+    print_info "  - config/environments/production.rb → /var/www/carambus_api/shared/config/"
+    print_info "  - config/credentials/production.yml.enc → /var/www/carambus_api/shared/config/credentials/"
+    print_info "  - config/puma.rb → /var/www/carambus_api/shared/config/"
+    
+    print_info ""
+    print_info "Nach dem Kopieren der Dateien, führe das Deployment erneut aus."
+    exit 1
+fi
+
 # Capistrano-Deployment starten (Assets werden automatisch auf dem Server gebaut)
 print_info "Starte Capistrano-Deployment..."
-bundle exec cap api deploy
+bundle exec cap production deploy
 
 print_success "API Server Deployment abgeschlossen!"
 print_info "Die Anwendung läuft jetzt auf newapi.carambus.de"
