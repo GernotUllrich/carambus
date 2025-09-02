@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 namespace :mode do
+
   desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
-  task  :local, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :host, :port, :branch] => :environment do |task, args|
+  # 2025/2026, carambus, NBV, https://newapi.carambus.de/, carambus, carambus_production, carambus.de, 1, 357, production, new.carambus.de, , master, manage-puma.sh
+  task  :local, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :rails_env, :host, :port, :branch, :puma_script] => :environment do |task, args|
     season_name = args.season_name || "2025/2026"
     application_name = args.application_name || 'carambus'
     context = args.context || 'NBV'
@@ -14,8 +16,9 @@ namespace :mode do
     club_id = args.club_id || '357'
     rails_env = args.rails_env || 'production'
     host = args.host || 'new.carambus.de'
-    port = args.port || '3000'
+    port = (args.port || '').presence
     branch = args.branch || 'master'
+    puma_script = args.puma_script || 'manage-puma.sh'
     puts "Switching to LOCAL mode..."
 
     # Update carambus.yml
@@ -30,6 +33,9 @@ namespace :mode do
     # Update deploy.rb for LOCAL mode
     update_deploy_environment_rb(rails_env, host, port, branch)
 
+    # Update Puma configuration for LOCAL mode
+    update_puma_configuration(puma_script, basename)
+
     # Manage log files for LOCAL mode
     manage_log_files("local")
 
@@ -37,24 +43,44 @@ namespace :mode do
     puts "Current mode: LOCAL (carambus_api_url is set, local database)"
   end
 
-  desc "Switch to API mode (set carambus_api_url, API database)"
-  task api: :environment do
+  desc "Switch to API mode (empty carambus_api_url, local database)"
+  task  :api, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :host, :port, :branch, :puma_script] => :environment do |task, args|
+    season_name = args.season_name || "2025/2026"
+    application_name = args.application_name || 'carambus'
+    context = args.context || ''
+    api_url = args.api_url || ''
+    basename = args.basename || 'carambus_api'
+    database = args.database || 'carambus_api_production'
+    domain = args.domain || 'api.carambus.de'
+    location_id = args.location_id || ''
+    club_id = args.club_id || ''
+    rails_env = args.rails_env || 'production'
+    host = args.host || 'newapi.carambus.de'
+    port = args.port || '3001'
+    branch = args.branch || 'master'
+    puma_script = args.puma_script || 'manage-puma-api.sh'
     puts "Switching to API mode..."
 
     # Update carambus.yml
-    update_carambus_yml(carambus_api_url="", basename="carambus_api", carambus_domain="api.carambus.de", location_id="", application_name="carambus", context="", club_id="")
+    update_carambus_yml(season_name=season_name, carambus_api_url=api_url, basename=basename, carambus_domain=domain, location_id=location_id, application_name=application_name, context=context, club_id=club_id)
 
-    # Generate YAML with proper anchor syntax for API mode
-    update_database_yml("carambus_api_development")
+    # Update database.yml
+    update_database_yml(database)
 
-    # Update deploy.rb for API mode
-    update_deploy_rb("carambus_api")
+    # Update deploy.rb for LOCAL mode
+    update_deploy_rb(basename)
 
-    # Manage log files for API mode
+    # Update deploy.rb for LOCAL mode
+    update_deploy_environment_rb(rails_env, host, port, branch)
+
+    # Update Puma configuration for API mode
+    update_puma_configuration(puma_script, basename)
+
+    # Manage log files for LOCAL mode
     manage_log_files("api")
 
     puts "Switched to API mode successfully"
-    puts "Current mode: API (carambus_api_url is empty, API database)"
+    puts "Current mode: API (carambus_api_url is nil, local database)"
   end
 
   desc "Show current mode and configuration"
@@ -94,6 +120,20 @@ namespace :mode do
       puts "  Log File: #{log_file}"
     else
       puts "  Log File: direct file (not linked)"
+    end
+
+    # Read Puma configuration
+    if File.exist?(Rails.root.join('config', 'deploy.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy.rb'))
+      if deploy_content.match(/execute "\.\/bin\/([^"]+)"/)
+        puma_script = $1
+        puts "  Puma Script: #{puma_script}"
+      elsif deploy_content.match(/execute ".*\/bin\/([^"]+)"/)
+        puma_script = $1
+        puts "  Puma Script: #{puma_script}"
+      else
+        puts "  Puma Script: not configured"
+      end
     end
 
     # Determine mode
@@ -264,6 +304,30 @@ namespace :mode do
       end
       FileUtils.ln_sf(target_log, development_log)
       puts "✓ Linked development.log to development-api.log"
+    end
+  end
+
+  def update_puma_configuration(puma_script, basename)
+    deploy_file = Rails.root.join('config', 'deploy.rb')
+
+    if File.exist?(deploy_file)
+      content = File.read(deploy_file)
+      
+      # Update the Puma restart task to use the specified script
+      if content.include?('namespace :puma do')
+        # Replace the existing Puma restart task
+        updated_content = content.gsub(
+          /namespace :puma do\s+desc "Restart application"\s+task :restart do\s+on roles\(:app\) do\s+.*?end\s+end\s+end/m,
+          "namespace :puma do\n  desc \"Restart application\"\n  task :restart do\n    on roles(:app) do\n      # Use the specific #{puma_script} script for better control\n      # The script expects to be run from the current directory\n      within current_path do\n        execute \"./bin/#{puma_script}\"\n      end\n    end\n  end\n\n  desc \"Start application\"\n  task :start do\n    on roles(:app) do\n      execute \"sudo systemctl start puma-#{basename}.service\"\n    end\n  end\n\n  desc \"Stop application\"\n  task :stop do\n    on roles(:app) do\n      execute \"sudo systemctl stop puma-#{basename}.service\"\n    end\n  end\n\n  desc \"Status of application\"\n  task :status do\n    on roles(:app) do\n      execute \"sudo systemctl status puma-#{basename}.service\"\n    end\n  end\nend"
+        )
+        
+        File.write(deploy_file, updated_content)
+        puts "✓ Updated Puma configuration to use #{puma_script} script"
+      else
+        puts "⚠️  Puma namespace not found in deploy.rb, skipping Puma configuration update"
+      end
+    else
+      puts "⚠️  deploy.rb not found, skipping Puma configuration update"
     end
   end
 end
