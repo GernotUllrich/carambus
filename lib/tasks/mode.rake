@@ -143,6 +143,21 @@ namespace :mode do
       puts "Current Mode: LOCAL"
     end
 
+    # Show source information
+    if args.detailed
+      deploy_config = get_deploy_config
+      if deploy_config
+        puts "\n📡 CONFIGURATION SOURCE:"
+        puts "-" * 40
+        puts "Reading from production server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+        puts "Deploy path: /var/www/#{deploy_config[:basename]}/shared/config/"
+      else
+        puts "\n📡 CONFIGURATION SOURCE:"
+        puts "-" * 40
+        puts "Reading from local configuration files (production server not accessible)"
+      end
+    end
+
     # Show detailed parameters if requested
     if args.detailed
       puts "\n" + "="*60
@@ -403,65 +418,111 @@ namespace :mode do
   end
 
   def extract_season_name
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'season_name')
+    # Try to read from production server first, fallback to local config
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'season_name') || production_config.dig('development', 'season_name')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'season_name') || carambus_config.dig('development', 'season_name')
+      end
     end
   end
 
   def extract_application_name
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'application_name')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'application_name') || production_config.dig('development', 'application_name')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'application_name') || carambus_config.dig('development', 'application_name')
+      end
     end
   end
 
   def extract_context
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'context')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'context') || production_config.dig('development', 'context')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'context') || carambus_config.dig('development', 'context')
+      end
     end
   end
 
   def extract_api_url
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'carambus_api_url')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'carambus_api_url') || production_config.dig('development', 'carambus_api_url')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'carambus_api_url') || carambus_config.dig('development', 'carambus_api_url')
+      end
     end
   end
 
   def extract_basename
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'basename')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'basename') || production_config.dig('development', 'basename')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'basename') || carambus_config.dig('development', 'basename')
+      end
     end
   end
 
   def extract_database
-    if File.exist?(Rails.root.join('config', 'database.yml'))
-      database_config = YAML.load_file(Rails.root.join('config', 'database.yml'))
-      database_config.dig('development', 'database')
+    production_config = read_production_config('database.yml')
+    if production_config
+      production_config.dig('production', 'database') || production_config.dig('development', 'database')
+    else
+      if File.exist?(Rails.root.join('config', 'database.yml'))
+        database_config = YAML.load_file(Rails.root.join('config', 'database.yml'))
+        database_config.dig('production', 'database') || database_config.dig('development', 'database')
+      end
     end
   end
 
   def extract_domain
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'carambus_domain')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'carambus_domain') || production_config.dig('development', 'carambus_domain')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'carambus_domain') || carambus_config.dig('development', 'carambus_domain')
+      end
     end
   end
 
   def extract_location_id
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'location_id')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'location_id') || production_config.dig('development', 'location_id')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'location_id') || carambus_config.dig('development', 'location_id')
+      end
     end
   end
 
   def extract_club_id
-    if File.exist?(Rails.root.join('config', 'carambus.yml'))
-      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-      carambus_config.dig('development', 'club_id')
+    production_config = read_production_config('carambus.yml')
+    if production_config
+      production_config.dig('production', 'club_id') || production_config.dig('development', 'club_id')
+    else
+      if File.exist?(Rails.root.join('config', 'carambus.yml'))
+        carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+        carambus_config.dig('production', 'club_id') || carambus_config.dig('development', 'club_id')
+      end
     end
   end
 
@@ -512,5 +573,74 @@ namespace :mode do
         $1
       end
     end
+  end
+
+  def read_production_config(config_file)
+    # Get deployment configuration to determine server details
+    deploy_config = get_deploy_config
+    return nil unless deploy_config
+
+    host = deploy_config[:host]
+    port = deploy_config[:port]
+    basename = deploy_config[:basename]
+
+    # Construct the path to the config file on the production server
+    config_path = "/var/www/#{basename}/shared/config/#{config_file}"
+
+    begin
+      # Read the config file from the production server
+      config_content = read_remote_file(host, port, config_path)
+      return YAML.load(config_content) if config_content
+    rescue => e
+      puts "⚠️  Could not read #{config_file} from production server: #{e.message}"
+    end
+
+    nil
+  end
+
+  def get_deploy_config
+    # Read deploy.rb to get basename
+    if File.exist?(Rails.root.join('config', 'deploy.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy.rb'))
+      if deploy_content.match(/set :basename, ['"]([^'"]+)['"]/)
+        basename = $1
+      else
+        return nil
+      end
+    else
+      return nil
+    end
+
+    # Read production.rb to get host and port
+    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
+      production_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+      
+      host = nil
+      if production_content.match(/server ['"]([^'"]+)['"]/)
+        host = $1
+      end
+
+      port = nil
+      if production_content.match(/ssh_options: \{port: (\d+)\}/)
+        port = $1.to_i
+      elsif production_content.match(/ssh_options: \{port: ['"]([^'"]+)['"]\}/)
+        port = $1.to_i
+      end
+
+      return { host: host, port: port, basename: basename }
+    end
+
+    nil
+  end
+
+  def read_remote_file(host, port, file_path)
+    # Use SSH to read the file from the production server
+    ssh_port = port || 22
+    ssh_command = "ssh -p #{ssh_port} -o ConnectTimeout=5 -o BatchMode=yes www-data@#{host} 'cat #{file_path}' 2>/dev/null"
+    
+    result = `#{ssh_command}`
+    return result if $?.success?
+    
+    nil
   end
 end

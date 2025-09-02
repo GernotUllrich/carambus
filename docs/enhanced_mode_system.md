@@ -215,6 +215,16 @@ The detailed status command provides a comprehensive breakdown of all 14 paramet
 - Copy the complete parameter string for reuse
 - Identify any missing or misconfigured parameters
 - Get ready-to-use commands for switching modes or saving configurations
+- **Read from production server**: Shows actual deployed configuration, not local development config
+
+#### **Production Configuration Reading:**
+The detailed status automatically reads configuration files from the production server:
+- **carambus.yml**: Read from `/var/www/{basename}/shared/config/carambus.yml`
+- **database.yml**: Read from `/var/www/{basename}/shared/config/database.yml`
+- **deploy.rb**: Read from local config to determine server connection details
+- **production.rb**: Read from local config to determine host and port
+
+This ensures you see the **actual deployed configuration** rather than local development settings.
 
 ### **Check Current Configuration:**
 
@@ -247,13 +257,18 @@ Current Mode: LOCAL
 #### **Detailed Status:**
 ```
 Current Configuration:
-  API URL: https://newapi.carambus.de/
+  API URL: empty
   Context: NBV
   Database: carambus_production
   Deploy Basename: carambus
-  Log File: development-local.log
-  Puma Script: manage-puma.sh
-Current Mode: LOCAL
+  Log File: development-api.log
+  Puma Script: manage-puma-api.sh
+Current Mode: API
+
+📡 CONFIGURATION SOURCE:
+----------------------------------------
+Reading from production server: 192.168.178.48:8910
+Deploy path: /var/www/carambus/shared/config/
 
 ============================================================
 DETAILED PARAMETER BREAKDOWN
@@ -264,30 +279,30 @@ DETAILED PARAMETER BREAKDOWN
 1.  season_name:     2025/2026
 2.  application_name: carambus
 3.  context:         NBV
-4.  api_url:         https://newapi.carambus.de/
+4.  api_url:         ❌ Not configured
 5.  basename:        carambus
-6.  database:        carambus_production
+6.  database:        carambus2_api_production
 7.  domain:          carambus.de
 8.  location_id:     1
 9.  club_id:         357
 10. rails_env:       production
-11. host:            new.carambus.de
-12. port:            
+11. host:            192.168.178.48
+12. port:            8910
 13. branch:          master
-14. puma_script:     manage-puma.sh
+14. puma_script:     manage-puma-api.sh
 
 🔄 COMPLETE PARAMETER STRING:
 ----------------------------------------
 ✅ All parameters configured
-2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh
+2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh
 
 📝 USAGE:
 ----------------------------------------
 To switch to this exact configuration:
-bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh]"
+bundle exec rails "mode:api[2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh]"
 
 Or save this configuration:
-./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
+./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh"
 ```
 
 ## 🛡️ **Backup and Recovery**
