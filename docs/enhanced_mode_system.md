@@ -206,18 +206,33 @@ bundle exec rails server -p 3001 -e development-api
 
 ## 🔍 **Status and Monitoring**
 
+### **Basic Status:**
+The basic status command shows a summary of the current configuration.
+
+### **Detailed Status:**
+The detailed status command provides a comprehensive breakdown of all 14 parameters, making it easy to:
+- See exactly what each parameter is set to
+- Copy the complete parameter string for reuse
+- Identify any missing or misconfigured parameters
+- Get ready-to-use commands for switching modes or saving configurations
+
 ### **Check Current Configuration:**
 
 ```bash
 # Show current mode status
 ./bin/mode-params.sh status
 
+# Show detailed parameter breakdown
+./bin/mode-params.sh status detailed
+
 # Or use the rake task directly
 bundle exec rails mode:status
+bundle exec rails "mode:status[detailed]"
 ```
 
 ### **Example Output:**
 
+#### **Basic Status:**
 ```
 Current Configuration:
   API URL: https://newapi.carambus.de/
@@ -227,6 +242,52 @@ Current Configuration:
   Log File: development-local.log
   Puma Script: manage-puma.sh
 Current Mode: LOCAL
+```
+
+#### **Detailed Status:**
+```
+Current Configuration:
+  API URL: https://newapi.carambus.de/
+  Context: NBV
+  Database: carambus_production
+  Deploy Basename: carambus
+  Log File: development-local.log
+  Puma Script: manage-puma.sh
+Current Mode: LOCAL
+
+============================================================
+DETAILED PARAMETER BREAKDOWN
+============================================================
+
+📋 PARAMETER DETAILS:
+----------------------------------------
+1.  season_name:     2025/2026
+2.  application_name: carambus
+3.  context:         NBV
+4.  api_url:         https://newapi.carambus.de/
+5.  basename:        carambus
+6.  database:        carambus_production
+7.  domain:          carambus.de
+8.  location_id:     1
+9.  club_id:         357
+10. rails_env:       production
+11. host:            new.carambus.de
+12. port:            
+13. branch:          master
+14. puma_script:     manage-puma.sh
+
+🔄 COMPLETE PARAMETER STRING:
+----------------------------------------
+✅ All parameters configured
+2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh
+
+📝 USAGE:
+----------------------------------------
+To switch to this exact configuration:
+bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh]"
+
+Or save this configuration:
+./bin/mode-params.sh save my_current_config "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
 ```
 
 ## 🛡️ **Backup and Recovery**

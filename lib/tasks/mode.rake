@@ -84,7 +84,7 @@ namespace :mode do
   end
 
   desc "Show current mode and configuration"
-  task status: :environment do
+  task :status, [:detailed] => :environment do |task, args|
     puts "Current Configuration:"
 
     # Read carambus.yml
@@ -141,6 +141,16 @@ namespace :mode do
       puts "Current Mode: API"
     else
       puts "Current Mode: LOCAL"
+    end
+
+    # Show detailed parameters if requested
+    if args.detailed
+      puts "\n" + "="*60
+      puts "DETAILED PARAMETER BREAKDOWN"
+      puts "="*60
+      
+      # Read all configuration files to extract current parameters
+      show_detailed_parameters
     end
   end
 
@@ -328,6 +338,179 @@ namespace :mode do
       end
     else
       puts "⚠️  deploy.rb not found, skipping Puma configuration update"
+    end
+  end
+
+  def show_detailed_parameters
+    puts "\n📋 PARAMETER DETAILS:"
+    puts "-" * 40
+    
+    # Extract parameters from configuration files
+    season_name = extract_season_name
+    application_name = extract_application_name
+    context = extract_context
+    api_url = extract_api_url
+    basename = extract_basename
+    database = extract_database
+    domain = extract_domain
+    location_id = extract_location_id
+    club_id = extract_club_id
+    rails_env = extract_rails_env
+    host = extract_host
+    port = extract_port
+    branch = extract_branch
+    puma_script = extract_puma_script
+    
+    # Display parameters in order
+    puts "1.  season_name:     #{season_name || '❌ Not configured'}"
+    puts "2.  application_name: #{application_name || '❌ Not configured'}"
+    puts "3.  context:         #{context || '❌ Not configured'}"
+    puts "4.  api_url:         #{api_url || '❌ Not configured'}"
+    puts "5.  basename:        #{basename || '❌ Not configured'}"
+    puts "6.  database:        #{database || '❌ Not configured'}"
+    puts "7.  domain:          #{domain || '❌ Not configured'}"
+    puts "8.  location_id:     #{location_id || '❌ Not configured'}"
+    puts "9.  club_id:         #{club_id || '❌ Not configured'}"
+    puts "10. rails_env:       #{rails_env || '❌ Not configured'}"
+    puts "11. host:            #{host || '❌ Not configured'}"
+    puts "12. port:            #{port || '❌ Not configured'}"
+    puts "13. branch:          #{branch || '❌ Not configured'}"
+    puts "14. puma_script:     #{puma_script || '❌ Not configured'}"
+    
+    puts "\n🔄 COMPLETE PARAMETER STRING:"
+    puts "-" * 40
+    param_string = [
+      season_name, application_name, context, api_url, basename, 
+      database, domain, location_id, club_id, rails_env, 
+      host, port, branch, puma_script
+    ].join(',')
+    
+    if param_string.include?('❌')
+      puts "⚠️  Some parameters are missing or not configured"
+      puts param_string
+    else
+      puts "✅ All parameters configured"
+      puts param_string
+    end
+    
+    puts "\n📝 USAGE:"
+    puts "-" * 40
+    puts "To switch to this exact configuration:"
+    puts "bundle exec rails \"mode:#{api_url.nil? || api_url.empty? ? 'api' : 'local'}[#{param_string}]\""
+    
+    puts "\nOr save this configuration:"
+    puts "./bin/mode-params.sh save my_current_config \"#{param_string}\""
+  end
+
+  def extract_season_name
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'season_name')
+    end
+  end
+
+  def extract_application_name
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'application_name')
+    end
+  end
+
+  def extract_context
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'context')
+    end
+  end
+
+  def extract_api_url
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'carambus_api_url')
+    end
+  end
+
+  def extract_basename
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'basename')
+    end
+  end
+
+  def extract_database
+    if File.exist?(Rails.root.join('config', 'database.yml'))
+      database_config = YAML.load_file(Rails.root.join('config', 'database.yml'))
+      database_config.dig('development', 'database')
+    end
+  end
+
+  def extract_domain
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'carambus_domain')
+    end
+  end
+
+  def extract_location_id
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'location_id')
+    end
+  end
+
+  def extract_club_id
+    if File.exist?(Rails.root.join('config', 'carambus.yml'))
+      carambus_config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+      carambus_config.dig('development', 'club_id')
+    end
+  end
+
+  def extract_rails_env
+    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+      if deploy_content.match(/set :rails_env, ['"]([^'"]+)['"]/)
+        $1
+      end
+    end
+  end
+
+  def extract_host
+    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+      if deploy_content.match(/server ['"]([^'"]+)['"]/)
+        $1
+      end
+    end
+  end
+
+  def extract_port
+    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+      if deploy_content.match(/ssh_options: \{port: (\d+)\}/)
+        $1
+      elsif deploy_content.match(/ssh_options: \{port: ['"]([^'"]+)['"]\}/)
+        $1
+      end
+    end
+  end
+
+  def extract_branch
+    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
+      if deploy_content.match(/set :branch, ['"]([^'"]+)['"]/)
+        $1
+      end
+    end
+  end
+
+  def extract_puma_script
+    if File.exist?(Rails.root.join('config', 'deploy.rb'))
+      deploy_content = File.read(Rails.root.join('config', 'deploy.rb'))
+      if deploy_content.match(/execute "\.\/bin\/([^"]+)"/)
+        $1
+      elsif deploy_content.match(/execute ".*\/bin\/([^"]+)"/)
+        $1
+      end
     end
   end
 end

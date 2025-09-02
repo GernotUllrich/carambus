@@ -173,7 +173,11 @@ case "$1" in
         execute_mode "$2"
         ;;
     "status")
-        bundle exec rails mode:status
+        if [ "$2" = "detailed" ] || [ "$2" = "detail" ] || [ "$2" = "-d" ] || [ "$2" = "--detailed" ]; then
+            bundle exec rails "mode:status[detailed]"
+        else
+            bundle exec rails mode:status
+        fi
         ;;
     "backup")
         bundle exec rails mode:backup
@@ -188,12 +192,14 @@ case "$1" in
         echo "  $0 local <mode>            - Switch to LOCAL mode using saved/default parameters"
         echo "  $0 api <mode>              - Switch to API mode using saved/default parameters"
         echo "  $0 status                  - Show current mode status"
+        echo "  $0 status detailed         - Show detailed parameter breakdown"
         echo "  $0 backup                  - Create backup of current configuration"
         echo ""
         echo "Examples:"
         echo "  $0 local local_hetzner     - Switch to LOCAL mode for Hetzner server"
         echo "  $0 api api_hetzner          - Switch to API mode for Hetzner server"
         echo "  $0 show local_hetzner       - Show parameters for local_hetzner mode"
+        echo "  $0 status detailed          - Show detailed parameter breakdown"
         echo ""
         echo "Parameter format:"
         echo "  season_name,app_name,context,api_url,basename,database,domain,location_id,club_id,rails_env,host,port,branch,puma_script"
