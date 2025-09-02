@@ -63,6 +63,40 @@ check_prerequisites() {
     print_success "Prerequisites check passed"
 }
 
+# Function to pull repo changes
+pull_repo_changes() {
+    local repo_path=$1
+    local repo_name=$2
+    
+    print_status "Pulling latest changes for $repo_name..."
+    
+    if [ ! -d "$repo_path" ]; then
+        print_error "Repository directory not found: $repo_path"
+        exit 1
+    fi
+    
+    cd "$repo_path"
+    
+    # Check if we're in a git repository
+    if [ ! -d ".git" ]; then
+        print_error "Not a git repository: $repo_path"
+        exit 1
+    fi
+    
+    # Fetch latest changes
+    print_status "Fetching latest changes..."
+    git fetch origin
+    
+    # Check if there are any changes to pull
+    if [ "$(git rev-list HEAD..origin/master --count)" -eq 0 ]; then
+        print_warning "No new changes to pull for $repo_name"
+    else
+        print_status "Pulling changes from origin/master..."
+        git pull origin master
+        print_success "Successfully pulled changes for $repo_name"
+    fi
+}
+
 # Function to create environment
 create_environment() {
     local env_name=$1
@@ -97,6 +131,9 @@ create_environment() {
 # Function to deploy API server
 deploy_api_server() {
     print_status "Deploying API server..."
+    
+    # Pull latest changes first
+    pull_repo_changes "$PROJECTS_DIR/carambus_api" "carambus_api"
     
     cd "$PROJECTS_DIR/carambus_api"
     
@@ -139,6 +176,9 @@ deploy_api_server() {
 # Function to deploy local server
 deploy_local_server() {
     print_status "Deploying local server..."
+    
+    # Pull latest changes first
+    pull_repo_changes "$PROJECTS_DIR/carambus_local_hetzner" "carambus_local_hetzner"
     
     cd "$PROJECTS_DIR/carambus_local_hetzner"
     
