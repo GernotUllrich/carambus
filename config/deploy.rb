@@ -115,6 +115,11 @@ set :puma_workers, 2
 # default value: none (will be prompted if not set)
 # set :nginx_ssl_certificate_key_local_path, "/home/ivalkeen/ssl/myssl.key"
 
+# Disable the default capistrano3-puma tasks and use our custom implementation
+Rake::Task["puma:restart"].clear if Rake::Task.task_defined?("puma:restart")
+Rake::Task["puma:start"].clear if Rake::Task.task_defined?("puma:start")
+Rake::Task["puma:stop"].clear if Rake::Task.task_defined?("puma:stop")
+
 after 'deploy:publishing', 'puma:restart'
 
 namespace :deploy do
@@ -133,7 +138,32 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      execute "sudo #{current_path}/bin/manage-puma.sh #{fetch(:basename)}"
+      # Use the specific API management script for better control
+      # The script expects to be run from the current directory
+      within current_path do
+        execute "./bin/manage-puma-api.sh"
+      end
+    end
+  end
+
+  desc "Start application"
+  task :start do
+    on roles(:app) do
+      execute "sudo systemctl start puma-#{fetch(:basename)}.service"
+    end
+  end
+
+  desc "Stop application"
+  task :stop do
+    on roles(:app) do
+      execute "sudo systemctl stop puma-#{fetch(:basename)}.service"
+    end
+  end
+
+  desc "Status of application"
+  task :status do
+    on roles(:app) do
+      execute "sudo systemctl status puma-#{fetch(:basename)}.service"
     end
   end
 end
@@ -165,7 +195,9 @@ namespace :deploy do
     task :install_dependencies do
       on roles(:app) do
         within release_path do
-          execute :yarn, "install", "--production=false"
+          # Skip yarn install since we're using pre-built assets
+          # The build/ directory contains the necessary files
+          execute :echo, "Skipping yarn install - using pre-built assets from build/ directory"
         end
       end
     end
@@ -175,11 +207,12 @@ namespace :deploy do
       on roles(:app) do
         within release_path do
           with rails_env: fetch(:rails_env) do
-            # Build JavaScript assets
-            execute :yarn, "build"
-            # Build CSS assets
-            execute :yarn, "build:css"
-
+            # Since we're using pre-built assets, just ensure the build directory exists
+            execute :mkdir, "-p build"
+            
+            # Copy pre-built assets if they exist
+            execute :echo, "Using pre-built assets from build/ directory"
+            
             # Ensure the builds directory exists for Rails asset pipeline
             execute :mkdir, "-p app/assets/builds"
           end

@@ -60,6 +60,8 @@ group :development, :test do
   # Lint code for consistent style
   gem "standard", require: false
 
+  gem "stackprof", require: true
+
   #gem "letter_opener_web", "~> 2.0"
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]

@@ -556,6 +556,7 @@ GEM
       net-sftp (>= 2.1.2)
       net-ssh (>= 2.8.0)
       ostruct
+    stackprof (0.2.27)
     standard (1.40.0)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -692,6 +693,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver (>= 4.20.1)
   sprockets-rails (>= 3.4.1)
+  stackprof
   standard
   stimulus-rails (~> 1.0, >= 1.0.2)
   stimulus_reflex (= 3.5.3)
