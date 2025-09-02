@@ -28,7 +28,7 @@ namespace :mode do
     update_database_yml(database)
 
     # Update deploy.rb for LOCAL mode
-    update_deploy_rb(basename)
+    update_deploy_rb(basename, domain)
 
     # Update deploy.rb for LOCAL mode
     update_deploy_environment_rb(rails_env, host, port, branch)
@@ -68,7 +68,7 @@ namespace :mode do
     update_database_yml(database)
 
     # Update deploy.rb for LOCAL mode
-    update_deploy_rb(basename)
+    update_deploy_rb(basename, domain)
 
     # Update deploy.rb for LOCAL mode
     update_deploy_environment_rb(rails_env, host, port, branch)
@@ -204,18 +204,27 @@ namespace :mode do
 
   private
 
-  def update_deploy_rb(basename)
+  def update_deploy_rb(basename, domain = nil)
     deploy_file = Rails.root.join('config', 'deploy.rb')
 
     if File.exist?("#{deploy_file}.erb")
       content = File.read("#{deploy_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      basename = basename.to_s
+      domain = domain.to_s
+      
       updated_content = content.gsub(
         /<%= basename %>/,
         basename
+      ).gsub(
+        /<%= domain %>/,
+        domain
       )
 
       File.write(deploy_file, updated_content)
       puts "✓ Updated deploy.rb basename to: #{basename}"
+      puts "✓ Updated deploy.rb domain to: #{domain}" if domain.present?
     else
       puts "⚠️  deploy.rb.erb not found, skipping basename update"
     end
