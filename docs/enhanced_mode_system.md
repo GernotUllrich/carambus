@@ -22,11 +22,21 @@ The enhanced Carambus Mode System now includes integrated Puma management, makin
 ./bin/mode-params.sh status
 ```
 
-### **Using Rake Tasks Directly**
+### **Using Named Parameters (Recommended)**
+
+```bash
+# API Mode with named parameters (robust and self-documenting)
+./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
+
+# LOCAL Mode with named parameters
+./bin/mode-named.sh local --season-name='2025/2026' --context=NBV --api-url='https://newapi.carambus.de/' --basename=carambus --database=carambus_api_development
+```
+
+### **Using Rake Tasks Directly (Legacy)**
 
 ```bash
 # Your original deployment command (now enhanced with Puma integration)
-bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh]"
+bundle exec rails "mode:local[2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh]"
 
 # API mode with Puma integration
 bundle exec rails "mode:api[2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.carambus.de,,,production,newapi.carambus.de,3001,master,manage-puma-api.sh]"
@@ -47,8 +57,8 @@ The mode system now includes a **14th parameter** for Puma script configuration:
 8. `location_id` - Location ID (e.g., "1", "")
 9. `club_id` - Club ID (e.g., "357", "")
 10. `rails_env` - Rails environment (e.g., "production", "development")
-11. `host` - Server hostname (e.g., "new.carambus.de", "localhost")
-12. `port` - Server port (e.g., "", "3001")
+11. `host` - Server ssh hostname or ip-address (e.g., "new.carambus.de", "localhost")
+12. `port` - Server ssh port (e.g., "", "8910")
 13. `branch` - Git branch (e.g., "master")
 14. `puma_script` - **NEW**: Puma management script (e.g., "manage-puma.sh", "manage-puma-api.sh")
 
@@ -68,7 +78,7 @@ Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.ca
 
 #### **local_dev** (Local Development)
 ```bash
-Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_development,carambus.de,1,357,development,localhost,3000,master,manage-puma.sh
+Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,development,localhost,3000,master,manage-puma.sh
 ```
 
 #### **api_dev** (API Development)
@@ -77,6 +87,36 @@ Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_development,api.c
 ```
 
 ## 🛠️ **Mode Parameters Manager**
+
+### **Named Parameters System (Recommended)**
+
+The new named parameters system eliminates the error-prone positional parameter ordering:
+
+```bash
+# API Mode with named parameters (robust and self-documenting)
+./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
+
+# LOCAL Mode with named parameters
+./bin/mode-named.sh local --season-name='2025/2026' --context=NBV --api-url='https://newapi.carambus.de/' --basename=carambus --database=carambus_api_development
+
+# Save configurations
+./bin/mode-named.sh save api_hetzner --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
+
+# Load saved configurations
+./bin/mode-named.sh load api_hetzner
+
+# List saved configurations
+./bin/mode-named.sh list
+```
+
+**Benefits:**
+- ✅ Self-documenting parameters
+- ✅ Order-independent
+- ✅ Only specify needed parameters
+- ✅ Robust against errors
+- ✅ Easy to read and understand
+
+### **Legacy Positional Parameters Manager**
 
 ### **Commands:**
 
@@ -423,6 +463,46 @@ ssh -p 8910 www-data@new.carambus.de "echo 'SSH connection successful'"
 6. **Development Support**: Separate development and production configurations
 7. **Documentation**: Clear documentation and examples for all use cases
 
+## 🆚 **System Comparison**
+
+### **Named Parameters vs Positional Parameters**
+
+#### **Named Parameters (Recommended)**
+```bash
+./bin/mode-named.sh api --basename=carambus_api --database=carambus_api_production --host=newapi.carambus.de --port=3001
+```
+
+**Advantages:**
+- ✅ Self-documenting
+- ✅ Order-independent
+- ✅ Only specify needed parameters
+- ✅ Robust against errors
+- ✅ Easy to read and understand
+- ✅ Configuration saving/loading
+
+#### **Positional Parameters (Legacy)**
+```bash
+bundle exec rails "mode:api[2025/2026,carambus_api,,,carambus_api,carambus_api_production,api.carambus.de,,,production,newapi.carambus.de,3001,master,manage-puma-api.sh]"
+```
+
+**Disadvantages:**
+- ❌ Error-prone ordering
+- ❌ Hard to read and understand
+- ❌ Must specify all parameters
+- ❌ Fragile to changes
+- ❌ No self-documentation
+
+### **Migration Path**
+
+You can use both systems in parallel:
+- **New**: `./bin/mode-named.sh api --basename=carambus_api --host=newapi.carambus.de`
+- **Legacy**: `./bin/mode-params.sh api api_hetzner`
+
+## 📚 **Documentation**
+
+- **Named Parameters**: `docs/named_parameters_system.md`
+- **Enhanced Mode System**: `docs/enhanced_mode_system.md` (this file)
+
 ---
 
-*This enhanced mode system integrates the Puma management improvements while maintaining backward compatibility with your existing deployment workflow.*
+*This enhanced mode system integrates the Puma management improvements while maintaining backward compatibility with your existing deployment workflow. The new named parameters system provides a more robust and user-friendly alternative.*
