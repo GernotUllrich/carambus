@@ -85,14 +85,14 @@ pull_repo_changes() {
     
     # Fetch latest changes
     print_status "Fetching latest changes..."
-    git fetch origin
+    git fetch carambus
     
     # Check if there are any changes to pull
-    if [ "$(git rev-list HEAD..origin/master --count)" -eq 0 ]; then
+    if [ "$(git rev-list HEAD..carambus/master --count)" -eq 0 ]; then
         print_warning "No new changes to pull for $repo_name"
     else
-        print_status "Pulling changes from origin/master..."
-        git pull origin master
+        print_status "Pulling changes from carambus/master..."
+        git pull carambus master
         print_success "Successfully pulled changes for $repo_name"
     fi
 }
