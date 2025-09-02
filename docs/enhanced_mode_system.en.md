@@ -269,6 +269,128 @@ bundle exec rails 'mode:save[development_api]' MODE_BASENAME=carambus_api MODE_D
 bundle exec rails 'mode:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS_ENV=development MODE_NGINX_PORT=3000 MODE_PUMA_SOCKET=puma-development.sock MODE_SSL_ENABLED=false
 ```
 
+## 🗄️ **Database Management**
+
+### **Database Synchronization Workflow**
+
+The Enhanced Mode System provides complete database synchronization between local development and production environment:
+
+#### **1. Create Local Development Dump**
+```bash
+# Creates a dump of the local carambus_api_development database
+bundle exec rails mode:prepare_db_dump
+
+# Output:
+# 🗄️  Creating database dump: carambus_api_production_20250102_120000.sql.gz
+# 📊 Source database: carambus_api_development
+# 🎯 Target database: carambus_api_production (on server)
+# ✅ Database dump created successfully: carambus_api_production_20250102_120000.sql.gz
+```
+
+#### **2. List Available Dumps**
+```bash
+# Shows all available dumps with size and date
+bundle exec rails mode:list_db_dumps
+
+# Output:
+# 🗄️  Available database dumps:
+# ----------------------------------------
+# carambus_api_production_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)
+# carambus_api_production_20250101_150000.sql.gz (1234567 bytes, 2025-01-01 15:00:00)
+```
+
+#### **3. Deploy Dump to API Server**
+```bash
+# Transfers the dump to the server and places it in /var/www/carambus_api/shared/database_dumps/
+bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+
+# Output:
+# 🚀 Deploying database dump to production server...
+# Dump file: carambus_api_production_20250102_120000.sql.gz
+# Server: carambus.de:8910
+# ✅ Database dump deployed successfully
+# 📁 Remote location: /var/www/carambus_api/shared/database_dumps/carambus_api_production_20250102_120000.sql.gz
+```
+
+#### **4. Restore Dump on API Server (as www-data)**
+```bash
+# Reads the dump into the carambus_api_production database
+bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+
+# Output:
+# 🗄️  Restoring database from dump...
+# Dump file: carambus_api_production_20250102_120000.sql.gz
+# Server: carambus.de:8910
+# ✅ Database restored successfully
+```
+
+### **Complete Synchronization Workflow**
+
+```bash
+# 1. Create local development dump
+bundle exec rails mode:prepare_db_dump
+
+# 2. Deploy dump to API server
+bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+
+# 3. Restore dump on API server (as www-data)
+bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+
+# 4. Restart Puma service
+bundle exec cap production puma:restart
+```
+
+### **Automated Database Synchronization**
+
+#### **With Deployment Script**
+```bash
+# Complete local deployment including database synchronization
+./bin/deploy.sh full-local
+
+# Automatically executes:
+# 1. Local server deployment
+# 2. API database dump creation
+# 3. Dump transfer to local server
+# 4. Dump restoration on local server
+# 5. Post-deploy setup
+```
+
+#### **Manual Database Synchronization**
+```bash
+# Dump API database on server
+ssh -p 8910 www-data@carambus.de "cd /var/www/carambus_api/current && pg_dump -Uwww_data carambus_api_production | gzip > carambus_api_production.sql.gz"
+
+# Download dump locally
+scp -P 8910 www-data@carambus.de:/var/www/carambus_api/current/carambus_api_production.sql.gz .
+
+# Import dump into local development environment
+gunzip -c carambus_api_production.sql.gz | psql carambus_api_development
+```
+
+### **Database Versioning**
+
+#### **PaperTrail Integration**
+```bash
+# Sequence reset after dump import
+RAILS_ENV=production bundle exec rails runner "Version.sequence_reset"
+
+# Set last version ID for API synchronization
+LAST_VERSION_ID=$(ssh -p 8910 www-data@carambus.de "cd /var/www/carambus_api/current && RAILS_ENV=production bundle exec rails runner 'puts PaperTrail::Version.last.id'")
+RAILS_ENV=production bundle exec rails runner "Setting.key_set_value('last_version_id', $LAST_VERSION_ID)"
+```
+
+#### **Database Backup Management**
+```bash
+# Keep only the last 2 dumps
+ls -t carambus_api_production_*.sql.gz | tail -n +3 | xargs rm -f
+
+# Compress dumps
+gzip -9 carambus_api_production_*.sql
+
+# Verify dumps
+gunzip -t carambus_api_production_*.sql.gz
+```
+
 ## 🚀 **Deployment Workflow**
 
 ### **1. Prepare Configuration**
