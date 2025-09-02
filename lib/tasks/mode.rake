@@ -1,18 +1,16 @@
 # frozen_string_literal: true
 
 namespace :mode do
-
   desc "Switch to LOCAL mode with named parameters"
-  task :local_named => :environment do
-    # Parse named parameters from environment variables or command line
-    params = parse_named_parameters
+  task :local => :environment do
+    params = parse_named_parameters_from_env
     
     season_name = params[:season_name] || "2025/2026"
     application_name = params[:application_name] || 'carambus'
     context = params[:context] || 'NBV'
     api_url = params[:api_url] || 'https://newapi.carambus.de/'
     basename = params[:basename] || 'carambus'
-    database = params[:database] || 'carambus_api_production'
+    database = params[:database] || 'carambus_api_development'
     domain = params[:domain] || 'carambus.de'
     location_id = params[:location_id] || '1'
     club_id = params[:club_id] || '357'
@@ -22,7 +20,7 @@ namespace :mode do
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'
     
-    puts "Switching to LOCAL mode with named parameters..."
+    puts "🚀 Switching to LOCAL mode with named parameters..."
     puts "Parameters: #{params.inspect}"
 
     # Update carambus.yml
@@ -43,14 +41,13 @@ namespace :mode do
     # Manage log files for LOCAL mode
     manage_log_files("local")
 
-    puts "Switched to LOCAL mode successfully"
+    puts "✅ Switched to LOCAL mode successfully"
     puts "Current mode: LOCAL (carambus_api_url is set, local database)"
   end
 
   desc "Switch to API mode with named parameters"
-  task :api_named => :environment do
-    # Parse named parameters from environment variables or command line
-    params = parse_named_parameters
+  task :api => :environment do
+    params = parse_named_parameters_from_env
     
     season_name = params[:season_name] || "2025/2026"
     application_name = params[:application_name] || 'carambus'
@@ -67,7 +64,7 @@ namespace :mode do
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma-api.sh'
     
-    puts "Switching to API mode with named parameters..."
+    puts "🚀 Switching to API mode with named parameters..."
     puts "Parameters: #{params.inspect}"
 
     # Update carambus.yml
@@ -88,121 +85,102 @@ namespace :mode do
     # Manage log files for LOCAL mode
     manage_log_files("api")
 
-    puts "Switched to API mode successfully"
+    puts "✅ Switched to API mode successfully"
     puts "Current mode: API (carambus_api_url is nil, local database)"
   end
 
-  desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
-  # 2025/2026, carambus, NBV, https://newapi.carambus.de/, carambus, carambus_production, carambus.de, 1, 357, production, new.carambus.de, , master, manage-puma.sh
-  task  :local, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :rails_env, :host, :port, :branch, :puma_script] => :environment do |task, args|
-    season_name = args.season_name || "2025/2026"
-    application_name = args.application_name || 'carambus'
-    context = args.context || 'NBV'
-    api_url = args.api_url || 'https://newapi.carambus.de/'
-    basename = args.basename || 'carambus'
-    database = args.database || 'carambus_api_production'
-    domain = args.domain || 'carambus.de'
-    location_id = args.location_id || '1'
-    club_id = args.club_id || '357'
-    rails_env = args.rails_env || 'production'
-    host = args.host || 'new.carambus.de'
-    port = (args.port || '').presence
-    branch = args.branch || 'master'
-    puma_script = args.puma_script || 'manage-puma.sh'
-    puts "Switching to LOCAL mode..."
-
-    # Update carambus.yml
-    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
-
-    # Update database.yml
-    update_database_yml(database)
-
-    # Update deploy.rb for LOCAL mode
-    update_deploy_rb(basename, domain)
-
-    # Update deploy.rb for LOCAL mode
-    update_deploy_environment_rb(rails_env, host, port, branch)
-
-    # Update Puma configuration for LOCAL mode
-    update_puma_configuration(puma_script, basename)
-
-    # Manage log files for LOCAL mode
-    manage_log_files("local")
-
-    puts "Switched to LOCAL mode successfully"
-    puts "Current mode: LOCAL (carambus_api_url is set, local database)"
-  end
-
-  desc "Switch to API mode (empty carambus_api_url, local database)"
-  task  :api, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :rails_env, :host, :port, :branch, :puma_script] => :environment do |task, args|
-    season_name = args.season_name || "2025/2026"
-    application_name = args.application_name || 'carambus'
-    context = args.context || ''
-    api_url = args.api_url || ''
-    basename = args.basename || 'carambus_api'
-    database = args.database || 'carambus_api_production'
-    domain = args.domain || 'api.carambus.de'
-    location_id = args.location_id || ''
-    club_id = args.club_id || ''
-    rails_env = args.rails_env || 'production'
-    host = args.host || 'newapi.carambus.de'
-    port = args.port || '3001'
-    branch = args.branch || 'master'
-    puma_script = args.puma_script || 'manage-puma-api.sh'
-    puts "Switching to API mode..."
-
-    # Update carambus.yml
-    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
-
-    # Update database.yml
-    update_database_yml(database)
-
-    # Update deploy.rb for LOCAL mode
-    update_deploy_rb(basename, domain)
-
-    # Update deploy.rb for LOCAL mode
-    update_deploy_environment_rb(rails_env, host, port, branch)
-
-    # Update Puma configuration for API mode
-    update_puma_configuration(puma_script, basename)
-
-    # Manage log files for LOCAL mode
-    manage_log_files("api")
-
-    puts "Switched to API mode successfully"
-    puts "Current mode: API (carambus_api_url is nil, local database)"
-  end
-
-  desc "Show current mode and configuration"
-  task :status, [:detailed, :source] => :environment do |task, args|
-    source = args.source&.to_sym || :production
-    
-    puts "Current Configuration (#{source}):"
-
-    # Extract current configuration based on source
-    api_url = extract_api_url(source)
-    context = extract_context(source)
-    database = extract_database(source)
-    basename = extract_basename(source)
-    puma_script = extract_puma_script
-
-    puts "  API URL: #{api_url || 'empty'}"
-    puts "  Context: #{context}"
-    puts "  Database: #{database}"
-    puts "  Deploy Basename: #{basename}"
-    
-    # Check log file status (always local)
-    development_log = Rails.root.join('log', 'development.log')
-    if File.symlink?(development_log)
-      log_target = File.readlink(development_log)
-      log_file = File.basename(log_target)
-      puts "  Log File: #{log_file}"
-    else
-      puts "  Log File: direct file (not linked)"
+  desc "Save current configuration with a name"
+  task :save, [:name] => :environment do |task, args|
+    name = args.name
+    if name.blank?
+      puts "❌ Configuration name required"
+      puts "Usage: bundle exec rails 'mode:save[my_config]'"
+      exit 1
     end
 
-    puts "  Puma Script: #{puma_script}"
+    params = parse_named_parameters_from_env
+    if params.empty?
+      puts "❌ No parameters provided"
+      puts "Usage: bundle exec rails 'mode:save[my_config]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production"
+      exit 1
+    end
 
+    save_named_configuration(name, params)
+    puts "✅ Saved configuration '#{name}' with parameters:"
+    puts params.inspect
+  end
+
+  desc "Load a saved configuration"
+  task :load, [:name] => :environment do |task, args|
+    name = args.name
+    if name.blank?
+      puts "❌ Configuration name required"
+      puts "Usage: bundle exec rails 'mode:load[my_config]'"
+      exit 1
+    end
+
+    params = load_named_configuration(name)
+    if params.nil?
+      puts "❌ Configuration '#{name}' not found"
+      puts "Available configurations:"
+      list_named_configurations
+      exit 1
+    end
+
+    puts "✅ Loaded configuration '#{name}':"
+    puts params.inspect
+    
+    # Set environment variables for the loaded configuration
+    params.each do |key, value|
+      ENV["MODE_#{key.to_s.upcase}"] = value.to_s
+    end
+    
+    puts "📋 Environment variables set. Run mode:local or mode:api to apply."
+  end
+
+  desc "List all saved configurations"
+  task :list => :environment do
+    list_named_configurations
+  end
+
+  desc "Show help for named parameters"
+  task :help => :environment do
+    show_named_parameters_help
+  end
+
+  desc "Show current mode status"
+  task :status, [:detailed, :source] => :environment do |task, args|
+    detailed = args.detailed == 'detailed'
+    source = args.source == 'production' ? :production : :local
+    
+    puts "\n🔍 CURRENT MODE STATUS"
+    puts "=" * 60
+    
+    # Extract current parameters
+    season_name = extract_season_name(source)
+    application_name = extract_application_name(source)
+    context = extract_context(source)
+    api_url = extract_api_url(source)
+    basename = extract_basename(source)
+    database = extract_database(source)
+    domain = extract_domain(source)
+    location_id = extract_location_id(source)
+    club_id = extract_club_id(source)
+    rails_env = extract_rails_env
+    host = extract_host
+    port = extract_port
+    branch = extract_branch
+    puma_script = extract_puma_script
+    
+    # Display basic status
+    puts "Current Configuration:"
+    puts "  API URL: #{api_url || 'empty'}"
+    puts "  Context: #{context || 'empty'}"
+    puts "  Database: #{database || 'not configured'}"
+    puts "  Deploy Basename: #{basename || 'not configured'}"
+    puts "  Log File: #{File.symlink?(Rails.root.join('log', 'development.log')) ? 'linked file' : 'direct file (not linked)'}"
+    puts "  Puma Script: #{puma_script || 'not configured'}"
+    
     # Determine mode
     if api_url.nil? || api_url.empty?
       puts "Current Mode: API"
@@ -211,7 +189,7 @@ namespace :mode do
     end
 
     # Show source information
-    if args.detailed
+    if detailed
       if source == :production
         deploy_config = get_deploy_config
         if deploy_config
@@ -233,7 +211,7 @@ namespace :mode do
     end
 
     # Show detailed parameters if requested
-    if args.detailed
+    if detailed
       puts "\n" + "="*60
       puts "DETAILED PARAMETER BREAKDOWN"
       puts "="*60
@@ -292,9 +270,95 @@ namespace :mode do
     puts "Backup created at: #{backup_path}"
   end
 
+  desc "Prepare database dump for deployment"
+  task :prepare_db_dump => :environment do
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    dump_file = "carambus_api_production_#{timestamp}.sql.gz"
+    
+    puts "🗄️  Creating database dump: #{dump_file}"
+    
+    # Create database dump
+    system("pg_dump carambus_api_production | gzip > #{dump_file}")
+    
+    if $?.success?
+      puts "✅ Database dump created successfully: #{dump_file}"
+      puts "📁 Location: #{File.expand_path(dump_file)}"
+    else
+      puts "❌ Failed to create database dump"
+      exit 1
+    end
+  end
+
+  desc "List available database dumps"
+  task :list_db_dumps => :environment do
+    puts "🗄️  Available database dumps:"
+    puts "-" * 40
+    
+    dumps = Dir.glob("carambus_api_production_*.sql.gz").sort.reverse
+    
+    if dumps.empty?
+      puts "No database dumps found"
+    else
+      dumps.each do |dump|
+        size = File.size(dump)
+        date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
+        puts "#{dump} (#{size} bytes, #{date})"
+      end
+    end
+  end
+
+  desc "Validate deployment configuration locally"
+  task :validate_deployment => :environment do
+    puts "🔍 VALIDATING DEPLOYMENT CONFIGURATION"
+    puts "=" * 60
+    
+    # Check carambus.yml
+    carambus_file = Rails.root.join('config', 'carambus.yml')
+    if File.exist?(carambus_file)
+      content = File.read(carambus_file)
+      if content.include?('<%=')
+        puts "❌ carambus.yml contains unprocessed ERB placeholders"
+      else
+        puts "✅ carambus.yml is properly generated"
+      end
+    else
+      puts "❌ carambus.yml not found"
+    end
+    
+    # Check database.yml
+    database_file = Rails.root.join('config', 'database.yml')
+    if File.exist?(database_file)
+      content = File.read(database_file)
+      if content.include?('<%=')
+        puts "❌ database.yml contains unprocessed ERB placeholders"
+      elsif content.include?('database: carambus_production')
+        puts "✅ database.yml production section is properly configured"
+      else
+        puts "⚠️  database.yml production section needs to be generated"
+      end
+    else
+      puts "❌ database.yml not found"
+    end
+    
+    # Check deploy/production.rb
+    deploy_file = Rails.root.join('config', 'deploy', 'production.rb')
+    if File.exist?(deploy_file)
+      content = File.read(deploy_file)
+      if content.include?('<%=')
+        puts "❌ deploy/production.rb contains unprocessed ERB placeholders"
+      else
+        puts "✅ deploy/production.rb is properly generated"
+      end
+    else
+      puts "❌ deploy/production.rb not found"
+    end
+    
+    puts "\n🎯 DEPLOYMENT VALIDATION COMPLETE"
+  end
+
   private
 
-  def parse_named_parameters
+  def parse_named_parameters_from_env
     params = {}
     
     # Parse from environment variables
@@ -325,6 +389,69 @@ namespace :mode do
     params
   end
 
+  def save_named_configuration(name, params)
+    config_dir = Rails.root.join('config', 'named_modes')
+    FileUtils.mkdir_p(config_dir)
+    
+    config_file = config_dir.join("#{name}.yml")
+    File.write(config_file, params.to_yaml)
+  end
+
+  def load_named_configuration(name)
+    config_dir = Rails.root.join('config', 'named_modes')
+    config_file = config_dir.join("#{name}.yml")
+    
+    return nil unless File.exist?(config_file)
+    
+    YAML.load(File.read(config_file)).symbolize_keys
+  end
+
+  def list_named_configurations
+    config_dir = Rails.root.join('config', 'named_modes')
+    return puts "📋 No saved configurations found" unless Dir.exist?(config_dir)
+
+    puts "📋 Saved configurations:"
+    Dir.glob(config_dir.join('*.yml')).each do |file|
+      name = File.basename(file, '.yml')
+      params = YAML.load(File.read(file)).symbolize_keys
+      puts "  #{name}: #{params.inspect}"
+    end
+  end
+
+  def show_named_parameters_help
+    puts "Carambus Named Parameters System"
+    puts ""
+    puts "Usage:"
+    puts "  bundle exec rails 'mode:local' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production"
+    puts "  bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_HOST=newapi.carambus.de"
+    puts "  bundle exec rails 'mode:save[my_config]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production"
+    puts "  bundle exec rails 'mode:load[my_config]'"
+    puts "  bundle exec rails 'mode:list'"
+    puts ""
+    puts "Available Parameters:"
+    puts "  MODE_SEASON_NAME     - Season identifier (e.g., '2025/2026')"
+    puts "  MODE_APPLICATION_NAME - Application name (e.g., 'carambus', 'carambus_api')"
+    puts "  MODE_CONTEXT         - Context identifier (e.g., 'NBV', '')"
+    puts "  MODE_API_URL         - API URL for LOCAL mode"
+    puts "  MODE_BASENAME        - Deploy basename (e.g., 'carambus', 'carambus_api')"
+    puts "  MODE_DATABASE        - Database name"
+    puts "  MODE_DOMAIN          - Domain name"
+    puts "  MODE_LOCATION_ID     - Location ID"
+    puts "  MODE_CLUB_ID         - Club ID"
+    puts "  MODE_RAILS_ENV       - Rails environment"
+    puts "  MODE_HOST            - Server hostname"
+    puts "  MODE_PORT            - Server port"
+    puts "  MODE_BRANCH          - Git branch"
+    puts "  MODE_PUMA_SCRIPT     - Puma management script"
+    puts ""
+    puts "Examples:"
+    puts "  bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001"
+    puts "  bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'"
+    puts "  bundle exec rails 'mode:save[api_hetzner]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001"
+    puts "  bundle exec rails 'mode:load[api_hetzner]'"
+  end
+
+  # Include all the necessary methods from the original mode.rake
   def update_deploy_rb(basename, domain = nil)
     deploy_file = Rails.root.join('config', 'deploy.rb')
 
@@ -410,8 +537,6 @@ namespace :mode do
 
     if File.exist?("#{carambus_yml_file}.erb")
       content = File.read("#{carambus_yml_file}.erb")
-      
-
       
       # Handle nil values by converting to empty string
       season_name = season_name.to_s
@@ -659,12 +784,12 @@ namespace :mode do
     when :production
       production_config = read_production_config('database.yml')
       if production_config
-        production_config.dig('production', 'database') || production_config.dig('development', 'database')
+        production_config.dig('production', 'database')
       end
     when :local
       local_config = read_local_deployment_config('database.yml')
       if local_config
-        local_config.dig('production', 'database') || local_config.dig('development', 'database')
+        local_config.dig('production', 'database')
       end
     end
   end
@@ -715,217 +840,87 @@ namespace :mode do
   end
 
   def extract_rails_env
-    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-      if deploy_content.match(/set :rails_env, ['"]([^'"]+)['"]/)
-        $1
-      end
-    end
+    deploy_config = get_deploy_config
+    deploy_config&.dig(:rails_env)
   end
 
   def extract_host
-    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-      if deploy_content.match(/server ['"]([^'"]+)['"]/)
-        $1
-      end
-    end
+    deploy_config = get_deploy_config
+    deploy_config&.dig(:host)
   end
 
   def extract_port
-    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-      if deploy_content.match(/ssh_options: \{port: (\d+)\}/)
-        $1
-      elsif deploy_content.match(/ssh_options: \{port: ['"]([^'"]+)['"]\}/)
-        $1
-      end
-    end
+    deploy_config = get_deploy_config
+    deploy_config&.dig(:port)
   end
 
   def extract_branch
-    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-      if deploy_content.match(/set :branch, ['"]([^'"]+)['"]/)
-        $1
-      end
-    end
+    deploy_config = get_deploy_config
+    deploy_config&.dig(:branch)
   end
 
   def extract_puma_script
-    if File.exist?(Rails.root.join('config', 'deploy.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy.rb'))
-      if deploy_content.match(/execute "\.\/bin\/([^"]+)"/)
-        $1
-      elsif deploy_content.match(/execute ".*\/bin\/([^"]+)"/)
+    deploy_file = Rails.root.join('config', 'deploy.rb')
+    if File.exist?(deploy_file)
+      content = File.read(deploy_file)
+      if content.match(/execute "\.\/bin\/([^"]+)"/)
         $1
       end
     end
   end
 
-  def read_production_config(config_file)
-    # Get deployment configuration to determine server details
+  def read_production_config(filename)
     deploy_config = get_deploy_config
     return nil unless deploy_config
 
-    host = deploy_config[:host]
-    port = deploy_config[:port]
-    basename = deploy_config[:basename]
-
-    # Construct the path to the config file on the production server
-    config_path = "/var/www/#{basename}/shared/config/#{config_file}"
-
     begin
-      # Read the config file from the production server
-      config_content = read_remote_file(host, port, config_path)
-      return YAML.load(config_content) if config_content
+      remote_file = "/var/www/#{deploy_config[:basename]}/shared/config/#{filename}"
+      result = `ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} "cat #{remote_file}" 2>/dev/null`
+      
+      if $?.success? && !result.empty?
+        YAML.load(result)
+      else
+        nil
+      end
     rescue => e
-      puts "⚠️  Could not read #{config_file} from production server: #{e.message}"
+      puts "⚠️  Error reading production config: #{e.message}"
+      nil
     end
-
-    nil
   end
 
-  def read_local_deployment_config(config_file)
-    # Read from local config files that will be deployed
-    if File.exist?(Rails.root.join('config', config_file))
-      YAML.load_file(Rails.root.join('config', config_file))
+  def read_local_deployment_config(filename)
+    config_file = Rails.root.join('config', filename)
+    if File.exist?(config_file)
+      YAML.load(File.read(config_file))
+    else
+      nil
     end
   end
 
   def get_deploy_config
-    # Read deploy.rb to get basename
-    if File.exist?(Rails.root.join('config', 'deploy.rb'))
-      deploy_content = File.read(Rails.root.join('config', 'deploy.rb'))
-      if deploy_content.match(/set :basename, ['"]([^'"]+)['"]/)
-        basename = $1
-      else
-        return nil
-      end
-    else
-      return nil
-    end
-
-    # Read production.rb to get host and port
-    if File.exist?(Rails.root.join('config', 'deploy', 'production.rb'))
-      production_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-      
-      host = nil
-      if production_content.match(/server ['"]([^'"]+)['"]/)
-        host = $1
-      end
-
-      port = nil
-      if production_content.match(/ssh_options: \{port: (\d+)\}/)
-        port = $1.to_i
-      elsif production_content.match(/ssh_options: \{port: ['"]([^'"]+)['"]\}/)
-        port = $1.to_i
-      end
-
-      return { host: host, port: port, basename: basename }
-    end
-
-    nil
-  end
-
-  def read_remote_file(host, port, file_path)
-    # Use SSH to read the file from the production server
-    ssh_port = port || 22
-    ssh_command = "ssh -p #{ssh_port} -o ConnectTimeout=5 -o BatchMode=yes www-data@#{host} 'cat #{file_path}' 2>/dev/null"
+    deploy_file = Rails.root.join('config', 'deploy.rb')
+    production_file = Rails.root.join('config', 'deploy', 'production.rb')
     
-    result = `#{ssh_command}`
-    return result if $?.success?
+    return nil unless File.exist?(deploy_file) && File.exist?(production_file)
     
-    nil
-  end
-
-  desc "Prepare database dump for deployment"
-  task :prepare_db_dump, [:database_name] => :environment do |task, args|
-    database_name = args.database_name || 'carambus_api_production'
-    dump_dir = Rails.root.join('db', 'dumps')
-    FileUtils.mkdir_p(dump_dir)
-
-    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
-    dump_file = dump_dir.join("#{database_name}_#{timestamp}.sql.gz")
-
-    puts "📦 Creating database dump..."
-    puts "Database: #{database_name}"
-    puts "Output: #{dump_file}"
-
-    # Create database dump
-    system("pg_dump #{database_name} | gzip > #{dump_file}")
-
-    if $?.success?
-      puts "✅ Database dump created: #{dump_file}"
-      puts "📋 To deploy this dump to production:"
-      puts "   scp -P 8910 #{dump_file} www-data@carambus.de:/var/www/carambus/shared/db_dumps/"
-      puts "   ssh -p 8910 www-data@carambus.de 'gunzip -c /var/www/carambus/shared/db_dumps/#{File.basename(dump_file)} | psql carambus_api_production'"
-    else
-      puts "❌ Failed to create database dump"
-      exit 1
-    end
-  end
-
-  desc "List available database dumps"
-  task :list_db_dumps => :environment do
-    dump_dir = Rails.root.join('db', 'dumps')
+    # Read deploy.rb for basename
+    deploy_content = File.read(deploy_file)
+    basename_match = deploy_content.match(/set :basename, "([^"]+)"/)
+    basename = basename_match ? basename_match[1] : nil
     
-    if Dir.exist?(dump_dir)
-      dumps = Dir.glob(File.join(dump_dir, '*.sql.gz'))
-      
-      if dumps.any?
-        puts "📦 Available database dumps:"
-        puts "-" * 50
-        dumps.sort.reverse.each do |dump|
-          size = File.size(dump)
-          date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
-          puts "#{File.basename(dump)} (#{date}, #{size} bytes)"
-        end
-      else
-        puts "📭 No database dumps found in #{dump_dir}"
-      end
-    else
-      puts "📁 Dump directory not found: #{dump_dir}"
-    end
-  end
-
-  desc "Validate production configuration before deployment"
-  task :validate_deployment => :environment do
-    puts "🔍 Validating production configuration for deployment..."
+    # Read production.rb for host, port, rails_env, branch
+    production_content = File.read(production_file)
+    host_match = production_content.match(/server '([^']+)'/)
+    port_match = production_content.match(/port: "([^"]+)"/)
+    rails_env_match = production_content.match(/set :rails_env, '([^']+)'/)
+    branch_match = production_content.match(/set :branch, '([^']+)'/)
     
-    # Check if carambus.yml has proper production section
-    carambus_content = File.read(Rails.root.join('config', 'carambus.yml'))
-    if carambus_content.include?('production:') && !carambus_content.include?('<%=')
-      puts "✅ carambus.yml production section is properly configured"
-    else
-      puts "⚠️  carambus.yml production section needs to be generated"
-      puts "   Run: ./bin/mode-params.sh pre_deploy detailed"
-      puts "   Then: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
-      exit 1
-    end
-    
-    # Check if database.yml has proper production section
-    database_content = File.read(Rails.root.join('config', 'database.yml'))
-    if database_content.include?('production:') && database_content.include?('database: carambus_api_production')
-      puts "✅ database.yml production section is properly configured"
-    else
-      puts "⚠️  database.yml production section needs to be generated"
-      puts "   Run: ./bin/mode-params.sh pre_deploy detailed"
-      puts "   Then: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
-      exit 1
-    end
-    
-    # Check if deploy/production.rb is properly configured
-    deploy_content = File.read(Rails.root.join('config', 'deploy', 'production.rb'))
-    if !deploy_content.include?('<%=')
-      puts "✅ deploy/production.rb is properly configured"
-    else
-      puts "⚠️  deploy/production.rb needs to be generated"
-      puts "   Run: ./bin/mode-params.sh local <mode> or ./bin/mode-params.sh api <mode>"
-      exit 1
-    end
-    
-    puts "✅ All production configuration files are ready for deployment"
-    puts "🚀 You can now run: bundle exec cap production deploy"
+    {
+      basename: basename,
+      host: host_match ? host_match[1] : nil,
+      port: port_match ? port_match[1] : nil,
+      rails_env: rails_env_match ? rails_env_match[1] : nil,
+      branch: branch_match ? branch_match[1] : nil
+    }
   end
 end

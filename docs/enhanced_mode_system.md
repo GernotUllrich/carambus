@@ -6,14 +6,14 @@ Das **Enhanced Mode System** ermöglicht das einfache Umschalten zwischen versch
 
 ## 🚀 **Schnellstart**
 
-### **Ruby/Rake Named Parameters System (Empfohlen)**
+### **Ruby/Rake Named Parameters System**
 
 ```bash
 # API Server Mode
-bundle exec rails 'mode:named:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
+bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
 
 # Local Server Mode
-bundle exec rails 'mode:named:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'
+bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'
 ```
 
 ## 📋 **Verfügbare Parameter**
@@ -38,7 +38,7 @@ bundle exec rails 'mode:named:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=N
 
 ### **1. API Server Deployment**
 ```bash
-bundle exec rails 'mode:named:api' \
+bundle exec rails 'mode:api' \
   MODE_BASENAME=carambus_api \
   MODE_DATABASE=carambus_api_production \
   MODE_HOST=newapi.carambus.de \
@@ -51,7 +51,7 @@ bundle exec rails 'mode:named:api' \
 
 ### **2. Local Server Deployment**
 ```bash
-bundle exec rails 'mode:named:local' \
+bundle exec rails 'mode:local' \
   MODE_SEASON_NAME='2025/2026' \
   MODE_APPLICATION_NAME=carambus \
   MODE_CONTEXT=NBV \
@@ -67,7 +67,7 @@ bundle exec rails 'mode:named:local' \
 
 ### **3. Entwicklungsumgebung**
 ```bash
-bundle exec rails 'mode:named:api' \
+bundle exec rails 'mode:api' \
   MODE_BASENAME=carambus_api \
   MODE_DATABASE=carambus_api_development \
   MODE_HOST=localhost \
@@ -79,7 +79,7 @@ bundle exec rails 'mode:named:api' \
 
 ### **Konfiguration Speichern**
 ```bash
-bundle exec rails 'mode:named:save[production_api]' \
+bundle exec rails 'mode:save[production_api]' \
   MODE_BASENAME=carambus_api \
   MODE_DATABASE=carambus_api_production \
   MODE_HOST=newapi.carambus.de \
@@ -88,12 +88,12 @@ bundle exec rails 'mode:named:save[production_api]' \
 
 ### **Gespeicherte Konfigurationen Auflisten**
 ```bash
-bundle exec rails 'mode:named:list'
+bundle exec rails 'mode:list'
 ```
 
 ### **Konfiguration Laden**
 ```bash
-bundle exec rails 'mode:named:load[production_api]'
+bundle exec rails 'mode:load[production_api]'
 ```
 
 ## 🔧 **RubyMine Debugging**
@@ -104,7 +104,7 @@ Das Ruby/Rake-System bietet **perfekte RubyMine-Integration**:
 
 #### **1. Breakpoints setzen**
 ```ruby
-# In lib/tasks/mode_named.rake
+# In lib/tasks/mode.rake
 def parse_named_parameters_from_env
   params = {}
   
@@ -121,7 +121,7 @@ end
 #### **2. RubyMine Run Configuration**
 ```
 Run -> Edit Configurations -> Rake
-Task: mode:named:api
+Task: mode:api
 Environment Variables:
   MODE_BASENAME=carambus_api
   MODE_DATABASE=carambus_api_production
@@ -139,7 +139,7 @@ Environment Variables:
 
 ### **1. RubyMine Debugging Workflow**
 ```bash
-# 1. Setze Breakpoints in lib/tasks/mode_named.rake
+# 1. Setze Breakpoints in lib/tasks/mode.rake
 # 2. Erstelle RubyMine Run Configuration
 # 3. Debugge step-by-step
 # 4. Inspiziere Variablen
@@ -149,14 +149,14 @@ Environment Variables:
 ### **2. Konfigurationen Speichern**
 ```bash
 # Speichere häufig verwendete Konfigurationen
-bundle exec rails 'mode:named:save[production_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
-bundle exec rails 'mode:named:save[development_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development MODE_HOST=localhost MODE_PORT=3001
+bundle exec rails 'mode:save[production_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001
+bundle exec rails 'mode:save[development_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development MODE_HOST=localhost MODE_PORT=3001
 ```
 
 ### **3. Nur Änderungen Angeben**
 ```bash
 # Nur die Parameter angeben, die sich von den Defaults unterscheiden
-bundle exec rails 'mode:named:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS_ENV=development
+bundle exec rails 'mode:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS_ENV=development
 ```
 
 ## 🚀 **Deployment Workflow**
@@ -164,13 +164,13 @@ bundle exec rails 'mode:named:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS
 ### **1. Konfiguration Vorbereiten**
 ```bash
 # Lade gespeicherte Konfiguration
-bundle exec rails 'mode:named:load[api_hetzner]'
+bundle exec rails 'mode:load[api_hetzner]'
 ```
 
 ### **2. Konfiguration Anwenden**
 ```bash
 # Wende die geladenen Parameter an
-bundle exec rails 'mode:named:api'
+bundle exec rails 'mode:api'
 ```
 
 ### **3. Konfiguration Validieren**
@@ -204,8 +204,7 @@ config/
 ### **Rake Tasks**
 ```
 lib/tasks/
-├── mode.rake             # Legacy positionelle Parameter
-└── mode_named.rake       # Neue Named Parameters (Ruby)
+└── mode.rake             # Hauptsystem mit Named Parameters
 ```
 
 ## ✅ **Vorteile des Ruby/Rake Systems**
