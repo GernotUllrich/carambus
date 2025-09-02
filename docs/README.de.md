@@ -17,11 +17,9 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 
 ### Technische Dokumentation
 - **[datenbank-partitionierung-und-synchronisierung.md](datenbank-partitionierung-und-synchronisierung.md)**: Datenbank-Partitionierung
-- **[docker_installation.md](docker_installation.md)**: Docker-Installation
 - **[installation_overview.md](installation_overview.md)**: Installationsübersicht
 
 ### Deployment & Betrieb
-- **[docker_installation.md](docker_installation.md)**: Produktions-Deployment-Anleitung
 - **[installation_overview.md](installation_overview.md)**: Installationsübersicht
 
 ### Rechtliches & Datenschutz
@@ -39,7 +37,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 4. Prüfen Sie **[API.md](API.md)** für Integrationsmöglichkeiten
 
 ### Für Systemadministratoren
-1. Überprüfen Sie **[docker_installation.md](docker_installation.md)** für Deployment
+1. Überprüfen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
 2. Lesen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
 3. Prüfen Sie **[table_reservation_heating_control.md](table_reservation_heating_control.md)** für Tischreservierung und Heizungssteuerung
 
@@ -65,7 +63,6 @@ docs/
 │   ├── tournament.md                   # Turnier-Workflows
 │   ├── einzelturnierverwaltung.md      # Einzelturnierverwaltung
 │   ├── league.md                       # Ligaspieltage
-│   ├── docker_installation.md          # Docker-Installation
 │   ├── installation_overview.md        # Installationsübersicht
 │   ├── table_reservation_heating_control.md # Tischreservierung
 │   ├── terms.md                        # Nutzungsbedingungen
@@ -102,7 +99,7 @@ docs/
 ### Technischer Support
 - Prüfen Sie den [Entwicklerleitfaden](DEVELOPER_GUIDE.md) für häufige Probleme
 - Überprüfen Sie die [API-Dokumentation](API.md) für Integrationshilfe
-- Konsultieren Sie die [Docker-Installation](docker_installation.md) für Deployment-Probleme
+- Konsultieren Sie die [Installationsübersicht](installation_overview.md) für Deployment-Probleme
 
 ### Community-Ressourcen
 - **GitHub Issues**: Bug-Reports und Feature-Requests

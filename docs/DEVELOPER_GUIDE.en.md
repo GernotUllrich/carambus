@@ -447,7 +447,7 @@ sudo systemctl status carambus
 
 ### Documentation
 - [Database Design](database_design.md): Detailed database schema
-- [Docker Installation](docker_installation.md): Docker installation
+- [Scoreboard Setup](scoreboard_autostart_setup.en.md): Scoreboard configuration
 - [Tournament Management](tournament.md): Tournament workflows
 - [Installation Overview](installation_overview.md): Installation overview
 - [Enhanced Mode System](enhanced_mode_system.en.md): Deployment configuration and multi-environment support

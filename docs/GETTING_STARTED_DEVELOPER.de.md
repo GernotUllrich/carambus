@@ -9,7 +9,6 @@ Willkommen bei Carambus! Dieser Guide hilft dir, schnell mit der Entwicklung zu 
 - **PostgreSQL 15+**
 - **Redis**
 - **Git**
-- **Docker** (optional, aber empfohlen)
 - **SSH-Key** für GitHub-Zugriff
 
 ## 🔑 **GitHub-Zugriff einrichten (Wichtig!)**
@@ -41,24 +40,7 @@ ssh -T git@github.com
 # Sollte ausgeben: "Hi username! You've successfully authenticated..."
 ```
 
-## 🐳 **Option 1: Docker-Setup (Empfohlen)**
-
-```bash
-# Terminal öffnen und ausführen:
-git clone git@github.com:GernotUllrich/carambus.git
-cd carambus
-
-# Docker-Setup starten (alles läuft automatisch)
-docker-compose -f docker-compose.development.api-server.yml up
-```
-
-**Vorteile:**
-- ✅ Alle Dependencies werden automatisch installiert
-- ✅ Datenbank wird automatisch eingerichtet
-- ✅ Keine Konflikte mit lokalen Services
-- ✅ Einfach zu starten/stoppen
-
-## 🖥️ **Option 2: Lokales Setup**
+## 🖥️ **Lokales Setup**
 
 ```bash
 # Repository klonen (WICHTIG: SSH-URL verwenden!)
@@ -89,28 +71,21 @@ rails server
 
 **Wichtig:** Du brauchst die `development.key` und `credentials.yml.enc` von einem funktionierenden System.
 
-### **Schritt 1: Lokale Ordner erstellen**
+### **Schritt 1: Credentials kopieren**
 ```bash
-# Im carambus-Ordner lokale Ordner erstellen
-mkdir -p docker-development-api/config/credentials
-mkdir -p docker-development-api/database
-```
-
-### **Schritt 2: Credentials kopieren**
-```bash
-# Diese Dateien in docker-development-api/config/credentials/ kopieren:
+# Diese Dateien in config/credentials/ kopieren:
 # - development.key
 # - credentials.yml.enc
 
 # Beispiel (von einem anderen System):
-cp /path/to/working/system/config/credentials/development.key docker-development-api/config/credentials/
-cp /path/to/working/system/config/credentials/credentials.yml.enc docker-development-api/config/credentials/
+cp /path/to/working/system/config/credentials/development.key config/credentials/
+cp /path/to/working/system/config/credentials/credentials.yml.enc config/credentials/
 ```
 
-### **Schritt 3: Datenbank-Dump kopieren**
+### **Schritt 2: Datenbank-Dump importieren**
 ```bash
-# Datenbank-Dump in docker-development-api/database/ kopieren:
-cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database/
+# Datenbank-Dump importieren:
+psql -d carambus_development -f /path/to/carambus_api_development_dump.sql
 ```
 
 **Woher bekommen?**
@@ -120,24 +95,19 @@ cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database
 
 ## 🗄️ **Datenbank einrichten**
 
-### **Option 1: Automatisch über Docker (Empfohlen)**
+### **Option 1: Automatisch über Enhanced Mode System (Empfohlen)**
 ```bash
-# 1. Docker starten - das importiert automatisch alle Dumps!
-docker-compose -f docker-compose.development.api-server.yml up --build
+# 1. Enhanced Mode konfigurieren - das importiert automatisch alle Dumps!
+bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development
 
-# PostgreSQL importiert automatisch alle .sql/.sql.gz Dateien aus:
-# ./docker-development-api/database/
+# 2. Server starten
+rails server
 ```
 
-### **Option 2: Manuell über psql (nur wenn PostgreSQL läuft)**
+### **Option 2: Manuell über psql**
 ```bash
-# Nur wenn der PostgreSQL-Container läuft:
-docker ps | grep postgres
-
-# Falls Container läuft, dann:
-gunzip -c docker-development-api/database/carambus_api_development_dump.sql.gz | docker exec -i carambus-postgres-1 psql -U www_data -d carambus_api_development
-
-# Falls Container nicht läuft, zuerst Docker starten (Option 1)
+# Datenbank-Dump manuell importieren
+gunzip -c /path/to/carambus_api_development_dump.sql.gz | psql -d carambus_development
 ```
 
 ### **Option 3: Mit leerer Datenbank starten**
@@ -161,35 +131,24 @@ ssh-add ~/.ssh/id_rsa
 ssh -T git@github.com
 ```
 
-### **Docker läuft nicht**
+### **PostgreSQL läuft nicht**
 ```bash
-# macOS (MacBook):
-open -a Docker
-# Warten bis "Docker Desktop is running" in der Menüleiste erscheint
+# PostgreSQL starten
+sudo systemctl start postgresql
+sudo systemctl status postgresql
 
-# Linux (Server):
-sudo systemctl start docker
-sudo systemctl status docker
-
-# Windows:
-# Docker Desktop über Start-Menü starten
-
-# Dann warten bis Docker läuft, dann:
-docker-compose up
+# Oder auf macOS:
+brew services start postgresql
 ```
 
-### **Docker-Container startet nicht**
+### **Redis läuft nicht**
 ```bash
-# Container stoppen und neu starten
-docker-compose down
-docker-compose up --build
+# Redis starten
+sudo systemctl start redis
+sudo systemctl status redis
 
-# Falls User-Berechtigungsprobleme:
-# Docker-Container läuft als root, nicht als www-data
-# Das ist normal für Development-Umgebung
-
-# Logs überprüfen
-docker-compose logs web
+# Oder auf macOS:
+brew services start redis
 ```
 
 ### **Ports sind belegt**
@@ -217,7 +176,7 @@ rails db:create
 rails db:migrate
 
 # Oder Dump importieren (über psql)
-gunzip -c docker-development-api/database/dump.sql.gz | psql -h localhost -p 5433 -U www_data -d carambus_api_development
+gunzip -c /path/to/dump.sql.gz | psql -h localhost -U www_data -d carambus_api_development
 ```
 
 **Hinweis zu Dump-Import-Fehlern**: Beim Import eines Datenbank-Dumps können einige Fehler auftreten, die ignoriert werden können:
@@ -231,7 +190,7 @@ Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wur
 
 ## 🔍 **Erste Schritte nach dem Setup**
 
-1. **Server starten**: `rails server` oder Docker
+1. **Server starten**: `rails server`
 2. **Browser öffnen**: http://localhost:3000
 3. **Admin-Interface**: http://localhost:3000/admin
 4. **API testen**: http://localhost:3000/api
@@ -241,6 +200,7 @@ Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wur
 - [Entwicklerhandbuch](DEVELOPER_GUIDE.md) lesen
 - [API-Dokumentation](API.md) studieren
 - [Datenbankdesign](database_design.md) verstehen
+- [Enhanced Mode System](enhanced_mode_system.de.md) für Deployment-Konfiguration
 - Mit dem Team sprechen über aktuelle Tasks
 
 ## 🆘 **Hilfe benötigt?**

@@ -22,7 +22,7 @@ Complete documentation in English including:
 
 1. **For Users**: Start with the [Tournament Management](tournament.md) guide
 2. **For Developers**: Begin with [Getting Started](GETTING_STARTED_DEVELOPER.md)
-3. **For System Administrators**: Check [Docker Installation](docker_installation.md)
+3. **For System Administrators**: Check [Installation Overview](installation_overview.md)
 
 ## 📚 Documentation Categories
 
@@ -51,7 +51,7 @@ Carambus is a comprehensive billiards tournament management system built with:
 - **Database**: PostgreSQL
 - **Frontend**: Hotwire, Stimulus, Tailwind CSS
 - **Real-time**: Action Cable, WebSockets
-- **Deployment**: Docker, Capistrano
+- **Deployment**: Capistrano
 
 ## 📞 Support
 

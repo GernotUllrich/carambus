@@ -2,23 +2,8 @@
 
 ## 📋 Available Installation Guides
 
-### 🐳 Docker Installation (Recommended)
-**[Docker Installation](docker_installation.md)** - Complete guide for Docker-based installation of Carambus on various platforms.
-
-**Supported Platforms:**
-- **Raspberry Pi** - For local scoreboards and tournaments
-- **Ubuntu Server** - For professional hosting environments (e.g., Hetzner)
-- **Combined Installation** - API server + local server on the same hardware
-
-**Advantages of Docker Installation:**
-- ✅ Consistent environment
-- ✅ Easy migration
-- ✅ Minimal technical effort
-- ✅ Reproducible installations
-- ✅ Automatic updates
-
 ### 🔧 Manual Installation
-For special requirements or when Docker is not available:
+For all installation requirements:
 
 - **Raspberry Pi Setup** - Detailed guide for Pi-specific installation
 - **Ubuntu Server Setup** - Server-specific configuration
@@ -39,7 +24,7 @@ For special requirements or when Docker is not available:
 
 ### Development Mode
 - Both production modes can be tested in parallel
-- On macOS computer with Docker
+- On macOS computer
 - Inter-system communication testable
 
 ## 🔑 Important Configurations
@@ -59,15 +44,14 @@ For special requirements or when Docker is not available:
 ### 1. Choose Platform
 ```bash
 # Raspberry Pi
-./deploy-docker.sh carambus_raspberry www-data@192.168.178.53:8910 /var/www/carambus
+./deploy.sh deploy-local
 
 # Ubuntu Server
-./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_api
+./deploy.sh deploy-api
 ```
 
 ### 2. Automatic Configuration
 The deployment script automatically configures:
-- Docker containers
 - Database (PostgreSQL)
 - Cache (Redis)
 - Web server (Rails + Puma)
@@ -81,16 +65,16 @@ The deployment script automatically configures:
 
 ## 📖 Further Documentation
 
-- **[Docker Installation](docker_installation.md)** - Complete Docker guide
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Developer documentation
 - **[API Documentation](API.md)** - API reference
+- **[Enhanced Mode System](enhanced_mode_system.en.md)** - Deployment configuration
 
 ## 🆘 Support
 
 If you have problems:
-1. Check the **[Docker Installation](docker_installation.md)** page
-2. View logs: `docker compose logs`
-3. Container status: `docker compose ps`
+1. Check the **[Installation Overview](installation_overview.md)** page
+2. View logs: `tail -f /var/log/nginx/error.log`
+3. Service status: `sudo systemctl status puma-carambus`
 4. Restart system: `sudo reboot`
 
 ---

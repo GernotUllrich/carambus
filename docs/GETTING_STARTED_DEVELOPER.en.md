@@ -9,7 +9,6 @@ Welcome to Carambus! This guide helps you get started with development quickly.
 - **PostgreSQL 15+**
 - **Redis**
 - **Git**
-- **Docker** (optional, but recommended)
 - **SSH Key** for GitHub access
 
 ## 🔑 **Setup GitHub Access (Important!)**
@@ -41,24 +40,7 @@ ssh -T git@github.com
 # Should output: "Hi username! You've successfully authenticated..."
 ```
 
-## 🐳 **Option 1: Docker Setup (Recommended)**
-
-```bash
-# Open terminal and run:
-git clone git@github.com:GernotUllrich/carambus.git
-cd carambus
-
-# Start Docker setup (everything runs automatically)
-docker-compose -f docker-compose.development.api-server.yml up
-```
-
-**Advantages:**
-- ✅ All dependencies are automatically installed
-- ✅ Database is automatically configured
-- ✅ No conflicts with local services
-- ✅ Easy to start/stop
-
-## 🖥️ **Option 2: Local Setup**
+## 🖥️ **Local Setup**
 
 ```bash
 # Clone repository (IMPORTANT: Use SSH URL!)
@@ -89,67 +71,55 @@ rails server
 
 **Important:** You need the `development.key` and `credentials.yml.enc` from a working system.
 
-### **Step 1: Create local folders**
+### **Step 1: Copy credentials**
 ```bash
-# Create local folders in carambus directory
-mkdir -p docker-development-api/config/credentials
-mkdir -p docker-development-api/database
-```
-
-### **Step 2: Copy credentials**
-```bash
-# Copy these files to docker-development-api/config/credentials/:
+# Copy these files to config/credentials/:
 # - development.key
 # - credentials.yml.enc
 
 # Example (from another system):
-cp /path/to/working/system/config/credentials/development.key docker-development-api/config/credentials/
-cp /path/to/working/system/config/credentials/credentials.yml.enc docker-development-api/config/credentials/
+cp /path/to/working/system/config/credentials/development.key config/credentials/
+cp /path/to/working/system/config/credentials/credentials.yml.enc config/credentials/
 ```
 
-### **Step 3: Copy database dump**
+### **Step 2: Import database dump**
 ```bash
-# Copy database dump to docker-development-api/database/:
-cp /path/to/carambus_api_development_dump.sql.gz docker-development-api/database/
+# Import database dump:
+psql -d carambus_development -f /path/to/carambus_api_development_dump.sql
 ```
 
 **Where to get them?**
 - From another developer on the team
-- From your local `carambus_api` folder
+- From your local `carambus_api` directory
 - From the team lead
 
 ## 🗄️ **Setup Database**
 
-### **Option 1: Automatically via Docker (Recommended)**
+### **Option 1: Automatically via Enhanced Mode System (Recommended)**
 ```bash
-# 1. Start Docker - this automatically imports all dumps!
-docker-compose -f docker-compose.development.api-server.yml up --build
+# 1. Configure Enhanced Mode - this automatically imports all dumps!
+bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development
 
-# PostgreSQL automatically imports all .sql/.sql.gz files from:
-# ./docker-development-api/database/
+# 2. Start server
+rails server
 ```
 
-### **Option 2: Manually via psql (only if PostgreSQL is running)**
+### **Option 2: Manually via psql**
 ```bash
-# Only if the PostgreSQL container is running:
-docker ps | grep postgres
-
-# If container is running, then:
-gunzip -c docker-development-api/database/carambus_api_development_dump.sql.gz | docker exec -i carambus-postgres-1 psql -U www_data -d carambus_api_development
-
-# If container is not running, start Docker first (Option 1)
+# Manually import database dump
+gunzip -c /path/to/carambus_api_development_dump.sql.gz | psql -d carambus_development
 ```
 
 ### **Option 3: Start with empty database**
 ```bash
-# If no dump is available:
+# If no dump available:
 rails db:create
 rails db:migrate
 ```
 
 ## 🚨 **Common Problems & Solutions**
 
-### **GitHub access not working**
+### **GitHub access doesn't work**
 ```bash
 # Check SSH key
 ssh-add -l
@@ -161,35 +131,24 @@ ssh-add ~/.ssh/id_rsa
 ssh -T git@github.com
 ```
 
-### **Docker not running**
+### **PostgreSQL not running**
 ```bash
-# macOS (MacBook):
-open -a Docker
-# Wait until "Docker Desktop is running" appears in menu bar
+# Start PostgreSQL
+sudo systemctl start postgresql
+sudo systemctl status postgresql
 
-# Linux (Server):
-sudo systemctl start docker
-sudo systemctl status docker
-
-# Windows:
-# Start Docker Desktop from Start menu
-
-# Then wait until Docker is running, then:
-docker-compose up
+# Or on macOS:
+brew services start postgresql
 ```
 
-### **Docker container won't start**
+### **Redis not running**
 ```bash
-# Stop and restart containers
-docker-compose down
-docker-compose up --build
+# Start Redis
+sudo systemctl start redis
+sudo systemctl status redis
 
-# If user permission issues:
-# Docker container runs as root, not as www-data
-# This is normal for development environment
-
-# Check logs
-docker-compose logs web
+# Or on macOS:
+brew services start redis
 ```
 
 ### **Ports are occupied**
@@ -199,12 +158,12 @@ lsof -i :3000
 lsof -i :5432
 lsof -i :6379
 
-# If occupied, use other ports or stop services
+# If occupied, use different ports or stop services
 ```
 
 ### **Credentials errors**
 ```bash
-# Copy development key
+# Copy development keys
 cp /path/to/working/system/config/credentials/development.key config/credentials/
 cp /path/to/working/system/config/credentials/credentials.yml.enc config/credentials/
 ```
@@ -217,21 +176,21 @@ rails db:create
 rails db:migrate
 
 # Or import dump (via psql)
-gunzip -c docker-development-api/database/dump.sql.gz | psql -h localhost -p 5433 -U www_data -d carambus_api_development
+gunzip -c /path/to/dump.sql.gz | psql -h localhost -U www_data -d carambus_api_development
 ```
 
-**Note on Dump Import Errors**: When importing a database dump, some errors may occur that can be ignored:
+**Note on dump import errors**: When importing a database dump, some errors may occur that can be ignored:
 - `relation "table_name" already exists` - Table already exists
 - `multiple primary keys for table "table_name" are not allowed` - Primary key already defined
 - `relation "index_name" already exists` - Index already exists
 - `constraint "constraint_name" for relation "table_name" already exists` - Constraint already defined
 - `duplicate key value violates unique constraint` - Metadata already set
 
-These errors are normal if the database has already been partially initialized.
+These errors are normal if the database was already partially initialized.
 
 ## 🔍 **First Steps After Setup**
 
-1. **Start server**: `rails server` or Docker
+1. **Start server**: `rails server`
 2. **Open browser**: http://localhost:3000
 3. **Admin interface**: http://localhost:3000/admin
 4. **Test API**: http://localhost:3000/api
@@ -241,6 +200,7 @@ These errors are normal if the database has already been partially initialized.
 - Read [Developer Guide](DEVELOPER_GUIDE.md)
 - Study [API Documentation](API.md)
 - Understand [Database Design](database_design.md)
+- [Enhanced Mode System](enhanced_mode_system.en.md) for deployment configuration
 - Talk to the team about current tasks
 
 ## 🆘 **Need Help?**

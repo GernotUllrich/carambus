@@ -104,30 +104,6 @@ psql -d carambus_development -c "SELECT version();"
 psql -d carambus_development -c "\dt"
 ```
 
-## 🐳 **Docker-Integration**
-
-### **Automatischer Import**
-
-Wenn Sie Docker verwenden, können Sie den Dump automatisch importieren lassen:
-
-```yaml
-# docker-compose.yml
-services:
-  postgres:
-    volumes:
-      - ./database/carambus_development.sql:/docker-entrypoint-initdb.d/carambus_development.sql
-```
-
-### **Manueller Import in Docker-Container**
-
-```bash
-# Dump in laufenden Container importieren
-docker exec -i container_name psql -U username -d database_name < dump.sql
-
-# Beispiel:
-docker exec -i carambus_postgres_1 psql -U www_data -d carambus_development < dump.sql
-```
-
 ## 🚨 **Fehlerbehebung**
 
 ### **Häufige Probleme**

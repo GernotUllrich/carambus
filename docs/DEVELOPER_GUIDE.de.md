@@ -266,7 +266,7 @@ Das Scoreboard-System bietet Live-Updates für Turnier-Anzeigen:
 - **WebSocket-Integration**: Live-Updates über Action Cable
 
 #### Einrichtung
-Siehe [Docker-Installation](docker_installation.md) für detaillierte Konfiguration.
+Siehe [Scoreboard-Setup](scoreboard_autostart_setup.de.md) für detaillierte Konfiguration.
 
 ### Datensynchronisation
 Integration mit externen Billard-Datenbanken:
@@ -447,7 +447,7 @@ sudo systemctl status carambus
 
 ### Dokumentation
 - [Datenbankdesign](database_design.md): Detailliertes Datenbankschema
-- [Docker-Installation](docker_installation.md): Docker-Installation
+- [Scoreboard-Setup](scoreboard_autostart_setup.de.md): Scoreboard-Konfiguration
 - [Turnierverwaltung](tournament.md): Turnier-Workflows
 - [Installationsübersicht](installation_overview.md): Installationsübersicht
 - [Enhanced Mode System](enhanced_mode_system.de.md): Deployment-Konfiguration und Multi-Environment-Support
