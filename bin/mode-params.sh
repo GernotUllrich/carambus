@@ -179,6 +179,20 @@ case "$1" in
             bundle exec rails mode:status
         fi
         ;;
+    "pre_deploy")
+        if [ "$2" = "detailed" ] || [ "$2" = "detail" ] || [ "$2" = "-d" ] || [ "$2" = "--detailed" ]; then
+            bundle exec rails "mode:pre_deploy_status[detailed]"
+        else
+            bundle exec rails mode:pre_deploy_status
+        fi
+        ;;
+    "post_deploy")
+        if [ "$2" = "detailed" ] || [ "$2" = "detail" ] || [ "$2" = "-d" ] || [ "$2" = "--detailed" ]; then
+            bundle exec rails "mode:post_deploy_status[detailed]"
+        else
+            bundle exec rails mode:post_deploy_status
+        fi
+        ;;
     "backup")
         bundle exec rails mode:backup
         ;;
@@ -193,6 +207,10 @@ case "$1" in
         echo "  $0 api <mode>              - Switch to API mode using saved/default parameters"
         echo "  $0 status                  - Show current mode status"
         echo "  $0 status detailed         - Show detailed parameter breakdown"
+        echo "  $0 pre_deploy              - Show local deployment configuration (pre-deployment validation)"
+        echo "  $0 pre_deploy detailed     - Show detailed local deployment configuration"
+        echo "  $0 post_deploy             - Show production deployment configuration (post-deployment verification)"
+        echo "  $0 post_deploy detailed    - Show detailed production deployment configuration"
         echo "  $0 backup                  - Create backup of current configuration"
         echo ""
         echo "Examples:"
@@ -200,6 +218,8 @@ case "$1" in
         echo "  $0 api api_hetzner          - Switch to API mode for Hetzner server"
         echo "  $0 show local_hetzner       - Show parameters for local_hetzner mode"
         echo "  $0 status detailed          - Show detailed parameter breakdown"
+        echo "  $0 pre_deploy detailed      - Validate configuration before deployment"
+        echo "  $0 post_deploy detailed     - Verify configuration after deployment"
         echo ""
         echo "Parameter format:"
         echo "  season_name,app_name,context,api_url,basename,database,domain,location_id,club_id,rails_env,host,port,branch,puma_script"

@@ -209,6 +209,53 @@ bundle exec rails server -p 3001 -e development-api
 ### **Basic Status:**
 The basic status command shows a summary of the current configuration.
 
+### **Pre-Deployment Validation Workflow:**
+
+The system now supports a complete deployment validation workflow:
+
+#### **1. Pre-Deployment Validation:**
+```bash
+# Check what will be deployed (local configuration)
+bundle exec rails "mode:pre_deploy_status[detailed]"
+# or
+./bin/mode-params.sh pre_deploy detailed
+```
+
+This shows the configuration that will be deployed to production, allowing you to:
+- Validate all parameters before deployment
+- Ensure correct database names, domains, etc.
+- Verify Puma script selection
+- Check that all required parameters are configured
+
+#### **2. Post-Deployment Verification:**
+```bash
+# Verify what was actually deployed (production configuration)
+bundle exec rails "mode:post_deploy_status[detailed]"
+# or
+./bin/mode-params.sh post_deploy detailed
+```
+
+This shows the actual configuration deployed on the production server, allowing you to:
+- Verify that deployment was successful
+- Confirm all parameters were deployed correctly
+- Detect any deployment issues or missing configurations
+- Compare pre-deployment vs post-deployment settings
+
+#### **3. Complete Workflow Example:**
+```bash
+# 1. Set up your configuration
+bundle exec rails "mode:api[2025/2026,carambus,NBV,,carambus,carambus2_api_production,carambus.de,1,357,production,192.168.178.48,8910,master,manage-puma-api.sh]"
+
+# 2. Validate before deployment
+./bin/mode-params.sh pre_deploy detailed
+
+# 3. Deploy to production
+bundle exec cap production deploy
+
+# 4. Verify after deployment
+./bin/mode-params.sh post_deploy detailed
+```
+
 ### **Detailed Status:**
 The detailed status command provides a comprehensive breakdown of all 14 parameters, making it easy to:
 - See exactly what each parameter is set to
@@ -217,14 +264,22 @@ The detailed status command provides a comprehensive breakdown of all 14 paramet
 - Get ready-to-use commands for switching modes or saving configurations
 - **Read from production server**: Shows actual deployed configuration, not local development config
 
-#### **Production Configuration Reading:**
-The detailed status automatically reads configuration files from the production server:
+#### **Configuration Sources:**
+The system can read from different sources:
+
+**Local Deployment Configuration:**
+- **carambus.yml**: Read from `config/carambus.yml` (production section)
+- **database.yml**: Read from `config/database.yml` (production section)
+- **deploy.rb**: Read from local config to determine server connection details
+- **production.rb**: Read from local config to determine host and port
+
+**Production Server Configuration:**
 - **carambus.yml**: Read from `/var/www/{basename}/shared/config/carambus.yml`
 - **database.yml**: Read from `/var/www/{basename}/shared/config/database.yml`
 - **deploy.rb**: Read from local config to determine server connection details
 - **production.rb**: Read from local config to determine host and port
 
-This ensures you see the **actual deployed configuration** rather than local development settings.
+This ensures you can validate **what will be deployed** and verify **what was actually deployed**.
 
 ### **Check Current Configuration:**
 
