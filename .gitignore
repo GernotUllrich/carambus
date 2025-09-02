@@ -36,6 +36,18 @@
 # Ignore application configuration
 /config/application.yml
 
+# Ignore deployment environment
+/config/deploy.rb
+/config/deploy/production.rb
+
+# Ignore configuration created by rake mode:{api|local}
+/config/carambus.yml
+/config/database.yml
+/config/nginx.conf
+/config/puma.rb
+/config/puma.service
+/config/scoreboard_url
+
 # Ignore environment files
 .env
 .env.*
