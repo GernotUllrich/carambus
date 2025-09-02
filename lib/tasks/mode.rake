@@ -2,6 +2,96 @@
 
 namespace :mode do
 
+  desc "Switch to LOCAL mode with named parameters"
+  task :local_named => :environment do
+    # Parse named parameters from environment variables or command line
+    params = parse_named_parameters
+    
+    season_name = params[:season_name] || "2025/2026"
+    application_name = params[:application_name] || 'carambus'
+    context = params[:context] || 'NBV'
+    api_url = params[:api_url] || 'https://newapi.carambus.de/'
+    basename = params[:basename] || 'carambus'
+    database = params[:database] || 'carambus_api_production'
+    domain = params[:domain] || 'carambus.de'
+    location_id = params[:location_id] || '1'
+    club_id = params[:club_id] || '357'
+    rails_env = params[:rails_env] || 'production'
+    host = params[:host] || 'new.carambus.de'
+    port = (params[:port] || '').presence
+    branch = params[:branch] || 'master'
+    puma_script = params[:puma_script] || 'manage-puma.sh'
+    
+    puts "Switching to LOCAL mode with named parameters..."
+    puts "Parameters: #{params.inspect}"
+
+    # Update carambus.yml
+    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
+
+    # Update database.yml
+    update_database_yml(database)
+
+    # Update deploy.rb for LOCAL mode
+    update_deploy_rb(basename, domain)
+
+    # Update deploy.rb for LOCAL mode
+    update_deploy_environment_rb(rails_env, host, port, branch)
+
+    # Update Puma configuration for LOCAL mode
+    update_puma_configuration(puma_script, basename)
+
+    # Manage log files for LOCAL mode
+    manage_log_files("local")
+
+    puts "Switched to LOCAL mode successfully"
+    puts "Current mode: LOCAL (carambus_api_url is set, local database)"
+  end
+
+  desc "Switch to API mode with named parameters"
+  task :api_named => :environment do
+    # Parse named parameters from environment variables or command line
+    params = parse_named_parameters
+    
+    season_name = params[:season_name] || "2025/2026"
+    application_name = params[:application_name] || 'carambus'
+    context = params[:context] || ''
+    api_url = params[:api_url] || ''
+    basename = params[:basename] || 'carambus_api'
+    database = params[:database] || 'carambus_api_production'
+    domain = params[:domain] || 'api.carambus.de'
+    location_id = params[:location_id] || ''
+    club_id = params[:club_id] || ''
+    rails_env = params[:rails_env] || 'production'
+    host = params[:host] || 'newapi.carambus.de'
+    port = params[:port] || '3001'
+    branch = params[:branch] || 'master'
+    puma_script = params[:puma_script] || 'manage-puma-api.sh'
+    
+    puts "Switching to API mode with named parameters..."
+    puts "Parameters: #{params.inspect}"
+
+    # Update carambus.yml
+    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
+
+    # Update database.yml
+    update_database_yml(database)
+
+    # Update deploy.rb for LOCAL mode
+    update_deploy_rb(basename, domain)
+
+    # Update deploy.rb for LOCAL mode
+    update_deploy_environment_rb(rails_env, host, port, branch)
+
+    # Update Puma configuration for API mode
+    update_puma_configuration(puma_script, basename)
+
+    # Manage log files for LOCAL mode
+    manage_log_files("api")
+
+    puts "Switched to API mode successfully"
+    puts "Current mode: API (carambus_api_url is nil, local database)"
+  end
+
   desc "Switch to LOCAL mode (empty carambus_api_url, local database)"
   # 2025/2026, carambus, NBV, https://newapi.carambus.de/, carambus, carambus_production, carambus.de, 1, 357, production, new.carambus.de, , master, manage-puma.sh
   task  :local, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :rails_env, :host, :port, :branch, :puma_script] => :environment do |task, args|
@@ -203,6 +293,37 @@ namespace :mode do
   end
 
   private
+
+  def parse_named_parameters
+    params = {}
+    
+    # Parse from environment variables
+    %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script].each do |param|
+      env_var = "MODE_#{param.to_s.upcase}"
+      params[param] = ENV[env_var] if ENV[env_var]
+    end
+    
+    # Parse from command line arguments (if provided)
+    if ENV['MODE_PARAMS']
+      begin
+        # Parse JSON or YAML from command line
+        if ENV['MODE_PARAMS'].start_with?('{') || ENV['MODE_PARAMS'].start_with?('[')
+          parsed = JSON.parse(ENV['MODE_PARAMS'])
+          params.merge!(parsed.symbolize_keys)
+        else
+          # Parse key=value format
+          ENV['MODE_PARAMS'].split(',').each do |pair|
+            key, value = pair.split('=', 2)
+            params[key.strip.to_sym] = value.strip if key && value
+          end
+        end
+      rescue => e
+        puts "⚠️  Error parsing MODE_PARAMS: #{e.message}"
+      end
+    end
+    
+    params
+  end
 
   def update_deploy_rb(basename, domain = nil)
     deploy_file = Rails.root.join('config', 'deploy.rb')
