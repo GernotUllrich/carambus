@@ -2,7 +2,7 @@
 
 ## 🎯 **Übersicht**
 
-Das **Enhanced Mode System** ermöglicht das einfache Umschalten zwischen verschiedenen Deployment-Konfigurationen für Carambus. Es verwendet **Ruby/Rake Tasks** für maximale Debugging-Unterstützung und Robustheit.
+Das **Enhanced Mode System** ermöglicht das einfache Umschalten zwischen verschiedenen Deployment-Konfigurationen für Carambus. Es verwendet **Ruby/Rake Tasks** für maximale Debugging-Unterstützung und **Unix Sockets** für effiziente Kommunikation zwischen NGINX und Puma.
 
 ## 🚀 **Schnellstart**
 
@@ -112,6 +112,97 @@ bundle exec rails 'mode:list'
 bundle exec rails 'mode:load[production_api]'
 ```
 
+## 🔧 **Socket-basierte Architektur**
+
+### **Unix Socket Vorteile**
+- ✅ **Effizienter** - Keine TCP/IP Overhead
+- ✅ **Sicherer** - Nur lokale Kommunikation
+- ✅ **Schneller** - Direkte Kernel-Kommunikation
+- ✅ **Skalierbarer** - Bessere Performance unter Last
+
+### **Socket-Pfad Struktur**
+```
+/var/www/{basename}/shared/
+├── sockets/
+│   └── puma-{rails_env}.sock    # Unix Socket
+├── pids/
+│   ├── puma-{rails_env}.pid     # Process ID
+│   └── puma-{rails_env}.state   # State File
+└── log/
+    ├── puma.stdout.log          # Standard Output
+    └── puma.stderr.log          # Standard Error
+```
+
+## 🔧 **Automatische Template-Generierung**
+
+### **Templates werden automatisch generiert**
+Das System generiert und überträgt automatisch:
+
+1. **NGINX Konfiguration** (`config/nginx.conf`)
+   - Verwendet Unix Socket: `unix:/var/www/{basename}/shared/sockets/{puma_socket}`
+   - Kopiert nach `/etc/nginx/sites-available/{basename}`
+   - Erstellt Symlink in `/etc/nginx/sites-enabled/`
+   - Testet Konfiguration und lädt NGINX neu
+
+2. **Puma.rb Konfiguration** (`config/puma.rb`)
+   - Bindet an Unix Socket: `unix://{shared_dir}/sockets/puma-{rails_env}.sock`
+   - Erstellt Socket-Verzeichnisse automatisch
+   - Setzt korrekte Socket-Berechtigungen (0666)
+   - Konfiguriert PID- und State-Dateien
+
+3. **Puma Service Konfiguration** (`config/puma.service`)
+   - Kopiert nach `/etc/systemd/system/puma-{basename}.service`
+   - Erstellt Socket-Verzeichnisse vor Service-Start
+   - Lädt systemd daemon neu
+   - Aktiviert den Service
+
+4. **Scoreboard URL** (`config/scoreboard_url`)
+   - Kopiert nach `/var/www/{basename}/shared/config/scoreboard_url`
+
+### **Templates über Capistrano deployen**
+```bash
+# Alle Templates (automatisch nach Deployment)
+bundle exec cap production deploy
+
+# Einzelne Template-Tasks
+bundle exec cap production deploy:nginx_config
+bundle exec cap production deploy:puma_rb_config
+bundle exec cap production deploy:puma_service_config
+```
+
+## 📋 **Capistrano Integration**
+
+### **Automatische Template-Übertragung**
+
+Die folgenden Dateien werden automatisch übertragen:
+- `config/nginx.conf` → `/var/www/{basename}/shared/config/nginx.conf`
+- `config/puma.rb` → `/var/www/{basename}/shared/puma.rb`
+- `config/puma.service` → `/var/www/{basename}/shared/config/puma.service`
+- `config/scoreboard_url` → `/var/www/{basename}/shared/config/scoreboard_url`
+
+### **Deployment-Hooks**
+
+```ruby
+# Automatisch nach jedem Deployment
+after "deploy:published", "deploy:deploy_templates"
+```
+
+### **Verfügbare Capistrano Tasks**
+
+```bash
+# Template-Deployment
+cap deploy:deploy_templates              # Alle Templates deployen
+cap deploy:nginx_config                  # NGINX Konfiguration deployen
+cap deploy:puma_rb_config                # Puma.rb Konfiguration deployen
+cap deploy:puma_service_config           # Puma Service deployen
+
+# Puma Management
+cap puma:restart                         # Puma neu starten
+cap puma:stop                            # Puma stoppen
+cap puma:start                           # Puma starten
+cap puma:status                          # Puma Status anzeigen
+```
+
 ## 🔧 **RubyMine Debugging**
 
 ### **Vollständige Debugging-Unterstützung**
@@ -204,6 +295,58 @@ bundle exec rails 'mode:status'
 bundle exec cap production deploy
 ```
 
+## 🔄 **Multi-Environment Deployment**
+
+### **Deployment-Script Integration**
+```bash
+# API Server Deployment mit automatischem Pull
+./bin/deploy.sh deploy-api
+
+# Local Server Deployment mit automatischem Pull
+./bin/deploy.sh deploy-local
+
+# Full Local Deployment
+./bin/deploy.sh full-local
+```
+
+### **Automatischer Repo-Pull**
+Das Deployment-System führt automatisch einen `git pull` für die jeweiligen Szenario-Ordner durch, bevor das Deployment startet.
+
+## 🔍 **Troubleshooting**
+
+### **Socket-Berechtigungen prüfen**
+```bash
+# Socket-Verzeichnis prüfen
+ls -la /var/www/carambus_api/shared/sockets/
+
+# Socket-Berechtigungen prüfen
+ls -la /var/www/carambus_api/shared/sockets/puma-production.sock
+```
+
+### **NGINX Socket-Konfiguration testen**
+```bash
+# Lokal testen
+sudo nginx -t
+
+# Auf Server testen
+ssh -p 8910 www-data@newapi.carambus.de 'sudo nginx -t'
+```
+
+### **Puma Socket Status**
+```bash
+# Socket-Verbindung prüfen
+ssh -p 8910 www-data@newapi.carambus.de 'netstat -an | grep puma'
+
+# Service Status
+ssh -p 8910 www-data@newapi.carambus.de 'sudo systemctl status puma-carambus_api.service'
+```
+
+### **Socket-Verzeichnisse erstellen**
+```bash
+# Manuell Socket-Verzeichnisse erstellen
+ssh -p 8910 www-data@newapi.carambus.de 'sudo mkdir -p /var/www/carambus_api/shared/sockets /var/www/carambus_api/shared/pids /var/www/carambus_api/shared/log'
+```
+
 ## 📁 **Dateistruktur**
 
 ### **Konfigurationsdateien**
@@ -220,6 +363,10 @@ config/
 ├── puma.rb.erb           # Puma.rb Template (Socket-basiert)
 ├── puma.service.erb      # Puma Service Template
 ├── scoreboard_url.erb    # Scoreboard URL Template
+├── nginx.conf            # Generierte NGINX Konfiguration
+├── puma.rb               # Generierte Puma.rb Konfiguration
+├── puma.service          # Generierter Puma Service
+├── scoreboard_url        # Generierte Scoreboard URL
 └── deploy/
     └── production.rb.erb # ERB Template
 ```
@@ -228,9 +375,12 @@ config/
 ```
 lib/tasks/
 └── mode.rake             # Hauptsystem mit Named Parameters
+
+lib/capistrano/tasks/
+└── templates.rake        # Capistrano Template-Tasks
 ```
 
-## ✅ **Vorteile des Ruby/Rake Systems**
+## ✅ **Vorteile des Enhanced Mode Systems**
 
 1. **RubyMine Integration**: Perfekte Debugging-Unterstützung
 2. **Type Safety**: Ruby-Typisierung und Validierung
@@ -242,10 +392,16 @@ lib/tasks/
 8. **Maintainability**: Einfache Wartung und Erweiterung
 9. **Socket Integration**: Vollständige Socket-basierte Architektur
 10. **Template Generation**: Automatische Template-Generierung
+11. **Performance**: Unix Sockets sind schneller als TCP/IP
+12. **Security**: Keine Netzwerk-Exposition
+13. **Efficiency**: Weniger Overhead
+14. **Scalability**: Bessere Performance unter Last
+15. **Automation**: Vollständige Automatisierung
+16. **Multi-Environment**: Multi-Environment Support
 
 ## 🎉 **Fazit**
 
-Das **Ruby Named Parameters System** ist die **ideale Lösung** für RubyMine-Nutzer:
+Das **Enhanced Mode System** mit Socket-basierter Architektur ist die **ideale Lösung** für RubyMine-Nutzer:
 
 - ✅ **Vollständige Debugging-Unterstützung**
 - ✅ **Robuste Parameter-Behandlung**
@@ -254,9 +410,10 @@ Das **Ruby Named Parameters System** ist die **ideale Lösung** für RubyMine-Nu
 - ✅ **Type Safety**
 - ✅ **Socket-basierte Architektur**
 - ✅ **Automatische Template-Generierung**
+- ✅ **Vollständige Automatisierung**
+- ✅ **Multi-Environment Support**
+- ✅ **Robuste Deployment-Pipeline**
 
-**Empfehlung**: Verwende das Ruby/Rake-System für alle neuen Entwicklungen.
+**Empfehlung**: Verwende das Enhanced Mode System für alle Carambus-Deployments.
 
-Das Ruby/Rake-System macht die Deployment-Konfiguration **debuggbar, wartbar und robust**! 🚀
-
-**Weitere Dokumentation**: `docs/enhanced_deployment_system.md`
+Das System macht die Deployment-Konfiguration **debuggbar, wartbar und robust**! 🚀
