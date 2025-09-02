@@ -312,9 +312,11 @@ namespace :mode do
     dump_file = "carambus_api_production_#{timestamp}.sql.gz"
     
     puts "🗄️  Creating database dump: #{dump_file}"
+    puts "📊 Source database: carambus_api_development"
+    puts "🎯 Target database: carambus_api_production (on server)"
     
-    # Create database dump
-    system("pg_dump carambus_api_production | gzip > #{dump_file}")
+    # Create database dump from development database
+    system("pg_dump carambus_api_development | gzip > #{dump_file}")
     
     if $?.success?
       puts "✅ Database dump created successfully: #{dump_file}"
@@ -378,15 +380,12 @@ namespace :mode do
     deploy_config = get_deploy_config
     return puts "❌ No deployment configuration found" unless deploy_config
     
-    local_storage_dir = Rails.root.join('local_storage')
-    return puts "❌ Local storage directory not found" unless Dir.exist?(local_storage_dir)
-    
     puts "🚀 Deploying templates to production server..."
     puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
     puts "Basename: #{deploy_config[:basename]}"
     
     # Deploy NGINX configuration
-    nginx_source = local_storage_dir.join('nginx_configs', 'nginx.conf')
+    nginx_source = Rails.root.join('config', 'nginx.conf')
     if File.exist?(nginx_source)
       nginx_target = "/etc/nginx/sites-available/#{deploy_config[:basename]}"
       deploy_file(nginx_source, nginx_target, deploy_config)
@@ -394,22 +393,80 @@ namespace :mode do
     end
     
     # Deploy Puma service configuration
-    puma_source = local_storage_dir.join('puma_configs', 'puma.service')
-    if File.exist?(puma_source)
+    puma_service_source = Rails.root.join('config', 'puma.service')
+    if File.exist?(puma_service_source)
       puma_target = "/etc/systemd/system/puma-#{deploy_config[:basename]}.service"
-      deploy_file(puma_source, puma_target, deploy_config)
+      deploy_file(puma_service_source, puma_target, deploy_config)
       puts "✓ Puma service config deployed to #{puma_target}"
     end
     
+    # Deploy Puma.rb configuration
+    puma_rb_source = Rails.root.join('config', 'puma.rb')
+    if File.exist?(puma_rb_source)
+      puma_rb_target = "/var/www/#{deploy_config[:basename]}/shared/config/puma.rb"
+      deploy_file(puma_rb_source, puma_rb_target, deploy_config)
+      puts "✓ Puma.rb config deployed to #{puma_rb_target}"
+    end
+    
     # Deploy scoreboard configuration
-    scoreboard_source = local_storage_dir.join('scoreboard_configs', 'scoreboard_url')
+    scoreboard_source = Rails.root.join('config', 'scoreboard_url')
     if File.exist?(scoreboard_source)
       scoreboard_target = "/var/www/#{deploy_config[:basename]}/shared/config/scoreboard_url"
       deploy_file(scoreboard_source, scoreboard_target, deploy_config)
       puts "✓ Scoreboard config deployed to #{scoreboard_target}"
     end
     
-    puts "✅ Templates deployed successfully"
+    # Deploy database.yml
+    database_source = Rails.root.join('config', 'database.yml')
+    if File.exist?(database_source)
+      database_target = "/var/www/#{deploy_config[:basename]}/shared/config/database.yml"
+      deploy_file(database_source, database_target, deploy_config)
+      puts "✓ Database config deployed to #{database_target}"
+    end
+    
+    # Deploy carambus.yml
+    carambus_source = Rails.root.join('config', 'carambus.yml')
+    if File.exist?(carambus_source)
+      carambus_target = "/var/www/#{deploy_config[:basename]}/shared/config/carambus.yml"
+      deploy_file(carambus_source, carambus_target, deploy_config)
+      puts "✓ Carambus config deployed to #{carambus_target}"
+    end
+    
+    # Deploy credentials
+    credentials_dir = Rails.root.join('config', 'credentials')
+    if Dir.exist?(credentials_dir)
+      # Deploy production.key
+      production_key_source = credentials_dir.join('production.key')
+      if File.exist?(production_key_source)
+        production_key_target = "/var/www/#{deploy_config[:basename]}/shared/config/credentials/production.key"
+        deploy_file(production_key_source, production_key_target, deploy_config)
+        puts "✓ Production key deployed to #{production_key_target}"
+      end
+      
+      # Deploy production.yml.enc
+      production_yml_source = credentials_dir.join('production.yml.enc')
+      if File.exist?(production_yml_source)
+        production_yml_target = "/var/www/#{deploy_config[:basename]}/shared/config/credentials/production.yml.enc"
+        deploy_file(production_yml_source, production_yml_target, deploy_config)
+        puts "✓ Production credentials deployed to #{production_yml_target}"
+      end
+    end
+    
+    # Deploy production.rb environment
+    production_rb_source = Rails.root.join('config', 'environments', 'production.rb')
+    if File.exist?(production_rb_source)
+      production_rb_target = "/var/www/#{deploy_config[:basename]}/shared/config/environments/production.rb"
+      deploy_file(production_rb_source, production_rb_target, deploy_config)
+      puts "✓ Production environment deployed to #{production_rb_target}"
+    end
+    
+    # Activate NGINX configuration
+    puts "🔧 Activating NGINX configuration..."
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo ln -sf /etc/nginx/sites-available/#{deploy_config[:basename]} /etc/nginx/sites-enabled/'")
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo nginx -t && sudo systemctl reload nginx'")
+    puts "✓ NGINX configuration activated"
+    
+    puts "✅ All templates deployed successfully"
   end
 
   desc "Deploy database dump to production server"
@@ -446,11 +503,38 @@ namespace :mode do
     if $?.success?
       puts "✅ Database dump deployed successfully"
       puts "📁 Remote location: #{remote_dump_file}"
-      puts ""
-      puts "To restore the database:"
-      puts "ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'gunzip -c #{remote_dump_file} | psql #{deploy_config[:basename]}_production'"
     else
       puts "❌ Failed to deploy database dump"
+      exit 1
+    end
+  end
+
+  desc "Restore database from dump on production server"
+  task :restore_db_dump, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250101_120000.sql.gz]'"
+      exit 1
+    end
+    
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    puts "🗄️  Restoring database from dump..."
+    puts "Dump file: #{dump_file}"
+    puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    
+    remote_dump_file = "/var/www/#{deploy_config[:basename]}/shared/database_dumps/#{File.basename(dump_file)}"
+    
+    # Restore database
+    restore_command = "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{deploy_config[:basename]}_production"
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} '#{restore_command}'")
+    
+    if $?.success?
+      puts "✅ Database restored successfully"
+    else
+      puts "❌ Failed to restore database"
       exit 1
     end
   end
@@ -546,7 +630,156 @@ namespace :mode do
     puts "📁 Generated files:"
     puts "  - config/nginx.conf"
     puts "  - config/puma.service"
+    puts "  - config/puma.rb"
     puts "  - config/scoreboard_url"
+  end
+
+  desc "Complete automated deployment preparation and execution"
+  task :full_deploy => :environment do
+    puts "🚀 STARTING COMPLETE AUTOMATED DEPLOYMENT"
+    puts "=" * 60
+    
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    puts "🎯 Target: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    puts "📦 Basename: #{deploy_config[:basename]}"
+    puts ""
+    
+    # Step 1: Generate all templates
+    puts "📋 Step 1: Generating templates..."
+    Rake::Task['mode:generate_templates'].invoke
+    
+    # Step 2: Create database dump
+    puts "\n🗄️  Step 2: Creating database dump..."
+    Rake::Task['mode:prepare_db_dump'].invoke
+    
+    # Step 3: Deploy all files to server
+    puts "\n📤 Step 3: Deploying all files to server..."
+    
+    # Deploy configuration files
+    config_files = {
+      'config/database.yml' => "/var/www/#{deploy_config[:basename]}/shared/config/database.yml",
+      'config/carambus.yml' => "/var/www/#{deploy_config[:basename]}/shared/config/carambus.yml", 
+      'config/scoreboard_url' => "/var/www/#{deploy_config[:basename]}/shared/config/scoreboard_url",
+      'config/nginx.conf' => "/etc/nginx/sites-available/#{deploy_config[:basename]}",
+      'config/puma.service' => "/etc/systemd/system/puma-#{deploy_config[:basename]}.service",
+      'config/puma.rb' => "/var/www/#{deploy_config[:basename]}/shared/config/puma.rb"
+    }
+    
+    config_files.each do |source, target|
+      if File.exist?(source)
+        deploy_file(source, target, deploy_config)
+      else
+        puts "⚠️  #{source} not found, skipping"
+      end
+    end
+    
+    # Deploy database dump
+    dump_files = Dir.glob("#{deploy_config[:basename]}_production_*.sql.gz").sort.last
+    if dump_files
+      remote_dump_path = "/var/www/#{deploy_config[:basename]}/shared/database_dumps/"
+      puts "📊 Deploying database dump: #{dump_files}"
+      system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'mkdir -p #{remote_dump_path}'")
+      system("scp -P #{deploy_config[:port]} #{dump_files} www-data@#{deploy_config[:host]}:#{remote_dump_path}")
+      
+      if $?.success?
+        puts "✓ Database dump deployed successfully"
+        
+        # Step 4: Restore database
+        puts "\n🔄 Step 4: Restoring database..."
+        remote_dump_file = "#{remote_dump_path}#{File.basename(dump_files)}"
+        restore_cmd = "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{deploy_config[:basename]}_production"
+        system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} '#{restore_cmd}'")
+        
+        if $?.success?
+          puts "✓ Database restored successfully"
+        else
+          puts "⚠️  Database restore had warnings (this is normal for existing databases)"
+        end
+      else
+        puts "❌ Failed to deploy database dump"
+        exit 1
+      end
+    end
+    
+    # Step 5: Create missing directories and set permissions
+    puts "\n📁 Step 5: Creating directories and setting permissions..."
+    dirs_to_create = [
+      "/var/www/#{deploy_config[:basename]}/shared/config",
+      "/var/www/#{deploy_config[:basename]}/shared/config/credentials",
+      "/var/www/#{deploy_config[:basename]}/shared/config/environments",
+      "/var/www/#{deploy_config[:basename]}/shared/sockets",
+      "/var/www/#{deploy_config[:basename]}/shared/pids",
+      "/var/www/#{deploy_config[:basename]}/shared/log"
+    ]
+    
+    dirs_to_create.each do |dir|
+      system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo mkdir -p #{dir} && sudo chown -R www-data:www-data #{dir}'")
+      puts "✓ Created and set permissions for #{dir}"
+    end
+    
+    # Step 6: Deploy missing files (credentials, environments)
+    puts "\n🔐 Step 6: Deploying credentials and environment files..."
+    additional_files = {
+      'config/credentials/production.key' => "/var/www/#{deploy_config[:basename]}/shared/config/credentials/production.key",
+      'config/credentials/production.yml.enc' => "/var/www/#{deploy_config[:basename]}/shared/config/credentials/production.yml.enc",
+      'config/environments/production.rb' => "/var/www/#{deploy_config[:basename]}/shared/config/environments/production.rb"
+    }
+    
+    additional_files.each do |source, target|
+      if File.exist?(source)
+        deploy_file(source, target, deploy_config)
+      else
+        puts "⚠️  #{source} not found, skipping"
+      end
+    end
+    
+    # Step 7: Activate NGINX configuration
+    puts "\n🌐 Step 7: Activating NGINX configuration..."
+    nginx_source = "/etc/nginx/sites-available/#{deploy_config[:basename]}"
+    nginx_target = "/etc/nginx/sites-enabled/#{deploy_config[:basename]}"
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo ln -sf #{nginx_source} #{nginx_target}'")
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo nginx -t && sudo systemctl reload nginx'")
+    
+    if $?.success?
+      puts "✓ NGINX configuration activated and reloaded"
+    else
+      puts "❌ NGINX configuration failed"
+      exit 1
+    end
+    
+    # Step 8: Enable and start Puma service
+    puts "\n⚡ Step 8: Configuring Puma service..."
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo systemctl daemon-reload'")
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo systemctl enable puma-#{deploy_config[:basename]}.service'")
+    puts "✓ Puma service enabled"
+    
+    puts "\n✅ COMPLETE AUTOMATED DEPLOYMENT FINISHED"
+    puts "=" * 60
+    puts "🎉 Now you can run: bundle exec cap production deploy"
+    puts ""
+  end
+
+  desc "Complete deployment preparation (templates + database dump)"
+  task :prepare_deployment => :environment do
+    puts "🚀 PREPARING COMPLETE DEPLOYMENT"
+    puts "=" * 50
+    
+    # Step 1: Generate templates
+    puts "\n📋 Step 1: Generating templates..."
+    Rake::Task['mode:generate_templates'].invoke
+    
+    # Step 2: Prepare database dump
+    puts "\n🗄️  Step 2: Preparing database dump..."
+    Rake::Task['mode:prepare_db_dump'].invoke
+    
+    puts "\n✅ Deployment preparation completed!"
+    puts "📁 Next steps:"
+    puts "  1. Run: bundle exec rails mode:deploy_templates"
+    puts "  2. Run: bundle exec rails 'mode:deploy_db_dump[carambus_api_production_YYYYMMDD_HHMMSS.sql.gz]'"
+    puts "  3. Run: bundle exec rails 'mode:restore_db_dump[carambus_api_production_YYYYMMDD_HHMMSS.sql.gz]'"
+    puts "  4. Run: bundle exec cap production deploy"
   end
 
   private
@@ -713,23 +946,39 @@ namespace :mode do
 
   def update_database_yml(database)
     database_yml_file = Rails.root.join('config', 'database.yml')
+    
+    # Create a simple database.yml without ERB
+    content = <<~YAML
+      ---
+      default: &default
+        adapter: postgresql
+        encoding: unicode
+        pool: 5
 
-    if File.exist?("#{database_yml_file}.erb")
-      content = File.read("#{database_yml_file}.erb")
-      
-      # Handle nil values by converting to empty string
-      database = database.to_s
-      
-      updated_content = content.gsub(
-        /<%= database %>/,
-        database
-      )
+      development:
+        <<: *default
+        database: #{database}_development
+        username: www-data
+        password: 
+        host: localhost
 
-      File.write(database_yml_file, updated_content)
-      puts "✓ Updated database.yml with database: #{database}"
-    else
-      puts "⚠️  database.yml.erb not found, skipping database.yml update"
-    end
+      test:
+        <<: *default
+        database: #{database}_test
+        username: www-data
+        password: 
+        host: localhost
+
+      production:
+        <<: *default
+        database: #{database}_production
+        username: www-data
+        password: toS6E7tARQafHCXz
+        host: localhost
+    YAML
+    
+    File.write(database_yml_file, content)
+    puts "✓ Created database.yml with database: #{database}"
   end
 
   def update_carambus_yml(season_name, carambus_api_url, basename, carambus_domain, location_id, application_name, context, club_id)
@@ -1135,7 +1384,8 @@ namespace :mode do
     
     # Read production.rb for host, port, rails_env, branch
     production_content = File.read(production_file)
-    host_match = production_content.match(/server '([^']+)'/)
+    # Find the first non-commented server line
+    host_match = production_content.match(/^server '([^']+)'/)
     port_match = production_content.match(/port: "([^"]+)"/)
     rails_env_match = production_content.match(/set :rails_env, '([^']+)'/)
     branch_match = production_content.match(/set :branch, '([^']+)'/)
@@ -1151,7 +1401,21 @@ namespace :mode do
 
   def deploy_file(source, target, deploy_config)
     begin
-      `ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} "mkdir -p $(dirname #{target}) && cat #{source} > #{target}"`
+      # Use scp for file transfer, then sudo for system directories
+      if target.start_with?('/etc/') || target.start_with?('/var/www/')
+        # First copy to a temporary location
+        temp_target = "/tmp/#{File.basename(source)}"
+        system("scp -P #{deploy_config[:port]} #{source} www-data@#{deploy_config[:host]}:#{temp_target}")
+        
+        if $?.success?
+          # Then move to final location with sudo
+          system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo mkdir -p $(dirname #{target}) && sudo mv #{temp_target} #{target}'")
+        end
+      else
+        # Regular scp for user directories
+        system("scp -P #{deploy_config[:port]} #{source} www-data@#{deploy_config[:host]}:#{target}")
+      end
+      
       if $?.success?
         puts "✓ Deployed #{source} to #{target}"
       else
@@ -1193,6 +1457,17 @@ namespace :mode do
         /<%= ssl_enabled %>/,
         ssl_enabled
       )
+
+      # Process ERB conditionals
+      if ssl_enabled == 'true'
+        # Remove the conditional blocks and keep only SSL content
+        updated_content = updated_content.gsub(/<% if ssl_enabled == 'true' %>\s*/, '')
+        updated_content = updated_content.gsub(/<% else %>.*<% end %>/m, '')
+      else
+        # Remove the conditional blocks and keep only non-SSL content
+        updated_content = updated_content.gsub(/<% if ssl_enabled == 'true' %>.*?<% else %>/m, '')
+        updated_content = updated_content.gsub(/<% end %>/, '')
+      end
 
       File.write(nginx_config_file, updated_content)
       puts "✓ Updated nginx.conf with parameters"

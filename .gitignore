@@ -48,6 +48,18 @@
 /config/puma.service
 /config/scoreboard_url
 
+# Ignore credentials (should be in external data directory)
+/config/credentials/
+
+# Ignore environments (should be in external data directory)
+/config/environments/
+
+# Ignore database dumps
+*.sql.gz
+
+# Ignore local storage
+/local_storage/
+
 # Ignore environment files
 .env
 .env.*

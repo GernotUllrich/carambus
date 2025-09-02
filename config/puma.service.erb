@@ -6,9 +6,11 @@ After=network.target
 Type=simple
 User=www-data
 WorkingDirectory=/var/www/<%= basename %>/current
-Environment=PATH=/var/www/<%= basename %>/current/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=/var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin:/var/www/.rbenv/bin:/var/www/.rbenv/shims:/usr/local/bin:/usr/bin:/bin
 Environment=RAILS_ENV=<%= rails_env %>
-ExecStart=/var/www/<%= basename %>/current/bin/puma -C /var/www/<%= basename %>/shared/puma.rb
+Environment=RBENV_ROOT=/var/www/.rbenv
+Environment=RBENV_VERSION=3.2.1
+ExecStart=/var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin/bundle exec /var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin/puma -C /var/www/<%= basename %>/shared/puma.rb
 ExecReload=/bin/kill -USR1 $MAINPID
 Restart=always
 RestartSec=1

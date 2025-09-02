@@ -79,6 +79,5 @@ state_path "#{shared_dir}/pids/puma-#{ENV.fetch('RAILS_ENV') { 'development' }}.
 stdout_redirect "#{shared_dir}/log/puma.stdout.log", "#{shared_dir}/log/puma.stderr.log", true
 
 # Set socket permissions after binding
-after_bind do
-  FileUtils.chmod 0666, "#{socket_dir}/puma-#{ENV.fetch('RAILS_ENV') { 'development' }}.sock"
-end
+# Note: after_bind is not available in older Puma versions
+# Socket permissions will be set by the system
