@@ -44,7 +44,7 @@ namespace :mode do
   end
 
   desc "Switch to API mode (empty carambus_api_url, local database)"
-  task  :api, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :host, :port, :branch, :puma_script] => :environment do |task, args|
+  task  :api, [:season_name, :application_name, :context, :api_url, :basename, :database, :domain, :location_id, :club_id, :rails_env, :host, :port, :branch, :puma_script] => :environment do |task, args|
     season_name = args.season_name || "2025/2026"
     application_name = args.application_name || 'carambus'
     context = args.context || ''
