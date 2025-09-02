@@ -340,6 +340,27 @@ rails db:rollback
 
 ## Deployment
 
+### Enhanced Mode System
+Carambus uses an **Enhanced Mode System** with Ruby/Rake Named Parameters for easy switching between different deployment configurations:
+
+#### Key Features
+- ✅ **19 Parameters** for complete configuration control
+- ✅ **Socket-based architecture** with Unix sockets for efficient NGINX-Puma communication
+- ✅ **Automatic template generation** (NGINX, Puma, Service)
+- ✅ **RubyMine integration** with complete debugging support
+- ✅ **Multi-environment deployment** with automatic repo pull
+
+#### Quick Start
+```bash
+# API Server Mode
+bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_HOST=newapi.carambus.de
+
+# Local Server Mode  
+bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV
+```
+
+**[🚀 Complete Enhanced Mode System Documentation](enhanced_mode_system.en.md)**
+
 ### Production Setup
 The application is designed for deployment on Raspberry Pi or similar hardware:
 
@@ -351,9 +372,10 @@ The application is designed for deployment on Raspberry Pi or similar hardware:
 
 #### Deployment Process
 1. **Server Setup**: See [Runbook](doc/doc/Runbook) for detailed server configuration
-2. **Application Deployment**: Capistrano-based deployment
-3. **Service Management**: Systemd services for autostart
-4. **Scoreboard Setup**: Automated scoreboard startup
+2. **Enhanced Mode Configuration**: Use the Enhanced Mode System for deployment configuration
+3. **Application Deployment**: Capistrano-based deployment
+4. **Service Management**: Systemd services for autostart
+5. **Scoreboard Setup**: Automated scoreboard startup
 
 ### Configuration Files
 
@@ -428,6 +450,7 @@ sudo systemctl status carambus
 - [Docker Installation](docker_installation.md): Docker installation
 - [Tournament Management](tournament.md): Tournament workflows
 - [Installation Overview](installation_overview.md): Installation overview
+- [Enhanced Mode System](enhanced_mode_system.en.md): Deployment configuration and multi-environment support
 
 ### External Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)
