@@ -1,4 +1,4 @@
-# Carambus Enhanced Mode System - Socket-Based Deployment Integration
+# Carambus Enhanced Mode System - Socket-basierte Deployment-Integration
 
 ## 🎯 **Übersicht**
 

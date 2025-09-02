@@ -1,10 +1,10 @@
 # Carambus Enhanced Mode System
 
-## 🎯 **Übersicht**
+## 🎯 **Overview**
 
-Das **Enhanced Mode System** ermöglicht das einfache Umschalten zwischen verschiedenen Deployment-Konfigurationen für Carambus. Es verwendet **Ruby/Rake Tasks** für maximale Debugging-Unterstützung und Robustheit.
+The **Enhanced Mode System** enables easy switching between different deployment configurations for Carambus. It uses **Ruby/Rake Tasks** for maximum debugging support and robustness.
 
-## 🚀 **Schnellstart**
+## 🚀 **Quick Start**
 
 ### **Ruby/Rake Named Parameters System**
 
@@ -16,29 +16,29 @@ bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_a
 bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV MODE_API_URL='https://newapi.carambus.de/'
 ```
 
-## 📋 **Verfügbare Parameter**
+## 📋 **Available Parameters**
 
-### **Alle Parameter (alphabetisch)**
-- `MODE_API_URL` - API URL für LOCAL Mode
-- `MODE_APPLICATION_NAME` - Anwendungsname
-- `MODE_BASENAME` - Deploy Basename
-- `MODE_BRANCH` - Git Branch
+### **All Parameters (alphabetically)**
+- `MODE_API_URL` - API URL for LOCAL mode
+- `MODE_APPLICATION_NAME` - Application name
+- `MODE_BASENAME` - Deploy basename
+- `MODE_BRANCH` - Git branch
 - `MODE_CLUB_ID` - Club ID
-- `MODE_CONTEXT` - Context Identifier
-- `MODE_DATABASE` - Datenbankname
-- `MODE_DOMAIN` - Domain Name
-- `MODE_HOST` - Server Hostname
+- `MODE_CONTEXT` - Context identifier
+- `MODE_DATABASE` - Database name
+- `MODE_DOMAIN` - Domain name
+- `MODE_HOST` - Server hostname
 - `MODE_LOCATION_ID` - Location ID
-- `MODE_NGINX_PORT` - NGINX Web Port (default: 80)
-- `MODE_PORT` - Server Port
-- `MODE_PUMA_SCRIPT` - Puma Management Script
-- `MODE_PUMA_SOCKET` - Puma Socket Name (default: puma-{rails_env}.sock)
-- `MODE_RAILS_ENV` - Rails Environment
+- `MODE_NGINX_PORT` - NGINX web port (default: 80)
+- `MODE_PORT` - Server port
+- `MODE_PUMA_SCRIPT` - Puma management script
+- `MODE_PUMA_SOCKET` - Puma socket name (default: puma-{rails_env}.sock)
+- `MODE_RAILS_ENV` - Rails environment
 - `MODE_SCOREBOARD_URL` - Scoreboard URL (auto-generated)
-- `MODE_SEASON_NAME` - Season Identifier
-- `MODE_SSL_ENABLED` - SSL aktiviert (true/false, default: false)
+- `MODE_SEASON_NAME` - Season identifier
+- `MODE_SSL_ENABLED` - SSL enabled (true/false, default: false)
 
-## 🎯 **Verwendungsbeispiele**
+## 🎯 **Usage Examples**
 
 ### **1. API Server Deployment**
 ```bash
@@ -75,7 +75,7 @@ bundle exec rails 'mode:local' \
   MODE_SSL_ENABLED=false
 ```
 
-### **3. Entwicklungsumgebung**
+### **3. Development Environment**
 ```bash
 bundle exec rails 'mode:api' \
   MODE_BASENAME=carambus_api \
@@ -88,9 +88,9 @@ bundle exec rails 'mode:api' \
   MODE_SSL_ENABLED=false
 ```
 
-## 💾 **Konfigurationen Verwalten**
+## 💾 **Managing Configurations**
 
-### **Konfiguration Speichern**
+### **Save Configuration**
 ```bash
 bundle exec rails 'mode:save[production_api]' \
   MODE_BASENAME=carambus_api \
@@ -102,35 +102,35 @@ bundle exec rails 'mode:save[production_api]' \
   MODE_SSL_ENABLED=true
 ```
 
-### **Gespeicherte Konfigurationen Auflisten**
+### **List Saved Configurations**
 ```bash
 bundle exec rails 'mode:list'
 ```
 
-### **Konfiguration Laden**
+### **Load Configuration**
 ```bash
 bundle exec rails 'mode:load[production_api]'
 ```
 
 ## 🔧 **RubyMine Debugging**
 
-### **Vollständige Debugging-Unterstützung**
+### **Complete Debugging Support**
 
-Das Ruby/Rake-System bietet **perfekte RubyMine-Integration**:
+The Ruby/Rake system provides **perfect RubyMine integration**:
 
-#### **1. Breakpoints setzen**
+#### **1. Set Breakpoints**
 ```ruby
 # In lib/tasks/mode.rake
 def parse_named_parameters_from_env
   params = {}
   
-  # Setze Breakpoint hier
+  # Set breakpoint here
   %i[season_name application_name context api_url basename database domain location_id club_id rails_env host port branch puma_script nginx_port puma_port ssl_enabled scoreboard_url puma_socket].each do |param|
     env_var = "MODE_#{param.to_s.upcase}"
     params[param] = ENV[env_var] if ENV[env_var]
   end
   
-  params  # Setze Breakpoint hier
+  params  # Set breakpoint here
 end
 ```
 
@@ -149,114 +149,114 @@ Environment Variables:
 ```
 
 #### **3. Step-by-Step Debugging**
-- **Step Into**: Gehe in Methoden hinein
-- **Step Over**: Überspringe Methoden
-- **Step Out**: Gehe aus Methoden heraus
-- **Variables Inspector**: Sehe alle Parameter-Werte
+- **Step Into**: Go into methods
+- **Step Over**: Skip methods
+- **Step Out**: Exit methods
+- **Variables Inspector**: See all parameter values
 
 ## 🎯 **Best Practices**
 
 ### **1. RubyMine Debugging Workflow**
 ```bash
-# 1. Setze Breakpoints in lib/tasks/mode.rake
-# 2. Erstelle RubyMine Run Configuration
-# 3. Debugge step-by-step
-# 4. Inspiziere Variablen
-# 5. Teste verschiedene Parameter-Kombinationen
+# 1. Set breakpoints in lib/tasks/mode.rake
+# 2. Create RubyMine Run Configuration
+# 3. Debug step-by-step
+# 4. Inspect variables
+# 5. Test different parameter combinations
 ```
 
-### **2. Konfigurationen Speichern**
+### **2. Save Configurations**
 ```bash
-# Speichere häufig verwendete Konfigurationen
+# Save frequently used configurations
 bundle exec rails 'mode:save[production_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_production MODE_HOST=newapi.carambus.de MODE_PORT=3001 MODE_NGINX_PORT=80 MODE_PUMA_SOCKET=puma-production.sock MODE_SSL_ENABLED=true
 bundle exec rails 'mode:save[development_api]' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development MODE_HOST=localhost MODE_PORT=3001 MODE_NGINX_PORT=3000 MODE_PUMA_SOCKET=puma-development.sock MODE_SSL_ENABLED=false
 ```
 
-### **3. Nur Änderungen Angeben**
+### **3. Specify Only Changes**
 ```bash
-# Nur die Parameter angeben, die sich von den Defaults unterscheiden
+# Only specify parameters that differ from defaults
 bundle exec rails 'mode:api' MODE_HOST=localhost MODE_PORT=3001 MODE_RAILS_ENV=development MODE_NGINX_PORT=3000 MODE_PUMA_SOCKET=puma-development.sock MODE_SSL_ENABLED=false
 ```
 
 ## 🚀 **Deployment Workflow**
 
-### **1. Konfiguration Vorbereiten**
+### **1. Prepare Configuration**
 ```bash
-# Lade gespeicherte Konfiguration
+# Load saved configuration
 bundle exec rails 'mode:load[api_hetzner]'
 ```
 
-### **2. Konfiguration Anwenden**
+### **2. Apply Configuration**
 ```bash
-# Wende die geladenen Parameter an
+# Apply the loaded parameters
 bundle exec rails 'mode:api'
 ```
 
-### **3. Konfiguration Validieren**
+### **3. Validate Configuration**
 ```bash
-# Überprüfe die aktuelle Konfiguration
+# Check current configuration
 bundle exec rails 'mode:status'
 ```
 
-### **4. Deployment Ausführen**
+### **4. Execute Deployment**
 ```bash
-# Deploy mit der validierten Konfiguration
+# Deploy with validated configuration
 bundle exec cap production deploy
 ```
 
-## 📁 **Dateistruktur**
+## 📁 **File Structure**
 
-### **Konfigurationsdateien**
+### **Configuration Files**
 ```
 config/
-├── named_modes/           # Gespeicherte Named-Konfigurationen
+├── named_modes/           # Saved named configurations
 │   ├── api_hetzner.yml
 │   ├── local_hetzner.yml
 │   └── development.yml
-├── carambus.yml.erb      # ERB Template
-├── database.yml.erb      # ERB Template
-├── deploy.rb.erb         # ERB Template
-├── nginx.conf.erb        # NGINX Template (Socket-basiert)
-├── puma.rb.erb           # Puma.rb Template (Socket-basiert)
-├── puma.service.erb      # Puma Service Template
-├── scoreboard_url.erb    # Scoreboard URL Template
+├── carambus.yml.erb      # ERB template
+├── database.yml.erb      # ERB template
+├── deploy.rb.erb         # ERB template
+├── nginx.conf.erb        # NGINX template (socket-based)
+├── puma.rb.erb           # Puma.rb template (socket-based)
+├── puma.service.erb      # Puma service template
+├── scoreboard_url.erb    # Scoreboard URL template
 └── deploy/
-    └── production.rb.erb # ERB Template
+    └── production.rb.erb # ERB template
 ```
 
 ### **Rake Tasks**
 ```
 lib/tasks/
-└── mode.rake             # Hauptsystem mit Named Parameters
+└── mode.rake             # Main system with named parameters
 ```
 
-## ✅ **Vorteile des Ruby/Rake Systems**
+## ✅ **Advantages of the Ruby/Rake System**
 
-1. **RubyMine Integration**: Perfekte Debugging-Unterstützung
-2. **Type Safety**: Ruby-Typisierung und Validierung
-3. **Error Handling**: Robuste Fehlerbehandlung
-4. **Debugging**: Step-by-Step Debugging mit Breakpoints
-5. **Variable Inspection**: Vollständige Variablen-Inspektion
-6. **Call Stack**: Call Stack Navigation
-7. **IDE Support**: Vollständige IDE-Unterstützung
-8. **Maintainability**: Einfache Wartung und Erweiterung
-9. **Socket Integration**: Vollständige Socket-basierte Architektur
-10. **Template Generation**: Automatische Template-Generierung
+1. **RubyMine Integration**: Perfect debugging support
+2. **Type Safety**: Ruby typing and validation
+3. **Error Handling**: Robust error handling
+4. **Debugging**: Step-by-step debugging with breakpoints
+5. **Variable Inspection**: Complete variable inspection
+6. **Call Stack**: Call stack navigation
+7. **IDE Support**: Complete IDE support
+8. **Maintainability**: Easy maintenance and extension
+9. **Socket Integration**: Complete socket-based architecture
+10. **Template Generation**: Automatic template generation
 
-## 🎉 **Fazit**
+## 🎉 **Conclusion**
 
-Das **Ruby Named Parameters System** ist die **ideale Lösung** für RubyMine-Nutzer:
+The **Ruby Named Parameters System** is the **ideal solution** for RubyMine users:
 
-- ✅ **Vollständige Debugging-Unterstützung**
-- ✅ **Robuste Parameter-Behandlung**
-- ✅ **Einfache Wartung**
-- ✅ **IDE-Integration**
-- ✅ **Type Safety**
-- ✅ **Socket-basierte Architektur**
-- ✅ **Automatische Template-Generierung**
+- ✅ **Complete debugging support**
+- ✅ **Robust parameter handling**
+- ✅ **Easy maintenance**
+- ✅ **IDE integration**
+- ✅ **Type safety**
+- ✅ **Socket-based architecture**
+- ✅ **Automatic template generation**
 
-**Empfehlung**: Verwende das Ruby/Rake-System für alle neuen Entwicklungen.
+**Recommendation**: Use the Ruby/Rake system for all new developments.
 
-Das Ruby/Rake-System macht die Deployment-Konfiguration **debuggbar, wartbar und robust**! 🚀
+The Ruby/Rake system makes deployment configuration **debuggable, maintainable and robust**! 🚀
 
-**Weitere Dokumentation**: `docs/enhanced_deployment_system.md`
+**Further documentation**: `docs/enhanced_deployment_system.md`
