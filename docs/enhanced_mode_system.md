@@ -42,7 +42,7 @@ The mode system now includes a **14th parameter** for Puma script configuration:
 3. `context` - Context identifier (e.g., "NBV", "")
 4. `api_url` - API URL for LOCAL mode (e.g., "https://newapi.carambus.de/", "")
 5. `basename` - Deploy basename (e.g., "carambus", "carambus_api")
-6. `database` - Database name (e.g., "carambus_production", "carambus_api_production")
+6. `database` - Database name (e.g., "carambus_api_development", "carambus_api_production")
 7. `domain` - Domain name (e.g., "carambus.de", "api.carambus.de")
 8. `location_id` - Location ID (e.g., "1", "")
 9. `club_id` - Club ID (e.g., "357", "")
@@ -58,7 +58,7 @@ The mode system now includes a **14th parameter** for Puma script configuration:
 
 #### **local_hetzner** (Local Server on Hetzner)
 ```bash
-Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh
+Parameters: 2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh
 ```
 
 #### **api_hetzner** (API Server on Hetzner)
@@ -88,7 +88,7 @@ Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_development,api.c
 ./bin/mode-params.sh show local_hetzner
 
 # Save custom parameters for a mode
-./bin/mode-params.sh save my_custom_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
+./bin/mode-params.sh save my_custom_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
 
 # Switch to LOCAL mode using saved/default parameters
 ./bin/mode-params.sh local local_hetzner
@@ -107,7 +107,7 @@ Parameters: 2025/2026,carambus_api,,,carambus_api,carambus_api_development,api.c
 
 ```bash
 # Save your current deployment parameters
-./bin/mode-params.sh save my_hetzner_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_production,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
+./bin/mode-params.sh save my_hetzner_local "2025/2026,carambus,NBV,https://newapi.carambus.de/,carambus,carambus_api_development,carambus.de,1,357,production,new.carambus.de,,master,manage-puma.sh"
 
 # Use your saved mode
 ./bin/mode-params.sh local my_hetzner_local
