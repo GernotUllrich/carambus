@@ -1400,15 +1400,11 @@ namespace :mode do
       development:
         <<: *default
         database: #{development_db}
-        username: www-data
-        password: 
         host: localhost
 
       test:
         <<: *default
         database: #{test_db}
-        username: www-data
-        password: 
         host: localhost
 
       production:
