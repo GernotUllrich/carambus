@@ -548,6 +548,14 @@ rails assets:precompile
       01 RBENV_ROOT=$HOME/.rbenv RBENV_VERSION=3.2.1 $HOME/.rbenv/bin/rbenv exec bundle exec rails assets:precompile
 ```
 
+#### **Korrektes Asset-Handling (Aktuell)**
+Das System verwendet **Build-Assets** (ohne Fingerprints) und generiert **Precompiled Assets** (mit Fingerprints) auf dem Server:
+
+- ✅ **Build-Assets** (`build/`, `app/assets/builds/`) - Werden ins Repository committet
+- ✅ **Precompiled Assets** (`public/assets/`) - Werden auf Server generiert
+- ✅ **Fingerprints** - Werden korrekt auf Server erstellt
+- ✅ **Asset-Manifest** - Wird korrekt auf Server generiert
+
 #### **Warum pre-built Assets?**
 - ✅ **Schnellere Deployments** - Kein Build-Prozess auf dem Server
 - ✅ **Konsistente Assets** - Gleiche Assets wie lokal getestet
@@ -568,6 +576,70 @@ git commit -m "Update assets"
 git push carambus master
 
 # 3. Deployment (verwendet pre-built assets)
+bundle exec cap production deploy
+```
+
+#### **Optimierter Asset-Workflow (Empfohlen)**
+```bash
+# 1. Nur Build-Assets committen (ohne Fingerprints)
+yarn install
+yarn build
+yarn build:css
+
+# 2. Nur Build-Assets committen
+git add build/ app/assets/builds/
+git commit -m "Update build assets"
+git push carambus master
+
+# 3. Deployment (Assets werden auf Server kompiliert)
+bundle exec cap production deploy
+```
+
+#### **Warum Build-Assets vs. Precompiled Assets?**
+- ✅ **Build-Assets** (`build/`, `app/assets/builds/`) - Keine Fingerprints, konsistent
+- ❌ **Precompiled Assets** (`public/assets/`) - Fingerprints ändern sich bei jedem Build
+- ✅ **Server-Kompilierung** - Assets werden mit korrekten Fingerprints auf Server generiert
+
+#### **Asset-Fingerprint-Problem**
+```bash
+# Bei jedem rails assets:precompile ändern sich die Dateinamen:
+application-19cb5b... → application-f11a2c...
+turbo-a6b3a37c... → turbo-c69e22a49dcb...
+trix-5fc7656c... → trix-b6d103912a6c8...
+
+# Das führt zu:
+# - Großen Git-Diffs
+# - Unnötigen Commits
+# - Inkonsistenten Asset-Referenzen
+```
+
+#### **Gitignore-Konfiguration**
+Die `.gitignore` ist bereits korrekt konfiguriert:
+
+```bash
+# Precompiled Assets werden ignoriert
+/public/assets
+/public/packs
+/public/packs-test
+
+# Build-Assets werden committet
+# /build/           # Node.js Dependencies
+# /app/assets/builds/ # Kompilierte CSS/JS
+```
+
+#### **Empfohlener Asset-Workflow**
+```bash
+# 1. Lokale Entwicklung (nur Build-Assets)
+yarn install
+yarn build
+yarn build:css
+
+# 2. Build-Assets committen (ohne public/assets/)
+git add build/ app/assets/builds/
+git commit -m "Update build assets"
+git push carambus master
+
+# 3. Deployment (Assets werden auf Server kompiliert)
 bundle exec cap production deploy
 ```
 

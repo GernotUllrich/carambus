@@ -548,6 +548,14 @@ rails assets:precompile
       01 RBENV_ROOT=$HOME/.rbenv RBENV_VERSION=3.2.1 $HOME/.rbenv/bin/rbenv exec bundle exec rails assets:precompile
 ```
 
+#### **Correct Asset Handling (Current)**
+The system uses **Build Assets** (without fingerprints) and generates **Precompiled Assets** (with fingerprints) on the server:
+
+- ✅ **Build Assets** (`build/`, `app/assets/builds/`) - Committed to repository
+- ✅ **Precompiled Assets** (`public/assets/`) - Generated on server
+- ✅ **Fingerprints** - Correctly created on server
+- ✅ **Asset Manifest** - Correctly generated on server
+
 #### **Why Pre-built Assets?**
 - ✅ **Faster Deployments** - No build process on server
 - ✅ **Consistent Assets** - Same assets as locally tested
@@ -568,6 +576,70 @@ git commit -m "Update assets"
 git push carambus master
 
 # 3. Deployment (uses pre-built assets)
+bundle exec cap production deploy
+```
+
+#### **Optimized Asset Workflow (Recommended)**
+```bash
+# 1. Only commit build assets (without fingerprints)
+yarn install
+yarn build
+yarn build:css
+
+# 2. Only commit build assets
+git add build/ app/assets/builds/
+git commit -m "Update build assets"
+git push carambus master
+
+# 3. Deployment (assets compiled on server)
+bundle exec cap production deploy
+```
+
+#### **Why Build Assets vs Precompiled Assets?**
+- ✅ **Build Assets** (`build/`, `app/assets/builds/`) - No fingerprints, consistent
+- ❌ **Precompiled Assets** (`public/assets/`) - Fingerprints change with every build
+- ✅ **Server Compilation** - Assets generated with correct fingerprints on server
+
+#### **Asset Fingerprint Problem**
+```bash
+# File names change with every rails assets:precompile:
+application-19cb5b... → application-f11a2c...
+turbo-a6b3a37c... → turbo-c69e22a49dcb...
+trix-5fc7656c... → trix-b6d103912a6c8...
+
+# This leads to:
+# - Large git diffs
+# - Unnecessary commits
+# - Inconsistent asset references
+```
+
+#### **Gitignore Configuration**
+The `.gitignore` is already correctly configured:
+
+```bash
+# Precompiled Assets are ignored
+/public/assets
+/public/packs
+/public/packs-test
+
+# Build Assets are committed
+# /build/           # Node.js Dependencies
+# /app/assets/builds/ # Compiled CSS/JS
+```
+
+#### **Recommended Asset Workflow**
+```bash
+# 1. Local development (only build assets)
+yarn install
+yarn build
+yarn build:css
+
+# 2. Commit build assets (without public/assets/)
+git add build/ app/assets/builds/
+git commit -m "Update build assets"
+git push carambus master
+
+# 3. Deployment (assets compiled on server)
 bundle exec cap production deploy
 ```
 
