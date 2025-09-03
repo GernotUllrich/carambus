@@ -52,9 +52,12 @@ echo "Using BASENAME: $BASENAME"
 if [ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && pgrep -f "puma.*${BASENAME}" > /dev/null
 then
   echo "Service is running, performing phased-restart"
-  cd /var/www/${BASENAME}/current; RAILS_ENV=production /var/www/.rbenv/shims/bundle exec pumactl -F /var/www/${BASENAME}/shared/config/puma.rb phased-restart
+  cd /var/www/${BASENAME}/current
+  # Use systemctl restart instead of pumactl to avoid state file issues
+  sudo systemctl restart puma-${BASENAME}.service
 else
   echo "Service is not running, starting service"
-  cd /var/www/${BASENAME}/current; sudo systemctl start puma-${BASENAME}.service
+  cd /var/www/${BASENAME}/current
+  sudo systemctl start puma-${BASENAME}.service
 fi
 
