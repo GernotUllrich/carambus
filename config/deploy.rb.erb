@@ -217,10 +217,10 @@ namespace :deploy do
     on roles(:app) do
       within shared_path do
         # Wait for socket file to be created (max 30 seconds)
-        execute :bash, "-c", "for i in {1..30}; do if [ -S 'sockets/puma-production.sock' ]; then break; fi; sleep 1; done"
+        execute :bash, "-c", "for i in {1..30}; do if [ -S sockets/puma-production.sock ]; then break; fi; sleep 1; done"
         
         # Only try to set permissions if socket file exists
-        execute :bash, "-c", "if [ -S 'sockets/puma-production.sock' ]; then chmod 666 sockets/puma-production.sock && chown www-data:www-data sockets/puma-production.sock; else echo 'Socket file not found, skipping permissions'; fi"
+        execute :bash, "-c", "if [ -S sockets/puma-production.sock ]; then chmod 666 sockets/puma-production.sock && chown www-data:www-data sockets/puma-production.sock; else echo 'Socket file not found, skipping permissions'; fi"
       end
     end
   end
@@ -236,10 +236,10 @@ namespace :deploy do
     on roles(:app) do
       within shared_path do
         # Wait for socket file to be created (max 30 seconds)
-        execute :bash, "-c", "for i in {1..30}; do if [ -S 'sockets/puma-production.sock' ]; then break; fi; sleep 1; done"
+        execute :bash, "-c", "for i in {1..30}; do if [ -S sockets/puma-production.sock ]; then break; fi; sleep 1; done"
         
         # Only try to set permissions if socket file exists
-        execute :bash, "-c", "if [ -S 'sockets/puma-production.sock' ]; then chmod 666 sockets/puma-production.sock && chown www-data:www-data sockets/puma-production.sock; else echo 'Socket file not found, skipping permissions'; fi"
+        execute :bash, "-c", "if [ -S sockets/puma-production.sock ]; then chmod 666 sockets/puma-production.sock && chown www-data:www-data sockets/puma-production.sock; else echo 'Socket file not found, skipping permissions'; fi"
       end
     end
   end
