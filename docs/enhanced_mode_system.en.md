@@ -506,6 +506,106 @@ The system automatically recognizes dump origins:
 - ✅ **carambus_api_production_*.sql.gz** → Only for download to development
 - ❌ **Wrong filenames** → Operation blocked
 
+### **Asset Handling and Build Process**
+
+#### **Optimized Asset Handling**
+The Enhanced Mode System uses **pre-built assets** from the `build/` directory for faster deployments:
+
+#### **Local Build Process (before deployment)**
+```bash
+# 1. Install dependencies
+yarn install
+
+# 2. Build JavaScript assets
+yarn build
+
+# 3. Build CSS assets
+yarn build:css
+
+# 4. Precompile Rails assets
+rails assets:precompile
+```
+
+#### **Deployment Asset Handling**
+```bash
+# Deployment skips the build process and uses pre-built assets:
+00:15 deploy:verify_node
+      01 node --version
+      01 v20.19.4
+      02 yarn --version
+      02 1.22.22
+
+00:15 deploy:assets:install_dependencies
+      01 echo Skipping yarn install - using pre-built assets from build/ directory
+      01 Skipping yarn install - using pre-built assets from build/ directory
+
+00:16 deploy:assets:build_frontend_assets
+      01 mkdir -p build
+      02 echo Using pre-built assets from build/ directory
+      03 mkdir -p app/assets/builds
+
+00:16 deploy:assets:precompile
+      01 RBENV_ROOT=$HOME/.rbenv RBENV_VERSION=3.2.1 $HOME/.rbenv/bin/rbenv exec bundle exec rails assets:precompile
+```
+
+#### **Why Pre-built Assets?**
+- ✅ **Faster Deployments** - No build process on server
+- ✅ **Consistent Assets** - Same assets as locally tested
+- ✅ **Less Server Load** - No Node.js/Yarn execution
+- ✅ **Better Control** - Assets validated locally
+
+#### **Asset Build Workflow**
+```bash
+# 1. Local development
+yarn install
+yarn build
+yarn build:css
+rails assets:precompile
+
+# 2. Commit and push assets
+git add build/ app/assets/builds/ public/assets/
+git commit -m "Update assets"
+git push carambus master
+
+# 3. Deployment (uses pre-built assets)
+bundle exec cap production deploy
+```
+
+#### **Asset Build Configuration**
+The system uses **esbuild** for JavaScript and **Tailwind CSS** for styling:
+
+**JavaScript Build (esbuild):**
+```bash
+# build/esbuild.config.mjs
+yarn build          # One-time build
+yarn build --watch  # Watch mode for development
+yarn build --reload # Live-reload for development
+```
+
+**CSS Build (Tailwind):**
+```bash
+# build/package.json
+yarn build:css      # Compile Tailwind CSS
+```
+
+**Build Directories:**
+- ✅ **build/** - Node.js dependencies and build scripts
+- ✅ **app/assets/builds/** - Compiled assets (CSS/JS)
+- ✅ **public/assets/** - Rails precompiled assets
+
+#### **Asset Build Modes**
+```bash
+# Development (with sourcemaps)
+RAILS_ENV=development yarn build
+RAILS_ENV=development yarn build:css
+
+# Production (minified)
+RAILS_ENV=production yarn build
+RAILS_ENV=production yarn build:css
+```
+
+### **Region-Specific Database Reduction**
+
 ### **Region-Specific Database Reduction**
 
 #### **Why Database Reduction?**

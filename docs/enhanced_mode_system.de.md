@@ -506,6 +506,106 @@ Das System erkennt automatisch die Herkunft der Dumps:
 - ✅ **carambus_api_production_*.sql.gz** → Nur für Download zu Development
 - ❌ **Falsche Dateinamen** → Operation blockiert
 
+### **Asset-Handling und Build-Prozess**
+
+#### **Optimiertes Asset-Handling**
+Das Enhanced Mode System verwendet **pre-built assets** aus dem `build/` Verzeichnis für schnellere Deployments:
+
+#### **Lokaler Build-Prozess (vor Deployment)**
+```bash
+# 1. Dependencies installieren
+yarn install
+
+# 2. JavaScript Assets bauen
+yarn build
+
+# 3. CSS Assets bauen
+yarn build:css
+
+# 4. Rails Assets precompilieren
+rails assets:precompile
+```
+
+#### **Deployment Asset-Handling**
+```bash
+# Deployment überspringt den Build-Prozess und verwendet pre-built assets:
+00:15 deploy:verify_node
+      01 node --version
+      01 v20.19.4
+      02 yarn --version
+      02 1.22.22
+
+00:15 deploy:assets:install_dependencies
+      01 echo Skipping yarn install - using pre-built assets from build/ directory
+      01 Skipping yarn install - using pre-built assets from build/ directory
+
+00:16 deploy:assets:build_frontend_assets
+      01 mkdir -p build
+      02 echo Using pre-built assets from build/ directory
+      03 mkdir -p app/assets/builds
+
+00:16 deploy:assets:precompile
+      01 RBENV_ROOT=$HOME/.rbenv RBENV_VERSION=3.2.1 $HOME/.rbenv/bin/rbenv exec bundle exec rails assets:precompile
+```
+
+#### **Warum pre-built Assets?**
+- ✅ **Schnellere Deployments** - Kein Build-Prozess auf dem Server
+- ✅ **Konsistente Assets** - Gleiche Assets wie lokal getestet
+- ✅ **Weniger Server-Last** - Keine Node.js/Yarn-Ausführung
+- ✅ **Bessere Kontrolle** - Assets werden lokal validiert
+
+#### **Asset-Build-Workflow**
+```bash
+# 1. Lokale Entwicklung
+yarn install
+yarn build
+yarn build:css
+rails assets:precompile
+
+# 2. Assets committen und pushen
+git add build/ app/assets/builds/ public/assets/
+git commit -m "Update assets"
+git push carambus master
+
+# 3. Deployment (verwendet pre-built assets)
+bundle exec cap production deploy
+```
+
+#### **Asset-Build-Konfiguration**
+Das System verwendet **esbuild** für JavaScript und **Tailwind CSS** für Styling:
+
+**JavaScript Build (esbuild):**
+```bash
+# build/esbuild.config.mjs
+yarn build          # Einmaliger Build
+yarn build --watch  # Watch-Modus für Entwicklung
+yarn build --reload # Live-Reload für Entwicklung
+```
+
+**CSS Build (Tailwind):**
+```bash
+# build/package.json
+yarn build:css      # Tailwind CSS kompilieren
+```
+
+**Build-Verzeichnisse:**
+- ✅ **build/** - Node.js Dependencies und Build-Scripts
+- ✅ **app/assets/builds/** - Kompilierte Assets (CSS/JS)
+- ✅ **public/assets/** - Rails precompilierte Assets
+
+#### **Asset-Build-Modi**
+```bash
+# Entwicklung (mit Sourcemaps)
+RAILS_ENV=development yarn build
+RAILS_ENV=development yarn build:css
+
+# Production (minifiziert)
+RAILS_ENV=production yarn build
+RAILS_ENV=production yarn build:css
+```
+
+### **Region-spezifische Datenbankreduktion**
+
 ### **Region-spezifische Datenbankreduktion**
 
 #### **Warum Datenbankreduktion?**
