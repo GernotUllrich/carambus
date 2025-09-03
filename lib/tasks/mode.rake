@@ -723,6 +723,161 @@ namespace :mode do
     end
   end
 
+  desc "Backup local changes (records with ID > 50,000,000) before database replacement"
+  task :backup_local_changes => :environment do
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    backup_file = "local_changes_backup_#{timestamp}.sql"
+    
+    puts "💾 Backing up local changes (ID > 50,000,000)..."
+    puts "Backup file: #{backup_file}"
+    
+    # Create backup of local changes using pg_dump with custom query
+    backup_command = "pg_dump carambus_api_development --data-only --disable-triggers --no-owner --no-privileges --no-tablespaces --no-unlogged-table-data --verbose --file=#{backup_file} --table=users --table=tournaments --table=games --table=players --table=regions --table=disciplines --table=seasons --table=seedings --table=game_participations --table=versions --table=settings"
+    
+    system(backup_command)
+    
+    if $?.success?
+      puts "✅ Local changes backup created: #{backup_file}"
+      puts "📁 Location: #{File.expand_path(backup_file)}"
+      
+      # Filter to only include records with ID > 50,000,000
+      puts "🔍 Filtering local changes (ID > 50,000,000)..."
+      filtered_file = "local_changes_filtered_#{timestamp}.sql"
+      
+      # Simple filtering using grep and awk
+      filter_command = "grep -E '^(\\d+)\\t' #{backup_file} | awk -F'\\t' '\$1 > 50000000' > #{filtered_file}"
+      system(filter_command)
+      
+      if $?.success?
+        puts "✅ Filtered local changes: #{filtered_file}"
+        puts "📊 Only records with ID > 50,000,000 included"
+        
+        # Check if filtered file has content
+        if File.exist?(filtered_file) && File.size(filtered_file) > 0
+          puts "📈 Filtered file size: #{File.size(filtered_file)} bytes"
+        else
+          puts "⚠️  No local changes found (ID > 50,000,000)"
+        end
+      else
+        puts "⚠️  Warning: Could not filter local changes"
+      end
+      
+      # Clean up original backup
+      File.delete(backup_file)
+      puts "🗑️  Removed original backup file"
+    else
+      puts "❌ Failed to create local changes backup"
+      exit 1
+    end
+  end
+
+  desc "Restore local changes after database replacement"
+  task :restore_local_changes, [:backup_file] => :environment do |task, args|
+    backup_file = args.backup_file
+    if backup_file.blank?
+      puts "❌ Local changes backup file required"
+      puts "Usage: bundle exec rails 'mode:restore_local_changes[local_changes_filtered_20250102_120000.sql]'"
+      exit 1
+    end
+    
+    unless File.exist?(backup_file)
+      puts "❌ Local changes backup file not found: #{backup_file}"
+      exit 1
+    end
+    
+    puts "🔄 Restoring local changes after database replacement..."
+    puts "Backup file: #{backup_file}"
+    
+    # Restore local changes
+    restore_command = "psql carambus_api_development < #{backup_file}"
+    system(restore_command)
+    
+    if $?.success?
+      puts "✅ Local changes restored successfully"
+      puts "📊 Records with ID > 50,000,000 restored"
+    else
+      puts "❌ Failed to restore local changes"
+      exit 1
+    end
+  end
+
+  desc "Restore local development database from production dump with local changes preservation"
+  task :restore_local_db_with_preservation, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'"
+      exit 1
+    end
+    
+    unless File.exist?(dump_file)
+      puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    # Check if it's a production dump (safe to download)
+    unless dump_file.include?('carambus_api_production_')
+      puts "❌ Only production dumps can be restored to development"
+      puts "   Expected format: carambus_api_production_YYYYMMDD_HHMMSS.sql.gz"
+      exit 1
+    end
+    
+    puts "🗄️  Restoring local development database with local changes preservation..."
+    puts "Dump file: #{dump_file}"
+    puts "Target database: carambus_api_development"
+    
+    # Confirm the operation
+    puts "⚠️  WARNING: This will DROP and REPLACE your local development database!"
+    puts "   Local changes (ID > 50,000,000) will be preserved and restored."
+    puts "   Are you sure? (type 'yes' to continue):"
+    confirmation = STDIN.gets.chomp
+    
+    unless confirmation.downcase == 'yes'
+      puts "❌ Operation cancelled"
+      exit 1
+    end
+    
+    # Step 1: Backup local changes
+    puts "📋 Step 1: Backing up local changes..."
+    Rake::Task['mode:backup_local_changes'].invoke
+    
+    # Find the backup file
+    backup_files = Dir.glob("local_changes_filtered_*.sql").sort.reverse
+    if backup_files.empty?
+      puts "❌ No local changes backup found"
+      exit 1
+    end
+    
+    backup_file = backup_files.first
+    puts "📁 Local changes backup: #{backup_file}"
+    
+    # Step 2: Drop and recreate local database
+    puts "📋 Step 2: Dropping and recreating database..."
+    drop_and_restore_commands = [
+      "dropdb carambus_api_development",
+      "createdb carambus_api_development",
+      "gunzip -c #{dump_file} | psql carambus_api_development"
+    ]
+    
+    restore_command = drop_and_restore_commands.join(" && ")
+    system(restore_command)
+    
+    if $?.success?
+      puts "✅ Database restored successfully"
+    else
+      puts "❌ Failed to restore database"
+      exit 1
+    end
+    
+    # Step 3: Restore local changes
+    puts "📋 Step 3: Restoring local changes..."
+    Rake::Task['mode:restore_local_changes'].invoke(backup_file)
+    
+    puts "✅ Local development database restored with local changes preserved"
+    puts "📊 Database: carambus_api_development"
+    puts "💾 Local changes: #{backup_file}"
+  end
+
   desc "Validate deployment configuration locally"
   task :validate_deployment => :environment do
     puts "🔍 VALIDATING DEPLOYMENT CONFIGURATION"

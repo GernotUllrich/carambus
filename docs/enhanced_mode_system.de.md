@@ -364,6 +364,45 @@ bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000
 # 📊 Database: carambus_api_development
 ```
 
+#### **8. Lokale Änderungen sichern (ID > 50.000.000)**
+```bash
+# Sichert lokale Änderungen vor Datenbank-Ersetzung
+bundle exec rails mode:backup_local_changes
+
+# Ausgabe:
+# 💾 Backing up local changes (ID > 50,000,000)...
+# 🔍 Filtering local changes (ID > 50,000,000)...
+# ✅ Filtered local changes: local_changes_filtered_20250102_120000.sql
+# 📊 Only records with ID > 50,000,000 included
+```
+
+#### **9. Lokale Änderungen nach Datenbank-Ersetzung wiederherstellen**
+```bash
+# Stellt lokale Änderungen nach Datenbank-Ersetzung wieder her
+bundle exec rails 'mode:restore_local_changes[local_changes_filtered_20250102_120000.sql]'
+
+# Ausgabe:
+# 🔄 Restoring local changes after database replacement...
+# ✅ Local changes restored successfully
+# 📊 Records with ID > 50,000,000 restored
+```
+
+#### **10. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen**
+```bash
+# Stellt die lokale DB wieder her und behält lokale Änderungen
+bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+
+# Ausgabe:
+# 🗄️  Restoring local development database with local changes preservation...
+# ⚠️  WARNING: This will DROP and REPLACE your local development database!
+#    Local changes (ID > 50,000,000) will be preserved and restored.
+#    Are you sure? (type 'yes' to continue): yes
+# 📋 Step 1: Backing up local changes...
+# 📋 Step 2: Dropping and recreating database...
+# 📋 Step 3: Restoring local changes...
+# ✅ Local development database restored with local changes preserved
+```
+
 ### **Vollständiger Synchronisations-Workflow**
 
 #### **Development → Production (Upload)**
@@ -388,6 +427,15 @@ bundle exec rails mode:download_db_dump
 
 # 2. Lokale Development-DB von Production-Dump wiederherstellen
 bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]'
+```
+
+#### **Production → Development mit Erhaltung lokaler Änderungen**
+```bash
+# 1. Production-Dump vom Server herunterladen
+bundle exec rails mode:download_db_dump
+
+# 2. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen
+bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
 ```
 
 ### **Sicherheitsfeatures**
@@ -429,6 +477,38 @@ Das System erkennt automatisch die Herkunft der Dumps:
 - ✅ **carambus_api_development_*.sql.gz** → Nur für Upload zu Production
 - ✅ **carambus_api_production_*.sql.gz** → Nur für Download zu Development
 - ❌ **Falsche Dateinamen** → Operation blockiert
+
+### **Lokale Änderungen-Management**
+
+#### **Warum lokale Änderungen sichern?**
+Bei lokalen Servern können lokale Änderungen (Records mit ID > 50.000.000) vorhanden sein, die vor dem Drop-and-Replace der Datenbank gesichert werden müssen.
+
+#### **Automatische Erhaltung lokaler Änderungen**
+```bash
+# Vollständiger Workflow mit Erhaltung lokaler Änderungen
+bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+
+# Führt automatisch aus:
+# 1. Backup lokaler Änderungen (ID > 50.000.000)
+# 2. Drop und Recreate der Datenbank
+# 3. Import des Production-Dumps
+# 4. Wiederherstellung lokaler Änderungen
+```
+
+#### **Manuelle Erhaltung lokaler Änderungen**
+```bash
+# Schritt 1: Lokale Änderungen sichern
+bundle exec rails mode:backup_local_changes
+
+# Schritt 2: Datenbank ersetzen
+bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]'
+
+# Schritt 3: Lokale Änderungen wiederherstellen
+bundle exec rails 'mode:restore_local_changes[local_changes_filtered_20250102_120000.sql]'
+```
+
+#### **Verwendung der bestehenden Filter-Logik**
+Das System nutzt die bewährte `carambus:filter_local_changes_from_sql_dump_new` Logik, um lokale Änderungen zu identifizieren und zu filtern.
 
 ### **Automatisierte Datenbank-Synchronisation**
 
