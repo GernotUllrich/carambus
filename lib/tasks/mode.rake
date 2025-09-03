@@ -1374,6 +1374,21 @@ namespace :mode do
   def update_database_yml(database)
     database_yml_file = Rails.root.join('config', 'database.yml')
     
+    # Determine correct database names based on the base database name
+    # If database is already a full name (e.g., carambus_api_production), 
+    # extract the base name for development/test environments
+    if database.include?('_production')
+      base_name = database.gsub('_production', '')
+      development_db = "#{base_name}_development"
+      test_db = "#{base_name}_test"
+      production_db = database
+    else
+      # If database is a base name (e.g., carambus_api), append environment
+      development_db = "#{database}_development"
+      test_db = "#{database}_test"
+      production_db = "#{database}_production"
+    end
+    
     # Create a simple database.yml without ERB
     content = <<~YAML
       ---
@@ -1384,28 +1399,28 @@ namespace :mode do
 
       development:
         <<: *default
-        database: #{database}_development
+        database: #{development_db}
         username: www-data
         password: 
         host: localhost
 
       test:
         <<: *default
-        database: #{database}_test
+        database: #{test_db}
         username: www-data
         password: 
         host: localhost
 
       production:
         <<: *default
-        database: #{database}_production
+        database: #{production_db}
         username: www-data
         password: toS6E7tARQafHCXz
         host: localhost
     YAML
     
     File.write(database_yml_file, content)
-    puts "✓ Created database.yml with database: #{database}"
+    puts "✓ Created database.yml with databases: #{development_db}, #{test_db}, #{production_db}"
   end
 
   def update_carambus_yml(season_name, carambus_api_url, basename, carambus_domain, location_id, application_name, context, club_id)
