@@ -201,6 +201,10 @@ deploy_api_server() {
     print_status "Deploying to repository..."
     bundle exec rails data:deploy
     
+    # Compile assets locally
+    print_status "Compiling assets locally..."
+    yarn install && yarn build && yarn build:css
+    
     # Capistrano deployment
     print_status "Starting Capistrano deployment..."
     bundle exec cap production deploy
@@ -245,6 +249,10 @@ deploy_local_server() {
     # Deploy to repository
     print_status "Deploying to repository..."
     bundle exec rails data:deploy
+    
+    # Compile assets locally
+    print_status "Compiling assets locally..."
+    yarn install && yarn build && yarn build:css
     
     # Commit and push changes
     print_status "Committing and pushing changes..."
@@ -325,11 +333,15 @@ post_deploy_setup() {
         
         # Get last version ID from API server
         echo "Getting last version ID from API server..."
-        LAST_VERSION_ID=$(ssh -p 8910 www-data@carambus.de "cd /var/www/carambus_api/current && RAILS_ENV=production bundle exec rails runner 'puts PaperTrail::Version.last.id'")
+        LAST_VERSION_ID=$(ssh -p 8910 www-data@carambus.de "cd /var/www/carambus_api/current && RAILS_ENV=production bundle exec rails runner 'puts PaperTrail::Version.last.id'" 2>/dev/null || echo "")
         
-        # Set last version ID on local server
-        echo "Setting last version ID: $LAST_VERSION_ID"
-        RAILS_ENV=production bundle exec rails runner "Setting.key_set_value('last_version_id', $LAST_VERSION_ID)"
+        # Set last version ID on local server (only if we got a valid ID)
+        if [ -n "$LAST_VERSION_ID" ] && [ "$LAST_VERSION_ID" != "" ]; then
+          echo "Setting last version ID: $LAST_VERSION_ID"
+          RAILS_ENV=production bundle exec rails runner "Setting.key_set_value('last_version_id', $LAST_VERSION_ID)"
+        else
+          echo "Could not get last version ID from API server, skipping"
+        fi
         
         echo "Post-deploy setup completed"
 EOF
