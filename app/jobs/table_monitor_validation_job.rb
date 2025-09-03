@@ -222,5 +222,4 @@ class TableMonitorValidationJob < ApplicationJob
     
     Rails.logger.info "TableMonitorValidationJob: Broadcasted corrected state for table_monitor #{table_monitor.id}"
   end
-end
-
+en
