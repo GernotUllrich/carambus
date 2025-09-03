@@ -226,6 +226,22 @@ end
 # Fix socket permissions after Puma restart
 after "puma:restart", "deploy:fix_socket_permissions"
 
+# Fix socket permissions after Puma restart
+namespace :deploy do
+  desc "Fix socket permissions for NGINX"
+  task :fix_socket_permissions do
+    on roles(:app) do
+      within shared_path do
+        execute :chmod, "666", "sockets/puma-production.sock"
+        execute :chown, "www-data:www-data", "sockets/puma-production.sock"
+      end
+    end
+  end
+end
+
+# Fix socket permissions after Puma restart
+after "puma:restart", "deploy:fix_socket_permissions"
+
 desc "Check environment variables"
 task :debug_env_vars do
   on roles(:app) do
