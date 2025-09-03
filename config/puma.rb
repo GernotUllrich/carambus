@@ -89,3 +89,11 @@ stdout_redirect "#{log_dir}/puma.stdout.log", "#{log_dir}/puma.stderr.log", true
 # Set socket permissions after binding
 # Note: after_bind is not available in older Puma versions
 # Socket permissions will be set by the system
+
+# Ensure socket has correct permissions for NGINX
+# Set permissions immediately after binding
+socket_file = "#{socket_dir}/puma-#{ENV.fetch('RAILS_ENV') { 'development' }}.sock"
+if File.exist?(socket_file)
+  File.chmod(0666, socket_file)
+  puts "Socket permissions set to 666: #{socket_file}"
+end
