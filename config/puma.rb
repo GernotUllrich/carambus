@@ -77,7 +77,7 @@ log_dir = "#{shared_dir}/log"
 Dir.mkdir(log_dir) unless Dir.exist?(log_dir)
 
 # Bind to TCP port for NGINX
-bind "tcp://0.0.0.0:8080"
+bind "tcp://0.0.0.0:3001"
 
 # Set socket permissions
 pidfile "#{pids_dir}/puma-#{ENV.fetch('RAILS_ENV') { 'development' }}.pid"
