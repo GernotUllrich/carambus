@@ -281,13 +281,25 @@ Das Enhanced Mode System bietet vollständige Datenbanksynchronisation zwischen 
 bundle exec rails mode:prepare_db_dump
 
 # Ausgabe:
-# 🗄️  Creating database dump: carambus_api_production_20250102_120000.sql.gz
+# 🗄️  Creating database dump: carambus_api_development_20250102_120000.sql.gz
 # 📊 Source database: carambus_api_development
 # 🎯 Target database: carambus_api_production (on server)
-# ✅ Database dump created successfully: carambus_api_production_20250102_120000.sql.gz
+# ✅ Database dump created successfully: carambus_api_development_20250102_120000.sql.gz
 ```
 
-#### **2. Verfügbare Dumps auflisten**
+#### **2. Production-Dump vom Server herunterladen**
+```bash
+# Erstellt einen Dump der carambus_api_production Datenbank auf dem Server und lädt ihn herunter
+bundle exec rails mode:download_db_dump
+
+# Ausgabe:
+# 📥 Downloading database dump: carambus_api_production_20250102_120000.sql.gz
+# 📊 Source database: carambus_api_production (on server)
+# 🎯 Target database: carambus_api_development (local)
+# ✅ Database dump downloaded successfully: carambus_api_production_20250102_120000.sql.gz
+```
+
+#### **3. Verfügbare Dumps auflisten**
 ```bash
 # Zeigt alle verfügbaren Dumps mit Größe und Datum
 bundle exec rails mode:list_db_dumps
@@ -295,50 +307,128 @@ bundle exec rails mode:list_db_dumps
 # Ausgabe:
 # 🗄️  Available database dumps:
 # ----------------------------------------
-# carambus_api_production_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)
-# carambus_api_production_20250101_150000.sql.gz (1234567 bytes, 2025-01-01 15:00:00)
+# 📊 Development dumps (for upload to production):
+#   carambus_api_development_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)
+# 🎯 Production dumps (for download to development):
+#   carambus_api_production_20250102_120000.sql.gz (1234567 bytes, 2025-01-02 12:00:00)
 ```
 
-#### **3. Dump zum API-Server übertragen**
+#### **4. Version-Sicherheit prüfen**
+```bash
+# Prüft die Version-Sequenz-Nummern für sichere Synchronisation
+bundle exec rails 'mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]'
+
+# Ausgabe:
+# 🔍 Checking version sequence safety...
+# 📊 Highest version ID in dump: 12345
+# 🎯 Current max version ID in database: 10000
+# ✅ SAFE: Dump has higher version numbers - safe to import
+```
+
+#### **5. Dump zum API-Server übertragen (mit Sicherheitsprüfung)**
 ```bash
 # Überträgt den Dump zum Server und legt ihn in /var/www/carambus_api/shared/database_dumps/ ab
-bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+bundle exec rails 'mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]'
 
 # Ausgabe:
 # 🚀 Deploying database dump to production server...
-# Dump file: carambus_api_production_20250102_120000.sql.gz
-# Server: carambus.de:8910
+# 🔍 Performing safety check...
+# ✅ SAFE: Dump has higher version numbers - safe to import
 # ✅ Database dump deployed successfully
-# 📁 Remote location: /var/www/carambus_api/shared/database_dumps/carambus_api_production_20250102_120000.sql.gz
+# 📁 Remote location: /var/www/carambus_api/shared/database_dumps/carambus_api_development_20250102_120000.sql.gz
 ```
 
-#### **4. Dump auf API-Server einlesen (als www-data)**
+#### **6. Dump auf API-Server einlesen (DROP AND REPLACE)**
 ```bash
-# Liest den Dump in die carambus_api_production Datenbank ein
-bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+# Liest den Dump in die carambus_api_production Datenbank ein (kompletter Ersatz)
+bundle exec rails 'mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]'
 
 # Ausgabe:
-# 🗄️  Restoring database from dump...
-# Dump file: carambus_api_production_20250102_120000.sql.gz
-# Server: carambus.de:8910
-# ✅ Database restored successfully
+# 🗄️  Restoring database from dump (DROP AND REPLACE)...
+# ⚠️  WARNING: This will DROP and REPLACE the production database!
+#    Are you sure? (type 'yes' to continue): yes
+# ✅ Database restored successfully (drop and replace)
+# 🔄 Puma service restarted
+```
+
+#### **7. Lokale Development-DB von Production-Dump wiederherstellen**
+```bash
+# Stellt die lokale carambus_api_development von einem Production-Dump wieder her
+bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]'
+
+# Ausgabe:
+# 🗄️  Restoring local development database from production dump...
+# ⚠️  WARNING: This will DROP and REPLACE your local development database!
+#    Are you sure? (type 'yes' to continue): yes
+# ✅ Local development database restored successfully
+# 📊 Database: carambus_api_development
 ```
 
 ### **Vollständiger Synchronisations-Workflow**
 
+#### **Development → Production (Upload)**
 ```bash
 # 1. Lokalen Development-Dump erstellen
 bundle exec rails mode:prepare_db_dump
 
-# 2. Dump zum API-Server übertragen
-bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+# 2. Version-Sicherheit prüfen
+bundle exec rails 'mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]'
 
-# 3. Dump auf API-Server einlesen (als www-data)
-bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250102_120000.sql.gz]'
+# 3. Dump zum API-Server übertragen (mit Sicherheitsprüfung)
+bundle exec rails 'mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]'
 
-# 4. Puma Service neu starten
-bundle exec cap production puma:restart
+# 4. Dump auf API-Server einlesen (DROP AND REPLACE)
+bundle exec rails 'mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]'
 ```
+
+#### **Production → Development (Download)**
+```bash
+# 1. Production-Dump vom Server herunterladen
+bundle exec rails mode:download_db_dump
+
+# 2. Lokale Development-DB von Production-Dump wiederherstellen
+bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]'
+```
+
+### **Sicherheitsfeatures**
+
+#### **Version-Sequenz-Sicherheit**
+Das System verhindert versehentliches Überschreiben neuerer Daten:
+
+```bash
+# Automatische Sicherheitsprüfung vor Upload
+bundle exec rails 'mode:deploy_db_dump[carambus_api_development_20250102_120000.sql.gz]'
+
+# Manuelle Sicherheitsprüfung
+bundle exec rails 'mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]'
+```
+
+**Sicherheitsregeln:**
+- ✅ **SAFE**: Dump hat höhere Version-Nummern → Upload erlaubt
+- ⚠️ **WARNING**: Dump hat gleiche Version-Nummern → Potentielle Konflikte
+- ❌ **BLOCKED**: Dump hat niedrigere Version-Nummern → Upload blockiert
+
+#### **Drop-and-Replace Bestätigung**
+Alle kritischen Operationen erfordern explizite Bestätigung:
+
+```bash
+# Production-Datenbank ersetzen
+bundle exec rails 'mode:restore_db_dump[carambus_api_development_20250102_120000.sql.gz]'
+# ⚠️  WARNING: This will DROP and REPLACE the production database!
+#    Are you sure? (type 'yes' to continue): yes
+
+# Lokale Development-DB ersetzen
+bundle exec rails 'mode:restore_local_db[carambus_api_production_20250102_120000.sql.gz]'
+# ⚠️  WARNING: This will DROP and REPLACE your local development database!
+#    Are you sure? (type 'yes' to continue): yes
+```
+
+#### **Dateinamen-Validierung**
+Das System erkennt automatisch die Herkunft der Dumps:
+
+- ✅ **carambus_api_development_*.sql.gz** → Nur für Upload zu Production
+- ✅ **carambus_api_production_*.sql.gz** → Nur für Download zu Development
+- ❌ **Falsche Dateinamen** → Operation blockiert
 
 ### **Automatisierte Datenbank-Synchronisation**
 

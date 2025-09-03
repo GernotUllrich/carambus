@@ -306,10 +306,10 @@ namespace :mode do
     puts "Backup created at: #{backup_path}"
   end
 
-  desc "Prepare database dump for deployment"
+  desc "Prepare database dump for deployment (development to production)"
   task :prepare_db_dump => :environment do
     timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
-    dump_file = "carambus_api_production_#{timestamp}.sql.gz"
+    dump_file = "carambus_api_development_#{timestamp}.sql.gz"
     
     puts "🗄️  Creating database dump: #{dump_file}"
     puts "📊 Source database: carambus_api_development"
@@ -327,21 +327,118 @@ namespace :mode do
     end
   end
 
+  desc "Download database dump from production server (production to development)"
+  task :download_db_dump => :environment do
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    dump_file = "carambus_api_production_#{timestamp}.sql.gz"
+    
+    deploy_config = get_deploy_config
+    return puts "❌ No deployment configuration found" unless deploy_config
+    
+    puts "📥 Downloading database dump: #{dump_file}"
+    puts "📊 Source database: carambus_api_production (on server)"
+    puts "🎯 Target database: carambus_api_development (local)"
+    
+    # Create dump on server
+    remote_dump_command = "cd /var/www/#{deploy_config[:basename]}/current && pg_dump -Uwww_data carambus_api_production | gzip > #{dump_file}"
+    system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} '#{remote_dump_command}'")
+    
+    if $?.success?
+      # Download dump from server
+      system("scp -P #{deploy_config[:port]} www-data@#{deploy_config[:host]}:/var/www/#{deploy_config[:basename]}/current/#{dump_file} .")
+      
+      if $?.success?
+        puts "✅ Database dump downloaded successfully: #{dump_file}"
+        puts "📁 Location: #{File.expand_path(dump_file)}"
+      else
+        puts "❌ Failed to download database dump"
+        exit 1
+      end
+    else
+      puts "❌ Failed to create database dump on server"
+      exit 1
+    end
+  end
+
   desc "List available database dumps"
   task :list_db_dumps => :environment do
     puts "🗄️  Available database dumps:"
     puts "-" * 40
     
-    dumps = Dir.glob("carambus_api_production_*.sql.gz").sort.reverse
+    # List both development and production dumps
+    dev_dumps = Dir.glob("carambus_api_development_*.sql.gz").sort.reverse
+    prod_dumps = Dir.glob("carambus_api_production_*.sql.gz").sort.reverse
     
-    if dumps.empty?
+    if dev_dumps.empty? && prod_dumps.empty?
       puts "No database dumps found"
     else
-      dumps.each do |dump|
-        size = File.size(dump)
-        date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
-        puts "#{dump} (#{size} bytes, #{date})"
+      if dev_dumps.any?
+        puts "\n📊 Development dumps (for upload to production):"
+        dev_dumps.each do |dump|
+          size = File.size(dump)
+          date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
+          puts "  #{dump} (#{size} bytes, #{date})"
+        end
       end
+      
+      if prod_dumps.any?
+        puts "\n🎯 Production dumps (for download to development):"
+        prod_dumps.each do |dump|
+          size = File.size(dump)
+          date = File.mtime(dump).strftime('%Y-%m-%d %H:%M:%S')
+          puts "  #{dump} (#{size} bytes, #{date})"
+        end
+      end
+    end
+  end
+
+  desc "Check version sequence numbers for safety"
+  task :check_version_safety, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:check_version_safety[carambus_api_development_20250102_120000.sql.gz]'"
+      exit 1
+    end
+    
+    unless File.exist?(dump_file)
+      puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    puts "🔍 Checking version sequence safety..."
+    puts "Dump file: #{dump_file}"
+    
+    # Extract version sequence from dump
+    dump_content = `gunzip -c #{dump_file}`
+    
+    # Find the highest version ID in the dump
+    version_matches = dump_content.scan(/INSERT INTO versions.*VALUES.*\((\d+),/)
+    if version_matches.any?
+      dump_max_version = version_matches.flatten.map(&:to_i).max
+      puts "📊 Highest version ID in dump: #{dump_max_version}"
+      
+      # Check current database version
+      begin
+        current_max_version = ActiveRecord::Base.connection.execute("SELECT MAX(id) FROM versions").first['max'].to_i
+        puts "🎯 Current max version ID in database: #{current_max_version}"
+        
+        if dump_max_version > current_max_version
+          puts "✅ SAFE: Dump has higher version numbers - safe to import"
+        elsif dump_max_version == current_max_version
+          puts "⚠️  WARNING: Dump has same version numbers - potential conflicts"
+        else
+          puts "❌ DANGER: Dump has lower version numbers - would overwrite newer data!"
+          puts "   This operation is BLOCKED for safety."
+          exit 1
+        end
+      rescue => e
+        puts "⚠️  Could not check current database: #{e.message}"
+        puts "   Proceeding with caution..."
+      end
+    else
+      puts "⚠️  No versions found in dump"
+      puts "   Proceeding with caution..."
     end
   end
 
@@ -469,17 +566,24 @@ namespace :mode do
     puts "✅ All templates deployed successfully"
   end
 
-  desc "Deploy database dump to production server"
+  desc "Deploy database dump to production server (with safety check)"
   task :deploy_db_dump, [:dump_file] => :environment do |task, args|
     dump_file = args.dump_file
     if dump_file.blank?
       puts "❌ Database dump file required"
-      puts "Usage: bundle exec rails 'mode:deploy_db_dump[carambus_api_production_20250101_120000.sql.gz]'"
+      puts "Usage: bundle exec rails 'mode:deploy_db_dump[carambus_api_development_20250101_120000.sql.gz]'"
       exit 1
     end
     
     unless File.exist?(dump_file)
       puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    # Check if it's a development dump (safe to upload)
+    unless dump_file.include?('carambus_api_development_')
+      puts "❌ Only development dumps can be uploaded to production"
+      puts "   Expected format: carambus_api_development_YYYYMMDD_HHMMSS.sql.gz"
       exit 1
     end
     
@@ -489,6 +593,10 @@ namespace :mode do
     puts "🚀 Deploying database dump to production server..."
     puts "Dump file: #{dump_file}"
     puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    
+    # Safety check: Check version sequence numbers
+    puts "🔍 Performing safety check..."
+    Rake::Task['mode:check_version_safety'].invoke(dump_file)
     
     # Copy dump file to server
     remote_dump_dir = "/var/www/#{deploy_config[:basename]}/shared/database_dumps"
@@ -509,32 +617,108 @@ namespace :mode do
     end
   end
 
-  desc "Restore database from dump on production server"
+  desc "Restore database from dump on production server (drop and replace)"
   task :restore_db_dump, [:dump_file] => :environment do |task, args|
     dump_file = args.dump_file
     if dump_file.blank?
       puts "❌ Database dump file required"
-      puts "Usage: bundle exec rails 'mode:restore_db_dump[carambus_api_production_20250101_120000.sql.gz]'"
+      puts "Usage: bundle exec rails 'mode:restore_db_dump[carambus_api_development_20250101_120000.sql.gz]'"
       exit 1
     end
     
     deploy_config = get_deploy_config
     return puts "❌ No deployment configuration found" unless deploy_config
     
-    puts "🗄️  Restoring database from dump..."
+    puts "🗄️  Restoring database from dump (DROP AND REPLACE)..."
     puts "Dump file: #{dump_file}"
     puts "Server: #{deploy_config[:host]}:#{deploy_config[:port]}"
+    puts "Target database: #{deploy_config[:basename]}_production"
+    
+    # Confirm the operation
+    puts "⚠️  WARNING: This will DROP and REPLACE the production database!"
+    puts "   Are you sure? (type 'yes' to continue):"
+    confirmation = STDIN.gets.chomp
+    
+    unless confirmation.downcase == 'yes'
+      puts "❌ Operation cancelled"
+      exit 1
+    end
     
     remote_dump_file = "/var/www/#{deploy_config[:basename]}/shared/database_dumps/#{File.basename(dump_file)}"
+    target_db = "#{deploy_config[:basename]}_production"
     
-    # Restore database
-    restore_command = "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{deploy_config[:basename]}_production"
+    # Drop and recreate database
+    drop_and_restore_commands = [
+      "sudo systemctl stop puma-#{deploy_config[:basename]}.service",
+      "sudo -u postgres dropdb #{target_db}",
+      "sudo -u postgres createdb #{target_db}",
+      "sudo -u postgres psql #{target_db} -c 'ALTER DATABASE #{target_db} OWNER TO www_data;'",
+      "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{target_db}",
+      "sudo systemctl start puma-#{deploy_config[:basename]}.service"
+    ]
+    
+    restore_command = drop_and_restore_commands.join(" && ")
     system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} '#{restore_command}'")
     
     if $?.success?
-      puts "✅ Database restored successfully"
+      puts "✅ Database restored successfully (drop and replace)"
+      puts "🔄 Puma service restarted"
     else
       puts "❌ Failed to restore database"
+      exit 1
+    end
+  end
+
+  desc "Restore local development database from production dump (drop and replace)"
+  task :restore_local_db, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:restore_local_db[carambus_api_production_20250101_120000.sql.gz]'"
+      exit 1
+    end
+    
+    unless File.exist?(dump_file)
+      puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    # Check if it's a production dump (safe to download)
+    unless dump_file.include?('carambus_api_production_')
+      puts "❌ Only production dumps can be restored to development"
+      puts "   Expected format: carambus_api_production_YYYYMMDD_HHMMSS.sql.gz"
+      exit 1
+    end
+    
+    puts "🗄️  Restoring local development database from production dump..."
+    puts "Dump file: #{dump_file}"
+    puts "Target database: carambus_api_development"
+    
+    # Confirm the operation
+    puts "⚠️  WARNING: This will DROP and REPLACE your local development database!"
+    puts "   Are you sure? (type 'yes' to continue):"
+    confirmation = STDIN.gets.chomp
+    
+    unless confirmation.downcase == 'yes'
+      puts "❌ Operation cancelled"
+      exit 1
+    end
+    
+    # Drop and recreate local database
+    drop_and_restore_commands = [
+      "dropdb carambus_api_development",
+      "createdb carambus_api_development",
+      "gunzip -c #{dump_file} | psql carambus_api_development"
+    ]
+    
+    restore_command = drop_and_restore_commands.join(" && ")
+    system(restore_command)
+    
+    if $?.success?
+      puts "✅ Local development database restored successfully"
+      puts "📊 Database: carambus_api_development"
+    else
+      puts "❌ Failed to restore local database"
       exit 1
     end
   end
