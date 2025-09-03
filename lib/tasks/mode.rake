@@ -669,6 +669,94 @@ namespace :mode do
     end
   end
 
+  desc "Restore local development database from production dump with region reduction"
+  task :restore_local_db_with_region_reduction, [:dump_file] => :environment do |task, args|
+    dump_file = args.dump_file
+    if dump_file.blank?
+      puts "❌ Database dump file required"
+      puts "Usage: bundle exec rails 'mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]'"
+      exit 1
+    end
+    
+    unless File.exist?(dump_file)
+      puts "❌ Database dump file not found: #{dump_file}"
+      exit 1
+    end
+    
+    # Check if it's a production dump (safe to download)
+    unless dump_file.include?('carambus_api_production_')
+      puts "❌ Only production dumps can be restored to development"
+      puts "   Expected format: carambus_api_production_YYYYMMDD_HHMMSS.sql.gz"
+      exit 1
+    end
+    
+    puts "🗄️  Restoring local development database with region reduction..."
+    puts "Dump file: #{dump_file}"
+    puts "Target database: carambus_api_development"
+    
+    # Confirm the operation
+    puts "⚠️  WARNING: This will DROP and REPLACE your local development database!"
+    puts "   The database will be reduced to region-specific data only."
+    puts "   Are you sure? (type 'yes' to continue):"
+    confirmation = STDIN.gets.chomp
+    
+    unless confirmation.downcase == 'yes'
+      puts "❌ Operation cancelled"
+      exit 1
+    end
+    
+    # Step 1: Backup local changes
+    puts "📋 Step 1: Backing up local changes..."
+    Rake::Task['mode:backup_local_changes'].invoke
+    
+    # Find the backup file
+    backup_files = Dir.glob("local_changes_filtered_*.sql").sort.reverse
+    backup_file = backup_files.first if backup_files.any?
+    
+    if backup_file
+      puts "📁 Local changes backup: #{backup_file}"
+    else
+      puts "📁 No local changes to backup"
+    end
+    
+    # Step 2: Drop and recreate local database
+    puts "📋 Step 2: Dropping and recreating database..."
+    drop_and_restore_commands = [
+      "dropdb carambus_api_development",
+      "createdb carambus_api_development",
+      "gunzip -c #{dump_file} | psql carambus_api_development"
+    ]
+    
+    restore_command = drop_and_restore_commands.join(" && ")
+    system(restore_command)
+    
+    if $?.success?
+      puts "✅ Database restored successfully"
+    else
+      puts "❌ Failed to restore database"
+      exit 1
+    end
+    
+    # Step 3: Update region taggings
+    puts "📋 Step 3: Updating region taggings..."
+    Rake::Task['region_taggings:update_all_region_ids'].invoke
+    
+    # Step 4: Reduce database to region-specific data
+    puts "📋 Step 4: Reducing database to region-specific data..."
+    Rake::Task['cleanup:remove_non_region_records'].invoke
+    
+    # Step 5: Restore local changes if any
+    if backup_file
+      puts "📋 Step 5: Restoring local changes..."
+      Rake::Task['mode:restore_local_changes'].invoke(backup_file)
+    end
+    
+    puts "✅ Local development database restored with region reduction"
+    puts "📊 Database: carambus_api_development"
+    puts "🎯 Region-specific data only"
+    puts "💾 Local changes: #{backup_file}" if backup_file
+  end
+
   desc "Restore local development database from production dump (drop and replace)"
   task :restore_local_db, [:dump_file] => :environment do |task, args|
     dump_file = args.dump_file

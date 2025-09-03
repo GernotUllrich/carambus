@@ -403,6 +403,25 @@ bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_producti
 # ✅ Local development database restored with local changes preserved
 ```
 
+#### **11. Lokale Development-DB mit Region-Reduktion wiederherstellen**
+```bash
+# Stellt die lokale DB wieder her und reduziert auf Region-spezifische Daten
+bundle exec rails 'mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]'
+
+# Ausgabe:
+# 🗄️  Restoring local development database with region reduction...
+# ⚠️  WARNING: This will DROP and REPLACE your local development database!
+#    The database will be reduced to region-specific data only.
+#    Are you sure? (type 'yes' to continue): yes
+# 📋 Step 1: Backing up local changes...
+# 📋 Step 2: Dropping and recreating database...
+# 📋 Step 3: Updating region taggings...
+# 📋 Step 4: Reducing database to region-specific data...
+# 📋 Step 5: Restoring local changes...
+# ✅ Local development database restored with region reduction
+# 🎯 Region-specific data only
+```
+
 ### **Vollständiger Synchronisations-Workflow**
 
 #### **Development → Production (Upload)**
@@ -436,6 +455,15 @@ bundle exec rails mode:download_db_dump
 
 # 2. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen
 bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+```
+
+#### **Production → Development mit Region-Reduktion**
+```bash
+# 1. Production-Dump vom Server herunterladen
+bundle exec rails mode:download_db_dump
+
+# 2. Lokale Development-DB mit Region-Reduktion wiederherstellen
+bundle exec rails 'mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]'
 ```
 
 ### **Sicherheitsfeatures**
@@ -477,6 +505,83 @@ Das System erkennt automatisch die Herkunft der Dumps:
 - ✅ **carambus_api_development_*.sql.gz** → Nur für Upload zu Production
 - ✅ **carambus_api_production_*.sql.gz** → Nur für Download zu Development
 - ❌ **Falsche Dateinamen** → Operation blockiert
+
+### **Region-spezifische Datenbankreduktion**
+
+#### **Warum Datenbankreduktion?**
+Lokale Server können auf eine spezifische Region reduziert werden, um nur relevante Daten zu behalten:
+
+- ✅ **Records ohne Region-Bezug** (global_context = TRUE)
+- ✅ **Records der spezifischen Region** (region_id = MODE_CONTEXT)
+- ✅ **DBU-relevante Records** (Spieler, Clubs, LeagueTeams, Locations, Games, Parties, PartyGames, Seedings, GameParticipations)
+
+#### **Automatische Datenbankreduktion**
+```bash
+# Datenbank auf spezifische Region reduzieren
+bundle exec rails cleanup:remove_non_region_records
+
+# Ausgabe:
+# Deleting records in dependency order...
+# Processing GameParticipation...
+#   Before: 15000
+#   After: 5000
+#   Deleted: 10000
+# Processing Game...
+#   Before: 8000
+#   After: 3000
+#   Deleted: 5000
+```
+
+#### **Context-gesteuerte Synchronisation**
+```bash
+# Lokaler Server mit spezifischem Context
+MODE_CONTEXT=NBV bundle exec rails 'mode:local'
+
+# Nur Context-relevante Daten werden synchronisiert
+# - Records der NBV-Region
+# - DBU-relevante Records (global_context = TRUE)
+# - Records ohne Region-Bezug
+```
+
+#### **Region-Tagging nach API-DB Import**
+```bash
+# Nach dem Einlesen einer API-Datenbank
+bundle exec rails region_taggings:update_all_region_ids
+
+# Aktualisiert alle region_tags in der lokalen Datenbank
+# Setzt korrekte region_id für alle Modelle
+```
+
+### **Vollständiger Workflow mit Region-Reduktion**
+
+#### **API → Local mit Region-Reduktion**
+```bash
+# 1. Production-Dump vom Server herunterladen
+bundle exec rails mode:download_db_dump
+
+# 2. Lokale Development-DB mit Erhaltung lokaler Änderungen wiederherstellen
+bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+
+# 3. Region-Tagging aktualisieren
+bundle exec rails region_taggings:update_all_region_ids
+
+# 4. Datenbank auf spezifische Region reduzieren
+bundle exec rails cleanup:remove_non_region_records
+```
+
+#### **Context-spezifische Konfiguration**
+```bash
+# Lokaler Server für NBV-Region
+MODE_CONTEXT=NBV \
+MODE_BASENAME=carambus \
+MODE_DOMAIN=new.carambus.de \
+bundle exec rails 'mode:local'
+
+# Führt automatisch aus:
+# - Context-spezifische Datenbankreduktion
+# - Region-Tagging Aktualisierung
+# - Nur relevante Daten-Synchronisation
+```
 
 ### **Lokale Änderungen-Management**
 

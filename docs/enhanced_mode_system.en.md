@@ -403,6 +403,25 @@ bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_producti
 # ✅ Local development database restored with local changes preserved
 ```
 
+#### **11. Restore Local Development DB with Region Reduction**
+```bash
+# Restores local DB and reduces to region-specific data
+bundle exec rails 'mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]'
+
+# Output:
+# 🗄️  Restoring local development database with region reduction...
+# ⚠️  WARNING: This will DROP and REPLACE your local development database!
+#    The database will be reduced to region-specific data only.
+#    Are you sure? (type 'yes' to continue): yes
+# 📋 Step 1: Backing up local changes...
+# 📋 Step 2: Dropping and recreating database...
+# 📋 Step 3: Updating region taggings...
+# 📋 Step 4: Reducing database to region-specific data...
+# 📋 Step 5: Restoring local changes...
+# ✅ Local development database restored with region reduction
+# 🎯 Region-specific data only
+```
+
 ### **Complete Synchronization Workflow**
 
 #### **Development → Production (Upload)**
@@ -436,6 +455,15 @@ bundle exec rails mode:download_db_dump
 
 # 2. Restore local development DB with local changes preservation
 bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+```
+
+#### **Production → Development with Region Reduction**
+```bash
+# 1. Download production dump from server
+bundle exec rails mode:download_db_dump
+
+# 2. Restore local development DB with region reduction
+bundle exec rails 'mode:restore_local_db_with_region_reduction[carambus_api_production_20250102_120000.sql.gz]'
 ```
 
 ### **Security Features**
@@ -477,6 +505,83 @@ The system automatically recognizes dump origins:
 - ✅ **carambus_api_development_*.sql.gz** → Only for upload to production
 - ✅ **carambus_api_production_*.sql.gz** → Only for download to development
 - ❌ **Wrong filenames** → Operation blocked
+
+### **Region-Specific Database Reduction**
+
+#### **Why Database Reduction?**
+Local servers can be reduced to a specific region to keep only relevant data:
+
+- ✅ **Records without region association** (global_context = TRUE)
+- ✅ **Records of the specific region** (region_id = MODE_CONTEXT)
+- ✅ **DBU-relevant records** (Players, Clubs, LeagueTeams, Locations, Games, Parties, PartyGames, Seedings, GameParticipations)
+
+#### **Automatic Database Reduction**
+```bash
+# Reduce database to specific region
+bundle exec rails cleanup:remove_non_region_records
+
+# Output:
+# Deleting records in dependency order...
+# Processing GameParticipation...
+#   Before: 15000
+#   After: 5000
+#   Deleted: 10000
+# Processing Game...
+#   Before: 8000
+#   After: 3000
+#   Deleted: 5000
+```
+
+#### **Context-Driven Synchronization**
+```bash
+# Local server with specific context
+MODE_CONTEXT=NBV bundle exec rails 'mode:local'
+
+# Only context-relevant data is synchronized
+# - Records of the NBV region
+# - DBU-relevant records (global_context = TRUE)
+# - Records without region association
+```
+
+#### **Region Tagging After API DB Import**
+```bash
+# After importing an API database
+bundle exec rails region_taggings:update_all_region_ids
+
+# Updates all region_tags in the local database
+# Sets correct region_id for all models
+```
+
+### **Complete Workflow with Region Reduction**
+
+#### **API → Local with Region Reduction**
+```bash
+# 1. Download production dump from server
+bundle exec rails mode:download_db_dump
+
+# 2. Restore local development DB with local changes preservation
+bundle exec rails 'mode:restore_local_db_with_preservation[carambus_api_production_20250102_120000.sql.gz]'
+
+# 3. Update region taggings
+bundle exec rails region_taggings:update_all_region_ids
+
+# 4. Reduce database to specific region
+bundle exec rails cleanup:remove_non_region_records
+```
+
+#### **Context-Specific Configuration**
+```bash
+# Local server for NBV region
+MODE_CONTEXT=NBV \
+MODE_BASENAME=carambus \
+MODE_DOMAIN=new.carambus.de \
+bundle exec rails 'mode:local'
+
+# Automatically executes:
+# - Context-specific database reduction
+# - Region tagging updates
+# - Only relevant data synchronization
+```
 
 ### **Local Changes Management**
 
