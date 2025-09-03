@@ -1,0 +1,21 @@
+---
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: carambus_local_development
+  username: gullrich
+  password: 
+  host: localhost
+
+test:
+  <<: *default
+  database: carambus_local_test
+  username: gullrich
+  password: 
+  host: localhost
+
+# Production config remains in database.yml for server deployment
