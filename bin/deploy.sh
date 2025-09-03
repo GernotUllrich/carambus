@@ -83,17 +83,52 @@ pull_repo_changes() {
         exit 1
     fi
     
+    # Check and fix repository configuration
+    print_status "Checking repository configuration..."
+    
+    # Determine the correct remote name and fix if needed
+    if git remote | grep -q "carambus"; then
+        REMOTE_NAME="carambus"
+        REMOTE_URL="git@github.com:GernotUllrich/carambus.git"
+    elif git remote | grep -q "origin"; then
+        # Check if origin has the wrong URL and fix it
+        ORIGIN_URL=$(git remote get-url origin)
+        if [[ "$ORIGIN_URL" == *"Geullrich"* ]] || [[ "$ORIGIN_URL" == *"carambus_api"* ]]; then
+            print_warning "Fixing incorrect remote URL..."
+            git remote remove origin
+            git remote add carambus git@github.com:GernotUllrich/carambus.git
+            REMOTE_NAME="carambus"
+            REMOTE_URL="git@github.com:GernotUllrich/carambus.git"
+        else
+            REMOTE_NAME="origin"
+            REMOTE_URL="$ORIGIN_URL"
+        fi
+    else
+        print_error "No suitable remote found. Available remotes:"
+        git remote -v
+        exit 1
+    fi
+    
     # Fetch latest changes
     print_status "Fetching latest changes..."
-    git fetch carambus
+    git fetch "$REMOTE_NAME"
     
-    # Check if there are any changes to pull
-    if [ "$(git rev-list HEAD..carambus/master --count)" -eq 0 ]; then
-        print_warning "No new changes to pull for $repo_name"
+    # Check if repository has proper history
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        print_warning "Repository has no commits, resetting to remote master..."
+        # Clean up any unversioned files that might conflict
+        git clean -fd
+        git reset --hard "$REMOTE_NAME/master"
+        print_success "Repository reset to remote master"
     else
-        print_status "Pulling changes from carambus/master..."
-        git pull carambus master
-        print_success "Successfully pulled changes for $repo_name"
+        # Check if there are any changes to pull
+        if [ "$(git rev-list HEAD..$REMOTE_NAME/master --count 2>/dev/null || echo "0")" -eq 0 ]; then
+            print_warning "No new changes to pull for $repo_name"
+        else
+            print_status "Pulling changes from $REMOTE_NAME/master..."
+            git pull "$REMOTE_NAME" master
+            print_success "Successfully pulled changes for $repo_name"
+        fi
     fi
 }
 
@@ -112,7 +147,7 @@ create_environment() {
         cd "$repo_name"
         rm -rf .git
         git init
-        git remote add origin git@github.com:Geullrich/carambus_api.git
+        git remote add carambus git@github.com:GernotUllrich/carambus.git
         print_success "Repository created: $repo_name"
     else
         print_warning "Repository already exists: $repo_name"
@@ -210,6 +245,12 @@ deploy_local_server() {
     # Deploy to repository
     print_status "Deploying to repository..."
     bundle exec rails data:deploy
+    
+    # Commit and push changes
+    print_status "Committing and pushing changes..."
+    git add .
+    git commit -m "Update deployment configuration for local server" || print_warning "No changes to commit"
+    git push carambus master
     
     # Capistrano deployment
     print_status "Starting Capistrano deployment..."
