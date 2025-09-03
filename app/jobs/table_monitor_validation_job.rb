@@ -73,34 +73,6 @@ class TableMonitorValidationJob < ApplicationJob
     balls_goal = table_monitor.data[player_id]['balls_goal'].to_i
     if balls_goal > 0 && expected_score > balls_goal && !table_monitor.data['allow_overflow']
       Rails.logger.warn "TableMonitorValidationJob: Score #{expected_score} exceeds goal #{balls_goal} for #{player_id}"
-    end
-    
-    # Validate innings consistency
-    validate_innings_consistency(table_monitor, player_id)
-    
-    # Save the validated state
-    table_monitor.save!
-  end
-    
-    # Validate score consistency
-    current_score = table_monitor.data[player_id]['result'].to_i
-    current_innings_redo = table_monitor.data[player_id]['innings_redo_list']&.last&.to_i || 0
-    
-    case operation
-    when 'add'
-      expected_score = current_score + points
-    when 'subtract'
-      expected_score = [current_score - points, 0].max
-    when 'set'
-      expected_score = points
-    else
-      expected_score = current_score
-    end
-    
-    # Check if the score is within valid bounds
-    balls_goal = table_monitor.data[player_id]['balls_goal'].to_i
-    if balls_goal > 0 && expected_score > balls_goal && !table_monitor.data['allow_overflow']
-      Rails.logger.warn "TableMonitorValidationJob: Score #{expected_score} exceeds goal #{balls_goal} for #{player_id}"
       # Could implement auto-correction here if needed
     end
     
@@ -222,4 +194,4 @@ class TableMonitorValidationJob < ApplicationJob
     
     Rails.logger.info "TableMonitorValidationJob: Broadcasted corrected state for table_monitor #{table_monitor.id}"
   end
-en
+end
