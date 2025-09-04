@@ -9,16 +9,29 @@ namespace :mode do
     application_name = params[:application_name] || 'carambus'
     context = params[:context] || 'NBV'
     api_url = params[:api_url] || 'https://newapi.carambus.de/'
-    basename = params[:basename] || 'carambus'
-    database = params[:database] || 'carambus_api_development'
-    domain = params[:domain] || 'carambus.de'
     location_id = params[:location_id] || '1'
     club_id = params[:club_id] || '357'
-    rails_env = params[:rails_env] || 'production'
+    rails_env = params[:rails_env] || 'development'
     host = params[:host] || 'new.carambus.de'
     port = params[:port] || '8910'  # SSH Port, not application port
     branch = params[:branch] || 'master'
     puma_script = params[:puma_script] || 'manage-puma.sh'
+    
+    # Auto-generate project name from location_id
+    shortname = params[:shortname]
+    if shortname
+      # Use shortname if provided: carambus_{shortname}_{environment}
+      project_name = "carambus_#{shortname}"
+      basename = project_name
+      database = "#{project_name}_#{rails_env}"
+    else
+      # Use location_id: carambus_location_{id}_{environment}
+      project_name = "carambus_location_#{location_id}"
+      basename = project_name
+      database = "#{project_name}_#{rails_env}"
+    end
+    
+    domain = params[:domain] || 'carambus.de'
     
     # New parameters for NGINX and Puma
     nginx_port = params[:nginx_port] || '80'  # NGINX web port
@@ -28,11 +41,15 @@ namespace :mode do
     
     puts "🚀 Switching to LOCAL mode with named parameters..."
     puts "Parameters: #{params.inspect}"
+    puts "📁 Project: #{project_name}"
+    puts "🗄️  Database: #{database}"
+    puts "📍 Location ID: #{location_id}"
+    puts "🎯 Environment: #{rails_env}"
 
     # Update carambus.yml
     update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
 
-    # Update database.yml
+    # Update database.yml with project-specific configuration
     update_database_yml(database)
 
     # Update deploy.rb for LOCAL mode
@@ -1209,6 +1226,122 @@ namespace :mode do
     puts "  4. Run: bundle exec cap production deploy"
   end
 
+  desc "Generate LOCAL DEVELOPMENT configurations"
+  task :local_dev => :environment do
+    params = parse_named_parameters_from_env
+    
+    # Auto-detect project name from current directory
+    project_name = File.basename(Dir.pwd)
+    
+    season_name = params[:season_name] || "2025/2026"
+    application_name = params[:application_name] || 'carambus'
+    context = params[:context] || 'NBV'
+    api_url = params[:api_url] || 'https://newapi.carambus.de/'
+    basename = params[:basename] || project_name
+    database = params[:database] || "#{project_name}_development"
+    domain = params[:domain] || 'carambus.de'
+    location_id = params[:location_id] || '1'
+    club_id = params[:club_id] || '357'
+    rails_env = params[:rails_env] || 'development'
+    host = params[:host] || 'new.carambus.de'
+    port = params[:port] || '8910'  # SSH Port, not application port
+    branch = params[:branch] || 'master'
+    puma_script = params[:puma_script] || 'manage-puma.sh'
+    
+    # New parameters for NGINX and Puma
+    nginx_port = params[:nginx_port] || '80'  # NGINX web port
+    puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
+    ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id, basename, rails_env)
+    
+    puts "🔧 Generating LOCAL DEVELOPMENT configurations..."
+    puts "📁 Project: #{project_name}"
+    puts "🗄️  Database: #{database}"
+
+    # Update carambus.yml in config/
+    update_carambus_yml(season_name, api_url, basename, domain, location_id, application_name, context, club_id)
+    
+    # Update database.yml in config/
+    update_database_yml(database)
+    
+    # Update deploy.rb for LOCAL mode in config/
+    update_deploy_rb(basename, domain)
+    
+    # Update deploy.rb for LOCAL mode in config/
+    update_deploy_environment_rb(rails_env, host, port, branch)
+    
+    # Update Puma configuration for LOCAL mode in config/
+    update_puma_configuration(puma_script, basename)
+    
+    # Update NGINX configuration in config/
+    update_nginx_configuration(basename, domain, nginx_port, ssl_enabled, puma_socket)
+    
+    # Update Puma service configuration in config/
+    update_puma_service_configuration(basename, puma_socket, rails_env)
+    
+    # Update Puma.rb configuration in config/
+    update_puma_rb_configuration(basename, rails_env)
+    
+    # Update scoreboard URL configuration in config/
+    update_scoreboard_url_configuration(scoreboard_url)
+    
+    # Manage log files for LOCAL mode
+    manage_log_files("local")
+    
+    puts "✅ Local development configurations generated in config/"
+  end
+
+  desc "Generate DEPLOYMENT configurations"
+  task :deploy_config => :environment do
+    params = parse_named_parameters_from_env
+    
+    # Auto-detect project name from current directory
+    project_name = File.basename(Dir.pwd)
+    
+    season_name = params[:season_name] || "2025/2026"
+    application_name = params[:application_name] || 'carambus'
+    context = params[:context] || 'NBV'
+    api_url = params[:api_url] || 'https://newapi.carambus.de/'
+    basename = params[:basename] || project_name
+    database = params[:database] || "#{project_name}_development"
+    domain = params[:domain] || 'carambus.de'
+    location_id = params[:location_id] || '1'
+    club_id = params[:club_id] || '357'
+    rails_env = params[:rails_env] || 'production'
+    host = params[:host] || 'new.carambus.de'
+    port = params[:port] || '8910'  # SSH Port, not application port
+    branch = params[:branch] || 'master'
+    puma_script = params[:puma_script] || 'manage-puma.sh'
+    
+    # New parameters for NGINX and Puma
+    nginx_port = params[:nginx_port] || '80'  # NGINX web port
+    puma_socket = params[:puma_socket] || "puma-#{rails_env}.sock"  # Puma socket name
+    ssl_enabled = params[:ssl_enabled] || 'false'  # SSL enabled
+    scoreboard_url = params[:scoreboard_url] || generate_scoreboard_url(location_id, basename, rails_env)
+    
+    puts "🚀 Generating DEPLOYMENT configurations..."
+    puts "📁 Project: #{project_name}"
+    puts "🗄️  Database: #{database}"
+    
+    # Create carambus_data directory
+    carambus_data_dir = Rails.root.join('carambus_data')
+    FileUtils.mkdir_p(carambus_data_dir)
+    
+    # Generate configurations in carambus_data/
+    update_carambus_yml_deployment(carambus_data_dir, season_name, api_url, basename, domain, location_id, application_name, context, club_id)
+    update_database_yml_deployment(carambus_data_dir, database)
+    update_deploy_rb_deployment(carambus_data_dir, basename, domain)
+    update_deploy_environment_rb_deployment(carambus_data_dir, rails_env, host, port, branch)
+    update_puma_configuration_deployment(carambus_data_dir, puma_script, basename)
+    update_nginx_configuration_deployment(carambus_data_dir, basename, domain, nginx_port, ssl_enabled, puma_socket)
+    update_puma_service_configuration_deployment(carambus_data_dir, basename, puma_socket, rails_env)
+    update_puma_rb_configuration_deployment(carambus_data_dir, basename, rails_env)
+    update_scoreboard_url_configuration_deployment(carambus_data_dir, scoreboard_url)
+    
+    puts "✅ Deployment configurations generated in carambus_data/"
+    puts "📝 Next step: Deploy using 'bundle exec cap production deploy'"
+  end
+
   private
 
   def parse_named_parameters_from_env
@@ -1532,114 +1665,27 @@ namespace :mode do
 
   def update_puma_rb_configuration(basename, rails_env)
     puma_rb_file = Rails.root.join('config', 'puma.rb')
-    
-    # Different configuration for development vs production
-    if rails_env == 'development'
-      # Development configuration - simple and local
-      content = <<~RUBY
-        # Puma Configuration for #{basename} (development)
-        # Generated by Carambus Mode System
 
-        # Puma can serve each request in a thread from an internal thread pool.
-        threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
-        threads threads_count, threads_count
+    if File.exist?("#{puma_rb_file}.erb")
+      content = File.read("#{puma_rb_file}.erb")
+      
+      # Handle nil values by converting to empty string
+      basename = basename.to_s
+      rails_env = rails_env.to_s
+      
+      updated_content = content.gsub(
+        /<%= basename %>/,
+        basename
+      ).gsub(
+        /<%= rails_env %>/,
+        rails_env
+      )
 
-        # Specifies the `environment` that Puma will run in.
-        environment ENV.fetch("RAILS_ENV") { "development" }
-
-        # Specifies the number of `workers` to boot in clustered mode.
-        workers ENV.fetch("WEB_CONCURRENCY") { 2 }
-
-        # Use the `preload_app!` method when specifying a `workers` number.
-        preload_app!
-
-        # If you are preloading your application and using Active Record, it's
-        # recommended that you close any connections to the database before workers
-        # are forked to prevent connection leakage.
-        before_fork do
-          ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
-        end
-
-        # The code in the `on_worker_boot` will be called if you are using
-        # clustered mode by specifying a number of `workers`.
-        on_worker_boot do
-          ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-        end
-
-        # Allow puma to be restarted by `rails restart` command.
-        plugin :tmp_restart
-
-        # Development: Use standard port instead of Unix socket
-        port ENV.fetch("PORT") { 3000 }
-      RUBY
+      File.write(puma_rb_file, updated_content)
+      puts "✓ Updated puma.rb with parameters"
     else
-      # Production configuration - Unix socket and logging
-      content = <<~RUBY
-        # Puma Configuration for #{basename} (production)
-        # Generated by Carambus Mode System
-
-        # Puma can serve each request in a thread from an internal thread pool.
-        threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
-        threads threads_count, threads_count
-
-        # Specifies the `environment` that Puma will run in.
-        environment ENV.fetch("RAILS_ENV") { "production" }
-
-        # Specifies the number of `workers` to boot in clustered mode.
-        workers ENV.fetch("WEB_CONCURRENCY") { 2 }
-
-        # Use the `preload_app!` method when specifying a `workers` number.
-        preload_app!
-
-        # If you are preloading your application and using Active Record, it's
-        # recommended that you close any connections to the database before workers
-        # are forked to prevent connection leakage.
-        before_fork do
-          ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
-        end
-
-        # The code in the `on_worker_boot` will be called if you are using
-        # clustered mode by specifying a number of `workers`.
-        on_worker_boot do
-          ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-        end
-
-        # Allow puma to be restarted by `rails restart` command.
-        plugin :tmp_restart
-
-        # Production: Unix Socket Configuration
-        app_dir = File.expand_path("../..", __FILE__)
-        shared_dir = "#{app_dir}/shared"
-
-        # Ensure the shared directory exists
-        Dir.mkdir(shared_dir) unless Dir.exist?(shared_dir)
-
-        # Create socket directory
-        socket_dir = "#{shared_dir}/sockets"
-        Dir.mkdir(socket_dir) unless Dir.exist?(socket_dir)
-
-        # Create log directory
-        log_dir = "#{shared_dir}/log"
-        Dir.mkdir(log_dir) unless Dir.exist?(log_dir)
-
-        # Create pids directory
-        pids_dir = "#{shared_dir}/pids"
-        Dir.mkdir(pids_dir) unless Dir.exist?(pids_dir)
-
-        # Bind to Unix socket
-        bind "unix://#{socket_dir}/puma-#{rails_env}.sock"
-
-        # Set socket permissions
-        pidfile "#{pids_dir}/puma-#{rails_env}.pid"
-        state_path "#{pids_dir}/puma-#{rails_env}.state"
-
-        # Logging
-        stdout_redirect "#{log_dir}/puma.stdout.log", "#{log_dir}/puma.stderr.log", true
-      RUBY
+      puts "⚠️  puma.rb.erb not found, skipping puma.rb update"
     end
-    
-    File.write(puma_rb_file, content)
-    puts "✓ Updated puma.rb with #{rails_env} configuration"
   end
 
   def show_detailed_parameters(source = :production)

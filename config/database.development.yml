@@ -6,16 +6,17 @@ default: &default
 
 development:
   <<: *default
-  database: carambus_local_development
-  username: gullrich
-  password: 
+  database: carambus_local_phat_development
   host: localhost
 
 test:
   <<: *default
-  database: carambus_local_test
-  username: gullrich
-  password: 
+  database: carambus_local_phat_test
   host: localhost
 
-# Production config remains in database.yml for server deployment
+production:
+  <<: *default
+  database: carambus_local_phat_production
+  username: www-data
+  password: toS6E7tARQafHCXz
+  host: localhost

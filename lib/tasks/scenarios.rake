@@ -1,0 +1,152 @@
+# frozen_string_literal: true
+
+namespace :scenario do
+  desc "List all available scenarios"
+  task :list do
+    require_relative '../scenario_generator'
+    generator = ScenarioGenerator.new
+    puts "Available scenarios:"
+    generator.list_scenarios.each do |scenario|
+      environments = generator.list_environments(scenario)
+      puts "  #{scenario}: #{environments.join(', ')}"
+    end
+  end
+
+  desc "Generate Rails root folder for a scenario"
+  task :generate, [:scenario_name, :environment] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'development'
+    
+    if scenario_name.nil?
+      puts "Usage: rake scenario:generate[scenario_name,environment]"
+      puts "Example: rake scenario:generate[carambus_location_2459,development]"
+      exit 1
+    end
+    
+    require_relative '../scenario_generator'
+    generator = ScenarioGenerator.new
+    success = generator.generate_scenario(scenario_name, environment)
+    
+    if success
+      puts "\n🎉 Scenario generated successfully!"
+      puts "Next steps:"
+      puts "  1. cd #{scenario_name}"
+      puts "  2. rails db:create db:migrate"
+      puts "  3. rails server"
+    else
+      puts "\n❌ Failed to generate scenario"
+      exit 1
+    end
+  end
+
+  desc "Create a new scenario"
+  task :create, [:scenario_name, :location_id, :context] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    location_id = args[:location_id]
+    context = args[:context] || 'NBV'
+    
+    if scenario_name.nil? || location_id.nil?
+      puts "Usage: rake scenario:create[scenario_name,location_id,context]"
+      puts "Example: rake scenario:create[carambus_location_2460,2460,NBV]"
+      exit 1
+    end
+    
+    create_scenario(scenario_name, location_id, context)
+  end
+
+  desc "Deploy scenario to production"
+  task :deploy, [:scenario_name, :environment] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+    
+    if scenario_name.nil?
+      puts "Usage: rake scenario:deploy[scenario_name,environment]"
+      puts "Example: rake scenario:deploy[carambus_location_2459,production]"
+      exit 1
+    end
+    
+    deploy_scenario(scenario_name, environment)
+  end
+
+  private
+
+  def create_scenario(scenario_name, location_id, context)
+    carambus_data_path = File.expand_path('../carambus_data', Rails.root)
+    scenario_path = File.join(carambus_data_path, 'scenarios', scenario_name)
+    
+    # Create scenario directory
+    FileUtils.mkdir_p(File.join(scenario_path, 'development'))
+    FileUtils.mkdir_p(File.join(scenario_path, 'production'))
+    
+    # Create config.yml
+    config_content = {
+      'scenario' => {
+        'name' => scenario_name,
+        'description' => "Location #{location_id}",
+        'location_id' => location_id.to_i,
+        'context' => context,
+        'region_id' => 1,
+        'club_id' => location_id.to_i,
+        'is_main' => false
+      },
+      'environments' => {
+        'development' => {
+          'database_name' => "#{scenario_name}_development",
+          'server_port' => 3000,
+          'mode' => 'development',
+          'ssl_enabled' => false,
+          'database_username' => nil,
+          'database_password' => nil,
+          'database_host' => 'localhost'
+        },
+        'production' => {
+          'database_name' => "#{scenario_name}_production",
+          'server_port' => 80,
+          'mode' => 'production',
+          'ssl_enabled' => true,
+          'database_username' => 'www-data',
+          'database_password' => 'toS6E7tARQafHCXz',
+          'database_host' => 'localhost'
+        }
+      },
+      'templates' => {
+        'database_yml' => 'templates/database/database.yml.erb',
+        'carambus_yml' => 'templates/carambus/carambus.yml.erb',
+        'production_rb' => 'templates/environments/production.rb.erb',
+        'nginx_conf' => 'templates/nginx/nginx.conf.erb'
+      }
+    }
+    
+    File.write(File.join(scenario_path, 'config.yml'), config_content.to_yaml)
+    
+    puts "✅ Created scenario: #{scenario_name}"
+    puts "   Location ID: #{location_id}"
+    puts "   Context: #{context}"
+    puts "   Config: #{File.join(scenario_path, 'config.yml')}"
+  end
+
+  def deploy_scenario(scenario_name, environment)
+    puts "Deploying scenario #{scenario_name} to #{environment}..."
+    
+    # Generate Rails root folder
+    require_relative '../scenario_generator'
+    generator = ScenarioGenerator.new
+    success = generator.generate_scenario(scenario_name, environment)
+    
+    unless success
+      puts "❌ Failed to generate scenario"
+      exit 1
+    end
+    
+    # Create database
+    rails_root = File.expand_path("../#{scenario_name}", File.expand_path('../carambus_data', Rails.root))
+    Dir.chdir(rails_root) do
+      puts "Creating database..."
+      system('rails db:create')
+      puts "Running migrations..."
+      system('rails db:migrate')
+    end
+    
+    puts "✅ Scenario #{scenario_name} deployed to #{environment}"
+  end
+end
