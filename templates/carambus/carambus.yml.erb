@@ -1,0 +1,35 @@
+---
+default:
+  carambus_api_url: <%= @scenario['api_url'] %>
+  location_id: <%= @scenario['location_id'] %>
+  application_name: <%= @scenario['application_name'] %>
+  basename: <%= @scenario['basename'] %>
+  support_email: gernot.ullrich@gmx.de
+  business_name: <%= @scenario['name'] == 'carambus_api' ? 'Ullrich IT Consulting' : 'PHAT Consulting' %>
+  business_address: 22869 Schenefeld, Sandstückenweg 15
+  carambus_domain: <%= @config['webserver_host'] || 'carambus.de' %>
+  queue_adapter: async
+  small_table_no: 0
+  large_table_no: 0
+  pool_table_no: 0
+  snooker_table_no: 0
+  season_name: <%= @scenario['season_name'] %>
+  force_update: 'true'
+  no_local_protection: 'false'
+  club_id: <%= @scenario['club_id'] %>
+
+<%= @environment %>:
+  carambus_api_url: <%= @scenario['api_url'] %>
+  location_id: <%= @scenario['location_id'] %>
+  application_name: <%= @scenario['application_name'] %>
+  basename: <%= @scenario['basename'] %>
+  support_email: gernot.ullrich@gmx.de
+  business_name: <%= @scenario['name'] == 'carambus_api' ? 'Ullrich IT Consulting' : 'PHAT Consulting' %>
+  business_address: 22869 Schenefeld, Sandstückenweg 15
+  carambus_domain: <%= @config['webserver_host'] || 'carambus.de' %>
+  queue_adapter: async
+  context: <%= @scenario['context'] %>
+  season_name: <%= @scenario['season_name'] %>
+  force_update: 'true'
+  no_local_protection: 'false'
+  club_id: <%= @scenario['club_id'] %>

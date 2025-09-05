@@ -136,7 +136,7 @@ namespace :scenario do
   end
 
   def templates_path
-    @templates_path ||= File.join(carambus_data_path, 'templates')
+    @templates_path ||= File.join(Rails.root, 'templates')
   end
 
   def list_scenarios

@@ -1,0 +1,20 @@
+# server-based syntax
+# ======================
+# Defines a single server with a list of roles and multiple properties.
+# You can define all roles on a single server, or split them:
+
+#server '192.168.178.48', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
+#server 'bc-wedel-duckdns.org', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus gernot local
+#server 'carambus.de', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "8910"} # carambus global local and api
+server '<%= @config['ssh_host'] %>', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "<%= @config['ssh_port'] %>"} # carambus global
+
+# Puma auf Port ...
+set :puma_port, "<%= @config['webserver_port'] %>"
+set :rails_env, '<%= @environment %>'
+set :branch, '<%= @scenario['branch'] %>'
+
+# Configuration
+# =============
+# You can set any configuration variable like in config/deploy.rb
+# These variables are then only loaded and set in this stage.
+# For server-based syntax, see `man capistrano`
