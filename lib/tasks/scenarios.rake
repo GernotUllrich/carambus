@@ -180,6 +180,12 @@ namespace :scenario do
     # Generate database.yml in environment directory
     generate_database_yml(scenario_config, env_config, env_dir)
     
+    # Generate nginx.conf in environment directory
+    generate_nginx_conf(scenario_config, env_config, env_dir)
+    
+    # Generate puma.service in environment directory
+    generate_puma_service(scenario_config, env_config, env_dir)
+    
     # Generate deploy files in environment directory (only for development)
     generate_deploy_files(scenario_config, env_config, env_dir)
     
@@ -220,6 +226,42 @@ namespace :scenario do
     content = template.result(binding)
     File.write(File.join(env_dir, 'database.yml'), content)
     puts "   Generated: #{File.join(env_dir, 'database.yml')}"
+    true
+  end
+
+  def generate_nginx_conf(scenario_config, env_config, env_dir)
+    template_file = File.join(templates_path, 'nginx', 'nginx_conf.erb')
+    unless File.exist?(template_file)
+      puts "Error: Nginx template not found: #{template_file}"
+      return false
+    end
+
+    template = ERB.new(File.read(template_file))
+    @scenario = scenario_config['scenario']
+    @config = env_config
+    @environment = File.basename(env_dir)  # 'development' oder 'production'
+    
+    content = template.result(binding)
+    File.write(File.join(env_dir, 'nginx.conf'), content)
+    puts "   Generated: #{File.join(env_dir, 'nginx.conf')}"
+    true
+  end
+
+  def generate_puma_service(scenario_config, env_config, env_dir)
+    template_file = File.join(templates_path, 'puma', 'puma.service.erb')
+    unless File.exist?(template_file)
+      puts "Error: Puma service template not found: #{template_file}"
+      return false
+    end
+
+    template = ERB.new(File.read(template_file))
+    @scenario = scenario_config['scenario']
+    @config = env_config
+    @environment = File.basename(env_dir)  # 'development' oder 'production'
+    
+    content = template.result(binding)
+    File.write(File.join(env_dir, 'puma.service'), content)
+    puts "   Generated: #{File.join(env_dir, 'puma.service')}"
     true
   end
 
@@ -577,13 +619,215 @@ namespace :scenario do
     
     scenario_config = YAML.load_file(config_file)
     production_config = scenario_config['environments']['production']
+    scenario = scenario_config['scenario']
     
-    # TODO: Implement conflict analysis and resolution
-    # This is a placeholder for the complex deployment logic
-    puts "⚠️  Conflict analysis and deployment logic not yet implemented"
-    puts "   This will be implemented in Phase 2"
+    puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+    
+    # Step 1: Generate production configuration files
+    puts "\n📋 Step 1: Generating production configuration files..."
+    unless generate_configuration_files(scenario_name, 'production')
+      puts "❌ Failed to generate production configuration files"
+      return false
+    end
+    
+    # Step 2: Create production database dump
+    puts "\n💾 Step 2: Creating production database dump..."
+    unless create_database_dump(scenario_name, 'production')
+      puts "❌ Failed to create production database dump"
+      return false
+    end
+    
+    # Step 3: Copy configuration files to Rails root folder
+    puts "\n📁 Step 3: Copying configuration files to Rails root folder..."
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root folder not found: #{rails_root}"
+      puts "   Please run: rake scenario:create_rails_root[#{scenario_name}]"
+      return false
+    end
+    
+    # Copy production configuration files
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    FileUtils.cp(File.join(production_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
+    FileUtils.cp(File.join(production_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+    
+    # Copy nginx.conf if it exists
+    if File.exist?(File.join(production_dir, 'nginx.conf'))
+      FileUtils.cp(File.join(production_dir, 'nginx.conf'), File.join(rails_root, 'config', 'nginx.conf'))
+      puts "   ✅ nginx.conf copied to Rails root folder"
+    end
+    
+    # Copy puma.service if it exists
+    if File.exist?(File.join(production_dir, 'puma.service'))
+      FileUtils.cp(File.join(production_dir, 'puma.service'), File.join(rails_root, 'config', 'puma.service'))
+      puts "   ✅ puma.service copied to Rails root folder"
+    end
+    
+    puts "   ✅ Configuration files copied to Rails root folder"
+    
+    # Step 4: Copy deployment files
+    puts "\n🚀 Step 4: Copying deployment files..."
+    deploy_dir = File.join(scenarios_path, scenario_name, 'development')
+    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
+      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
+      puts "   ✅ deploy.rb copied"
+    end
+    
+    if Dir.exist?(File.join(deploy_dir, 'deploy'))
+      FileUtils.cp_r(File.join(deploy_dir, 'deploy'), File.join(rails_root, 'config', 'deploy'))
+      puts "   ✅ deploy/ directory copied"
+    end
+    
+    # Step 5: Execute Capistrano deployment
+    puts "\n🎯 Step 5: Executing Capistrano deployment..."
+    puts "   This would normally run: cap production deploy"
+    puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+    puts "   Application: #{scenario['application_name']}"
+    puts "   Basename: #{scenario['basename']}"
+    
+    # For now, just show what would be deployed
+    puts "\n📋 Deployment Summary:"
+    puts "   Scenario: #{scenario_name}"
+    puts "   Application: #{scenario['application_name']}"
+    puts "   Basename: #{scenario['basename']}"
+    puts "   Target Host: #{production_config['webserver_host']}"
+    puts "   Target Port: #{production_config['webserver_port']}"
+    puts "   SSH Host: #{production_config['ssh_host']}"
+    puts "   SSH Port: #{production_config['ssh_port']}"
+    puts "   Database: #{production_config['database_name']}"
+    puts "   SSL Enabled: #{production_config['ssl_enabled']}"
+    
+    # Step 6: SSL Certificate Setup (if SSL enabled)
+    if production_config['ssl_enabled']
+      puts "\n🔒 Step 6: Setting up SSL certificate..."
+      unless setup_ssl_certificate(scenario_name, production_config)
+        puts "❌ Failed to setup SSL certificate"
+        return false
+      end
+    end
+    
+    # Step 7: Fix Puma Service Configuration
+    puts "\n⚙️  Step 7: Fixing Puma service configuration..."
+    unless fix_puma_service_config(scenario_name, production_config)
+      puts "❌ Failed to fix Puma service configuration"
+      return false
+    end
+    
+    # Step 8: Update Nginx Configuration
+    puts "\n🌐 Step 8: Updating Nginx configuration..."
+    unless update_nginx_config(scenario_name, production_config)
+      puts "❌ Failed to update Nginx configuration"
+      return false
+    end
+    
+    puts "\n✅ Deployment preparation completed successfully!"
+    puts "   Next step: Run 'cap production deploy' in the Rails root folder"
     
     true
+  end
+
+  def setup_ssl_certificate(scenario_name, production_config)
+    host = production_config['webserver_host']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    puts "   Setting up SSL certificate for #{host}..."
+    
+    # Check if certificate already exists
+    cert_check_cmd = "sudo certbot certificates | grep -q '#{host}'"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{cert_check_cmd}'")
+      puts "   ✅ SSL certificate already exists for #{host}"
+      return true
+    end
+    
+    # Create SSL certificate
+    certbot_cmd = "sudo certbot --nginx -d #{host} --non-interactive --agree-tos --email gernot.ullrich@gmx.de"
+    puts "   Running: #{certbot_cmd}"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{certbot_cmd}'")
+      puts "   ✅ SSL certificate created successfully"
+      true
+    else
+      puts "   ❌ Failed to create SSL certificate"
+      false
+    end
+  end
+
+  def fix_puma_service_config(scenario_name, production_config)
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    basename = scenario_name
+    
+    puts "   Fixing Puma service configuration for #{basename}..."
+    
+    # Create corrected service file content
+    service_content = <<~SERVICE
+      [Unit]
+      Description=Puma HTTP Server for #{basename}
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=www-data
+      WorkingDirectory=/var/www/#{basename}/current
+      Environment=PATH=/var/www/#{basename}/shared/bundle/ruby/3.2.0/bin:/var/www/.rbenv/bin:/var/www/.rbenv/shims:/usr/local/bin:/usr/bin:/bin
+      Environment=RAILS_ENV=production
+      Environment=RBENV_ROOT=/var/www/.rbenv
+      Environment=RBENV_VERSION=3.2.1
+      ExecStart=/var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/bundle exec /var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/puma -C /var/www/#{basename}/shared/puma.rb
+      ExecReload=/bin/kill -USR1 \\$MAINPID
+      Restart=always
+      RestartSec=1
+
+      # Ensure socket directory exists
+      ExecStartPre=/bin/mkdir -p /var/www/#{basename}/shared/sockets
+      ExecStartPre=/bin/mkdir -p /var/www/#{basename}/shared/pids
+      ExecStartPre=/bin/mkdir -p /var/www/#{basename}/shared/log
+
+      [Install]
+      WantedBy=multi-user.target
+    SERVICE
+    
+    # Write service file to server
+    service_file_cmd = "sudo cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'
+#{service_content}EOF"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{service_file_cmd}'")
+      puts "   ✅ Puma service configuration updated"
+      
+      # Reload systemd and restart service
+      reload_cmd = "sudo systemctl daemon-reload && sudo systemctl restart puma-#{basename}.service"
+      if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_cmd}'")
+        puts "   ✅ Puma service restarted successfully"
+        true
+      else
+        puts "   ❌ Failed to restart Puma service"
+        false
+      end
+    else
+      puts "   ❌ Failed to update Puma service configuration"
+      false
+    end
+  end
+
+  def update_nginx_config(scenario_name, production_config)
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    basename = scenario_name
+    
+    puts "   Updating Nginx configuration for #{basename}..."
+    
+    # Copy nginx.conf to sites-available and enable it
+    nginx_cmd = "sudo cp /var/www/#{basename}/shared/config/nginx.conf /etc/nginx/sites-available/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{nginx_cmd}'")
+      puts "   ✅ Nginx configuration updated and reloaded"
+      true
+    else
+      puts "   ❌ Failed to update Nginx configuration"
+      false
+    end
   end
 
   def create_scenario(scenario_name, location_id, context)

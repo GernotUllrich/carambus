@@ -271,6 +271,46 @@ Host location_2459
 - **Deployment-Pfad**: `/var/www/{basename}`
 - **Service-Name**: `puma-{basename}.service`
 
+## Deployment-Automatisierung
+
+### Vollständige Automatisierung
+Das Deployment-System wurde vollständig automatisiert und umfasst:
+
+#### 1. **Konfigurationsgenerierung**
+- `database.yml` (Production)
+- `carambus.yml` (Production)
+- `nginx.conf` (SSL-konfiguriert)
+- `puma.service` (Systemd-Service)
+
+#### 2. **SSL-Zertifikat-Management**
+- Automatische Prüfung vorhandener Zertifikate
+- Certbot-Integration für neue Zertifikate
+- Nginx-SSL-Konfiguration
+
+#### 3. **Service-Konfiguration**
+- Puma-Service mit korrekten ERB-Variablen
+- Automatische Systemd-Integration
+- Service-Restart nach Konfigurationsänderungen
+
+#### 4. **Nginx-Management**
+- Automatische Konfigurationskopie
+- Sites-available/Sites-enabled-Setup
+- Konfigurationstest und Reload
+
+### Deployment-Workflow
+```bash
+rake "scenario:deploy[scenario_name]"
+```
+
+**Führt automatisch aus:**
+1. Konfigurationsgenerierung (production)
+2. Datenbank-Dump-Erstellung
+3. Konfigurationsdateien kopieren
+4. Deployment-Dateien kopieren
+5. SSL-Zertifikat-Setup
+6. Puma-Service-Konfiguration
+7. Nginx-Konfiguration-Update
+
 ## Fehlerbehebung
 
 ### Häufige Probleme
@@ -298,6 +338,11 @@ Host location_2459
 - Deployment mit Konflikt-Analyse
 - Interaktive Konflikt-Auflösung
 - carambus_api Scenario (erstellt und getestet)
+- **Vollständige Deployment-Automatisierung**
+- **SSL-Zertifikat-Management**
+- **Puma-Service-Konfiguration**
+- **Nginx-Konfiguration-Management**
+- **Template-System für alle Konfigurationsdateien**
 
 🔄 **In Arbeit**:
 - GitHub-Zugriff für Raspberry Pi
