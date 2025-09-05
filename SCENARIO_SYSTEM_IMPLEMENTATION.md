@@ -73,9 +73,6 @@ environments:
 #### `scenario:list`
 Listet alle verfügbaren Scenarios auf.
 
-#### `scenario:analyze_mode_parameters`
-Analysiert die Parameter des alten Mode-Switch-Systems für die Migration.
-
 ### 2. Konfigurations-Generierung
 
 #### `scenario:generate_configs[scenario_name,environment]`
@@ -94,8 +91,10 @@ Komplettes Setup eines Scenarios:
 
 #### `scenario:create_rails_root[scenario_name]`
 Erstellt einen neuen Rails-Root-Folder für ein Scenario:
-- Kopiert essentielle Rails-Dateien
-- Überspringt `database.yml` (wird generiert)
+- **Git Clone**: Klont das Repository von `git@github.com:GernotUllrich/carambus.git`
+- **RubyMine-Integration**: Kopiert `.idea` Konfiguration für sofortige Entwicklungsumgebung
+- **Verzeichnisse**: Erstellt `log`, `tmp`, `storage` Verzeichnisse
+- **Vollständige Rails-Struktur**: Inklusive aller Migrations und Dateien
 
 #### `scenario:setup_with_rails_root[scenario_name,environment]`
 Komplettes Setup mit Rails-Root-Folder:
@@ -194,7 +193,8 @@ set :basename, "#{scenario['basename']}"
 - **Beschreibung**: Haupt-API-Server
 - **Context**: API
 - **Production**: newapi.carambus.de:80
-- **SSH**: newapi.carambus.de:8910
+- **SSH**: newapi.carambus.de:22
+- **Status**: ✅ Erstellt und getestet (2 User-Records)
 
 ### 2. carambus_location_2459
 - **Beschreibung**: PHAT Consulting Location
@@ -205,7 +205,7 @@ set :basename, "#{scenario['basename']}"
 ### 3. carambus_location_2460
 - **Beschreibung**: Weitere Location (Test-Szenario)
 - **Context**: NBV
-- **Status**: Konfiguriert, aber nicht deployed
+- **Status**: ✅ Rails-Root-Folder erstellt mit RubyMine-Integration
 
 ## Verwendung
 
@@ -292,10 +292,12 @@ Host location_2459
 ✅ **Implementiert**:
 - Scenario-Konfigurations-System
 - Template-basierte Generierung
-- Rails-Root-Folder-Management
+- Rails-Root-Folder-Management (Git Clone)
+- RubyMine-Integration (.idea Konfiguration)
 - Datenbank-Dump-Management
 - Deployment mit Konflikt-Analyse
 - Interaktive Konflikt-Auflösung
+- carambus_api Scenario (erstellt und getestet)
 
 🔄 **In Arbeit**:
 - GitHub-Zugriff für Raspberry Pi

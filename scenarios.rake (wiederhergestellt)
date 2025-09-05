@@ -1,3 +1,4 @@
+
 # frozen_string_literal: true
 
 require 'yaml'
@@ -15,13 +16,13 @@ namespace :scenario do
   end
 
   desc "Create database dump for scenario"
-  task :create_database_dump, [:scenario_name, :environment] => :environment do |task, args|
+  task :create_dump, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
     
     if scenario_name.nil?
-      puts "Usage: rake scenario:create_database_dump[scenario_name,environment]"
-      puts "Example: rake scenario:create_database_dump[carambus_api,development]"
+      puts "Usage: rake scenario:create_dump[scenario_name,environment]"
+      puts "Example: rake scenario:create_dump[carambus_api,development]"
       exit 1
     end
     
@@ -29,13 +30,13 @@ namespace :scenario do
   end
 
   desc "Restore database dump for scenario"
-  task :restore_database_dump, [:scenario_name, :environment] => :environment do |task, args|
+  task :restore_dump, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
     
     if scenario_name.nil?
-      puts "Usage: rake scenario:restore_database_dump[scenario_name,environment]"
-      puts "Example: rake scenario:restore_database_dump[carambus_api,development]"
+      puts "Usage: rake scenario:restore_dump[scenario_name,environment]"
+      puts "Example: rake scenario:restore_dump[carambus_api,development]"
       exit 1
     end
     
@@ -54,75 +55,6 @@ namespace :scenario do
     end
     
     generate_configuration_files(scenario_name, environment)
-  end
-
-  desc "Create Rails root folder for a scenario"
-  task :create_rails_root, [:scenario_name] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    
-    if scenario_name.nil?
-      puts "Usage: rake scenario:create_rails_root[scenario_name]"
-      puts "Example: rake scenario:create_rails_root[carambus_location_2459]"
-      exit 1
-    end
-    
-    create_rails_root_folder(scenario_name)
-  end
-
-  desc "Setup scenario with Rails root folder"
-  task :setup_with_rails_root, [:scenario_name, :environment] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    environment = args[:environment] || 'development'
-    
-    if scenario_name.nil?
-      puts "Usage: rake scenario:setup_with_rails_root[scenario_name,environment]"
-      puts "Example: rake scenario:setup_with_rails_root[carambus_location_2459,development]"
-      exit 1
-    end
-    
-    setup_scenario_with_rails_root(scenario_name, environment)
-  end
-
-  desc "Complete scenario setup"
-  task :setup, [:scenario_name, :environment] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    environment = args[:environment] || 'development'
-    
-    if scenario_name.nil?
-      puts "Usage: rake scenario:setup[scenario_name,environment]"
-      puts "Example: rake scenario:setup[carambus_location_2459,development]"
-      exit 1
-    end
-    
-    setup_scenario(scenario_name, environment)
-  end
-
-  desc "Deploy scenario to production with conflict analysis"
-  task :deploy, [:scenario_name] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    
-    if scenario_name.nil?
-      puts "Usage: rake scenario:deploy[scenario_name]"
-      puts "Example: rake scenario:deploy[carambus_location_2459]"
-      exit 1
-    end
-    
-    deploy_scenario_with_conflict_analysis(scenario_name)
-  end
-
-  desc "Create a new scenario"
-  task :create, [:scenario_name, :location_id, :context] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    location_id = args[:location_id]
-    context = args[:context] || 'NBV'
-    
-    if scenario_name.nil? || location_id.nil?
-      puts "Usage: rake scenario:create[scenario_name,location_id,context]"
-      puts "Example: rake scenario:create[carambus_location_2460,2460,NBV]"
-      exit 1
-    end
-    
-    create_scenario(scenario_name, location_id, context)
   end
 
   private
@@ -435,206 +367,5 @@ namespace :scenario do
       puts "❌ Database dump failed"
       false
     end
-  end
-
-  def create_rails_root_folder(scenario_name)
-    puts "Creating Rails root folder for #{scenario_name}..."
-    
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "Error: Scenario configuration not found: #{config_file}"
-      return false
-    end
-    
-    # Create Rails root folder using git clone
-    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
-    FileUtils.rm_rf(rails_root) if Dir.exist?(rails_root)
-    
-    # Clone from GitHub repository
-    repo_url = "git@github.com:GernotUllrich/carambus.git"
-    puts "   Cloning from: #{repo_url}"
-    
-    if system("git clone #{repo_url} #{rails_root}")
-      puts "   ✅ Git clone successful"
-      
-      # Create necessary directories
-      %w[log tmp storage].each do |dir|
-        FileUtils.mkdir_p(File.join(rails_root, dir))
-      end
-      
-      # Copy RubyMine .idea configuration for development
-      idea_source = File.join(Rails.root, '.idea')
-      idea_target = File.join(rails_root, '.idea')
-      if Dir.exist?(idea_source)
-        FileUtils.cp_r(idea_source, idea_target)
-        puts "   ✅ RubyMine .idea configuration copied"
-      else
-        puts "   ⚠️  RubyMine .idea configuration not found in master"
-      end
-      
-      puts "✅ Rails root folder created: #{rails_root}"
-      true
-    else
-      puts "❌ Git clone failed"
-      false
-    end
-  end
-
-  def setup_scenario_with_rails_root(scenario_name, environment)
-    puts "Setting up scenario #{scenario_name} with Rails root folder..."
-    
-    # Step 1: Create Rails root folder
-    unless create_rails_root_folder(scenario_name)
-      puts "❌ Failed to create Rails root folder"
-      return false
-    end
-    
-    # Step 2: Restore database dump
-    unless restore_database_dump(scenario_name, environment)
-      puts "❌ Failed to restore database dump"
-      return false
-    end
-    
-    # Step 3: Copy generated configuration files
-    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
-    env_dir = File.join(scenarios_path, scenario_name, environment)
-    
-    if Dir.exist?(env_dir)
-      # Copy database.yml
-      if File.exist?(File.join(env_dir, 'database.yml'))
-        FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
-        puts "   Copied database.yml to Rails root"
-      end
-      
-      # Copy carambus.yml
-      if File.exist?(File.join(env_dir, 'carambus.yml'))
-        FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-        puts "   Copied carambus.yml to Rails root"
-      end
-    end
-    
-    puts "✅ Scenario #{scenario_name} setup completed"
-    puts "   Rails root: #{rails_root}"
-    puts "   Environment: #{environment}"
-    true
-  end
-
-  def setup_scenario(scenario_name, environment)
-    puts "Setting up scenario #{scenario_name} (#{environment})..."
-    
-    # Step 1: Generate configuration files
-    unless generate_configuration_files(scenario_name, environment)
-      puts "❌ Failed to generate configuration files"
-      return false
-    end
-    
-    # Step 2: Restore database dump
-    unless restore_database_dump(scenario_name, environment)
-      puts "❌ Failed to restore database dump"
-      return false
-    end
-    
-    # Step 3: Create Rails root folder and copy files
-    unless create_rails_root_folder(scenario_name)
-      puts "❌ Failed to create Rails root folder"
-      return false
-    end
-    
-    # Step 4: Copy generated configuration files to Rails root
-    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
-    env_dir = File.join(scenarios_path, scenario_name, environment)
-    
-    if Dir.exist?(env_dir)
-      # Copy database.yml
-      if File.exist?(File.join(env_dir, 'database.yml'))
-        FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
-        puts "   Copied database.yml to Rails root"
-      end
-      
-      # Copy carambus.yml
-      if File.exist?(File.join(env_dir, 'carambus.yml'))
-        FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-        puts "   Copied carambus.yml to Rails root"
-      end
-    end
-    
-    puts "✅ Scenario #{scenario_name} setup completed"
-    puts "   Rails root: #{rails_root}"
-    puts "   Environment: #{environment}"
-    true
-  end
-
-  def deploy_scenario_with_conflict_analysis(scenario_name)
-    puts "Deploying scenario #{scenario_name} with conflict analysis..."
-    
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "Error: Scenario configuration not found: #{config_file}"
-      return false
-    end
-    
-    scenario_config = YAML.load_file(config_file)
-    production_config = scenario_config['environments']['production']
-    
-    # TODO: Implement conflict analysis and resolution
-    # This is a placeholder for the complex deployment logic
-    puts "⚠️  Conflict analysis and deployment logic not yet implemented"
-    puts "   This will be implemented in Phase 2"
-    
-    true
-  end
-
-  def create_scenario(scenario_name, location_id, context)
-    scenario_path = File.join(scenarios_path, scenario_name)
-    
-    # Create scenario directory
-    FileUtils.mkdir_p(scenario_path)
-    
-    # Create config.yml
-    config_content = {
-      'scenario' => {
-        'name' => scenario_name,
-        'description' => "Location #{location_id}",
-        'location_id' => location_id.to_i,
-        'context' => context,
-        'region_id' => 1,
-        'club_id' => location_id.to_i,
-        'api_url' => 'https://newapi.carambus.de/',
-        'season_name' => '2025/2026',
-        'application_name' => 'carambus',
-        'basename' => "carambus_#{scenario_name}",
-        'branch' => 'master'
-      },
-      'environments' => {
-        'development' => {
-          'webserver_host' => 'localhost',
-          'webserver_port' => 3000,
-          'database_name' => "#{scenario_name}_development",
-          'ssl_enabled' => false,
-          'database_username' => nil,
-          'database_password' => nil
-        },
-        'production' => {
-          'webserver_host' => '192.168.178.107',
-          'ssh_host' => '192.168.178.107',
-          'webserver_port' => 80,
-          'ssh_port' => 8910,
-          'database_name' => "#{scenario_name}_production",
-          'ssl_enabled' => false,
-          'database_username' => 'www-data',
-          'database_password' => 'toS6E7tARQafHCXz',
-          'puma_socket_path' => '/tmp/puma.sock'
-        }
-      }
-    }
-    
-    File.write(File.join(scenario_path, 'config.yml'), config_content.to_yaml)
-    
-    puts "✅ Created scenario: #{scenario_name}"
-    puts "   Location ID: #{location_id}"
-    puts "   Context: #{context}"
-    puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 end
