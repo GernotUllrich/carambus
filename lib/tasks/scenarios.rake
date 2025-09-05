@@ -266,15 +266,61 @@ namespace :scenario do
   end
 
   def generate_deploy_files(scenario_config, env_config, env_dir)
-    # Only generate deploy files for development environment
-    return unless File.basename(env_dir) == 'development'
+    # Generate deploy files for all environments
     
-    scenario = scenario_config['scenario']
+    # Generate deploy.rb from template
+    generate_deploy_rb(scenario_config, env_config, env_dir)
     
-    # Get production environment config for deploy/production.rb
-    production_config = scenario_config['environments']['production']
+    # Generate production.rb from template (only for production)
+    if File.basename(env_dir) == 'production'
+      generate_production_rb(scenario_config, env_config, env_dir)
+    end
     
-    # Generate deploy.rb (main deploy configuration)
+    true
+  end
+
+  def generate_deploy_rb(scenario_config, env_config, env_dir)
+    template_file = File.join(templates_path, 'deploy', 'deploy_rb.erb')
+    unless File.exist?(template_file)
+      puts "Error: Deploy template not found: #{template_file}"
+      return false
+    end
+
+    template = ERB.new(File.read(template_file))
+    @scenario = scenario_config['scenario']
+    @config = env_config
+    @environment = File.basename(env_dir)
+    
+    content = template.result(binding)
+    File.write(File.join(env_dir, 'deploy.rb'), content)
+    puts "   Generated: #{File.join(env_dir, 'deploy.rb')}"
+    true
+  end
+
+  def generate_production_rb(scenario_config, env_config, env_dir)
+    template_file = File.join(templates_path, 'deploy', 'production_rb.erb')
+    unless File.exist?(template_file)
+      puts "Error: Production template not found: #{template_file}"
+      return false
+    end
+
+    template = ERB.new(File.read(template_file))
+    @scenario = scenario_config['scenario']
+    @config = env_config
+    @environment = File.basename(env_dir)
+    
+    content = template.result(binding)
+    
+    # Create deploy subdirectory if it doesn't exist
+    deploy_dir = File.join(env_dir, 'deploy')
+    FileUtils.mkdir_p(deploy_dir) unless Dir.exist?(deploy_dir)
+    
+    File.write(File.join(deploy_dir, 'production.rb'), content)
+    puts "   Generated: #{File.join(deploy_dir, 'production.rb')}"
+    true
+  end
+
+  def restore_database_dump(scenario_name, environment)
     deploy_rb_content = <<~RUBY
       # frozen_string_literal: true
       
@@ -790,8 +836,7 @@ namespace :scenario do
     SERVICE
     
     # Write service file to server
-    service_file_cmd = "sudo cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'
-#{service_content}EOF"
+    service_file_cmd = "sudo cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'\n#{service_content}EOF"
     
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{service_file_cmd}'")
       puts "   ✅ Puma service configuration updated"
