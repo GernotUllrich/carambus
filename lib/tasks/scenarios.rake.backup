@@ -18,13 +18,13 @@ namespace :scenario do
   task :create_database_dump, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:create_database_dump[scenario_name,environment]"
       puts "Example: rake scenario:create_database_dump[carambus_api,development]"
       exit 1
     end
-
+    
     create_database_dump(scenario_name, environment)
   end
 
@@ -32,13 +32,13 @@ namespace :scenario do
   task :restore_database_dump, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:restore_database_dump[scenario_name,environment]"
       puts "Example: rake scenario:restore_database_dump[carambus_api,development]"
       exit 1
     end
-
+    
     restore_database_dump(scenario_name, environment)
   end
 
@@ -46,26 +46,26 @@ namespace :scenario do
   task :generate_configs, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:generate_configs[scenario_name,environment]"
       puts "Example: rake scenario:generate_configs[carambus_location_2459,development]"
       exit 1
     end
-
+    
     generate_configuration_files(scenario_name, environment)
   end
 
   desc "Create Rails root folder for a scenario"
   task :create_rails_root, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:create_rails_root[scenario_name]"
       puts "Example: rake scenario:create_rails_root[carambus_location_2459]"
       exit 1
     end
-
+    
     create_rails_root_folder(scenario_name)
   end
 
@@ -73,13 +73,13 @@ namespace :scenario do
   task :setup_with_rails_root, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:setup_with_rails_root[scenario_name,environment]"
       puts "Example: rake scenario:setup_with_rails_root[carambus_location_2459,development]"
       exit 1
     end
-
+    
     setup_scenario_with_rails_root(scenario_name, environment)
   end
 
@@ -100,14 +100,28 @@ namespace :scenario do
   desc "Deploy scenario to production with conflict analysis"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
-
+    
     if scenario_name.nil?
       puts "Usage: rake scenario:deploy[scenario_name]"
       puts "Example: rake scenario:deploy[carambus_location_2459]"
       exit 1
     end
-
+    
     deploy_scenario_with_conflict_analysis(scenario_name)
+  end
+
+  desc "Copy configuration files to shared directory on remote server"
+  task :copy_configs_to_shared, [:scenario_name, :environment] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+    
+    if scenario_name.nil?
+      puts "Usage: rake scenario:copy_configs_to_shared[scenario_name,environment]"
+      puts "       rake scenario:copy_configs_to_shared[carambus_api,production]"
+      exit 1
+    end
+    
+    copy_configs_to_shared(scenario_name, environment)
   end
 
   desc "Create a new scenario"
@@ -136,7 +150,7 @@ namespace :scenario do
   end
 
   def templates_path
-    @templates_path ||= File.join(Rails.root, 'templates')
+    @templates_path ||= File.join(carambus_data_path, 'templates')
   end
 
   def list_scenarios
@@ -147,51 +161,48 @@ namespace :scenario do
   def list_environments(scenario_name)
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     return [] unless File.exist?(config_file)
-
+    
     scenario_config = YAML.load_file(config_file)
     scenario_config['environments'].keys
   end
 
   def generate_configuration_files(scenario_name, environment)
     puts "Generating configuration files for #{scenario_name} (#{environment})..."
-
+    
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       return false
     end
-
+    
     scenario_config = YAML.load_file(config_file)
     env_config = scenario_config['environments'][environment]
-
+    
     if env_config.nil?
       puts "Error: Environment '#{environment}' not found in scenario configuration"
       return false
     end
-
+    
     # Create environment directory
     env_dir = File.join(scenarios_path, scenario_name, environment)
     FileUtils.mkdir_p(env_dir)
-
+    
     # Generate carambus.yml in environment directory
     generate_carambus_yml(scenario_config, env_config, env_dir)
-
+    
     # Generate database.yml in environment directory
     generate_database_yml(scenario_config, env_config, env_dir)
-
+    
     # Generate nginx.conf in environment directory
     generate_nginx_conf(scenario_config, env_config, env_dir)
-
+    
     # Generate puma.service in environment directory
     generate_puma_service(scenario_config, env_config, env_dir)
-
-    # Generate puma.rb in environment directory
-    generate_puma_rb(scenario_config, env_config, env_dir)
-
+    
     # Generate deploy files in environment directory (only for development)
     generate_deploy_files(scenario_config, env_config, env_dir)
-
+    
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
     puts "   Location: #{env_dir}"
     true
@@ -208,7 +219,7 @@ namespace :scenario do
     @scenario = scenario_config['scenario']
     @config = env_config
     @environment = File.basename(env_dir)  # 'development' oder 'production'
-
+    
     content = template.result(binding)
     File.write(File.join(env_dir, 'carambus.yml'), content)
     puts "   Generated: #{File.join(env_dir, 'carambus.yml')}"
@@ -225,7 +236,7 @@ namespace :scenario do
     template = ERB.new(File.read(template_file))
     @config = env_config
     @environment = File.basename(env_dir)  # 'development' oder 'production'
-
+    
     content = template.result(binding)
     File.write(File.join(env_dir, 'database.yml'), content)
     puts "   Generated: #{File.join(env_dir, 'database.yml')}"
@@ -243,7 +254,7 @@ namespace :scenario do
     @scenario = scenario_config['scenario']
     @config = env_config
     @environment = File.basename(env_dir)  # 'development' oder 'production'
-
+    
     content = template.result(binding)
     File.write(File.join(env_dir, 'nginx.conf'), content)
     puts "   Generated: #{File.join(env_dir, 'nginx.conf')}"
@@ -261,43 +272,24 @@ namespace :scenario do
     @scenario = scenario_config['scenario']
     @config = env_config
     @environment = File.basename(env_dir)  # 'development' oder 'production'
-
+    
     content = template.result(binding)
     File.write(File.join(env_dir, 'puma.service'), content)
     puts "   Generated: #{File.join(env_dir, 'puma.service')}"
     true
   end
 
-  def generate_puma_rb(scenario_config, env_config, env_dir)
-    template_file = File.join(templates_path, 'puma', 'puma_rb.erb')
-    unless File.exist?(template_file)
-      puts "Error: Puma.rb template not found: #{template_file}"
-      return false
-    end
-
-    template = ERB.new(File.read(template_file))
-    @scenario = scenario_config['scenario']
-    @config = env_config
-    @environment = File.basename(env_dir)  # 'development' or 'production'
-    @production_config = scenario_config['environments']['production']
-
-    content = template.result(binding)
-    File.write(File.join(env_dir, 'puma.rb'), content)
-    puts "   Generated: #{File.join(env_dir, 'puma.rb')}"
-    true
-  end
-
   def generate_deploy_files(scenario_config, env_config, env_dir)
     # Generate deploy files for all environments
-
+    
     # Generate deploy.rb from template
     generate_deploy_rb(scenario_config, env_config, env_dir)
-
+    
     # Generate production.rb from template (only for production)
     if File.basename(env_dir) == 'production'
       generate_production_rb(scenario_config, env_config, env_dir)
     end
-
+    
     true
   end
 
@@ -312,7 +304,7 @@ namespace :scenario do
     @scenario = scenario_config['scenario']
     @config = env_config
     @environment = File.basename(env_dir)
-
+    
     content = template.result(binding)
     File.write(File.join(env_dir, 'deploy.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'deploy.rb')}"
@@ -330,57 +322,174 @@ namespace :scenario do
     @scenario = scenario_config['scenario']
     @config = env_config
     @environment = File.basename(env_dir)
-
+    
     content = template.result(binding)
-
+    
     # Create deploy subdirectory if it doesn't exist
     deploy_dir = File.join(env_dir, 'deploy')
     FileUtils.mkdir_p(deploy_dir) unless Dir.exist?(deploy_dir)
-
+    
     File.write(File.join(deploy_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(deploy_dir, 'production.rb')}"
     true
   end
+    
+    # Generate deploy.rb (main deploy configuration)
+    deploy_rb_content = <<~RUBY
+      # frozen_string_literal: true
+      
+      # config valid for current version and patch releases of Capistrano
+      lock "~> 3.17.0"
+      
+      set :application, "#{scenario['application_name']}"
+      set :repo_url, "git@github.com:gullrich/#{scenario['application_name']}.git"
+      set :basename, "#{scenario['basename']}"
+      
+      # Default branch is :master
+      ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+      
+      # Default deploy_to directory is /var/www/my_app_name
+      set :deploy_to, "/var/www/#{scenario['basename']}"
+      
+      # Default value for :format is :airbrussh.
+      set :format, :airbrussh
+      
+      # You can configure the Airbrussh format using :format_options.
+      # These are the defaults.
+      set :format_options, command_output: true, log_file: "log/capistrano.log", color: :auto, truncate: :auto
+      
+      # Default value for :pty is false
+      set :pty, true
+      
+      # Default value for :linked_files is []
+      append :linked_files, "config/database.yml", "config/carambus.yml"
+      
+      # Default value for linked_dirs is []
+      append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system"
+      
+      # Default value for default_env is {}
+      set :default_env, { path: "/opt/ruby/bin:$PATH" }
+      
+      # Default value for local_user is ENV['USER']
+      # ask :local_user, -> { `git config user.name`.chomp }
+      
+      # Default value for keep_releases is 5
+      set :keep_releases, 5
+      
+      # Uncomment the following to require manually verifying the host key before first deploy.
+      # set :ssh_options, verify_host_key: :secure
+      
+      namespace :deploy do
+        desc "Restart application"
+        task :restart do
+          on roles(:app), in: :sequence, wait: 10 do
+            execute "./bin/#{env_config['puma_script'] || 'manage-puma.sh'}"
+          end
+        end
+      end
+      
+      after "deploy:publishing", "deploy:restart"
+    RUBY
+    
+    File.write(File.join(env_dir, 'deploy.rb'), deploy_rb_content)
+    puts "   Generated: #{File.join(env_dir, 'deploy.rb')}"
+    
+    # Generate deploy/production.rb
+    production_rb_content = <<~RUBY
+      # server-based syntax
+      # ======================
+      # Defines a single server with a list of roles and multiple properties.
+      # You can define all roles on a single server, or split them:
 
+      server '#{production_config['ssh_host']}', user: 'www-data', roles: %w{app db web}, ssh_options: {port: "#{production_config['ssh_port']}"} # #{scenario['name']}
+
+      # Puma auf Port ...
+      set :puma_port, "#{production_config['webserver_port']}"
+      set :rails_env, 'production'
+      set :branch, '#{scenario['branch']}'
+
+      # Configuration
+      # =============
+      # You can set any configuration variable like in config/deploy.rb
+      # These variables are then only loaded and set in this stage.
+      # For available Capistrano configuration variables see the documentation page.
+      # http://capistranorb.com/documentation/getting-started/configuration/
+      # Feel free to add new variables to customise your setup.
+
+      # Custom SSH Options
+      # ==================
+      # You may pass any option but keep in mind that net/ssh understands a
+      # limited set of options, consult the Net::SSH documentation.
+      # http://net-ssh.github.io/net-ssh/classes/Net/SSH.html#method-c-start
+      #
+      # Global options
+      # --------------
+      #  set :ssh_options, {
+      #    keys: %w(/home/rlisowski/.ssh/id_rsa),
+      #    forward_agent: false,
+      #    auth_methods: %w(password)
+      #  }
+      #
+      # The server-based syntax can be used to override options:
+      # ------------------------------------
+      # server 'carambus.de',
+      #   user: 'user_name',
+      #   roles: %w{web app},
+      #   ssh_options: {
+      #         user: 'user_name', # overrides user setting above
+      #         keys: %w(/user_name/.ssh/id_rsa),
+      #         forward_agent: false,
+      #         auth_methods: %w(publickey password)
+      #         # password: 'please use keys'
+      #       }
+    RUBY
+    
+    # Create deploy directory
+    deploy_dir = File.join(env_dir, 'deploy')
+    FileUtils.mkdir_p(deploy_dir)
+    
+    File.write(File.join(deploy_dir, 'production.rb'), production_rb_content)
+    puts "   Generated: #{File.join(deploy_dir, 'production.rb')}"
+  end
 
   def restore_database_dump(scenario_name, environment)
     puts "Restoring database dump for #{scenario_name} (#{environment})..."
-
+    
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       return false
     end
-
+    
     scenario_config = YAML.load_file(config_file)
     env_config = scenario_config['environments'][environment]
-
+    
     if env_config.nil?
       puts "Error: Environment '#{environment}' not found in scenario configuration"
       return false
     end
-
+    
     database_name = env_config['database_name']
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
-
+    
     # Find latest dump file
     dump_files = Dir.glob(File.join(dump_dir, "#{scenario_name}_#{environment}_*.sql.gz"))
     if dump_files.empty?
       puts "Error: No dump files found in #{dump_dir}"
       return false
     end
-
+    
     latest_dump = dump_files.sort.last
     puts "Using dump: #{File.basename(latest_dump)}"
-
+    
     # Drop and recreate database
     puts "Dropping database #{database_name}..."
     system("dropdb #{database_name}") if system("psql -lqt | cut -d \| -f 1 | grep -qw #{database_name}")
-
+    
     puts "Creating database #{database_name}..."
     system("createdb #{database_name}")
-
+    
     # Restore dump
     puts "Restoring from #{latest_dump}..."
     if system("gunzip -c #{latest_dump} | psql #{database_name}")
@@ -394,128 +503,68 @@ namespace :scenario do
 
   def create_database_dump(scenario_name, environment)
     puts "Creating database dump for #{scenario_name} (#{environment})..."
-
+    
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       return false
     end
-
+    
     scenario_config = YAML.load_file(config_file)
     env_config = scenario_config['environments'][environment]
-
+    
     if env_config.nil?
       puts "Error: Environment '#{environment}' not found in scenario configuration"
       return false
     end
-
+    
     database_name = env_config['database_name']
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
     FileUtils.mkdir_p(dump_dir)
-
+    
     # Create dump filename with timestamp
     timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
     dump_file = File.join(dump_dir, "#{scenario_name}_#{environment}_#{timestamp}.sql.gz")
-
-    # Special handling for carambus scenario - generate from carambus_api_development
-    if scenario_name == 'carambus' && environment == 'development'
-      puts "🔄 Special transformation: Generating carambus_development from carambus_api_development..."
-      
-      # Create temporary database for transformation
-      temp_db_name = "carambus_temp_#{timestamp}"
-      
-      # Create temporary database
-      if system("createdb #{temp_db_name}")
-        puts "   ✅ Created temporary database: #{temp_db_name}"
-        
-        # Restore carambus_api_development to temporary database
-        if system("pg_dump carambus_api_development | psql #{temp_db_name}")
-          puts "   ✅ Restored carambus_api_development to temporary database"
-          
-          # Apply transformations
-          transform_commands = [
-            # Reset version ID sequence to start from 1
-            "SELECT setval('versions_id_seq', 1, false);",
-            # Reset last version ID in settings JSON data (cast to jsonb for operations)  
-            "UPDATE settings SET data = jsonb_set(data::jsonb, '{last_version_id}', '{\"Integer\":\"1\"}')::text WHERE data::jsonb ? 'last_version_id';",
-            # Set scenario name in settings
-            "UPDATE settings SET data = jsonb_set(data::jsonb, '{scenario_name}', '{\"String\":\"carambus\"}')::text WHERE data::jsonb ? 'scenario_name';",
-            # If scenario_name doesn't exist, add it
-            "UPDATE settings SET data = (data::jsonb || '{\"scenario_name\":{\"String\":\"carambus\"}}')::text WHERE NOT (data::jsonb ? 'scenario_name');"
-          ]
-          
-          transform_commands.each do |cmd|
-            if system("psql #{temp_db_name} -c \"#{cmd}\"")
-              puts "   ✅ Applied transformation: #{cmd}"
-            else
-              puts "   ⚠️  Warning: Transformation failed: #{cmd}"
-            end
-          end
-          
-          # Create dump from transformed database
-          if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
-            puts "✅ Transformed database dump created: #{File.basename(dump_file)}"
-            puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-            
-            # Clean up temporary database
-            system("dropdb #{temp_db_name}")
-            puts "   🧹 Cleaned up temporary database"
-            true
-          else
-            puts "❌ Failed to create dump from transformed database"
-            system("dropdb #{temp_db_name}")
-            false
-          end
-        else
-          puts "❌ Failed to restore carambus_api_development to temporary database"
-          system("dropdb #{temp_db_name}")
-          false
-        end
-      else
-        puts "❌ Failed to create temporary database"
-        false
-      end
+    
+    # Create dump
+    puts "Creating dump of #{database_name}..."
+    if system("pg_dump #{database_name} | gzip > #{dump_file}")
+      puts "✅ Database dump created: #{File.basename(dump_file)}"
+      puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      true
     else
-      # Standard dump creation
-      puts "Creating dump of #{database_name}..."
-      if system("pg_dump #{database_name} | gzip > #{dump_file}")
-        puts "✅ Database dump created: #{File.basename(dump_file)}"
-        puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-        true
-      else
-        puts "❌ Database dump failed"
-        false
-      end
+      puts "❌ Database dump failed"
+      false
     end
   end
 
   def create_rails_root_folder(scenario_name)
     puts "Creating Rails root folder for #{scenario_name}..."
-
+    
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       return false
     end
-
+    
     # Create Rails root folder using git clone
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     FileUtils.rm_rf(rails_root) if Dir.exist?(rails_root)
-
+    
     # Clone from GitHub repository
     repo_url = "git@github.com:GernotUllrich/carambus.git"
     puts "   Cloning from: #{repo_url}"
-
+    
     if system("git clone #{repo_url} #{rails_root}")
       puts "   ✅ Git clone successful"
-
+      
       # Create necessary directories
       %w[log tmp storage].each do |dir|
         FileUtils.mkdir_p(File.join(rails_root, dir))
       end
-
+      
       # Copy RubyMine .idea configuration for development
       idea_source = File.join(Rails.root, '.idea')
       idea_target = File.join(rails_root, '.idea')
@@ -525,7 +574,7 @@ namespace :scenario do
       else
         puts "   ⚠️  RubyMine .idea configuration not found in master"
       end
-
+      
       puts "✅ Rails root folder created: #{rails_root}"
       true
     else
@@ -536,37 +585,37 @@ namespace :scenario do
 
   def setup_scenario_with_rails_root(scenario_name, environment)
     puts "Setting up scenario #{scenario_name} with Rails root folder..."
-
+    
     # Step 1: Create Rails root folder
     unless create_rails_root_folder(scenario_name)
       puts "❌ Failed to create Rails root folder"
       return false
     end
-
+    
     # Step 2: Restore database dump
     unless restore_database_dump(scenario_name, environment)
       puts "❌ Failed to restore database dump"
       return false
     end
-
+    
     # Step 3: Copy generated configuration files
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     env_dir = File.join(scenarios_path, scenario_name, environment)
-
+    
     if Dir.exist?(env_dir)
       # Copy database.yml
       if File.exist?(File.join(env_dir, 'database.yml'))
         FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
         puts "   Copied database.yml to Rails root"
       end
-
+      
       # Copy carambus.yml
       if File.exist?(File.join(env_dir, 'carambus.yml'))
         FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
         puts "   Copied carambus.yml to Rails root"
       end
     end
-
+    
     puts "✅ Scenario #{scenario_name} setup completed"
     puts "   Rails root: #{rails_root}"
     puts "   Environment: #{environment}"
@@ -575,43 +624,43 @@ namespace :scenario do
 
   def setup_scenario(scenario_name, environment)
     puts "Setting up scenario #{scenario_name} (#{environment})..."
-
+    
     # Step 1: Generate configuration files
     unless generate_configuration_files(scenario_name, environment)
       puts "❌ Failed to generate configuration files"
       return false
     end
-
+    
     # Step 2: Restore database dump
     unless restore_database_dump(scenario_name, environment)
       puts "❌ Failed to restore database dump"
       return false
     end
-
+    
     # Step 3: Create Rails root folder and copy files
     unless create_rails_root_folder(scenario_name)
       puts "❌ Failed to create Rails root folder"
       return false
     end
-
+    
     # Step 4: Copy generated configuration files to Rails root
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     env_dir = File.join(scenarios_path, scenario_name, environment)
-
+    
     if Dir.exist?(env_dir)
       # Copy database.yml
       if File.exist?(File.join(env_dir, 'database.yml'))
         FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
         puts "   Copied database.yml to Rails root"
       end
-
+      
       # Copy carambus.yml
       if File.exist?(File.join(env_dir, 'carambus.yml'))
         FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
         puts "   Copied carambus.yml to Rails root"
       end
     end
-
+    
     puts "✅ Scenario #{scenario_name} setup completed"
     puts "   Rails root: #{rails_root}"
     puts "   Environment: #{environment}"
@@ -620,35 +669,35 @@ namespace :scenario do
 
   def deploy_scenario_with_conflict_analysis(scenario_name)
     puts "Deploying scenario #{scenario_name} with conflict analysis..."
-
+    
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       return false
     end
-
+    
     scenario_config = YAML.load_file(config_file)
     production_config = scenario_config['environments']['production']
     scenario = scenario_config['scenario']
-
+    
     puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
     puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
-
+    
     # Step 1: Generate production configuration files
     puts "\n📋 Step 1: Generating production configuration files..."
     unless generate_configuration_files(scenario_name, 'production')
       puts "❌ Failed to generate production configuration files"
       return false
     end
-
-    # Step 2: Create database dump from development (which has correct schema)
-    puts "\n💾 Step 2: Creating database dump from development..."
-    unless create_database_dump(scenario_name, 'development')
-      puts "❌ Failed to create development database dump"
+    
+    # Step 2: Create production database dump
+    puts "\n💾 Step 2: Creating production database dump..."
+    unless create_database_dump(scenario_name, 'production')
+      puts "❌ Failed to create production database dump"
       return false
     end
-
+    
     # Step 3: Copy configuration files to Rails root folder
     puts "\n📁 Step 3: Copying configuration files to Rails root folder..."
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
@@ -657,238 +706,91 @@ namespace :scenario do
       puts "   Please run: rake scenario:create_rails_root[#{scenario_name}]"
       return false
     end
-
+    
     # Copy production configuration files
     production_dir = File.join(scenarios_path, scenario_name, 'production')
     FileUtils.cp(File.join(production_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
     FileUtils.cp(File.join(production_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-
+    
     # Copy nginx.conf if it exists
     if File.exist?(File.join(production_dir, 'nginx.conf'))
       FileUtils.cp(File.join(production_dir, 'nginx.conf'), File.join(rails_root, 'config', 'nginx.conf'))
       puts "   ✅ nginx.conf copied to Rails root folder"
     end
-
+    
     # Copy puma.service if it exists
     if File.exist?(File.join(production_dir, 'puma.service'))
       FileUtils.cp(File.join(production_dir, 'puma.service'), File.join(rails_root, 'config', 'puma.service'))
       puts "   ✅ puma.service copied to Rails root folder"
     end
-
-    # Copy puma.rb if it exists
-    if File.exist?(File.join(production_dir, 'puma.rb'))
-      FileUtils.cp(File.join(production_dir, 'puma.rb'), File.join(rails_root, 'config', 'puma.rb'))
-      puts "   ✅ puma.rb copied to Rails root folder"
-    end
-
-    # Copy credentials files from main repository
-    main_credentials_dir = File.join(Rails.root, 'config', 'credentials')
-    if Dir.exist?(main_credentials_dir)
-      Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
-        if File.file?(file)
-          filename = File.basename(file)
-          FileUtils.cp(file, File.join(rails_root, 'config', filename))
-          puts "   ✅ #{filename} copied to Rails root folder"
-        end
-      end
-    end
-
-    # Copy master.key from main repository
-    master_key_file = File.join(Rails.root, 'config', 'master.key')
-    if File.exist?(master_key_file)
-      FileUtils.cp(master_key_file, File.join(rails_root, 'config', 'master.key'))
-      puts "   ✅ master.key copied to Rails root folder"
-    end
-
+    
     puts "   ✅ Configuration files copied to Rails root folder"
-
+    
     # Step 4: Copy deployment files
     puts "\n🚀 Step 4: Copying deployment files..."
-    deploy_dir = File.join(scenarios_path, scenario_name, 'production')
+    deploy_dir = File.join(scenarios_path, scenario_name, 'development')
     if File.exist?(File.join(deploy_dir, 'deploy.rb'))
       FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
       puts "   ✅ deploy.rb copied"
     end
-
+    
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
-      # Copy individual files from deploy subdirectory
-      deploy_subdir = File.join(deploy_dir, 'deploy')
-      Dir.glob(File.join(deploy_subdir, '*')).each do |file|
-        if File.file?(file)
-          filename = File.basename(file)
-          FileUtils.cp(file, File.join(rails_root, 'config', 'deploy', filename))
-          puts "   ✅ #{filename} copied to config/deploy/"
-        end
-      end
+      FileUtils.cp_r(File.join(deploy_dir, 'deploy'), File.join(rails_root, 'config', 'deploy'))
+      puts "   ✅ deploy/ directory copied"
     end
-
-    # Step 5: Upload shared configuration files to server
-    puts "\n📤 Step 5: Uploading shared configuration files to server..."
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
     
-    # Create shared config directory on server
-    shared_config_dir = "/var/www/#{basename}/shared/config"
-    create_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
-    
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dir_cmd}'")
-      puts "   ✅ Shared config directory created"
-      
-      # Upload database.yml
-      if File.exist?(File.join(rails_root, 'config', 'database.yml'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'database.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ database.yml uploaded to server"
-        else
-          puts "   ❌ Failed to upload database.yml"
-          return false
-        end
-      end
-      
-      # Upload carambus.yml
-      if File.exist?(File.join(rails_root, 'config', 'carambus.yml'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'carambus.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ carambus.yml uploaded to server"
-        else
-          puts "   ❌ Failed to upload carambus.yml"
-          return false
-        end
-      end
-      
-      # Upload master.key
-      if File.exist?(File.join(rails_root, 'config', 'master.key'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'master.key')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ master.key uploaded to server"
-        else
-          puts "   ❌ Failed to upload master.key"
-          return false
-        end
-      end
-      
-      puts "   ✅ All shared configuration files uploaded"
-    else
-      puts "   ❌ Failed to create shared config directory"
+    # Step 5: Copy configuration files to shared directory
+    puts "\n📋 Step 5: Copying configuration files to shared directory..."
+    unless copy_configs_to_shared(scenario_name, 'production')
+      puts "❌ Failed to copy configuration files to shared directory"
       return false
     end
 
-    # Step 6: Restore database dump to production server
-    puts "\n🗄️  Step 6: Restoring database dump to production server..."
-    production_database = production_config['database_name']
-    production_user = production_config['database_username']
-    
-    # Find the latest development dump
-    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
-    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_development_*.sql.gz")).max_by { |f| File.mtime(f) }
-    
-    if latest_dump && File.exist?(latest_dump)
-      puts "   Using dump: #{File.basename(latest_dump)}"
-      
-      # Upload dump to server
-      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
-      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
-      
-      if system(upload_cmd)
-        puts "   ✅ Database dump uploaded to server"
-        
-        # Drop and recreate database on server
-        puts "   Dropping and recreating database..."
-        
-        # Create a temporary script for database operations
-        temp_script = "/tmp/reset_database.sh"
-        script_content = <<~SCRIPT
-          #!/bin/bash
-          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
-          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{production_user};"
-        SCRIPT
-
-        # Write script to server
-        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
-        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-          # Make script executable and run it
-          execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
-          
-          if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
-            puts "   ✅ Database dropped and recreated"
-            
-            # Restore database from dump
-            restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql -d #{production_database} && rm #{temp_dump_path}"
-            
-            if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
-              puts "   ✅ Database restored from development dump"
-            else
-              puts "   ❌ Failed to restore database from dump"
-              return false
-            end
-          else
-            puts "   ❌ Failed to drop and recreate database"
-            return false
-          end
-        else
-          puts "   ❌ Failed to create database reset script"
-          return false
-        end
-      else
-        puts "   ❌ Failed to upload database dump to server"
-        return false
-      end
-    else
-      puts "   ❌ No development database dump found"
-      return false
-    end
-
-    # Step 7: Execute Capistrano deployment
-    puts "\n🎯 Step 7: Executing Capistrano deployment..."
-    puts "   Running: cap production deploy"
+    # Step 6: Execute Capistrano deployment
+    puts "\n🎯 Step 6: Executing Capistrano deployment..."
+    puts "   This would normally run: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
     puts "   Basename: #{scenario['basename']}"
-
-    # Change to the Rails root directory and run Capistrano
-    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario['basename'])
     
-    if Dir.exist?(rails_root_dir)
-      puts "   Deploying from: #{rails_root_dir}"
-      
-      # Execute Capistrano deployment
-      deploy_cmd = "cd #{rails_root_dir} && cap production deploy"
-      puts "   Executing: #{deploy_cmd}"
-      
-      if system(deploy_cmd)
-        puts "   ✅ Capistrano deployment completed successfully"
-      else
-        puts "   ❌ Capistrano deployment failed"
-        return false
-      end
-    else
-      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
-      puts "   Please run 'rake scenario:create_rails_root[#{scenario_name}]' first"
-      return false
-    end
-
-    # Step 8: SSL Certificate Setup (if SSL enabled)
+    # For now, just show what would be deployed
+    puts "\n📋 Deployment Summary:"
+    puts "   Scenario: #{scenario_name}"
+    puts "   Application: #{scenario['application_name']}"
+    puts "   Basename: #{scenario['basename']}"
+    puts "   Target Host: #{production_config['webserver_host']}"
+    puts "   Target Port: #{production_config['webserver_port']}"
+    puts "   SSH Host: #{production_config['ssh_host']}"
+    puts "   SSH Port: #{production_config['ssh_port']}"
+    puts "   Database: #{production_config['database_name']}"
+    puts "   SSL Enabled: #{production_config['ssl_enabled']}"
+    
+    # Step 7: SSL Certificate Setup (if SSL enabled)
     if production_config['ssl_enabled']
-      puts "\n🔒 Step 8: Setting up SSL certificate..."
+      puts "\n🔒 Step 7: Setting up SSL certificate..."
       unless setup_ssl_certificate(scenario_name, production_config)
         puts "❌ Failed to setup SSL certificate"
         return false
       end
     end
 
-    # Step 9: Update Nginx Configuration (if SSL enabled)
-    if production_config['ssl_enabled']
-      puts "\n🌐 Step 9: Updating Nginx configuration..."
-      unless update_nginx_config(scenario_name, production_config)
-        puts "❌ Failed to update Nginx configuration"
-        return false
-      end
+    # Step 8: Fix Puma Service Configuration
+    puts "\n⚙️  Step 8: Fixing Puma service configuration..."
+    unless fix_puma_service_config(scenario_name, production_config)
+      puts "❌ Failed to fix Puma service configuration"
+      return false
     end
 
+    # Step 9: Update Nginx Configuration
+    puts "\n🌐 Step 9: Updating Nginx configuration..."
+    unless update_nginx_config(scenario_name, production_config)
+      puts "❌ Failed to update Nginx configuration"
+      return false
+    end
+    
     puts "\n✅ Deployment preparation completed successfully!"
     puts "   Next step: Run 'cap production deploy' in the Rails root folder"
-
+    
     true
   end
 
@@ -896,20 +798,20 @@ namespace :scenario do
     host = production_config['webserver_host']
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
-
+    
     puts "   Setting up SSL certificate for #{host}..."
-
+    
     # Check if certificate already exists
     cert_check_cmd = "sudo certbot certificates | grep -q '#{host}'"
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{cert_check_cmd}'")
       puts "   ✅ SSL certificate already exists for #{host}"
       return true
     end
-
+    
     # Create SSL certificate
     certbot_cmd = "sudo certbot --nginx -d #{host} --non-interactive --agree-tos --email gernot.ullrich@gmx.de"
     puts "   Running: #{certbot_cmd}"
-
+    
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{certbot_cmd}'")
       puts "   ✅ SSL certificate created successfully"
       true
@@ -923,9 +825,9 @@ namespace :scenario do
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     basename = scenario_name
-
+    
     puts "   Fixing Puma service configuration for #{basename}..."
-
+    
     # Create corrected service file content
     service_content = <<~SERVICE
       [Unit]
@@ -953,31 +855,14 @@ namespace :scenario do
       [Install]
       WantedBy=multi-user.target
     SERVICE
-
-    # Write service file to server using a different approach
-    # Create a temporary script that writes the service file
-    temp_script = "/tmp/create_puma_service.sh"
-    script_content = <<~SCRIPT
-      #!/bin/bash
-      cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'
-      #{service_content}
-      EOF
-    SCRIPT
     
-    # Write script to server
-    script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-      # Make script executable and run it with sudo
-      execute_cmd = "chmod +x #{temp_script} && sudo #{temp_script} && rm #{temp_script}"
-      service_file_cmd = execute_cmd
-    else
-      puts "   ❌ Failed to create service script"
-      return false
-    end
+    # Write service file to server
+    service_file_cmd = "sudo cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'
+#{service_content}EOF"
     
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{service_file_cmd}'")
       puts "   ✅ Puma service configuration updated"
-
+      
       # Reload systemd and restart service
       reload_cmd = "sudo systemctl daemon-reload && sudo systemctl restart puma-#{basename}.service"
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_cmd}'")
@@ -989,8 +874,6 @@ namespace :scenario do
       end
     else
       puts "   ❌ Failed to update Puma service configuration"
-      puts "Edit /etc/systemd/system/puma-#{basename}.service:"
-      puts service_content
       false
     end
   end
@@ -999,12 +882,12 @@ namespace :scenario do
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     basename = scenario_name
-
+    
     puts "   Updating Nginx configuration for #{basename}..."
-
+    
     # Copy nginx.conf to sites-available and enable it
     nginx_cmd = "sudo cp /var/www/#{basename}/shared/config/nginx.conf /etc/nginx/sites-available/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
-
+    
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{nginx_cmd}'")
       puts "   ✅ Nginx configuration updated and reloaded"
       true
@@ -1012,6 +895,78 @@ namespace :scenario do
       puts "   ❌ Failed to update Nginx configuration"
       false
     end
+  end
+
+  def copy_configs_to_shared(scenario_name, environment)
+    puts "Copying configuration files to shared directory for #{scenario_name} (#{environment})..."
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+    
+    scenario_config = YAML.load_file(config_file)
+    env_config = scenario_config['environments'][environment]
+    
+    if env_config.nil?
+      puts "Error: Environment '#{environment}' not found in scenario configuration"
+      return false
+    end
+    
+    ssh_host = env_config['ssh_host']
+    ssh_port = env_config['ssh_port']
+    basename = scenario_name
+    
+    # Source directory with generated configs
+    source_dir = File.join(scenarios_path, scenario_name, environment)
+    
+    # Target directory on remote server
+    target_dir = "/var/www/#{basename}/shared/config"
+    
+    # Ensure target directory exists
+    mkdir_cmd = "sudo mkdir -p #{target_dir}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{mkdir_cmd}'")
+      puts "❌ Failed to create target directory #{target_dir}"
+      return false
+    end
+    
+    # Copy each configuration file
+    config_files = ['database.yml', 'carambus.yml', 'nginx.conf', 'puma.service']
+    success = true
+    
+    config_files.each do |config_file|
+      source_file = File.join(source_dir, config_file)
+      if File.exist?(source_file)
+        puts "   Copying #{config_file}..."
+        
+        # Copy file to remote server
+        if system("scp -P #{ssh_port} #{source_file} www-data@#{ssh_host}:/tmp/#{config_file}")
+          # Move to target directory with sudo
+          move_cmd = "sudo mv /tmp/#{config_file} #{target_dir}/#{config_file} && sudo chown www-data:www-data #{target_dir}/#{config_file}"
+          if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'")
+            puts "   ✅ #{config_file} copied successfully"
+          else
+            puts "   ❌ Failed to move #{config_file} to target directory"
+            success = false
+          end
+        else
+          puts "   ❌ Failed to copy #{config_file}"
+          success = false
+        end
+      else
+        puts "   ⚠️  #{config_file} not found in #{source_dir}"
+      end
+    end
+    
+    if success
+      puts "✅ All configuration files copied to shared directory"
+    else
+      puts "❌ Some configuration files failed to copy"
+    end
+    
+    success
   end
 
   def create_scenario(scenario_name, location_id, context)
