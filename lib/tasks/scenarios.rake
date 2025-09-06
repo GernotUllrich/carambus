@@ -593,6 +593,25 @@ namespace :scenario do
       puts "   ✅ puma.service copied to Rails root folder"
     end
 
+    # Copy credentials files from main repository
+    main_credentials_dir = File.join(Rails.root, 'config', 'credentials')
+    if Dir.exist?(main_credentials_dir)
+      Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
+        if File.file?(file)
+          filename = File.basename(file)
+          FileUtils.cp(file, File.join(rails_root, 'config', filename))
+          puts "   ✅ #{filename} copied to Rails root folder"
+        end
+      end
+    end
+
+    # Copy master.key from main repository
+    master_key_file = File.join(Rails.root, 'config', 'master.key')
+    if File.exist?(master_key_file)
+      FileUtils.cp(master_key_file, File.join(rails_root, 'config', 'master.key'))
+      puts "   ✅ master.key copied to Rails root folder"
+    end
+
     puts "   ✅ Configuration files copied to Rails root folder"
 
     # Step 4: Copy deployment files
