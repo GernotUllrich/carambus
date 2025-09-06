@@ -560,10 +560,10 @@ namespace :scenario do
       return false
     end
 
-    # Step 2: Create production database dump
-    puts "\n💾 Step 2: Creating production database dump..."
-    unless create_database_dump(scenario_name, 'production')
-      puts "❌ Failed to create production database dump"
+    # Step 2: Create database dump from development (which has correct schema)
+    puts "\n💾 Step 2: Creating database dump from development..."
+    unless create_database_dump(scenario_name, 'development')
+      puts "❌ Failed to create development database dump"
       return false
     end
 
@@ -634,8 +634,126 @@ namespace :scenario do
       end
     end
 
-    # Step 5: Execute Capistrano deployment
-    puts "\n🎯 Step 5: Executing Capistrano deployment..."
+    # Step 5: Upload shared configuration files to server
+    puts "\n📤 Step 5: Uploading shared configuration files to server..."
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Create shared config directory on server
+    shared_config_dir = "/var/www/#{basename}/shared/config"
+    create_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dir_cmd}'")
+      puts "   ✅ Shared config directory created"
+      
+      # Upload database.yml
+      if File.exist?(File.join(rails_root, 'config', 'database.yml'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'database.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ database.yml uploaded to server"
+        else
+          puts "   ❌ Failed to upload database.yml"
+          return false
+        end
+      end
+      
+      # Upload carambus.yml
+      if File.exist?(File.join(rails_root, 'config', 'carambus.yml'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'carambus.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ carambus.yml uploaded to server"
+        else
+          puts "   ❌ Failed to upload carambus.yml"
+          return false
+        end
+      end
+      
+      # Upload master.key
+      if File.exist?(File.join(rails_root, 'config', 'master.key'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'master.key')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ master.key uploaded to server"
+        else
+          puts "   ❌ Failed to upload master.key"
+          return false
+        end
+      end
+      
+      puts "   ✅ All shared configuration files uploaded"
+    else
+      puts "   ❌ Failed to create shared config directory"
+      return false
+    end
+
+    # Step 6: Restore database dump to production server
+    puts "\n🗄️  Step 6: Restoring database dump to production server..."
+    production_database = production_config['database_name']
+    production_user = production_config['database_username']
+    
+    # Find the latest development dump
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_development_*.sql.gz")).max_by { |f| File.mtime(f) }
+    
+    if latest_dump && File.exist?(latest_dump)
+      puts "   Using dump: #{File.basename(latest_dump)}"
+      
+      # Upload dump to server
+      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
+      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
+      
+      if system(upload_cmd)
+        puts "   ✅ Database dump uploaded to server"
+        
+        # Drop and recreate database on server
+        puts "   Dropping and recreating database..."
+        
+        # Create a temporary script for database operations
+        temp_script = "/tmp/reset_database.sh"
+        script_content = <<~SCRIPT
+          #!/bin/bash
+          sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '#{production_database}' AND pid <> pg_backend_pid();"
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{production_user};"
+        SCRIPT
+
+        # Write script to server
+        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+          # Make script executable and run it
+          execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
+          
+          if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
+            puts "   ✅ Database dropped and recreated"
+            
+            # Restore database from dump
+            restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql -d #{production_database} && rm #{temp_dump_path}"
+            
+            if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
+              puts "   ✅ Database restored from development dump"
+            else
+              puts "   ❌ Failed to restore database from dump"
+              return false
+            end
+          else
+            puts "   ❌ Failed to drop and recreate database"
+            return false
+          end
+        else
+          puts "   ❌ Failed to create database reset script"
+          return false
+        end
+      else
+        puts "   ❌ Failed to upload database dump to server"
+        return false
+      end
+    else
+      puts "   ❌ No development database dump found"
+      return false
+    end
+
+    # Step 7: Execute Capistrano deployment
+    puts "\n🎯 Step 7: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
@@ -663,18 +781,18 @@ namespace :scenario do
       return false
     end
 
-    # Step 6: SSL Certificate Setup (if SSL enabled)
+    # Step 8: SSL Certificate Setup (if SSL enabled)
     if production_config['ssl_enabled']
-      puts "\n🔒 Step 6: Setting up SSL certificate..."
+      puts "\n🔒 Step 8: Setting up SSL certificate..."
       unless setup_ssl_certificate(scenario_name, production_config)
         puts "❌ Failed to setup SSL certificate"
         return false
       end
     end
 
-    # Step 6: Update Nginx Configuration (if SSL enabled)
+    # Step 9: Update Nginx Configuration (if SSL enabled)
     if production_config['ssl_enabled']
-      puts "\n🌐 Step 6: Updating Nginx configuration..."
+      puts "\n🌐 Step 9: Updating Nginx configuration..."
       unless update_nginx_config(scenario_name, production_config)
         puts "❌ Failed to update Nginx configuration"
         return false
