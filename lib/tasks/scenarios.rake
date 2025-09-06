@@ -718,10 +718,26 @@ namespace :scenario do
       WantedBy=multi-user.target
     SERVICE
 
-    # Write service file to server using printf (works better over SSH)
-    # Escape the content for printf
-    escaped_content = service_content.gsub("'", "'\"'\"'").gsub("\n", "\\n")
-    service_file_cmd = "printf '#{escaped_content}' | sudo tee /etc/systemd/system/puma-#{basename}.service > /dev/null"
+    # Write service file to server using a different approach
+    # Create a temporary script that writes the service file
+    temp_script = "/tmp/create_puma_service.sh"
+    script_content = <<~SCRIPT
+      #!/bin/bash
+      cat > /etc/systemd/system/puma-#{basename}.service << 'EOF'
+      #{service_content}
+      EOF
+    SCRIPT
+    
+    # Write script to server
+    script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+      # Make script executable and run it with sudo
+      execute_cmd = "chmod +x #{temp_script} && sudo #{temp_script} && rm #{temp_script}"
+      service_file_cmd = execute_cmd
+    else
+      puts "   ❌ Failed to create service script"
+      return false
+    end
     
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{service_file_cmd}'")
       puts "   ✅ Puma service configuration updated"
