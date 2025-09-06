@@ -597,35 +597,52 @@ namespace :scenario do
 
     # Step 4: Copy deployment files
     puts "\n🚀 Step 4: Copying deployment files..."
-    deploy_dir = File.join(scenarios_path, scenario_name, 'development')
+    deploy_dir = File.join(scenarios_path, scenario_name, 'production')
     if File.exist?(File.join(deploy_dir, 'deploy.rb'))
       FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
       puts "   ✅ deploy.rb copied"
     end
 
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
-      FileUtils.cp_r(File.join(deploy_dir, 'deploy'), File.join(rails_root, 'config', 'deploy'))
-      puts "   ✅ deploy/ directory copied"
+      # Copy individual files from deploy subdirectory
+      deploy_subdir = File.join(deploy_dir, 'deploy')
+      Dir.glob(File.join(deploy_subdir, '*')).each do |file|
+        if File.file?(file)
+          filename = File.basename(file)
+          FileUtils.cp(file, File.join(rails_root, 'config', 'deploy', filename))
+          puts "   ✅ #{filename} copied to config/deploy/"
+        end
+      end
     end
 
     # Step 5: Execute Capistrano deployment
     puts "\n🎯 Step 5: Executing Capistrano deployment..."
-    puts "   This would normally run: cap production deploy"
+    puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
     puts "   Basename: #{scenario['basename']}"
 
-    # For now, just show what would be deployed
-    puts "\n📋 Deployment Summary:"
-    puts "   Scenario: #{scenario_name}"
-    puts "   Application: #{scenario['application_name']}"
-    puts "   Basename: #{scenario['basename']}"
-    puts "   Target Host: #{production_config['webserver_host']}"
-    puts "   Target Port: #{production_config['webserver_port']}"
-    puts "   SSH Host: #{production_config['ssh_host']}"
-    puts "   SSH Port: #{production_config['ssh_port']}"
-    puts "   Database: #{production_config['database_name']}"
-    puts "   SSL Enabled: #{production_config['ssl_enabled']}"
+    # Change to the Rails root directory and run Capistrano
+    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario['basename'])
+    
+    if Dir.exist?(rails_root_dir)
+      puts "   Deploying from: #{rails_root_dir}"
+      
+      # Execute Capistrano deployment
+      deploy_cmd = "cd #{rails_root_dir} && cap production deploy"
+      puts "   Executing: #{deploy_cmd}"
+      
+      if system(deploy_cmd)
+        puts "   ✅ Capistrano deployment completed successfully"
+      else
+        puts "   ❌ Capistrano deployment failed"
+        return false
+      end
+    else
+      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
+      puts "   Please run 'rake scenario:create_rails_root[#{scenario_name}]' first"
+      return false
+    end
 
     # Step 6: SSL Certificate Setup (if SSL enabled)
     if production_config['ssl_enabled']
@@ -636,18 +653,13 @@ namespace :scenario do
       end
     end
 
-    # Step 7: Fix Puma Service Configuration
-    puts "\n⚙️  Step 7: Fixing Puma service configuration..."
-    unless fix_puma_service_config(scenario_name, production_config)
-      puts "❌ Failed to fix Puma service configuration"
-      return false
-    end
-
-    # Step 8: Update Nginx Configuration
-    puts "\n🌐 Step 8: Updating Nginx configuration..."
-    unless update_nginx_config(scenario_name, production_config)
-      puts "❌ Failed to update Nginx configuration"
-      return false
+    # Step 6: Update Nginx Configuration (if SSL enabled)
+    if production_config['ssl_enabled']
+      puts "\n🌐 Step 6: Updating Nginx configuration..."
+      unless update_nginx_config(scenario_name, production_config)
+        puts "❌ Failed to update Nginx configuration"
+        return false
+      end
     end
 
     puts "\n✅ Deployment preparation completed successfully!"
