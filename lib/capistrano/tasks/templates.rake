@@ -74,11 +74,35 @@ namespace :deploy do
     end
   end
 
+  desc "Setup SSL certificate with Let's Encrypt"
+  task :ssl_setup do
+    on roles(:app) do
+      domain = fetch(:domain)
+      
+      # Check if certificate already exists
+      if test("sudo certbot certificates | grep -q '#{domain}'")
+        puts "✅ SSL certificate already exists for #{domain}"
+      else
+        puts "🔒 Setting up SSL certificate for #{domain}..."
+        
+        # Create SSL certificate
+        execute :sudo, :certbot, "--nginx", "-d", domain, "--non-interactive", "--agree-tos", "--email", "gernot.ullrich@gmx.de"
+        
+        puts "✅ SSL certificate created successfully"
+      end
+    end
+  end
+
   desc "Deploy all templates and configurations"
   task :deploy_templates do
     invoke "deploy:nginx_config"
     invoke "deploy:puma_service_config"
     invoke "deploy:puma_rb_config"
+    
+    # Setup SSL if enabled
+    if fetch(:ssl_enabled)
+      invoke "deploy:ssl_setup"
+    end
   end
 end
 

@@ -40,17 +40,16 @@ nav:
       - README: README.md
   - Installation:
       - Übersicht: installation_overview.md
-      - Docker Installation: docker_installation.md
   - Benutzerhandbuch:
       - Turnierverwaltung: tournament.md
       - Ligaspieltage: league.md
       - Tischreservierung: table_reservation_heating_control.md
       - Einzelturnierverwaltung: einzelturnierverwaltung.md
-      - Modus-Umschalter: mode_switcher.md
       - Scoreboard Setup: scoreboard_autostart_setup.md
   - Entwicklerhandbuch:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
+      - Scenario Management: scenario_management.md
       - Datenbank-Setup: DATABASE_SETUP.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md

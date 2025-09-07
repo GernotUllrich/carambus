@@ -2,23 +2,24 @@
 
 ## 📋 Verfügbare Installations-Guides
 
-### 🐳 Docker Installation (Empfohlen)
-**[Docker Installation](docker_installation.md)** - Vollständiger Guide für die Docker-basierte Installation von Carambus auf verschiedenen Plattformen.
+### 🎯 Scenario Management (Empfohlen)
+**[Scenario Management](scenario_management.md)** - Modernes Deployment-System für verschiedene Carambus-Umgebungen.
 
-**Unterstützte Plattformen:**
-- **Raspberry Pi** - Für lokale Scoreboards und Turniere
-- **Ubuntu Server** - Für professionelle Hosting-Umgebungen (z.B. Hetzner)
-- **Kombinierte Installation** - API-Server + Local-Server auf derselben Hardware
+**Unterstützte Szenarien:**
+- **carambus** - Hauptproduktionsumgebung
+- **carambus_location_5101** - Lokale Server-Instanz für Standort 5101
+- **carambus_location_2459** - Lokale Server-Instanz für Standort 2459
+- **carambus_location_2460** - Lokale Server-Instanz für Standort 2460
 
-**Vorteile der Docker-Installation:**
-- ✅ Konsistente Umgebung
-- ✅ Einfache Migration
-- ✅ Minimaler technischer Aufwand
-- ✅ Reproduzierbare Installationen
-- ✅ Automatische Updates
+**Vorteile des Scenario Management:**
+- ✅ Automatisierte Deployments
+- ✅ Konsistente Konfiguration
+- ✅ Integrierte SSL-Verwaltung
+- ✅ Automatische Sequence-Verwaltung
+- ✅ Skalierbare Architektur
 
 ### 🔧 Manuelle Installation
-Für spezielle Anforderungen oder wenn Docker nicht verfügbar ist:
+Für spezielle Anforderungen oder Legacy-Systeme:
 
 - **Raspberry Pi Setup** - Detaillierte Anleitung für Pi-spezifische Installation
 - **Ubuntu Server Setup** - Server-spezifische Konfiguration
@@ -26,20 +27,20 @@ Für spezielle Anforderungen oder wenn Docker nicht verfügbar ist:
 
 ## 🏗️ Architektur-Übersicht
 
-### Production-Modi
-1. **API-Server** (`/var/www/carambus_api`)
+### Production-Szenarien
+1. **API-Server** (`carambus`)
    - Zentrale API für alle Local-Server
    - Domain: newapi.carambus.de
    - Kann auch als Hosting-Server fungieren
 
-2. **Local-Server** (`/var/www/carambus`)
+2. **Local-Server** (`carambus_location_*`)
    - Lokale Server für Turniere/Clubs
    - Verweist auf API-Server
    - Für Scoreboards und lokale Verwaltung
 
 ### Development-Modus
-- Beide Production-Modi können parallel getestet werden
-- Auf macOS-Computer mit Docker
+- Alle Szenarien können parallel getestet werden
+- Automatische Konfiguration über Scenario Management
 - Inter-System-Kommunikation testbar
 
 ## 🔑 Wichtige Konfigurationen
@@ -51,48 +52,55 @@ Für spezielle Anforderungen oder wenn Docker nicht verfügbar ist:
 - **Sudo**: Über `wheel`-Gruppe
 
 ### Installationspfade
-- **API-Server**: `/var/www/carambus_api`
-- **Local-Server**: `/var/www/carambus`
+- **API-Server**: `/var/www/carambus`
+- **Local-Server**: `/var/www/carambus_location_*`
 
 ## 🚀 Schnellstart
 
-### 1. Plattform wählen
+### 1. Scenario erstellen
 ```bash
-# Raspberry Pi
-./deploy-docker.sh carambus_raspberry www-data@192.168.178.53:8910 /var/www/carambus
+# Neues Scenario erstellen
+rake "scenario:create[carambus_location_5101]"
 
-# Ubuntu Server
-./deploy-docker.sh carambus_newapi www-data@carambus.de:8910 /var/www/carambus_api
+# Rails-Root erstellen
+rake "scenario:create_rails_root[carambus_location_5101]"
 ```
 
-### 2. Automatische Konfiguration
-Das Deployment-Skript konfiguriert automatisch:
-- Docker-Container
+### 2. Development-Setup
+```bash
+# Development-Umgebung einrichten
+rake "scenario:setup[carambus_location_5101,development]"
+```
+
+### 3. Production-Deployment
+```bash
+# Vollständiges Production-Deployment
+rake "scenario:deploy[carambus_location_5101]"
+```
+
+### 4. Automatische Konfiguration
+Das Scenario Management konfiguriert automatisch:
 - Datenbank (PostgreSQL)
 - Cache (Redis)
 - Web-Server (Rails + Puma)
 - Nginx-Konfiguration
 - SSL-Zertifikate (bei HTTPS)
-
-### 3. Lokalisierung (nur für Local-Server)
-- Web-basierte Konfiguration
-- Region-spezifische Einstellungen
-- Scoreboard-Konfiguration
+- Sequence-Management
 
 ## 📖 Weitere Dokumentation
 
-- **[Docker Installation](docker_installation.md)** - Vollständiger Docker-Guide
+- **[Scenario Management](scenario_management.md)** - Vollständiger Deployment-Guide
 - **[Entwicklerleitfaden](DEVELOPER_GUIDE.md)** - Entwicklerdokumentation
 - **[API-Dokumentation](API.md)** - API-Referenz
 
 ## 🆘 Support
 
 Bei Problemen:
-1. Prüfen Sie die **[Docker Installation](docker_installation.md)**-Seite
-2. Logs anschauen: `docker compose logs`
-3. Container-Status: `docker compose ps`
+1. Prüfen Sie die **[Scenario Management](scenario_management.md)**-Seite
+2. Logs anschauen: `tail -f log/production.log`
+3. Service-Status: `systemctl status puma-carambus`
 4. System neu starten: `sudo reboot`
 
 ---
 
-**🎯 Ziel**: Einfache, automatisierte Installation von Carambus auf verschiedenen Plattformen mit konsistenter Konfiguration. 
+**🎯 Ziel**: Einfache, automatisierte Installation von Carambus auf verschiedenen Plattformen mit konsistenter Konfiguration über das Scenario Management System. 

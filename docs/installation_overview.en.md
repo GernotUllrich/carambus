@@ -2,8 +2,24 @@
 
 ## 📋 Available Installation Guides
 
+### 🎯 Scenario Management (Recommended)
+**[Scenario Management](scenario_management.md)** - Modern deployment system for various Carambus environments.
+
+**Supported Scenarios:**
+- **carambus** - Main production environment
+- **carambus_location_5101** - Local server instance for location 5101
+- **carambus_location_2459** - Local server instance for location 2459
+- **carambus_location_2460** - Local server instance for location 2460
+
+**Advantages of Scenario Management:**
+- ✅ Automated deployments
+- ✅ Consistent configuration
+- ✅ Integrated SSL management
+- ✅ Automatic sequence management
+- ✅ Scalable architecture
+
 ### 🔧 Manual Installation
-For all installation requirements:
+For special requirements or legacy systems:
 
 - **Raspberry Pi Setup** - Detailed guide for Pi-specific installation
 - **Ubuntu Server Setup** - Server-specific configuration
@@ -11,20 +27,20 @@ For all installation requirements:
 
 ## 🏗️ Architecture Overview
 
-### Production Modes
-1. **API Server** (`/var/www/carambus_api`)
+### Production Scenarios
+1. **API Server** (`carambus`)
    - Central API for all local servers
    - Domain: newapi.carambus.de
    - Can also function as hosting server
 
-2. **Local Server** (`/var/www/carambus`)
+2. **Local Server** (`carambus_location_*`)
    - Local servers for tournaments/clubs
    - Points to API server
    - For scoreboards and local management
 
 ### Development Mode
-- Both production modes can be tested in parallel
-- On macOS computer
+- All scenarios can be tested in parallel
+- Automatic configuration via Scenario Management
 - Inter-system communication testable
 
 ## 🔑 Important Configurations
@@ -36,47 +52,55 @@ For all installation requirements:
 - **Sudo**: Via `wheel` group
 
 ### Installation Paths
-- **API Server**: `/var/www/carambus_api`
-- **Local Server**: `/var/www/carambus`
+- **API Server**: `/var/www/carambus`
+- **Local Server**: `/var/www/carambus_location_*`
 
 ## 🚀 Quick Start
 
-### 1. Choose Platform
+### 1. Create Scenario
 ```bash
-# Raspberry Pi
-./deploy.sh deploy-local
+# Create new scenario
+rake "scenario:create[carambus_location_5101]"
 
-# Ubuntu Server
-./deploy.sh deploy-api
+# Create Rails root
+rake "scenario:create_rails_root[carambus_location_5101]"
 ```
 
-### 2. Automatic Configuration
-The deployment script automatically configures:
+### 2. Development Setup
+```bash
+# Setup development environment
+rake "scenario:setup[carambus_location_5101,development]"
+```
+
+### 3. Production Deployment
+```bash
+# Full production deployment
+rake "scenario:deploy[carambus_location_5101]"
+```
+
+### 4. Automatic Configuration
+Scenario Management automatically configures:
 - Database (PostgreSQL)
 - Cache (Redis)
 - Web server (Rails + Puma)
 - Nginx configuration
 - SSL certificates (for HTTPS)
-
-### 3. Localization (only for local servers)
-- Web-based configuration
-- Region-specific settings
-- Scoreboard configuration
+- Sequence management
 
 ## 📖 Further Documentation
 
+- **[Scenario Management](scenario_management.md)** - Complete deployment guide
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Developer documentation
 - **[API Documentation](API.md)** - API reference
-- **[Enhanced Mode System](enhanced_mode_system.en.md)** - Deployment configuration
 
 ## 🆘 Support
 
 If you have problems:
-1. Check the **[Installation Overview](installation_overview.md)** page
-2. View logs: `tail -f /var/log/nginx/error.log`
-3. Service status: `sudo systemctl status puma-carambus`
+1. Check the **[Scenario Management](scenario_management.md)** page
+2. View logs: `tail -f log/production.log`
+3. Service status: `systemctl status puma-carambus`
 4. Restart system: `sudo reboot`
 
 ---
 
-**🎯 Goal**: Simple, automated installation of Carambus on various platforms with consistent configuration. 
+**🎯 Goal**: Simple, automated installation of Carambus on various platforms with consistent configuration via the Scenario Management System. 

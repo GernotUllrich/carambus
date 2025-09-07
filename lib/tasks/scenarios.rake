@@ -385,6 +385,11 @@ namespace :scenario do
     puts "Restoring from #{latest_dump}..."
     if system("gunzip -c #{latest_dump} | psql #{database_name}")
       puts "✅ Database restored successfully"
+      
+      # Reset sequences for local server
+      puts "Resetting sequences..."
+      system("cd #{File.expand_path("../#{scenario_name}", carambus_data_path)} && bundle exec rails runner 'Version.sequence_reset'")
+      
       true
     else
       puts "❌ Database restore failed"
@@ -425,16 +430,12 @@ namespace :scenario do
       # Create temporary database for transformation
       temp_db_name = "carambus_temp_#{timestamp}"
       
-      # Create temporary database
-      if system("createdb #{temp_db_name}")
-        puts "   ✅ Created temporary database: #{temp_db_name}"
+      # Create temporary database using template (much faster)
+      if system("createdb #{temp_db_name} --template=carambus_api_development")
+        puts "   ✅ Created temporary database: #{temp_db_name} (using template)"
         
-        # Restore carambus_api_development to temporary database
-        if system("pg_dump carambus_api_development | psql #{temp_db_name}")
-          puts "   ✅ Restored carambus_api_development to temporary database"
-          
-          # Apply transformations
-          transform_commands = [
+        # Apply transformations
+        transform_commands = [
             # Reset version ID sequence to start from 1
             "SELECT setval('versions_id_seq', 1, false);",
             # Reset last version ID in settings JSON data (cast to jsonb for operations)  
@@ -445,25 +446,82 @@ namespace :scenario do
             "UPDATE settings SET data = (data::jsonb || '{\"scenario_name\":{\"String\":\"carambus\"}}')::text WHERE NOT (data::jsonb ? 'scenario_name');"
           ]
           
-          transform_commands.each do |cmd|
-            if system("psql #{temp_db_name} -c \"#{cmd}\"")
-              puts "   ✅ Applied transformation: #{cmd}"
-            else
-              puts "   ⚠️  Warning: Transformation failed: #{cmd}"
-            end
-          end
-          
-          # Create dump from transformed database
-          if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
-            puts "✅ Transformed database dump created: #{File.basename(dump_file)}"
-            puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-            
-            # Clean up temporary database
-            system("dropdb #{temp_db_name}")
-            puts "   🧹 Cleaned up temporary database"
-            true
+        transform_commands.each do |cmd|
+          if system("psql #{temp_db_name} -c \"#{cmd}\"")
+            puts "   ✅ Applied transformation: #{cmd}"
           else
-            puts "❌ Failed to create dump from transformed database"
+            puts "   ⚠️  Warning: Transformation failed: #{cmd}"
+          end
+        end
+        
+        # Create dump from transformed database
+        if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
+          puts "✅ Transformed database dump created: #{File.basename(dump_file)}"
+          puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+          
+          # Clean up temporary database
+          system("dropdb #{temp_db_name}")
+          puts "   🧹 Cleaned up temporary database"
+          true
+        else
+          puts "❌ Failed to create dump from transformed database"
+          system("dropdb #{temp_db_name}")
+          false
+        end
+      else
+        puts "❌ Failed to create temporary database"
+        false
+      end
+    elsif scenario_name == 'carambus_location_5101' && environment == 'development'
+      puts "🔄 Special transformation: Generating carambus_location_5101_development with region filtering..."
+      
+      # Create temporary database for transformation
+      temp_db_name = "carambus_location_5101_temp_#{timestamp}"
+      
+      # Create temporary database
+      if system("createdb #{temp_db_name}")
+        puts "   ✅ Created temporary database: #{temp_db_name}"
+        
+        # Restore carambus_api_development to temporary database
+        if system("pg_dump carambus_api_development | psql #{temp_db_name}")
+          puts "   ✅ Restored carambus_api_development to temporary database"
+          
+          # Apply region filtering using the cleanup task
+          puts "   🔄 Applying region filtering (region_id: 1)..."
+          
+          # Set environment variable for region filtering
+          ENV['REGION_SHORTNAME'] = 'NBV'
+          
+          # Create a temporary Rails environment to run the cleanup task
+          temp_rails_root = File.join(scenarios_path, scenario_name)
+          
+          # Change to the Rails root directory and run the cleanup task
+          if Dir.chdir(temp_rails_root) do
+            # Set up Rails environment variables
+            ENV['RAILS_ENV'] = 'development'
+            ENV['DATABASE_URL'] = "postgresql://localhost/#{temp_db_name}"
+            
+            # Run the cleanup task
+            system("bundle exec rails cleanup:remove_non_region_records")
+          end
+            puts "   ✅ Applied region filtering"
+            
+            # Create dump from filtered database
+            if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
+              puts "✅ Region-filtered database dump created: #{File.basename(dump_file)}"
+              puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+              
+              # Clean up temporary database
+              system("dropdb #{temp_db_name}")
+              puts "   🧹 Cleaned up temporary database"
+              true
+            else
+              puts "❌ Failed to create dump from filtered database"
+              system("dropdb #{temp_db_name}")
+              false
+            end
+          else
+            puts "❌ Failed to apply region filtering"
             system("dropdb #{temp_db_name}")
             false
           end
@@ -566,6 +624,10 @@ namespace :scenario do
         puts "   Copied carambus.yml to Rails root"
       end
     end
+
+    # Step 4: Reset sequences for local server
+    puts "Resetting sequences..."
+    system("cd #{rails_root} && bundle exec rails runner 'Version.sequence_reset'")
 
     puts "✅ Scenario #{scenario_name} setup completed"
     puts "   Rails root: #{rails_root}"
@@ -818,6 +880,15 @@ namespace :scenario do
             
             if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
               puts "   ✅ Database restored from development dump"
+              
+              # Reset sequences for local server
+              puts "   Resetting sequences..."
+              sequence_reset_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'"
+              if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{sequence_reset_cmd}'")
+                puts "   ✅ Sequences reset successfully"
+              else
+                puts "   ⚠️  Warning: Sequence reset failed (continuing anyway)"
+              end
             else
               puts "   ❌ Failed to restore database from dump"
               return false
@@ -866,24 +937,6 @@ namespace :scenario do
       puts "   ❌ Rails root directory not found: #{rails_root_dir}"
       puts "   Please run 'rake scenario:create_rails_root[#{scenario_name}]' first"
       return false
-    end
-
-    # Step 8: SSL Certificate Setup (if SSL enabled)
-    if production_config['ssl_enabled']
-      puts "\n🔒 Step 8: Setting up SSL certificate..."
-      unless setup_ssl_certificate(scenario_name, production_config)
-        puts "❌ Failed to setup SSL certificate"
-        return false
-      end
-    end
-
-    # Step 9: Update Nginx Configuration (if SSL enabled)
-    if production_config['ssl_enabled']
-      puts "\n🌐 Step 9: Updating Nginx configuration..."
-      unless update_nginx_config(scenario_name, production_config)
-        puts "❌ Failed to update Nginx configuration"
-        return false
-      end
     end
 
     puts "\n✅ Deployment preparation completed successfully!"
