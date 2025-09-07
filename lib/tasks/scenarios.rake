@@ -110,6 +110,19 @@ namespace :scenario do
     deploy_scenario_with_conflict_analysis(scenario_name)
   end
 
+  desc "Update scenario with git pull (preserves local changes)"
+  task :update, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:update[scenario_name]"
+      puts "Example: rake scenario:update[carambus]"
+      exit 1
+    end
+
+    update_scenario(scenario_name)
+  end
+
   desc "Create a new scenario"
   task :create, [:scenario_name, :location_id, :context] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -678,6 +691,70 @@ namespace :scenario do
     puts "   Rails root: #{rails_root}"
     puts "   Environment: #{environment}"
     true
+  end
+
+  def update_scenario(scenario_name)
+    puts "Updating scenario #{scenario_name} with git pull..."
+    
+    # Check if Rails root folder exists
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root folder not found: #{rails_root}"
+      puts "   Use 'rake scenario:setup[#{scenario_name},development]' to create it first"
+      return false
+    end
+    
+    # Check if it's a git repository
+    unless Dir.exist?(File.join(rails_root, '.git'))
+      puts "❌ Not a git repository: #{rails_root}"
+      puts "   Use 'rake scenario:setup[#{scenario_name},development]' to recreate it"
+      return false
+    end
+    
+    # Perform git pull
+    puts "   Performing git pull..."
+    if system("cd #{rails_root} && git pull")
+      puts "   ✅ Git pull successful"
+      
+      # Copy .idea if it doesn't exist
+      idea_source = File.join(Rails.root, '.idea')
+      idea_target = File.join(rails_root, '.idea')
+      if Dir.exist?(idea_source) && !Dir.exist?(idea_target)
+        FileUtils.cp_r(idea_source, idea_target)
+        puts "   ✅ RubyMine .idea configuration copied"
+      elsif Dir.exist?(idea_target)
+        puts "   ✅ RubyMine .idea configuration already exists"
+      else
+        puts "   ⚠️  RubyMine .idea configuration not found in master"
+      end
+      
+      # Update configuration files
+      puts "   Updating configuration files..."
+      generate_configuration_files(scenario_name, 'development')
+      
+      # Copy updated configuration files to Rails root
+      env_dir = File.join(scenarios_path, scenario_name, 'development')
+      if Dir.exist?(env_dir)
+        # Copy database.yml
+        if File.exist?(File.join(env_dir, 'database.yml'))
+          FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
+          puts "   ✅ Updated database.yml"
+        end
+        
+        # Copy carambus.yml
+        if File.exist?(File.join(env_dir, 'carambus.yml'))
+          FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+          puts "   ✅ Updated carambus.yml"
+        end
+      end
+      
+      puts "✅ Scenario #{scenario_name} updated successfully"
+      puts "   Rails root: #{rails_root}"
+      true
+    else
+      puts "❌ Git pull failed"
+      false
+    end
   end
 
   def deploy_scenario_with_conflict_analysis(scenario_name)

@@ -346,9 +346,15 @@ Carambus verwendet ein **Scenario Management System** für die Verwaltung versch
 #### Hauptfunktionen
 - ✅ **Scenario-basierte Konfiguration** mit YAML-basierten Konfigurationsdateien
 - ✅ **Automatische Konfigurationsgenerierung** aus ERB-Templates
+- ✅ **Intelligente Update-Mechanismen** (Setup vs. Update)
 - ✅ **Konflikt-Analyse** und interaktive Auflösung bei Deployment-Konflikten
 - ✅ **Parallele Deployments** mehrerer Scenarios auf demselben Server
 - ✅ **Idempotente Operationen** für wiederholbare Deployments
+- ✅ **RubyMine-Integration** mit .idea-Konfiguration
+
+#### Setup vs. Update
+- **`scenario:setup`**: Komplettes Neuerstellen (Verzeichnis + Datenbank) - für initiale Einrichtung
+- **`scenario:update`**: Nur Git Pull (behält lokale Änderungen) - perfekt für Testing
 
 #### Verfügbare Scenarios
 - **carambus**: Hauptproduktionsumgebung (new.carambus.de)
@@ -362,8 +368,11 @@ Carambus verwendet ein **Scenario Management System** für die Verwaltung versch
 # Scenario-spezifische Konfiguration generieren
 rake "scenario:generate_configs[carambus,development]"
 
-# Development-Umgebung für Scenario einrichten
+# Development-Umgebung für Scenario einrichten (komplettes Neuerstellen)
 rake "scenario:setup[carambus,development]"
+
+# Scenario aktualisieren (nur Git Pull, behält lokale Änderungen)
+rake "scenario:update[carambus]"
 
 # Vollständiges Production-Deployment
 rake "scenario:deploy[carambus]"
