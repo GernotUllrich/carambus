@@ -20081,6 +20081,11 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     reflexDelivered(element, reflex, noop2, id) {
     }
     reflexSuccess(element, reflex, noop2, id) {
+      if (reflex.includes("TableMonitor#key_a")) {
+        console.timeEnd("key_a_click");
+      } else if (reflex.includes("TableMonitor#key_b")) {
+        console.timeEnd("key_b_click");
+      }
     }
     reflexError(element, reflex, error3, id) {
     }
@@ -21562,11 +21567,11 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
      *   reflexId - a UUID4 or developer-provided unique identifier for each Reflex
      */
     key_a() {
-      console.log("KEY_A");
+      console.log("KEY_A called");
       this.stimulate("TableMonitor#key_a");
     }
     key_b() {
-      console.log("KEY_B");
+      console.log("KEY_B called");
       this.stimulate("TableMonitor#key_b");
     }
     key_c() {
@@ -21595,6 +21600,71 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     //   console.error('danceError', error);
     //   element.innerText = "Couldn't dance!"
     // }
+  };
+
+  // controllers/tabmon_controller.js
+  var tabmon_controller_exports = {};
+  __export(tabmon_controller_exports, {
+    default: () => tabmon_controller_default
+  });
+  var tabmon_controller_default = class extends application_controller_default {
+    connect() {
+      super.connect();
+      console.log("Tabmon controller connected!");
+    }
+    /* Reflex methods for control buttons */
+    add_n() {
+      const n2 = this.element.dataset.n;
+      console.log(`Tabmon add_n called with n=${n2}`);
+      this.stimulate("TableMonitor#add_n", this.element);
+    }
+    minus_n() {
+      const n2 = this.element.dataset.n;
+      console.log(`Tabmon minus_n called with n=${n2}`);
+      this.stimulate("TableMonitor#minus_n", this.element);
+    }
+    undo() {
+      console.log("Tabmon undo called");
+      this.stimulate("TableMonitor#undo");
+    }
+    next_step() {
+      console.log("Tabmon next_step called");
+      this.stimulate("TableMonitor#next_step");
+    }
+    numbers() {
+      console.log("Tabmon numbers called");
+      this.stimulate("TableMonitor#numbers");
+    }
+    force_next_state() {
+      console.log("Tabmon force_next_state called");
+      this.stimulate("TableMonitor#force_next_state");
+    }
+    stop() {
+      console.log("Tabmon stop called");
+      this.stimulate("TableMonitor#stop");
+    }
+    timeout() {
+      console.log("Tabmon timeout called");
+      this.stimulate("TableMonitor#timeout");
+    }
+    pause() {
+      console.log("Tabmon pause called");
+      this.stimulate("TableMonitor#pause");
+    }
+    play() {
+      console.log("Tabmon play called");
+      this.stimulate("TableMonitor#play");
+    }
+    // Lifecycle methods for debugging
+    beforeReflex(element, reflex, noop2, id) {
+      console.log(`Tabmon beforeReflex: ${reflex}`);
+    }
+    reflexSuccess(element, reflex, noop2, id) {
+      console.log(`Tabmon reflexSuccess: ${reflex}`);
+    }
+    reflexError(element, reflex, error3, id) {
+      console.error(`Tabmon reflexError: ${reflex}`, error3);
+    }
   };
 
   // controllers/tippy_controller.js
@@ -24470,8 +24540,8 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     }
   };
 
-  // rails:/Volumes/EXT2TB/gullrich/DEV/projects/carambus_api/app/javascript/controllers/**/*_controller.js
-  var modules = [{ name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "scoreboard", module: scoreboard_controller_exports, filename: "scoreboard_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
+  // rails:/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/app/javascript/controllers/**/*_controller.js
+  var modules = [{ name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "scoreboard", module: scoreboard_controller_exports, filename: "scoreboard_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tabmon", module: tabmon_controller_exports, filename: "tabmon_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
   var controller_default = modules;
 
   // ../../node_modules/tailwindcss-stimulus-components/dist/tailwindcss-stimulus-components.module.js

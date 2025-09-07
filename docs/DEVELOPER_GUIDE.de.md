@@ -340,26 +340,39 @@ rails db:rollback
 
 ## Deployment
 
-### Enhanced Mode System
-Carambus verwendet ein **Enhanced Mode System** mit Ruby/Rake Named Parameters für einfaches Umschalten zwischen verschiedenen Deployment-Konfigurationen:
+### Scenario Management System
+Carambus verwendet ein **Scenario Management System** für die Verwaltung verschiedener Deployment-Umgebungen und Konfigurationen:
 
 #### Hauptfunktionen
-- ✅ **19 Parameter** für vollständige Konfigurationskontrolle
-- ✅ **Socket-basierte Architektur** mit Unix Sockets für effiziente NGINX-Puma-Kommunikation
-- ✅ **Automatische Template-Generierung** (NGINX, Puma, Service)
-- ✅ **RubyMine-Integration** mit vollständiger Debugging-Unterstützung
-- ✅ **Multi-Environment Deployment** mit automatischem Repo-Pull
+- ✅ **Scenario-basierte Konfiguration** mit YAML-basierten Konfigurationsdateien
+- ✅ **Automatische Konfigurationsgenerierung** aus ERB-Templates
+- ✅ **Konflikt-Analyse** und interaktive Auflösung bei Deployment-Konflikten
+- ✅ **Parallele Deployments** mehrerer Scenarios auf demselben Server
+- ✅ **Idempotente Operationen** für wiederholbare Deployments
+
+#### Verfügbare Scenarios
+- **carambus**: Hauptproduktionsumgebung (new.carambus.de)
+- **carambus_api**: API-Server (newapi.carambus.de)
+- **carambus_location_2459**: PHAT Consulting Location
+- **carambus_location_2460**: Test-Location
+- **carambus_location_5101**: Weitere Test-Location
 
 #### Schnellstart
 ```bash
-# API Server Mode
-bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_HOST=newapi.carambus.de
+# Scenario-spezifische Konfiguration generieren
+rake "scenario:generate_configs[carambus,development]"
 
-# Local Server Mode  
-bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV
+# Development-Umgebung für Scenario einrichten
+rake "scenario:setup[carambus,development]"
+
+# Vollständiges Production-Deployment
+rake "scenario:deploy[carambus]"
+
+# Deployment mit Konflikt-Analyse
+rake "scenario:deploy_with_conflict_analysis[carambus]"
 ```
 
-**[🚀 Vollständige Enhanced Mode System Dokumentation](enhanced_mode_system.de.md)**
+**[🚀 Vollständige Scenario Management Dokumentation](scenario_management.de.md)**
 
 ### Produktions-Setup
 Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware konzipiert:
@@ -372,7 +385,7 @@ Die Anwendung ist für den Einsatz auf Raspberry Pi oder ähnlicher Hardware kon
 
 #### Deployment-Prozess
 1. **Server-Setup**: Siehe [Runbook](doc/doc/Runbook) für detaillierte Server-Konfiguration
-2. **Enhanced Mode Konfiguration**: Verwenden Sie das Enhanced Mode System für Deployment-Konfiguration
+2. **Scenario Management**: Verwenden Sie das Scenario Management System für Deployment-Konfiguration
 3. **Anwendungs-Deployment**: Capistrano-basiertes Deployment
 4. **Service-Management**: Systemd-Services für Autostart
 5. **Scoreboard-Setup**: Automatisierter Scoreboard-Start
@@ -450,7 +463,7 @@ sudo systemctl status carambus
 - [Scoreboard-Setup](scoreboard_autostart_setup.de.md): Scoreboard-Konfiguration
 - [Turnierverwaltung](tournament.md): Turnier-Workflows
 - [Installationsübersicht](installation_overview.md): Installationsübersicht
-- [Enhanced Mode System](enhanced_mode_system.de.md): Deployment-Konfiguration und Multi-Environment-Support
+- [Scenario Management](scenario_management.de.md): Deployment-Konfiguration und Multi-Environment-Support
 
 ### Externe Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)
