@@ -1586,10 +1586,13 @@ namespace :scenario do
         local_path = File.join(rails_root, 'config', file)
         if File.exist?(local_path)
           upload_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-          if system(upload_cmd)
+          puts "   🔄 Uploading #{file}..."
+          result = system(upload_cmd)
+          if result
             puts "   ✅ #{file} uploaded to shared config"
           else
-            puts "   ❌ Failed to upload #{file}"
+            puts "   ❌ Failed to upload #{file} (exit code: #{$?.exitstatus})"
+            puts "   Command: #{upload_cmd}"
             return false
           end
         else
