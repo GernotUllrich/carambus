@@ -1645,7 +1645,7 @@ namespace :scenario do
         script_content = <<~SCRIPT
           #!/bin/bash
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
-          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www-data;"
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
         SCRIPT
 
         # Write script to server
