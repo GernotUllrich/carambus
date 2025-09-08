@@ -1617,8 +1617,80 @@ namespace :scenario do
       return false
     end
 
-    # Step 2: Execute Capistrano deployment
-    puts "\n🎯 Step 2: Executing Capistrano deployment..."
+    # Step 2: Transfer and load database dump
+    puts "\n💾 Step 2: Transferring and loading database dump..."
+    
+    # Find the latest production dump
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
+    
+    if latest_dump && File.exist?(latest_dump)
+      puts "   📦 Using dump: #{File.basename(latest_dump)}"
+      
+      # Upload dump to server
+      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
+      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
+      
+      if system(upload_cmd)
+        puts "   ✅ Database dump uploaded to server"
+        
+        # Load scenario configuration to get database name
+        production_database = production_config['database_name']
+        
+        # Drop and recreate database on server
+        puts "   🔄 Dropping and recreating production database..."
+        
+        # Create a temporary script for database operations
+        temp_script = "/tmp/reset_database.sh"
+        script_content = <<~SCRIPT
+          #!/bin/bash
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www-data;"
+        SCRIPT
+
+        # Write script to server
+        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+          puts "   ✅ Database reset script created"
+          
+          # Execute database reset
+          if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}'")
+            puts "   ✅ Production database recreated"
+            
+            # Restore database from dump
+            puts "   📥 Restoring database from dump..."
+            restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database}"
+            
+            if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
+              puts "   ✅ Database restored successfully"
+              
+              # Clean up temporary files
+              system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
+              puts "   🧹 Temporary files cleaned up"
+            else
+              puts "   ❌ Database restore failed"
+              return false
+            end
+          else
+            puts "   ❌ Database reset failed"
+            return false
+          end
+        else
+          puts "   ❌ Failed to create database reset script"
+          return false
+        end
+      else
+        puts "   ❌ Failed to upload database dump"
+        return false
+      end
+    else
+      puts "   ❌ No production dump found in #{dump_dir}"
+      puts "   Please run 'rake scenario:prepare_deploy[#{scenario_name}]' first"
+      return false
+    end
+
+    # Step 3: Execute Capistrano deployment
+    puts "\n🎯 Step 3: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
