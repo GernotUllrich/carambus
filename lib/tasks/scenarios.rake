@@ -1565,81 +1565,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 1: Upload shared configuration files to server
-    puts "\n📤 Step 1: Uploading shared configuration files to server..."
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-    
-    # Create shared config directory on server
-    shared_config_dir = "/var/www/#{basename}/shared/config"
-    create_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
-    
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dir_cmd}'")
-      puts "   ✅ Shared config directory created"
-      
-      # Upload database.yml
-      if File.exist?(File.join(rails_root, 'config', 'database.yml'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'database.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ database.yml uploaded to server"
-        else
-          puts "   ❌ Failed to upload database.yml"
-          return false
-        end
-      end
-      
-      # Upload carambus.yml
-      if File.exist?(File.join(rails_root, 'config', 'carambus.yml'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'carambus.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ carambus.yml uploaded to server"
-        else
-          puts "   ❌ Failed to upload carambus.yml"
-          return false
-        end
-      end
-      
-      # Upload master.key
-      if File.exist?(File.join(rails_root, 'config', 'master.key'))
-        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'master.key')} www-data@#{ssh_host}:#{shared_config_dir}/"
-        if system(upload_cmd)
-          puts "   ✅ master.key uploaded to server"
-        else
-          puts "   ❌ Failed to upload master.key"
-          return false
-        end
-      end
-      
-      puts "   ✅ All shared configuration files uploaded"
-      
-      # Debug: Show exact source and destination paths
-      puts "   🔍 Debug: Rails root path: #{rails_root}"
-      puts "   🔍 Debug: Shared config directory: #{shared_config_dir}"
-      puts "   🔍 Debug: Source database.yml: #{File.join(rails_root, 'config', 'database.yml')}"
-      puts "   🔍 Debug: Source carambus.yml: #{File.join(rails_root, 'config', 'carambus.yml')}"
-      puts "   🔍 Debug: Source master.key: #{File.join(rails_root, 'config', 'master.key')}"
-      
-      # Debug: Check what's actually in the shared config directory
-      puts "   🔍 Debug: Checking contents of #{shared_config_dir}"
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'ls -la #{shared_config_dir}'")
-      
-      # Create placeholder files for any missing linked files to prevent Capistrano errors
-      linked_files = ['database.yml', 'carambus.yml', 'master.key']
-      linked_files.each do |file|
-        remote_file = "#{shared_config_dir}/#{file}"
-        if !system("ssh -p #{ssh_port} www-data@#{ssh_host} 'test -f #{remote_file}'")
-          puts "   📝 Creating placeholder for #{file}"
-          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'touch #{remote_file}'")
-        end
-      end
-    else
-      puts "   ❌ Failed to create shared config directory"
-      return false
-    end
-
-    # Step 2: Transfer and load database dump
-    puts "\n💾 Step 2: Transferring and loading database dump..."
+    # Step 1: Transfer and load database dump
+    puts "\n💾 Step 1: Transferring and loading database dump..."
     
     # Find the latest production dump
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
@@ -1714,8 +1641,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 3: Execute Capistrano deployment
-    puts "\n🎯 Step 3: Executing Capistrano deployment..."
+    # Step 2: Execute Capistrano deployment
+    puts "\n🎯 Step 2: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
