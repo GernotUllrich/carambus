@@ -1613,6 +1613,10 @@ namespace :scenario do
       
       puts "   ✅ All shared configuration files uploaded"
       
+      # Debug: Check what's actually in the shared config directory
+      puts "   🔍 Debug: Checking contents of #{shared_config_dir}"
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'ls -la #{shared_config_dir}'")
+      
       # Create placeholder files for any missing linked files to prevent Capistrano errors
       linked_files = ['database.yml', 'carambus.yml', 'master.key']
       linked_files.each do |file|
