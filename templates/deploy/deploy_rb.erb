@@ -60,24 +60,14 @@ namespace :deploy do
   
   desc "Upload shared configuration files"
   task :upload_config_files do
-    on roles(:app) do
-      # Create shared config directory
-      execute "sudo mkdir -p #{deploy_to}/shared/config"
-      execute "sudo chown www-data:www-data #{deploy_to}/shared/config"
-      
-      # Upload config files from local machine
-      run_locally do
-        config_files = ['database.yml', 'carambus.yml', 'master.key']
-        config_files.each do |file|
-          local_path = "config/#{file}"
-          remote_path = "#{deploy_to}/shared/config/#{file}"
-          if File.exist?(local_path)
-            upload! local_path, remote_path
-            info "Uploaded #{file} to shared config"
-          else
-            warn "Config file #{file} not found locally"
-          end
-        end
+    config_files = ['database.yml', 'carambus.yml', 'master.key']
+    config_files.each do |file|
+      local_path = "config/#{file}"
+      if File.exist?(local_path)
+        upload! local_path, "#{shared_path}/config/#{file}"
+        info "Uploaded #{file} to shared config"
+      else
+        warn "Config file #{file} not found locally"
       end
     end
   end
