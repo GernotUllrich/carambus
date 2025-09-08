@@ -1638,14 +1638,15 @@ namespace :scenario do
         production_database = production_config['database_name']
         
         # Remove application folder and recreate database on server
-        puts "   🔄 Removing application folder and recreating production database..."
+        puts "   🔄 Removing application folders (including old trials) and recreating production database..."
         
         # Create a temporary script for database operations
         temp_script = "/tmp/reset_database.sh"
         script_content = <<~SCRIPT
           #!/bin/bash
-          # Remove existing application folder
+          # Remove existing application folders (including old trials)
           sudo rm -rf /var/www/#{basename}
+          sudo rm -rf /var/www/carambus_#{basename}
           # Drop and recreate database
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
@@ -1658,7 +1659,7 @@ namespace :scenario do
           
           # Execute database reset
           if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}'")
-            puts "   ✅ Application folder removed and production database recreated"
+            puts "   ✅ Application folders removed (including old trials) and production database recreated"
             
             # Restore database from dump
             puts "   📥 Restoring database from dump..."
