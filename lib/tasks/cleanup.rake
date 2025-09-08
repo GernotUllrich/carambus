@@ -26,8 +26,7 @@ namespace :cleanup do
       Table,
       ClubLocation,
       Location,
-      Club,
-      Region
+      Club
     ]
 
     stats = {}
@@ -43,9 +42,9 @@ namespace :cleanup do
         # Use DELETE with direct WHERE clause instead of WHERE NOT IN
         # This is much more efficient than loading all IDs into memory
         deleted_count = model.where.not("region_id = #{region_id} OR region_id IS NULL OR global_context = TRUE").delete_all
-        
+
         kept_count = total_before - deleted_count
-        
+
         stats[model.name] = {
           before: total_before,
           after: kept_count,
@@ -55,11 +54,11 @@ namespace :cleanup do
         puts "  Before: #{total_before}"
         puts "  After: #{kept_count}"
         puts "  Deleted: #{deleted_count}"
-        
+
       rescue => e
         puts "  Error processing #{model.name}: #{e.message}"
         puts "  Falling back to original method..."
-        
+
         # Fallback to original method if optimized approach fails
         keep_ids = model.where("region_id = #{region_id} OR region_id is NULL OR global_context = TRUE").ids
         deleted = total_before - keep_ids.count
@@ -308,38 +307,38 @@ namespace :cleanup do
   desc "Clean up duplicate ClubLocation records, keeping the latest one"
   task club_locations: :environment do
     puts "Cleaning up duplicate ClubLocation records..."
-    
+
     # Find all duplicate combinations of club_id and location_id using a simpler approach
     duplicate_groups = ClubLocation.group(:club_id, :location_id)
       .having('COUNT(*) > 1')
       .pluck(:club_id, :location_id)
-    
+
     duplicate_groups_count = duplicate_groups.count
     total_duplicates = 0
     total_deleted = 0
-    
+
     duplicate_groups.each do |club_id, location_id|
       # Get all records with this combination, ordered by created_at (latest first)
       club_locations = ClubLocation.where(club_id: club_id, location_id: location_id)
         .order(created_at: :desc)
-      
+
       count = club_locations.count
       puts "Processing duplicates for club_id: #{club_id}, location_id: #{location_id} (count: #{count})"
-      
+
       # Keep the latest record (first in the ordered list)
       keeper = club_locations.first
       duplicates_to_delete = club_locations.where.not(id: keeper.id)
-      
+
       deleted_count = duplicates_to_delete.count
       duplicates_to_delete.destroy_all
-      
+
       total_duplicates += count
       total_deleted += deleted_count
-      
+
       puts "  Kept record ID: #{keeper.id} (created: #{keeper.created_at})"
       puts "  Deleted #{deleted_count} duplicate records"
     end
-    
+
     puts "\nCleanup Summary:"
     puts "================="
     puts "Total duplicate groups found: #{duplicate_groups_count}"
