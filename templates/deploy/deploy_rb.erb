@@ -46,7 +46,17 @@ set :keep_releases, 5
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
 
+# Robust directory creation with sudo
+set :tmp_dir, '/tmp'
+
 namespace :deploy do
+  desc "Create deployment directories with sudo"
+  task :create_directories do
+    on roles(:app) do
+      execute "sudo mkdir -p #{deploy_to}/shared #{deploy_to}/releases"
+      execute "sudo chown -R #{fetch(:user)}:#{fetch(:user)} #{deploy_to}"
+    end
+  end
   desc "Restart application"
   task :restart do
     on roles(:app), in: :sequence, wait: 10 do
@@ -55,4 +65,5 @@ namespace :deploy do
   end
 end
 
+before "deploy:check:directories", "deploy:create_directories"
 after "deploy:publishing", "deploy:restart"
