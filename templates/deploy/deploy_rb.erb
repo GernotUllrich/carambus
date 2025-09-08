@@ -54,7 +54,7 @@ namespace :deploy do
   task :create_directories do
     on roles(:app) do
       execute "sudo mkdir -p #{deploy_to}/shared #{deploy_to}/releases"
-      execute "sudo chown -R #{fetch(:user)}:#{fetch(:user)} #{deploy_to}"
+      execute "sudo chown -R www-data:www-data #{deploy_to}"
     end
   end
   desc "Restart application"
