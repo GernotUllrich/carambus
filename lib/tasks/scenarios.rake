@@ -1612,6 +1612,16 @@ namespace :scenario do
       end
       
       puts "   ✅ All shared configuration files uploaded"
+      
+      # Create placeholder files for any missing linked files to prevent Capistrano errors
+      linked_files = ['database.yml', 'carambus.yml', 'master.key']
+      linked_files.each do |file|
+        remote_file = "#{shared_config_dir}/#{file}"
+        if !system("ssh -p #{ssh_port} www-data@#{ssh_host} 'test -f #{remote_file}'")
+          puts "   📝 Creating placeholder for #{file}"
+          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'touch #{remote_file}'")
+        end
+      end
     else
       puts "   ❌ Failed to create shared config directory"
       return false
