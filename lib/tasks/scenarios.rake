@@ -1357,10 +1357,20 @@ namespace :scenario do
 
     puts "   ✅ Deployment files copied"
 
-    # Step 4: Create production database from development dump
-    puts "\n💾 Step 4: Creating production database from development dump..."
-    unless restore_database_dump(scenario_name, 'development')
-      puts "❌ Failed to create production database from development dump"
+    # Step 4: Create production database dump from scenario development database
+    puts "\n💾 Step 4: Creating production database dump from #{scenario_name}_development..."
+    
+    # Check if development database exists
+    dev_database_name = "#{scenario_name}_development"
+    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_database_name}")
+      puts "❌ Development database #{dev_database_name} not found!"
+      puts "   Run 'rake scenario:prepare_development[#{scenario_name},development]' first"
+      return false
+    end
+    
+    # Create production dump from development database
+    unless create_production_dump_from_development(scenario_name)
+      puts "❌ Failed to create production dump from development database"
       return false
     end
 
@@ -1375,6 +1385,158 @@ namespace :scenario do
     puts "  3. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
     
     true
+  end
+
+  def create_production_dump_from_development(scenario_name)
+    puts "Creating production dump from #{scenario_name}_development..."
+    
+    dev_database_name = "#{scenario_name}_development"
+    prod_database_name = "#{scenario_name}_production"
+    
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    FileUtils.mkdir_p(dump_dir)
+    
+    # Create dump filename with timestamp
+    timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
+    dump_file = File.join(dump_dir, "#{scenario_name}_production_#{timestamp}.sql.gz")
+    
+    # Check if production database exists and get its last_version_id
+    if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{prod_database_name}")
+      puts "   🔍 Production database exists, checking last_version_id..."
+      
+      # Get last_version_id from production database
+      prod_version_cmd = "psql #{prod_database_name} -t -c \"SELECT COALESCE((data->>'last_version_id')::jsonb->>'Integer', '0') FROM settings LIMIT 1;\""
+      prod_version_result = `#{prod_version_cmd}`.strip
+      prod_last_version_id = prod_version_result.to_i
+      
+      # Get last_version_id from development database
+      dev_version_cmd = "psql #{dev_database_name} -t -c \"SELECT COALESCE((data->>'last_version_id')::jsonb->>'Integer', '0') FROM settings LIMIT 1;\""
+      dev_version_result = `#{dev_version_cmd}`.strip
+      dev_last_version_id = dev_version_result.to_i
+      
+      puts "   📊 Production last_version_id: #{prod_last_version_id}"
+      puts "   📊 Development last_version_id: #{dev_last_version_id}"
+      
+      if prod_last_version_id > dev_last_version_id
+        puts "   ⚠️  WARNING: Production database has newer data!"
+        puts "   ⚠️  Production last_version_id (#{prod_last_version_id}) > Development last_version_id (#{dev_last_version_id})"
+        puts "   ⚠️  This indicates sync updates in production that are not in development"
+        puts "   ⚠️  Deployment blocked to prevent data loss"
+        puts ""
+        puts "   🔧 Next steps:"
+        puts "   1. Sync production changes to development first"
+        puts "   2. Or handle this case with special merge logic (to be implemented)"
+        return false
+      elsif prod_last_version_id == dev_last_version_id
+        puts "   ✅ Versions match - safe to deploy"
+      else
+        puts "   ✅ Development is newer - safe to deploy"
+      end
+    else
+      puts "   ✅ Production database doesn't exist - safe to create"
+    end
+    
+    # Create dump from development database
+    puts "   📦 Creating dump from #{dev_database_name}..."
+    if system("pg_dump #{dev_database_name} | gzip > #{dump_file}")
+      puts "✅ Production dump created: #{File.basename(dump_file)}"
+      puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      puts "   Source: #{dev_database_name}"
+      puts "   Target: #{prod_database_name}"
+      true
+    else
+      puts "❌ Failed to create production dump"
+      false
+    end
+  end
+
+  def create_region_filtered_production_dump(scenario_name, region_id)
+    puts "Creating region-filtered production dump for #{scenario_name} (region_id: #{region_id})..."
+    
+    # Load scenario configuration to get region_shortname
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    scenario_config = YAML.load_file(config_file)
+    scenario_data = scenario_config['scenario']
+    
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    FileUtils.mkdir_p(dump_dir)
+    
+    # Create dump filename with timestamp
+    timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
+    dump_file = File.join(dump_dir, "#{scenario_name}_production_#{timestamp}.sql.gz")
+    
+    # Create temporary database for transformation
+    temp_db_name = "carambus_temp_prod_#{timestamp}"
+    
+    # Create temporary database using template (much faster)
+    if system("createdb #{temp_db_name} --template=carambus_api_development")
+      puts "   ✅ Created temporary database: #{temp_db_name} (using template)"
+      
+      # Apply region filtering using the cleanup task
+      puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+      
+      # Set environment variable for region filtering
+      ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+      
+      # Create a temporary Rails environment to run the cleanup task
+      temp_rails_root = File.join(scenarios_path, scenario_name)
+      
+      # Change to the Rails root directory and run the cleanup task
+      if Dir.chdir(temp_rails_root) do
+        # Set up Rails environment variables
+        ENV['RAILS_ENV'] = 'production'
+        ENV['DATABASE_URL'] = "postgresql://localhost/#{temp_db_name}"
+        
+        # Run the cleanup task
+        system("bundle exec rails cleanup:remove_non_region_records")
+      end
+        puts "   ✅ Applied region filtering"
+        
+        # Create dump from filtered database
+        if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
+          puts "✅ Region-filtered production dump created: #{File.basename(dump_file)}"
+          puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+          
+          # Clean up temporary database
+          system("dropdb #{temp_db_name}")
+          puts "   🧹 Cleaned up temporary database"
+          true
+        else
+          puts "❌ Failed to create dump from filtered database"
+          system("dropdb #{temp_db_name}")
+          false
+        end
+      else
+        puts "❌ Failed to apply region filtering"
+        system("dropdb #{temp_db_name}")
+        false
+      end
+    else
+      puts "❌ Failed to create temporary database"
+      false
+    end
+  end
+
+  def create_standard_production_dump(scenario_name)
+    puts "Creating standard production dump for #{scenario_name}..."
+    
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    FileUtils.mkdir_p(dump_dir)
+    
+    # Create dump filename with timestamp
+    timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
+    dump_file = File.join(dump_dir, "#{scenario_name}_production_#{timestamp}.sql.gz")
+    
+    # Create dump from carambus_api_development
+    puts "Creating dump of carambus_api_development..."
+    if system("pg_dump carambus_api_development | gzip > #{dump_file}")
+      puts "✅ Production dump created: #{File.basename(dump_file)}"
+      puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      true
+    else
+      puts "❌ Production dump failed"
+      false
+    end
   end
 
   def deploy_scenario(scenario_name)
