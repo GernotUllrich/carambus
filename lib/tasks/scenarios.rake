@@ -1613,6 +1613,13 @@ namespace :scenario do
       
       puts "   ✅ All shared configuration files uploaded"
       
+      # Debug: Show exact source and destination paths
+      puts "   🔍 Debug: Rails root path: #{rails_root}"
+      puts "   🔍 Debug: Shared config directory: #{shared_config_dir}"
+      puts "   🔍 Debug: Source database.yml: #{File.join(rails_root, 'config', 'database.yml')}"
+      puts "   🔍 Debug: Source carambus.yml: #{File.join(rails_root, 'config', 'carambus.yml')}"
+      puts "   🔍 Debug: Source master.key: #{File.join(rails_root, 'config', 'master.key')}"
+      
       # Debug: Check what's actually in the shared config directory
       puts "   🔍 Debug: Checking contents of #{shared_config_dir}"
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'ls -la #{shared_config_dir}'")
