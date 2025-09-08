@@ -1637,13 +1637,16 @@ namespace :scenario do
         # Load scenario configuration to get database name
         production_database = production_config['database_name']
         
-        # Drop and recreate database on server
-        puts "   🔄 Dropping and recreating production database..."
+        # Remove application folder and recreate database on server
+        puts "   🔄 Removing application folder and recreating production database..."
         
         # Create a temporary script for database operations
         temp_script = "/tmp/reset_database.sh"
         script_content = <<~SCRIPT
           #!/bin/bash
+          # Remove existing application folder
+          sudo rm -rf /var/www/#{basename}
+          # Drop and recreate database
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
         SCRIPT
@@ -1655,7 +1658,7 @@ namespace :scenario do
           
           # Execute database reset
           if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}'")
-            puts "   ✅ Production database recreated"
+            puts "   ✅ Application folder removed and production database recreated"
             
             # Restore database from dump
             puts "   📥 Restoring database from dump..."
