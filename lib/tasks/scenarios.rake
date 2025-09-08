@@ -1542,6 +1542,7 @@ namespace :scenario do
   def deploy_scenario(scenario_name)
     puts "Deploying scenario #{scenario_name} to production server..."
     puts "This performs server deployment operations only (assumes prepare_deploy was run first)."
+    puts "DEBUG: Starting deploy_scenario function"
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -1565,46 +1566,7 @@ namespace :scenario do
       return false
     end
 
-    # Step 1: Upload config files to shared directory
-    puts "\n📤 Step 1: Uploading config files to shared directory..."
-    
-    # Get SSH connection details
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-    
-    # Create shared config directory and upload config files
-    shared_config_dir = "/var/www/#{basename}/shared/config"
-    create_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
-    
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dir_cmd}'")
-      puts "   ✅ Shared config directory created"
-      
-      # Upload config files from Rails root to shared directory
-      config_files = ['database.yml', 'carambus.yml', 'master.key']
-      config_files.each do |file|
-        local_path = File.join(rails_root, 'config', file)
-        if File.exist?(local_path)
-          upload_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-          puts "   🔄 Uploading #{file}..."
-          result = system(upload_cmd)
-          if result
-            puts "   ✅ #{file} uploaded to shared config"
-          else
-            puts "   ❌ Failed to upload #{file} (exit code: #{$?.exitstatus})"
-            puts "   Command: #{upload_cmd}"
-            return false
-          end
-        else
-          puts "   ⚠️  #{file} not found in Rails root"
-        end
-      end
-    else
-      puts "   ❌ Failed to create shared config directory"
-      return false
-    end
-
-    # Step 2: Transfer and load database dump
+    # Step 1: Transfer and load database dump
     puts "\n💾 Step 2: Transferring and loading database dump..."
     
     # Find the latest production dump
