@@ -127,6 +127,26 @@ Stellt einen Datenbank-Dump wieder her.
 
 ### 5. Deployment
 
+#### `scenario:prepare_development[scenario_name,environment]`
+Prepares a scenario for local development:
+1. Generates configuration files for the specified environment
+2. Restores database dump (with region filtering for location scenarios)
+3. Ensures Rails root folder exists (creates if needed)
+4. Copies basic config files (database.yml, carambus.yml)
+
+**Perfect for**: Local development setup, testing scenarios locally.
+
+#### `scenario:prepare_deploy[scenario_name]`
+Prepares a scenario for deployment with all deployment preparation steps except server deployment:
+1. Generates production configuration files
+2. Creates database dump from development (with region filtering)
+3. Ensures Rails root folder exists (creates if needed)
+4. Copies all production configuration files (nginx.conf, puma.rb, puma.service)
+5. Copies credentials and master.key
+6. Copies deployment files (deploy.rb, deploy/production.rb)
+
+**Perfect for**: Local preparation before deployment, testing deployment configuration, or when you want to prepare everything locally before deploying to production.
+
 #### `scenario:deploy[scenario_name]`
 Deployt ein Scenario zu Production mit Konflikt-Analyse:
 
@@ -269,13 +289,25 @@ mkdir -p /Volumes/EXT2TB/gullrich/DEV/projects/carambus_data/scenarios/new_scena
 rake "scenario:setup_with_rails_root[new_scenario,development]"
 ```
 
-### 2. Scenario deployen
+### 2. Scenario für Development vorbereiten
+```bash
+# Lokale Development-Umgebung einrichten
+rake "scenario:prepare_development[carambus_location_2459,development]"
+```
+
+### 3. Scenario für Deployment vorbereiten
+```bash
+# Alle Deployment-Schritte außer Server-Deployment
+rake "scenario:prepare_deploy[carambus_location_2459]"
+```
+
+### 4. Scenario deployen
 ```bash
 # Deployment mit Konflikt-Analyse
 rake "scenario:deploy[carambus_location_2459]"
 ```
 
-### 3. Konfigurationen aktualisieren
+### 5. Konfigurationen aktualisieren
 ```bash
 # Nur Konfigurationsdateien neu generieren
 rake "scenario:generate_configs[carambus_location_2459,development]"

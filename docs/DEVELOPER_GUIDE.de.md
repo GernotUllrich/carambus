@@ -346,15 +346,122 @@ Carambus verwendet ein **Scenario Management System** für die Verwaltung versch
 #### Hauptfunktionen
 - ✅ **Scenario-basierte Konfiguration** mit YAML-basierten Konfigurationsdateien
 - ✅ **Automatische Konfigurationsgenerierung** aus ERB-Templates
-- ✅ **Intelligente Update-Mechanismen** (Setup vs. Update)
+- ✅ **Intelligente Update-Mechanismen** (Development vs. Deploy vs. Update)
 - ✅ **Konflikt-Analyse** und interaktive Auflösung bei Deployment-Konflikten
 - ✅ **Parallele Deployments** mehrerer Scenarios auf demselben Server
 - ✅ **Idempotente Operationen** für wiederholbare Deployments
 - ✅ **RubyMine-Integration** mit .idea-Konfiguration
+- ✅ **Region-Filtering** für optimierte Datenbank-Dumps
+- ✅ **Template-basierte Datenbank-Transformation** für carambus-Scenario
 
-#### Setup vs. Update
-- **`scenario:setup`**: Komplettes Neuerstellen (Verzeichnis + Datenbank) - für initiale Einrichtung
-- **`scenario:update`**: Nur Git Pull (behält lokale Änderungen) - perfekt für Testing
+#### Task-Matrix: Code-Sektionen vs. Rake-Tasks
+
+| Code Section | `prepare_development` | `prepare_deploy` | `deploy` | `create_rails_root` | `generate_configs` | `create_database_dump` | `restore_database_dump` |
+|--------------|----------------------|------------------|----------|-------------------|-------------------|----------------------|------------------------|
+| **Load scenario config** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Create Rails root folder** | ✅* | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Generate development config files** | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Copy basic config files** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Create dev DB from template** | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Apply region filtering** | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Set last_version_id** | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Reset version sequence (50000000+)** | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Create database dump** | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Generate production config files** | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Copy production config files** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Copy credentials/master.key** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Copy deployment files** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Create production DB from dump** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Server operations** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+*✅* = Uses this code section  
+*❌* = Doesn't use this code section  
+*✅** = Uses this code section conditionally (only if Rails root doesn't exist)
+
+#### Database Flow Explanation
+
+**Source Database**: `carambus_api_development` (mother of all API databases)
+
+**Development Flow** (`prepare_development`):
+1. **Create dev DB from template**: `carambus_scenarioname_development` ← `carambus_api_development` (using `--template`)
+2. **Apply region filtering**: Remove non-region data (reduces ~500MB to ~90MB)
+3. **Set last_version_id**: Update settings with current max version ID for sync tracking
+4. **Reset version sequence**: Set versions_id_seq to 50,000,000+ for local server (prevents ID conflicts with API)
+5. **Create database dump**: Save the processed development database
+
+**Production Flow** (`prepare_deploy` → `deploy`):
+1. **Create production DB from dump**: Create `carambus_scenarioname_production` by loading development dump
+2. **Server operations**: Upload config + Capistrano deployment
+
+**Key Insight**: The development database is the "processed" version (template + filtering + sequences), and production is created from this processed version.
+
+#### Database Flow Diagram
+
+```
+carambus_api_development (mother database)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ prepare_development                 │
+    │ 1. Create dev DB from template      │
+    │ 2. Apply region filtering           │
+    │ 3. Set last_version_id              │
+    │ 4. Reset version sequence (50000000+)│
+    │ 5. Create database dump            │
+    └─────────────────────────────────────┘
+                    ↓
+carambus_scenarioname_development (processed)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ prepare_deploy                     │
+    │ 1. Create production DB from dump  │
+    │ 2. Copy production configs         │
+    └─────────────────────────────────────┘
+                    ↓
+carambus_scenarioname_production (on server)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ deploy                             │
+    │ 1. Upload configs to server        │
+    │ 2. Capistrano deployment           │
+    └─────────────────────────────────────┘
+```
+
+#### Task-Übersicht
+
+##### Haupt-Tasks (Empfohlen für normale Nutzung)
+
+**`scenario:prepare_development[scenario_name,environment]`**
+- **Zweck**: Lokale Development-Umgebung einrichten
+- **Schritte**: Config-Generierung → DB-Dump-Erstellung → Rails Root → Basic Config Files
+- **Perfekt für**: Lokale Entwicklung, Scenario-Testing
+
+**`scenario:prepare_deploy[scenario_name]`**
+- **Zweck**: Deployment-Vorbereitung (ohne Server-Operationen)
+- **Schritte**: Production Config → DB-Restore → Rails Root → All Config Files → Credentials → Deploy Files
+- **Perfekt für**: Lokale Deployment-Vorbereitung, Config-Testing
+
+**`scenario:deploy[scenario_name]`**
+- **Zweck**: Server-Deployment (nur Capistrano-Deployment)
+- **Schritte**: Upload Config → Capistrano Deploy
+- **Perfekt für**: Production-Deployment (nach prepare_deploy)
+
+##### Reparatur-Tasks (Für gezielte Reparaturen)
+
+**`scenario:create_rails_root[scenario_name]`**
+- **Zweck**: Nur Rails Root Folder erstellen
+- **Enthält**: Git Clone, .idea-Kopie, Verzeichnis-Setup
+
+**`scenario:generate_configs[scenario_name,environment]`**
+- **Zweck**: Nur Konfigurationsdateien generieren
+- **Enthält**: ERB-Template-Verarbeitung für alle Config-Files
+
+**`scenario:create_database_dump[scenario_name,environment]`**
+- **Zweck**: Nur Datenbank-Dump erstellen
+- **Enthält**: Region-Filtering, Template-Transformation (carambus), Optimierte DB-Erstellung
+
+**`scenario:restore_database_dump[scenario_name,environment]`**
+- **Zweck**: Nur Datenbank-Dump wiederherstellen
+- **Enthält**: DB-Drop/Create, Dump-Restore, Sequence-Reset
 
 #### Verfügbare Scenarios
 - **carambus**: Hauptproduktionsumgebung (new.carambus.de)
@@ -365,21 +472,56 @@ Carambus verwendet ein **Scenario Management System** für die Verwaltung versch
 
 #### Schnellstart
 ```bash
-# Scenario-spezifische Konfiguration generieren
-rake "scenario:generate_configs[carambus,development]"
+# Lokale Development-Umgebung einrichten
+rake "scenario:prepare_development[carambus_location_2459,development]"
 
-# Development-Umgebung für Scenario einrichten (komplettes Neuerstellen)
-rake "scenario:setup[carambus,development]"
+# Für Deployment vorbereiten (ohne Server-Operationen)
+rake "scenario:prepare_deploy[carambus_location_2459]"
+
+# Server-Deployment ausführen
+rake "scenario:deploy[carambus_location_2459]"
 
 # Scenario aktualisieren (nur Git Pull, behält lokale Änderungen)
-rake "scenario:update[carambus]"
-
-# Vollständiges Production-Deployment
-rake "scenario:deploy[carambus]"
-
-# Deployment mit Konflikt-Analyse
-rake "scenario:deploy_with_conflict_analysis[carambus]"
+rake "scenario:update[carambus_location_2459]"
 ```
+
+#### Erweiterte Nutzung
+```bash
+# Nur Konfigurationsdateien neu generieren
+rake "scenario:generate_configs[carambus_location_2459,development]"
+
+# Nur Datenbank-Dump erstellen (mit Region-Filtering)
+rake "scenario:create_database_dump[carambus_location_2459,development]"
+
+# Nur Datenbank-Dump wiederherstellen
+rake "scenario:restore_database_dump[carambus_location_2459,development]"
+
+# Nur Rails Root Folder erstellen
+rake "scenario:create_rails_root[carambus_location_2459]"
+```
+
+#### Code-Duplikation und Refactoring
+
+Das Scenario Management System wurde 2024 umfassend refaktoriert, um Code-Duplikation zu eliminieren:
+
+**Vorher (Problematisch):**
+- `scenario:setup` und `scenario:setup_with_rails_root` waren redundant
+- `scenario:deploy` erwartete existierenden Rails Root Folder
+- ~150 Zeilen duplizierter Code zwischen verschiedenen Tasks
+- Verwirrende Task-Namen und überlappende Funktionalitäten
+
+**Nachher (Optimiert):**
+- ✅ **Klare Task-Hierarchie**: `prepare_development` → `prepare_deploy` → `deploy`
+- ✅ **Bedingte Rails Root Erstellung**: Alle Tasks erstellen Rails Root automatisch wenn nötig
+- ✅ **Eliminierte Duplikation**: ~150 Zeilen weniger Code
+- ✅ **Logische Trennung**: Development vs. Deploy vs. Repair Tasks
+- ✅ **Intuitive Nutzung**: Jeder Task hat einen klaren, nicht überlappenden Zweck
+
+**Refactoring-Vorteile:**
+- **Wartbarkeit**: Weniger Code, weniger Bugs
+- **Verständlichkeit**: Klare Task-Zwecke ohne Verwirrung
+- **Flexibilität**: Granulare Kontrolle über einzelne Schritte
+- **Zuverlässigkeit**: Idempotente Operationen, keine Abhängigkeitsfehler
 
 **[🚀 Vollständige Scenario Management Dokumentation](scenario_management.de.md)**
 
