@@ -1567,7 +1567,12 @@ namespace :scenario do
     end
 
     # Step 1: Transfer and load database dump
-    puts "\n💾 Step 2: Transferring and loading database dump..."
+    puts "\n💾 Step 1: Transferring and loading database dump..."
+    
+    # Get SSH connection details
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
     
     # Find the latest production dump
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
@@ -1642,8 +1647,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 3: Execute Capistrano deployment
-    puts "\n🎯 Step 3: Executing Capistrano deployment..."
+    # Step 2: Execute Capistrano deployment
+    puts "\n🎯 Step 2: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
