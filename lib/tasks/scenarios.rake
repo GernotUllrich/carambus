@@ -1568,6 +1568,11 @@ namespace :scenario do
     # Step 1: Transfer and load database dump
     puts "\n💾 Step 1: Transferring and loading database dump..."
     
+    # Get SSH connection details
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
     # Find the latest production dump
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
     latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
