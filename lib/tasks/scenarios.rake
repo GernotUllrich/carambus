@@ -69,45 +69,46 @@ namespace :scenario do
     create_rails_root_folder(scenario_name)
   end
 
-  desc "Setup scenario with Rails root folder"
-  task :setup_with_rails_root, [:scenario_name, :environment] => :environment do |task, args|
+  desc "Prepare scenario for development (config files + database + Rails root)"
+  task :prepare_development, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
 
     if scenario_name.nil?
-      puts "Usage: rake scenario:setup_with_rails_root[scenario_name,environment]"
-      puts "Example: rake scenario:setup_with_rails_root[carambus_location_2459,development]"
+      puts "Usage: rake scenario:prepare_development[scenario_name,environment]"
+      puts "Example: rake scenario:prepare_development[carambus_location_2459,development]"
       exit 1
     end
 
-    setup_scenario_with_rails_root(scenario_name, environment)
+    prepare_scenario_for_development(scenario_name, environment)
   end
 
-  desc "Complete scenario setup"
-  task :setup, [:scenario_name, :environment] => :environment do |task, args|
+  desc "Prepare scenario for deployment (all steps except server deployment)"
+  task :prepare_deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
-    environment = args[:environment] || 'development'
-    
+
     if scenario_name.nil?
-      puts "Usage: rake scenario:setup[scenario_name,environment]"
-      puts "Example: rake scenario:setup[carambus_location_2459,development]"
+      puts "Usage: rake scenario:prepare_deploy[scenario_name]"
+      puts "Example: rake scenario:prepare_deploy[carambus_location_2459]"
       exit 1
     end
-    
-    setup_scenario(scenario_name, environment)
+
+    prepare_scenario_for_deployment(scenario_name)
   end
 
-  desc "Deploy scenario to production with conflict analysis"
+  desc "Deploy scenario to production (server deployment only)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
     if scenario_name.nil?
       puts "Usage: rake scenario:deploy[scenario_name]"
       puts "Example: rake scenario:deploy[carambus_location_2459]"
+      puts ""
+      puts "Note: Run 'rake scenario:prepare_deploy[#{scenario_name}]' first to prepare deployment files"
       exit 1
     end
 
-    deploy_scenario_with_conflict_analysis(scenario_name)
+    deploy_scenario(scenario_name)
   end
 
   desc "Update scenario with git pull (preserves local changes)"
@@ -136,6 +137,58 @@ namespace :scenario do
     end
     
     create_scenario(scenario_name, location_id, context)
+  end
+
+  desc "Setup Raspberry Pi client for scenario"
+  task :setup_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:setup_raspberry_pi_client[scenario_name]"
+      puts "Example: rake scenario:setup_raspberry_pi_client[carambus_location_2459]"
+      exit 1
+    end
+
+    setup_raspberry_pi_client(scenario_name)
+  end
+
+  desc "Deploy Raspberry Pi client configuration"
+  task :deploy_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:deploy_raspberry_pi_client[scenario_name]"
+      puts "Example: rake scenario:deploy_raspberry_pi_client[carambus_location_2459]"
+      exit 1
+    end
+
+    deploy_raspberry_pi_client(scenario_name)
+  end
+
+  desc "Restart Raspberry Pi client browser"
+  task :restart_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:restart_raspberry_pi_client[scenario_name]"
+      puts "Example: rake scenario:restart_raspberry_pi_client[carambus_location_2459]"
+      exit 1
+    end
+
+    restart_raspberry_pi_client(scenario_name)
+  end
+
+  desc "Test Raspberry Pi client connection"
+  task :test_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:test_raspberry_pi_client[scenario_name]"
+      puts "Example: rake scenario:test_raspberry_pi_client[carambus_location_2459]"
+      exit 1
+    end
+
+    test_raspberry_pi_client(scenario_name)
   end
 
   private
@@ -399,8 +452,8 @@ namespace :scenario do
     if system("gunzip -c #{latest_dump} | psql #{database_name}")
       puts "✅ Database restored successfully"
       
-      # Reset sequences for local server
-      puts "Resetting sequences..."
+      # Reset sequences for local server (prevents ID conflicts with API)
+      puts "Resetting sequences for local server..."
       system("cd #{File.expand_path("../#{scenario_name}", carambus_data_path)} && bundle exec rails runner 'Version.sequence_reset'")
       
       true
@@ -436,128 +489,15 @@ namespace :scenario do
     timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
     dump_file = File.join(dump_dir, "#{scenario_name}_#{environment}_#{timestamp}.sql.gz")
 
-    # Special handling for carambus scenario - generate from carambus_api_development
-    if scenario_name == 'carambus' && environment == 'development'
-      puts "🔄 Special transformation: Generating carambus_development from carambus_api_development..."
-      
-      # Create temporary database for transformation
-      temp_db_name = "carambus_temp_#{timestamp}"
-      
-      # Create temporary database using template (much faster)
-      if system("createdb #{temp_db_name} --template=carambus_api_development")
-        puts "   ✅ Created temporary database: #{temp_db_name} (using template)"
-        
-        # Apply transformations
-        transform_commands = [
-            # Reset version ID sequence to start from 1
-            "SELECT setval('versions_id_seq', 1, false);",
-            # Reset last version ID in settings JSON data (cast to jsonb for operations)  
-            "UPDATE settings SET data = jsonb_set(data::jsonb, '{last_version_id}', '{\"Integer\":\"1\"}')::text WHERE data::jsonb ? 'last_version_id';",
-            # Set scenario name in settings
-            "UPDATE settings SET data = jsonb_set(data::jsonb, '{scenario_name}', '{\"String\":\"carambus\"}')::text WHERE data::jsonb ? 'scenario_name';",
-            # If scenario_name doesn't exist, add it
-            "UPDATE settings SET data = (data::jsonb || '{\"scenario_name\":{\"String\":\"carambus\"}}')::text WHERE NOT (data::jsonb ? 'scenario_name');"
-          ]
-          
-        transform_commands.each do |cmd|
-          if system("psql #{temp_db_name} -c \"#{cmd}\"")
-            puts "   ✅ Applied transformation: #{cmd}"
-          else
-            puts "   ⚠️  Warning: Transformation failed: #{cmd}"
-          end
-        end
-        
-        # Create dump from transformed database
-        if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
-          puts "✅ Transformed database dump created: #{File.basename(dump_file)}"
-          puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-          
-          # Clean up temporary database
-          system("dropdb #{temp_db_name}")
-          puts "   🧹 Cleaned up temporary database"
-          true
-        else
-          puts "❌ Failed to create dump from transformed database"
-          system("dropdb #{temp_db_name}")
-          false
-        end
-      else
-        puts "❌ Failed to create temporary database"
-        false
-      end
-    elsif scenario_name == 'carambus_location_5101' && environment == 'development'
-      puts "🔄 Special transformation: Generating carambus_location_5101_development with region filtering..."
-      
-      # Create temporary database for transformation
-      temp_db_name = "carambus_location_5101_temp_#{timestamp}"
-      
-      # Create temporary database
-      if system("createdb #{temp_db_name}")
-        puts "   ✅ Created temporary database: #{temp_db_name}"
-        
-        # Restore carambus_api_development to temporary database
-        if system("pg_dump carambus_api_development | psql #{temp_db_name}")
-          puts "   ✅ Restored carambus_api_development to temporary database"
-          
-          # Apply region filtering using the cleanup task
-          puts "   🔄 Applying region filtering (region_id: 1)..."
-          
-          # Set environment variable for region filtering
-          ENV['REGION_SHORTNAME'] = 'NBV'
-          
-          # Create a temporary Rails environment to run the cleanup task
-          temp_rails_root = File.join(scenarios_path, scenario_name)
-          
-          # Change to the Rails root directory and run the cleanup task
-          if Dir.chdir(temp_rails_root) do
-            # Set up Rails environment variables
-            ENV['RAILS_ENV'] = 'development'
-            ENV['DATABASE_URL'] = "postgresql://localhost/#{temp_db_name}"
-            
-            # Run the cleanup task
-            system("bundle exec rails cleanup:remove_non_region_records")
-          end
-            puts "   ✅ Applied region filtering"
-            
-            # Create dump from filtered database
-            if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
-              puts "✅ Region-filtered database dump created: #{File.basename(dump_file)}"
-              puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-              
-              # Clean up temporary database
-              system("dropdb #{temp_db_name}")
-              puts "   🧹 Cleaned up temporary database"
-              true
-            else
-              puts "❌ Failed to create dump from filtered database"
-              system("dropdb #{temp_db_name}")
-              false
-            end
-          else
-            puts "❌ Failed to apply region filtering"
-            system("dropdb #{temp_db_name}")
-            false
-          end
-        else
-          puts "❌ Failed to restore carambus_api_development to temporary database"
-          system("dropdb #{temp_db_name}")
-          false
-        end
-      else
-        puts "❌ Failed to create temporary database"
-        false
-      end
+    # Standard dump creation - transformations are handled in create_development_database
+    puts "Creating dump of #{database_name}..."
+    if system("pg_dump #{database_name} | gzip > #{dump_file}")
+      puts "✅ Database dump created: #{File.basename(dump_file)}"
+      puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      true
     else
-      # Standard dump creation
-      puts "Creating dump of #{database_name}..."
-      if system("pg_dump #{database_name} | gzip > #{dump_file}")
-        puts "✅ Database dump created: #{File.basename(dump_file)}"
-        puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-        true
-      else
-        puts "❌ Database dump failed"
-        false
-      end
+      puts "❌ Database dump failed"
+      false
     end
   end
 
@@ -605,92 +545,204 @@ namespace :scenario do
     end
   end
 
-  def setup_scenario_with_rails_root(scenario_name, environment)
-    puts "Setting up scenario #{scenario_name} with Rails root folder..."
+  def prepare_scenario_for_development(scenario_name, environment)
+    puts "Preparing scenario #{scenario_name} for development (#{environment})..."
+    puts "This includes Rails root creation, config generation, basic config copying, and database operations."
 
-    # Step 1: Create Rails root folder
-    unless create_rails_root_folder(scenario_name)
-      puts "❌ Failed to create Rails root folder"
-      return false
-    end
-
-    # Step 2: Restore database dump
-    unless restore_database_dump(scenario_name, environment)
-      puts "❌ Failed to restore database dump"
-      return false
-    end
-
-    # Step 3: Copy generated configuration files
+    # Step 1: Create Rails root folder (if it doesn't exist)
+    puts "\n📁 Step 1: Ensuring Rails root folder exists..."
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
-    env_dir = File.join(scenarios_path, scenario_name, environment)
-
-    if Dir.exist?(env_dir)
-      # Copy database.yml
-      if File.exist?(File.join(env_dir, 'database.yml'))
-        FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
-        puts "   Copied database.yml to Rails root"
+    unless Dir.exist?(rails_root)
+      puts "   Rails root folder not found, creating it..."
+      unless create_rails_root_folder(scenario_name)
+        puts "❌ Failed to create Rails root folder"
+        return false
       end
-
-      # Copy carambus.yml
-      if File.exist?(File.join(env_dir, 'carambus.yml'))
-        FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-        puts "   Copied carambus.yml to Rails root"
-      end
+    else
+      puts "   ✅ Rails root folder already exists"
     end
 
-    # Step 4: Reset sequences for local server
-    puts "Resetting sequences..."
-    system("cd #{rails_root} && bundle exec rails runner 'Version.sequence_reset'")
-
-    puts "✅ Scenario #{scenario_name} setup completed"
-    puts "   Rails root: #{rails_root}"
-    puts "   Environment: #{environment}"
-    true
-  end
-
-  def setup_scenario(scenario_name, environment)
-    puts "Setting up scenario #{scenario_name} (#{environment})..."
-
-    # Step 1: Generate configuration files
+    # Step 2: Generate development configuration files
+    puts "\n📋 Step 2: Generating development configuration files..."
     unless generate_configuration_files(scenario_name, environment)
       puts "❌ Failed to generate configuration files"
       return false
     end
 
-    # Step 2: Restore database dump
-    unless restore_database_dump(scenario_name, environment)
-      puts "❌ Failed to restore database dump"
-      return false
-    end
-
-    # Step 3: Create Rails root folder and copy files
-    unless create_rails_root_folder(scenario_name)
-      puts "❌ Failed to create Rails root folder"
-      return false
-    end
-
-    # Step 4: Copy generated configuration files to Rails root
-    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    # Step 3: Copy basic configuration files to Rails root
+    puts "\n📁 Step 3: Copying basic configuration files to Rails root..."
     env_dir = File.join(scenarios_path, scenario_name, environment)
 
     if Dir.exist?(env_dir)
       # Copy database.yml
       if File.exist?(File.join(env_dir, 'database.yml'))
         FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
-        puts "   Copied database.yml to Rails root"
+        puts "   ✅ database.yml copied to Rails root"
       end
 
       # Copy carambus.yml
       if File.exist?(File.join(env_dir, 'carambus.yml'))
         FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-        puts "   Copied carambus.yml to Rails root"
+        puts "   ✅ carambus.yml copied to Rails root"
       end
     end
 
-    puts "✅ Scenario #{scenario_name} setup completed"
+    # Step 4: Create database dump (fresh from development)
+    puts "\n💾 Step 4: Creating database dump..."
+    unless create_database_dump(scenario_name, environment)
+      puts "❌ Failed to create database dump"
+      return false
+    end
+
+    # Step 5: Create actual development database from template
+    puts "\n🗄️  Step 5: Creating development database..."
+    unless create_development_database(scenario_name, environment)
+      puts "❌ Failed to create development database"
+      return false
+    end
+
+    puts "\n✅ Scenario #{scenario_name} prepared for development!"
     puts "   Rails root: #{rails_root}"
     puts "   Environment: #{environment}"
+    puts "   Database: #{scenario_name}_#{environment}"
+    puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
+    
     true
+  end
+
+  def create_development_database(scenario_name, environment)
+    puts "Creating development database for #{scenario_name} (#{environment})..."
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    scenario_data = scenario_config['scenario']
+    region_id = scenario_data['region_id']
+    
+    database_name = "#{scenario_name}_#{environment}"
+    
+    # Drop existing database if it exists
+    if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{database_name}")
+      puts "   Dropping existing database #{database_name}..."
+      system("dropdb #{database_name}")
+    end
+    
+    if region_id && environment == 'development'
+      puts "🔄 Creating #{database_name} from carambus_api_development template (region_id: #{region_id})..."
+      
+      # Create database using template (much faster than dump/restore)
+      if system("createdb #{database_name} --template=carambus_api_development")
+        puts "   ✅ Created database: #{database_name} (using template)"
+        
+        # Use Rails commands for proper transformations
+        rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+        
+        puts "   🔄 Applying Rails transformations..."
+        
+        # Change to Rails root and run Rails commands
+        Dir.chdir(rails_root) do
+          # Set up Rails environment
+          ENV['RAILS_ENV'] = 'development'
+          ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
+          
+          # Enable caching for StimulusReflex
+          puts "   🔄 Enabling development caching..."
+          if system("bundle exec rails dev:cache")
+            puts "   ✅ Development caching enabled"
+          else
+            puts "   ⚠️  Warning: Failed to enable development caching"
+          end
+          
+          # Reset version sequence using existing method
+          puts "   🔄 Resetting version sequence..."
+          if system("bundle exec rails runner 'Version.sequence_reset'")
+            puts "   ✅ Version sequence reset"
+          else
+            puts "   ⚠️  Warning: Version sequence reset failed"
+          end
+          
+          # Find latest version ID and set as last_version_id
+          puts "   🔄 Setting last_version_id..."
+          if system("bundle exec rails runner 'last_version_id = Version.last.id; Setting.key_set_value(\"last_version_id\", last_version_id); puts \"Set last_version_id to: \" + last_version_id.to_s'")
+            puts "   ✅ Last version ID set"
+          else
+            puts "   ⚠️  Warning: Failed to set last_version_id"
+          end
+          
+          # Remove old versions (keep only the latest)
+          puts "   🔄 Removing old versions..."
+          if system("bundle exec rails runner 'last_version_id = Version.last.id; Version.where(\"id < \" + last_version_id.to_s).delete_all; puts \"Removed old versions, kept ID: \" + last_version_id.to_s'")
+            puts "   ✅ Old versions removed"
+          else
+            puts "   ⚠️  Warning: Failed to remove old versions"
+          end
+          
+          # Set scenario name
+          puts "   🔄 Setting scenario name..."
+          if system("bundle exec rails runner 'Setting.key_set_value(\"scenario_name\", \"#{scenario_name}\"); puts \"Set scenario_name to: #{scenario_name}\"'")
+            puts "   ✅ Scenario name set"
+          else
+            puts "   ⚠️  Warning: Failed to set scenario name"
+          end
+        end
+        
+        # Apply region filtering using the cleanup task
+        puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+        
+        # Set environment variable for region filtering
+        ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+        
+        # Change to the Rails root directory and run the cleanup task
+        if Dir.chdir(rails_root) do
+          # Set up Rails environment variables
+          ENV['RAILS_ENV'] = 'development'
+          ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
+          
+          # Run the cleanup task
+          system("bundle exec rails cleanup:remove_non_region_records")
+        end
+          puts "   ✅ Applied region filtering"
+          
+          # Update last_version_id after region filtering
+          puts "   🔄 Updating last_version_id after region filtering..."
+          Dir.chdir(rails_root) do
+            ENV['RAILS_ENV'] = 'development'
+            ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
+            
+            if system("bundle exec rails runner 'last_version_id = Version.last.id; Setting.key_set_value(\"last_version_id\", last_version_id); puts \"Updated last_version_id to: \" + last_version_id.to_s'")
+              puts "   ✅ Updated last_version_id to current max version ID"
+            else
+              puts "   ⚠️  Warning: Failed to update last_version_id (continuing anyway)"
+            end
+          end
+          
+          puts "✅ Development database created successfully: #{database_name}"
+          true
+        else
+          puts "❌ Failed to apply region filtering"
+          system("dropdb #{database_name}")
+          false
+        end
+      else
+        puts "❌ Failed to create database from template"
+        false
+      end
+    else
+      # For non-region scenarios, create empty database
+      puts "Creating empty database #{database_name}..."
+      if system("createdb #{database_name}")
+        puts "✅ Development database created successfully: #{database_name}"
+        true
+      else
+        puts "❌ Failed to create database"
+        false
+      end
+    end
   end
 
   def update_scenario(scenario_name)
@@ -700,7 +752,7 @@ namespace :scenario do
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     unless Dir.exist?(rails_root)
       puts "❌ Rails root folder not found: #{rails_root}"
-      puts "   Use 'rake scenario:setup[#{scenario_name},development]' to create it first"
+      puts "   Use 'rake scenario:prepare_development[#{scenario_name},development]' to create it first"
       return false
     end
     
@@ -788,14 +840,21 @@ namespace :scenario do
       return false
     end
 
-    # Step 3: Copy configuration files to Rails root folder
-    puts "\n📁 Step 3: Copying configuration files to Rails root folder..."
+    # Step 3: Ensure Rails root folder exists
+    puts "\n📁 Step 3: Ensuring Rails root folder exists..."
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     unless Dir.exist?(rails_root)
-      puts "❌ Rails root folder not found: #{rails_root}"
-      puts "   Please run: rake scenario:create_rails_root[#{scenario_name}]"
-      return false
+      puts "   Rails root folder not found, creating it..."
+      unless create_rails_root_folder(scenario_name)
+        puts "❌ Failed to create Rails root folder"
+        return false
+      end
+    else
+      puts "   ✅ Rails root folder already exists"
     end
+
+    # Step 4: Copy configuration files to Rails root folder
+    puts "\n📁 Step 4: Copying configuration files to Rails root folder..."
 
     # Copy production configuration files
     production_dir = File.join(scenarios_path, scenario_name, 'production')
@@ -841,8 +900,8 @@ namespace :scenario do
 
     puts "   ✅ Configuration files copied to Rails root folder"
 
-    # Step 4: Copy deployment files
-    puts "\n🚀 Step 4: Copying deployment files..."
+    # Step 5: Copy deployment files
+    puts "\n🚀 Step 5: Copying deployment files..."
     deploy_dir = File.join(scenarios_path, scenario_name, 'production')
     if File.exist?(File.join(deploy_dir, 'deploy.rb'))
       FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
@@ -861,8 +920,8 @@ namespace :scenario do
       end
     end
 
-    # Step 5: Upload shared configuration files to server
-    puts "\n📤 Step 5: Uploading shared configuration files to server..."
+    # Step 6: Upload shared configuration files to server
+    puts "\n📤 Step 6: Uploading shared configuration files to server..."
     basename = scenario['basename']
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
@@ -913,8 +972,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 6: Restore database dump to production server
-    puts "\n🗄️  Step 6: Restoring database dump to production server..."
+    # Step 7: Restore database dump to production server
+    puts "\n🗄️  Step 7: Restoring database dump to production server..."
     production_database = production_config['database_name']
     production_user = production_config['database_username']
     
@@ -958,8 +1017,8 @@ namespace :scenario do
             if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
               puts "   ✅ Database restored from development dump"
               
-              # Reset sequences for local server
-              puts "   Resetting sequences..."
+              # Reset sequences for local server (prevents ID conflicts with API)
+              puts "   Resetting sequences for local server..."
               sequence_reset_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'"
               if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{sequence_reset_cmd}'")
                 puts "   ✅ Sequences reset successfully"
@@ -987,8 +1046,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 7: Execute Capistrano deployment
-    puts "\n🎯 Step 7: Executing Capistrano deployment..."
+    # Step 8: Execute Capistrano deployment
+    puts "\n🎯 Step 8: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
@@ -1016,8 +1075,8 @@ namespace :scenario do
       return false
     end
 
-    puts "\n✅ Deployment preparation completed successfully!"
-    puts "   Next step: Run 'cap production deploy' in the Rails root folder"
+    puts "\n✅ Deployment completed successfully!"
+    puts "   Application deployed and running on #{production_config['webserver_host']}:#{production_config['webserver_port']}"
 
     true
   end
@@ -1195,4 +1254,625 @@ namespace :scenario do
     puts "   Context: #{context}"
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
+
+  def prepare_scenario_for_deployment(scenario_name)
+    puts "Preparing scenario #{scenario_name} for deployment..."
+    puts "This includes production config generation, production config copying, and database operations."
+    puts "Note: Assumes Rails root folder already exists from prepare_development."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    scenario = scenario_config['scenario']
+
+    puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+
+    # Step 1: Generate production configuration files
+    puts "\n📋 Step 1: Generating production configuration files..."
+    unless generate_configuration_files(scenario_name, 'production')
+      puts "❌ Failed to generate production configuration files"
+      return false
+    end
+
+    # Step 2: Copy production configuration files to Rails root folder
+    puts "\n📁 Step 2: Copying production configuration files to Rails root folder..."
+    
+    # Get Rails root path (assumes it exists from prepare_development)
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root folder not found! Run 'rake scenario:prepare_development[#{scenario_name}]' first."
+      return false
+    end
+    
+    # Copy production configuration files
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    FileUtils.cp(File.join(production_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
+    FileUtils.cp(File.join(production_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+
+    # Copy nginx.conf if it exists
+    if File.exist?(File.join(production_dir, 'nginx.conf'))
+      FileUtils.cp(File.join(production_dir, 'nginx.conf'), File.join(rails_root, 'config', 'nginx.conf'))
+      puts "   ✅ nginx.conf copied to Rails root folder"
+    end
+
+    # Copy puma.service if it exists
+    if File.exist?(File.join(production_dir, 'puma.service'))
+      FileUtils.cp(File.join(production_dir, 'puma.service'), File.join(rails_root, 'config', 'puma.service'))
+      puts "   ✅ puma.service copied to Rails root folder"
+    end
+
+    # Copy puma.rb if it exists
+    if File.exist?(File.join(production_dir, 'puma.rb'))
+      FileUtils.cp(File.join(production_dir, 'puma.rb'), File.join(rails_root, 'config', 'puma.rb'))
+      puts "   ✅ puma.rb copied to Rails root folder"
+    end
+
+    # Copy credentials files from main repository
+    main_credentials_dir = File.join(Rails.root, 'config', 'credentials')
+    if Dir.exist?(main_credentials_dir)
+      Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
+        if File.file?(file)
+          filename = File.basename(file)
+          FileUtils.cp(file, File.join(rails_root, 'config', filename))
+          puts "   ✅ #{filename} copied to Rails root folder"
+        end
+      end
+    end
+
+    # Copy master.key from main repository
+    master_key_file = File.join(Rails.root, 'config', 'master.key')
+    if File.exist?(master_key_file)
+      FileUtils.cp(master_key_file, File.join(rails_root, 'config', 'master.key'))
+      puts "   ✅ master.key copied to Rails root folder"
+    end
+
+    puts "   ✅ Configuration files copied to Rails root folder"
+
+    # Step 3: Copy deployment files
+    puts "\n🚀 Step 3: Copying deployment files..."
+    deploy_dir = File.join(scenarios_path, scenario_name, 'production')
+    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
+      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
+      puts "   ✅ deploy.rb copied"
+    end
+
+    if Dir.exist?(File.join(deploy_dir, 'deploy'))
+      # Copy individual files from deploy subdirectory
+      deploy_subdir = File.join(deploy_dir, 'deploy')
+      Dir.glob(File.join(deploy_subdir, '*')).each do |file|
+        if File.file?(file)
+          filename = File.basename(file)
+          FileUtils.cp(file, File.join(rails_root, 'config', 'deploy', filename))
+          puts "   ✅ #{filename} copied to config/deploy/"
+        end
+      end
+    end
+
+    puts "   ✅ Deployment files copied"
+
+    # Step 4: Create production database from development dump
+    puts "\n💾 Step 4: Creating production database from development dump..."
+    unless restore_database_dump(scenario_name, 'development')
+      puts "❌ Failed to create production database from development dump"
+      return false
+    end
+
+    puts "\n✅ Scenario #{scenario_name} prepared for deployment!"
+    puts "   Rails root: #{rails_root}"
+    puts "   Production config: #{production_dir}"
+    puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
+    puts ""
+    puts "Next steps:"
+    puts "  1. Review the generated configuration files"
+    puts "  2. Run 'rake scenario:deploy[#{scenario_name}]' to deploy to production server"
+    puts "  3. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
+    
+    true
+  end
+
+  def deploy_scenario(scenario_name)
+    puts "Deploying scenario #{scenario_name} to production server..."
+    puts "This performs server deployment operations only (assumes prepare_deploy was run first)."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    scenario = scenario_config['scenario']
+
+    puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+
+    # Verify Rails root exists
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root folder not found: #{rails_root}"
+      puts "   Please run 'rake scenario:prepare_deploy[#{scenario_name}]' first"
+      return false
+    end
+
+    # Step 1: Upload shared configuration files to server
+    puts "\n📤 Step 1: Uploading shared configuration files to server..."
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Create shared config directory on server
+    shared_config_dir = "/var/www/#{basename}/shared/config"
+    create_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dir_cmd}'")
+      puts "   ✅ Shared config directory created"
+      
+      # Upload database.yml
+      if File.exist?(File.join(rails_root, 'config', 'database.yml'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'database.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ database.yml uploaded to server"
+        else
+          puts "   ❌ Failed to upload database.yml"
+          return false
+        end
+      end
+      
+      # Upload carambus.yml
+      if File.exist?(File.join(rails_root, 'config', 'carambus.yml'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'carambus.yml')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ carambus.yml uploaded to server"
+        else
+          puts "   ❌ Failed to upload carambus.yml"
+          return false
+        end
+      end
+      
+      # Upload master.key
+      if File.exist?(File.join(rails_root, 'config', 'master.key'))
+        upload_cmd = "scp -P #{ssh_port} #{File.join(rails_root, 'config', 'master.key')} www-data@#{ssh_host}:#{shared_config_dir}/"
+        if system(upload_cmd)
+          puts "   ✅ master.key uploaded to server"
+        else
+          puts "   ❌ Failed to upload master.key"
+          return false
+        end
+      end
+      
+      puts "   ✅ All shared configuration files uploaded"
+    else
+      puts "   ❌ Failed to create shared config directory"
+      return false
+    end
+
+    # Step 2: Execute Capistrano deployment
+    puts "\n🎯 Step 2: Executing Capistrano deployment..."
+    puts "   Running: cap production deploy"
+    puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+    puts "   Application: #{scenario['application_name']}"
+    puts "   Basename: #{scenario['basename']}"
+
+    # Change to the Rails root directory and run Capistrano
+    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario['basename'])
+    
+    if Dir.exist?(rails_root_dir)
+      puts "   Deploying from: #{rails_root_dir}"
+      
+      # Execute Capistrano deployment
+      deploy_cmd = "cd #{rails_root_dir} && cap production deploy"
+      puts "   Executing: #{deploy_cmd}"
+      
+      if system(deploy_cmd)
+        puts "   ✅ Capistrano deployment completed successfully"
+      else
+        puts "   ❌ Capistrano deployment failed"
+        return false
+      end
+    else
+      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
+      puts "   Please run 'rake scenario:prepare_deploy[#{scenario_name}]' first"
+      return false
+    end
+
+    puts "\n✅ Deployment completed successfully!"
+    puts "   Application deployed and running on #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+
+    true
+  end
+
+  # Raspberry Pi Client Management Methods
+
+  def setup_raspberry_pi_client(scenario_name)
+    puts "🍓 Setting up Raspberry Pi client for #{scenario_name}..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    pi_config = production_config['raspberry_pi_client']
+
+    unless pi_config && pi_config['enabled']
+      puts "❌ Error: Raspberry Pi client not enabled for this scenario"
+      return false
+    end
+
+    pi_ip = pi_config['ip_address']
+    ssh_user = pi_config['ssh_user']
+    ssh_password = pi_config['ssh_password']
+    ssh_port = pi_config['ssh_port'] || 22
+    kiosk_user = pi_config['kiosk_user']
+    local_server_enabled = pi_config['local_server_enabled']
+
+    puts "   Raspberry Pi IP: #{pi_ip}"
+    puts "   SSH User: #{ssh_user}"
+    puts "   SSH Port: #{ssh_port}"
+    puts "   Local Server: #{local_server_enabled ? 'Enabled' : 'Disabled'}"
+
+    # Test SSH connection
+    puts "\n🔌 Testing SSH connection..."
+    if test_ssh_connection(pi_ip, ssh_user, ssh_password, ssh_port)
+      puts "   ✅ SSH connection successful"
+    else
+      puts "   ❌ SSH connection failed"
+      return false
+    end
+
+    # Install required packages
+    puts "\n📦 Installing required packages..."
+    install_packages_cmd = "sudo apt update && sudo apt install -y chromium-browser wmctrl xdotool"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, install_packages_cmd, ssh_port)
+      puts "   ✅ Required packages installed"
+    else
+      puts "   ❌ Failed to install packages"
+      return false
+    end
+
+    # Create kiosk user if different from SSH user
+    if kiosk_user != ssh_user
+      puts "\n👤 Creating kiosk user: #{kiosk_user}"
+      create_user_cmd = "sudo useradd -m -s /bin/bash #{kiosk_user} || true"
+      if execute_ssh_command(pi_ip, ssh_user, ssh_password, create_user_cmd, ssh_port)
+        puts "   ✅ Kiosk user created"
+      else
+        puts "   ❌ Failed to create kiosk user"
+        return false
+      end
+    end
+
+    # Setup autostart configuration
+    puts "\n🚀 Setting up autostart configuration..."
+    setup_autostart_configuration(scenario_name, pi_config)
+
+    # Create systemd service for kiosk mode
+    puts "\n⚙️  Creating systemd service..."
+    create_systemd_service(scenario_name, pi_config)
+
+    puts "\n✅ Raspberry Pi client setup completed!"
+    puts "   Next steps:"
+    puts "   1. Run: rake scenario:deploy_raspberry_pi_client[#{scenario_name}]"
+    puts "   2. Test: rake scenario:test_raspberry_pi_client[#{scenario_name}]"
+
+    true
+  end
+
+  def deploy_raspberry_pi_client(scenario_name)
+    puts "🚀 Deploying Raspberry Pi client configuration for #{scenario_name}..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    pi_config = production_config['raspberry_pi_client']
+
+    unless pi_config && pi_config['enabled']
+      puts "❌ Error: Raspberry Pi client not enabled for this scenario"
+      return false
+    end
+
+    pi_ip = pi_config['ip_address']
+    ssh_user = pi_config['ssh_user']
+    ssh_password = pi_config['ssh_password']
+    ssh_port = pi_config['ssh_port'] || 22
+    kiosk_user = pi_config['kiosk_user']
+
+    # Generate scoreboard URL
+    location_id = scenario_config['scenario']['location_id']
+    webserver_host = production_config['webserver_host']
+    webserver_port = production_config['webserver_port']
+    
+    # Calculate MD5 hash for location
+    require 'digest'
+    location_md5 = Digest::MD5.hexdigest(location_id.to_s)
+    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
+
+    puts "   Scoreboard URL: #{scoreboard_url}"
+
+    # Upload scoreboard URL to Raspberry Pi
+    puts "\n📤 Uploading scoreboard URL..."
+    upload_url_cmd = "echo '#{scoreboard_url}' | sudo tee /etc/scoreboard_url"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_url_cmd, ssh_port)
+      puts "   ✅ Scoreboard URL uploaded"
+    else
+      puts "   ❌ Failed to upload scoreboard URL"
+      return false
+    end
+
+    # Upload autostart script
+    puts "\n📤 Uploading autostart script..."
+    autostart_script = generate_autostart_script(scenario_name, pi_config)
+    upload_script_cmd = "cat > /tmp/autostart-scoreboard.sh << 'EOF'\n#{autostart_script}\nEOF"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_script_cmd, ssh_port)
+      puts "   ✅ Autostart script uploaded"
+    else
+      puts "   ❌ Failed to upload autostart script"
+      return false
+    end
+
+    # Make script executable and move to proper location
+    move_script_cmd = "sudo mv /tmp/autostart-scoreboard.sh /usr/local/bin/autostart-scoreboard.sh && sudo chmod +x /usr/local/bin/autostart-scoreboard.sh"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, move_script_cmd, ssh_port)
+      puts "   ✅ Autostart script installed"
+    else
+      puts "   ❌ Failed to install autostart script"
+      return false
+    end
+
+    # Enable and start systemd service
+    puts "\n⚙️  Enabling systemd service..."
+    enable_service_cmd = "sudo systemctl enable scoreboard-kiosk && sudo systemctl start scoreboard-kiosk"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, enable_service_cmd, ssh_port)
+      puts "   ✅ Systemd service enabled and started"
+    else
+      puts "   ❌ Failed to enable systemd service"
+      return false
+    end
+
+    puts "\n✅ Raspberry Pi client deployment completed!"
+    puts "   Kiosk mode should now be active"
+
+    true
+  end
+
+  def restart_raspberry_pi_client(scenario_name)
+    puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    pi_config = production_config['raspberry_pi_client']
+
+    unless pi_config && pi_config['enabled']
+      puts "❌ Error: Raspberry Pi client not enabled for this scenario"
+      return false
+    end
+
+    pi_ip = pi_config['ip_address']
+    ssh_user = pi_config['ssh_user']
+    ssh_password = pi_config['ssh_password']
+    ssh_port = pi_config['ssh_port'] || 22
+    restart_command = pi_config['browser_restart_command'] || "sudo systemctl restart scoreboard-kiosk"
+
+    puts "   Using restart command: #{restart_command}"
+
+    # Execute restart command
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, restart_command, ssh_port)
+      puts "   ✅ Browser restart command executed successfully"
+      puts "   Kiosk browser should restart in a few seconds"
+    else
+      puts "   ❌ Failed to execute restart command"
+      return false
+    end
+
+    true
+  end
+
+  def test_raspberry_pi_client(scenario_name)
+    puts "🧪 Testing Raspberry Pi client for #{scenario_name}..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    pi_config = production_config['raspberry_pi_client']
+
+    unless pi_config && pi_config['enabled']
+      puts "❌ Error: Raspberry Pi client not enabled for this scenario"
+      return false
+    end
+
+    pi_ip = pi_config['ip_address']
+    ssh_user = pi_config['ssh_user']
+    ssh_password = pi_config['ssh_password']
+    ssh_port = pi_config['ssh_port'] || 22
+
+    # Test SSH connection
+    puts "\n🔌 Testing SSH connection..."
+    if test_ssh_connection(pi_ip, ssh_user, ssh_password, ssh_port)
+      puts "   ✅ SSH connection successful"
+    else
+      puts "   ❌ SSH connection failed"
+      return false
+    end
+
+    # Test systemd service status
+    puts "\n⚙️  Testing systemd service..."
+    service_status_cmd = "sudo systemctl is-active scoreboard-kiosk"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, service_status_cmd, ssh_port)
+      puts "   ✅ Systemd service is active"
+    else
+      puts "   ❌ Systemd service is not active"
+    end
+
+    # Test scoreboard URL file
+    puts "\n📄 Testing scoreboard URL file..."
+    url_test_cmd = "cat /etc/scoreboard_url"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, url_test_cmd, ssh_port)
+      puts "   ✅ Scoreboard URL file exists"
+    else
+      puts "   ❌ Scoreboard URL file not found"
+    end
+
+    # Test browser process
+    puts "\n🌐 Testing browser process..."
+    browser_test_cmd = "pgrep chromium-browser"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, browser_test_cmd, ssh_port)
+      puts "   ✅ Browser process is running"
+    else
+      puts "   ❌ Browser process not found"
+    end
+
+    puts "\n✅ Raspberry Pi client test completed!"
+
+    true
+  end
+
+  # Helper methods for Raspberry Pi client management
+
+  def test_ssh_connection(ip, user, password, port = 22)
+    port_option = port == 22 ? "" : "-p #{port}"
+    
+    if password.nil? || password.empty?
+      # Passwordless SSH (SSH key authentication)
+      cmd = "ssh #{port_option} -o ConnectTimeout=10 -o StrictHostKeyChecking=no #{user}@#{ip} 'echo SSH connection test'"
+    else
+      # Password authentication using sshpass
+      cmd = "sshpass -p '#{password}' ssh #{port_option} -o ConnectTimeout=10 -o StrictHostKeyChecking=no #{user}@#{ip} 'echo SSH connection test'"
+    end
+    
+    system(cmd)
+  end
+
+  def execute_ssh_command(ip, user, password, command, port = 22)
+    port_option = port == 22 ? "" : "-p #{port}"
+    
+    if password.nil? || password.empty?
+      # Passwordless SSH (SSH key authentication)
+      cmd = "ssh #{port_option} -o ConnectTimeout=10 -o StrictHostKeyChecking=no #{user}@#{ip} '#{command}'"
+    else
+      # Password authentication using sshpass
+      cmd = "sshpass -p '#{password}' ssh #{port_option} -o ConnectTimeout=10 -o StrictHostKeyChecking=no #{user}@#{ip} '#{command}'"
+    end
+    
+    system(cmd)
+  end
+
+  def setup_autostart_configuration(scenario_name, pi_config)
+    # This method would setup LXDE autostart configuration
+    # Implementation depends on the specific desktop environment
+    puts "   Setting up autostart configuration..."
+    # TODO: Implement LXDE autostart setup
+  end
+
+  def create_systemd_service(scenario_name, pi_config)
+    service_content = <<~EOF
+      [Unit]
+      Description=Carambus Scoreboard Kiosk
+      After=graphical.target
+
+      [Service]
+      Type=simple
+      User=#{pi_config['kiosk_user']}
+      Environment=DISPLAY=:0
+      ExecStart=/usr/local/bin/autostart-scoreboard.sh
+      Restart=always
+      RestartSec=10
+
+      [Install]
+      WantedBy=graphical.target
+    EOF
+
+    puts "   Creating systemd service file..."
+    
+    # Upload systemd service file to Raspberry Pi
+    pi_ip = pi_config['ip_address']
+    ssh_user = pi_config['ssh_user']
+    ssh_password = pi_config['ssh_password']
+    ssh_port = pi_config['ssh_port'] || 22
+    
+    upload_service_cmd = "cat > /tmp/scoreboard-kiosk.service << 'EOF'\n#{service_content}\nEOF"
+    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_service_cmd, ssh_port)
+      puts "   ✅ Systemd service file uploaded"
+      
+      # Move service file to systemd directory
+      move_service_cmd = "sudo mv /tmp/scoreboard-kiosk.service /etc/systemd/system/scoreboard-kiosk.service && sudo systemctl daemon-reload"
+      if execute_ssh_command(pi_ip, ssh_user, ssh_password, move_service_cmd, ssh_port)
+        puts "   ✅ Systemd service file installed"
+      else
+        puts "   ❌ Failed to install systemd service file"
+        return false
+      end
+    else
+      puts "   ❌ Failed to upload systemd service file"
+      return false
+    end
+    
+    true
+  end
+
+  def generate_autostart_script(scenario_name, pi_config)
+    <<~EOF
+      #!/bin/bash
+      # Carambus Scoreboard Autostart Script
+      # Generated for scenario: #{scenario_name}
+
+      # Set display environment
+      export DISPLAY=:0
+
+      # Wait for display to be ready
+      sleep 5
+
+      # Hide panel
+      wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+      wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
+
+      # Get scoreboard URL
+      SCOREBOARD_URL=$(cat /etc/scoreboard_url)
+
+      # Start browser in fullscreen with additional flags to handle display issues
+      /usr/bin/chromium-browser \\
+        --start-fullscreen \\
+        --disable-restore-session-state \\
+        --user-data-dir=/tmp/chromium-scoreboard \\
+        --disable-features=VizDisplayCompositor \\
+        --disable-dev-shm-usage \\
+        --app="$SCOREBOARD_URL" \\
+        >/dev/null 2>&1 &
+
+      # Wait and ensure fullscreen
+      sleep 5
+      wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+    EOF
+  end
+
 end
