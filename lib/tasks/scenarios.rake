@@ -1801,17 +1801,24 @@ namespace :scenario do
     
     # Upload service file to temporary location first
     temp_service_path = "/tmp/puma-#{basename}.service"
-    unless system("scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{temp_service_path}")
+    puts "   📤 Uploading service file from #{puma_service_path} to #{temp_service_path}"
+    scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{temp_service_path}"
+    puts "   🔍 Running: #{scp_cmd}"
+    unless system(scp_cmd)
       puts "   ❌ Failed to upload service file to temporary location"
       return false
     end
+    puts "   ✅ Service file uploaded successfully"
     
     # Move to systemd directory with sudo
     move_cmd = "sudo mv #{temp_service_path} /etc/systemd/system/puma-#{basename}.service && sudo chown root:root /etc/systemd/system/puma-#{basename}.service"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'")
+    ssh_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'"
+    puts "   🔍 Running: #{ssh_cmd}"
+    unless system(ssh_cmd)
       puts "   ❌ Failed to move service file to systemd directory"
       return false
     end
+    puts "   ✅ Service file moved to systemd directory"
     
     # Reload systemd and enable service
     reload_cmd = "sudo systemctl daemon-reload && sudo systemctl enable puma-#{basename}.service"
