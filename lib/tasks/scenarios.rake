@@ -440,26 +440,73 @@ namespace :scenario do
     latest_dump = dump_files.sort.last
     puts "Using dump: #{File.basename(latest_dump)}"
 
-    # Drop and recreate database
-    puts "Dropping database #{database_name}..."
-    system("dropdb #{database_name}") if system("psql -lqt | cut -d \| -f 1 | grep -qw #{database_name}")
-
-    puts "Creating database #{database_name}..."
-    system("createdb #{database_name}")
-
-    # Restore dump
-    puts "Restoring from #{latest_dump}..."
-    if system("gunzip -c #{latest_dump} | psql #{database_name}")
-      puts "✅ Database restored successfully"
-
-      # Reset sequences for local server (prevents ID conflicts with API)
-      puts "Resetting sequences for local server..."
-      system("cd #{File.expand_path("../#{scenario_name}", carambus_data_path)} && bundle exec rails runner 'Version.sequence_reset'")
-
-      true
+    if environment == 'production'
+      # For production: transfer dump to remote server, then restore there
+      ssh_host = env_config['ssh_host']
+      ssh_port = env_config['ssh_port']
+      
+      puts "Transferring dump to production server #{ssh_host}:#{ssh_port}..."
+      remote_dump_file = "/tmp/#{File.basename(latest_dump)}"
+      
+      # Transfer dump to remote server
+      scp_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{remote_dump_file}"
+      if system(scp_cmd)
+        puts "   ✅ Dump transferred to remote server"
+        
+        # Drop and recreate database on remote server
+        puts "Dropping database #{database_name} on remote server..."
+        drop_cmd = "sudo -u postgres dropdb #{database_name}" if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw #{database_name}'")
+        
+        puts "Creating database #{database_name} on remote server..."
+        create_cmd = "sudo -u postgres createdb #{database_name}"
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_cmd}'")
+          puts "   ✅ Database created on remote server"
+          
+          # Restore dump on remote server
+          puts "Restoring dump on remote server..."
+          restore_cmd = "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{database_name}"
+          if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
+            puts "   ✅ Database restored successfully on remote server"
+            
+            # Clean up remote dump file
+            system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{remote_dump_file}'")
+            
+            true
+          else
+            puts "❌ Database restore failed on remote server"
+            false
+          end
+        else
+          puts "❌ Failed to create database on remote server"
+          false
+        end
+      else
+        puts "❌ Failed to transfer dump to remote server"
+        false
+      end
     else
-      puts "❌ Database restore failed"
-      false
+      # For development: restore locally
+      # Drop and recreate database
+      puts "Dropping database #{database_name}..."
+      system("dropdb #{database_name}") if system("psql -lqt | cut -d \| -f 1 | grep -qw #{database_name}")
+
+      puts "Creating database #{database_name}..."
+      system("createdb #{database_name}")
+
+      # Restore dump
+      puts "Restoring from #{latest_dump}..."
+      if system("gunzip -c #{latest_dump} | psql #{database_name}")
+        puts "✅ Database restored successfully"
+
+        # Reset sequences for local server (prevents ID conflicts with API)
+        puts "Resetting sequences for local server..."
+        system("cd #{File.expand_path("../#{scenario_name}", carambus_data_path)} && bundle exec rails runner 'Version.sequence_reset'")
+
+        true
+      else
+        puts "❌ Database restore failed"
+        false
+      end
     end
   end
 
@@ -489,15 +536,50 @@ namespace :scenario do
     timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
     dump_file = File.join(dump_dir, "#{scenario_name}_#{environment}_#{timestamp}.sql.gz")
 
-    # Standard dump creation - transformations are handled in create_development_database
-    puts "Creating dump of #{database_name}..."
-    if system("pg_dump --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
-      puts "✅ Database dump created: #{File.basename(dump_file)}"
-      puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-      true
+    if environment == 'production'
+      # For production: create dump on remote server, then transfer to local
+      ssh_host = env_config['ssh_host']
+      ssh_port = env_config['ssh_port']
+      
+      puts "Creating dump on production server #{ssh_host}:#{ssh_port}..."
+      remote_dump_file = "/tmp/#{scenario_name}_#{environment}_#{timestamp}.sql.gz"
+      
+      # Create dump on remote server
+      dump_cmd = "pg_dump --no-owner --no-privileges #{database_name} | gzip > #{remote_dump_file}"
+      if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{dump_cmd}'")
+        puts "   ✅ Dump created on remote server"
+        
+        # Transfer dump from remote to local
+        puts "Transferring dump from remote server..."
+        scp_cmd = "scp -P #{ssh_port} www-data@#{ssh_host}:#{remote_dump_file} #{dump_file}"
+        if system(scp_cmd)
+          puts "   ✅ Dump transferred to local storage"
+          
+          # Clean up remote dump file
+          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{remote_dump_file}'")
+          
+          puts "✅ Database dump created: #{File.basename(dump_file)}"
+          puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+          true
+        else
+          puts "❌ Failed to transfer dump from remote server"
+          false
+        end
+      else
+        puts "❌ Failed to create dump on remote server"
+        false
+      end
     else
-      puts "❌ Database dump failed"
-      false
+      # For development: create dump locally
+      puts "Creating dump of #{database_name}..."
+      if system("pg_dump --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
+        puts "✅ Database dump created: #{File.basename(dump_file)}"
+        puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+        true
+      else
+        puts "❌ Database dump failed"
+        false
+      end
     end
   end
 
@@ -2308,4 +2390,5 @@ namespace :scenario do
   end
 
 end
+
 
