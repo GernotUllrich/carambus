@@ -586,15 +586,8 @@ namespace :scenario do
       end
     end
 
-    # Step 4: Create database dump (fresh from development)
-    puts "\n💾 Step 4: Creating database dump..."
-    unless create_database_dump(scenario_name, environment)
-      puts "❌ Failed to create database dump"
-      return false
-    end
-
-    # Step 5: Create actual development database from template
-    puts "\n🗄️  Step 5: Creating development database..."
+    # Step 4: Create actual development database from template
+    puts "\n🗄️  Step 4: Creating development database..."
     unless create_development_database(scenario_name, environment)
       puts "❌ Failed to create development database"
       return false
