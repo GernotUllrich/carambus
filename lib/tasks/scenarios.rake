@@ -1745,11 +1745,13 @@ namespace :scenario do
       if File.exist?(local_path)
         scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
         puts "   🔍 Running: #{scp_cmd}"
-        unless system(scp_cmd)
-          puts "   ❌ Failed to upload #{file}"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded #{file}"
+        else
+          puts "   ❌ Failed to upload #{file}: #{result}"
           return false
         end
-        puts "   ✅ Uploaded #{file}"
       else
         puts "   ⚠️  Config file #{file} not found at #{local_path}"
       end
@@ -1761,11 +1763,13 @@ namespace :scenario do
     if File.exist?(puma_rb_path)
       scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/"
       puts "   🔍 Running: #{scp_cmd}"
-      unless system(scp_cmd)
-        puts "   ❌ Failed to upload puma.rb"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.rb"
+      else
+        puts "   ❌ Failed to upload puma.rb: #{result}"
         return false
       end
-      puts "   ✅ Uploaded puma.rb"
     else
       puts "   ⚠️  puma.rb not found at #{puma_rb_path}"
     end
