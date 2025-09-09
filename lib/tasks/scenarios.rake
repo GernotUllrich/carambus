@@ -1294,26 +1294,23 @@ namespace :scenario do
     # Note: Production configuration files are uploaded directly from production directory
     # No need to copy them to development scenario root - keeps development environment clean
     
-    # Copy credentials files from main repository
+    # Copy credentials files to production directory for server upload
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    production_credentials_dir = File.join(production_dir, 'credentials')
+    FileUtils.mkdir_p(production_credentials_dir)
+    
     main_credentials_dir = File.join(Rails.root, 'config', 'credentials')
     if Dir.exist?(main_credentials_dir)
       Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
         if File.file?(file)
           filename = File.basename(file)
-          FileUtils.cp(file, File.join(rails_root, 'config', filename))
-          puts "   ✅ #{filename} copied to Rails root folder"
+          FileUtils.cp(file, File.join(production_credentials_dir, filename))
+          puts "   ✅ #{filename} copied to production directory"
         end
       end
     end
 
-    # Copy master.key from main repository
-    master_key_file = File.join(Rails.root, 'config', 'master.key')
-    if File.exist?(master_key_file)
-      FileUtils.cp(master_key_file, File.join(rails_root, 'config', 'master.key'))
-      puts "   ✅ master.key copied to Rails root folder"
-    end
-
-    puts "   ✅ Configuration files copied to Rails root folder"
+    puts "   ✅ Configuration files copied to production directory"
 
     # Step 3: Copy deployment files
     puts "\n🚀 Step 3: Copying deployment files..."
@@ -1363,7 +1360,7 @@ namespace :scenario do
 
     puts "\n✅ Scenario #{scenario_name} prepared for deployment!"
     puts "   Rails root: #{rails_root}"
-    puts "   Production config: #{production_dir}"
+    puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
     puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
     puts ""
     puts "Next steps:"
