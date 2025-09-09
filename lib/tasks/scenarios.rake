@@ -491,7 +491,7 @@ namespace :scenario do
 
     # Standard dump creation - transformations are handled in create_development_database
     puts "Creating dump of #{database_name}..."
-    if system("pg_dump --data-only=false --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
+    if system("pg_dump --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
       puts "✅ Database dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       true
@@ -1441,8 +1441,8 @@ namespace :scenario do
     
     # Create dump from development database
     puts "   📦 Creating dump from #{dev_database_name}..."
-    # Use --data-only=false to include schema and data, --no-owner to avoid permission issues
-    if system("pg_dump --data-only=false --no-owner --no-privileges #{dev_database_name} | gzip > #{dump_file}")
+    # Use --no-owner --no-privileges to avoid permission issues, include schema and data by default
+    if system("pg_dump --no-owner --no-privileges #{dev_database_name} | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       puts "   Source: #{dev_database_name}"
@@ -1497,7 +1497,7 @@ namespace :scenario do
         puts "   ✅ Applied region filtering"
         
         # Create dump from filtered database
-        if system("pg_dump --data-only=false --no-owner --no-privileges #{temp_db_name} | gzip > #{dump_file}")
+        if system("pg_dump --no-owner --no-privileges #{temp_db_name} | gzip > #{dump_file}")
           puts "✅ Region-filtered production dump created: #{File.basename(dump_file)}"
           puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
           
@@ -1533,7 +1533,7 @@ namespace :scenario do
     
     # Create dump from carambus_api_development
     puts "Creating dump of carambus_api_development..."
-    if system("pg_dump --data-only=false --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
+    if system("pg_dump --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       true
@@ -1801,6 +1801,9 @@ namespace :scenario do
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     basename = production_config['basename'] || scenario_name
+    
+    # Define production directory path
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
     
     # Step 1: Create deployment directories with proper permissions
     puts "   📁 Creating deployment directories..."
