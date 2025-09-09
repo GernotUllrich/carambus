@@ -1624,7 +1624,8 @@ namespace :scenario do
             
             # Restore database from dump
             puts "   📥 Restoring database from dump..."
-            restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database}"
+            # Replace user references in the dump to avoid permission errors
+            restore_cmd = "gunzip -c #{temp_dump_path} | sed 's/OWNER TO gullrich/OWNER TO www_data/g' | sudo -u postgres psql #{production_database}"
             
             if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
               puts "   ✅ Database restored successfully"
