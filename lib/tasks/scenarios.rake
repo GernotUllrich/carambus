@@ -1743,7 +1743,9 @@ namespace :scenario do
     config_files.each do |file|
       local_path = File.join(rails_root, 'config', file)
       if File.exist?(local_path)
-        unless system("scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/")
+        scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+        puts "   🔍 Running: #{scp_cmd}"
+        unless system(scp_cmd)
           puts "   ❌ Failed to upload #{file}"
           return false
         end
@@ -1757,7 +1759,9 @@ namespace :scenario do
     puts "   🔧 Uploading Puma configuration..."
     puma_rb_path = File.join(rails_root, 'config', 'puma.rb')
     if File.exist?(puma_rb_path)
-      unless system("scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/")
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/"
+      puts "   🔍 Running: #{scp_cmd}"
+      unless system(scp_cmd)
         puts "   ❌ Failed to upload puma.rb"
         return false
       end
