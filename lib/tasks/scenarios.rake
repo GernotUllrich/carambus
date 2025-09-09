@@ -491,7 +491,7 @@ namespace :scenario do
 
     # Standard dump creation - transformations are handled in create_development_database
     puts "Creating dump of #{database_name}..."
-    if system("pg_dump #{database_name} | gzip > #{dump_file}")
+    if system("pg_dump --data-only=false --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
       puts "✅ Database dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       true
@@ -1341,8 +1341,27 @@ namespace :scenario do
       return false
     end
 
-    # Step 5: Create production database dump from scenario development database
-    puts "\n💾 Step 5: Creating production database dump from #{scenario_name}_development..."
+    # Step 5: Ensure development database has all migrations applied
+    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
+    
+    # Change to the Rails root directory and run migrations
+    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
+    if Dir.exist?(rails_root_dir)
+      puts "   Running migrations on development database..."
+      migrate_cmd = "cd #{rails_root_dir} && RAILS_ENV=development bundle exec rails db:migrate"
+      if system(migrate_cmd)
+        puts "   ✅ Development database migrations completed"
+      else
+        puts "   ❌ Development database migrations failed"
+        return false
+      end
+    else
+      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
+      return false
+    end
+
+    # Step 6: Create production database dump from scenario development database
+    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
     
     # Check if development database exists
     dev_database_name = "#{scenario_name}_development"
@@ -1422,7 +1441,8 @@ namespace :scenario do
     
     # Create dump from development database
     puts "   📦 Creating dump from #{dev_database_name}..."
-    if system("pg_dump #{dev_database_name} | gzip > #{dump_file}")
+    # Use --data-only=false to include schema and data, --no-owner to avoid permission issues
+    if system("pg_dump --data-only=false --no-owner --no-privileges #{dev_database_name} | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       puts "   Source: #{dev_database_name}"
@@ -1477,7 +1497,7 @@ namespace :scenario do
         puts "   ✅ Applied region filtering"
         
         # Create dump from filtered database
-        if system("pg_dump #{temp_db_name} | gzip > #{dump_file}")
+        if system("pg_dump --data-only=false --no-owner --no-privileges #{temp_db_name} | gzip > #{dump_file}")
           puts "✅ Region-filtered production dump created: #{File.basename(dump_file)}"
           puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
           
@@ -1513,7 +1533,7 @@ namespace :scenario do
     
     # Create dump from carambus_api_development
     puts "Creating dump of carambus_api_development..."
-    if system("pg_dump carambus_api_development | gzip > #{dump_file}")
+    if system("pg_dump --data-only=false --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       true
@@ -1635,9 +1655,17 @@ namespace :scenario do
     # Step 2: Upload configuration files to shared directory
     puts "\n📤 Step 2: Uploading configuration files to shared directory..."
     
+    # Create entire deployment directory structure with proper permissions
+    deploy_dir = "/var/www/#{basename}"
+    shared_config_dir = "#{deploy_dir}/shared/config"
+    create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
+      puts "   ❌ Failed to create deployment directory structure"
+      return false
+    end
+    
     # Upload config files to shared directory (after Capistrano creates the structure)
     production_dir = File.join(scenarios_path, scenario_name, 'production')
-    shared_config_dir = "/var/www/#{basename}/shared/config"
     
     # Upload database.yml
     database_yml_path = File.join(production_dir, 'database.yml')
