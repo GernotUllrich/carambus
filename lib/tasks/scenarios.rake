@@ -1737,10 +1737,11 @@ namespace :scenario do
       return false
     end
     
-    # Upload config files
+    # Upload config files from scenario root folder
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     config_files = ['database.yml', 'carambus.yml', 'master.key']
     config_files.each do |file|
-      local_path = "config/#{file}"
+      local_path = File.join(rails_root, 'config', file)
       if File.exist?(local_path)
         unless system("scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/")
           puts "   ❌ Failed to upload #{file}"
@@ -1748,13 +1749,13 @@ namespace :scenario do
         end
         puts "   ✅ Uploaded #{file}"
       else
-        puts "   ⚠️  Config file #{file} not found locally"
+        puts "   ⚠️  Config file #{file} not found at #{local_path}"
       end
     end
     
     # Step 3: Upload Puma configuration to shared directory
     puts "   🔧 Uploading Puma configuration..."
-    puma_rb_path = "config/puma.rb"
+    puma_rb_path = File.join(rails_root, 'config', 'puma.rb')
     if File.exist?(puma_rb_path)
       unless system("scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/")
         puts "   ❌ Failed to upload puma.rb"
@@ -1762,7 +1763,7 @@ namespace :scenario do
       end
       puts "   ✅ Uploaded puma.rb"
     else
-      puts "   ⚠️  puma.rb not found locally"
+      puts "   ⚠️  puma.rb not found at #{puma_rb_path}"
     end
     
     # Step 4: Create systemd service file
@@ -1790,8 +1791,9 @@ namespace :scenario do
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     
-    # Read the generated puma.service file
-    puma_service_path = "config/puma.service"
+    # Read the generated puma.service file from scenario root folder
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    puma_service_path = File.join(rails_root, 'config', 'puma.service')
     unless File.exist?(puma_service_path)
       puts "   ❌ puma.service not found at #{puma_service_path}"
       return false
@@ -1826,8 +1828,9 @@ namespace :scenario do
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     
-    # Read the generated nginx.conf file
-    nginx_conf_path = "config/nginx.conf"
+    # Read the generated nginx.conf file from scenario root folder
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    nginx_conf_path = File.join(rails_root, 'config', 'nginx.conf')
     unless File.exist?(nginx_conf_path)
       puts "   ❌ nginx.conf not found at #{nginx_conf_path}"
       return false
