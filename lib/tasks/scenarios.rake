@@ -1787,13 +1787,18 @@ namespace :scenario do
   end
 
   def create_systemd_service(scenario_name, production_config)
+    puts "   🔍 Debug: Starting create_systemd_service with scenario_name=#{scenario_name}"
     basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
+    puts "   🔍 Debug: basename=#{basename}, ssh_host=#{ssh_host}, ssh_port=#{ssh_port}"
     
     # Read the generated puma.service file from scenario root folder
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     puma_service_path = File.join(rails_root, 'config', 'puma.service')
+    puts "   🔍 Debug: rails_root=#{rails_root}"
+    puts "   🔍 Debug: puma_service_path=#{puma_service_path}"
+    puts "   🔍 Debug: File exists? #{File.exist?(puma_service_path)}"
     unless File.exist?(puma_service_path)
       puts "   ❌ puma.service not found at #{puma_service_path}"
       return false
