@@ -1768,7 +1768,10 @@ namespace :scenario do
     
     # Step 4: Create systemd service file
     puts "   ⚙️  Creating systemd service file..."
-    unless create_systemd_service(scenario_name, production_config)
+    puts "   🔍 Debug: About to call create_systemd_service with scenario_name=#{scenario_name}"
+    result = create_systemd_service(scenario_name, production_config)
+    puts "   🔍 Debug: create_systemd_service returned: #{result}"
+    unless result
       puts "   ❌ Failed to create systemd service"
       return false
     end
