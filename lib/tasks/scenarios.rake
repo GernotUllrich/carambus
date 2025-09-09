@@ -1768,10 +1768,7 @@ namespace :scenario do
     
     # Step 4: Create systemd service file
     puts "   ⚙️  Creating systemd service file..."
-    puts "   🔍 Debug: About to call create_systemd_service with scenario_name=#{scenario_name}"
-    result = create_puma_systemd_service(scenario_name, production_config)
-    puts "   🔍 Debug: create_systemd_service returned: #{result}"
-    unless result
+    unless create_puma_systemd_service(scenario_name, production_config)
       puts "   ❌ Failed to create systemd service"
       return false
     end
@@ -1790,18 +1787,13 @@ namespace :scenario do
   end
 
   def create_puma_systemd_service(scenario_name, production_config)
-    puts "   🔍 Debug: Starting create_systemd_service with scenario_name=#{scenario_name}"
     basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
-    puts "   🔍 Debug: basename=#{basename}, ssh_host=#{ssh_host}, ssh_port=#{ssh_port}"
     
     # Read the generated puma.service file from scenario root folder
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
     puma_service_path = File.join(rails_root, 'config', 'puma.service')
-    puts "   🔍 Debug: rails_root=#{rails_root}"
-    puts "   🔍 Debug: puma_service_path=#{puma_service_path}"
-    puts "   🔍 Debug: File exists? #{File.exist?(puma_service_path)}"
     unless File.exist?(puma_service_path)
       puts "   ❌ puma.service not found at #{puma_service_path}"
       return false
@@ -1809,24 +1801,17 @@ namespace :scenario do
     
     # Upload service file to temporary location first
     temp_service_path = "/tmp/puma-#{basename}.service"
-    puts "   📤 Uploading service file from #{puma_service_path} to #{temp_service_path}"
-    scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{temp_service_path}"
-    puts "   🔍 Running: #{scp_cmd}"
-    unless system(scp_cmd)
+    unless system("scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{temp_service_path}")
       puts "   ❌ Failed to upload service file to temporary location"
       return false
     end
-    puts "   ✅ Service file uploaded successfully"
     
     # Move to systemd directory with sudo
     move_cmd = "sudo mv #{temp_service_path} /etc/systemd/system/puma-#{basename}.service && sudo chown root:root /etc/systemd/system/puma-#{basename}.service"
-    ssh_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'"
-    puts "   🔍 Running: #{ssh_cmd}"
-    unless system(ssh_cmd)
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'")
       puts "   ❌ Failed to move service file to systemd directory"
       return false
     end
-    puts "   ✅ Service file moved to systemd directory"
     
     # Reload systemd and enable service
     reload_cmd = "sudo systemctl daemon-reload && sudo systemctl enable puma-#{basename}.service"
