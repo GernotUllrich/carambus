@@ -36,7 +36,7 @@ The table heaters are automatically controlled based on calendar entries and act
 
 The heaters are automatically activated:
 
-1. **2 hours before a reservation**
+1. **2 hours (3 hours for match billards) before a reservation**
 2. **At the latest within 5 minutes**, when a game is recognized on the **Scoreboard**
 
 ### Deactivation (OFF)

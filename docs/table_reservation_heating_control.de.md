@@ -35,7 +35,7 @@ Die Tischheizungen werden automatisch basierend auf Kalendereinträgen und Score
 
 Die Heizung wird automatisch eingeschaltet:
 
-1. **2 Stunden vor einer Reservierung** - Basierend auf Google Calendar Einträgen
+1. **2 Stunden (bzw. 3 Std. für grosse Tische) vor einer Reservierung** - Basierend auf Google Calendar Einträgen für grosse Tische)
 2. **Spätestens 5 Minuten vor Beginn** - Wenn ein Spiel auf dem Scoreboard erkannt wird
 
 ### Heizung AUS (AUS)
