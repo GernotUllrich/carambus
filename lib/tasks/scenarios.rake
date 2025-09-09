@@ -1740,7 +1740,7 @@ namespace :scenario do
     
     # Upload config files from scenario root folder
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
-    config_files = ['database.yml', 'carambus.yml', 'master.key']
+    config_files = ['database.yml', 'carambus.yml']
     config_files.each do |file|
       local_path = File.join(rails_root, 'config', file)
       if File.exist?(local_path)
@@ -1759,6 +1759,33 @@ namespace :scenario do
         end
       else
         puts "   ⚠️  Config file #{file} not found at #{local_path}"
+      end
+    end
+    
+    # Upload environment-specific credentials
+    puts "   🔐 Uploading production credentials..."
+    credentials_dir = "#{shared_config_dir}/credentials"
+    create_credentials_dir_cmd = "sudo mkdir -p #{credentials_dir} && sudo chown www-data:www-data #{credentials_dir}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_credentials_dir_cmd}'")
+      puts "   ❌ Failed to create credentials directory"
+      return false
+    end
+    
+    credential_files = ['production.yml.enc', 'production.key']
+    credential_files.each do |file|
+      local_path = File.join(rails_root, 'config', 'credentials', file)
+      if File.exist?(local_path)
+        scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{credentials_dir}/"
+        puts "   🔍 Running: #{scp_cmd}"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded #{file}"
+        else
+          puts "   ❌ Failed to upload #{file}: #{result}"
+          return false
+        end
+      else
+        puts "   ⚠️  Credential file #{file} not found at #{local_path}"
       end
     end
     
