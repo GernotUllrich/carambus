@@ -1746,7 +1746,11 @@ namespace :scenario do
       if File.exist?(local_path)
         scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
         puts "   🔍 Running: #{scp_cmd}"
+        puts "   🔍 Local path: #{local_path}"
+        puts "   🔍 Remote path: #{shared_config_dir}/"
         result = `#{scp_cmd} 2>&1`
+        puts "   🔍 Command result: #{result}"
+        puts "   🔍 Exit status: #{$?.exitstatus}"
         if $?.success?
           puts "   ✅ Uploaded #{file}"
         else
