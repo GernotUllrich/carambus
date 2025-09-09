@@ -1865,8 +1865,8 @@ namespace :scenario do
       return false
     end
     
-    # Enable site and reload nginx
-    enable_cmd = "sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    # Create necessary directories and enable site
+    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{enable_cmd}'")
       puts "   ❌ Failed to enable nginx site or reload nginx"
       return false
