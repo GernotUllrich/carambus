@@ -148,6 +148,13 @@ carambus_scenarioname_production (on server)
 - **Wiederholbarkeit**: Jeder Schritt ist idempotent
 - **Debugging**: Klarere Trennung zwischen Setup und Deployment
 
+### Intelligente Datenbank-Operationen
+- **Umgebungsbewusste Operationen**: Development vs. Production werden automatisch unterschieden
+- **Zentrale Verwaltung**: Alle Dumps werden in `carambus_data` gespeichert, unabhängig von der Quelle
+- **Netzwerk-Effizienz**: Operationen werden auf dem entsprechenden Server ausgeführt
+- **Backup-Sicherheit**: Production-Dumps werden automatisch lokal gesichert
+- **Saubere Operationen**: Temporäre Dateien werden automatisch bereinigt
+
 ## Reparatur-Tasks (Für gezielte Reparaturen)
 
 ### `scenario:create_rails_root[scenario_name]`
@@ -161,14 +168,29 @@ carambus_scenarioname_production (on server)
 **Enthält**: ERB-Template-Verarbeitung für alle Config-Files
 
 ### `scenario:create_database_dump[scenario_name,environment]`
-**Zweck**: Nur Datenbank-Dump erstellen
+**Zweck**: Datenbank-Dump erstellen (intelligente Umgebungsbehandlung)
 
-**Enthält**: Region-Filtering, Template-Transformation (carambus), Optimierte DB-Erstellung
+**Development Environment**:
+- Erstellt Dump lokal und speichert in `carambus_data/scenarios/{scenario_name}/database_dumps/`
+
+**Production Environment**:
+- Verbindet sich via SSH zum Production-Server (aus `scenario/config.yml`)
+- Erstellt Dump auf dem Production-Server
+- Überträgt Dump zu lokalem `carambus_data` für zentrale Verwaltung
+- Bereinigt temporäre Dateien auf dem Production-Server
 
 ### `scenario:restore_database_dump[scenario_name,environment]`
-**Zweck**: Nur Datenbank-Dump wiederherstellen
+**Zweck**: Datenbank-Dump wiederherstellen (intelligente Umgebungsbehandlung)
 
-**Enthält**: DB-Drop/Create, Dump-Restore, Sequence-Reset
+**Development Environment**:
+- Stellt Dump lokal aus `carambus_data` wieder her
+- Automatisches Sequence-Reset für ID-Konflikt-Vermeidung
+
+**Production Environment**:
+- Überträgt Dump von lokalem `carambus_data` zum Production-Server
+- Löscht und erstellt Datenbank auf dem Production-Server
+- Stellt Dump auf dem Production-Server wieder her
+- Bereinigt temporäre Dateien auf dem Production-Server
 
 ## Schnellstart
 

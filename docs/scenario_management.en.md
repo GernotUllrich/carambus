@@ -88,6 +88,14 @@ rake "scenario:create_database_dump[scenario_name,environment]"
 rake "scenario:restore_database_dump[scenario_name,environment]"
 ```
 
+**Database Dump Behavior:**
+- **Development Environment**: Creates dump locally and stores in `carambus_data/scenarios/{scenario_name}/database_dumps/`
+- **Production Environment**: Creates dump on production server, then transfers to local `carambus_data` for centralized management
+
+**Database Restore Behavior:**
+- **Development Environment**: Restores dump locally from `carambus_data`
+- **Production Environment**: Transfers dump from local `carambus_data` to production server, then restores there
+
 ## Deployment Process
 
 ### 1. Generate Configuration Files
@@ -107,7 +115,34 @@ The system automatically generates:
 - **Automatic Transformations**: Sets scenario-specific settings
 - **Sequence Reset**: Ensures all sequences are > 50,000,000
 
-### 3. Capistrano Deployment
+### 3. Database Dump/Restore Operations
+
+The system intelligently handles database operations based on the environment:
+
+#### Development Environment
+- **Dump Creation**: Executes `pg_dump` locally and stores in `carambus_data`
+- **Dump Restore**: Restores from local `carambus_data` to local database
+- **Sequence Management**: Automatically resets sequences to prevent ID conflicts
+
+#### Production Environment
+- **Dump Creation**: 
+  1. Connects to production server via SSH (from `scenario/config.yml`)
+  2. Executes `pg_dump` on production server
+  3. Transfers dump to local `carambus_data` for centralized management
+  4. Cleans up temporary files on production server
+- **Dump Restore**:
+  1. Transfers dump from local `carambus_data` to production server
+  2. Drops and recreates database on production server
+  3. Restores dump on production server
+  4. Cleans up temporary files on production server
+
+**Benefits:**
+- ✅ **Centralized Management**: All dumps stored in `carambus_data` regardless of source
+- ✅ **Network Efficiency**: Operations happen on the appropriate server
+- ✅ **Backup Safety**: Production dumps are automatically backed up locally
+- ✅ **Clean Operations**: Temporary files are automatically cleaned up
+
+### 4. Capistrano Deployment
 
 - **Git Deployment**: Automatic code deployment
 - **Asset Precompilation**: CSS/JS build

@@ -8,6 +8,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Added
+- **Intelligente Datenbank-Dump/Restore-Operationen**: Umgebungsbewusste Behandlung von Development vs. Production
+- **Zentrale Dump-Verwaltung**: Alle Dumps werden in `carambus_data` gespeichert, unabhängig von der Quelle
+- **Automatische Produktions-Server-Integration**: Dumps werden direkt auf Production-Servern erstellt und wiederhergestellt
+- **Automatische Bereinigung**: Temporäre Dateien werden automatisch auf Remote-Servern bereinigt
 - Neue Docker-basierte Installation für Raspberry Pi
 - Automatisierte Scoreboard-Konfiguration
 - Web-basiertes Setup-Interface
@@ -15,6 +19,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Inter-System-Kommunikation zwischen Local-Server und API-Server
 
 ### Changed
+- **Datenbank-Dump/Restore-Funktionen**: Vollständig überarbeitet für intelligente Umgebungsbehandlung
+- **Production-Dump-Erstellung**: Erstellt Dumps direkt auf Production-Servern statt lokal
+- **Production-Dump-Wiederherstellung**: Überträgt Dumps zu Production-Servern und stellt sie dort wieder her
+- **Netzwerk-Effizienz**: Operationen werden auf dem entsprechenden Server ausgeführt
 - Docker-Struktur neu organisiert (Development vs. Production als übergeordnete Modi)
 - Port-Zuordnung für parallele Development-Systeme
 - Umgebungsdateien für verschiedene Deployment-Typen
