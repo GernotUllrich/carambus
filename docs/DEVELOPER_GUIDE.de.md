@@ -415,14 +415,18 @@ carambus_scenarioname_development (processed)
     │ prepare_deploy                     │
     │ 1. Create production DB from dump  │
     │ 2. Copy production configs         │
+    │ 3. Upload configs to server        │
+    │ 4. Create systemd service          │
+    │ 5. Create Nginx config             │
     └─────────────────────────────────────┘
                     ↓
 carambus_scenarioname_production (on server)
                     ↓
     ┌─────────────────────────────────────┐
     │ deploy                             │
-    │ 1. Upload configs to server        │
-    │ 2. Capistrano deployment           │
+    │ 1. Transfer & load database dump   │
+    │ 2. Standard Capistrano deployment  │
+    │ 3. Start Puma service              │
     └─────────────────────────────────────┘
 ```
 
@@ -436,14 +440,14 @@ carambus_scenarioname_production (on server)
 - **Perfekt für**: Lokale Entwicklung, Scenario-Testing
 
 **`scenario:prepare_deploy[scenario_name]`**
-- **Zweck**: Deployment-Vorbereitung (ohne Server-Operationen)
-- **Schritte**: Production Config → DB-Restore → Rails Root → All Config Files → Credentials → Deploy Files
-- **Perfekt für**: Lokale Deployment-Vorbereitung, Config-Testing
+- **Zweck**: Vollständige Deployment-Vorbereitung (inklusive Server-Setup)
+- **Schritte**: Production Config → DB-Restore → Rails Root → All Config Files → Credentials → Deploy Files → Server-Setup → systemd-Service → Nginx-Config
+- **Perfekt für**: Vollständige Deployment-Vorbereitung, Blank-Server-Setup
 
 **`scenario:deploy[scenario_name]`**
-- **Zweck**: Server-Deployment (nur Capistrano-Deployment)
-- **Schritte**: Upload Config → Capistrano Deploy
-- **Perfekt für**: Production-Deployment (nach prepare_deploy)
+- **Zweck**: Standard Capistrano-Deployment (nach Server-Setup)
+- **Schritte**: Database Transfer → Standard Capistrano Deploy → Start Services
+- **Perfekt für**: Production-Deployment (nach prepare_deploy), Standard-Deployment
 
 ##### Reparatur-Tasks (Für gezielte Reparaturen)
 

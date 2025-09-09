@@ -1357,8 +1357,15 @@ namespace :scenario do
 
     puts "   ✅ Deployment files copied"
 
-    # Step 4: Create production database dump from scenario development database
-    puts "\n💾 Step 4: Creating production database dump from #{scenario_name}_development..."
+    # Step 4: Prepare server-side configuration
+    puts "\n🔧 Step 4: Preparing server-side configuration..."
+    unless prepare_server_configuration(scenario_name, production_config)
+      puts "❌ Failed to prepare server-side configuration"
+      return false
+    end
+
+    # Step 5: Create production database dump from scenario development database
+    puts "\n💾 Step 5: Creating production database dump from #{scenario_name}_development..."
     
     # Check if development database exists
     dev_database_name = "#{scenario_name}_development"
@@ -1676,9 +1683,177 @@ namespace :scenario do
       return false
     end
 
+    # Step 3: Start services
+    puts "\n🚀 Step 3: Starting services..."
+    
+    # Start Puma service
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    start_puma_cmd = "sudo systemctl start puma-#{basename}.service"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{start_puma_cmd}'")
+      puts "   ✅ Puma service started successfully"
+    else
+      puts "   ❌ Failed to start Puma service"
+      return false
+    end
+
     puts "\n✅ Deployment completed successfully!"
     puts "   Application deployed and running on #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   Puma service: puma-#{scenario['basename']}.service"
+    puts "   Nginx site: #{scenario['basename']}"
 
+    true
+  end
+
+  def prepare_server_configuration(scenario_name, production_config)
+    puts "Preparing server-side configuration for #{scenario_name}..."
+    
+    # Get SSH connection details
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    basename = production_config['basename'] || scenario_name
+    
+    # Step 1: Create deployment directories with proper permissions
+    puts "   📁 Creating deployment directories..."
+    create_dirs_cmd = "sudo mkdir -p /var/www/#{basename}/shared /var/www/#{basename}/releases && sudo chown -R www-data:www-data /var/www/#{basename}"
+    
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dirs_cmd}'")
+      puts "   ❌ Failed to create deployment directories"
+      return false
+    end
+    puts "   ✅ Deployment directories created"
+    
+    # Step 2: Upload configuration files to shared directory
+    puts "   📤 Uploading configuration files to shared directory..."
+    
+    # Create shared config directory
+    shared_config_dir = "/var/www/#{basename}/shared/config"
+    create_config_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
+    
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_config_dir_cmd}'")
+      puts "   ❌ Failed to create shared config directory"
+      return false
+    end
+    
+    # Upload config files
+    config_files = ['database.yml', 'carambus.yml', 'master.key']
+    config_files.each do |file|
+      local_path = "config/#{file}"
+      if File.exist?(local_path)
+        unless system("scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/")
+          puts "   ❌ Failed to upload #{file}"
+          return false
+        end
+        puts "   ✅ Uploaded #{file}"
+      else
+        puts "   ⚠️  Config file #{file} not found locally"
+      end
+    end
+    
+    # Step 3: Upload Puma configuration to shared directory
+    puts "   🔧 Uploading Puma configuration..."
+    puma_rb_path = "config/puma.rb"
+    if File.exist?(puma_rb_path)
+      unless system("scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/")
+        puts "   ❌ Failed to upload puma.rb"
+        return false
+      end
+      puts "   ✅ Uploaded puma.rb"
+    else
+      puts "   ⚠️  puma.rb not found locally"
+    end
+    
+    # Step 4: Create systemd service file
+    puts "   ⚙️  Creating systemd service file..."
+    unless create_systemd_service(scenario_name, production_config)
+      puts "   ❌ Failed to create systemd service"
+      return false
+    end
+    puts "   ✅ Systemd service created"
+    
+    # Step 5: Create Nginx configuration
+    puts "   🌐 Creating Nginx configuration..."
+    unless create_nginx_configuration(scenario_name, production_config)
+      puts "   ❌ Failed to create Nginx configuration"
+      return false
+    end
+    puts "   ✅ Nginx configuration created"
+    
+    puts "   ✅ Server-side configuration prepared successfully"
+    true
+  end
+
+  def create_systemd_service(scenario_name, production_config)
+    basename = production_config['basename'] || scenario_name
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Read the generated puma.service file
+    puma_service_path = "config/puma.service"
+    unless File.exist?(puma_service_path)
+      puts "   ❌ puma.service not found at #{puma_service_path}"
+      return false
+    end
+    
+    # Upload service file to temporary location first
+    temp_service_path = "/tmp/puma-#{basename}.service"
+    unless system("scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{temp_service_path}")
+      puts "   ❌ Failed to upload service file to temporary location"
+      return false
+    end
+    
+    # Move to systemd directory with sudo
+    move_cmd = "sudo mv #{temp_service_path} /etc/systemd/system/puma-#{basename}.service && sudo chown root:root /etc/systemd/system/puma-#{basename}.service"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'")
+      puts "   ❌ Failed to move service file to systemd directory"
+      return false
+    end
+    
+    # Reload systemd and enable service
+    reload_cmd = "sudo systemctl daemon-reload && sudo systemctl enable puma-#{basename}.service"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_cmd}'")
+      puts "   ❌ Failed to reload systemd or enable service"
+      return false
+    end
+    
+    true
+  end
+
+  def create_nginx_configuration(scenario_name, production_config)
+    basename = production_config['basename'] || scenario_name
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Read the generated nginx.conf file
+    nginx_conf_path = "config/nginx.conf"
+    unless File.exist?(nginx_conf_path)
+      puts "   ❌ nginx.conf not found at #{nginx_conf_path}"
+      return false
+    end
+    
+    # Upload nginx config to temporary location first
+    temp_nginx_path = "/tmp/nginx-#{basename}.conf"
+    unless system("scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{temp_nginx_path}")
+      puts "   ❌ Failed to upload nginx config to temporary location"
+      return false
+    end
+    
+    # Move to sites-available with sudo
+    move_cmd = "sudo mv #{temp_nginx_path} /etc/nginx/sites-available/#{basename} && sudo chown root:root /etc/nginx/sites-available/#{basename}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{move_cmd}'")
+      puts "   ❌ Failed to move nginx config to sites-available"
+      return false
+    end
+    
+    # Enable site and reload nginx
+    enable_cmd = "sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{enable_cmd}'")
+      puts "   ❌ Failed to enable nginx site or reload nginx"
+      return false
+    end
+    
     true
   end
 

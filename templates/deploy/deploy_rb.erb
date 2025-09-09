@@ -5,31 +5,10 @@ set :application, "<%= @scenario['application_name'] %>"
 set :basename, "<%= @scenario['basename'] %>"
 set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
 set :deploy_to, "/var/www/#{fetch(:basename)}"
-set :nginx_server_name, "<%= @config['webserver_host'] %>"
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 set :branch, "<%= @scenario['branch'] %>"
-
-set :default_env, {
-  path: "/var/www/.nvm/versions/node/v20.15.0/bin:$PATH",
-  NODE_ENV: "production"
-}
-
-# Default deploy_to directory is /var/www/my_app_name
-# set :deploy_to, '/var/www/my_app_name'
-
-# Default value for :scm is :git
-# set :scm, :git
-
-# Default value for :format is :pretty
-# set :format, :pretty
-
-# Default value for :log_level is :debug
-# set :log_level, :debug
-
-# Default value for :pty is false
-# set :pty, true
 
 # Default value for :linked_files is []
 append :linked_files, "config/database.yml", "config/carambus.yml", "config/master.key"
@@ -37,49 +16,8 @@ append :linked_files, "config/database.yml", "config/carambus.yml", "config/mast
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage"
 
-# Default value for default_env is {}
-# set :default_env, { path: "/opt/ruby/bin:$PATH" }
-
 # Default value for keep_releases is 5
 set :keep_releases, 5
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
-
-# Robust directory creation with sudo
-set :tmp_dir, '/tmp'
-
-namespace :deploy do
-  desc "Create deployment directories with sudo"
-  task :create_directories do
-    on roles(:app) do
-      execute "sudo mkdir -p #{deploy_to}/shared #{deploy_to}/releases"
-      execute "sudo chown -R www-data:www-data #{deploy_to}"
-    end
-  end
-  
-  desc "Upload shared configuration files"
-  task :upload_config_files do
-    config_files = ['database.yml', 'carambus.yml', 'master.key']
-    config_files.each do |file|
-      local_path = "config/#{file}"
-      if File.exist?(local_path)
-        upload! local_path, "#{shared_path}/config/#{file}"
-        info "Uploaded #{file} to shared config"
-      else
-        warn "Config file #{file} not found locally"
-      end
-    end
-  end
-  
-  desc "Restart application"
-  task :restart do
-    on roles(:app), in: :sequence, wait: 10 do
-      execute "cd #{release_path} && ./bin/manage-puma.sh"
-    end
-  end
-end
-
-before "deploy:check:directories", "deploy:create_directories"
-before "deploy:check:linked_files", "deploy:upload_config_files"
-after "deploy:publishing", "deploy:restart"

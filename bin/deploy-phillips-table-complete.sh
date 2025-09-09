@@ -148,6 +148,8 @@ step_two_prepare_deploy() {
     info "  - Generate production configuration files"
     info "  - Create production database from development dump"
     info "  - Copy deployment files (nginx, puma, etc.)"
+    info "  - Upload config files to server shared directory"
+    info "  - Create systemd service and Nginx configuration on server"
     info "  - Prepare for server deployment"
     
     if ! confirm "Proceed with prepare_deploy?"; then
@@ -168,10 +170,10 @@ step_three_deploy() {
     log "=========================="
     
     info "This will:"
-    info "  - Upload configuration files to Raspberry Pi"
-    info "  - Run Capistrano deployment"
-    info "  - Configure Nginx and Puma"
-    info "  - Start the application"
+    info "  - Transfer and load database dump to server"
+    info "  - Run standard Capistrano deployment"
+    info "  - Start the Puma service"
+    info "  - Complete the application deployment"
     
     if ! confirm "Proceed with server deployment?"; then
         log "Step 3 cancelled"

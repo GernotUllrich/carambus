@@ -72,14 +72,18 @@ carambus_scenarioname_development (processed)
     │ prepare_deploy                     │
     │ 1. Create production DB from dump  │
     │ 2. Copy production configs         │
+    │ 3. Upload configs to server        │
+    │ 4. Create systemd service          │
+    │ 5. Create Nginx config             │
     └─────────────────────────────────────┘
                     ↓
 carambus_scenarioname_production (on server)
                     ↓
     ┌─────────────────────────────────────┐
     │ deploy                             │
-    │ 1. Upload configs to server        │
-    │ 2. Capistrano deployment           │
+    │ 1. Transfer & load database dump   │
+    │ 2. Standard Capistrano deployment  │
+    │ 3. Start Puma service              │
     └─────────────────────────────────────┘
 ```
 
@@ -97,7 +101,7 @@ carambus_scenarioname_production (on server)
 **Perfekt für**: Lokale Entwicklung, Scenario-Testing
 
 ### `scenario:prepare_deploy[scenario_name]`
-**Zweck**: Deployment-Vorbereitung (ohne Server-Operationen)
+**Zweck**: Vollständige Deployment-Vorbereitung (inklusive Server-Setup)
 
 **Schritte**:
 1. Generiert Production-Konfigurationsdateien
@@ -106,17 +110,43 @@ carambus_scenarioname_production (on server)
 4. Kopiert alle Production-Konfigurationsdateien (nginx.conf, puma.rb, puma.service)
 5. Kopiert Credentials und master.key
 6. Kopiert Deployment-Dateien (deploy.rb, deploy/production.rb)
+7. **NEU**: Erstellt Server-Verzeichnisse mit korrekten Berechtigungen
+8. **NEU**: Lädt Konfigurationsdateien in shared-Verzeichnis hoch
+9. **NEU**: Erstellt und aktiviert systemd-Service
+10. **NEU**: Erstellt und aktiviert Nginx-Konfiguration
 
-**Perfekt für**: Lokale Deployment-Vorbereitung, Config-Testing
+**Perfekt für**: Vollständige Deployment-Vorbereitung, Blank-Server-Setup
 
 ### `scenario:deploy[scenario_name]`
-**Zweck**: Server-Deployment (nur Capistrano-Deployment)
+**Zweck**: Standard Capistrano-Deployment (nach Server-Setup)
 
-**Schritte**: Nur Server-Operationen:
-- Upload von shared Konfigurationsdateien auf Server
-- Ausführung von Capistrano-Deployment
+**Schritte**: Vereinfachte Server-Operationen:
+- Transfer und Laden der Datenbank-Dumps
+- Standard Capistrano-Deployment (ohne Custom-Hooks)
+- Starten des Puma-Services
 
-**Perfekt für**: Production-Deployment (nach prepare_deploy)
+**Perfekt für**: Production-Deployment (nach prepare_deploy), Standard-Deployment
+
+## Vorteile des neuen Workflows
+
+### Verbesserte Trennung der Verantwortlichkeiten
+- **`prepare_deploy`**: Alle Server-Konfiguration und -Setup
+- **`deploy`**: Nur noch Standard Capistrano-Deployment
+
+### Blank-Server-Ready
+- **Vollständige Vorbereitung**: `prepare_deploy` richtet alles auf dem Server ein
+- **Keine manuellen Schritte**: Automatische Erstellung von systemd-Services und Nginx-Konfiguration
+- **Berechtigungen**: Automatische Korrektur von Verzeichnis-Berechtigungen
+
+### Standard Capistrano
+- **Keine Custom-Hooks**: Capistrano-Konfiguration ist jetzt standard
+- **Wartbarkeit**: Einfacher zu verstehen und zu warten
+- **Kompatibilität**: Funktioniert mit Standard Capistrano-Features
+
+### Robusteres Deployment
+- **Frühe Fehlererkennung**: Server-Setup-Fehler werden in `prepare_deploy` erkannt
+- **Wiederholbarkeit**: Jeder Schritt ist idempotent
+- **Debugging**: Klarere Trennung zwischen Setup und Deployment
 
 ## Reparatur-Tasks (Für gezielte Reparaturen)
 
