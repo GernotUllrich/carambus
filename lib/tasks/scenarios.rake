@@ -1769,7 +1769,7 @@ namespace :scenario do
     # Step 4: Create systemd service file
     puts "   ⚙️  Creating systemd service file..."
     puts "   🔍 Debug: About to call create_systemd_service with scenario_name=#{scenario_name}"
-    result = create_systemd_service(scenario_name, production_config)
+    result = create_puma_systemd_service(scenario_name, production_config)
     puts "   🔍 Debug: create_systemd_service returned: #{result}"
     unless result
       puts "   ❌ Failed to create systemd service"
@@ -1789,7 +1789,7 @@ namespace :scenario do
     true
   end
 
-  def create_systemd_service(scenario_name, production_config)
+  def create_puma_systemd_service(scenario_name, production_config)
     puts "   🔍 Debug: Starting create_systemd_service with scenario_name=#{scenario_name}"
     basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
