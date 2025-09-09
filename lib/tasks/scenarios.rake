@@ -1291,29 +1291,9 @@ namespace :scenario do
       return false
     end
     
-    # Copy production configuration files
-    production_dir = File.join(scenarios_path, scenario_name, 'production')
-    FileUtils.cp(File.join(production_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
-    FileUtils.cp(File.join(production_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
-
-    # Copy nginx.conf if it exists
-    if File.exist?(File.join(production_dir, 'nginx.conf'))
-      FileUtils.cp(File.join(production_dir, 'nginx.conf'), File.join(rails_root, 'config', 'nginx.conf'))
-      puts "   ✅ nginx.conf copied to Rails root folder"
-    end
-
-    # Copy puma.service if it exists
-    if File.exist?(File.join(production_dir, 'puma.service'))
-      FileUtils.cp(File.join(production_dir, 'puma.service'), File.join(rails_root, 'config', 'puma.service'))
-      puts "   ✅ puma.service copied to Rails root folder"
-    end
-
-    # Copy puma.rb if it exists
-    if File.exist?(File.join(production_dir, 'puma.rb'))
-      FileUtils.cp(File.join(production_dir, 'puma.rb'), File.join(rails_root, 'config', 'puma.rb'))
-      puts "   ✅ puma.rb copied to Rails root folder"
-    end
-
+    # Note: Production configuration files are uploaded directly from production directory
+    # No need to copy them to development scenario root - keeps development environment clean
+    
     # Copy credentials files from main repository
     main_credentials_dir = File.join(Rails.root, 'config', 'credentials')
     if Dir.exist?(main_credentials_dir)
