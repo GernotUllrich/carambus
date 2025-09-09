@@ -1632,8 +1632,89 @@ namespace :scenario do
       return false
     end
 
-    # Step 2: Execute Capistrano deployment
-    puts "\n🎯 Step 2: Executing Capistrano deployment..."
+    # Step 2: Upload configuration files to shared directory
+    puts "\n📤 Step 2: Uploading configuration files to shared directory..."
+    
+    # Upload config files to shared directory (after Capistrano creates the structure)
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    shared_config_dir = "/var/www/#{basename}/shared/config"
+    
+    # Upload database.yml
+    database_yml_path = File.join(production_dir, 'database.yml')
+    if File.exist?(database_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded database.yml"
+      else
+        puts "   ❌ Failed to upload database.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ database.yml not found: #{database_yml_path}"
+      return false
+    end
+    
+    # Upload carambus.yml
+    carambus_yml_path = File.join(production_dir, 'carambus.yml')
+    if File.exist?(carambus_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded carambus.yml"
+      else
+        puts "   ❌ Failed to upload carambus.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
+      return false
+    end
+    
+    # Upload credentials
+    credentials_dir = File.join(production_dir, 'credentials')
+    if Dir.exist?(credentials_dir)
+      # Create credentials directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
+      
+      # Upload production.yml.enc
+      production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
+      if File.exist?(production_yml_enc_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.yml.enc"
+        else
+          puts "   ❌ Failed to upload production.yml.enc: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
+        return false
+      end
+      
+      # Upload production.key
+      production_key_path = File.join(credentials_dir, 'production.key')
+      if File.exist?(production_key_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.key"
+        else
+          puts "   ❌ Failed to upload production.key: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.key not found: #{production_key_path}"
+        return false
+      end
+    else
+      puts "   ❌ Credentials directory not found: #{credentials_dir}"
+      return false
+    end
+
+    # Step 3: Execute Capistrano deployment
+    puts "\n🎯 Step 3: Executing Capistrano deployment..."
     puts "   Running: cap production deploy"
     puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
     puts "   Application: #{scenario['application_name']}"
@@ -1661,8 +1742,8 @@ namespace :scenario do
       return false
     end
 
-    # Step 3: Start services
-    puts "\n🚀 Step 3: Starting services..."
+    # Step 4: Start services
+    puts "\n🚀 Step 4: Starting services..."
     
     # Start Puma service
     basename = scenario['basename']
@@ -1704,67 +1785,8 @@ namespace :scenario do
     puts "   ✅ Deployment directories created"
     
     # Step 2: Upload configuration files to shared directory
-    puts "   📤 Uploading configuration files to shared directory..."
-    
-    # Create shared config directory
-    shared_config_dir = "/var/www/#{basename}/shared/config"
-    create_config_dir_cmd = "sudo mkdir -p #{shared_config_dir} && sudo chown www-data:www-data #{shared_config_dir}"
-    
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_config_dir_cmd}'")
-      puts "   ❌ Failed to create shared config directory"
-      return false
-    end
-    
-    # Upload config files directly from production directory (not scenario root)
-    production_dir = File.join(scenarios_path, scenario_name, 'production')
-    config_files = ['database.yml', 'carambus.yml']
-    config_files.each do |file|
-      local_path = File.join(production_dir, file)
-      if File.exist?(local_path)
-        scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-        puts "   🔍 Running: #{scp_cmd}"
-        puts "   🔍 Local path: #{local_path}"
-        puts "   🔍 Remote path: #{shared_config_dir}/"
-        result = `#{scp_cmd} 2>&1`
-        puts "   🔍 Command result: #{result}"
-        puts "   🔍 Exit status: #{$?.exitstatus}"
-        if $?.success?
-          puts "   ✅ Uploaded #{file}"
-        else
-          puts "   ❌ Failed to upload #{file}: #{result}"
-          return false
-        end
-      else
-        puts "   ⚠️  Config file #{file} not found at #{local_path}"
-      end
-    end
-    
-    # Upload environment-specific credentials
-    puts "   🔐 Uploading production credentials..."
-    credentials_dir = "#{shared_config_dir}/credentials"
-    create_credentials_dir_cmd = "sudo mkdir -p #{credentials_dir} && sudo chown www-data:www-data #{credentials_dir}"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_credentials_dir_cmd}'")
-      puts "   ❌ Failed to create credentials directory"
-      return false
-    end
-    
-    credential_files = ['production.yml.enc', 'production.key']
-    credential_files.each do |file|
-      local_path = File.join(production_dir, 'credentials', file)
-      if File.exist?(local_path)
-        scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{credentials_dir}/"
-        puts "   🔍 Running: #{scp_cmd}"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded #{file}"
-        else
-          puts "   ❌ Failed to upload #{file}: #{result}"
-          return false
-        end
-      else
-        puts "   ⚠️  Credential file #{file} not found at #{local_path}"
-      end
-    end
+    puts "   📤 Configuration files will be uploaded during deployment..."
+    puts "   ✅ Skipping config file upload (done during deploy step)"
     
     # Step 3: Upload Puma configuration to shared directory
     puts "   🔧 Uploading Puma configuration..."
