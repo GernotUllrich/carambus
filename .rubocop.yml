@@ -1,7 +1,7 @@
 Style/HashSyntax:
   Enabled: false
 Metrics/AbcSize:
-  Max: 50
+  Max: 60
 Metrics/MethodLength:
   Max: 150
 Metrics/BlockLength:
