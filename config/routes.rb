@@ -27,6 +27,15 @@ Rails.application.routes.draw do
     end
   end
 
+  # Debug routes (development only)
+  if Rails.env.development? || Rails.env.test?
+    namespace :debug do
+      get 'scoreboard_status', to: 'debug#scoreboard_status'
+      get 'dom_health', to: 'debug#dom_health'
+      delete 'clear_logs', to: 'debug#clear_debug_logs'
+    end
+  end
+
   resources :table_locals
   resources :slots
   resources :uploads

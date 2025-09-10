@@ -1,6 +1,47 @@
 # frozen_string_literal: true
 
 class TableMonitorReflex < ApplicationReflex
+  # Enhanced debugging infrastructure for StimulusReflex operations
+  class ReflexDebugger
+    def self.log_reflex_start(method_name, element_data, url)
+      timestamp = Time.current.strftime("%H:%M:%S.%3N")
+      Rails.logger.info "🎯 [#{timestamp}] REFLEX START: #{method_name}"
+      Rails.logger.info "   URL: #{url}"
+      Rails.logger.info "   Element: #{element_data.inspect}" if element_data
+    end
+
+    def self.log_reflex_success(method_name, duration_ms)
+      Rails.logger.info "✅ REFLEX SUCCESS: #{method_name} (#{duration_ms}ms)"
+    end
+
+    def self.log_reflex_error(method_name, error, duration_ms)
+      Rails.logger.error "❌ REFLEX ERROR: #{method_name} (#{duration_ms}ms)"
+      Rails.logger.error "   Error: #{error.message}"
+      Rails.logger.error "   Backtrace: #{error.backtrace.first(3).join(', ')}"
+    end
+
+    def self.log_url_mismatch(current_url, reflex_url)
+      Rails.logger.warn "⚠️ URL MISMATCH DETECTED:"
+      Rails.logger.warn "   Current URL: #{current_url}"
+      Rails.logger.warn "   Reflex URL: #{reflex_url}"
+    end
+
+    def self.validate_element(element)
+      if element.nil?
+        Rails.logger.warn "⚠️ Element is nil"
+        return false
+      end
+
+      if element.dataset.nil?
+        Rails.logger.warn "⚠️ Element dataset is nil"
+        return false
+      end
+
+      Rails.logger.info "✅ Element validation passed"
+      true
+    end
+  end
+
   # Add Reflex methods in this file.
   #
   # All Reflex instances expose the following properties:
@@ -23,6 +64,40 @@ class TableMonitorReflex < ApplicationReflex
   # Learn more at: https://docs.stimulusreflex.com
   #
   DEBUG = true
+
+  # Override before_reflex to add comprehensive debugging
+  def before_reflex(element, reflex, noop, id)
+    @reflex_start_time = Time.current
+    @reflex_method_name = reflex
+    
+    # Validate URL consistency
+    current_url = request.url rescue 'unknown'
+    if url != current_url
+      ReflexDebugger.log_url_mismatch(current_url, url)
+    end
+    
+    # Validate element
+    ReflexDebugger.validate_element(element)
+    
+    # Log reflex start
+    ReflexDebugger.log_reflex_start(reflex, element&.dataset, url)
+    
+    super
+  end
+
+  # Override after_reflex to add success logging
+  def after_reflex(element, reflex, noop, id)
+    duration = ((Time.current - @reflex_start_time) * 1000).round(2)
+    ReflexDebugger.log_reflex_success(@reflex_method_name, duration)
+    super
+  end
+
+  # Override rescue_reflex to add error logging
+  def rescue_reflex(element, reflex, error, id)
+    duration = ((Time.current - @reflex_start_time) * 1000).round(2)
+    ReflexDebugger.log_reflex_error(@reflex_method_name, error, duration)
+    super
+  end
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
       Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG

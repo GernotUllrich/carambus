@@ -12,6 +12,7 @@ import hotkeys from "./src/hotkeys"
 import consumer from "./channels/consumer"
 import "@stimulus_reflex/polyfills"
 import "./scoreboard_utils"
+import "./utilities/scoreboard_debugger"
 
 // Expose hotkeys to global window object
 window.hotkeys = hotkeys;

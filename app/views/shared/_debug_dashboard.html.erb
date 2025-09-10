@@ -1,0 +1,145 @@
+<!-- Scoreboard Debug Dashboard -->
+<div class="debug-dashboard fixed top-4 right-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 max-w-md z-50" style="display: none;">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">🛠️ Scoreboard Debug</h3>
+    <button onclick="toggleDebugDashboard()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+      ✕
+    </button>
+  </div>
+
+  <div class="space-y-4">
+    <!-- Quick Stats -->
+    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+      <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">📊 Quick Stats</h4>
+      <div id="debug-stats" class="text-sm text-gray-600 dark:text-gray-300">
+        Loading...
+      </div>
+    </div>
+
+    <!-- DOM Health -->
+    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+      <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">🏥 DOM Health</h4>
+      <div id="debug-dom-health" class="text-sm text-gray-600 dark:text-gray-300">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Recent Errors -->
+    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+      <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">❌ Recent Errors</h4>
+      <div id="debug-errors" class="text-sm text-gray-600 dark:text-gray-300 max-h-32 overflow-y-auto">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-2">
+      <button onclick="refreshDebugInfo()" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+        🔄 Refresh
+      </button>
+      <button onclick="generateDebugReport()" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+        📊 Full Report
+      </button>
+      <button onclick="resetDebugStats()" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600">
+        🔄 Reset
+      </button>
+      <button onclick="checkHealth()" class="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600">
+        🏥 Health Check
+      </button>
+    </div>
+
+    <!-- Console Commands -->
+    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+      <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">💻 Console Commands</h4>
+      <div class="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+        <div><code>debugScoreboard()</code> - Generate full report</div>
+        <div><code>checkScoreboardHealth()</code> - Check DOM health</div>
+        <div><code>resetScoreboardDebug()</code> - Reset statistics</div>
+        <div><code>window.scoreboardDebugger</code> - Access debugger</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Debug Toggle Button -->
+<button onclick="toggleDebugDashboard()" class="fixed bottom-4 right-4 bg-red-500 text-white rounded-full p-3 shadow-lg hover:bg-red-600 z-50" title="Toggle Debug Dashboard">
+  🛠️
+</button>
+
+<script>
+let debugDashboardVisible = false;
+
+function toggleDebugDashboard() {
+  const dashboard = document.querySelector('.debug-dashboard');
+  debugDashboardVisible = !debugDashboardVisible;
+  
+  if (debugDashboardVisible) {
+    dashboard.style.display = 'block';
+    refreshDebugInfo();
+  } else {
+    dashboard.style.display = 'none';
+  }
+}
+
+function refreshDebugInfo() {
+  if (!window.scoreboardDebugger) {
+    document.getElementById('debug-stats').innerHTML = 'Debugger not available';
+    return;
+  }
+
+  // Update stats
+  const stats = window.scoreboardDebugger.getStats();
+  document.getElementById('debug-stats').innerHTML = `
+    <div>Operations: ${stats.total} (${stats.successRate} success)</div>
+    <div>Uptime: ${stats.uptime}</div>
+    <div>Missing Elements: ${stats.missingElements}</div>
+    <div>URL Mismatches: ${stats.urlMismatches}</div>
+  `;
+
+  // Update DOM health
+  const health = window.scoreboardDebugger.checkDOMHealth();
+  const healthHtml = Object.entries(health.health).map(([selector, data]) => 
+    `<div>${selector}: ${data.count} elements (${data.visible} visible)</div>`
+  ).join('');
+  
+  document.getElementById('debug-dom-health').innerHTML = healthHtml;
+
+  // Update errors
+  const errors = window.scoreboardDebugger.operationStats.errors.slice(-5);
+  const errorsHtml = errors.length > 0 ? 
+    errors.map(error => `<div class="text-red-600">${error.timestamp}: ${error.error}</div>`).join('') :
+    '<div class="text-green-600">No recent errors</div>';
+  
+  document.getElementById('debug-errors').innerHTML = errorsHtml;
+}
+
+function generateDebugReport() {
+  if (window.scoreboardDebugger) {
+    window.scoreboardDebugger.generateReport();
+  } else {
+    console.log('Debugger not available');
+  }
+}
+
+function resetDebugStats() {
+  if (window.scoreboardDebugger) {
+    window.scoreboardDebugger.reset();
+    refreshDebugInfo();
+  }
+}
+
+function checkHealth() {
+  if (window.scoreboardDebugger) {
+    const health = window.scoreboardDebugger.checkDOMHealth();
+    console.log('Health Check Results:', health);
+    refreshDebugInfo();
+  }
+}
+
+// Auto-refresh every 5 seconds when dashboard is visible
+setInterval(() => {
+  if (debugDashboardVisible) {
+    refreshDebugInfo();
+  }
+}, 5000);
+</script>
