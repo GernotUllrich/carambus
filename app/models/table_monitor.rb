@@ -737,7 +737,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                                            data["innings_goal"] ||
                                              tournament_monitor&.innings_goal ||
                                              tournament_monitor&.tournament&.innings_goal ||
-                                             tournament_monitor&.tournament&.data&.andand[:innings_goal]
+                                             tournament_monitor&.tournament&.data.andand[:innings_goal]
                                          end,
                        "playera" => {
                          "result" => 0,
