@@ -14,7 +14,9 @@ class ScoreboardDebugger {
     this.startTime = Date.now()
     this.domSnapshots = []
     this.reflexHistory = []
-    
+    this.enabled = true // Debug logging enabled by default
+    this.snapshotInterval = null // Store interval reference
+
     // Bind methods to preserve context
     this.logOperation = this.logOperation.bind(this)
     this.checkDOMHealth = this.checkDOMHealth.bind(this)
@@ -27,17 +29,17 @@ class ScoreboardDebugger {
     this.operationStats.total++
     if (success) {
       this.operationStats.successful++
-      console.log(`✅ CableReady ${type}: ${selector}`)
+      if (this.enabled) console.log(`✅ CableReady ${type}: ${selector}`)
     } else {
       this.operationStats.failed++
       if (error && error.message.includes('missing DOM element')) {
         this.operationStats.missingElements++
-        console.warn(`⚠️ Missing element: ${selector}`)
+        if (this.enabled) console.warn(`⚠️ Missing element: ${selector}`)
       } else if (error && error.message.includes('mismatched URL')) {
         this.operationStats.urlMismatches++
-        console.warn(`⚠️ URL mismatch: ${selector}`)
+        if (this.enabled) console.warn(`⚠️ URL mismatch: ${selector}`)
       } else {
-        console.error(`❌ CableReady ${type} failed: ${selector}`, error)
+        if (this.enabled) console.error(`❌ CableReady ${type} failed: ${selector}`, error)
       }
       this.operationStats.errors.push({
         timestamp: new Date().toISOString(),
@@ -114,10 +116,7 @@ class ScoreboardDebugger {
     const reflexStatus = this.checkStimulusReflexStatus()
     health.stimulusReflex = reflexStatus
     
-    console.log('🏥 DOM Health Check:', health)
-    if (issues.length > 0) {
-      console.warn('⚠️ Detected Issues:', issues)
-    }
+    // Debug messages removed - no more console spam
     
     return { health, issues }
   }
@@ -187,7 +186,7 @@ class ScoreboardDebugger {
       this.domSnapshots = this.domSnapshots.slice(-10)
     }
     
-    console.log('📸 Debug Snapshot Created:', snapshot)
+    // Debug messages removed - no more console spam
     return snapshot
   }
 
@@ -281,7 +280,39 @@ class ScoreboardDebugger {
     this.startTime = Date.now()
     this.domSnapshots = []
     this.reflexHistory = []
-    console.log('🔄 Debug statistics reset')
+    if (this.enabled) console.log('🔄 Debug statistics reset')
+  }
+
+  // Toggle debug logging
+  toggle() {
+    this.enabled = !this.enabled
+    console.log(`🔧 Debug logging ${this.enabled ? 'enabled' : 'disabled'}`)
+    return this.enabled
+  }
+
+  // Enable debug logging
+  enable() {
+    this.enabled = true
+    // Restart the auto-snapshot interval
+    if (!this.snapshotInterval) {
+      this.snapshotInterval = setInterval(() => {
+        if (this.enabled) {
+          this.createSnapshot()
+        }
+      }, 30000)
+    }
+    console.log('🔧 Debug logging enabled')
+  }
+
+  // Disable debug logging
+  disable() {
+    this.enabled = false
+    // Clear the auto-snapshot interval
+    if (this.snapshotInterval) {
+      clearInterval(this.snapshotInterval)
+      this.snapshotInterval = null
+    }
+    console.log('🔧 Debug logging disabled')
   }
 }
 
@@ -301,9 +332,20 @@ window.resetScoreboardDebug = () => {
   window.scoreboardDebugger.reset()
 }
 
-// Auto-create snapshots every 30 seconds
-setInterval(() => {
-  window.scoreboardDebugger.createSnapshot()
-}, 30000)
+window.toggleScoreboardDebug = () => {
+  return window.scoreboardDebugger.toggle()
+}
+
+window.enableScoreboardDebug = () => {
+  window.scoreboardDebugger.enable()
+}
+
+window.disableScoreboardDebug = () => {
+  window.scoreboardDebugger.disable()
+}
+
+// Auto-snapshots disabled - no more console spam
 
 console.log('🛠️ Scoreboard Debugger initialized. Use debugScoreboard() for full report.')
+
+

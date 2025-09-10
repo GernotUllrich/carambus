@@ -15681,19 +15681,70 @@
   });
 
   // channels/table_monitor_channel.js
+  if (!window.scoreboardDebugger) {
+    window.scoreboardDebugger = {
+      enabled: true,
+      // Default to enabled for fallback
+      checkDOMHealth: () => {
+        console.log("\u{1F3E5} DOM Health Check: ScoreboardDebugger not yet loaded");
+        return {};
+      },
+      logOperation: (type, selector, success2, error3) => {
+        if (success2) {
+          console.log(`\u2705 CableReady ${type}: ${selector}`);
+        }
+      },
+      getStats: () => ({ total: 0, successful: 0, failed: 0 })
+    };
+  }
+  var scoreboardDebugger = window.scoreboardDebugger;
+  console.log("\u{1F527} Using debugger:", scoreboardDebugger === window.scoreboardDebugger ? "main" : "fallback");
+  console.log("\u{1F527} Debugger enabled:", scoreboardDebugger.enabled);
+  console.log("\u{1F527} CACHE BUST TIMESTAMP:", (/* @__PURE__ */ new Date()).toISOString());
+  console.log("\u{1F527} UNIQUE ID:", Math.random().toString(36).substr(2, 9));
+  console.log("\u{1F527} FORCE CACHE BUST:", Date.now());
   consumer_default.subscriptions.create("TableMonitorChannel", {
     // Called once when the subscription is created.
     initialized() {
-      console.log("TableMonitor Channel initialized");
+      if (scoreboardDebugger.enabled) {
+        console.log("\u{1F50C} TableMonitor Channel initialized");
+      }
+      scoreboardDebugger.checkDOMHealth();
     },
     connected() {
-      console.log("TableMonitor Channel connected");
+      if (scoreboardDebugger.enabled) {
+        console.log("\u2705 TableMonitor Channel connected");
+      }
+      scoreboardDebugger.checkDOMHealth();
     },
     disconnected() {
-      console.log("TableMonitor Channel disconnected");
+      if (scoreboardDebugger.enabled) {
+        console.log("\u274C TableMonitor Channel disconnected");
+        console.log("\u{1F4CA} Final Stats:", scoreboardDebugger.getStats());
+      }
     },
     received(data) {
-      if (data.cableReady) global2.perform(data.operations);
+      if (data.cableReady) {
+        try {
+          const applicableOperations = data.operations?.filter((operation) => {
+            if (operation.selector) {
+              const element = document.querySelector(operation.selector);
+              if (!element) {
+                return false;
+              }
+            }
+            return true;
+          }) || [];
+          if (applicableOperations.length === 0) {
+            return;
+          }
+          global2.perform(applicableOperations);
+          applicableOperations.forEach((operation) => {
+            scoreboardDebugger.logOperation(operation.operation || "unknown", operation.selector || "unknown", true);
+          });
+        } catch (error3) {
+        }
+      }
     }
   });
 
@@ -25863,6 +25914,280 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     }
   }
   window.tryResizeWindow = tryResizeWindow;
+
+  // utilities/scoreboard_debugger.js
+  var ScoreboardDebugger = class {
+    constructor() {
+      this.operationStats = {
+        total: 0,
+        successful: 0,
+        failed: 0,
+        missingElements: 0,
+        urlMismatches: 0,
+        errors: []
+      };
+      this.startTime = Date.now();
+      this.domSnapshots = [];
+      this.reflexHistory = [];
+      this.enabled = true;
+      this.snapshotInterval = null;
+      this.logOperation = this.logOperation.bind(this);
+      this.checkDOMHealth = this.checkDOMHealth.bind(this);
+      this.getStats = this.getStats.bind(this);
+      this.createSnapshot = this.createSnapshot.bind(this);
+      this.analyzeIssues = this.analyzeIssues.bind(this);
+    }
+    logOperation(type, selector, success2, error3 = null) {
+      this.operationStats.total++;
+      if (success2) {
+        this.operationStats.successful++;
+        if (this.enabled) console.log(`\u2705 CableReady ${type}: ${selector}`);
+      } else {
+        this.operationStats.failed++;
+        if (error3 && error3.message.includes("missing DOM element")) {
+          this.operationStats.missingElements++;
+          if (this.enabled) console.warn(`\u26A0\uFE0F Missing element: ${selector}`);
+        } else if (error3 && error3.message.includes("mismatched URL")) {
+          this.operationStats.urlMismatches++;
+          if (this.enabled) console.warn(`\u26A0\uFE0F URL mismatch: ${selector}`);
+        } else {
+          if (this.enabled) console.error(`\u274C CableReady ${type} failed: ${selector}`, error3);
+        }
+        this.operationStats.errors.push({
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          type,
+          selector,
+          error: error3?.message || "Unknown error"
+        });
+      }
+    }
+    logReflex(method, success2, error3 = null) {
+      const reflexLog = {
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        method,
+        success: success2,
+        error: error3?.message || null,
+        url: window.location.href
+      };
+      this.reflexHistory.push(reflexLog);
+      if (this.reflexHistory.length > 50) {
+        this.reflexHistory = this.reflexHistory.slice(-50);
+      }
+      if (success2) {
+        console.log(`\u{1F3AF} Reflex ${method}: SUCCESS`);
+      } else {
+        console.error(`\u{1F3AF} Reflex ${method}: FAILED`, error3);
+      }
+    }
+    checkDOMHealth() {
+      const commonSelectors = [
+        "#teasers",
+        '[id^="teaser_"]',
+        '[id^="full_screen_table_monitor_"]',
+        "#table_scores",
+        '[id^="party_monitor_scores_"]',
+        '[id^="table_monitor_"]',
+        ".table_monitor",
+        ".scoreboard"
+      ];
+      const health = {};
+      const issues = [];
+      commonSelectors.forEach((selector) => {
+        const elements = document.querySelectorAll(selector);
+        const ids = Array.from(elements).map((el) => el.id).filter((id) => id);
+        health[selector] = {
+          count: elements.length,
+          ids,
+          visible: Array.from(elements).filter((el) => el.offsetParent !== null).length
+        };
+        if (selector.includes("teaser_") && elements.length === 0) {
+          issues.push(`No elements found for ${selector}`);
+        }
+        if (elements.length > 0 && health[selector].visible === 0) {
+          issues.push(`Elements exist but are not visible for ${selector}`);
+        }
+      });
+      const cableStatus = this.checkActionCableStatus();
+      health.actionCable = cableStatus;
+      const reflexStatus = this.checkStimulusReflexStatus();
+      health.stimulusReflex = reflexStatus;
+      return { health, issues };
+    }
+    checkActionCableStatus() {
+      try {
+        const consumer5 = window.App?.cable || window.Cable?.consumer;
+        if (!consumer5) {
+          return { connected: false, error: "No ActionCable consumer found" };
+        }
+        const connection = consumer5.connection;
+        if (!connection) {
+          return { connected: false, error: "No connection object" };
+        }
+        return {
+          connected: connection.isOpen(),
+          state: connection.getState(),
+          url: connection.getURL()
+        };
+      } catch (error3) {
+        return { connected: false, error: error3.message };
+      }
+    }
+    checkStimulusReflexStatus() {
+      try {
+        if (typeof window.StimulusReflex === "undefined") {
+          return { available: false, error: "StimulusReflex not loaded" };
+        }
+        const queue = window.StimulusReflex.reflexQueue || [];
+        return {
+          available: true,
+          queueLength: queue.length,
+          version: window.StimulusReflex.version || "unknown"
+        };
+      } catch (error3) {
+        return { available: false, error: error3.message };
+      }
+    }
+    createSnapshot() {
+      const snapshot = {
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        url: window.location.href,
+        domHealth: this.checkDOMHealth(),
+        stats: this.getStats(),
+        reflexHistory: this.reflexHistory.slice(-10),
+        // Last 10 reflexes
+        userAgent: navigator.userAgent,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        }
+      };
+      this.domSnapshots.push(snapshot);
+      if (this.domSnapshots.length > 10) {
+        this.domSnapshots = this.domSnapshots.slice(-10);
+      }
+      return snapshot;
+    }
+    getStats() {
+      const uptime = Date.now() - this.startTime;
+      return {
+        ...this.operationStats,
+        uptime: `${Math.round(uptime / 1e3)}s`,
+        successRate: this.operationStats.total > 0 ? `${Math.round(this.operationStats.successful / this.operationStats.total * 100)}%` : "0%",
+        snapshots: this.domSnapshots.length,
+        reflexCalls: this.reflexHistory.length
+      };
+    }
+    analyzeIssues() {
+      const analysis = {
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        criticalIssues: [],
+        warnings: [],
+        recommendations: []
+      };
+      if (this.operationStats.failed > 0) {
+        const failureRate = this.operationStats.failed / this.operationStats.total * 100;
+        if (failureRate > 50) {
+          analysis.criticalIssues.push(`High failure rate: ${failureRate.toFixed(1)}%`);
+        } else if (failureRate > 20) {
+          analysis.warnings.push(`Elevated failure rate: ${failureRate.toFixed(1)}%`);
+        }
+      }
+      if (this.operationStats.missingElements > 0) {
+        analysis.criticalIssues.push(`${this.operationStats.missingElements} missing DOM elements`);
+        analysis.recommendations.push("Check if elements are created before CableReady operations");
+      }
+      if (this.operationStats.urlMismatches > 0) {
+        analysis.criticalIssues.push(`${this.operationStats.urlMismatches} URL mismatches detected`);
+        analysis.recommendations.push("Ensure page navigation is handled properly in StimulusReflex");
+      }
+      const recentErrors = this.operationStats.errors.slice(-5);
+      if (recentErrors.length > 0) {
+        analysis.warnings.push(`${recentErrors.length} recent errors`);
+        analysis.recommendations.push("Check browser console for detailed error information");
+      }
+      console.log("\u{1F50D} Issue Analysis:", analysis);
+      return analysis;
+    }
+    // Generate a comprehensive debug report
+    generateReport() {
+      const report = {
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        url: window.location.href,
+        stats: this.getStats(),
+        domHealth: this.checkDOMHealth(),
+        issueAnalysis: this.analyzeIssues(),
+        recentSnapshots: this.domSnapshots.slice(-3),
+        recentReflexes: this.reflexHistory.slice(-10)
+      };
+      console.log("\u{1F4CA} Comprehensive Debug Report:", report);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(JSON.stringify(report, null, 2)).then(() => console.log("\u{1F4CB} Report copied to clipboard")).catch(() => console.log("\u{1F4CB} Could not copy to clipboard"));
+      }
+      return report;
+    }
+    // Reset all statistics
+    reset() {
+      this.operationStats = {
+        total: 0,
+        successful: 0,
+        failed: 0,
+        missingElements: 0,
+        urlMismatches: 0,
+        errors: []
+      };
+      this.startTime = Date.now();
+      this.domSnapshots = [];
+      this.reflexHistory = [];
+      if (this.enabled) console.log("\u{1F504} Debug statistics reset");
+    }
+    // Toggle debug logging
+    toggle() {
+      this.enabled = !this.enabled;
+      console.log(`\u{1F527} Debug logging ${this.enabled ? "enabled" : "disabled"}`);
+      return this.enabled;
+    }
+    // Enable debug logging
+    enable() {
+      this.enabled = true;
+      if (!this.snapshotInterval) {
+        this.snapshotInterval = setInterval(() => {
+          if (this.enabled) {
+            this.createSnapshot();
+          }
+        }, 3e4);
+      }
+      console.log("\u{1F527} Debug logging enabled");
+    }
+    // Disable debug logging
+    disable() {
+      this.enabled = false;
+      if (this.snapshotInterval) {
+        clearInterval(this.snapshotInterval);
+        this.snapshotInterval = null;
+      }
+      console.log("\u{1F527} Debug logging disabled");
+    }
+  };
+  window.scoreboardDebugger = new ScoreboardDebugger();
+  window.debugScoreboard = () => {
+    window.scoreboardDebugger.generateReport();
+  };
+  window.checkScoreboardHealth = () => {
+    return window.scoreboardDebugger.checkDOMHealth();
+  };
+  window.resetScoreboardDebug = () => {
+    window.scoreboardDebugger.reset();
+  };
+  window.toggleScoreboardDebug = () => {
+    return window.scoreboardDebugger.toggle();
+  };
+  window.enableScoreboardDebug = () => {
+    window.scoreboardDebugger.enable();
+  };
+  window.disableScoreboardDebug = () => {
+    window.scoreboardDebugger.disable();
+  };
+  console.log("\u{1F6E0}\uFE0F Scoreboard Debugger initialized. Use debugScoreboard() for full report.");
 
   // application.js
   turbo_es2017_esm_exports.session.debug = true;

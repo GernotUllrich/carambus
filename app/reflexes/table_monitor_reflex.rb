@@ -414,18 +414,22 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def add_n
+    n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    n = element.andand.dataset[:n].to_i
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(n)
     @table_monitor.do_play
     @table_monitor.save
+    Rails.logger.info "add_#{n} completed successfully"
   rescue StandardError => e
-    Rails.logger.info("[add_#{n}] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.error("[add_#{n}] ERROR: #{e}")
+    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+    # Re-raise the error so StimulusReflex can handle it properly
+    raise e
   end
 
   def set_balls
