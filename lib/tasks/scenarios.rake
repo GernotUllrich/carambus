@@ -260,6 +260,29 @@ namespace :scenario do
     # Generate deploy files in environment directory (only for development)
     generate_deploy_files(scenario_config, env_config, env_dir)
 
+    # Generate cable.yml in environment directory
+    generate_cable_yml(scenario_config, env_config, env_dir)
+
+    # Generate development.rb in environment directory (only for development)
+    if environment == 'development'
+      generate_development_rb(scenario_config, env_config, env_dir)
+    end
+
+    # Generate env.development in environment directory (only for development)
+    if environment == 'development'
+      generate_env_development(scenario_config, env_config, env_dir)
+    end
+
+    # Generate production.rb in environment directory (only for production)
+    if environment == 'production'
+      generate_production_rb_env(scenario_config, env_config, env_dir)
+    end
+
+    # Generate env.production in environment directory (only for production)
+    if environment == 'production'
+      generate_env_production(scenario_config, env_config, env_dir)
+    end
+
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
     puts "   Location: #{env_dir}"
     true
@@ -407,6 +430,412 @@ namespace :scenario do
 
     File.write(File.join(deploy_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(deploy_dir, 'production.rb')}"
+    true
+  end
+
+  def generate_cable_yml(scenario_config, env_config, env_dir)
+    # Generate cable.yml with Redis configuration
+    redis_db = env_config['redis_database'] || 1
+    channel_prefix = env_config['channel_prefix'] || 'carambus_development'
+    
+    content = <<~YAML
+development:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
+  channel_prefix: #{channel_prefix}
+  read_timeout: 50
+  write_timeout: 50
+  connect_timeout: 50
+
+test:
+  adapter: async
+
+staging:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
+  channel_prefix: #{channel_prefix.gsub('_development', '_staging').gsub('_production', '_staging')}
+
+production:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
+  channel_prefix: #{channel_prefix.gsub('_development', '_production').gsub('_staging', '_production')}
+YAML
+
+    File.write(File.join(env_dir, 'cable.yml'), content)
+    puts "   Generated: #{File.join(env_dir, 'cable.yml')}"
+    true
+  end
+
+  def generate_development_rb(scenario_config, env_config, env_dir)
+    # Generate development.rb with ActionCable URL configuration
+    actioncable_url = env_config['actioncable_url'] || "ws://localhost:3000/cable"
+    redis_db = env_config['redis_database'] || 1
+    webserver_port = env_config['webserver_port'] || 3000
+    
+    content = <<~'RUBY'
+require "active_support/core_ext/integer/time"
+
+Rails.application.configure do
+  config.session_store :redis_session_store,
+    serializer: :json,
+    on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
+    redis: {
+      expire_after: 120.minutes,
+      key_prefix: "session:",
+      url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
+    }
+
+  # Log to STDOUT for development
+  config.logger = ActiveSupport::Logger.new($stdout)
+    .tap { |logger| logger.formatter = ::Logger::Formatter.new }
+    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
+
+  # Set log level
+  config.log_level = :debug
+  # Settings specified here will take precedence over those in config/application.rb.
+
+  # In the development environment your application's code is reloaded any time
+  # it changes. This slows down response time but is perfect for development
+  # since you don't have to restart the web server when you make code changes.
+  config.enable_reloading = true
+
+  # Do not eager load code on boot.
+  config.eager_load = false
+
+  # Show full error reports.
+  config.consider_all_requests_local = true
+
+  # Enable server timing.
+  config.server_timing = true
+
+  # Enable/disable caching. By default caching is disabled.
+  # Run rails dev:cache to toggle caching.
+  if Rails.root.join("tmp/caching-dev.txt").exist?
+    config.action_controller.perform_caching = true
+    config.action_controller.enable_fragment_cache_logging = true
+
+    config.cache_store = :memory_store
+    config.public_file_server.headers = {"Cache-Control" => "public, max-age=#{2.days.to_i}"}
+  else
+    config.action_controller.perform_caching = false
+
+    config.cache_store = :null_store
+  end
+
+  # Store uploaded files on the local file system (see config/storage.yml for options)
+  config.active_storage.service = :local
+
+  # Don't care if the mailer can't send.
+  config.action_mailer.raise_delivery_errors = false
+
+  config.action_mailer.perform_caching = false
+
+  config.action_mailer.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
+
+  # Print deprecation notices to the Rails logger.
+  config.active_support.deprecation = :log
+
+  # Raise exceptions for disallowed deprecations.
+  config.active_support.disallowed_deprecation = :raise
+
+  # Tell Active Support which deprecation messages to disallow.
+  config.active_support.disallowed_deprecation_warnings = []
+
+  # Raise an error on page load if there are pending migrations.
+  config.active_record.migration_error = :page_load
+
+  # Highlight code that triggered database queries in logs.
+  config.active_record.verbose_query_logs = true
+
+  # Highlight code that enqueued background job in logs.
+  config.active_job.verbose_enqueue_logs = true
+
+  # Suppress logger output for asset requests.
+  config.assets.quiet = true
+
+  # Raises error for missing translations.
+  config.i18n.raise_on_missing_translations = true
+
+  # Annotate rendered view with file names.
+  config.action_view.annotate_rendered_view_with_filenames = true
+
+  # Uncomment if you wish to allow Action Cable access from any origin.
+  config.action_cable.disable_request_forgery_protection = true
+
+  # Allow websocket connections from any origin in development
+  config.action_cable.url = "#{actioncable_url}"
+  config.action_cable.allowed_request_origins = [/http:\\/\\/*/, /https:\\/\\/*/]
+
+  # Raise error when a before_action's only/except options reference missing actions.
+  config.action_controller.raise_on_missing_callback_actions = true
+
+  # Apply autocorrection by RuboCop to files generated by `bin/rails generate`.
+  # config.generators.apply_rubocop_autocorrect_after_generate!
+
+  # Uncomment the line below to enable strict loading across all models. More granular control can be applied at the model or association level.
+  # config.active_record.strict_loading_by_default = true
+
+  # Deliver emails to Letter Opener for development
+  config.action_mailer.delivery_method = :letter_opener_web
+
+  # Allow accessing localhost on any domain. Important for testing multi-tenant apps.
+  config.hosts = nil
+
+  # You may need to set to include the correct URLs from Turbo, etc
+  # config.action_controller.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
+
+  config.generators.after_generate do |files|
+    parsable_files = files.filter { |file| file.end_with?(".rb") }
+    unless parsable_files.empty?
+      system("bundle exec standardrb --fix #{parsable_files.shelljoin}", exception: true)
+    end
+  end
+
+
+  # Use Rails credentials as normal
+  config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
+
+  config.credentials.content_path = config.root.join('config/credentials/development.yml.enc')
+  config.credentials.key_path = config.root.join('config/credentials/development.key')
+
+  config.i18n.fallbacks = true
+  config.i18n.raise_on_missing_translations = true
+end
+RUBY
+
+    # Apply string interpolation for dynamic values
+    content = content.gsub('#{redis_db}', redis_db.to_s)
+                    .gsub('#{webserver_port}', webserver_port.to_s)
+                    .gsub('#{actioncable_url}', actioncable_url)
+
+    File.write(File.join(env_dir, 'development.rb'), content)
+    puts "   Generated: #{File.join(env_dir, 'development.rb')}"
+    true
+  end
+
+  def generate_env_development(scenario_config, env_config, env_dir)
+    # Generate env.development with correct port configuration
+    webserver_port = env_config['webserver_port'] || 3000
+    
+    content = <<~ENV
+# Carambus Development Environment Configuration
+# Für Entwicklungsumgebung auf dem Mac
+
+# Deployment-Konfiguration
+DEPLOYMENT_TYPE=LOCAL_SERVER
+RAILS_ENV=development
+
+# Datenbank-Konfiguration
+DATABASE_NAME=#{env_config['database_name'] || 'carambus_development'}
+DATABASE_USER=www_data
+DATABASE_PASSWORD=carambus_development_password
+DB_DUMP_FILE=carambus_development.sql.gz
+
+# Redis-Konfiguration
+REDIS_DB=#{env_config['redis_database'] || 1}
+
+# Port-Konfiguration
+WEB_PORT=#{webserver_port}
+POSTGRES_PORT=5432
+REDIS_PORT=6379
+
+# Domain-Konfiguration (nicht relevant für Entwicklung)
+DOMAIN=
+USE_HTTPS=false
+
+# Location-spezifische Konfiguration (optional)
+# Für location-spezifische Entwicklung: carambus_development_xyz
+LOCATION_CODE=#{scenario_config['scenario']['location_id'] || ''}
+ENV
+
+    File.write(File.join(env_dir, 'env.development'), content)
+    puts "   Generated: #{File.join(env_dir, 'env.development')}"
+    true
+  end
+
+  def generate_production_rb_env(scenario_config, env_config, env_dir)
+    # Generate production.rb with ActionCable URL configuration
+    actioncable_url = env_config['actioncable_url'] || "ws://localhost:3000/cable"
+    redis_db = env_config['redis_database'] || 0
+    webserver_port = env_config['webserver_port'] || 3000
+    webserver_host = env_config['webserver_host'] || 'localhost'
+    
+    content = <<~'RUBY'
+require "active_support/core_ext/integer/time"
+
+Rails.application.configure do
+  config.session_store :redis_session_store,
+    serializer: :json,
+    on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
+    redis: {
+      expire_after: 120.minutes,
+      key_prefix: "session:",
+      url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
+    }
+
+  # Settings specified here will take precedence over those in config/application.rb.
+
+  # Code is not reloaded between requests.
+  config.enable_reloading = false
+
+  # Eager load code on boot. This eager loads most of Rails and
+  # your application in memory, allowing both threaded web servers
+  # and those relying on copy on write to perform better.
+  # Rake tasks automatically ignore this option for performance.
+  config.eager_load = true
+
+  # Full error reports are disabled and caching is turned on.
+  config.consider_all_requests_local = false
+
+  # Ensures that a master key has been made available in either ENV["RAILS_MASTER_KEY"]
+  # or in config/master.key. This key is used to decrypt credentials (and other encrypted files).
+  # config.require_master_key = true
+
+  # Disable serving static files from the `/public` folder by default since
+  # Apache or NGINX already handles this.
+  config.public_file_server.enabled = ENV["RAILS_SERVE_STATIC_FILES"].present?
+
+  # Compress CSS using a preprocessor.
+  # config.assets.css_compressor = :sass
+
+  # Do not fallback to assets pipeline if a precompiled asset is missed.
+  config.assets.compile = false
+
+  # Enable serving of images, stylesheets, and JavaScripts from an asset server.
+  # config.asset_host = "http://assets.example.com"
+
+  # Specifies the header that your server uses for sending files.
+  # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
+  # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
+
+  # Store uploaded files on the local file system (see config/storage.yml for options).
+  config.active_storage.service = :local
+
+  # Mount Action Cable outside main process or domain.
+  # config.action_cable.mount_path = nil
+  # config.action_cable.url = "wss://example.com/cable"
+  # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
+
+  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  config.force_ssl = true
+
+  # Include generic and useful information about system operation, but avoid logging too much
+  # information to avoid inadvertent exposure of personally identifiable information (PII).
+  config.log_level = :info
+
+  # Prepend all log lines with the following tags.
+  config.log_tags = [ :request_id ]
+
+  # Use a different cache store in production.
+  # config.cache_store = :mem_cache_store
+
+  # Use a real queuing backend for Active Job (and separate queues per environment).
+  # config.active_job.queue_adapter     = :resque
+  # config.active_job.queue_name_prefix = "carambus_production"
+
+  config.action_mailer.perform_caching = false
+
+  # Ignore bad email addresses and do not raise email delivery errors.
+  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
+  # config.action_mailer.raise_delivery_errors = false
+
+  # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
+  # the I18n.default_locale when a translation cannot be found).
+  config.i18n.fallbacks = true
+
+  # Don't log any deprecations.
+  config.active_support.report_deprecations = false
+
+  # Use default logging formatter so that PID and timestamp are not suppressed.
+  config.log_formatter = ::Logger::Formatter.new
+
+  # Use a different logger for distributed setups.
+  # require "syslog/logger"
+  # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new "app-name")
+
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
+  end
+
+  # Do not dump schema after migrations.
+  config.active_record.dump_schema_after_migration = false
+
+  # Enable DNS rebinding protection for credentials.
+  # config.hosts << "example.com"
+
+  # Allow Action Cable access from any origin in production
+  config.action_cable.disable_request_forgery_protection = true
+  config.action_cable.url = "#{actioncable_url}"
+  config.action_cable.allowed_request_origins = [/http:\/\/#{webserver_host}/, /https:\/\/#{webserver_host}/]
+
+  # Use Rails credentials as normal
+  config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
+
+  config.credentials.content_path = config.root.join('config/credentials/production.yml.enc')
+  config.credentials.key_path = config.root.join('config/credentials/production.key')
+
+  config.i18n.fallbacks = true
+  config.i18n.raise_on_missing_translations = false
+end
+RUBY
+
+    # Apply string interpolation for dynamic values
+    content = content.gsub('#{redis_db}', redis_db.to_s)
+                    .gsub('#{webserver_port}', webserver_port.to_s)
+                    .gsub('#{actioncable_url}', actioncable_url)
+                    .gsub('#{webserver_host}', webserver_host)
+
+    File.write(File.join(env_dir, 'production.rb'), content)
+    puts "   Generated: #{File.join(env_dir, 'production.rb')}"
+    true
+  end
+
+  def generate_env_production(scenario_config, env_config, env_dir)
+    # Generate env.production with correct port configuration
+    webserver_port = env_config['webserver_port'] || 3000
+    redis_db = env_config['redis_database'] || 0
+    
+    content = <<~ENV
+# Carambus Production Environment Configuration
+# Für Produktionsumgebungen
+# Unterstützt alle Deployment-Typen: API_SERVER, LOCAL_SERVER, WEB_CLIENT
+
+# Production-Modus (übergeordnet)
+RAILS_ENV=production
+
+# Deployment-Konfiguration (muss gesetzt werden)
+DEPLOYMENT_TYPE=LOCAL_SERVER  # oder API_SERVER oder WEB_CLIENT
+
+# Datenbank-Konfiguration (muss gesetzt werden)
+DATABASE_NAME=#{env_config['database_name'] || 'carambus_production'}
+DATABASE_USER=#{env_config['database_username'] || 'www_data'}
+DATABASE_PASSWORD=#{env_config['database_password'] || ''}
+DB_DUMP_FILE=
+
+# Redis-Konfiguration
+REDIS_DB=#{redis_db}
+
+# Port-Konfiguration
+WEB_PORT=#{webserver_port}
+POSTGRES_PORT=5432
+REDIS_PORT=6379
+
+# Domain-Konfiguration (optional)
+DOMAIN=#{env_config['webserver_host'] || ''}
+USE_HTTPS=#{env_config['ssl_enabled'] || false}
+
+# Location-spezifische Konfiguration (optional)
+LOCATION_CODE=#{scenario_config['scenario']['location_id'] || ''}
+
+# Production-spezifische Konfiguration
+RAILS_HOST=0.0.0.0
+RAILS_PORT=#{webserver_port}
+ENV
+
+    File.write(File.join(env_dir, 'env.production'), content)
+    puts "   Generated: #{File.join(env_dir, 'env.production')}"
     true
   end
 
@@ -672,6 +1101,24 @@ namespace :scenario do
       if File.exist?(File.join(env_dir, 'carambus.yml'))
         FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
         puts "   ✅ carambus.yml copied to Rails root"
+      end
+
+      # Copy cable.yml
+      if File.exist?(File.join(env_dir, 'cable.yml'))
+        FileUtils.cp(File.join(env_dir, 'cable.yml'), File.join(rails_root, 'config', 'cable.yml'))
+        puts "   ✅ cable.yml copied to Rails root"
+      end
+
+      # Copy development.rb (only for development environment)
+      if environment == 'development' && File.exist?(File.join(env_dir, 'development.rb'))
+        FileUtils.cp(File.join(env_dir, 'development.rb'), File.join(rails_root, 'config', 'environments', 'development.rb'))
+        puts "   ✅ development.rb copied to Rails root"
+      end
+
+      # Copy env.development (only for development environment)
+      if environment == 'development' && File.exist?(File.join(env_dir, 'env.development'))
+        FileUtils.cp(File.join(env_dir, 'env.development'), File.join(rails_root, 'env.development'))
+        puts "   ✅ env.development copied to Rails root"
       end
     end
 
@@ -987,6 +1434,24 @@ namespace :scenario do
     production_dir = File.join(scenarios_path, scenario_name, 'production')
     FileUtils.cp(File.join(production_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
     FileUtils.cp(File.join(production_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+
+    # Copy cable.yml if it exists
+    if File.exist?(File.join(production_dir, 'cable.yml'))
+      FileUtils.cp(File.join(production_dir, 'cable.yml'), File.join(rails_root, 'config', 'cable.yml'))
+      puts "   ✅ cable.yml copied to Rails root folder"
+    end
+
+    # Copy production.rb if it exists
+    if File.exist?(File.join(production_dir, 'production.rb'))
+      FileUtils.cp(File.join(production_dir, 'production.rb'), File.join(rails_root, 'config', 'environments', 'production.rb'))
+      puts "   ✅ production.rb copied to Rails root folder"
+    end
+
+    # Copy env.production if it exists
+    if File.exist?(File.join(production_dir, 'env.production'))
+      FileUtils.cp(File.join(production_dir, 'env.production'), File.join(rails_root, 'env.production'))
+      puts "   ✅ env.production copied to Rails root folder"
+    end
 
     # Copy nginx.conf if it exists
     if File.exist?(File.join(production_dir, 'nginx.conf'))
