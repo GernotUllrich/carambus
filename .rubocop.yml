@@ -24,3 +24,7 @@ Style/EmptyElse:
   Enabled: false
 Naming/VariableNumber:
   Enabled: false
+
+# Enable new cops by default
+AllCops:
+  NewCops: enable

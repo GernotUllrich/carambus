@@ -73,14 +73,16 @@ namespace :scenario do
   task :prepare_development, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
     environment = args[:environment] || 'development'
+    force = ENV['FORCE'] == 'true'
 
     if scenario_name.nil?
       puts "Usage: rake scenario:prepare_development[scenario_name,environment]"
       puts "Example: rake scenario:prepare_development[carambus_location_2459,development]"
+      puts "Use FORCE=true to override safety checks (DANGEROUS!)"
       exit 1
     end
 
-    prepare_scenario_for_development(scenario_name, environment)
+    prepare_scenario_for_development(scenario_name, environment, force)
   end
 
   desc "Prepare scenario for deployment (all steps except server deployment)"
@@ -626,9 +628,14 @@ namespace :scenario do
     end
   end
 
-  def prepare_scenario_for_development(scenario_name, environment)
+  def prepare_scenario_for_development(scenario_name, environment, force = false)
     puts "Preparing scenario #{scenario_name} for development (#{environment})..."
     puts "This includes Rails root creation, config generation, basic config copying, and database operations."
+    
+    if force
+      puts "⚠️  FORCE MODE ENABLED - Safety checks are DISABLED!"
+      puts "⚠️  This can cause DATA LOSS!"
+    end
 
     # Step 1: Create Rails root folder (if it doesn't exist)
     puts "\n📁 Step 1: Ensuring Rails root folder exists..."
@@ -670,7 +677,7 @@ namespace :scenario do
 
     # Step 4: Create actual development database from template
     puts "\n🗄️  Step 4: Creating development database..."
-    unless create_development_database(scenario_name, environment)
+    unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
       return false
     end
@@ -684,8 +691,25 @@ namespace :scenario do
     true
   end
 
-  def create_development_database(scenario_name, environment)
+  def create_development_database(scenario_name, environment, force = false)
     puts "Creating development database for #{scenario_name} (#{environment})..."
+
+    # Special protection for carambus_api scenario
+    if scenario_name == 'carambus_api' && !force
+      puts "   ⚠️  WARNING: carambus_api is a special scenario!"
+      puts "   ⚠️  Its database (carambus_api_development) contains irreplaceable data!"
+      puts "   ⚠️  This scenario should NOT be managed by scenario:prepare_development"
+      puts "   ⚠️  Use scenario:create_database_dump and scenario:restore_database_dump instead"
+      puts ""
+      puts "   🔧 If you really need to recreate this database:"
+      puts "   1. Create a backup first: rake scenario:create_database_dump[carambus_api,development]"
+      puts "   2. Use FORCE=true to override this protection"
+      puts "   3. Or manually manage the database"
+      return false
+    elsif scenario_name == 'carambus_api' && force
+      puts "   ⚠️  FORCE MODE: Bypassing carambus_api protection!"
+      puts "   ⚠️  This will DESTROY irreplaceable data!"
+    end
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -700,10 +724,39 @@ namespace :scenario do
 
     database_name = "#{scenario_name}_#{environment}"
 
-    # Drop existing database if it exists
+    # Check if existing database has newer data before dropping
     if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{database_name}")
-      puts "   Dropping existing database #{database_name}..."
-      system("dropdb #{database_name}")
+      puts "   🔍 Existing database #{database_name} found, checking last_version_id..."
+      
+      # Get last_version_id from existing database
+      existing_version_cmd = "psql #{database_name} -t -c \"SELECT COALESCE((data::jsonb->'last_version_id'->>'Integer')::text, '0') FROM settings LIMIT 1;\""
+      existing_version_result = `#{existing_version_cmd}`.strip
+      existing_last_version_id = existing_version_result.to_i
+      
+      puts "   📊 Existing database last_version_id: #{existing_last_version_id}"
+      
+      if existing_last_version_id > 0
+        if force
+          puts "   ⚠️  FORCE MODE: Bypassing data loss protection!"
+          puts "   ⚠️  Dropping database with data (last_version_id: #{existing_last_version_id})!"
+          puts "   Dropping existing database #{database_name}..."
+          system("dropdb #{database_name}")
+        else
+          puts "   ⚠️  WARNING: Existing database contains data (last_version_id: #{existing_last_version_id})!"
+          puts "   ⚠️  Dropping this database will cause DATA LOSS!"
+          puts "   ⚠️  This operation is BLOCKED for safety."
+          puts ""
+          puts "   🔧 If you really need to recreate this database:"
+          puts "   1. Create a backup first: rake scenario:create_database_dump[#{scenario_name},#{environment}]"
+          puts "   2. Use FORCE=true to override this safety check"
+          puts "   3. Or manually drop the database if you're certain"
+          return false
+        end
+      else
+        puts "   ✅ Existing database appears empty (last_version_id: 0) - safe to drop"
+        puts "   Dropping existing database #{database_name}..."
+        system("dropdb #{database_name}")
+      end
     end
 
     if region_id && environment == 'development'
