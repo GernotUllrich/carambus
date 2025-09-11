@@ -472,7 +472,7 @@ YAML
     redis_db = env_config['redis_database'] || 1
     webserver_port = env_config['webserver_port'] || 3000
     
-    content = <<~'RUBY'
+    content = <<~RUBY
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
@@ -564,7 +564,7 @@ Rails.application.configure do
 
   # Allow websocket connections from any origin in development
   config.action_cable.url = "#{actioncable_url}"
-  config.action_cable.allowed_request_origins = [/http:\\/\\/*/, /https:\\/\\/*/]
+  config.action_cable.allowed_request_origins = [%r{http://.*}, %r{https://.*}]
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
@@ -587,7 +587,7 @@ Rails.application.configure do
   config.generators.after_generate do |files|
     parsable_files = files.filter { |file| file.end_with?(".rb") }
     unless parsable_files.empty?
-      system("bundle exec standardrb --fix #{parsable_files.shelljoin}", exception: true)
+      system("bundle exec standardrb --fix \#{parsable_files.shelljoin}", exception: true)
     end
   end
 
@@ -768,7 +768,7 @@ Rails.application.configure do
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
   config.action_cable.url = "#{actioncable_url}"
-  config.action_cable.allowed_request_origins = [/http:\/\/#{webserver_host}/, /https:\/\/#{webserver_host}/]
+  config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}]
 
   # Use Rails credentials as normal
   config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
