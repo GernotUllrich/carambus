@@ -437,7 +437,7 @@ namespace :scenario do
     # Generate cable.yml with Redis configuration
     redis_db = env_config['redis_database'] || 1
     channel_prefix = env_config['channel_prefix'] || 'carambus_development'
-    
+
     content = <<~YAML
 development:
   adapter: redis
@@ -471,7 +471,7 @@ YAML
     actioncable_url = env_config['actioncable_url'] || "ws://localhost:3000/cable"
     redis_db = env_config['redis_database'] || 1
     webserver_port = env_config['webserver_port'] || 3000
-    
+
     content = <<~RUBY
 require "active_support/core_ext/integer/time"
 
@@ -616,7 +616,7 @@ RUBY
   def generate_env_development(scenario_config, env_config, env_dir)
     # Generate env.development with correct port configuration
     webserver_port = env_config['webserver_port'] || 3000
-    
+
     content = <<~ENV
 # Carambus Development Environment Configuration
 # Für Entwicklungsumgebung auf dem Mac
@@ -659,7 +659,7 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
-    
+
     content = <<~'RUBY'
 require "active_support/core_ext/integer/time"
 
@@ -796,7 +796,7 @@ RUBY
     # Generate env.production with correct port configuration
     webserver_port = env_config['webserver_port'] || 3000
     redis_db = env_config['redis_database'] || 0
-    
+
     content = <<~ENV
 # Carambus Production Environment Configuration
 # Für Produktionsumgebungen
@@ -875,33 +875,33 @@ ENV
       # For production: transfer dump to remote server, then restore there
       ssh_host = env_config['ssh_host']
       ssh_port = env_config['ssh_port']
-      
+
       puts "Transferring dump to production server #{ssh_host}:#{ssh_port}..."
       remote_dump_file = "/tmp/#{File.basename(latest_dump)}"
-      
+
       # Transfer dump to remote server
       scp_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{remote_dump_file}"
       if system(scp_cmd)
         puts "   ✅ Dump transferred to remote server"
-        
+
         # Drop and recreate database on remote server
         puts "Dropping database #{database_name} on remote server..."
         drop_cmd = "sudo -u postgres dropdb #{database_name}" if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw #{database_name}'")
-        
+
         puts "Creating database #{database_name} on remote server..."
         create_cmd = "sudo -u postgres createdb #{database_name}"
         if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_cmd}'")
           puts "   ✅ Database created on remote server"
-          
+
           # Restore dump on remote server
           puts "Restoring dump on remote server..."
           restore_cmd = "gunzip -c #{remote_dump_file} | sudo -u postgres psql #{database_name}"
           if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
             puts "   ✅ Database restored successfully on remote server"
-            
+
             # Clean up remote dump file
             system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{remote_dump_file}'")
-            
+
             true
           else
             puts "❌ Database restore failed on remote server"
@@ -971,24 +971,24 @@ ENV
       # For production: create dump on remote server, then transfer to local
       ssh_host = env_config['ssh_host']
       ssh_port = env_config['ssh_port']
-      
+
       puts "Creating dump on production server #{ssh_host}:#{ssh_port}..."
       remote_dump_file = "/tmp/#{scenario_name}_#{environment}_#{timestamp}.sql.gz"
-      
+
       # Create dump on remote server
       dump_cmd = "pg_dump --no-owner --no-privileges #{database_name} | gzip > #{remote_dump_file}"
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{dump_cmd}'")
         puts "   ✅ Dump created on remote server"
-        
+
         # Transfer dump from remote to local
         puts "Transferring dump from remote server..."
         scp_cmd = "scp -P #{ssh_port} www-data@#{ssh_host}:#{remote_dump_file} #{dump_file}"
         if system(scp_cmd)
           puts "   ✅ Dump transferred to local storage"
-          
+
           # Clean up remote dump file
           system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{remote_dump_file}'")
-          
+
           puts "✅ Database dump created: #{File.basename(dump_file)}"
           puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
           true
@@ -1060,7 +1060,7 @@ ENV
   def prepare_scenario_for_development(scenario_name, environment, force = false)
     puts "Preparing scenario #{scenario_name} for development (#{environment})..."
     puts "This includes Rails root creation, config generation, basic config copying, and database operations."
-    
+
     if force
       puts "⚠️  FORCE MODE ENABLED - Safety checks are DISABLED!"
       puts "⚠️  This can cause DATA LOSS!"
@@ -1126,7 +1126,7 @@ ENV
     puts "\n🗄️  Step 4: Creating development database..."
     unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
-      return false
+      return false unless scenario_name == "carambus_api_development"
     end
 
     puts "\n✅ Scenario #{scenario_name} prepared for development!"
@@ -1173,24 +1173,50 @@ ENV
 
     # Check if existing database has newer data before dropping
     if system("psql -lqt | cut -d \\| -f 1 | grep -qw #{database_name}")
-      puts "   🔍 Existing database #{database_name} found, checking last_version_id..."
-      
-      # Get last_version_id from existing database
-      existing_version_cmd = "psql #{database_name} -t -c \"SELECT COALESCE((data::jsonb->'last_version_id'->>'Integer')::text, '0') FROM settings LIMIT 1;\""
+      puts "   🔍 Existing database #{database_name} found, checking data loss protection..."
+
+      # Get last_version_id from existing database (use Version.last.id for API databases)
+      existing_version_cmd = "psql #{database_name} -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
       existing_version_result = `#{existing_version_cmd}`.strip
       existing_last_version_id = existing_version_result.to_i
-      
+
       puts "   📊 Existing database last_version_id: #{existing_last_version_id}"
-      
+
+      # Get last_version_id from source database (carambus_api_development) - use Version.last.id
+      source_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
+      source_version_result = `#{source_version_cmd}`.strip
+      source_last_version_id = source_version_result.to_i
+
+      puts "   📊 Source database (carambus_api_development) last_version_id: #{source_last_version_id}"
+
+      # Data loss protection logic:
+      # 1. If creating from template (development environment), no protection needed
+      # 2. If existing database has newer data than source AND source is development, block
+      # 3. If existing database has local data (id > 50000000), warn about local data loss
+      should_block = false
+      has_local_data = false
+
       if existing_last_version_id > 0
+        # Check for local data (records with id > 50000000)
+        local_data_cmd = "psql #{database_name} -t -c \"SELECT COUNT(*) FROM (SELECT 1 FROM tournaments WHERE id > 50000000 LIMIT 1) AS local_check;\""
+        local_data_result = `#{local_data_cmd}`.strip.to_i
+        has_local_data = local_data_result > 0
+
+        # Block if existing database has newer data than source AND we're overwriting production with development
+        if existing_last_version_id > source_last_version_id && environment == 'production'
+          should_block = true
+          puts "   ⚠️  BLOCKING: Existing #{environment} database has newer data (last_version_id: #{existing_last_version_id}) than source development database (last_version_id: #{source_last_version_id})!"
+        end
+      end
+
+      if should_block
         if force
           puts "   ⚠️  FORCE MODE: Bypassing data loss protection!"
-          puts "   ⚠️  Dropping database with data (last_version_id: #{existing_last_version_id})!"
+          puts "   ⚠️  Dropping database with newer data (last_version_id: #{existing_last_version_id})!"
           puts "   Dropping existing database #{database_name}..."
           system("dropdb #{database_name}")
         else
-          puts "   ⚠️  WARNING: Existing database contains data (last_version_id: #{existing_last_version_id})!"
-          puts "   ⚠️  Dropping this database will cause DATA LOSS!"
+          puts "   ⚠️  WARNING: This would overwrite newer #{environment} data with older development data!"
           puts "   ⚠️  This operation is BLOCKED for safety."
           puts ""
           puts "   🔧 If you really need to recreate this database:"
@@ -1199,15 +1225,32 @@ ENV
           puts "   3. Or manually drop the database if you're certain"
           return false
         end
+      elsif has_local_data
+        puts "   ⚠️  WARNING: Existing database contains local data (records with id > 50000000)!"
+        puts "   ⚠️  This local data will be LOST when recreating from template!"
+        puts "   ⚠️  Consider extracting local data first before recreating."
+        puts ""
+        if force
+          puts "   ⚠️  FORCE MODE: Proceeding despite local data loss warning!"
+          puts "   Dropping existing database #{database_name}..."
+          system("dropdb #{database_name}")
+        else
+          puts "   🔧 If you want to proceed despite local data loss:"
+          puts "   1. Use FORCE=true to override this warning"
+          puts "   2. Or manually extract local data first"
+          return false
+        end
       else
-        puts "   ✅ Existing database appears empty (last_version_id: 0) - safe to drop"
+        puts "   ✅ Existing database can be safely recreated from template"
         puts "   Dropping existing database #{database_name}..."
         system("dropdb #{database_name}")
       end
     end
 
-    if region_id && environment == 'development'
-      puts "🔄 Creating #{database_name} from carambus_api_development template (region_id: #{region_id})..."
+    # Special case for local carambus scenario (no region_id) - should still use template
+    if (region_id && environment == 'development') || (scenario_name == 'carambus' && environment == 'development')
+      template_reason = region_id ? "region_id: #{region_id}" : "local carambus scenario"
+      puts "🔄 Creating #{database_name} from carambus_api_development template (#{template_reason})..."
 
       # Create database using template (much faster than dump/restore)
       if system("createdb #{database_name} --template=carambus_api_development")
@@ -1226,11 +1269,11 @@ ENV
 
           # Enable caching for StimulusReflex
           puts "   🔄 Enabling development caching..."
-          if system("bundle exec rails dev:cache")
-            puts "   ✅ Development caching enabled"
-          else
-            puts "   ⚠️  Warning: Failed to enable development caching"
-          end
+          # Create the caching-dev.txt file to enable caching
+          caching_file = File.join(rails_root, "tmp", "caching-dev.txt")
+          FileUtils.mkdir_p(File.dirname(caching_file))
+          FileUtils.touch(caching_file)
+          puts "   ✅ Development caching enabled (caching-dev.txt created)"
 
           # Reset version sequence using existing method
           puts "   🔄 Resetting version sequence..."
@@ -1265,25 +1308,12 @@ ENV
           end
         end
 
-        # Apply region filtering using the cleanup task
-        puts "   🔄 Applying region filtering (region_id: #{region_id})..."
-
-        # Set environment variable for region filtering
-        ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
-
-        # Change to the Rails root directory and run the cleanup task
-        if Dir.chdir(rails_root) do
-          # Set up Rails environment variables
-          ENV['RAILS_ENV'] = 'development'
-          ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
-
-          # Run the cleanup task
-          system("bundle exec rails cleanup:remove_non_region_records")
-        end
-          puts "   ✅ Applied region filtering"
-
-          # Update last_version_id after region filtering
-          puts "   🔄 Updating last_version_id after region filtering..."
+        # Apply region filtering using the cleanup task (only when region_id is not null)
+        if region_id.nil?
+          puts "   🔄 Skipping region filtering (region_id is null - no region restrictions)..."
+          
+          # Update last_version_id
+          puts "   🔄 Updating last_version_id..."
           Dir.chdir(rails_root) do
             ENV['RAILS_ENV'] = 'development'
             ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
@@ -1298,9 +1328,42 @@ ENV
           puts "✅ Development database created successfully: #{database_name}"
           true
         else
-          puts "❌ Failed to apply region filtering"
-          system("dropdb #{database_name}")
-          false
+          puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+
+          # Set environment variable for region filtering
+          ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+
+          # Change to the Rails root directory and run the cleanup task
+          if Dir.chdir(rails_root) do
+            # Set up Rails environment variables
+            ENV['RAILS_ENV'] = 'development'
+            ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
+
+            # Run the cleanup task
+            system("bundle exec rails cleanup:remove_non_region_records")
+          end
+            puts "   ✅ Applied region filtering"
+
+            # Update last_version_id after region filtering
+            puts "   🔄 Updating last_version_id after region filtering..."
+            Dir.chdir(rails_root) do
+              ENV['RAILS_ENV'] = 'development'
+              ENV['DATABASE_URL'] = "postgresql://localhost/#{database_name}"
+
+              if system("bundle exec rails runner 'last_version_id = Version.last.id; Setting.key_set_value(\"last_version_id\", last_version_id); puts \"Updated last_version_id to: \" + last_version_id.to_s'")
+                puts "   ✅ Updated last_version_id to current max version ID"
+              else
+                puts "   ⚠️  Warning: Failed to update last_version_id (continuing anyway)"
+              end
+            end
+
+            puts "✅ Development database created successfully: #{database_name}"
+            true
+          else
+            puts "❌ Failed to apply region filtering"
+            system("dropdb #{database_name}")
+            false
+          end
         end
       else
         puts "❌ Failed to create database from template"
