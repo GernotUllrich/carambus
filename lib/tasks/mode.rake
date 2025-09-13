@@ -1667,20 +1667,18 @@ namespace :mode do
     puma_rb_file = Rails.root.join('config', 'puma.rb')
 
     if File.exist?("#{puma_rb_file}.erb")
-      content = File.read("#{puma_rb_file}.erb")
+      template_content = File.read("#{puma_rb_file}.erb")
       
-      # Handle nil values by converting to empty string
-      basename = basename.to_s
-      rails_env = rails_env.to_s
+      # Use proper ERB processing instead of simple string replacement
+      template = ERB.new(template_content)
       
-      updated_content = content.gsub(
-        /<%= basename %>/,
-        basename
-      ).gsub(
-        /<%= rails_env %>/,
-        rails_env
-      )
-
+      # Set instance variables for ERB template
+      @basename = basename.to_s
+      @rails_env = rails_env.to_s
+      
+      # Generate the content using ERB
+      updated_content = template.result(binding)
+      
       File.write(puma_rb_file, updated_content)
       puts "✓ Updated puma.rb with parameters"
     else
