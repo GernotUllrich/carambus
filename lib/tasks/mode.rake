@@ -1040,21 +1040,30 @@ namespace :mode do
     puts "🔧 Generating templates for deployment..."
     puts "Basename: #{deploy_config[:basename]}"
     
-    # Read current configuration to get parameters
-    carambus_config = read_local_deployment_config('carambus.yml')
-    if carambus_config
-      domain = carambus_config.dig('production', 'carambus_domain') || 'carambus.de'
-      location_id = carambus_config.dig('production', 'location_id') || '1'
+    # Read scenario configuration to get parameters
+    scenario_config = read_scenario_config(deploy_config[:basename])
+    if scenario_config
+      domain = scenario_config.dig('environments', 'production', 'webserver_host') || 'carambus.de'
+      nginx_port = scenario_config.dig('environments', 'production', 'webserver_port') || '80'
+      ssl_enabled = scenario_config.dig('environments', 'production', 'ssl_enabled') ? 'true' : 'false'
+      location_id = scenario_config.dig('scenario', 'location_id') || '1'
     else
-      domain = 'carambus.de'
-      location_id = '1'
+      # Fallback to local configuration
+      carambus_config = read_local_deployment_config('carambus.yml')
+      if carambus_config
+        domain = carambus_config.dig('production', 'carambus_domain') || 'carambus.de'
+        location_id = carambus_config.dig('production', 'location_id') || '1'
+      else
+        domain = 'carambus.de'
+        location_id = '1'
+      end
+      nginx_port = '80'
+      ssl_enabled = 'false'
     end
     
     # Default parameters
     basename = deploy_config[:basename]
-    nginx_port = '80'
     puma_socket = basename == 'carambus_api' ? "puma-production.sock" : "puma-#{deploy_config[:rails_env]}.sock"
-    ssl_enabled = 'false'
     rails_env = deploy_config[:rails_env] || 'production'
     scoreboard_url = generate_scoreboard_url(location_id, basename, rails_env)
     
@@ -1935,6 +1944,15 @@ namespace :mode do
     config_file = Rails.root.join('config', filename)
     if File.exist?(config_file)
       YAML.load(File.read(config_file))
+    else
+      nil
+    end
+  end
+
+  def read_scenario_config(basename)
+    scenario_file = Rails.root.join('..', 'carambus_data', 'scenarios', basename, 'config.yml')
+    if File.exist?(scenario_file)
+      YAML.load(File.read(scenario_file))
     else
       nil
     end
