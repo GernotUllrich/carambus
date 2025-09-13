@@ -717,7 +717,7 @@ Rails.application.configure do
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = #{env_config['ssl_enabled'] || false}
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
@@ -2257,12 +2257,32 @@ ENV
         temp_script = "/tmp/reset_database.sh"
         script_content = <<~SCRIPT
           #!/bin/bash
+          set -e  # Exit on any error
+          
+          echo "🔄 Starting database reset process..."
+          
           # Remove existing application folders (including old trials)
+          echo "📁 Removing application folders..."
           sudo rm -rf /var/www/#{basename}
           sudo rm -rf /var/www/carambus_#{basename}
-          # Drop and recreate database
-          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};"
+          
+          # Drop and recreate database with verification
+          echo "🗑️  Dropping existing database..."
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
+          
+          echo "🆕 Creating new database..."
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
+          
+          # Verify database was created successfully
+          echo "🔍 Verifying database creation..."
+          if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
+            echo "✅ Database #{production_database} created successfully"
+          else
+            echo "❌ Database creation failed"
+            exit 1
+          fi
+          
+          echo "✅ Database reset completed successfully"
         SCRIPT
 
         # Write script to server
@@ -2271,26 +2291,45 @@ ENV
           puts "   ✅ Database reset script created"
 
           # Execute database reset
-          if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}'")
+          reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
+          if $?.success?
             puts "   ✅ Application folders removed (including old trials) and production database recreated"
+            puts "   📋 Reset output: #{reset_output}" if reset_output.include?("❌")
+          else
+            puts "   ❌ Database reset failed"
+            puts "   📋 Error output: #{reset_output}"
+            return false
+          end
 
-            # Restore database from dump
-            puts "   📥 Restoring database from dump..."
-            # Replace user references in the dump to avoid permission errors
-            restore_cmd = "gunzip -c #{temp_dump_path} | sed 's/OWNER TO gullrich/OWNER TO www_data/g' | sudo -u postgres psql #{production_database}"
-
-            if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'")
-              puts "   ✅ Database restored successfully"
-
+          # Restore database from dump
+          puts "   📥 Restoring database from dump..."
+          
+          # Simply load the dump and ignore user warnings
+          restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
+          
+          restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
+          if $?.success?
+            puts "   ✅ Database restored successfully"
+            
+            # Verify database was restored correctly
+            puts "   🔍 Verifying database restore..."
+            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
+            verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
+            
+            if verify_output.include?("19") && verify_output.include?("(1 row)")
+              puts "   ✅ Database verification successful - 19 regions found"
+              
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
               puts "   🧹 Temporary files cleaned up"
             else
-              puts "   ❌ Database restore failed"
+              puts "   ❌ Database verification failed - regions count: #{verify_output}"
+              puts "   📋 Restore output: #{restore_output}"
               return false
             end
           else
-            puts "   ❌ Database reset failed"
+            puts "   ❌ Database restore failed"
+            puts "   📋 Error output: #{restore_output}"
             return false
           end
         else
