@@ -975,7 +975,7 @@ ENV
       puts "Creating dump on production server #{ssh_host}:#{ssh_port}..."
       remote_dump_file = "/tmp/#{scenario_name}_#{environment}_#{timestamp}.sql.gz"
 
-      # Create dump on remote server
+      # Create dump on remote server (include schema and data)
       dump_cmd = "pg_dump --no-owner --no-privileges #{database_name} | gzip > #{remote_dump_file}"
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{dump_cmd}'")
         puts "   ✅ Dump created on remote server"
@@ -1001,7 +1001,7 @@ ENV
         false
       end
     else
-      # For development: create dump locally
+      # For development: create dump locally (include schema and data)
       puts "Creating dump of #{database_name}..."
       if system("pg_dump --no-owner --no-privileges #{database_name} | gzip > #{dump_file}")
         puts "✅ Database dump created: #{File.basename(dump_file)}"
@@ -2096,7 +2096,7 @@ ENV
 
     # Create dump from development database
     puts "   📦 Creating dump from #{dev_database_name}..."
-    # Use --no-owner --no-privileges to avoid permission issues, include schema and data by default
+    # Use --no-owner --no-privileges to avoid permission issues, include schema and data
     if system("pg_dump --no-owner --no-privileges #{dev_database_name} | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
@@ -2151,7 +2151,7 @@ ENV
       end
         puts "   ✅ Applied region filtering"
 
-        # Create dump from filtered database
+        # Create dump from filtered database (include schema and data)
         if system("pg_dump --no-owner --no-privileges #{temp_db_name} | gzip > #{dump_file}")
           puts "✅ Region-filtered production dump created: #{File.basename(dump_file)}"
           puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
@@ -2186,7 +2186,7 @@ ENV
     timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
     dump_file = File.join(dump_dir, "#{scenario_name}_production_#{timestamp}.sql.gz")
 
-    # Create dump from carambus_api_development
+    # Create dump from carambus_api_development (include schema and data)
     puts "Creating dump of carambus_api_development..."
     if system("pg_dump --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"

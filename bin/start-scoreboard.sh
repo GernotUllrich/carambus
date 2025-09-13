@@ -13,6 +13,9 @@ sleep 2
 wmctrl -r "panel" -b add,hidden 2>/dev/null || true
 wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
+# Clean up old chromium data to prevent disk space issues
+sudo rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
+
 # Start browser in fullscreen with additional flags to handle display issues
 /usr/bin/chromium-browser \
   --start-fullscreen \
@@ -20,6 +23,18 @@ wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
   --user-data-dir=/tmp/chromium-scoreboard \
   --disable-features=VizDisplayCompositor \
   --disable-dev-shm-usage \
+  --disable-background-timer-throttling \
+  --disable-backgrounding-occluded-windows \
+  --disable-renderer-backgrounding \
+  --disable-background-networking \
+  --disable-sync \
+  --disable-default-apps \
+  --disable-extensions \
+  --disable-plugins \
+  --disable-translate \
+  --disable-logging \
+  --disable-gpu-logging \
+  --silent-debugger-extension-api \
   --app="$(cat $(dirname "$0")/../config/scoreboard_url)" \
   >/dev/null 2>&1 &
 
