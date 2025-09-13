@@ -4,6 +4,14 @@ module FiltersHelper
   def apply_filters(query, columns, search_query)
     searches = @sSearch.to_s.split(/[,&\s]+/)
     search_matches = []
+    
+    # Handle simple text searches using raw_sql if no colons are found
+    if searches.all? { |search| !/:/.match?(search) } && search_query.present?
+      # Use raw_sql for simple text searches
+      search_term = searches.join(' ')
+      return query.where(search_query, search: "%#{search_term}%", isearch: search_term.to_i)
+    end
+    
     searches.each do |search|
       if /:/.match?(search)
         key, value = search.split(":")

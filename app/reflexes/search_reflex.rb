@@ -35,6 +35,9 @@ class SearchReflex < ApplicationReflex
     # Get search parameters from session
     search_params = session["#{model_name.underscore}_search"].symbolize_keys
 
+    # Set @sSearch for FiltersHelper
+    @sSearch = search_params[:sSearch]
+
     # Perform search
     results = SearchService.call(@model.search_hash(search_params))
 
