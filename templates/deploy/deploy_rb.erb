@@ -11,13 +11,19 @@ set :deploy_to, "/var/www/#{fetch(:basename)}"
 set :branch, "<%= @scenario['branch'] %>"
 
 # Default value for :linked_files is []
-append :linked_files, "config/database.yml", "config/carambus.yml"
+append :linked_files, "config/database.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb"
 
 # Default value for linked_dirs is []
-append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials"
+append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
 
 # Default value for keep_releases is 5
 set :keep_releases, 5
+
+# Bundler optimizations
+set :bundle_path, -> { shared_path.join('bundle') }
+set :bundle_without, %w{development test}.join(' ')
+set :bundle_jobs, 4
+set :bundle_flags, '--deployment --quiet'
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure

@@ -4,8 +4,14 @@ namespace :deploy do
   desc "Deploy NGINX configuration"
   task :nginx_config do
     on roles(:app) do
-      # Upload local nginx.conf to server
-      upload! "config/nginx.conf", "#{shared_path}/config/nginx.conf"
+      # Check if nginx.conf already exists in shared directory (from scenario preparation)
+      nginx_conf_shared = "#{shared_path}/config/nginx.conf"
+      if test("[ -f #{nginx_conf_shared} ]")
+        puts "✅ nginx.conf already exists in shared directory (from scenario preparation)"
+      else
+        # Upload local nginx.conf to server (fallback for manual deployments)
+        upload! "config/nginx.conf", nginx_conf_shared
+      end
       
       nginx_config_file = "#{shared_path}/config/nginx.conf"
       nginx_target = "/etc/nginx/sites-available/#{fetch(:basename)}"
@@ -29,8 +35,14 @@ namespace :deploy do
   desc "Deploy Puma service configuration"
   task :puma_service_config do
     on roles(:app) do
-      # Upload local puma.service to server
-      upload! "config/puma.service", "#{shared_path}/config/puma.service"
+      # Check if puma.service already exists in shared directory (from scenario preparation)
+      puma_service_shared = "#{shared_path}/config/puma.service"
+      if test("[ -f #{puma_service_shared} ]")
+        puts "✅ puma.service already exists in shared directory (from scenario preparation)"
+      else
+        # Upload local puma.service to server (fallback for manual deployments)
+        upload! "config/puma.service", puma_service_shared
+      end
       
       puma_service_file = "#{shared_path}/config/puma.service"
       puma_target = "/etc/systemd/system/puma-#{fetch(:basename)}.service"
@@ -51,8 +63,14 @@ namespace :deploy do
   desc "Deploy Puma.rb configuration"
   task :puma_rb_config do
     on roles(:app) do
-      # Upload local puma.rb to server
-      upload! "config/puma.rb", "#{shared_path}/config/puma.rb"
+      # Check if puma.rb already exists in shared directory (from scenario preparation)
+      puma_rb_shared = "#{shared_path}/config/puma.rb"
+      if test("[ -f #{puma_rb_shared} ]")
+        puts "✅ puma.rb already exists in shared directory (from scenario preparation)"
+      else
+        # Upload local puma.rb to server (fallback for manual deployments)
+        upload! "config/puma.rb", puma_rb_shared
+      end
       
       puma_rb_file = "#{shared_path}/config/puma.rb"
       puma_rb_target = "#{shared_path}/puma.rb"

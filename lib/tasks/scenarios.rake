@@ -1145,12 +1145,14 @@ ENV
     # Step 1: Create Rails root folder (if it doesn't exist)
     puts "\n📁 Step 1: Ensuring Rails root folder exists..."
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    rails_root_created = false
     unless Dir.exist?(rails_root)
       puts "   Rails root folder not found, creating it..."
       unless create_rails_root_folder(scenario_name)
         puts "❌ Failed to create Rails root folder"
         return false
       end
+      rails_root_created = true
     else
       puts "   ✅ Rails root folder already exists"
     end
@@ -1198,8 +1200,19 @@ ENV
       end
     end
 
-    # Step 4: Create actual development database from template
-    puts "\n🗄️  Step 4: Creating development database..."
+    # Step 4: Install dependencies (if Rails root was created or dependencies are missing)
+    puts "\n📦 Step 4: Checking and installing dependencies..."
+    if rails_root_created || dependencies_missing?(rails_root)
+      unless install_scenario_dependencies(rails_root)
+        puts "❌ Failed to install dependencies"
+        return false
+      end
+    else
+      puts "   ✅ Dependencies already installed"
+    end
+
+    # Step 5: Create actual development database from template
+    puts "\n🗄️  Step 5: Creating development database..."
     unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
@@ -1210,6 +1223,46 @@ ENV
     puts "   Environment: #{environment}"
     puts "   Database: #{scenario_name}_#{environment}"
     puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
+
+    true
+  end
+
+  def dependencies_missing?(rails_root)
+    # Check if node_modules directory exists
+    node_modules_path = File.join(rails_root, 'node_modules')
+    unless Dir.exist?(node_modules_path)
+      puts "   📦 node_modules directory not found"
+      return true
+    end
+
+    # Check if Gemfile.lock exists (indicates bundle install was run)
+    gemfile_lock_path = File.join(rails_root, 'Gemfile.lock')
+    unless File.exist?(gemfile_lock_path)
+      puts "   📦 Gemfile.lock not found"
+      return true
+    end
+
+    false
+  end
+
+  def install_scenario_dependencies(rails_root)
+    puts "Installing dependencies for scenario..."
+    
+    # Install Ruby dependencies
+    puts "   📦 Installing Ruby dependencies (bundle install)..."
+    unless system("cd #{rails_root} && bundle install")
+      puts "   ❌ Failed to install Ruby dependencies"
+      return false
+    end
+    puts "   ✅ Ruby dependencies installed"
+
+    # Install JavaScript dependencies
+    puts "   📦 Installing JavaScript dependencies (yarn install)..."
+    unless system("cd #{rails_root} && yarn install")
+      puts "   ❌ Failed to install JavaScript dependencies"
+      return false
+    end
+    puts "   ✅ JavaScript dependencies installed"
 
     true
   end
@@ -2466,6 +2519,72 @@ ENV
       end
     else
       puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
+      return false
+    end
+
+    # Upload nginx.conf
+    nginx_conf_path = File.join(production_dir, 'nginx.conf')
+    if File.exist?(nginx_conf_path)
+      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded nginx.conf"
+      else
+        puts "   ❌ Failed to upload nginx.conf: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
+      return false
+    end
+
+    # Upload puma.service
+    puma_service_path = File.join(production_dir, 'puma.service')
+    if File.exist?(puma_service_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.service"
+      else
+        puts "   ❌ Failed to upload puma.service: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.service not found: #{puma_service_path}"
+      return false
+    end
+
+    # Upload puma.rb
+    puma_rb_path = File.join(production_dir, 'puma.rb')
+    if File.exist?(puma_rb_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.rb"
+      else
+        puts "   ❌ Failed to upload puma.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.rb not found: #{puma_rb_path}"
+      return false
+    end
+
+    # Upload production.rb
+    production_rb_path = File.join(production_dir, 'production.rb')
+    if File.exist?(production_rb_path)
+      # Create environments directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
+      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded production.rb"
+      else
+        puts "   ❌ Failed to upload production.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ production.rb not found: #{production_rb_path}"
       return false
     end
 
