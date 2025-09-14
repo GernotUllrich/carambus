@@ -48,6 +48,7 @@
 /config/puma.rb
 /config/puma.service
 /config/scoreboard_url
+/config/cable.yml
 
 # Ignore credentials (should be in external data directory)
 /config/credentials/
