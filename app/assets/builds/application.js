@@ -20808,10 +20808,399 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
     // }
   };
 
-  // controllers/scoreboard_controller.js
-  var scoreboard_controller_exports = {};
-  __export(scoreboard_controller_exports, {
-    default: () => scoreboard_controller_default
+  // controllers/search_parser_controller.js
+  var search_parser_controller_exports = {};
+  __export(search_parser_controller_exports, {
+    default: () => search_parser_controller_default
+  });
+  var search_parser_controller_default = class extends Controller {
+    static targets = ["field"];
+    connect() {
+      if (this.hasFieldTargets) {
+        this.parseInitialSearch();
+      }
+    }
+    parseInitialSearch() {
+      const searchInput = this.element.value;
+      if (!searchInput) return;
+      const components = {};
+      const regex = /(\w+):(\S+)|(\S+)/g;
+      let match;
+      while ((match = regex.exec(searchInput)) !== null) {
+        const [, field, value, plainText] = match;
+        if (field && value) {
+          const fieldInput = this.fieldTargets.find(
+            (target) => target.dataset.fieldName === field.toLowerCase()
+          );
+          if (fieldInput) {
+            fieldInput.value = value;
+          }
+        } else if (plainText) {
+          const generalInput = this.fieldTargets.find(
+            (target) => target.dataset.fieldName === "general"
+          );
+          if (generalInput) {
+            generalInput.value = plainText;
+          }
+        }
+      }
+    }
+    parseInput(event) {
+    }
+  };
+
+  // controllers/sidebar_controller.js
+  var sidebar_controller_exports = {};
+  __export(sidebar_controller_exports, {
+    default: () => sidebar_controller_default
+  });
+  var sidebar_controller_default = class extends Controller {
+    static targets = ["nav", "submenu", "icon", "content", "showButton"];
+    connect() {
+      const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+      const isMobile = window.innerWidth < 768;
+      if (isMobile || isSidebarCollapsed) {
+        document.documentElement.classList.add("sidebar-collapsed");
+      } else {
+        document.documentElement.classList.remove("sidebar-collapsed");
+      }
+    }
+    toggle(event) {
+      const submenu = event.currentTarget.nextElementSibling;
+      submenu.classList.toggle("hidden");
+      event.currentTarget.querySelector("svg").classList.toggle("rotate-180");
+    }
+    collapse(event) {
+      void this.navTarget.offsetHeight;
+      requestAnimationFrame(() => {
+        document.documentElement.classList.toggle("sidebar-collapsed");
+        const isCollapsed = document.documentElement.classList.contains("sidebar-collapsed");
+        localStorage.setItem("sidebarCollapsed", isCollapsed.toString());
+      });
+    }
+    emptyState() {
+      return `
+      <div class="text-center py-8 px-4">
+        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V19.5a2.25 2.25 0 0 0 2.25 2.25h.75m0-3.75h3.75" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No items found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating a new item.</p>
+      </div>
+    `;
+    }
+  };
+
+  // controllers/table_monitor_controller.js
+  var table_monitor_controller_exports = {};
+  __export(table_monitor_controller_exports, {
+    default: () => table_monitor_controller_default
+  });
+  var table_monitor_controller_default = class extends application_controller_default {
+    /*
+     * Regular Stimulus lifecycle methods
+     * Learn more at: https://stimulusjs.org/reference/lifecycle-callbacks
+     *
+     * If you intend to use this controller as a regular stimulus controller as well,
+     * make sure any Stimulus lifecycle methods overridden in ApplicationController call super.
+     *
+     * Important:
+     * By default, StimulusReflex overrides the -connect- method so make sure you
+     * call super if you intend to do anything else when this controller connects.
+    */
+    connect() {
+      super.connect();
+    }
+    /* Reflex specific lifecycle methods.
+     *
+     * For every method defined in your Reflex class, a matching set of lifecycle methods become available
+     * in this javascript controller. These are optional, so feel free to delete these stubs if you don't
+     * need them.
+     *
+     * Important:
+     * Make sure to add data-controller="example" to your markup alongside
+     * data-reflex="Example#dance" for the lifecycle methods to fire properly.
+     *
+     * Example:
+     *
+     *   <a href="#" data-reflex="click->Example#dance" data-controller="example">Dance!</a>
+     *
+     * Arguments:
+     *
+     *   element - the element that triggered the reflex
+     *             may be different than the Stimulus controller's this.element
+     *
+     *   reflex - the name of the reflex e.g. "Example#dance"
+     *
+     *   error/noop - the error message (for reflexError), otherwise null
+     *
+     *   reflexId - a UUID4 or developer-provided unique identifier for each Reflex
+     */
+    key_a() {
+      console.log("KEY_A called");
+      this.stimulate("TableMonitor#key_a");
+    }
+    key_b() {
+      console.log("KEY_B called");
+      this.stimulate("TableMonitor#key_b");
+    }
+    key_c() {
+      console.log("KEY_C");
+      this.stimulate("TableMonitor#key_c");
+    }
+    key_d() {
+      console.log("KEY_D");
+      this.stimulate("TableMonitor#key_d");
+    }
+    back() {
+      window.history.back();
+    }
+    home() {
+      this.stimulate("TableMonitor#home");
+    }
+    // Assuming you create a "Example#dance" action in your Reflex class
+    // you'll be able to use the following lifecycle methods:
+    // beforeDance(element, reflex, noop, reflexId) {
+    //  element.innerText = 'Putting dance shoes on...'
+    // }
+    // danceSuccess(element, reflex, noop, reflexId) {
+    //   element.innerText = 'Danced like no one was watching! Was someone watching?'
+    // }
+    // danceError(element, reflex, error, reflexId) {
+    //   console.error('danceError', error);
+    //   element.innerText = "Couldn't dance!"
+    // }
+  };
+
+  // controllers/tabmon_controller.js
+  var tabmon_controller_exports = {};
+  __export(tabmon_controller_exports, {
+    default: () => tabmon_controller_default
+  });
+  var tabmon_controller_default = class extends application_controller_default {
+    connect() {
+      super.connect();
+      console.log("Tabmon controller connected!");
+      this.initializeClientState();
+    }
+    initializeClientState() {
+      this.clientState = {
+        scores: {},
+        currentPlayer: "playera",
+        pendingUpdates: /* @__PURE__ */ new Set(),
+        updateHistory: []
+      };
+      console.log("Tabmon client state initialized:", this.clientState);
+    }
+    // Optimistic score update - immediate visual feedback
+    updateScoreOptimistically(playerId, points, operation = "add") {
+      console.log(`Tabmon updating score: ${playerId} ${operation} ${points}`);
+      const scoreElement = document.querySelector(`[data-player="${playerId}"] .score-display`);
+      if (!scoreElement) {
+        console.error(`Score element not found for player: ${playerId}`);
+        return;
+      }
+      const currentScore = parseInt(scoreElement.textContent) || 0;
+      let newScore;
+      if (operation === "add") {
+        newScore = currentScore + points;
+      } else if (operation === "subtract") {
+        newScore = Math.max(0, currentScore - points);
+      } else if (operation === "set") {
+        newScore = points;
+      }
+      console.log(`Tabmon score change: ${currentScore} -> ${newScore}`);
+      this.clientState.updateHistory.push({
+        playerId,
+        previousScore: currentScore,
+        newScore,
+        operation,
+        timestamp: Date.now()
+      });
+      scoreElement.textContent = newScore;
+      scoreElement.classList.add("score-updated");
+      setTimeout(() => {
+        scoreElement.classList.remove("score-updated");
+      }, 500);
+      this.clientState.scores[playerId] = newScore;
+      this.addPendingIndicator(scoreElement);
+      console.log(`Tabmon optimistic update: ${playerId} ${operation} ${points} = ${newScore}`);
+    }
+    // Optimistic player change - immediate visual feedback
+    changePlayerOptimistically() {
+      console.log("Tabmon changing player optimistically");
+      this.clientState.updateHistory.push({
+        type: "player_change",
+        previousPlayer: this.clientState.currentPlayer,
+        timestamp: Date.now()
+      });
+      this.clientState.currentPlayer = this.clientState.currentPlayer === "playera" ? "playerb" : "playera";
+      const currentPlayerSpan = document.getElementById("current-player");
+      if (currentPlayerSpan) {
+        currentPlayerSpan.textContent = this.clientState.currentPlayer === "playera" ? "Player A" : "Player B";
+      }
+      const centerControls = document.querySelector(".bg-gray-700");
+      if (centerControls) {
+        this.addPendingIndicator(centerControls);
+      }
+      console.log(`Tabmon optimistic player change: ${this.clientState.currentPlayer}`);
+    }
+    // Add visual indicator for pending updates
+    addPendingIndicator(element) {
+      if (element) {
+        element.classList.add("pending-update");
+        console.log("Tabmon added pending indicator to:", element);
+      }
+    }
+    // Remove pending indicator
+    removePendingIndicator(element) {
+      if (element) {
+        element.classList.remove("pending-update");
+        console.log("Tabmon removed pending indicator from:", element);
+      }
+    }
+    // Get current active player
+    getCurrentActivePlayer() {
+      return this.clientState.currentPlayer || "playera";
+    }
+    // Revert last score change
+    revertLastScoreChange() {
+      const lastUpdate = this.clientState.updateHistory.pop();
+      if (lastUpdate && lastUpdate.type !== "player_change") {
+        this.updateScoreOptimistically(lastUpdate.playerId, lastUpdate.previousScore, "set");
+        console.log(`Tabmon reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore}`);
+      }
+    }
+    /* Reflex methods for control buttons */
+    add_n() {
+      const n2 = parseInt(this.element.dataset.n) || 1;
+      const tableMonitorId = this.element.dataset.id;
+      console.log(`Tabmon add_n called with n=${n2}`);
+      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n2, "add");
+      this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`);
+      this.stimulate("TableMonitor#add_n", this.element);
+    }
+    minus_n() {
+      const n2 = parseInt(this.element.dataset.n) || 1;
+      const tableMonitorId = this.element.dataset.id;
+      console.log(`Tabmon minus_n called with n=${n2}`);
+      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n2, "subtract");
+      this.clientState.pendingUpdates.add(`minus_n_${tableMonitorId}`);
+      this.stimulate("TableMonitor#minus_n", this.element);
+    }
+    undo() {
+      const tableMonitorId = this.element.dataset.id;
+      console.log("Tabmon undo called");
+      this.revertLastScoreChange();
+      this.clientState.pendingUpdates.add(`undo_${tableMonitorId}`);
+      this.stimulate("TableMonitor#undo");
+    }
+    next_step() {
+      const tableMonitorId = this.element.dataset.id;
+      console.log("Tabmon next_step called");
+      this.changePlayerOptimistically();
+      this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`);
+      this.stimulate("TableMonitor#next_step");
+    }
+    numbers() {
+      console.log("Tabmon numbers called");
+      this.stimulate("TableMonitor#numbers");
+    }
+    force_next_state() {
+      console.log("Tabmon force_next_state called");
+      this.stimulate("TableMonitor#force_next_state");
+    }
+    stop() {
+      console.log("Tabmon stop called");
+      this.stimulate("TableMonitor#stop");
+    }
+    timeout() {
+      console.log("Tabmon timeout called");
+      this.stimulate("TableMonitor#timeout");
+    }
+    pause() {
+      console.log("Tabmon pause called");
+      this.stimulate("TableMonitor#pause");
+    }
+    play() {
+      console.log("Tabmon play called");
+      this.stimulate("TableMonitor#play");
+    }
+    // Lifecycle methods for debugging and error handling
+    beforeReflex(element, reflex, noop2, id) {
+      console.log(`Tabmon beforeReflex: ${reflex}`);
+    }
+    reflexSuccess(element, reflex, noop2, id) {
+      console.log(`Tabmon reflexSuccess: ${reflex}`);
+      this.removeAllPendingIndicators();
+      const tableMonitorId = element.dataset.id;
+      if (reflex.includes("add_n")) {
+        this.clientState.pendingUpdates.delete(`add_n_${tableMonitorId}`);
+      } else if (reflex.includes("minus_n")) {
+        this.clientState.pendingUpdates.delete(`minus_n_${tableMonitorId}`);
+      } else if (reflex.includes("undo")) {
+        this.clientState.pendingUpdates.delete(`undo_${tableMonitorId}`);
+      } else if (reflex.includes("next_step")) {
+        this.clientState.pendingUpdates.delete(`next_step_${tableMonitorId}`);
+      }
+    }
+    reflexError(element, reflex, error3, id) {
+      console.error(`Tabmon reflexError: ${reflex}`, error3);
+      this.rollbackOptimisticChanges(reflex);
+      this.showErrorMessage(`Server error: ${error3}`);
+    }
+    // Rollback optimistic changes when server validation fails
+    rollbackOptimisticChanges(reflex) {
+      console.log(`Tabmon rolling back optimistic changes for: ${reflex}`);
+      if (reflex.includes("add_n") || reflex.includes("minus_n")) {
+        this.revertLastScoreChange();
+      } else if (reflex.includes("next_step")) {
+        const lastUpdate = this.clientState.updateHistory.pop();
+        if (lastUpdate && lastUpdate.type === "player_change") {
+          this.clientState.currentPlayer = lastUpdate.previousPlayer;
+          const currentPlayerSpan = document.getElementById("current-player");
+          if (currentPlayerSpan) {
+            currentPlayerSpan.textContent = this.clientState.currentPlayer === "playera" ? "Player A" : "Player B";
+          }
+        }
+      }
+      this.removeAllPendingIndicators();
+    }
+    // Remove all pending indicators
+    removeAllPendingIndicators() {
+      document.querySelectorAll(".pending-update").forEach((el) => {
+        this.removePendingIndicator(el);
+      });
+    }
+    // Show error message to user
+    showErrorMessage(message) {
+      console.error(`Tabmon Error: ${message}`);
+      const errorElement = document.createElement("div");
+      errorElement.className = "error-message";
+      errorElement.textContent = message;
+      errorElement.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ef4444;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 9999;
+    `;
+      document.body.appendChild(errorElement);
+      setTimeout(() => {
+        if (errorElement.parentNode) {
+          errorElement.parentNode.removeChild(errorElement);
+        }
+      }, 3e3);
+    }
+  };
+
+  // controllers/tippy_controller.js
+  var tippy_controller_exports = {};
+  __export(tippy_controller_exports, {
+    default: () => tippy_controller_default
   });
 
   // ../../node_modules/stimulus/dist/stimulus.js
@@ -21291,438 +21680,6 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
   Controller2.targets = [];
   Controller2.outlets = [];
   Controller2.values = {};
-
-  // controllers/scoreboard_controller.js
-  var scoreboard_controller_default = class extends Controller2 {
-    connect() {
-      console.log("Scoreboard controller connected!");
-      this.initializeClientState();
-      this.isDemo = this.element.classList.contains("demo-scoreboard");
-      console.log("Demo mode:", this.isDemo);
-    }
-    initializeClientState() {
-      this.clientState = {
-        scores: {},
-        currentPlayer: "playera",
-        pendingUpdates: /* @__PURE__ */ new Set(),
-        updateHistory: []
-      };
-      console.log("Client state initialized:", this.clientState);
-    }
-    // Optimistic score update - immediate visual feedback
-    updateScoreOptimistically(playerId, points, operation = "add") {
-      console.log(`Updating score: ${playerId} ${operation} ${points}`);
-      const scoreElement = document.querySelector(`[data-player="${playerId}"] .score-display`);
-      if (!scoreElement) {
-        console.error(`Score element not found for player: ${playerId}`);
-        return;
-      }
-      const currentScore = parseInt(scoreElement.textContent) || 0;
-      let newScore;
-      if (operation === "add") {
-        newScore = currentScore + points;
-      } else if (operation === "subtract") {
-        newScore = Math.max(0, currentScore - points);
-      } else if (operation === "set") {
-        newScore = points;
-      }
-      console.log(`Score change: ${currentScore} -> ${newScore}`);
-      this.clientState.updateHistory.push({
-        playerId,
-        previousScore: currentScore,
-        newScore,
-        operation,
-        timestamp: Date.now()
-      });
-      scoreElement.textContent = newScore;
-      scoreElement.classList.add("score-updated");
-      setTimeout(() => {
-        scoreElement.classList.remove("score-updated");
-      }, 500);
-      this.clientState.scores[playerId] = newScore;
-      this.addPendingIndicator(scoreElement);
-      if (this.isDemo) {
-        setTimeout(() => {
-          this.removePendingIndicator(scoreElement);
-          this.clientState.pendingUpdates.delete(`demo_${playerId}`);
-        }, 1e3 + Math.random() * 2e3);
-      }
-      console.log(`Optimistic update: ${playerId} ${operation} ${points} = ${newScore}`);
-    }
-    // Optimistic player change - immediate visual feedback
-    changePlayerOptimistically() {
-      console.log("Changing player optimistically");
-      this.clientState.updateHistory.push({
-        type: "player_change",
-        previousPlayer: this.clientState.currentPlayer,
-        timestamp: Date.now()
-      });
-      this.clientState.currentPlayer = this.clientState.currentPlayer === "playera" ? "playerb" : "playera";
-      const currentPlayerSpan = document.getElementById("current-player");
-      if (currentPlayerSpan) {
-        currentPlayerSpan.textContent = this.clientState.currentPlayer === "playera" ? "Player A" : "Player B";
-      }
-      const centerControls = document.querySelector(".bg-gray-700");
-      if (centerControls) {
-        this.addPendingIndicator(centerControls);
-      }
-      if (this.isDemo) {
-        setTimeout(() => {
-          this.removeAllPendingIndicators();
-          this.clientState.pendingUpdates.delete("demo_player_change");
-        }, 1e3 + Math.random() * 2e3);
-      }
-      console.log(`Optimistic player change: ${this.clientState.currentPlayer}`);
-    }
-    // Add visual indicator for pending updates
-    addPendingIndicator(element) {
-      if (element) {
-        element.classList.add("pending-update");
-        console.log("Added pending indicator to:", element);
-      }
-    }
-    // Remove pending indicator
-    removePendingIndicator(element) {
-      if (element) {
-        element.classList.remove("pending-update");
-        console.log("Removed pending indicator from:", element);
-      }
-    }
-    key_a(event) {
-      console.log("key_a triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      this.updateScoreOptimistically("playera", 1, "add");
-      this.clientState.pendingUpdates.add(`key_a_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log("Demo: key_a triggered with optimistic update!");
-      } else {
-        console.log("Real scoreboard: key_a triggered!");
-      }
-    }
-    key_b(event) {
-      console.log("key_b triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      this.updateScoreOptimistically("playerb", 1, "add");
-      this.clientState.pendingUpdates.add(`key_b_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log("Demo: key_b triggered with optimistic update!");
-      } else {
-        console.log("Real scoreboard: key_b triggered!");
-      }
-    }
-    undo(event) {
-      console.log("undo triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      this.revertLastScoreChange();
-      this.clientState.pendingUpdates.add(`undo_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log("Demo: undo triggered with optimistic update!");
-      } else {
-        console.log("Real scoreboard: undo triggered!");
-      }
-    }
-    add_n(event) {
-      console.log("add_n triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      const points = parseInt(event.currentTarget.dataset.n) || 1;
-      this.updateScoreOptimistically(this.getCurrentActivePlayer(), points, "add");
-      this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log(`Demo: add_n(${points}) triggered with optimistic update!`);
-      } else {
-        console.log(`Real scoreboard: add_n(${points}) triggered!`);
-      }
-    }
-    minus_n(event) {
-      console.log("minus_n triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      const points = parseInt(event.currentTarget.dataset.n) || 1;
-      this.updateScoreOptimistically(this.getCurrentActivePlayer(), points, "subtract");
-      this.clientState.pendingUpdates.add(`minus_n_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log(`Demo: minus_n(${points}) triggered with optimistic update!`);
-      } else {
-        console.log(`Real scoreboard: minus_n(${points}) triggered!`);
-      }
-    }
-    next_step(event) {
-      console.log("next_step triggered!");
-      event.preventDefault();
-      const tableMonitorId = event.currentTarget.dataset.id;
-      this.changePlayerOptimistically();
-      this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`);
-      if (this.isDemo) {
-        console.log("Demo: next_step triggered with optimistic update!");
-      } else {
-        console.log("Real scoreboard: next_step triggered!");
-      }
-    }
-    numbers(event) {
-      console.log("numbers triggered!");
-      event.preventDefault();
-      if (this.isDemo) {
-        console.log("Demo: numbers triggered!");
-      } else {
-        console.log("Real scoreboard: numbers triggered!");
-      }
-    }
-    // Helper methods
-    getCurrentActivePlayer() {
-      return this.clientState.currentPlayer || "playera";
-    }
-    revertLastScoreChange() {
-      const lastUpdate = this.clientState.updateHistory.pop();
-      if (lastUpdate && lastUpdate.type !== "player_change") {
-        this.updateScoreOptimistically(lastUpdate.playerId, lastUpdate.previousScore, "set");
-        console.log(`Reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore}`);
-      }
-    }
-    removeAllPendingIndicators() {
-      document.querySelectorAll(".pending-update").forEach((el) => {
-        this.removePendingIndicator(el);
-      });
-    }
-  };
-
-  // controllers/search_parser_controller.js
-  var search_parser_controller_exports = {};
-  __export(search_parser_controller_exports, {
-    default: () => search_parser_controller_default
-  });
-  var search_parser_controller_default = class extends Controller {
-    static targets = ["field"];
-    connect() {
-      if (this.hasFieldTargets) {
-        this.parseInitialSearch();
-      }
-    }
-    parseInitialSearch() {
-      const searchInput = this.element.value;
-      if (!searchInput) return;
-      const components = {};
-      const regex = /(\w+):(\S+)|(\S+)/g;
-      let match;
-      while ((match = regex.exec(searchInput)) !== null) {
-        const [, field, value, plainText] = match;
-        if (field && value) {
-          const fieldInput = this.fieldTargets.find(
-            (target) => target.dataset.fieldName === field.toLowerCase()
-          );
-          if (fieldInput) {
-            fieldInput.value = value;
-          }
-        } else if (plainText) {
-          const generalInput = this.fieldTargets.find(
-            (target) => target.dataset.fieldName === "general"
-          );
-          if (generalInput) {
-            generalInput.value = plainText;
-          }
-        }
-      }
-    }
-    parseInput(event) {
-    }
-  };
-
-  // controllers/sidebar_controller.js
-  var sidebar_controller_exports = {};
-  __export(sidebar_controller_exports, {
-    default: () => sidebar_controller_default
-  });
-  var sidebar_controller_default = class extends Controller {
-    static targets = ["nav", "submenu", "icon", "content", "showButton"];
-    connect() {
-      const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-      const isMobile = window.innerWidth < 768;
-      if (isMobile || isSidebarCollapsed) {
-        document.documentElement.classList.add("sidebar-collapsed");
-      } else {
-        document.documentElement.classList.remove("sidebar-collapsed");
-      }
-    }
-    toggle(event) {
-      const submenu = event.currentTarget.nextElementSibling;
-      submenu.classList.toggle("hidden");
-      event.currentTarget.querySelector("svg").classList.toggle("rotate-180");
-    }
-    collapse(event) {
-      void this.navTarget.offsetHeight;
-      requestAnimationFrame(() => {
-        document.documentElement.classList.toggle("sidebar-collapsed");
-        const isCollapsed = document.documentElement.classList.contains("sidebar-collapsed");
-        localStorage.setItem("sidebarCollapsed", isCollapsed.toString());
-      });
-    }
-    emptyState() {
-      return `
-      <div class="text-center py-8 px-4">
-        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V19.5a2.25 2.25 0 0 0 2.25 2.25h.75m0-3.75h3.75" />
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No items found</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by creating a new item.</p>
-      </div>
-    `;
-    }
-  };
-
-  // controllers/table_monitor_controller.js
-  var table_monitor_controller_exports = {};
-  __export(table_monitor_controller_exports, {
-    default: () => table_monitor_controller_default
-  });
-  var table_monitor_controller_default = class extends application_controller_default {
-    /*
-     * Regular Stimulus lifecycle methods
-     * Learn more at: https://stimulusjs.org/reference/lifecycle-callbacks
-     *
-     * If you intend to use this controller as a regular stimulus controller as well,
-     * make sure any Stimulus lifecycle methods overridden in ApplicationController call super.
-     *
-     * Important:
-     * By default, StimulusReflex overrides the -connect- method so make sure you
-     * call super if you intend to do anything else when this controller connects.
-    */
-    connect() {
-      super.connect();
-    }
-    /* Reflex specific lifecycle methods.
-     *
-     * For every method defined in your Reflex class, a matching set of lifecycle methods become available
-     * in this javascript controller. These are optional, so feel free to delete these stubs if you don't
-     * need them.
-     *
-     * Important:
-     * Make sure to add data-controller="example" to your markup alongside
-     * data-reflex="Example#dance" for the lifecycle methods to fire properly.
-     *
-     * Example:
-     *
-     *   <a href="#" data-reflex="click->Example#dance" data-controller="example">Dance!</a>
-     *
-     * Arguments:
-     *
-     *   element - the element that triggered the reflex
-     *             may be different than the Stimulus controller's this.element
-     *
-     *   reflex - the name of the reflex e.g. "Example#dance"
-     *
-     *   error/noop - the error message (for reflexError), otherwise null
-     *
-     *   reflexId - a UUID4 or developer-provided unique identifier for each Reflex
-     */
-    key_a() {
-      console.log("KEY_A called");
-      this.stimulate("TableMonitor#key_a");
-    }
-    key_b() {
-      console.log("KEY_B called");
-      this.stimulate("TableMonitor#key_b");
-    }
-    key_c() {
-      console.log("KEY_C");
-      this.stimulate("TableMonitor#key_c");
-    }
-    key_d() {
-      console.log("KEY_D");
-      this.stimulate("TableMonitor#key_d");
-    }
-    back() {
-      window.history.back();
-    }
-    home() {
-      this.stimulate("TableMonitor#home");
-    }
-    // Assuming you create a "Example#dance" action in your Reflex class
-    // you'll be able to use the following lifecycle methods:
-    // beforeDance(element, reflex, noop, reflexId) {
-    //  element.innerText = 'Putting dance shoes on...'
-    // }
-    // danceSuccess(element, reflex, noop, reflexId) {
-    //   element.innerText = 'Danced like no one was watching! Was someone watching?'
-    // }
-    // danceError(element, reflex, error, reflexId) {
-    //   console.error('danceError', error);
-    //   element.innerText = "Couldn't dance!"
-    // }
-  };
-
-  // controllers/tabmon_controller.js
-  var tabmon_controller_exports = {};
-  __export(tabmon_controller_exports, {
-    default: () => tabmon_controller_default
-  });
-  var tabmon_controller_default = class extends application_controller_default {
-    connect() {
-      super.connect();
-      console.log("Tabmon controller connected!");
-    }
-    /* Reflex methods for control buttons */
-    add_n() {
-      const n2 = this.element.dataset.n;
-      console.log(`Tabmon add_n called with n=${n2}`);
-      this.stimulate("TableMonitor#add_n", this.element);
-    }
-    minus_n() {
-      const n2 = this.element.dataset.n;
-      console.log(`Tabmon minus_n called with n=${n2}`);
-      this.stimulate("TableMonitor#minus_n", this.element);
-    }
-    undo() {
-      console.log("Tabmon undo called");
-      this.stimulate("TableMonitor#undo");
-    }
-    next_step() {
-      console.log("Tabmon next_step called");
-      this.stimulate("TableMonitor#next_step");
-    }
-    numbers() {
-      console.log("Tabmon numbers called");
-      this.stimulate("TableMonitor#numbers");
-    }
-    force_next_state() {
-      console.log("Tabmon force_next_state called");
-      this.stimulate("TableMonitor#force_next_state");
-    }
-    stop() {
-      console.log("Tabmon stop called");
-      this.stimulate("TableMonitor#stop");
-    }
-    timeout() {
-      console.log("Tabmon timeout called");
-      this.stimulate("TableMonitor#timeout");
-    }
-    pause() {
-      console.log("Tabmon pause called");
-      this.stimulate("TableMonitor#pause");
-    }
-    play() {
-      console.log("Tabmon play called");
-      this.stimulate("TableMonitor#play");
-    }
-    // Lifecycle methods for debugging
-    beforeReflex(element, reflex, noop2, id) {
-      console.log(`Tabmon beforeReflex: ${reflex}`);
-    }
-    reflexSuccess(element, reflex, noop2, id) {
-      console.log(`Tabmon reflexSuccess: ${reflex}`);
-    }
-    reflexError(element, reflex, error3, id) {
-      console.error(`Tabmon reflexError: ${reflex}`, error3);
-    }
-  };
-
-  // controllers/tippy_controller.js
-  var tippy_controller_exports = {};
-  __export(tippy_controller_exports, {
-    default: () => tippy_controller_default
-  });
 
   // ../../node_modules/@popperjs/core/lib/enums.js
   var top = "top";
@@ -24592,7 +24549,7 @@ Please set ${Schema.reflexSerializeForm}="true" on your Reflex Controller Elemen
   };
 
   // rails:/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master/app/javascript/controllers/**/*_controller.js
-  var modules = [{ name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "scoreboard", module: scoreboard_controller_exports, filename: "scoreboard_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tabmon", module: tabmon_controller_exports, filename: "tabmon_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
+  var modules = [{ name: "application", module: application_controller_exports, filename: "application_controller.js" }, { name: "clipboard", module: clipboard_controller_exports, filename: "clipboard_controller.js" }, { name: "counter", module: counter_controller_exports, filename: "counter_controller.js" }, { name: "dark-mode", module: dark_mode_controller_exports, filename: "dark_mode_controller.js" }, { name: "dropdown", module: dropdown_controller_exports, filename: "dropdown_controller.js" }, { name: "example", module: example_controller_exports, filename: "example_controller.js" }, { name: "filter-popup", module: filter_popup_controller_exports, filename: "filter_popup_controller.js" }, { name: "hello", module: hello_controller_exports, filename: "hello_controller.js" }, { name: "markdown-editor", module: markdown_editor_controller_exports, filename: "markdown_editor_controller.js" }, { name: "pagy-url", module: pagy_url_controller_exports, filename: "pagy_url_controller.js" }, { name: "party", module: party_controller_exports, filename: "party_controller.js" }, { name: "search-parser", module: search_parser_controller_exports, filename: "search_parser_controller.js" }, { name: "sidebar", module: sidebar_controller_exports, filename: "sidebar_controller.js" }, { name: "table-monitor", module: table_monitor_controller_exports, filename: "table_monitor_controller.js" }, { name: "tabmon", module: tabmon_controller_exports, filename: "tabmon_controller.js" }, { name: "tippy", module: tippy_controller_exports, filename: "tippy_controller.js" }, { name: "toggle", module: toggle_controller_exports, filename: "toggle_controller.js" }, { name: "tournament", module: tournament_controller_exports, filename: "tournament_controller.js" }, { name: "transition", module: transition_controller_exports, filename: "transition_controller.js" }];
   var controller_default = modules;
 
   // ../../node_modules/tailwindcss-stimulus-components/dist/tailwindcss-stimulus-components.module.js
