@@ -248,14 +248,27 @@ namespace :scenario do
     # Generate database.yml in environment directory
     generate_database_yml(scenario_config, env_config, env_dir)
 
-    # Generate nginx.conf in environment directory
-    generate_nginx_conf(scenario_config, env_config, env_dir)
+    # Generate nginx.conf in environment directory (only for production)
+    if environment == 'production'
+      generate_nginx_conf(scenario_config, env_config, env_dir)
+    else
+      # For development, ensure nginx.conf is not generated (development doesn't need nginx)
+      remove_development_nginx_conf(env_dir)
+    end
 
-    # Generate puma.service in environment directory
-    generate_puma_service(scenario_config, env_config, env_dir)
+    # Generate puma.service in environment directory (only for production)
+    if environment == 'production'
+      generate_puma_service(scenario_config, env_config, env_dir)
+    end
 
-    # Generate puma.rb in environment directory
-    generate_puma_rb(scenario_config, env_config, env_dir)
+    # Generate puma.rb in environment directory (only for production)
+    # Development should use the standard Rails puma.rb configuration
+    if environment == 'production'
+      generate_puma_rb(scenario_config, env_config, env_dir)
+    else
+      # For development, ensure we have a proper development puma.rb
+      restore_development_puma_rb(env_dir)
+    end
 
     # Generate deploy files in environment directory (only for development)
     generate_deploy_files(scenario_config, env_config, env_dir)
@@ -375,6 +388,50 @@ namespace :scenario do
     content = template.result(binding)
     File.write(File.join(env_dir, 'puma.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'puma.rb')}"
+    true
+  end
+
+  def restore_development_puma_rb(env_dir)
+    # Standard development puma.rb configuration
+    development_config = <<~PUMA_CONFIG
+      # frozen_string_literal: true
+
+      # Puma configuration for development
+      threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
+      threads threads_count, threads_count
+
+      # Specifies the `environment` that Puma will run in.
+      environment ENV.fetch("RAILS_ENV") { "development" }
+
+      # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
+      port ENV.fetch("PORT") { 3000 }
+
+      # Specifies the `bind` address that Puma will listen on.
+      bind "tcp://0.0.0.0:#{ENV.fetch("PORT") { 3000 }}"
+
+      # Ensure PID file directory exists
+      pidfile "tmp/pids/server.pid"
+
+      # Allow puma to be restarted by `rails restart` command.
+      plugin :tmp_restart
+
+      # Clean up on exit
+      on_worker_shutdown do
+        File.delete(pidfile) if File.exist?(pidfile)
+      end
+    PUMA_CONFIG
+
+    File.write(File.join(env_dir, 'puma.rb'), development_config)
+    puts "   Restored: #{File.join(env_dir, 'puma.rb')} (development configuration)"
+    true
+  end
+
+  def remove_development_nginx_conf(env_dir)
+    nginx_conf_path = File.join(env_dir, 'nginx.conf')
+    if File.exist?(nginx_conf_path)
+      File.delete(nginx_conf_path)
+      puts "   Removed: #{nginx_conf_path} (not needed for development)"
+    end
     true
   end
 
