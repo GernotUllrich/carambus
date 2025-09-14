@@ -69,6 +69,15 @@ export default class extends ApplicationController {
     return this.clientState.currentPlayer || 'playera'
   }
 
+  // Check if there is actually an active player with green border
+  hasActivePlayerWithGreenBorder() {
+    const leftPlayer = document.querySelector('#left')
+    const rightPlayer = document.querySelector('#right')
+    
+    return (leftPlayer && leftPlayer.classList.contains('border-green-400')) ||
+           (rightPlayer && rightPlayer.classList.contains('border-green-400'))
+  }
+
   // Optimistic score update - immediate visual feedback
   updateScoreOptimistically(playerId, points, operation = 'add') {
     console.log(`TableMonitor updating score: ${playerId} ${operation} ${points}`)
@@ -135,8 +144,12 @@ export default class extends ApplicationController {
     const leftPlayer = document.querySelector('#left')
     const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
     
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE
-    this.updateScoreOptimistically(playerId, 1, 'add')
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
+    if (this.hasActivePlayerWithGreenBorder()) {
+      this.updateScoreOptimistically(playerId, 1, 'add')
+    } else {
+      console.log("No green border detected - skipping optimistic update for key_a")
+    }
     
     // Mark as pending update
     this.clientState.pendingUpdates.add(`key_a_${this.element.dataset.id}`)
@@ -152,8 +165,12 @@ export default class extends ApplicationController {
     const rightPlayer = document.querySelector('#right')
     const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
     
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE
-    this.updateScoreOptimistically(playerId, 1, 'add')
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
+    if (this.hasActivePlayerWithGreenBorder()) {
+      this.updateScoreOptimistically(playerId, 1, 'add')
+    } else {
+      console.log("No green border detected - skipping optimistic update for key_b")
+    }
     
     // Mark as pending update
     this.clientState.pendingUpdates.add(`key_b_${this.element.dataset.id}`)
