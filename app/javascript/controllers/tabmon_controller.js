@@ -7,7 +7,33 @@ import ApplicationController from './application_controller'
 export default class extends ApplicationController {
   connect () {
     super.connect()
-    console.log("Tabmon controller connected!")
+    console.log("🚀 Tabmon controller connected!")
+    console.log("Tabmon element:", this.element)
+    console.log("Tabmon element actions:", this.element.dataset.action)
+    
+    // Add multiple event listeners for debugging
+    this.element.addEventListener('click', (event) => {
+      console.log("🖱️ Click event detected on:", event.target)
+      console.log("🖱️ Click event dataset:", event.target.dataset)
+      console.log("🖱️ Click event action:", event.target.dataset.action)
+    }, true) // Use capture phase
+    
+    this.element.addEventListener('mousedown', (event) => {
+      console.log("🖱️ Mouse down detected on:", event.target)
+    })
+    
+    this.element.addEventListener('mouseup', (event) => {
+      console.log("🖱️ Mouse up detected on:", event.target)
+    })
+    
+    // Add document-level click listener to see if clicks are being detected at all
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('[data-controller="tabmon"]')) {
+        console.log("📄 Document click detected on tabmon element:", event.target)
+        console.log("📄 Document click dataset:", event.target.dataset)
+      }
+    })
+    
     this.initializeClientState()
   }
 
@@ -25,48 +51,70 @@ export default class extends ApplicationController {
   // Optimistic score update - immediate visual feedback
   updateScoreOptimistically(playerId, points, operation = 'add') {
     console.log(`Tabmon updating score: ${playerId} ${operation} ${points}`)
-    const scoreElement = document.querySelector(`[data-player="${playerId}"] .score-display`)
+    
+    // Look for the main score element with data-player attribute
+    const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (!scoreElement) {
       console.error(`Score element not found for player: ${playerId}`)
+      console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
+      return
+    }
+
+    // Also look for the innings score element
+    const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
+    if (!inningsElement) {
+      console.error(`Innings element not found for player: ${playerId}`)
+      console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
       return
     }
 
     const currentScore = parseInt(scoreElement.textContent) || 0
-    let newScore
+    const currentInnings = parseInt(inningsElement.textContent) || 0
+    let newScore, newInnings
     
     if (operation === 'add') {
       newScore = currentScore + points
+      newInnings = currentInnings + points
     } else if (operation === 'subtract') {
       newScore = Math.max(0, currentScore - points)
+      newInnings = Math.max(0, currentInnings - points)
     } else if (operation === 'set') {
       newScore = points
+      newInnings = points
     }
 
-    console.log(`Tabmon score change: ${currentScore} -> ${newScore}`)
+    console.log(`Tabmon score change: ${currentScore} -> ${newScore} (innings: ${currentInnings} -> ${newInnings})`)
 
     // Store update in history for potential rollback
     this.clientState.updateHistory.push({
       playerId,
       previousScore: currentScore,
+      previousInnings: currentInnings,
       newScore,
+      newInnings,
       operation,
       timestamp: Date.now()
     })
 
-    // Immediate visual update
+    // Immediate visual update for both counters
     scoreElement.textContent = newScore
     scoreElement.classList.add('score-updated')
+    
+    inningsElement.textContent = newInnings
+    inningsElement.classList.add('score-updated')
     
     // Remove highlight after animation
     setTimeout(() => {
       scoreElement.classList.remove('score-updated')
+      inningsElement.classList.remove('score-updated')
     }, 500)
 
     // Store in client state
     this.clientState.scores[playerId] = newScore
     
-    // Add pending indicator
+    // Add pending indicator to both elements
     this.addPendingIndicator(scoreElement)
+    this.addPendingIndicator(inningsElement)
     
     console.log(`Tabmon optimistic update: ${playerId} ${operation} ${points} = ${newScore}`)
   }
@@ -116,8 +164,19 @@ export default class extends ApplicationController {
     }
   }
 
-  // Get current active player
+  // Get current active player by looking at the DOM
   getCurrentActivePlayer() {
+    // Look for the active player by checking which side has the green border
+    const leftPlayer = document.querySelector('#left')
+    const rightPlayer = document.querySelector('#right')
+    
+    if (leftPlayer && leftPlayer.classList.contains('border-green-400')) {
+      return leftPlayer.dataset.player || 'playera'
+    } else if (rightPlayer && rightPlayer.classList.contains('border-green-400')) {
+      return rightPlayer.dataset.player || 'playerb'
+    }
+    
+    // Fallback to client state
     return this.clientState.currentPlayer || 'playera'
   }
 
@@ -125,24 +184,43 @@ export default class extends ApplicationController {
   revertLastScoreChange() {
     const lastUpdate = this.clientState.updateHistory.pop()
     if (lastUpdate && lastUpdate.type !== 'player_change') {
-      this.updateScoreOptimistically(lastUpdate.playerId, lastUpdate.previousScore, 'set')
-      console.log(`Tabmon reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore}`)
+      // Revert both main score and innings counter
+      const scoreElement = document.querySelector(`.main-score[data-player="${lastUpdate.playerId}"]`)
+      const inningsElement = document.querySelector(`.inning-score[data-player="${lastUpdate.playerId}"]`)
+      
+      if (scoreElement) {
+        scoreElement.textContent = lastUpdate.previousScore
+        scoreElement.classList.add('score-updated')
+        setTimeout(() => scoreElement.classList.remove('score-updated'), 500)
+      }
+      
+      if (inningsElement && lastUpdate.previousInnings !== undefined) {
+        inningsElement.textContent = lastUpdate.previousInnings
+        inningsElement.classList.add('score-updated')
+        setTimeout(() => inningsElement.classList.remove('score-updated'), 500)
+      }
+      
+      console.log(`Tabmon reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore} (innings: ${lastUpdate.previousInnings})`)
     }
   }
 
   /* Reflex methods for control buttons */
 
   add_n () {
+    console.log("🎯 add_n method called!")
+    console.log("Element:", this.element)
+    console.log("Element dataset:", this.element.dataset)
+    
     const n = parseInt(this.element.dataset.n) || 1
     const tableMonitorId = this.element.dataset.id
-    console.log(`Tabmon add_n called with n=${n}`)
-    
+    console.log(`Tabmon add_n called with n=${n}, tableMonitorId=${tableMonitorId}`)
+
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE
     this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'add')
-    
+
     // Mark as pending update
     this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`)
-    
+
     // Background validation via StimulusReflex
     this.stimulate('TableMonitor#add_n', this.element)
   }
