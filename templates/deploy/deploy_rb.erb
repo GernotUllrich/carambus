@@ -23,7 +23,7 @@ set :keep_releases, 5
 set :bundle_path, -> { shared_path.join('bundle') }
 set :bundle_without, %w{development test}.join(' ')
 set :bundle_jobs, 4
-set :bundle_flags, '--deployment --quiet'
+set :bundle_flags, '--quiet'
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure

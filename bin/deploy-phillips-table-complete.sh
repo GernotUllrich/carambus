@@ -38,13 +38,13 @@ PI_PORT="8910"
 confirm() {
     local prompt="$1"
     local default="${2:-n}"
-    
+
     if [[ "$default" == "y" ]]; then
         prompt="$prompt [Y/n]: "
     else
         prompt="$prompt [y/N]: "
     fi
-    
+
     read -p "$prompt" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -58,18 +58,18 @@ confirm() {
 step_zero_cleanup() {
     log "🧹 Step 0: Complete Cleanup"
     log "=========================="
-    
+
     warning "This will completely remove:"
     warning "  - Scenario root folder: /Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
     warning "  - Database: carambus_location_5101_development"
     warning "  - Database: carambus_location_5101_production"
     warning "  - Raspberry Pi: Puma service, Nginx config, production database"
-    
+
     if ! confirm "Are you sure you want to proceed with complete cleanup?"; then
         log "Cleanup cancelled"
         return 1
     fi
-    
+
     # Clean up local scenario root folder
     info "Removing local scenario root folder..."
     if [ -d "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME" ]; then
@@ -78,7 +78,7 @@ step_zero_cleanup() {
     else
         info "Local scenario root folder not found (already clean)"
     fi
-    
+
     # Drop development database
     info "Dropping development database..."
     if psql -lqt | cut -d \| -f 1 | grep -qw "carambus_location_5101_development"; then
@@ -87,30 +87,30 @@ step_zero_cleanup() {
     else
         info "Development database not found (already clean)"
     fi
-    
+
     # Clean up Raspberry Pi
     info "Cleaning up Raspberry Pi..."
-    
+
     # Stop and remove Puma service
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo systemctl stop puma-carambus_location_5101.service || true"
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo systemctl disable puma-carambus_location_5101.service || true"
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo rm -f /etc/systemd/system/puma-carambus_location_5101.service || true"
     log "✅ Puma service removed"
-    
+
     # Remove Nginx configuration
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo rm -f /etc/nginx/sites-enabled/*carambus_location_5101* || true"
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo rm -f /etc/nginx/sites-available/*carambus_location_5101* || true"
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo systemctl reload nginx || true"
     log "✅ Nginx configuration removed"
-    
+
     # Drop production database
     ssh -p $PI_PORT $PI_USER@$PI_IP "sudo -u postgres dropdb carambus_location_5101_production || true"
     log "✅ Production database dropped"
-    
-    # Remove deployment directory
-    ssh -p $PI_PORT $PI_USER@$PI_IP "sudo rm -rf /var/www/carambus_location_5101 || true"
-    log "✅ Deployment directory removed"
-    
+
+#    # Remove deployment directory
+#    ssh -p $PI_PORT $PI_USER@$PI_IP "sudo rm -rf /var/www/carambus_location_5101 || true"
+#    log "✅ Deployment directory removed"
+
     log "✅ Complete cleanup finished"
     echo ""
 }
@@ -119,22 +119,22 @@ step_zero_cleanup() {
 step_one_prepare_development() {
     log "🔧 Step 1: Prepare Development Environment"
     log "========================================"
-    
+
     info "This will:"
     info "  - Generate configuration files"
     info "  - Create Rails root folder"
     info "  - Create development database from template"
     info "  - Apply region filtering"
     info "  - Set up development environment"
-    
+
     if ! confirm "Proceed with prepare_development?"; then
         log "Step 1 cancelled"
         return 1
     fi
-    
+
     log "Running: rake scenario:prepare_development[$SCENARIO_NAME,development]"
     rake "scenario:prepare_development[$SCENARIO_NAME,development]"
-    
+
     log "✅ Step 1 completed: Development environment prepared"
     echo ""
 }
@@ -187,7 +187,7 @@ step_one_five_build_assets() {
 step_two_prepare_deploy() {
     log "📦 Step 2: Prepare Deployment"
     log "============================"
-    
+
     info "This will:"
     info "  - Generate production configuration files"
     info "  - Create production database from development dump"
@@ -195,15 +195,15 @@ step_two_prepare_deploy() {
     info "  - Upload config files to server shared directory"
     info "  - Create systemd service and Nginx configuration on server"
     info "  - Prepare for server deployment"
-    
+
     if ! confirm "Proceed with prepare_deploy?"; then
         log "Step 2 cancelled"
         return 1
     fi
-    
+
     log "Running: rake scenario:prepare_deploy[$SCENARIO_NAME]"
     rake "scenario:prepare_deploy[$SCENARIO_NAME]"
-    
+
     log "✅ Step 2 completed: Deployment prepared"
     echo ""
 }
@@ -212,21 +212,21 @@ step_two_prepare_deploy() {
 step_three_deploy() {
     log "🚀 Step 3: Deploy to Server"
     log "=========================="
-    
+
     info "This will:"
     info "  - Transfer and load database dump to server"
     info "  - Run standard Capistrano deployment"
     info "  - Start the Puma service"
     info "  - Complete the application deployment"
-    
+
     if ! confirm "Proceed with server deployment?"; then
         log "Step 3 cancelled"
         return 1
     fi
-    
+
     log "Running: rake scenario:deploy[$SCENARIO_NAME]"
     rake "scenario:deploy[$SCENARIO_NAME]"
-    
+
     log "✅ Step 3 completed: Server deployment finished"
     echo ""
 }
@@ -235,21 +235,21 @@ step_three_deploy() {
 step_four_prepare_client() {
     log "🍓 Step 4: Prepare Raspberry Pi Client"
     log "====================================="
-    
+
     info "This will:"
     info "  - Install required packages (chromium, wmctrl, xdotool)"
     info "  - Create kiosk user"
     info "  - Setup systemd service"
     info "  - Prepare for kiosk mode"
-    
+
     if ! confirm "Proceed with client preparation?"; then
         log "Step 4 cancelled"
         return 1
     fi
-    
+
     log "Running: rake scenario:setup_raspberry_pi_client[$SCENARIO_NAME]"
     rake "scenario:setup_raspberry_pi_client[$SCENARIO_NAME]"
-    
+
     log "✅ Step 4 completed: Client prepared"
     echo ""
 }
@@ -258,21 +258,21 @@ step_four_prepare_client() {
 step_five_deploy_client() {
     log "📱 Step 5: Deploy Client Configuration"
     log "====================================="
-    
+
     info "This will:"
     info "  - Upload scoreboard URL"
     info "  - Install autostart script"
     info "  - Enable systemd service"
     info "  - Start kiosk mode"
-    
+
     if ! confirm "Proceed with client deployment?"; then
         log "Step 5 cancelled"
         return 1
     fi
-    
+
     log "Running: rake scenario:deploy_raspberry_pi_client[$SCENARIO_NAME]"
     rake "scenario:deploy_raspberry_pi_client[$SCENARIO_NAME]"
-    
+
     log "✅ Step 5 completed: Client deployed"
     echo ""
 }
@@ -281,15 +281,15 @@ step_five_deploy_client() {
 final_test() {
     log "🧪 Final Test"
     log "============"
-    
+
     info "Testing complete functionality..."
-    
+
     log "Running: rake scenario:test_raspberry_pi_client[$SCENARIO_NAME]"
     rake "scenario:test_raspberry_pi_client[$SCENARIO_NAME]"
-    
+
     log "Testing browser restart functionality..."
     rake "scenario:restart_raspberry_pi_client[$SCENARIO_NAME]"
-    
+
     log "✅ Final test completed"
     echo ""
 }
@@ -300,14 +300,14 @@ main() {
     log "====================================================="
     log "Phillip's Table - Full Clean Deployment"
     echo ""
-    
+
     # Step 0: Complete Cleanup
     step_zero_cleanup
     if [ $? -ne 0 ]; then
         log "Workflow cancelled at cleanup step"
         exit 1
     fi
-    
+
     # Step 1: Prepare Development
     step_one_prepare_development
     if [ $? -ne 0 ]; then
@@ -328,31 +328,31 @@ main() {
         log "Workflow cancelled at deployment preparation"
         exit 1
     fi
-    
+
     # Step 3: Deploy
     step_three_deploy
     if [ $? -ne 0 ]; then
         log "Workflow cancelled at server deployment"
         exit 1
     fi
-    
+
     # Step 4: Prepare Client
     step_four_prepare_client
     if [ $? -ne 0 ]; then
         log "Workflow cancelled at client preparation"
         exit 1
     fi
-    
+
     # Step 5: Deploy Client
     step_five_deploy_client
     if [ $? -ne 0 ]; then
         log "Workflow cancelled at client deployment"
         exit 1
     fi
-    
+
     # Final Test
     final_test
-    
+
     log "🎉 COMPLETE WORKFLOW SUCCESSFUL!"
     log "================================"
     log "Phillip's Table (Location 5101) is now fully deployed and operational"
