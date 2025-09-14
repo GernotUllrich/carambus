@@ -180,6 +180,15 @@ export default class extends ApplicationController {
     return this.clientState.currentPlayer || 'playera'
   }
 
+  // Check if there is actually an active player with green border
+  hasActivePlayerWithGreenBorder() {
+    const leftPlayer = document.querySelector('#left')
+    const rightPlayer = document.querySelector('#right')
+    
+    return (leftPlayer && leftPlayer.classList.contains('border-green-400')) ||
+           (rightPlayer && rightPlayer.classList.contains('border-green-400'))
+  }
+
   // Revert last score change
   revertLastScoreChange() {
     const lastUpdate = this.clientState.updateHistory.pop()
@@ -215,8 +224,12 @@ export default class extends ApplicationController {
     const tableMonitorId = this.element.dataset.id
     console.log(`Tabmon add_n called with n=${n}, tableMonitorId=${tableMonitorId}`)
 
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE
-    this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'add')
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
+    if (this.hasActivePlayerWithGreenBorder()) {
+      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'add')
+    } else {
+      console.log("No green border detected - skipping optimistic update")
+    }
 
     // Mark as pending update
     this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`)
@@ -230,8 +243,12 @@ export default class extends ApplicationController {
     const tableMonitorId = this.element.dataset.id
     console.log(`Tabmon minus_n called with n=${n}`)
     
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE
-    this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'subtract')
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
+    if (this.hasActivePlayerWithGreenBorder()) {
+      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'subtract')
+    } else {
+      console.log("No green border detected - skipping optimistic update")
+    }
     
     // Mark as pending update
     this.clientState.pendingUpdates.add(`minus_n_${tableMonitorId}`)
