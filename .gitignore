@@ -48,6 +48,7 @@
 /config/puma.rb
 /config/puma.service
 /config/scoreboard_url
+/config/cable.yml
 
 # Ignore credentials (should be in external data directory)
 /config/credentials/
@@ -64,6 +65,11 @@
 # Ignore environment files
 .env
 .env.*
+env.development
+env.production
+env.local-server
+env.api-server
+env.development-debug
 
 # Ignore IDE files
 .vscode/
@@ -91,6 +97,9 @@ Thumbs.db
 /public/assets
 /public/packs
 /public/packs-test
+
+# Ignore build artifacts
+/app/assets/builds/
 
 # Ignore coverage reports
 /coverage
