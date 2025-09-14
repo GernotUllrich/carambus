@@ -139,6 +139,50 @@ step_one_prepare_development() {
     echo ""
 }
 
+# Step 1.5: Build Assets
+step_one_five_build_assets() {
+    log "🔨 Step 1.5: Build Assets"
+    log "========================"
+    
+    info "This will:"
+    info "  - Install Node.js dependencies (yarn install)"
+    info "  - Build JavaScript assets (yarn build)"
+    info "  - Build CSS assets (yarn build:css)"
+    info "  - Precompile Rails assets (rails assets:precompile)"
+    info "  - Ensure optimistic updates work correctly"
+    
+    if ! confirm "Proceed with asset building?"; then
+        log "Step 1.5 cancelled"
+        return 1
+    fi
+    
+    # Change to the scenario directory
+    cd "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
+    
+    # Install Node.js dependencies
+    log "Installing Node.js dependencies..."
+    yarn install
+    log "✅ Node.js dependencies installed"
+    
+    # Build JavaScript assets
+    log "Building JavaScript assets..."
+    yarn build
+    log "✅ JavaScript assets built"
+    
+    # Build CSS assets
+    log "Building CSS assets..."
+    yarn build:css
+    log "✅ CSS assets built"
+    
+    # Precompile Rails assets
+    log "Precompiling Rails assets..."
+    rails assets:precompile
+    log "✅ Rails assets precompiled"
+    
+    log "✅ Step 1.5 completed: Assets built successfully"
+    echo ""
+}
+
 # Step 2: Prepare Deploy
 step_two_prepare_deploy() {
     log "📦 Step 2: Prepare Deployment"
@@ -268,6 +312,13 @@ main() {
     step_one_prepare_development
     if [ $? -ne 0 ]; then
         log "Workflow cancelled at development preparation"
+        exit 1
+    fi
+    
+    # Step 1.5: Build Assets
+    step_one_five_build_assets
+    if [ $? -ne 0 ]; then
+        log "Workflow cancelled at asset building"
         exit 1
     fi
     
