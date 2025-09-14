@@ -69,13 +69,24 @@ export default class extends ApplicationController {
     return this.clientState.currentPlayer || 'playera'
   }
 
-  // Check if there is actually an active player with green border
-  hasActivePlayerWithGreenBorder() {
+  // Check if the specific player has a green border
+  hasActivePlayerWithGreenBorder(playerId) {
     const leftPlayer = document.querySelector('#left')
     const rightPlayer = document.querySelector('#right')
     
-    return (leftPlayer && leftPlayer.classList.contains('border-green-400')) ||
-           (rightPlayer && rightPlayer.classList.contains('border-green-400'))
+    // Check if the left player is active and matches the playerId
+    if (leftPlayer && leftPlayer.classList.contains('border-green-400') && 
+        (leftPlayer.dataset.player === playerId || (!leftPlayer.dataset.player && playerId === 'playera'))) {
+      return true
+    }
+    
+    // Check if the right player is active and matches the playerId
+    if (rightPlayer && rightPlayer.classList.contains('border-green-400') && 
+        (rightPlayer.dataset.player === playerId || (!rightPlayer.dataset.player && playerId === 'playerb'))) {
+      return true
+    }
+    
+    return false
   }
 
   // Optimistic score update - immediate visual feedback
@@ -144,11 +155,11 @@ export default class extends ApplicationController {
     const leftPlayer = document.querySelector('#left')
     const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
     
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
-    if (this.hasActivePlayerWithGreenBorder()) {
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if this specific player has a green border
+    if (this.hasActivePlayerWithGreenBorder(playerId)) {
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
-      console.log("No green border detected - skipping optimistic update for key_a")
+      console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_a`)
     }
     
     // Mark as pending update
@@ -165,11 +176,11 @@ export default class extends ApplicationController {
     const rightPlayer = document.querySelector('#right')
     const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
     
-    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
-    if (this.hasActivePlayerWithGreenBorder()) {
+    // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if this specific player has a green border
+    if (this.hasActivePlayerWithGreenBorder(playerId)) {
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
-      console.log("No green border detected - skipping optimistic update for key_b")
+      console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_b`)
     }
     
     // Mark as pending update
