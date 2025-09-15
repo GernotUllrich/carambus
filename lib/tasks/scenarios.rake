@@ -2692,7 +2692,7 @@ ENV
       
       # Paths
       RAILS_ROOT="/var/www/#{basename}/current"
-      PRODUCTION_RB="#{RAILS_ROOT}/config/environments/production.rb"
+      PRODUCTION_RB="/var/www/#{basename}/current/config/environments/production.rb"
       
       echo "📝 Configuring production.rb..."
       
@@ -2707,7 +2707,7 @@ ENV
       echo "📝 Creating cable.yml..."
       
       # Create Action Cable configuration
-      CABLE_YML="#{RAILS_ROOT}/config/cable.yml"
+      CABLE_YML="/var/www/#{basename}/current/config/cable.yml"
       if [ ! -f "#{CABLE_YML}" ]; then
         sudo tee "#{CABLE_YML}" > /dev/null << 'CABLE_EOF'
 development:
@@ -2731,7 +2731,7 @@ CABLE_EOF
       echo "📝 Creating scoreboard_url..."
       
       # Create scoreboard URL configuration
-      SCOREBOARD_URL="#{RAILS_ROOT}/config/scoreboard_url"
+      SCOREBOARD_URL="/var/www/#{basename}/current/config/scoreboard_url"
       if [ ! -f "#{SCOREBOARD_URL}" ]; then
         echo "http://#{WEBSERVER_HOST}:#{WEBSERVER_PORT}/locations/a5a80f546e9c46d781e9f6314ad0ace1?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL}" > /dev/null
         echo "   ✅ Created scoreboard_url"
@@ -2742,7 +2742,7 @@ CABLE_EOF
       echo "📝 Updating routes.rb..."
       
       # Add Action Cable route if not present
-      ROUTES_RB="#{RAILS_ROOT}/config/routes.rb"
+      ROUTES_RB="/var/www/#{basename}/current/config/routes.rb"
       if ! grep -q "mount ActionCable.server" "#{ROUTES_RB}"; then
         sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "#{ROUTES_RB}"
         echo "   ✅ Added Action Cable route"
@@ -2753,7 +2753,7 @@ CABLE_EOF
       echo "📝 Creating Action Cable initializer..."
       
       # Create Action Cable initializer
-      ACTION_CABLE_INIT="#{RAILS_ROOT}/config/initializers/action_cable.rb"
+      ACTION_CABLE_INIT="/var/www/#{basename}/current/config/initializers/action_cable.rb"
       if [ ! -f "#{ACTION_CABLE_INIT}" ]; then
         sudo tee "#{ACTION_CABLE_INIT}" > /dev/null << 'ACTION_CABLE_EOF'
 # frozen_string_literal: true
@@ -2782,7 +2782,7 @@ ACTION_CABLE_EOF
       echo "📝 Fixing JavaScript importmap configuration..."
       
       # Fix JavaScript importmap configuration
-      APPLICATION_LAYOUT="#{RAILS_ROOT}/app/views/layouts/application.html.erb"
+      APPLICATION_LAYOUT="/var/www/#{basename}/current/app/views/layouts/application.html.erb"
       if grep -q "javascript_include_tag.*application" "#{APPLICATION_LAYOUT}"; then
         sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "#{APPLICATION_LAYOUT}"
         echo "   ✅ Fixed JavaScript importmap configuration"
@@ -2791,7 +2791,7 @@ ACTION_CABLE_EOF
       fi
       
       # Create importmap.rb if it doesn't exist
-      IMPORTMAP_RB="#{RAILS_ROOT}/config/importmap.rb"
+      IMPORTMAP_RB="/var/www/#{basename}/current/config/importmap.rb"
       if [ ! -f "#{IMPORTMAP_RB}" ]; then
         sudo tee "#{IMPORTMAP_RB}" > /dev/null << 'IMPORTMAP_EOF'
 # frozen_string_literal: true
@@ -2830,7 +2830,7 @@ IMPORTMAP_EOF
       echo "📝 Fixing dynamic redirects in locations_controller..."
       
       # Fix dynamic redirects in locations_controller
-      LOCATIONS_CONTROLLER="#{RAILS_ROOT}/app/controllers/locations_controller.rb"
+      LOCATIONS_CONTROLLER="/var/www/#{basename}/current/app/controllers/locations_controller.rb"
       if grep -q "redirect_to location_path.*free_game" "#{LOCATIONS_CONTROLLER}"; then
         sudo sed -i 's/redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",/redirect_to location_url(@location, table_id: @table.id, sb_state: "free_game", host: request.server_name, port: request.server_port,/' "#{LOCATIONS_CONTROLLER}"
         echo "   ✅ Fixed dynamic redirects"
@@ -3147,7 +3147,7 @@ IMPORTMAP_EOF
     location_md5 = Digest::MD5.hexdigest(location_id.to_s)
     
     # Generate URL using Rails helper dynamically
-    rails_url_cmd = "cd #{RAILS_ROOT} && RAILS_ENV=production bundle exec rails runner \"puts Rails.application.routes.url_helpers.location_url(\\\"#{location_md5}\\\", host: \\\"#{webserver_host}\\\", port: #{webserver_port}) + '?sb_state=welcome'\""
+    rails_url_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production bundle exec rails runner \"puts Rails.application.routes.url_helpers.location_url(\\\"#{location_md5}\\\", host: \\\"#{webserver_host}\\\", port: #{webserver_port}) + '?sb_state=welcome'\""
     scoreboard_url = `#{rails_url_cmd}`.strip
 
     puts "   Scoreboard URL: #{scoreboard_url}"
