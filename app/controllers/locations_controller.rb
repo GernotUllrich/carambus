@@ -252,7 +252,7 @@ class LocationsController < ApplicationController
       end
     else
               redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",
-                                player_a_id: @player_a&.id, player_b_id: @player_b&.id)
+                                player_a_id: @player_a&.id, player_b_id: @player_b&.id, host: request.server_name, port: request.server_port)
     end
   end
 
