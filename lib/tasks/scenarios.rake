@@ -2879,7 +2879,7 @@ ENV
     puts "\n⚙️  Step 5: Configuring Rails application for production..."
     
     # Use the new Rake task for Rails configuration
-    if system("rake scenario:configure_rails_app[#{scenario_name},#{environment},#{ssh_host},#{ssh_port}]")
+    if system("rake scenario:configure_rails_app[#{scenario_name},production,#{ssh_host},#{ssh_port}]")
       puts "   ✅ Rails application configured successfully"
     else
       puts "   ❌ Rails configuration failed"
