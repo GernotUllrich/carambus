@@ -1,5 +1,5 @@
-upstream unicorn_<%= fetch(:nginx_config_name) %> {
-  server unix:/tmp/unicorn.<%= fetch(:nginx_config_name) %>.sock fail_timeout=0;
+upstream <%= fetch(:nginx_config_name) %>_upstream {
+  server unix:<%= fetch(:puma_socket_path) %> fail_timeout=0;
 }
 
 <% if fetch(:nginx_use_ssl) %>
@@ -16,7 +16,7 @@ server {
   ssl_certificate /etc/ssl/certs/<%= fetch(:nginx_ssl_certificate) %>;
   ssl_certificate_key /etc/ssl/private/<%= fetch(:nginx_ssl_certificate_key) %>;
 <% else %>
-  listen 80;
+  listen <%= fetch(:nginx_port) || 80 %>;
 <% end %>
 
   client_max_body_size 4G;
@@ -27,25 +27,40 @@ server {
 
   server_name <%= fetch(:nginx_server_name) %>;
   root <%= current_path %>/public;
-  try_files $uri/index.html $uri @unicorn_<%= fetch(:nginx_config_name) %>;
-
-  location @unicorn_<%= fetch(:nginx_config_name) %> {
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $http_host;
-    proxy_redirect off;
-<% if fetch(:nginx_use_ssl) %>
-    proxy_set_header X-Forwarded-Proto https;
-<% end %>
-    proxy_pass http://unicorn_<%= fetch(:nginx_config_name) %>;
-    # limit_req zone=one;
-    access_log <%= shared_path %>/log/nginx.access.log;
-    error_log <%= shared_path %>/log/nginx.error.log;
+  
+  # Serve static assets directly
+  location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    try_files $uri =404;
   }
-
-  location ^~ /assets/ {
-    gzip_static on;
-    expires max;
-    add_header Cache-Control public;
+  
+  location /assets/ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    try_files $uri =404;
+  }
+  
+  # WebSocket support for Action Cable
+  location /cable {
+    proxy_pass http://<%= fetch(:nginx_config_name) %>_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+  }
+  
+  # All other requests go to Rails
+  location / {
+    proxy_pass http://<%= fetch(:nginx_config_name) %>_upstream;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   location = /50x.html {
