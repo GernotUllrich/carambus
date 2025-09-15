@@ -275,12 +275,23 @@ CABLE_EOF
       fi
       
       echo "📝 Creating scoreboard_url..."
-      SCOREBOARD_URL="#{RAILS_ROOT}/config/scoreboard_url"
-      if [ ! -f "#{SCOREBOARD_URL}" ]; then
-        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL}" > /dev/null
-        echo "   ✅ Created scoreboard_url"
+      SCOREBOARD_URL_SHARED="/var/www/#{basename}/shared/config/scoreboard_url"
+      SCOREBOARD_URL_CURRENT="#{RAILS_ROOT}/config/scoreboard_url"
+      
+      # Create scoreboard_url in shared directory
+      if [ ! -f "#{SCOREBOARD_URL_SHARED}" ]; then
+        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL_SHARED}" > /dev/null
+        echo "   ✅ Created scoreboard_url in shared directory"
       else
-        echo "   ℹ️  scoreboard_url already exists"
+        echo "   ℹ️  scoreboard_url already exists in shared directory"
+      fi
+      
+      # Link scoreboard_url from shared to current
+      if [ ! -L "#{SCOREBOARD_URL_CURRENT}" ]; then
+        sudo ln -sf "#{SCOREBOARD_URL_SHARED}" "#{SCOREBOARD_URL_CURRENT}"
+        echo "   ✅ Linked scoreboard_url to current directory"
+      else
+        echo "   ℹ️  scoreboard_url already linked to current directory"
       fi
       
       echo "📝 Updating routes.rb..."
@@ -3415,7 +3426,7 @@ ENV
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
       # Get scoreboard URL
-      SCOREBOARD_URL=$(cat /etc/scoreboard_url)
+      SCOREBOARD_URL=$(cat /var/www/#{basename}/shared/config/scoreboard_url)
 
       # Start browser in fullscreen with additional flags to handle display issues
       /usr/bin/chromium-browser \\
