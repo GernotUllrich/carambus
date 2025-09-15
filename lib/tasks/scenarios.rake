@@ -3433,6 +3433,62 @@ ENV
     EOF
   end
 
+  desc "Restart Raspberry Pi client browser"
+  task :restart_raspberry_pi_client, [:scenario_name] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    
+    puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+    
+    scenario_config = YAML.load_file(config_file)
+    pi_config = scenario_config['pi']
+    
+    if pi_config.nil?
+      puts "❌ Error: Pi configuration not found in scenario"
+      exit 1
+    end
+    
+    ssh_host = pi_config['ssh_host']
+    ssh_port = pi_config['ssh_port'] || 22
+    
+    # Restart the scoreboard-kiosk service
+    restart_cmd = "sudo systemctl restart scoreboard-kiosk"
+    
+    puts "   🔄 Restarting scoreboard-kiosk service..."
+    restart_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_cmd}' 2>&1`
+    
+    if $?.success?
+      puts "   ✅ Scoreboard-kiosk service restarted successfully"
+      
+      # Wait a moment for the service to start
+      sleep 3
+      
+      # Check service status
+      status_cmd = "sudo systemctl status scoreboard-kiosk --no-pager"
+      status_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{status_cmd}' 2>&1`
+      
+      if status_output.include?("Active: active")
+        puts "   ✅ Service is running"
+      else
+        puts "   ⚠️  Service status unclear:"
+        puts "   📋 #{status_output}"
+      end
+      
+    else
+      puts "   ❌ Failed to restart scoreboard-kiosk service"
+      puts "   📋 Error output: #{restart_output}"
+      exit 1
+    end
+    
+    puts "✅ Raspberry Pi client browser restart completed"
+  end
+
 end
 
 
