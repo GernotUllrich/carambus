@@ -356,12 +356,40 @@ IMPORTMAP_EOF
         echo "   ℹ️  importmap.rb already exists"
       fi
       
-      echo "📝 Fixing force_ssl configuration..."
-      if grep -q "config.force_ssl = \#{env_config" "#{PRODUCTION_RB}"; then
-        sudo sed -i 's/config.force_ssl = \#{env_config\[.ssl_enabled.\] || false}/config.force_ssl = false/' "#{PRODUCTION_RB}"
-        echo "   ✅ Fixed force_ssl configuration"
+      echo "📝 Reading SSL configuration from carambus.yml..."
+      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
+      if [ -f "#{CARAMBUS_YML}" ]; then
+        SSL_ENABLED=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "ssl_enabled:" | cut -d: -f2 | tr -d ' ')
+        if [ -z "$SSL_ENABLED" ]; then
+          SSL_ENABLED="false"
+        fi
+        echo "   📋 SSL enabled: $SSL_ENABLED"
+        
+        # Update force_ssl based on carambus.yml
+        sudo sed -i "s/config.force_ssl = .*/config.force_ssl = $SSL_ENABLED/" "#{PRODUCTION_RB}"
+        echo "   ✅ Updated force_ssl configuration from carambus.yml"
       else
-        echo "   ℹ️  force_ssl already configured"
+        echo "   ⚠️  carambus.yml not found, setting force_ssl = false"
+        sudo sed -i 's/config.force_ssl = .*/config.force_ssl = false/' "#{PRODUCTION_RB}"
+      fi
+      
+      echo "📝 Reading Puma configuration from carambus.yml..."
+      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
+      if [ -f "#{CARAMBUS_YML}" ]; then
+        WORKERS=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "puma_workers:" | cut -d: -f2 | tr -d ' ')
+        if [ -z "$WORKERS" ]; then
+          WORKERS="2"
+        fi
+        echo "   📋 Puma workers: $WORKERS"
+        
+        # Update puma.rb with correct worker count
+        PUMA_RB="#{RAILS_ROOT}/config/puma.rb"
+        if [ -f "#{PUMA_RB}" ]; then
+          sudo sed -i "s/workers [0-9]*/workers $WORKERS/" "#{PUMA_RB}"
+          echo "   ✅ Updated Puma worker count to $WORKERS"
+        fi
+      else
+        echo "   ⚠️  carambus.yml not found, using default worker count"
       fi
       
       echo "📝 Controller redirects should be fixed in source code, not in deployment script"
