@@ -3144,6 +3144,7 @@ ENV
     scenario_config = YAML.load_file(config_file)
     production_config = scenario_config['environments']['production']
     pi_config = production_config['raspberry_pi_client']
+    basename = scenario_config['scenario']['basename']
 
     unless pi_config && pi_config['enabled']
       puts "❌ Error: Raspberry Pi client not enabled for this scenario"
