@@ -2819,9 +2819,9 @@ IMPORTMAP_EOF
       
       echo "📝 Fixing force_ssl configuration..."
       
-      # Fix force_ssl configuration
-      if grep -q "config.force_ssl = #{env_config['ssl_enabled'] || false}" "#{PRODUCTION_RB}"; then
-        sudo sed -i 's/config.force_ssl = #{env_config\[.ssl_enabled.\] || false}/config.force_ssl = false/' "#{PRODUCTION_RB}"
+      # Fix force_ssl configuration - look for the template pattern and replace it
+      if grep -q "config.force_ssl = \#{env_config" "#{PRODUCTION_RB}"; then
+        sudo sed -i 's/config.force_ssl = \#{env_config\[.ssl_enabled.\] || false}/config.force_ssl = false/' "#{PRODUCTION_RB}"
         echo "   ✅ Fixed force_ssl configuration"
       else
         echo "   ℹ️  force_ssl already configured"
