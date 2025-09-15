@@ -246,7 +246,7 @@ namespace :scenario do
       
       echo "📝 Configuring production.rb..."
       if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "#{PRODUCTION_RB}"; then
-        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: Carambus.config.carambus_domain }\\n  config.action_mailer.default_url_options = { host: Carambus.config.carambus_domain }' "#{PRODUCTION_RB}"
+        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: "localhost", port: #{webserver_port} }\\n  config.action_mailer.default_url_options = { host: "localhost", port: #{webserver_port} }' "#{PRODUCTION_RB}"
         echo "   ✅ Added host authorization and default URL options"
       else
         echo "   ℹ️  Host authorization already configured"
@@ -362,14 +362,7 @@ IMPORTMAP_EOF
         echo "   ℹ️  force_ssl already configured"
       fi
       
-      echo "📝 Fixing dynamic redirects in locations_controller..."
-      LOCATIONS_CONTROLLER="#{RAILS_ROOT}/app/controllers/locations_controller.rb"
-      if grep -q "redirect_to location_path.*free_game" "#{LOCATIONS_CONTROLLER}"; then
-        sudo sed -i 's/redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",/redirect_to location_url(@location, table_id: @table.id, sb_state: "free_game", host: request.server_name, port: request.server_port,/' "#{LOCATIONS_CONTROLLER}"
-        echo "   ✅ Fixed dynamic redirects"
-      else
-        echo "   ℹ️  Dynamic redirects already configured"
-      fi
+      echo "📝 Controller redirects should be fixed in source code, not in deployment script"
       
       echo "✅ Rails application configuration completed"
     SCRIPT

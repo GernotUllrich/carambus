@@ -29,8 +29,8 @@ class TableMonitorsController < ApplicationController
       redirect_to locations_path
       return
     elsif @table_monitor.game_id.blank? && @table_monitor.prev_game_id.blank?
-      redirect_to location_path(@table_monitor.table.location, sb_state: "tables",
-                                                               table_id: @table_monitor.andand.table.andand.id)
+      redirect_to location_url(@table_monitor.table.location, sb_state: "tables",
+                                                               table_id: @table_monitor.andand.table.andand.id, host: request.server_name, port: request.server_port)
       return
     end
     @navbar = false
@@ -138,9 +138,8 @@ class TableMonitorsController < ApplicationController
     if res
       redirect_to @table_monitor
     else
-      redirect_to "/locations/#{
-        @table_monitor.table.location.id}?sb_state=free_game#{
-        "&table_id=#{@table_monitor.table.id}" if @table_monitor.table.present?}"
+      redirect_to location_url(@table_monitor.table.location, sb_state: "free_game",
+        table_id: @table_monitor.table.id, host: request.server_name, port: request.server_port)
     end
   end
 

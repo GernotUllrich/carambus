@@ -199,7 +199,7 @@ class LocationsController < ApplicationController
     unless scoreboard_current == scoreboard_url
       File.write("#{Rails.root}/config/scoreboard_url", scoreboard_location_url(@location.md5, sb_state: "welcome"))
     end
-    redirect_to "/locations/#{@location.md5}?sb_state=#{sb_state}"
+    redirect_to location_url(@location, sb_state: sb_state, host: request.server_name, port: request.server_port)
   end
 
   def game_results
@@ -251,7 +251,7 @@ class LocationsController < ApplicationController
         @pairs = @pairs.sort_by { |a| "#{a[1]} - #{a[2]}" }
       end
     else
-              redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",
+              redirect_to location_url(@location, table_id: @table.id, sb_state: "free_game",
                                 player_a_id: @player_a&.id, player_b_id: @player_b&.id, host: request.server_name, port: request.server_port)
     end
   end
