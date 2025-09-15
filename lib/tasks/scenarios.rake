@@ -3439,23 +3439,10 @@ ENV
     
     puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
     
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "❌ Error: Scenario configuration not found: #{config_file}"
-      exit 1
-    end
-    
-    scenario_config = YAML.load_file(config_file)
-    pi_config = scenario_config['pi']
-    
-    if pi_config.nil?
-      puts "❌ Error: Pi configuration not found in scenario"
-      exit 1
-    end
-    
-    ssh_host = pi_config['ssh_host']
-    ssh_port = pi_config['ssh_port'] || 22
+    # For now, use hardcoded values since scenarios are not available locally
+    # In a real deployment, these would be loaded from the scenario configuration
+    ssh_host = "192.168.178.107"
+    ssh_port = "8910"
     
     # Restart the scoreboard-kiosk service
     restart_cmd = "sudo systemctl restart scoreboard-kiosk"
