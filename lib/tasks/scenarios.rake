@@ -199,6 +199,206 @@ namespace :scenario do
     @carambus_data_path ||= File.expand_path('../carambus_data', Rails.root)
   end
 
+  # Rails Configuration Tasks
+  desc "Configure Rails application for production deployment"
+  task :configure_rails_app, [:scenario_name, :environment, :ssh_host, :ssh_port] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+    ssh_host = args[:ssh_host]
+    ssh_port = args[:ssh_port] || 22
+    
+    puts "🔧 Configuring Rails application for #{scenario_name} (#{environment})..."
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+    
+    scenario_config = YAML.load_file(config_file)
+    env_config = scenario_config['environments'][environment]
+    
+    if env_config.nil?
+      puts "❌ Error: Environment '#{environment}' not found in scenario configuration"
+      exit 1
+    end
+    
+    basename = scenario_config['scenario']['basename']
+    webserver_host = env_config['webserver_host']
+    webserver_port = env_config['webserver_port']
+    location_id = scenario_config['scenario']['location_id']
+    
+    # Calculate MD5 hash for location
+    require 'digest'
+    location_md5 = Digest::MD5.hexdigest(location_id.to_s)
+    
+    # Create comprehensive configuration script
+    configure_script = <<~SCRIPT
+      #!/bin/bash
+      set -e
+      
+      echo "🔧 Configuring Rails application..."
+      
+      # Paths
+      RAILS_ROOT="/var/www/#{basename}/current"
+      PRODUCTION_RB="#{RAILS_ROOT}/config/environments/production.rb"
+      
+      echo "📝 Configuring production.rb..."
+      if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "#{PRODUCTION_RB}"; then
+        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: Carambus.config.carambus_domain }\\n  config.action_mailer.default_url_options = { host: Carambus.config.carambus_domain }' "#{PRODUCTION_RB}"
+        echo "   ✅ Added host authorization and default URL options"
+      else
+        echo "   ℹ️  Host authorization already configured"
+      fi
+      
+      echo "📝 Creating cable.yml..."
+      CABLE_YML="#{RAILS_ROOT}/config/cable.yml"
+      if [ ! -f "#{CABLE_YML}" ]; then
+        sudo tee "#{CABLE_YML}" > /dev/null << 'CABLE_EOF'
+development:
+  adapter: redis
+  url: redis://localhost:6379/1
+  channel_prefix: #{basename}_development
+
+test:
+  adapter: test
+
+production:
+  adapter: redis
+  url: redis://localhost:6379/1
+  channel_prefix: #{basename}_production
+CABLE_EOF
+        echo "   ✅ Created cable.yml"
+      else
+        echo "   ℹ️  cable.yml already exists"
+      fi
+      
+      echo "📝 Creating scoreboard_url..."
+      SCOREBOARD_URL="#{RAILS_ROOT}/config/scoreboard_url"
+      if [ ! -f "#{SCOREBOARD_URL}" ]; then
+        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL}" > /dev/null
+        echo "   ✅ Created scoreboard_url"
+      else
+        echo "   ℹ️  scoreboard_url already exists"
+      fi
+      
+      echo "📝 Updating routes.rb..."
+      ROUTES_RB="#{RAILS_ROOT}/config/routes.rb"
+      if ! grep -q "mount ActionCable.server" "#{ROUTES_RB}"; then
+        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "#{ROUTES_RB}"
+        echo "   ✅ Added Action Cable route"
+      else
+        echo "   ℹ️  Action Cable route already exists"
+      fi
+      
+      echo "📝 Creating Action Cable initializer..."
+      ACTION_CABLE_INIT="#{RAILS_ROOT}/config/initializers/action_cable.rb"
+      if [ ! -f "#{ACTION_CABLE_INIT}" ]; then
+        sudo tee "#{ACTION_CABLE_INIT}" > /dev/null << 'ACTION_CABLE_EOF'
+# frozen_string_literal: true
+
+# Action Cable configuration for #{basename}
+ActionCable.server.config.logger = Logger.new(nil)
+
+# Configure allowed request origins for WebSocket connections
+if Rails.env.production?
+  ActionCable.server.config.allowed_request_origins = [
+    'http://#{webserver_host}:#{webserver_port}',
+    'http://#{webserver_host}',
+    'http://localhost:#{webserver_port}',
+    'http://localhost'
+  ]
+end
+
+# Disable logging for production
+ActionCable.server.config.logger = Logger.new(nil) if Rails.env.production?
+ACTION_CABLE_EOF
+        echo "   ✅ Created Action Cable initializer"
+      else
+        echo "   ℹ️  Action Cable initializer already exists"
+      fi
+      
+      echo "📝 Fixing JavaScript importmap configuration..."
+      APPLICATION_LAYOUT="#{RAILS_ROOT}/app/views/layouts/application.html.erb"
+      if grep -q "javascript_include_tag.*application" "#{APPLICATION_LAYOUT}"; then
+        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "#{APPLICATION_LAYOUT}"
+        echo "   ✅ Fixed JavaScript importmap configuration"
+      else
+        echo "   ℹ️  JavaScript importmap already configured"
+      fi
+      
+      IMPORTMAP_RB="#{RAILS_ROOT}/config/importmap.rb"
+      if [ ! -f "#{IMPORTMAP_RB}" ]; then
+        sudo tee "#{IMPORTMAP_RB}" > /dev/null << 'IMPORTMAP_EOF'
+# frozen_string_literal: true
+
+# Pin npm packages by running ./bin/importmap
+
+pin "application"
+pin "@hotwired/turbo-rails", to: "turbo.min.js", preload: true
+pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
+pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
+pin_all_from "app/javascript/controllers", under: "controllers"
+pin_all_from "app/javascript/channels", under: "channels"
+pin_all_from "app/javascript/src", under: "src"
+pin_all_from "app/javascript/utils", under: "utils"
+pin_all_from "app/javascript/utilities", under: "utilities"
+pin "@rails/activestorage", to: "activestorage.esm.js"
+pin "local-time", to: "local-time"
+pin "@stimulus_reflex/polyfills", to: "stimulus_reflex_polyfills.js"
+pin "scoreboard_utils", to: "scoreboard_utils.js"
+IMPORTMAP_EOF
+        echo "   ✅ Created importmap.rb"
+      else
+        echo "   ℹ️  importmap.rb already exists"
+      fi
+      
+      echo "📝 Fixing force_ssl configuration..."
+      if grep -q "config.force_ssl = \#{env_config" "#{PRODUCTION_RB}"; then
+        sudo sed -i 's/config.force_ssl = \#{env_config\[.ssl_enabled.\] || false}/config.force_ssl = false/' "#{PRODUCTION_RB}"
+        echo "   ✅ Fixed force_ssl configuration"
+      else
+        echo "   ℹ️  force_ssl already configured"
+      fi
+      
+      echo "📝 Fixing dynamic redirects in locations_controller..."
+      LOCATIONS_CONTROLLER="#{RAILS_ROOT}/app/controllers/locations_controller.rb"
+      if grep -q "redirect_to location_path.*free_game" "#{LOCATIONS_CONTROLLER}"; then
+        sudo sed -i 's/redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",/redirect_to location_url(@location, table_id: @table.id, sb_state: "free_game", host: request.server_name, port: request.server_port,/' "#{LOCATIONS_CONTROLLER}"
+        echo "   ✅ Fixed dynamic redirects"
+      else
+        echo "   ℹ️  Dynamic redirects already configured"
+      fi
+      
+      echo "✅ Rails application configuration completed"
+    SCRIPT
+    
+    # Execute the configuration script on the remote server
+    config_script_path = "/tmp/configure_rails_app.sh"
+    config_script_cmd = "cat > #{config_script_path} << 'SCRIPT_EOF'\n#{configure_script}SCRIPT_EOF"
+    
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{config_script_cmd}'")
+      puts "   ✅ Rails configuration script created"
+      
+      config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
+      if $?.success?
+        puts "   ✅ Rails application configured successfully"
+        puts "   📋 Configuration output: #{config_output}" if config_output.include?("✅") || config_output.include?("ℹ️")
+      else
+        puts "   ❌ Rails configuration failed"
+        puts "   📋 Error output: #{config_output}"
+        exit 1
+      end
+      
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
+      puts "   🧹 Configuration script cleaned up"
+    else
+      puts "   ❌ Failed to create Rails configuration script"
+      exit 1
+    end
+  end
+
   def scenarios_path
     @scenarios_path ||= File.join(carambus_data_path, 'scenarios')
   end
@@ -2677,193 +2877,12 @@ ENV
 
     # Step 5: Configure Rails application for production
     puts "\n⚙️  Step 5: Configuring Rails application for production..."
-
-    configure_rails_app_cmd = <<~SCRIPT
-      #!/bin/bash
-      set -e
-      
-      echo "🔧 Configuring Rails application..."
-      
-      # Get scenario details
-      BASENAME="#{scenario['basename']}"
-      WEBSERVER_HOST="#{production_config['webserver_host']}"
-      WEBSERVER_PORT="#{production_config['webserver_port']}"
-      CARAMBUS_DOMAIN="#{production_config['carambus_domain']}"
-      
-      # Paths
-      RAILS_ROOT="/var/www/#{basename}/current"
-      PRODUCTION_RB="/var/www/#{basename}/current/config/environments/production.rb"
-      
-      echo "📝 Configuring production.rb..."
-      
-      # Add host authorization and default URL options to production.rb
-      if ! grep -q "config.hosts << \"#{WEBSERVER_HOST}\"" "#{PRODUCTION_RB}"; then
-        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{WEBSERVER_HOST}"\\n  config.hosts << "#{WEBSERVER_HOST}:#{WEBSERVER_PORT}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: Carambus.config.carambus_domain }\\n  config.action_mailer.default_url_options = { host: Carambus.config.carambus_domain }' "#{PRODUCTION_RB}"
-        echo "   ✅ Added host authorization and default URL options"
-      else
-        echo "   ℹ️  Host authorization already configured"
-      fi
-      
-      echo "📝 Creating cable.yml..."
-      
-      # Create Action Cable configuration
-      CABLE_YML="/var/www/#{basename}/current/config/cable.yml"
-      if [ ! -f "#{CABLE_YML}" ]; then
-        sudo tee "#{CABLE_YML}" > /dev/null << 'CABLE_EOF'
-development:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: carambus_location_5101_development
-
-test:
-  adapter: test
-
-production:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: carambus_location_5101_production
-CABLE_EOF
-        echo "   ✅ Created cable.yml"
-      else
-        echo "   ℹ️  cable.yml already exists"
-      fi
-      
-      echo "📝 Creating scoreboard_url..."
-      
-      # Create scoreboard URL configuration
-      SCOREBOARD_URL="/var/www/#{basename}/current/config/scoreboard_url"
-      if [ ! -f "#{SCOREBOARD_URL}" ]; then
-        echo "http://#{WEBSERVER_HOST}:#{WEBSERVER_PORT}/locations/a5a80f546e9c46d781e9f6314ad0ace1?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL}" > /dev/null
-        echo "   ✅ Created scoreboard_url"
-      else
-        echo "   ℹ️  scoreboard_url already exists"
-      fi
-      
-      echo "📝 Updating routes.rb..."
-      
-      # Add Action Cable route if not present
-      ROUTES_RB="/var/www/#{basename}/current/config/routes.rb"
-      if ! grep -q "mount ActionCable.server" "#{ROUTES_RB}"; then
-        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "#{ROUTES_RB}"
-        echo "   ✅ Added Action Cable route"
-      else
-        echo "   ℹ️  Action Cable route already exists"
-      fi
-      
-      echo "📝 Creating Action Cable initializer..."
-      
-      # Create Action Cable initializer
-      ACTION_CABLE_INIT="/var/www/#{basename}/current/config/initializers/action_cable.rb"
-      if [ ! -f "#{ACTION_CABLE_INIT}" ]; then
-        sudo tee "#{ACTION_CABLE_INIT}" > /dev/null << 'ACTION_CABLE_EOF'
-# frozen_string_literal: true
-
-# Action Cable configuration for carambus_location_5101
-ActionCable.server.config.logger = Logger.new(nil)
-
-# Configure allowed request origins for WebSocket connections
-if Rails.env.production?
-  ActionCable.server.config.allowed_request_origins = [
-    'http://#{WEBSERVER_HOST}:#{WEBSERVER_PORT}',
-    'http://#{WEBSERVER_HOST}',
-    'http://localhost:#{WEBSERVER_PORT}',
-    'http://localhost'
-  ]
-end
-
-# Disable logging for production
-ActionCable.server.config.logger = Logger.new(nil) if Rails.env.production?
-ACTION_CABLE_EOF
-        echo "   ✅ Created Action Cable initializer"
-      else
-        echo "   ℹ️  Action Cable initializer already exists"
-      fi
-      
-      echo "📝 Fixing JavaScript importmap configuration..."
-      
-      # Fix JavaScript importmap configuration
-      APPLICATION_LAYOUT="/var/www/#{basename}/current/app/views/layouts/application.html.erb"
-      if grep -q "javascript_include_tag.*application" "#{APPLICATION_LAYOUT}"; then
-        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "#{APPLICATION_LAYOUT}"
-        echo "   ✅ Fixed JavaScript importmap configuration"
-      else
-        echo "   ℹ️  JavaScript importmap already configured"
-      fi
-      
-      # Create importmap.rb if it doesn't exist
-      IMPORTMAP_RB="/var/www/#{basename}/current/config/importmap.rb"
-      if [ ! -f "#{IMPORTMAP_RB}" ]; then
-        sudo tee "#{IMPORTMAP_RB}" > /dev/null << 'IMPORTMAP_EOF'
-# frozen_string_literal: true
-
-# Pin npm packages by running ./bin/importmap
-
-pin "application"
-pin "@hotwired/turbo-rails", to: "turbo.min.js", preload: true
-pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
-pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
-pin_all_from "app/javascript/controllers", under: "controllers"
-pin_all_from "app/javascript/channels", under: "channels"
-pin_all_from "app/javascript/src", under: "src"
-pin_all_from "app/javascript/utils", under: "utils"
-pin_all_from "app/javascript/utilities", under: "utilities"
-pin "@rails/activestorage", to: "activestorage.esm.js"
-pin "local-time", to: "local-time"
-pin "@stimulus_reflex/polyfills", to: "stimulus_reflex_polyfills.js"
-pin "scoreboard_utils", to: "scoreboard_utils.js"
-IMPORTMAP_EOF
-        echo "   ✅ Created importmap.rb"
-      else
-        echo "   ℹ️  importmap.rb already exists"
-      fi
-      
-      echo "📝 Fixing force_ssl configuration..."
-      
-      # Fix force_ssl configuration - look for the template pattern and replace it
-      if grep -q "config.force_ssl = \#{env_config" "#{PRODUCTION_RB}"; then
-        sudo sed -i 's/config.force_ssl = \#{env_config\[.ssl_enabled.\] || false}/config.force_ssl = false/' "#{PRODUCTION_RB}"
-        echo "   ✅ Fixed force_ssl configuration"
-      else
-        echo "   ℹ️  force_ssl already configured"
-      fi
-      
-      echo "📝 Fixing dynamic redirects in locations_controller..."
-      
-      # Fix dynamic redirects in locations_controller
-      LOCATIONS_CONTROLLER="/var/www/#{basename}/current/app/controllers/locations_controller.rb"
-      if grep -q "redirect_to location_path.*free_game" "#{LOCATIONS_CONTROLLER}"; then
-        sudo sed -i 's/redirect_to location_path(@location, table_id: @table.id, sb_state: "free_game",/redirect_to location_url(@location, table_id: @table.id, sb_state: "free_game", host: request.server_name, port: request.server_port,/' "#{LOCATIONS_CONTROLLER}"
-        echo "   ✅ Fixed dynamic redirects"
-      else
-        echo "   ℹ️  Dynamic redirects already configured"
-      fi
-      
-      echo "✅ Rails application configuration completed"
-    SCRIPT
-
-    # Write configuration script to server
-    config_script_path = "/tmp/configure_rails_app.sh"
-    config_script_cmd = "cat > #{config_script_path} << 'SCRIPT_EOF'\n#{configure_rails_app_cmd}SCRIPT_EOF"
-
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{config_script_cmd}'")
-      puts "   ✅ Rails configuration script created"
-
-      # Execute configuration script
-      config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
-      if $?.success?
-        puts "   ✅ Rails application configured successfully"
-        puts "   📋 Configuration output: #{config_output}" if config_output.include?("✅") || config_output.include?("ℹ️")
-      else
-        puts "   ❌ Rails configuration failed"
-        puts "   📋 Error output: #{config_output}"
-        return false
-      end
-
-      # Clean up configuration script
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
-      puts "   🧹 Configuration script cleaned up"
+    
+    # Use the new Rake task for Rails configuration
+    if system("rake scenario:configure_rails_app[#{scenario_name},#{environment},#{ssh_host},#{ssh_port}]")
+      puts "   ✅ Rails application configured successfully"
     else
-      puts "   ❌ Failed to create Rails configuration script"
+      puts "   ❌ Rails configuration failed"
       return false
     end
 
