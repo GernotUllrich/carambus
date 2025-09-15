@@ -3429,6 +3429,9 @@ ENV
   end
 
   def generate_autostart_script(scenario_name, pi_config)
+    scenario_config = load_scenario_config(scenario_name)
+    basename = scenario_config['scenario']['basename']
+    
     <<~EOF
       #!/bin/bash
       # Carambus Scoreboard Autostart Script
@@ -3460,6 +3463,11 @@ ENV
       # Wait and ensure fullscreen
       sleep 5
       wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+      # Keep the script running to prevent systemd from restarting it
+      while true; do
+        sleep 1
+      done
     EOF
   end
 
