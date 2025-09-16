@@ -1816,8 +1816,9 @@ data[\"allow_overflow\"].present?")
     end
     # Unlink any existing game from this table monitor (preserve game history)
     if game.present?
+      existing_game_id = game.id
       game.update(table_monitor: nil)
-      Rails.logger.info "Unlinked existing game #{game.id} from table monitor #{id}" if DEBUG
+      Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
     end
     
     # Create a new game for this table monitor
