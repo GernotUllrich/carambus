@@ -263,20 +263,20 @@ namespace :scenario do
       
       # Paths
       RAILS_ROOT="/var/www/#{basename}/current"
-      PRODUCTION_RB="#{RAILS_ROOT}/config/environments/production.rb"
+      PRODUCTION_RB="$RAILS_ROOT/config/environments/production.rb"
       
       echo "📝 Configuring production.rb..."
-      if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "#{PRODUCTION_RB}"; then
-        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: "localhost", port: #{webserver_port} }\\n  config.action_mailer.default_url_options = { host: "localhost", port: #{webserver_port} }' "#{PRODUCTION_RB}"
+      if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "$PRODUCTION_RB"; then
+        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: "localhost", port: #{webserver_port} }\\n  config.action_mailer.default_url_options = { host: "localhost", port: #{webserver_port} }' "$PRODUCTION_RB"
         echo "   ✅ Added host authorization and default URL options"
       else
         echo "   ℹ️  Host authorization already configured"
       fi
       
       echo "📝 Creating cable.yml..."
-      CABLE_YML="#{RAILS_ROOT}/config/cable.yml"
-      if [ ! -f "#{CABLE_YML}" ]; then
-        sudo tee "#{CABLE_YML}" > /dev/null << 'CABLE_EOF'
+      CABLE_YML="$RAILS_ROOT/config/cable.yml"
+      if [ ! -f "$CABLE_YML" ]; then
+        sudo tee "$CABLE_YML" > /dev/null << 'CABLE_EOF'
 development:
   adapter: redis
   url: redis://localhost:6379/1
@@ -299,26 +299,26 @@ CABLE_EOF
       SCOREBOARD_URL_SHARED="/var/www/#{basename}/shared/config/scoreboard_url"
       
       # Create scoreboard_url in shared directory (Capistrano will handle the linking)
-      if [ ! -f "#{SCOREBOARD_URL_SHARED}" ]; then
-        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL_SHARED}" > /dev/null
+      if [ ! -f "$SCOREBOARD_URL_SHARED" ]; then
+        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "$SCOREBOARD_URL_SHARED" > /dev/null
         echo "   ✅ Created scoreboard_url in shared directory"
       else
         echo "   ℹ️  scoreboard_url already exists in shared directory"
       fi
       
       echo "📝 Updating routes.rb..."
-      ROUTES_RB="#{RAILS_ROOT}/config/routes.rb"
-      if ! grep -q "mount ActionCable.server" "#{ROUTES_RB}"; then
-        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "#{ROUTES_RB}"
+      ROUTES_RB="$RAILS_ROOT/config/routes.rb"
+      if ! grep -q "mount ActionCable.server" "$ROUTES_RB"; then
+        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "$ROUTES_RB"
         echo "   ✅ Added Action Cable route"
       else
         echo "   ℹ️  Action Cable route already exists"
       fi
       
       echo "📝 Creating Action Cable initializer..."
-      ACTION_CABLE_INIT="#{RAILS_ROOT}/config/initializers/action_cable.rb"
-      if [ ! -f "#{ACTION_CABLE_INIT}" ]; then
-        sudo tee "#{ACTION_CABLE_INIT}" > /dev/null << 'ACTION_CABLE_EOF'
+      ACTION_CABLE_INIT="$RAILS_ROOT/config/initializers/action_cable.rb"
+      if [ ! -f "$ACTION_CABLE_INIT" ]; then
+        sudo tee "$ACTION_CABLE_INIT" > /dev/null << 'ACTION_CABLE_EOF'
 # frozen_string_literal: true
 
 # Action Cable configuration for #{basename}
@@ -343,17 +343,17 @@ ACTION_CABLE_EOF
       fi
       
       echo "📝 Fixing JavaScript importmap configuration..."
-      APPLICATION_LAYOUT="#{RAILS_ROOT}/app/views/layouts/application.html.erb"
-      if grep -q "javascript_include_tag.*application" "#{APPLICATION_LAYOUT}"; then
-        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "#{APPLICATION_LAYOUT}"
+      APPLICATION_LAYOUT="$RAILS_ROOT/app/views/layouts/application.html.erb"
+      if grep -q "javascript_include_tag.*application" "$APPLICATION_LAYOUT"; then
+        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "$APPLICATION_LAYOUT"
         echo "   ✅ Fixed JavaScript importmap configuration"
       else
         echo "   ℹ️  JavaScript importmap already configured"
       fi
       
-      IMPORTMAP_RB="#{RAILS_ROOT}/config/importmap.rb"
-      if [ ! -f "#{IMPORTMAP_RB}" ]; then
-        sudo tee "#{IMPORTMAP_RB}" > /dev/null << 'IMPORTMAP_EOF'
+      IMPORTMAP_RB="$RAILS_ROOT/config/importmap.rb"
+      if [ ! -f "$IMPORTMAP_RB" ]; then
+        sudo tee "$IMPORTMAP_RB" > /dev/null << 'IMPORTMAP_EOF'
 # frozen_string_literal: true
 
 # Pin npm packages by running ./bin/importmap
@@ -378,35 +378,35 @@ IMPORTMAP_EOF
       fi
       
       echo "📝 Reading SSL configuration from carambus.yml..."
-      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
-      if [ -f "#{CARAMBUS_YML}" ]; then
-        SSL_ENABLED=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "ssl_enabled:" | cut -d: -f2 | tr -d ' ')
+      CARAMBUS_YML="$RAILS_ROOT/config/carambus.yml"
+      if [ -f "$CARAMBUS_YML" ]; then
+        SSL_ENABLED=$(grep -A 20 "production:" "$CARAMBUS_YML" | grep "ssl_enabled:" | cut -d: -f2 | tr -d ' ')
         if [ -z "$SSL_ENABLED" ]; then
           SSL_ENABLED="false"
         fi
         echo "   📋 SSL enabled: $SSL_ENABLED"
         
         # Update force_ssl based on carambus.yml
-        sudo sed -i "s/config.force_ssl = .*/config.force_ssl = $SSL_ENABLED/" "#{PRODUCTION_RB}"
+        sudo sed -i "s/config.force_ssl = .*/config.force_ssl = $SSL_ENABLED/" "$PRODUCTION_RB"
         echo "   ✅ Updated force_ssl configuration from carambus.yml"
       else
         echo "   ⚠️  carambus.yml not found, setting force_ssl = false"
-        sudo sed -i 's/config.force_ssl = .*/config.force_ssl = false/' "#{PRODUCTION_RB}"
+        sudo sed -i 's/config.force_ssl = .*/config.force_ssl = false/' "$PRODUCTION_RB"
       fi
       
       echo "📝 Reading Puma configuration from carambus.yml..."
-      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
-      if [ -f "#{CARAMBUS_YML}" ]; then
-        WORKERS=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "puma_workers:" | cut -d: -f2 | tr -d ' ')
+      CARAMBUS_YML="$RAILS_ROOT/config/carambus.yml"
+      if [ -f "$CARAMBUS_YML" ]; then
+        WORKERS=$(grep -A 20 "production:" "$CARAMBUS_YML" | grep "puma_workers:" | cut -d: -f2 | tr -d ' ')
         if [ -z "$WORKERS" ]; then
           WORKERS="2"
         fi
         echo "   📋 Puma workers: $WORKERS"
         
         # Update puma.rb with correct worker count
-        PUMA_RB="#{RAILS_ROOT}/config/puma.rb"
-        if [ -f "#{PUMA_RB}" ]; then
-          sudo sed -i "s/workers [0-9]*/workers $WORKERS/" "#{PUMA_RB}"
+        PUMA_RB="$RAILS_ROOT/config/puma.rb"
+        if [ -f "$PUMA_RB" ]; then
+          sudo sed -i "s/workers [0-9]*/workers $WORKERS/" "$PUMA_RB"
           echo "   ✅ Updated Puma worker count to $WORKERS"
         fi
       else
@@ -3654,7 +3654,7 @@ ENV
     puts "\n📋 Step 1: Checking git status..."
     git_status_cmd = "cd #{rails_root} && git status --porcelain"
     git_status = `#{git_status_cmd}`.strip
-    
+
     if git_status.empty?
       puts "   ✅ Working directory is clean"
     else
@@ -3662,7 +3662,7 @@ ENV
       puts "   #{git_status.split("\n").map { |line| "      #{line}" }.join("\n")}"
       puts "   Consider committing these changes before deploying."
       puts ""
-      
+
       # Ask for confirmation
       print "   Continue anyway? (y/N): "
       response = STDIN.gets.chomp.downcase
@@ -3684,7 +3684,7 @@ ENV
 
     # Step 3: Build frontend assets locally (if needed)
     puts "\n🔨 Step 3: Building frontend assets..."
-    
+
     # Check if we need to build assets
     if File.exist?(File.join(rails_root, 'package.json'))
       puts "   📦 Building JavaScript and CSS assets..."
@@ -3717,7 +3717,7 @@ ENV
 
     # Step 5: Restart services (if needed)
     puts "\n🔄 Step 5: Restarting services..."
-    
+
     basename = scenario['basename']
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
@@ -3742,14 +3742,14 @@ ENV
     # Step 6: Verify deployment
     puts "\n🔍 Step 6: Verifying deployment..."
     test_url = "http://#{production_config['webserver_host']}:#{production_config['webserver_port']}/"
-    
+
     # Give the service a moment to start
     sleep 3
-    
+
     # Test the application
     test_cmd = "curl -s -o /dev/null -w '%{http_code}' #{test_url}"
     http_status = `#{test_cmd}`.strip
-    
+
     if http_status == "200"
       puts "   ✅ Application is responding correctly (HTTP #{http_status})"
     elsif http_status == "302"
