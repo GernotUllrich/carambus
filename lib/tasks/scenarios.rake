@@ -3151,15 +3151,8 @@ ENV
     end
 
     # Step 5: Configure Rails application for production
-    puts "\n⚙️  Step 5: Configuring Rails application for production..."
-
-    # Use the new Rake task for Rails configuration
-    if system("rake scenario:configure_rails_app[#{scenario_name},production,#{ssh_host},#{ssh_port}]")
-      puts "   ✅ Rails application configured successfully"
-    else
-      puts "   ❌ Rails configuration failed"
-      return false
-    end
+    puts "\n⚙️  Step 5: Rails application configuration..."
+    puts "   ℹ️  Rails application already configured during deployment"
 
     # Step 6: Restart services to apply configuration
     puts "\n🔄 Step 6: Restarting services to apply configuration..."
