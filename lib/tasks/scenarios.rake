@@ -3449,10 +3449,13 @@ ENV
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
-    # Upload scoreboard URL to shared config directory
+    # Upload scoreboard URL to shared config directory on main server
     puts "\n📤 Uploading scoreboard URL..."
-    upload_url_cmd = "echo '#{scoreboard_url}' > /var/www/#{basename}/shared/config/scoreboard_url"
-    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_url_cmd, ssh_port)
+    main_server_host = production_config['ssh_host']
+    main_server_port = production_config['ssh_port']
+    upload_url_cmd = "ssh www-data@#{main_server_host} -p #{main_server_port} \"sudo sh -c 'echo \\\"#{scoreboard_url}\\\" > /var/www/#{basename}/shared/config/scoreboard_url'\""
+    puts "   Executing: #{upload_url_cmd}"
+    if system(upload_url_cmd)
       puts "   ✅ Scoreboard URL uploaded"
     else
       puts "   ❌ Failed to upload scoreboard URL"
