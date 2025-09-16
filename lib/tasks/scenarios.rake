@@ -167,6 +167,27 @@ namespace :scenario do
     deploy_raspberry_pi_client(scenario_name)
   end
 
+  desc "Quick deploy - deploy code changes without regenerating scenario configs"
+  task :quick_deploy, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:quick_deploy[scenario_name]"
+      puts "Example: rake scenario:quick_deploy[carambus_location_5101]"
+      puts ""
+      puts "This task deploys code changes without regenerating scenario configurations."
+      puts "Use this for iterative development when you only changed application code."
+      puts ""
+      puts "Prerequisites:"
+      puts "  1. Scenario must already be deployed (run 'rake scenario:deploy[#{scenario_name}]' first)"
+      puts "  2. Changes should be committed and pushed to git"
+      puts "  3. No changes to config.yml or scenario configuration files"
+      exit 1
+    end
+
+    quick_deploy_scenario(scenario_name)
+  end
+
   desc "Restart Raspberry Pi client browser"
   task :restart_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -206,33 +227,33 @@ namespace :scenario do
     environment = args[:environment] || 'production'
     ssh_host = args[:ssh_host]
     ssh_port = args[:ssh_port] || 22
-    
+
     puts "🔧 Configuring Rails application for #{scenario_name} (#{environment})..."
-    
+
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "❌ Error: Scenario configuration not found: #{config_file}"
       exit 1
     end
-    
+
     scenario_config = YAML.load_file(config_file)
     env_config = scenario_config['environments'][environment]
-    
+
     if env_config.nil?
       puts "❌ Error: Environment '#{environment}' not found in scenario configuration"
       exit 1
     end
-    
+
     basename = scenario_config['scenario']['basename']
     webserver_host = env_config['webserver_host']
     webserver_port = env_config['webserver_port']
     location_id = scenario_config['scenario']['location_id']
-    
+
     # Calculate MD5 hash for location
     require 'digest'
     location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-    
+
     # Create comprehensive configuration script
     configure_script = <<~SCRIPT
       #!/bin/bash
@@ -396,14 +417,14 @@ IMPORTMAP_EOF
       
       echo "✅ Rails application configuration completed"
     SCRIPT
-    
+
     # Execute the configuration script on the remote server
     config_script_path = "/tmp/configure_rails_app.sh"
     config_script_cmd = "cat > #{config_script_path} << 'SCRIPT_EOF'\n#{configure_script}SCRIPT_EOF"
-    
+
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{config_script_cmd}'")
       puts "   ✅ Rails configuration script created"
-      
+
       config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
       if $?.success?
         puts "   ✅ Rails application configured successfully"
@@ -413,7 +434,7 @@ IMPORTMAP_EOF
         puts "   📋 Error output: #{config_output}"
         exit 1
       end
-      
+
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
       puts "   🧹 Configuration script cleaned up"
     else
@@ -832,6 +853,8 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  # Set default URL options for redirects and link generation
+  config.action_controller.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
   config.action_mailer.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
 
   # Print deprecation notices to the Rails logger.
@@ -1021,6 +1044,10 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = ENV["USE_HTTPS"] == "true"
 
+  # Set default URL options for redirects and link generation
+  config.action_controller.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
+  config.action_mailer.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
+
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
   config.log_level = :info
@@ -1161,6 +1188,7 @@ RUBY
     puts "   Generated: #{File.join(env_dir, 'test.rb')}"
     true
   end
+
 
   def generate_env_production(scenario_config, env_config, env_dir)
     # Generate env.production with correct port configuration
@@ -1419,6 +1447,7 @@ ENV
         puts "   ⚠️  RubyMine .idea configuration not found in master"
       end
 
+
       puts "✅ Rails root folder created: #{rails_root}"
       true
     else
@@ -1493,6 +1522,7 @@ ENV
         puts "   ✅ env.development copied to Rails root"
       end
     end
+
 
     # Step 4: Install dependencies (if Rails root was created or dependencies are missing)
     puts "\n📦 Step 4: Checking and installing dependencies..."
@@ -2359,6 +2389,7 @@ ENV
       return false
     end
 
+
     # Step 2: Copy production configuration files to Rails root folder
     puts "\n📁 Step 2: Copying production configuration files to Rails root folder..."
 
@@ -2971,7 +3002,7 @@ ENV
 
     # Step 5: Configure Rails application for production
     puts "\n⚙️  Step 5: Configuring Rails application for production..."
-    
+
     # Use the new Rake task for Rails configuration
     if system("rake scenario:configure_rails_app[#{scenario_name},production,#{ssh_host},#{ssh_port}]")
       puts "   ✅ Rails application configured successfully"
@@ -3136,7 +3167,7 @@ ENV
     end
 
     # Create necessary directories and enable site
-    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log /var/log/#{basename} && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/log/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{enable_cmd}'")
       puts "   ❌ Failed to enable nginx site or reload nginx"
       return false
@@ -3259,7 +3290,7 @@ ENV
     # Calculate MD5 hash for location
     require 'digest'
     location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-    
+
     # Generate URL using Rails helper dynamically
     rails_url_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production bundle exec rails runner \"puts Rails.application.routes.url_helpers.location_url(\\\"#{location_md5}\\\", host: \\\"#{webserver_host}\\\", port: #{webserver_port}) + '?sb_state=welcome'\""
     scoreboard_url = `#{rails_url_cmd}`.strip
@@ -3502,7 +3533,7 @@ ENV
   def generate_autostart_script(scenario_name, pi_config)
     scenario_config = read_scenario_config(scenario_name)
     basename = scenario_config['scenario']['basename']
-    
+
     <<~EOF
       #!/bin/bash
       # Carambus Scoreboard Autostart Script
@@ -3545,44 +3576,198 @@ ENV
   desc "Restart Raspberry Pi client browser"
   task :restart_raspberry_pi_client, [:scenario_name] => :environment do |t, args|
     scenario_name = args[:scenario_name]
-    
+
     puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
-    
+
     # For now, use hardcoded values since scenarios are not available locally
     # In a real deployment, these would be loaded from the scenario configuration
     ssh_host = "192.168.178.107"
     ssh_port = "8910"
-    
+
     # Restart the scoreboard-kiosk service
     restart_cmd = "sudo systemctl restart scoreboard-kiosk"
-    
+
     puts "   🔄 Restarting scoreboard-kiosk service..."
     restart_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_cmd}' 2>&1`
-    
+
     if $?.success?
       puts "   ✅ Scoreboard-kiosk service restarted successfully"
-      
+
       # Wait a moment for the service to start
       sleep 3
-      
+
       # Check service status
       status_cmd = "sudo systemctl status scoreboard-kiosk --no-pager"
       status_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{status_cmd}' 2>&1`
-      
+
       if status_output.include?("Active: active")
         puts "   ✅ Service is running"
       else
         puts "   ⚠️  Service status unclear:"
         puts "   📋 #{status_output}"
       end
-      
+
     else
       puts "   ❌ Failed to restart scoreboard-kiosk service"
       puts "   📋 Error output: #{restart_output}"
       exit 1
     end
-    
+
     puts "✅ Raspberry Pi client browser restart completed"
+  end
+
+  def quick_deploy_scenario(scenario_name)
+    puts "🚀 QUICK DEPLOY: Deploying code changes for #{scenario_name}"
+    puts "=" * 60
+    puts "This will deploy code changes without regenerating scenario configurations."
+    puts ""
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      puts "   Please ensure the scenario exists and has been deployed at least once."
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    scenario = scenario_config['scenario']
+
+    puts "📋 Deployment Details:"
+    puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+    puts "   Basename: #{scenario['basename']}"
+    puts ""
+
+    # Verify Rails root exists
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root not found: #{rails_root}"
+      puts "   Please run 'rake scenario:deploy[#{scenario_name}]' first to set up the scenario."
+      return false
+    end
+
+    puts "✅ Rails root found: #{rails_root}"
+
+    # Step 1: Verify git status
+    puts "\n📋 Step 1: Checking git status..."
+    git_status_cmd = "cd #{rails_root} && git status --porcelain"
+    git_status = `#{git_status_cmd}`.strip
+    
+    if git_status.empty?
+      puts "   ✅ Working directory is clean"
+    else
+      puts "   ⚠️  Uncommitted changes detected:"
+      puts "   #{git_status.split("\n").map { |line| "      #{line}" }.join("\n")}"
+      puts "   Consider committing these changes before deploying."
+      puts ""
+      
+      # Ask for confirmation
+      print "   Continue anyway? (y/N): "
+      response = STDIN.gets.chomp.downcase
+      unless response == 'y' || response == 'yes'
+        puts "   Deployment cancelled."
+        return false
+      end
+    end
+
+    # Step 2: Pull latest changes
+    puts "\n📥 Step 2: Pulling latest changes from git..."
+    git_pull_cmd = "cd #{rails_root} && git pull origin master"
+    if system(git_pull_cmd)
+      puts "   ✅ Git pull completed successfully"
+    else
+      puts "   ❌ Git pull failed"
+      return false
+    end
+
+    # Step 3: Build frontend assets locally (if needed)
+    puts "\n🔨 Step 3: Building frontend assets..."
+    
+    # Check if we need to build assets
+    if File.exist?(File.join(rails_root, 'package.json'))
+      puts "   📦 Building JavaScript and CSS assets..."
+      build_cmd = "cd #{rails_root} && yarn install && yarn build"
+      if system(build_cmd)
+        puts "   ✅ Frontend assets built successfully"
+      else
+        puts "   ❌ Frontend asset build failed"
+        return false
+      end
+    else
+      puts "   ℹ️  No package.json found, skipping asset build"
+    end
+
+    # Step 4: Execute Capistrano deployment
+    puts "\n🎯 Step 4: Executing Capistrano deployment..."
+    puts "   Running: cap production deploy"
+    puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+
+    # Change to the Rails root directory and run Capistrano
+    deploy_cmd = "cd #{rails_root} && cap production deploy"
+    puts "   Executing: #{deploy_cmd}"
+
+    if system(deploy_cmd)
+      puts "   ✅ Capistrano deployment completed successfully"
+    else
+      puts "   ❌ Capistrano deployment failed"
+      return false
+    end
+
+    # Step 5: Restart services (if needed)
+    puts "\n🔄 Step 5: Restarting services..."
+    
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+
+    # Restart Puma to pick up code changes
+    restart_puma_cmd = "sudo systemctl restart puma-#{basename}.service"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_puma_cmd}'")
+      puts "   ✅ Puma service restarted successfully"
+    else
+      puts "   ❌ Failed to restart Puma service"
+      return false
+    end
+
+    # Reload Nginx (usually not needed for code changes, but safe to do)
+    reload_nginx_cmd = "sudo systemctl reload nginx"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_nginx_cmd}'")
+      puts "   ✅ Nginx service reloaded successfully"
+    else
+      puts "   ⚠️  Failed to reload Nginx service (non-critical)"
+    end
+
+    # Step 6: Verify deployment
+    puts "\n🔍 Step 6: Verifying deployment..."
+    test_url = "http://#{production_config['webserver_host']}:#{production_config['webserver_port']}/"
+    
+    # Give the service a moment to start
+    sleep 3
+    
+    # Test the application
+    test_cmd = "curl -s -o /dev/null -w '%{http_code}' #{test_url}"
+    http_status = `#{test_cmd}`.strip
+    
+    if http_status == "200"
+      puts "   ✅ Application is responding correctly (HTTP #{http_status})"
+    elsif http_status == "302"
+      puts "   ✅ Application is responding with redirect (HTTP #{http_status}) - normal for Rails apps"
+    else
+      puts "   ⚠️  Application returned HTTP #{http_status} - may need investigation"
+    end
+
+    puts "\n🎉 QUICK DEPLOY COMPLETED SUCCESSFULLY!"
+    puts "=" * 60
+    puts "📱 Application URL: #{test_url}"
+    puts "🔧 Puma service: puma-#{basename}.service"
+    puts "📋 Next steps:"
+    puts "   • Test your changes in the browser"
+    puts "   • Check application logs if needed: ssh -p #{ssh_port} www-data@#{ssh_host} 'tail -f /var/www/#{basename}/shared/log/production.log'"
+    puts "   • For major changes, consider running full deployment: rake scenario:deploy[#{scenario_name}]"
+
+    true
   end
 
 end

@@ -33,7 +33,7 @@ plugin :tmp_restart
 
 <% if @environment == 'production' %>
 # Production: Use Unix socket for better performance and security
-bind "unix://<%= @production_config['deploy_to'] %>/shared/sockets/puma-<%= @environment %>.sock"
+bind "unix:///var/www/<%= @scenario['basename'] %>/shared/sockets/puma-production.sock"
 <% else %>
 # Development: Use standard port instead of Unix socket
 port ENV.fetch("PORT") { 3000 }
