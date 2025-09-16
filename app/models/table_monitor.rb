@@ -1818,7 +1818,20 @@ data[\"allow_overflow\"].present?")
     if @game.blank?
       @game = Game.new(table_monitor: self)
     else
-      @game.game_participations.destroy_all
+      # Handle the case where some GameParticipation records can't be destroyed due to LocalProtector
+      begin
+        @game.game_participations.destroy_all
+      rescue ActiveRecord::RecordNotDestroyed => e
+        Rails.logger.warn "Could not destroy all game_participations due to LocalProtector: #{e.message}"
+        # Try to destroy them individually, skipping those that can't be destroyed
+        @game.game_participations.each do |gp|
+          begin
+            gp.destroy!
+          rescue ActiveRecord::RecordNotDestroyed
+            Rails.logger.warn "Skipping destruction of GameParticipation #{gp.id} due to LocalProtector"
+          end
+        end
+      end
     end
     reload
     @game.update(data: {})
