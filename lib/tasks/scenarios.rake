@@ -254,29 +254,77 @@ namespace :scenario do
     require 'digest'
     location_md5 = Digest::MD5.hexdigest(location_id.to_s)
 
-    # Create comprehensive configuration script
-    configure_script = <<~SCRIPT
-      #!/bin/bash
-      set -e
+    # Configure Rails application using Ruby/Rails operations
+    configure_rails_app_remotely(ssh_host, ssh_port, basename, webserver_host, webserver_port, location_md5)
+  end
+
+  def configure_rails_app_remotely(ssh_host, ssh_port, basename, webserver_host, webserver_port, location_md5)
+    puts "   🔧 Configuring Rails application..."
+
+    rails_root = "/var/www/#{basename}/current"
+    
+    # 1. Configure production.rb
+    configure_production_rb(ssh_host, ssh_port, rails_root, webserver_host, webserver_port)
+    
+    # 2. Create cable.yml
+    create_cable_yml(ssh_host, ssh_port, rails_root, basename)
+    
+    # 3. Create scoreboard_url
+    create_scoreboard_url(ssh_host, ssh_port, basename, webserver_host, webserver_port, location_md5)
+    
+    # 4. Update routes.rb
+    update_routes_rb(ssh_host, ssh_port, rails_root)
+    
+    # 5. Create Action Cable initializer
+    create_action_cable_initializer(ssh_host, ssh_port, rails_root, basename, webserver_host, webserver_port)
+    
+    # 6. Fix JavaScript importmap configuration
+    fix_javascript_importmap(ssh_host, ssh_port, rails_root)
+    
+    # 7. Create importmap.rb
+    create_importmap_rb(ssh_host, ssh_port, rails_root)
+    
+    # 8. Configure SSL settings
+    configure_ssl_settings(ssh_host, ssh_port, rails_root)
+    
+    # 9. Configure Puma settings
+    configure_puma_settings(ssh_host, ssh_port, rails_root)
+    
+    puts "   ✅ Rails application configuration completed"
+  end
+
+  def configure_production_rb(ssh_host, ssh_port, rails_root, webserver_host, webserver_port)
+    puts "   📝 Configuring production.rb..."
+    
+    production_rb_path = "#{rails_root}/config/environments/production.rb"
+    
+    # Check if host authorization is already configured
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'grep -q \"config.hosts << \\\"#{webserver_host}\\\"\" #{production_rb_path}'"
+    
+    unless system(check_cmd)
+      # Add host authorization and default URL options
+      sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"/# Enable DNS rebinding protection for credentials/a\\\\n  # Allow requests from the Pi server\\\\n  config.hosts << \\\"#{webserver_host}\\\"\\\\n  config.hosts << \\\"#{webserver_host}:#{webserver_port}\\\"\\\\n\\\\n  # Configure default URL options for redirects\\\\n  config.action_controller.default_url_options = { host: \\\"localhost\\\", port: #{webserver_port} }\\\\n  config.action_mailer.default_url_options = { host: \\\"localhost\\\", port: #{webserver_port} }\" #{production_rb_path}'"
       
-      echo "🔧 Configuring Rails application..."
-      
-      # Paths
-      RAILS_ROOT="/var/www/#{basename}/current"
-      PRODUCTION_RB="$RAILS_ROOT/config/environments/production.rb"
-      
-      echo "📝 Configuring production.rb..."
-      if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "$PRODUCTION_RB"; then
-        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: "localhost", port: #{webserver_port} }\\n  config.action_mailer.default_url_options = { host: "localhost", port: #{webserver_port} }' "$PRODUCTION_RB"
-        echo "   ✅ Added host authorization and default URL options"
+      if system(sed_cmd)
+        puts "      ✅ Added host authorization and default URL options"
       else
-        echo "   ℹ️  Host authorization already configured"
-      fi
-      
-      echo "📝 Creating cable.yml..."
-      CABLE_YML="$RAILS_ROOT/config/cable.yml"
-      if [ ! -f "$CABLE_YML" ]; then
-        sudo tee "$CABLE_YML" > /dev/null << 'CABLE_EOF'
+        puts "      ❌ Failed to configure production.rb"
+      end
+    else
+      puts "      ℹ️  Host authorization already configured"
+    end
+  end
+
+  def create_cable_yml(ssh_host, ssh_port, rails_root, basename)
+    puts "   📝 Creating cable.yml..."
+    
+    cable_yml_path = "#{rails_root}/config/cable.yml"
+    
+    # Check if file exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ ! -f #{cable_yml_path} ]'"
+    
+    if system(check_cmd)
+      cable_yml_content = <<~YAML
 development:
   adapter: redis
   url: redis://localhost:6379/1
@@ -289,36 +337,82 @@ production:
   adapter: redis
   url: redis://localhost:6379/1
   channel_prefix: #{basename}_production
-CABLE_EOF
-        echo "   ✅ Created cable.yml"
+YAML
+
+      # Write cable.yml content to remote file
+      temp_file = "/tmp/cable_yml_#{basename}.yml"
+      File.write(temp_file, cable_yml_content)
+      
+      if system("scp -P #{ssh_port} #{temp_file} www-data@#{ssh_host}:#{temp_file}")
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo mv #{temp_file} #{cable_yml_path} && sudo chown www-data:www-data #{cable_yml_path}'")
+          puts "      ✅ Created cable.yml"
+        else
+          puts "      ❌ Failed to move cable.yml to final location"
+        end
       else
-        echo "   ℹ️  cable.yml already exists"
-      fi
+        puts "      ❌ Failed to upload cable.yml"
+      end
       
-      echo "📝 Creating scoreboard_url..."
-      SCOREBOARD_URL_SHARED="/var/www/#{basename}/shared/config/scoreboard_url"
+      File.delete(temp_file) if File.exist?(temp_file)
+    else
+      puts "      ℹ️  cable.yml already exists"
+    end
+  end
+
+  def create_scoreboard_url(ssh_host, ssh_port, basename, webserver_host, webserver_port, location_md5)
+    puts "   📝 Creating scoreboard_url..."
+    
+    scoreboard_url_shared = "/var/www/#{basename}/shared/config/scoreboard_url"
+    
+    # Check if file exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ ! -f #{scoreboard_url_shared} ]'"
+    
+    if system(check_cmd)
+      scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
+      create_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'echo \"#{scoreboard_url}\" | sudo tee #{scoreboard_url_shared} > /dev/null'"
       
-      # Create scoreboard_url in shared directory (Capistrano will handle the linking)
-      if [ ! -f "$SCOREBOARD_URL_SHARED" ]; then
-        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "$SCOREBOARD_URL_SHARED" > /dev/null
-        echo "   ✅ Created scoreboard_url in shared directory"
+      if system(create_cmd)
+        puts "      ✅ Created scoreboard_url in shared directory"
       else
-        echo "   ℹ️  scoreboard_url already exists in shared directory"
-      fi
+        puts "      ❌ Failed to create scoreboard_url"
+      end
+    else
+      puts "      ℹ️  scoreboard_url already exists in shared directory"
+    end
+  end
+
+  def update_routes_rb(ssh_host, ssh_port, rails_root)
+    puts "   📝 Updating routes.rb..."
+    
+    routes_rb_path = "#{rails_root}/config/routes.rb"
+    
+    # Check if Action Cable route exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'grep -q \"mount ActionCable.server\" #{routes_rb_path}'"
+    
+    unless system(check_cmd)
+      # Add Action Cable route
+      sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"/^end$/i\\\\n  # Action Cable WebSocket endpoint\\\\n  mount ActionCable.server => \\\"/cable\\\"\" #{routes_rb_path}'"
       
-      echo "📝 Updating routes.rb..."
-      ROUTES_RB="$RAILS_ROOT/config/routes.rb"
-      if ! grep -q "mount ActionCable.server" "$ROUTES_RB"; then
-        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "$ROUTES_RB"
-        echo "   ✅ Added Action Cable route"
+      if system(sed_cmd)
+        puts "      ✅ Added Action Cable route"
       else
-        echo "   ℹ️  Action Cable route already exists"
-      fi
-      
-      echo "📝 Creating Action Cable initializer..."
-      ACTION_CABLE_INIT="$RAILS_ROOT/config/initializers/action_cable.rb"
-      if [ ! -f "$ACTION_CABLE_INIT" ]; then
-        sudo tee "$ACTION_CABLE_INIT" > /dev/null << 'ACTION_CABLE_EOF'
+        puts "      ❌ Failed to add Action Cable route"
+      end
+    else
+      puts "      ℹ️  Action Cable route already exists"
+    end
+  end
+
+  def create_action_cable_initializer(ssh_host, ssh_port, rails_root, basename, webserver_host, webserver_port)
+    puts "   📝 Creating Action Cable initializer..."
+    
+    action_cable_init_path = "#{rails_root}/config/initializers/action_cable.rb"
+    
+    # Check if file exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ ! -f #{action_cable_init_path} ]'"
+    
+    if system(check_cmd)
+      action_cable_content = <<~RUBY
 # frozen_string_literal: true
 
 # Action Cable configuration for #{basename}
@@ -336,24 +430,60 @@ end
 
 # Disable logging for production
 ActionCable.server.config.logger = Logger.new(nil) if Rails.env.production?
-ACTION_CABLE_EOF
-        echo "   ✅ Created Action Cable initializer"
-      else
-        echo "   ℹ️  Action Cable initializer already exists"
-      fi
+RUBY
+
+      # Write Action Cable initializer content to remote file
+      temp_file = "/tmp/action_cable_init_#{basename}.rb"
+      File.write(temp_file, action_cable_content)
       
-      echo "📝 Fixing JavaScript importmap configuration..."
-      APPLICATION_LAYOUT="$RAILS_ROOT/app/views/layouts/application.html.erb"
-      if grep -q "javascript_include_tag.*application" "$APPLICATION_LAYOUT"; then
-        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "$APPLICATION_LAYOUT"
-        echo "   ✅ Fixed JavaScript importmap configuration"
+      if system("scp -P #{ssh_port} #{temp_file} www-data@#{ssh_host}:#{temp_file}")
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo mv #{temp_file} #{action_cable_init_path} && sudo chown www-data:www-data #{action_cable_init_path}'")
+          puts "      ✅ Created Action Cable initializer"
+        else
+          puts "      ❌ Failed to move Action Cable initializer to final location"
+        end
       else
-        echo "   ℹ️  JavaScript importmap already configured"
-      fi
+        puts "      ❌ Failed to upload Action Cable initializer"
+      end
       
-      IMPORTMAP_RB="$RAILS_ROOT/config/importmap.rb"
-      if [ ! -f "$IMPORTMAP_RB" ]; then
-        sudo tee "$IMPORTMAP_RB" > /dev/null << 'IMPORTMAP_EOF'
+      File.delete(temp_file) if File.exist?(temp_file)
+    else
+      puts "      ℹ️  Action Cable initializer already exists"
+    end
+  end
+
+  def fix_javascript_importmap(ssh_host, ssh_port, rails_root)
+    puts "   📝 Fixing JavaScript importmap configuration..."
+    
+    application_layout_path = "#{rails_root}/app/views/layouts/application.html.erb"
+    
+    # Check if javascript_include_tag is still being used
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'grep -q \"javascript_include_tag.*application\" #{application_layout_path}'"
+    
+    if system(check_cmd)
+      # Replace javascript_include_tag with javascript_importmap_tags
+      sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"s/<%= javascript_include_tag \\\"application\\\", \\\"data-turbo-track\\\": \\\"reload\\\", defer: true %>/<%= javascript_importmap_tags \\\"application\\\" %>/\" #{application_layout_path}'"
+      
+      if system(sed_cmd)
+        puts "      ✅ Fixed JavaScript importmap configuration"
+      else
+        puts "      ❌ Failed to fix JavaScript importmap configuration"
+      end
+    else
+      puts "      ℹ️  JavaScript importmap already configured"
+    end
+  end
+
+  def create_importmap_rb(ssh_host, ssh_port, rails_root)
+    puts "   📝 Creating importmap.rb..."
+    
+    importmap_rb_path = "#{rails_root}/config/importmap.rb"
+    
+    # Check if file exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ ! -f #{importmap_rb_path} ]'"
+    
+    if system(check_cmd)
+      importmap_content = <<~RUBY
 # frozen_string_literal: true
 
 # Pin npm packages by running ./bin/importmap
@@ -371,83 +501,96 @@ pin "@rails/activestorage", to: "activestorage.esm.js"
 pin "local-time", to: "local-time"
 pin "@stimulus_reflex/polyfills", to: "stimulus_reflex_polyfills.js"
 pin "scoreboard_utils", to: "scoreboard_utils.js"
-IMPORTMAP_EOF
-        echo "   ✅ Created importmap.rb"
-      else
-        echo "   ℹ️  importmap.rb already exists"
-      fi
-      
-      echo "📝 Reading SSL configuration from carambus.yml..."
-      CARAMBUS_YML="$RAILS_ROOT/config/carambus.yml"
-      if [ -f "$CARAMBUS_YML" ]; then
-        SSL_ENABLED=$(grep -A 20 "production:" "$CARAMBUS_YML" | grep "ssl_enabled:" | cut -d: -f2 | tr -d ' ')
-        if [ -z "$SSL_ENABLED" ]; then
-          SSL_ENABLED="false"
-        fi
-        echo "   📋 SSL enabled: $SSL_ENABLED"
-        
-        # Update force_ssl based on carambus.yml
-        sudo sed -i "s/config.force_ssl = .*/config.force_ssl = $SSL_ENABLED/" "$PRODUCTION_RB"
-        echo "   ✅ Updated force_ssl configuration from carambus.yml"
-      else
-        echo "   ⚠️  carambus.yml not found, setting force_ssl = false"
-        sudo sed -i 's/config.force_ssl = .*/config.force_ssl = false/' "$PRODUCTION_RB"
-      fi
-      
-      echo "📝 Reading Puma configuration from carambus.yml..."
-      CARAMBUS_YML="$RAILS_ROOT/config/carambus.yml"
-      if [ -f "$CARAMBUS_YML" ]; then
-        WORKERS=$(grep -A 20 "production:" "$CARAMBUS_YML" | grep "puma_workers:" | cut -d: -f2 | tr -d ' ')
-        if [ -z "$WORKERS" ]; then
-          WORKERS="2"
-        fi
-        echo "   📋 Puma workers: $WORKERS"
-        
-        # Update puma.rb with correct worker count
-        PUMA_RB="$RAILS_ROOT/config/puma.rb"
-        if [ -f "$PUMA_RB" ]; then
-          sudo sed -i "s/workers [0-9]*/workers $WORKERS/" "$PUMA_RB"
-          echo "   ✅ Updated Puma worker count to $WORKERS"
-        fi
-      else
-        echo "   ⚠️  carambus.yml not found, using default worker count"
-      fi
-      
-      echo "📝 Controller redirects should be fixed in source code, not in deployment script"
-      
-      echo "✅ Rails application configuration completed"
-    SCRIPT
+RUBY
 
-    # Execute the configuration script on the remote server
-    config_script_path = "/tmp/configure_rails_app.sh"
-    local_script_path = "/tmp/configure_rails_app_#{scenario_name}.sh"
-    
-    # Write the script to a local temporary file
-    File.write(local_script_path, configure_script)
-    File.chmod(0755, local_script_path)
-    
-    # Copy the script to the remote server
-    if system("scp -P #{ssh_port} #{local_script_path} www-data@#{ssh_host}:#{config_script_path}")
-      puts "   ✅ Rails configuration script created"
-
-      config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
-      if $?.success?
-        puts "   ✅ Rails application configured successfully"
-        puts "   📋 Configuration output: #{config_output}" if config_output.include?("✅") || config_output.include?("ℹ️")
+      # Write importmap.rb content to remote file
+      temp_file = "/tmp/importmap_#{File.basename(rails_root)}.rb"
+      File.write(temp_file, importmap_content)
+      
+      if system("scp -P #{ssh_port} #{temp_file} www-data@#{ssh_host}:#{temp_file}")
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo mv #{temp_file} #{importmap_rb_path} && sudo chown www-data:www-data #{importmap_rb_path}'")
+          puts "      ✅ Created importmap.rb"
+        else
+          puts "      ❌ Failed to move importmap.rb to final location"
+        end
       else
-        puts "   ❌ Rails configuration failed"
-        puts "   📋 Error output: #{config_output}"
-        exit 1
+        puts "      ❌ Failed to upload importmap.rb"
       end
-
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
-      File.delete(local_script_path) if File.exist?(local_script_path)
-      puts "   🧹 Configuration script cleaned up"
+      
+      File.delete(temp_file) if File.exist?(temp_file)
     else
-      File.delete(local_script_path) if File.exist?(local_script_path)
-      puts "   ❌ Failed to create Rails configuration script"
-      exit 1
+      puts "      ℹ️  importmap.rb already exists"
     end
+  end
+
+  def configure_ssl_settings(ssh_host, ssh_port, rails_root)
+    puts "   📝 Reading SSL configuration from carambus.yml..."
+    
+    carambus_yml_path = "#{rails_root}/config/carambus.yml"
+    production_rb_path = "#{rails_root}/config/environments/production.rb"
+    
+    # Check if carambus.yml exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ -f #{carambus_yml_path} ]'"
+    
+    if system(check_cmd)
+      # Extract SSL setting from carambus.yml
+      ssl_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'grep -A 20 \"production:\" #{carambus_yml_path} | grep \"ssl_enabled:\" | cut -d: -f2 | tr -d \" \"'"
+      ssl_enabled = `#{ssl_cmd}`.strip
+      ssl_enabled = "false" if ssl_enabled.empty?
+      
+      puts "      📋 SSL enabled: #{ssl_enabled}"
+      
+      # Update force_ssl based on carambus.yml
+      sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"s/config.force_ssl = .*/config.force_ssl = #{ssl_enabled}/\" #{production_rb_path}'"
+      
+      if system(sed_cmd)
+        puts "      ✅ Updated force_ssl configuration from carambus.yml"
+      else
+        puts "      ❌ Failed to update force_ssl configuration"
+      end
+    else
+      puts "      ⚠️  carambus.yml not found, setting force_ssl = false"
+      sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"s/config.force_ssl = .*/config.force_ssl = false/\" #{production_rb_path}'"
+      system(sed_cmd)
+    end
+  end
+
+  def configure_puma_settings(ssh_host, ssh_port, rails_root)
+    puts "   📝 Reading Puma configuration from carambus.yml..."
+    
+    carambus_yml_path = "#{rails_root}/config/carambus.yml"
+    puma_rb_path = "#{rails_root}/config/puma.rb"
+    
+    # Check if carambus.yml exists
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ -f #{carambus_yml_path} ]'"
+    
+    if system(check_cmd)
+      # Extract Puma workers setting from carambus.yml
+      workers_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'grep -A 20 \"production:\" #{carambus_yml_path} | grep \"puma_workers:\" | cut -d: -f2 | tr -d \" \"'"
+      workers = `#{workers_cmd}`.strip
+      workers = "2" if workers.empty?
+      
+      puts "      📋 Puma workers: #{workers}"
+      
+      # Update puma.rb with correct worker count
+      puma_check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ -f #{puma_rb_path} ]'"
+      
+      if system(puma_check_cmd)
+        sed_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo sed -i \"s/workers [0-9]*/workers #{workers}/\" #{puma_rb_path}'"
+        
+        if system(sed_cmd)
+          puts "      ✅ Updated Puma worker count to #{workers}"
+        else
+          puts "      ❌ Failed to update Puma worker count"
+        end
+      else
+        puts "      ⚠️  puma.rb not found"
+      end
+    else
+      puts "      ⚠️  carambus.yml not found, using default Puma configuration"
+    end
+    
+    puts "   📝 Controller redirects should be fixed in source code, not in deployment script"
   end
 
   def scenarios_path
