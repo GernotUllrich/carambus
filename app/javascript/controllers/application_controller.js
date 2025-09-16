@@ -40,14 +40,18 @@ export default class extends Controller {
     console.log("🚀 Element:", element)
     console.log("🚀 Element dataset:", element?.dataset)
     console.log("🚀 Element data-id:", element?.dataset?.id)
+    console.log("🚀 StimulusReflex consumer:", StimulusReflex.consumer)
+    console.log("🚀 StimulusReflex consumer connection state:", StimulusReflex.consumer?.connection?.getState())
     // document.body.classList.add('wait')
   }
 
   reflexQueued (element, reflex, noop, id) {
+    console.log("📋 ApplicationController reflexQueued:", reflex)
     // Reflex will be delivered to server upon reconnection
   }
 
   reflexDelivered (element, reflex, noop, id) {
+    console.log("📤 ApplicationController reflexDelivered:", reflex)
     // Reflex has been delivered to the server
   }
 

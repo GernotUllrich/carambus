@@ -547,6 +547,7 @@ class TableMonitorReflex < ApplicationReflex
 
   def warm_up_finished
     Rails.logger.info "+++++++++++++++++>>> warm_up_finished <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    Rails.logger.info "🔥 WARM_UP_FINISHED REFLEX CALLED - ALWAYS LOG"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
