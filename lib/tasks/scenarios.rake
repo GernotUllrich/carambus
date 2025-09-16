@@ -3699,7 +3699,7 @@ ENV
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
       # Get scoreboard URL
-      SCOREBOARD_URL=$(cat /var/www/#{basename}/shared/config/scoreboard_url)
+      SCOREBOARD_URL=$(cat /etc/scoreboard_url)
 
       # Start browser in fullscreen with additional flags to handle display issues
       /usr/bin/chromium-browser \\
