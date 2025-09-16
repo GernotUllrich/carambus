@@ -420,9 +420,14 @@ IMPORTMAP_EOF
 
     # Execute the configuration script on the remote server
     config_script_path = "/tmp/configure_rails_app.sh"
-    config_script_cmd = "cat > #{config_script_path} << 'SCRIPT_EOF'\n#{configure_script}SCRIPT_EOF"
-
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{config_script_cmd}'")
+    local_script_path = "/tmp/configure_rails_app_#{scenario_name}.sh"
+    
+    # Write the script to a local temporary file
+    File.write(local_script_path, configure_script)
+    File.chmod(0755, local_script_path)
+    
+    # Copy the script to the remote server
+    if system("scp -P #{ssh_port} #{local_script_path} www-data@#{ssh_host}:#{config_script_path}")
       puts "   ✅ Rails configuration script created"
 
       config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
@@ -436,8 +441,10 @@ IMPORTMAP_EOF
       end
 
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
+      File.delete(local_script_path) if File.exist?(local_script_path)
       puts "   🧹 Configuration script cleaned up"
     else
+      File.delete(local_script_path) if File.exist?(local_script_path)
       puts "   ❌ Failed to create Rails configuration script"
       exit 1
     end
