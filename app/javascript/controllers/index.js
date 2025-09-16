@@ -33,6 +33,7 @@ console.log("🔌 StimulusReflex available:", typeof StimulusReflex)
 
 StimulusReflex.initialize(application, { 
   controller, 
+  consumer: consumer,
   debug: true 
 })
 
