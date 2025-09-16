@@ -90,7 +90,7 @@
       }
   </style>
 </head>
-<body class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-50" data-controller="theme" data-theme-preference-value="<%= current_user&.theme %>">
+<body class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-50" data-controller="application theme" data-theme-preference-value="<%= current_user&.theme %>">
 <div class="flex flex-col min-h-screen <%= "no-navbar" unless @navbar %>" data-controller="sidebar">
   <header>
     <%= render "flash" %>

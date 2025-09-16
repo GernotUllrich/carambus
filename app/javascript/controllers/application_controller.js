@@ -14,6 +14,7 @@ import StimulusReflex from 'stimulus_reflex'
  */
 export default class extends Controller {
   connect () {
+    console.log("🚀 ApplicationController connected and registering StimulusReflex")
     StimulusReflex.register(this)
   }
 
@@ -35,6 +36,10 @@ export default class extends Controller {
    */
 
   beforeReflex (element, reflex, noop, id) {
+    console.log("🚀 ApplicationController beforeReflex:", reflex)
+    console.log("🚀 Element:", element)
+    console.log("🚀 Element dataset:", element?.dataset)
+    console.log("🚀 Element data-id:", element?.dataset?.id)
     // document.body.classList.add('wait')
   }
 
@@ -47,6 +52,7 @@ export default class extends Controller {
   }
 
   reflexSuccess (element, reflex, noop, id) {
+    console.log("✅ ApplicationController reflexSuccess:", reflex)
     // show success message
     if (reflex.includes('TableMonitor#key_a')) {
       console.timeEnd('key_a_click')
