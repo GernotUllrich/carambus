@@ -1814,25 +1814,14 @@ data[\"allow_overflow\"].present?")
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"start_game(#{options.inspect})"} <<<------------------------------------------"
     end
-    @game = game
-    if @game.blank?
-      @game = Game.new(table_monitor: self)
-    else
-      # Handle the case where some GameParticipation records can't be destroyed due to LocalProtector
-      begin
-        @game.game_participations.destroy_all
-      rescue ActiveRecord::RecordNotDestroyed => e
-        Rails.logger.warn "Could not destroy all game_participations due to LocalProtector: #{e.message}"
-        # Try to destroy them individually, skipping those that can't be destroyed
-        @game.game_participations.each do |gp|
-          begin
-            gp.destroy!
-          rescue ActiveRecord::RecordNotDestroyed
-            Rails.logger.warn "Skipping destruction of GameParticipation #{gp.id} due to LocalProtector"
-          end
-        end
-      end
+    # Unlink any existing game from this table monitor (preserve game history)
+    if game.present?
+      game.update(table_monitor: nil)
+      Rails.logger.info "Unlinked existing game #{game.id} from table monitor #{id}" if DEBUG
     end
+    
+    # Create a new game for this table monitor
+    @game = Game.new(table_monitor: self)
     reload
     @game.update(data: {})
     players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
