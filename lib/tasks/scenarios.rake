@@ -2923,6 +2923,15 @@ ENV
             if verify_output.include?("19") && verify_output.include?("(1 row)")
               puts "   ✅ Database verification successful - 19 regions found"
 
+              # Reset sequences for local server (prevents ID conflicts with API)
+              puts "   🔄 Resetting sequences for local server..."
+              sequence_reset_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'"
+              if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{sequence_reset_cmd}'")
+                puts "   ✅ Sequences reset successfully"
+              else
+                puts "   ⚠️  Warning: Sequence reset failed (continuing anyway)"
+              end
+
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
               puts "   🧹 Temporary files cleaned up"
@@ -3102,6 +3111,22 @@ ENV
       end
     else
       puts "   ❌ Credentials directory not found: #{credentials_dir}"
+      return false
+    end
+
+    # Upload env.production
+    env_production_path = File.join(production_dir, 'env.production')
+    if File.exist?(env_production_path)
+      scp_cmd = "scp -P #{ssh_port} #{env_production_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded env.production"
+      else
+        puts "   ❌ Failed to upload env.production: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ env.production not found: #{env_production_path}"
       return false
     end
 
