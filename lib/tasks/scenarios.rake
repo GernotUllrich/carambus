@@ -3449,9 +3449,9 @@ ENV
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
-    # Upload scoreboard URL to Raspberry Pi
+    # Upload scoreboard URL to shared config directory
     puts "\n📤 Uploading scoreboard URL..."
-    upload_url_cmd = "echo '#{scoreboard_url}' | sudo tee /etc/scoreboard_url"
+    upload_url_cmd = "echo '#{scoreboard_url}' > /var/www/#{basename}/shared/config/scoreboard_url"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_url_cmd, ssh_port)
       puts "   ✅ Scoreboard URL uploaded"
     else
@@ -3701,8 +3701,8 @@ ENV
       wmctrl -r "panel" -b add,hidden 2>/dev/null || true
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-      # Get scoreboard URL
-      SCOREBOARD_URL=$(cat /etc/scoreboard_url)
+      # Get scoreboard URL from shared config directory
+      SCOREBOARD_URL=$(cat /var/www/#{basename}/shared/config/scoreboard_url)
 
       # Start browser in fullscreen with additional flags to handle display issues
       /usr/bin/chromium-browser \\
