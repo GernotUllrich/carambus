@@ -1220,7 +1220,9 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Enable DNS rebinding protection for credentials.
-  # config.hosts << "example.com"
+  # Allow requests from the Pi server
+  config.hosts << "#{webserver_host}"
+  config.hosts << "#{webserver_host}:#{webserver_port}"
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
