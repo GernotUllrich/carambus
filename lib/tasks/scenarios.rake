@@ -1413,6 +1413,14 @@ ENV
     end
     puts "   ✅ CSS assets built"
 
+    # Precompile Rails assets for development
+    puts "   📦 Precompiling Rails assets (rails assets:precompile)..."
+    unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails assets:precompile")
+      puts "   ❌ Failed to precompile Rails assets"
+      return false
+    end
+    puts "   ✅ Rails assets precompiled"
+
     true
   end
 
