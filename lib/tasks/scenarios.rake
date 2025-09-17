@@ -320,43 +320,33 @@ namespace :scenario do
     
     cable_yml_path = "#{rails_root}/config/cable.yml"
     
-    # Check if file exists
-    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} '[ ! -f #{cable_yml_path} ]'"
-    
-    if system(check_cmd)
-      cable_yml_content = <<~YAML
+    # Always create/update cable.yml to ensure correct ActionCable configuration
+    cable_yml_content = <<~YAML
 development:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: #{basename}_development
+  adapter: async
 
 test:
   adapter: test
 
 production:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: #{basename}_production
+  adapter: async
 YAML
 
-      # Write cable.yml content to remote file
-      temp_file = "/tmp/cable_yml_#{basename}.yml"
-      File.write(temp_file, cable_yml_content)
-      
-      if system("scp -P #{ssh_port} #{temp_file} www-data@#{ssh_host}:#{temp_file}")
-        if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo mv #{temp_file} #{cable_yml_path} && sudo chown www-data:www-data #{cable_yml_path}'")
-          puts "      ✅ Created cable.yml"
-        else
-          puts "      ❌ Failed to move cable.yml to final location"
-        end
+    # Write cable.yml content to remote file
+    temp_file = "/tmp/cable_yml_#{basename}.yml"
+    File.write(temp_file, cable_yml_content)
+    
+    if system("scp -P #{ssh_port} #{temp_file} www-data@#{ssh_host}:#{temp_file}")
+      if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo mv #{temp_file} #{cable_yml_path} && sudo chown www-data:www-data #{cable_yml_path}'")
+        puts "      ✅ Created/updated cable.yml with async adapter"
       else
-        puts "      ❌ Failed to upload cable.yml"
+        puts "      ❌ Failed to move cable.yml to final location"
       end
-      
-      File.delete(temp_file) if File.exist?(temp_file)
     else
-      puts "      ℹ️  cable.yml already exists"
+      puts "      ❌ Failed to upload cable.yml"
     end
+    
+    File.delete(temp_file) if File.exist?(temp_file)
   end
 
   def create_scoreboard_url(ssh_host, ssh_port, basename, webserver_host, webserver_port, location_md5)
@@ -907,31 +897,19 @@ RUBY
   end
 
   def generate_cable_yml(scenario_config, env_config, env_dir)
-    # Generate cable.yml with Redis configuration
+    # Generate cable.yml with async adapter for production (no Redis dependency)
     redis_db = env_config['redis_database'] || 1
     channel_prefix = env_config['channel_prefix'] || 'carambus_development'
 
     content = <<~YAML
 development:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix}
-  read_timeout: 50
-  write_timeout: 50
-  connect_timeout: 50
-
-test:
   adapter: async
 
-staging:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix.gsub('_development', '_staging').gsub('_production', '_staging')}
+test:
+  adapter: test
 
 production:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix.gsub('_development', '_production').gsub('_staging', '_production')}
+  adapter: async
 YAML
 
     File.write(File.join(env_dir, 'cable.yml'), content)
