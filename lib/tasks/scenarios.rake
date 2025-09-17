@@ -3232,11 +3232,11 @@ ENV
     puts "   🔧 Uploading Puma configuration..."
     puma_rb_path = File.join(production_dir, 'puma.rb')
     if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/"
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/puma.rb"
       puts "   🔍 Running: #{scp_cmd}"
       result = `#{scp_cmd} 2>&1`
       if $?.success?
-        puts "   ✅ Uploaded puma.rb"
+        puts "   ✅ Uploaded puma.rb to correct location"
       else
         puts "   ❌ Failed to upload puma.rb: #{result}"
         return false
