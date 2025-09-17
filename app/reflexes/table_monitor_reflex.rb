@@ -548,12 +548,19 @@ class TableMonitorReflex < ApplicationReflex
   def warm_up_finished
     Rails.logger.info "+++++++++++++++++>>> warm_up_finished <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     Rails.logger.info "🔥 WARM_UP_FINISHED REFLEX CALLED - ALWAYS LOG"
+    Rails.logger.info "🔥 ELEMENT DATA: #{element&.dataset&.inspect}"
+    Rails.logger.info "🔥 URL: #{url}"
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_warmup!
     @table_monitor.save!
+  end
+
+  def test_reflex
+    Rails.logger.info "🧪 TEST REFLEX CALLED - SIMPLE TEST"
+    morph :nothing
   end
 
   def play_warm_up_a
