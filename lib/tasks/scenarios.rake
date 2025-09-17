@@ -1226,7 +1226,7 @@ Rails.application.configure do
   config.action_cable.disable_request_forgery_protection = true
   config.action_cable.url = "#{actioncable_url}"
   config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}]
-  config.action_cable.adapter = :async
+  # config.action_cable.adapter = :async  # Removed - invalid for Rails 7.2.2.2
 
   # Use Rails credentials as normal
   config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
