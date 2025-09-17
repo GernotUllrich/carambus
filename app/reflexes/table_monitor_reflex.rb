@@ -560,6 +560,8 @@ class TableMonitorReflex < ApplicationReflex
 
   def test_reflex
     Rails.logger.info "🧪 TEST REFLEX CALLED - SIMPLE TEST"
+    Rails.logger.info "🧪 ELEMENT: #{element&.inspect}"
+    Rails.logger.info "🧪 URL: #{url}"
     morph :nothing
   end
 
