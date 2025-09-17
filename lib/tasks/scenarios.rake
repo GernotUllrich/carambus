@@ -2801,6 +2801,9 @@ ENV
     puts "Deploying scenario #{scenario_name} to production server..."
     puts "This performs server deployment operations only (assumes prepare_deploy was run first)."
     puts "DEBUG: Starting deploy_scenario function"
+    
+    # Load required libraries
+    require 'digest'
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -3172,7 +3175,9 @@ ENV
 
     # Step 5: Configure Rails application for production
     puts "\n⚙️  Step 5: Rails application configuration..."
-    puts "   ℹ️  Rails application already configured during deployment"
+    
+    # Configure Rails application remotely (creates cable.yml, configures production.rb, etc.)
+    configure_rails_app_remotely(ssh_host, ssh_port, basename, production_config['webserver_host'], production_config['webserver_port'], Digest::MD5.hexdigest(scenario['location_id'].to_s))
 
     # Step 6: Restart services to apply configuration
     puts "\n🔄 Step 6: Restarting services to apply configuration..."
