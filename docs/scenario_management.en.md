@@ -6,229 +6,365 @@ The Scenario Management System allows managing and automatically deploying diffe
 
 The system supports various scenarios such as:
 - **carambus**: Main production environment
+- **carambus_api**: API server
 - **carambus_location_5101**: Local server instance for location 5101
 - **carambus_location_2459**: Local server instance for location 2459
 - **carambus_location_2460**: Local server instance for location 2460
 
-## Core Concepts
+## Improved Deployment Workflow (2024)
 
-### Scenario Configuration
+The system has been completely redesigned and now offers clean separation of responsibilities:
+
+### Workflow Overview
+
+```
+config.yml → prepare_development → prepare_deploy → deploy
+     ↓              ↓                   ↓            ↓
+   Basis      Development        Production      Server
+   Setup        Setup            Preparation    Deployment
+```
+
+## Main Workflow
+
+### 1. `scenario:prepare_development[scenario_name,environment]`
+**Purpose**: Set up local development environment
+
+**Complete Flow**:
+1. **Load Configuration**: Reads `config.yml` for scenario-specific settings
+2. **Create Rails Root**: Git clone + .idea configuration (if not exists)
+3. **Generate Development Configuration**: 
+   - `database.yml` for development environment
+   - `carambus.yml` with scenario-specific settings
+   - `cable.yml` for ActionCable
+4. **Database Setup**:
+   - Creates `carambus_scenarioname_development` from template `carambus_api_development`
+   - Applies region filtering (reduces ~500MB to ~90MB)
+   - Sets `last_version_id` for sync tracking
+   - Resets version sequence to 50,000,000+ (prevents ID conflicts)
+5. **Asset Compilation**:
+   - `yarn build` (JavaScript)
+   - `yarn build:css` (TailwindCSS)
+   - `rails assets:precompile` (Sprockets)
+6. **Create Database Dump**: Saves processed development database
+
+**Perfect for**: Local development, scenario testing, asset development
+
+### 2. `scenario:prepare_deploy[scenario_name]`
+**Purpose**: Complete production deployment preparation
+
+**Complete Flow**:
+1. **Generate Production Configuration**:
+   - `database.yml` for production
+   - `carambus.yml` with production settings
+   - `nginx.conf` with correct host/port settings
+   - `puma.rb` with Unix socket configuration
+   - `puma.service` for systemd
+   - `production.rb` with ActionCable configuration
+   - `cable.yml` for ActionCable PubSub
+   - `deploy.rb` for Capistrano
+   - `credentials/` with production keys
+2. **Database Setup**:
+   - **Upload and Load Database Dump**: Transfers development dump to server
+   - **Database Reset**: Removes old application folders, creates new production DB
+   - **Dump Restoration**: Loads processed development database into production
+   - **Verification**: Checks correct restoration (19 regions)
+3. **Server Configuration**:
+   - **File Transfers**: Upload all configuration files to `/var/www/scenario/shared/config/`
+   - **Directory Setup**: Creates deployment directories with correct permissions
+   - **Service Preparation**: Prepares systemd and Nginx
+
+**Perfect for**: Complete deployment preparation, blank server setup
+
+### 3. `scenario:deploy[scenario_name]`
+**Purpose**: Pure Capistrano deployment with automatic service management
+
+**Complete Flow**:
+1. **Database & Config Ready**: Uses already prepared database and configuration
+2. **Capistrano Deployment**:
+   - Git deployment with asset precompilation
+   - `yarn install`, `yarn build`, `yarn build:css`
+   - `rails assets:precompile`
+   - **Automatic Puma Restart** via Capistrano hooks
+   - **Automatic Nginx Reload** via Capistrano
+3. **Service Management**: All services are automatically managed by Capistrano
+
+**Perfect for**: Production deployment, repeatable deployments
+
+## Database Flow Explanation
+
+### Source → Development → Production
+
+```
+carambus_api_development (mother database)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ prepare_development                 │
+    │ 1. Template: --template=api_dev     │
+    │ 2. Region-Filtering (NBV only)      │
+    │ 3. Set last_version_id              │
+    │ 4. Reset version sequence (50000000+)│
+    │ 5. Create dump                      │
+    └─────────────────────────────────────┘
+                    ↓
+carambus_scenarioname_development (processed)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ prepare_deploy                     │
+    │ 1. Upload dump to server            │
+    │ 2. Reset production database        │
+    │ 3. Restore from development dump    │
+    │ 4. Verify (19 regions)              │
+    └─────────────────────────────────────┘
+                    ↓
+carambus_scenarioname_production (on server)
+                    ↓
+    ┌─────────────────────────────────────┐
+    │ deploy                             │
+    │ 1. Capistrano deployment            │
+    │ 2. Automatic service restarts       │
+    │ 3. Asset compilation                │
+    └─────────────────────────────────────┘
+```
+
+**Key Insight**: The development database is the "processed" version (template + filtering + sequences), and production is created from this processed version.
+
+## Benefits of the Improved Workflow
+
+### ✅ Perfect Separation of Responsibilities
+- **`prepare_development`**: Development setup, asset compilation, database processing
+- **`prepare_deploy`**: Production preparation, server setup, database transfer
+- **`deploy`**: Pure Capistrano deployment with automatic service management
+
+### ✅ Automatic Service Management
+- **Puma Restart**: Automatic via Capistrano hooks (`after 'deploy:publishing', 'puma:restart'`)
+- **Nginx Reload**: Automatic via Capistrano
+- **No Manual Intervention**: Everything is managed by Capistrano
+
+### ✅ Robust Asset Pipeline
+- **Sprockets-based**: Consistent asset management in development and production
+- **TailwindCSS Integration**: Correct CSS compilation
+- **JavaScript Bundling**: esbuild for optimized assets
+
+### ✅ Intelligent Database Operations
+- **Template Optimization**: `createdb --template` instead of `pg_dump | psql`
+- **Region Filtering**: Automatic database size reduction
+- **Sequence Management**: Automatic ID conflict prevention
+- **Verification**: Automatic database integrity checking
+
+### ✅ Blank Server Ready
+- **Complete Preparation**: `prepare_deploy` sets up everything on the server
+- **No Manual Steps**: Automatic creation of services and configurations
+- **Permissions**: Automatic directory permission correction
+
+## Quick Start
+
+```bash
+# 1. Set up development environment
+rake "scenario:prepare_development[carambus_location_5101,development]"
+
+# 2. Production preparation (Database + Config + Server Setup)
+rake "scenario:prepare_deploy[carambus_location_5101]"
+
+# 3. Execute deployment (pure Capistrano operation)
+rake "scenario:deploy[carambus_location_5101]"
+```
+
+## Advanced Usage
+
+### Granular Control
+
+```bash
+# Only regenerate configuration files
+rake "scenario:generate_configs[carambus_location_5101,development]"
+
+# Only create database dump
+rake "scenario:create_database_dump[carambus_location_5101,development]"
+
+# Only restore database dump
+rake "scenario:restore_database_dump[carambus_location_5101,development]"
+
+# Only create Rails root folder
+rake "scenario:create_rails_root[carambus_location_5101]"
+```
+
+### Scenario Update
+
+```bash
+# Update scenario with git (preserves local changes)
+rake "scenario:update[carambus_location_5101]"
+```
+
+## Scenario Configuration
 
 Each scenario is defined by a `config.yml` file:
 
 ```yaml
 scenario:
-  name: carambus
+  name: carambus_location_5101
+  description: Location 5101 Server
+  location_id: 5101
+  context: LOCAL                    # API, LOCAL, or NBV
+  region_id: 1
+  club_id: 357
+  api_url: https://newapi.carambus.de/
+  season_name: 2025/2026
   application_name: carambus
-  basename: carambus
+  basename: carambus_location_5101
+  branch: master
+  is_main: false
 
 environments:
   development:
-    database_name: carambus_development
-    database_username: carambus_user
     webserver_host: localhost
-    webserver_port: 3000
-    ssh_host: localhost
-    ssh_port: 22
+    webserver_port: 3003
+    database_name: carambus_location_5101_development
     ssl_enabled: false
-    
+    database_username: null
+    database_password: null
+
   production:
-    database_name: carambus_production
-    database_username: carambus_user
-    webserver_host: new.carambus.de
-    webserver_port: 80
-    ssh_host: new.carambus.de
+    webserver_host: 192.168.178.107
+    ssh_host: 192.168.178.107
+    webserver_port: 81
     ssh_port: 8910
-    ssl_enabled: true
+    database_name: carambus_location_5101_production
+    ssl_enabled: false
+    database_username: www_data
+    database_password: toS6E7tARQafHCXz
+    puma_socket_path: /var/www/carambus_location_5101/shared/sockets/puma-production.sock
+    deploy_to: /var/www/carambus_location_5101
 ```
 
-### Automatic Sequence Management
+## Technical Details
 
-The system ensures that all database sequences are correctly set to > 50,000,000 to avoid conflicts with the `LocalProtector`.
+### Asset Pipeline (Sprockets)
 
-## Available Tasks
-
-### Scenario Creation
+The system uses the Sprockets asset pipeline:
 
 ```bash
-# Create new scenario
-rake "scenario:create[scenario_name]"
-
-# Create Rails root for scenario
-rake "scenario:create_rails_root[scenario_name]"
+# Development Asset Compilation
+yarn build          # JavaScript (esbuild)
+yarn build:css      # TailwindCSS
+rails assets:precompile  # Sprockets (Development)
 ```
 
-### Development Setup
+### ActionCable Configuration
 
-```bash
-# Setup development environment
-rake "scenario:setup[scenario_name,development]"
+Automatic ActionCable configuration for StimulusReflex:
 
-# With Rails root directory
-rake "scenario:setup_with_rails_root[scenario_name,development]"
+```yaml
+# config/cable.yml
+development:
+  adapter: async
+production:
+  adapter: async
 ```
 
-### Production Deployment
+### Capistrano Integration
 
-```bash
-# Full production deployment
-rake "scenario:deploy[scenario_name]"
+Automatic service management via Capistrano:
 
-# With conflict analysis
-rake "scenario:deploy_with_conflict_analysis[scenario_name]"
+```ruby
+# config/deploy.rb
+after 'deploy:publishing', 'puma:restart'
+
+namespace :puma do
+  task :restart do
+    on roles(:app) do
+      within current_path do
+        execute "./bin/manage-puma.sh"
+      end
+    end
+  end
+end
 ```
 
-### Database Management
+### Database Transformations
 
-```bash
-# Create database dump
-rake "scenario:create_database_dump[scenario_name,environment]"
+#### carambus Scenario
+- **Template Optimization**: `createdb --template=carambus_api_development`
+- **Version Sequence Reset**: `setval('versions_id_seq', 1, false)`
+- **Settings Update**: 
+  - Set `last_version_id` to 1
+  - Set `scenario_name` to "carambus"
 
-# Restore database dump
-rake "scenario:restore_database_dump[scenario_name,environment]"
-```
-
-**Database Dump Behavior:**
-- **Development Environment**: Creates dump locally and stores in `carambus_data/scenarios/{scenario_name}/database_dumps/`
-- **Production Environment**: Creates dump on production server, then transfers to local `carambus_data` for centralized management
-
-**Database Restore Behavior:**
-- **Development Environment**: Restores dump locally from `carambus_data`
-- **Production Environment**: Transfers dump from local `carambus_data` to production server, then restores there
-
-## Deployment Process
-
-### 1. Generate Configuration Files
-
-The system automatically generates:
-- `database.yml`
-- `carambus.yml`
-- `nginx.conf`
-- `puma.service`
-- `puma.rb`
-- `deploy.rb`
-- `production.rb`
-
-### 2. Database Setup
-
-- **Template Optimization**: Uses `createdb --template` for fast database creation
-- **Automatic Transformations**: Sets scenario-specific settings
-- **Sequence Reset**: Ensures all sequences are > 50,000,000
-
-### 3. Database Dump/Restore Operations
-
-The system intelligently handles database operations based on the environment:
-
-#### Development Environment
-- **Dump Creation**: Executes `pg_dump` locally and stores in `carambus_data`
-- **Dump Restore**: Restores from local `carambus_data` to local database
-- **Sequence Management**: Automatically resets sequences to prevent ID conflicts
-
-#### Production Environment
-- **Dump Creation**: 
-  1. Connects to production server via SSH (from `scenario/config.yml`)
-  2. Executes `pg_dump` on production server
-  3. Transfers dump to local `carambus_data` for centralized management
-  4. Cleans up temporary files on production server
-- **Dump Restore**:
-  1. Transfers dump from local `carambus_data` to production server
-  2. Drops and recreates database on production server
-  3. Restores dump on production server
-  4. Cleans up temporary files on production server
-
-**Benefits:**
-- ✅ **Centralized Management**: All dumps stored in `carambus_data` regardless of source
-- ✅ **Network Efficiency**: Operations happen on the appropriate server
-- ✅ **Backup Safety**: Production dumps are automatically backed up locally
-- ✅ **Clean Operations**: Temporary files are automatically cleaned up
-
-### 4. Capistrano Deployment
-
-- **Git Deployment**: Automatic code deployment
-- **Asset Precompilation**: CSS/JS build
-- **Database Migration**: Automatic schema updates
-- **Service Management**: Puma/Nginx configuration
-- **SSL Setup**: Automatic Let's Encrypt integration
-
-## Optimizations
-
-### Database Template
-
-**Before:**
-```bash
-pg_dump carambus_api_development | psql temp_db
-```
-
-**After:**
-```bash
-createdb temp_db --template=carambus_api_development
-```
-
-**Advantage:** Significantly faster for large databases.
-
-### Integrated SSL Management
-
-SSL certificates are automatically managed via Capistrano:
-- Automatic Let's Encrypt integration
-- Nginx configuration with SSL
-- Automatic certificate renewal
-
-### Automatic Sequence Management
-
-The system automatically runs `Version.sequence_reset`:
-- After every database restore
-- During every production deployment
-- Prevents `LocalProtector` conflicts
+#### Location Scenarios
+- **Region Filtering**: `cleanup:remove_non_region_records` with `ENV['REGION_SHORTNAME'] = 'NBV'`
+- **Optimized Dump Size**: Reduces from ~500MB to ~90MB
+- **Temporary DB**: Creates temp DB, applies filtering, creates dump, cleans up
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. Sequence Conflicts
+1. **Asset Precompilation Errors**
+   ```bash
+   # Solution: Run complete asset pipeline
+   cd carambus_location_5101
+   yarn build && yarn build:css && rails assets:precompile
+   ```
 
-**Problem:** `ActiveRecord::RecordNotDestroyed` errors
-**Solution:** Run `Version.sequence_reset`
+2. **StimulusReflex Not Working**
+   ```bash
+   # Solution: Check ActionCable configuration
+   # cable.yml must be created with async adapter
+   ```
 
-```bash
-bundle exec rails runner 'Version.sequence_reset'
-```
+3. **Database Sequence Conflicts**
+   ```bash
+   # Solution: Recreate development database
+   rake "scenario:prepare_development[scenario_name,development]"
+   ```
 
-#### 2. Bundle Command Not Found
+4. **Port Conflicts**
+   ```bash
+   # Solution: Use different port in config.yml
+   webserver_port: 3004
+   ```
 
-**Problem:** `bundle: command not found` on server
-**Solution:** System automatically uses `$HOME/.rbenv/bin/rbenv exec bundle`
+## Status
 
-#### 3. SSL Certificate Issues
+✅ **Fully implemented**:
+- ✅ Improved deployment workflow with clear separation
+- ✅ Automatic service management via Capistrano
+- ✅ Robust asset pipeline (Sprockets + TailwindCSS)
+- ✅ ActionCable configuration for StimulusReflex
+- ✅ Intelligent database operations
+- ✅ Blank server deployment
+- ✅ Template system for all configuration files
+- ✅ Unix socket configuration (Puma ↔ Nginx)
+- ✅ SSL certificate management (Let's Encrypt)
+- ✅ Refactored task system (2024) - Eliminated code duplication
 
-**Problem:** SSL setup fails
-**Solution:** Check domain configuration and Nginx status
+🔄 **In progress**:
+- GitHub access for Raspberry Pi
+- Production database setup
 
-```bash
-sudo certbot certificates
-sudo nginx -t
-```
+📋 **Planned**:
+- Mode switch system deactivation
+- Automated tests
+- Additional location scenarios
 
 ## Best Practices
 
-### Scenario Naming Convention
+### Deployment Order
+1. **Always first**: `prepare_development` for local testing
+2. **Then**: `prepare_deploy` for production preparation
+3. **Finally**: `deploy` for server deployment
 
-- **Main Production**: `carambus`
-- **Local Servers**: `carambus_location_[ID]`
-- **Development**: `carambus_development`
+### Asset Development
+- Use `prepare_development` for local asset testing
+- Always test in development environment before production deployment
 
-### Database Backup
+### Database Management
+- Development database is the "source of truth"
+- Production is always created from development dump
+- Sequence reset happens automatically
 
-Create regular backups:
-```bash
-rake "scenario:create_database_dump[carambus,production]"
-```
-
-### Deployment Testing
-
-Test deployments in development environment:
-```bash
-rake "scenario:setup[carambus,development]"
-```
+### Service Management
+- Never use manual `systemctl` commands
+- Capistrano manages all services automatically
+- In case of problems: re-run `prepare_deploy`
 
 ## Integration with Existing Systems
 
