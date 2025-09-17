@@ -4,8 +4,11 @@ export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
   connect() {
+    console.log('🔧 SidebarController connected!')
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const isMobile = window.innerWidth < 768
+
+    console.log('🔧 Sidebar state:', { isSidebarCollapsed, isMobile })
 
     // Apply initial state immediately
     if (isMobile || isSidebarCollapsed) {
@@ -16,12 +19,14 @@ export default class extends Controller {
   }
 
   toggle(event) {
+    console.log('🔧 SidebarController toggle called!', event.currentTarget)
     const submenu = event.currentTarget.nextElementSibling
     submenu.classList.toggle('hidden')
     event.currentTarget.querySelector('svg').classList.toggle('rotate-180')
   }
 
   collapse(event) {
+    console.log('🔧 SidebarController collapse called!', event.currentTarget)
     // Force a reflow before making changes
     void this.navTarget.offsetHeight
 
@@ -33,6 +38,7 @@ export default class extends Controller {
       // Save state
       const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed')
       localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+      console.log('🔧 Sidebar collapsed state:', isCollapsed)
     })
   }
 
