@@ -4,7 +4,8 @@
 import { createConsumer } from "@rails/actioncable"
 
 console.log("Initializing ActionCable consumer...")
-const consumer = createConsumer()
+// Force HTTP WebSocket connection instead of HTTPS
+const consumer = createConsumer("/cable")
 console.log("ActionCable consumer initialized")
 
 export default consumer
