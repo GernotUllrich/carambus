@@ -2583,22 +2583,8 @@ ENV
       return false
     end
 
-    # Step 5: Upload and load database dump
-    puts "\n💾 Step 5: Uploading and loading database dump..."
-    unless upload_and_load_database_dump(scenario_name, production_config)
-      puts "❌ Failed to upload and load database dump"
-      return false
-    end
-
-    # Step 6: Upload configuration files to server
-    puts "\n📤 Step 6: Uploading configuration files to server..."
-    unless upload_configuration_files_to_server(scenario_name, production_config)
-      puts "❌ Failed to upload configuration files to server"
-      return false
-    end
-
-    # Step 7: Ensure development database has all migrations applied
-    puts "\n🔄 Step 7: Ensuring development database has all migrations applied..."
+    # Step 5: Ensure development database has all migrations applied
+    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
 
     # Change to the Rails root directory and run migrations
     rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
@@ -2616,8 +2602,8 @@ ENV
       return false
     end
 
-    # Step 8: Create production database dump from scenario development database
-    puts "\n💾 Step 8: Creating production database dump from #{scenario_name}_development..."
+    # Step 6: Create production database dump from scenario development database
+    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
 
     # Check if development database exists
     dev_database_name = "#{scenario_name}_development"
@@ -2630,6 +2616,20 @@ ENV
     # Create production dump from development database
     unless create_production_dump_from_development(scenario_name)
       puts "❌ Failed to create production dump from development database"
+      return false
+    end
+
+    # Step 7: Upload and load database dump to server
+    puts "\n💾 Step 7: Uploading and loading database dump to server..."
+    unless upload_and_load_database_dump(scenario_name, production_config)
+      puts "❌ Failed to upload and load database dump"
+      return false
+    end
+
+    # Step 8: Upload configuration files to server
+    puts "\n📤 Step 8: Uploading configuration files to server..."
+    unless upload_configuration_files_to_server(scenario_name, production_config)
+      puts "❌ Failed to upload configuration files to server"
       return false
     end
 
