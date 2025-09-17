@@ -89,6 +89,8 @@ module CarambusApp
     config.assets.css_compressor = nil
 
     config.action_cable.allowed_request_origins = [/http:\/\/*/, /https:\/\/*/]
+    config.action_cable.disable_request_forgery_protection = true
+    config.action_cable.allow_same_origin_as_host = true
 
     # Rails 7 defaults to libvips as the variant processor
     # libvips is up to 10x faster and consumes 1/10th the memory of imagemagick
