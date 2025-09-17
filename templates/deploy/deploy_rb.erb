@@ -11,7 +11,7 @@ set :deploy_to, "/var/www/#{fetch(:basename)}"
 set :branch, "<%= @scenario['branch'] %>"
 
 # Default value for :linked_files is []
-append :linked_files, "config/database.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb"
+append :linked_files, "config/database.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb", "config/env.production"
 
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
@@ -27,3 +27,65 @@ set :bundle_flags, '--quiet'
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
+
+# Verify Node.js is available
+namespace :deploy do
+  desc "Verify Node.js and yarn are available"
+  task :verify_node do
+    on roles(:app) do
+      execute :node, "--version"
+      execute :yarn, "--version"
+    end
+  end
+end
+
+# Hook into the default asset compilation process
+namespace :deploy do
+  namespace :assets do
+    desc "Install yarn dependencies before asset compilation"
+    task :install_dependencies do
+      on roles(:app) do
+        within release_path do
+          # Install JavaScript dependencies
+          execute :yarn, :install
+        end
+      end
+    end
+
+    desc "Build JavaScript and CSS assets before Rails precompilation"
+    task :build_frontend_assets do
+      on roles(:app) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            # Build JavaScript assets
+            execute :yarn, :build
+            
+            # Build CSS assets
+            execute :yarn, "build:css"
+
+            # Ensure the builds directory exists for Rails asset pipeline
+            execute :mkdir, "-p app/assets/builds"
+          end
+        end
+      end
+    end
+
+    desc "Verify manifest was created properly"
+    task :verify_manifest do
+      on roles(:app) do
+        within release_path do
+          execute :ls, "-la public/assets/"
+          execute :find, "public/assets", "-name '*.json'", "-o", "-name 'manifest*'"
+        end
+      end
+    end
+  end
+end
+
+# Hook into the default asset compilation process
+before "deploy:assets:precompile", "deploy:verify_node"
+before "deploy:assets:precompile", "deploy:assets:install_dependencies"
+before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
+
+# Ensure manifest is properly handled after precompilation
+after "deploy:assets:precompile", "deploy:assets:verify_manifest"
