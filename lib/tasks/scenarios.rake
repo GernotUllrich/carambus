@@ -85,7 +85,7 @@ namespace :scenario do
     prepare_scenario_for_development(scenario_name, environment, force)
   end
 
-  desc "Prepare scenario for deployment (all steps except server deployment)"
+  desc "Prepare scenario for deployment (config generation, file transfers, and database setup)"
   task :prepare_deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -98,7 +98,7 @@ namespace :scenario do
     prepare_scenario_for_deployment(scenario_name)
   end
 
-  desc "Deploy scenario to production (server deployment only)"
+  desc "Deploy scenario to production (Capistrano deployment only)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -2196,9 +2196,188 @@ ENV
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 
+  def upload_configuration_files_to_server(scenario_name, production_config)
+    puts "📤 Uploading configuration files to server..."
+    
+    basename = scenario_name.gsub('carambus_location_', '')
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Create entire deployment directory structure with proper permissions
+    deploy_dir = "/var/www/carambus_location_#{basename}"
+    shared_config_dir = "#{deploy_dir}/shared/config"
+    create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
+      puts "   ❌ Failed to create deployment directory structure"
+      return false
+    end
+    
+    # Upload config files to shared directory
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    
+    # Upload database.yml
+    database_yml_path = File.join(production_dir, 'database.yml')
+    if File.exist?(database_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded database.yml"
+      else
+        puts "   ❌ Failed to upload database.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ database.yml not found: #{database_yml_path}"
+      return false
+    end
+    
+    # Upload carambus.yml
+    carambus_yml_path = File.join(production_dir, 'carambus.yml')
+    if File.exist?(carambus_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded carambus.yml"
+      else
+        puts "   ❌ Failed to upload carambus.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
+      return false
+    end
+    
+    # Upload nginx.conf
+    nginx_conf_path = File.join(production_dir, 'nginx.conf')
+    if File.exist?(nginx_conf_path)
+      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded nginx.conf"
+      else
+        puts "   ❌ Failed to upload nginx.conf: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
+      return false
+    end
+    
+    # Upload puma.service
+    puma_service_path = File.join(production_dir, 'puma.service')
+    if File.exist?(puma_service_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.service"
+      else
+        puts "   ❌ Failed to upload puma.service: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.service not found: #{puma_service_path}"
+      return false
+    end
+    
+    # Upload puma.rb
+    puma_rb_path = File.join(production_dir, 'puma.rb')
+    if File.exist?(puma_rb_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.rb"
+      else
+        puts "   ❌ Failed to upload puma.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.rb not found: #{puma_rb_path}"
+      return false
+    end
+    
+    # Upload production.rb
+    production_rb_path = File.join(production_dir, 'production.rb')
+    if File.exist?(production_rb_path)
+      # Create environments directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
+      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded production.rb"
+      else
+        puts "   ❌ Failed to upload production.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ production.rb not found: #{production_rb_path}"
+      return false
+    end
+    
+    # Upload credentials
+    credentials_dir = File.join(production_dir, 'credentials')
+    if Dir.exist?(credentials_dir)
+      # Create credentials directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
+      
+      # Upload production.yml.enc
+      production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
+      if File.exist?(production_yml_enc_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.yml.enc"
+        else
+          puts "   ❌ Failed to upload production.yml.enc: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
+        return false
+      end
+      
+      # Upload production.key
+      production_key_path = File.join(credentials_dir, 'production.key')
+      if File.exist?(production_key_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.key"
+        else
+          puts "   ❌ Failed to upload production.key: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.key not found: #{production_key_path}"
+        return false
+      end
+    else
+      puts "   ❌ Credentials directory not found: #{credentials_dir}"
+      return false
+    end
+    
+    # Upload env.production
+    env_production_path = File.join(production_dir, 'env.production')
+    if File.exist?(env_production_path)
+      scp_cmd = "scp -P #{ssh_port} #{env_production_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded env.production"
+      else
+        puts "   ❌ Failed to upload env.production: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ env.production not found: #{env_production_path}"
+      return false
+    end
+    
+    puts "   ✅ All configuration files uploaded successfully"
+    true
+  end
+
   def prepare_scenario_for_deployment(scenario_name)
     puts "Preparing scenario #{scenario_name} for deployment..."
-    puts "This includes production config generation, production config copying, and database operations."
+    puts "This includes production config generation, file transfers to server, and database operations."
     puts "Note: Assumes Rails root folder already exists from prepare_development."
 
     # Load scenario configuration
@@ -2283,8 +2462,15 @@ ENV
       return false
     end
 
-    # Step 5: Ensure development database has all migrations applied
-    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
+    # Step 5: Upload configuration files to server
+    puts "\n📤 Step 5: Uploading configuration files to server..."
+    unless upload_configuration_files_to_server(scenario_name, production_config)
+      puts "❌ Failed to upload configuration files to server"
+      return false
+    end
+
+    # Step 6: Ensure development database has all migrations applied
+    puts "\n🔄 Step 6: Ensuring development database has all migrations applied..."
 
     # Change to the Rails root directory and run migrations
     rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
@@ -2302,8 +2488,8 @@ ENV
       return false
     end
 
-    # Step 6: Create production database dump from scenario development database
-    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
+    # Step 7: Create production database dump from scenario development database
+    puts "\n💾 Step 7: Creating production database dump from #{scenario_name}_development..."
 
     # Check if development database exists
     dev_database_name = "#{scenario_name}_development"
@@ -2323,11 +2509,11 @@ ENV
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
     puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
+    puts "   Configuration files: Uploaded to server"
     puts ""
     puts "Next steps:"
-    puts "  1. Review the generated configuration files"
-    puts "  2. Run 'rake scenario:deploy[#{scenario_name}]' to deploy to production server"
-    puts "  3. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
+    puts "  1. Run 'rake scenario:deploy[#{scenario_name}]' to execute Capistrano deployment"
+    puts "  2. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
 
     true
   end
@@ -2487,8 +2673,8 @@ ENV
 
   def deploy_scenario(scenario_name)
     puts "Deploying scenario #{scenario_name} to production server..."
-    puts "This performs server deployment operations only (assumes prepare_deploy was run first)."
-    puts "DEBUG: Starting deploy_scenario function"
+    puts "This performs Capistrano deployment only (assumes prepare_deploy was run first)."
+    puts "Configuration files and database setup are handled by prepare_deploy."
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -2606,14 +2792,7 @@ ENV
             if verify_output.include?("19") && verify_output.include?("(1 row)")
               puts "   ✅ Database verification successful - 19 regions found"
 
-              # Reset sequences for local server (prevents ID conflicts with API)
-              puts "   🔄 Resetting sequences for local server..."
-              sequence_reset_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'"
-              if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{sequence_reset_cmd}'")
-                puts "   ✅ Sequences reset successfully"
-              else
-                puts "   ⚠️  Warning: Sequence reset failed (continuing anyway)"
-              end
+              # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
 
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
@@ -2642,176 +2821,8 @@ ENV
       return false
     end
 
-    # Step 2: Upload configuration files to shared directory
-    puts "\n📤 Step 2: Uploading configuration files to shared directory..."
-
-    # Create entire deployment directory structure with proper permissions
-    deploy_dir = "/var/www/#{basename}"
-    shared_config_dir = "#{deploy_dir}/shared/config"
-    create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
-      puts "   ❌ Failed to create deployment directory structure"
-      return false
-    end
-
-    # Upload config files to shared directory (after Capistrano creates the structure)
-    production_dir = File.join(scenarios_path, scenario_name, 'production')
-
-    # Upload database.yml
-    database_yml_path = File.join(production_dir, 'database.yml')
-    if File.exist?(database_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded database.yml"
-      else
-        puts "   ❌ Failed to upload database.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ database.yml not found: #{database_yml_path}"
-      return false
-    end
-
-    # Upload carambus.yml
-    carambus_yml_path = File.join(production_dir, 'carambus.yml')
-    if File.exist?(carambus_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded carambus.yml"
-      else
-        puts "   ❌ Failed to upload carambus.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
-      return false
-    end
-
-    # Upload nginx.conf
-    nginx_conf_path = File.join(production_dir, 'nginx.conf')
-    if File.exist?(nginx_conf_path)
-      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded nginx.conf"
-      else
-        puts "   ❌ Failed to upload nginx.conf: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
-      return false
-    end
-
-    # Upload puma.service
-    puma_service_path = File.join(production_dir, 'puma.service')
-    if File.exist?(puma_service_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.service"
-      else
-        puts "   ❌ Failed to upload puma.service: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.service not found: #{puma_service_path}"
-      return false
-    end
-
-    # Upload puma.rb
-    puma_rb_path = File.join(production_dir, 'puma.rb')
-    if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.rb"
-      else
-        puts "   ❌ Failed to upload puma.rb: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.rb not found: #{puma_rb_path}"
-      return false
-    end
-
-    # Upload production.rb
-    production_rb_path = File.join(production_dir, 'production.rb')
-    if File.exist?(production_rb_path)
-      # Create environments directory on server
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
-      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded production.rb"
-      else
-        puts "   ❌ Failed to upload production.rb: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ production.rb not found: #{production_rb_path}"
-      return false
-    end
-
-    # Upload credentials
-    credentials_dir = File.join(production_dir, 'credentials')
-    if Dir.exist?(credentials_dir)
-      # Create credentials directory on server
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
-
-      # Upload production.yml.enc
-      production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
-      if File.exist?(production_yml_enc_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.yml.enc"
-        else
-          puts "   ❌ Failed to upload production.yml.enc: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
-        return false
-      end
-
-      # Upload production.key
-      production_key_path = File.join(credentials_dir, 'production.key')
-      if File.exist?(production_key_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.key"
-        else
-          puts "   ❌ Failed to upload production.key: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.key not found: #{production_key_path}"
-        return false
-      end
-    else
-      puts "   ❌ Credentials directory not found: #{credentials_dir}"
-      return false
-    end
-
-    # Upload env.production
-    env_production_path = File.join(production_dir, 'env.production')
-    if File.exist?(env_production_path)
-      scp_cmd = "scp -P #{ssh_port} #{env_production_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded env.production"
-      else
-        puts "   ❌ Failed to upload env.production: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ env.production not found: #{env_production_path}"
-      return false
-    end
+    # Step 2: Configuration files already uploaded during prepare_deploy
+    puts "\n📤 Step 2: Configuration files already uploaded during prepare_deploy step"
 
     # Step 3: Execute Capistrano deployment
     puts "\n🎯 Step 3: Executing Capistrano deployment..."
