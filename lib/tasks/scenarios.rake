@@ -85,7 +85,7 @@ namespace :scenario do
     prepare_scenario_for_development(scenario_name, environment, force)
   end
 
-  desc "Prepare scenario for deployment (config generation, file transfers, and database setup)"
+  desc "Prepare scenario for deployment (config generation, database setup, file transfers, server preparation)"
   task :prepare_deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -98,7 +98,7 @@ namespace :scenario do
     prepare_scenario_for_deployment(scenario_name)
   end
 
-  desc "Deploy scenario to production (Capistrano deployment only)"
+  desc "Deploy scenario to production (pure Capistrano deployment with automatic service management)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -2196,6 +2196,127 @@ ENV
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 
+  def upload_and_load_database_dump(scenario_name, production_config)
+    puts "💾 Uploading and loading database dump..."
+    
+    basename = scenario_name.gsub('carambus_location_', '')
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+    
+    # Find the latest production dump
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
+    
+    if latest_dump && File.exist?(latest_dump)
+      puts "   📦 Using dump: #{File.basename(latest_dump)}"
+      
+      # Upload dump to server
+      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
+      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
+      
+      if system(upload_cmd)
+        puts "   ✅ Database dump uploaded to server"
+        
+        # Remove application folder and recreate database on server
+        puts "   🔄 Removing application folders (including old trials) and recreating production database..."
+        
+        # Create a temporary script for database operations
+        temp_script = "/tmp/reset_database.sh"
+        script_content = <<~SCRIPT
+          #!/bin/bash
+          set -e  # Exit on any error
+          
+          echo "🔄 Starting database reset process..."
+          
+          # Remove existing application folders (including old trials)
+          echo "📁 Removing application folders..."
+          sudo rm -rf /var/www/carambus_location_#{basename}
+          sudo rm -rf /var/www/carambus_#{basename}
+          
+          # Drop and recreate database with verification
+          echo "🗑️  Dropping existing database..."
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
+          
+          echo "🆕 Creating new database..."
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
+          
+          # Verify database was created successfully
+          echo "🔍 Verifying database creation..."
+          if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
+            echo "✅ Database #{production_database} created successfully"
+          else
+            echo "❌ Database creation failed"
+            exit 1
+          fi
+          
+          echo "✅ Database reset completed successfully"
+        SCRIPT
+        
+        # Write script to server
+        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+          puts "   ✅ Database reset script created"
+          
+          # Execute database reset
+          reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
+          if $?.success?
+            puts "   ✅ Application folders removed (including old trials) and production database recreated"
+            puts "   📋 Reset output: #{reset_output}" if reset_output.include?("❌")
+          else
+            puts "   ❌ Database reset failed"
+            puts "   📋 Error output: #{reset_output}"
+            return false
+          end
+          
+          # Restore database from dump
+          puts "   📥 Restoring database from dump..."
+          
+          # Simply load the dump and ignore user warnings
+          restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
+          
+          restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
+          if $?.success?
+            puts "   ✅ Database restored successfully"
+            
+            # Verify database was restored correctly
+            puts "   🔍 Verifying database restore..."
+            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
+            verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
+            
+            if verify_output.include?("19") && verify_output.include?("(1 row)")
+              puts "   ✅ Database verification successful - 19 regions found"
+              
+              # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
+              
+              # Clean up temporary files
+              system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
+              puts "   🧹 Temporary files cleaned up"
+              return true
+            else
+              puts "   ❌ Database verification failed - regions count: #{verify_output}"
+              puts "   📋 Restore output: #{restore_output}"
+              return false
+            end
+          else
+            puts "   ❌ Database restore failed"
+            puts "   📋 Error output: #{restore_output}"
+            return false
+          end
+        else
+          puts "   ❌ Failed to create database reset script"
+          return false
+        end
+      else
+        puts "   ❌ Failed to upload database dump"
+        return false
+      end
+    else
+      puts "   ❌ No production dump found in #{dump_dir}"
+      return false
+    end
+  end
+
   def upload_configuration_files_to_server(scenario_name, production_config)
     puts "📤 Uploading configuration files to server..."
     
@@ -2377,7 +2498,7 @@ ENV
 
   def prepare_scenario_for_deployment(scenario_name)
     puts "Preparing scenario #{scenario_name} for deployment..."
-    puts "This includes production config generation, file transfers to server, and database operations."
+    puts "This includes production config generation, database setup, file transfers to server, and server preparation."
     puts "Note: Assumes Rails root folder already exists from prepare_development."
 
     # Load scenario configuration
@@ -2462,15 +2583,22 @@ ENV
       return false
     end
 
-    # Step 5: Upload configuration files to server
-    puts "\n📤 Step 5: Uploading configuration files to server..."
+    # Step 5: Upload and load database dump
+    puts "\n💾 Step 5: Uploading and loading database dump..."
+    unless upload_and_load_database_dump(scenario_name, production_config)
+      puts "❌ Failed to upload and load database dump"
+      return false
+    end
+
+    # Step 6: Upload configuration files to server
+    puts "\n📤 Step 6: Uploading configuration files to server..."
     unless upload_configuration_files_to_server(scenario_name, production_config)
       puts "❌ Failed to upload configuration files to server"
       return false
     end
 
-    # Step 6: Ensure development database has all migrations applied
-    puts "\n🔄 Step 6: Ensuring development database has all migrations applied..."
+    # Step 7: Ensure development database has all migrations applied
+    puts "\n🔄 Step 7: Ensuring development database has all migrations applied..."
 
     # Change to the Rails root directory and run migrations
     rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
@@ -2488,8 +2616,8 @@ ENV
       return false
     end
 
-    # Step 7: Create production database dump from scenario development database
-    puts "\n💾 Step 7: Creating production database dump from #{scenario_name}_development..."
+    # Step 8: Create production database dump from scenario development database
+    puts "\n💾 Step 8: Creating production database dump from #{scenario_name}_development..."
 
     # Check if development database exists
     dev_database_name = "#{scenario_name}_development"
@@ -2510,6 +2638,7 @@ ENV
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
     puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
     puts "   Configuration files: Uploaded to server"
+    puts "   Database: Loaded and verified on server"
     puts ""
     puts "Next steps:"
     puts "  1. Run 'rake scenario:deploy[#{scenario_name}]' to execute Capistrano deployment"
@@ -2673,8 +2802,8 @@ ENV
 
   def deploy_scenario(scenario_name)
     puts "Deploying scenario #{scenario_name} to production server..."
-    puts "This performs Capistrano deployment only (assumes prepare_deploy was run first)."
-    puts "Configuration files and database setup are handled by prepare_deploy."
+    puts "This performs pure Capistrano deployment with automatic service management."
+    puts "Database, configuration files, and server setup are handled by prepare_deploy."
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -2698,128 +2827,8 @@ ENV
       return false
     end
 
-    # Step 1: Transfer and load database dump
-    puts "\n💾 Step 1: Transferring and loading database dump..."
-
-    # Get SSH connection details
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-
-    # Find the latest production dump
-    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
-    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
-
-    if latest_dump && File.exist?(latest_dump)
-      puts "   📦 Using dump: #{File.basename(latest_dump)}"
-
-      # Upload dump to server
-      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
-      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
-
-      if system(upload_cmd)
-        puts "   ✅ Database dump uploaded to server"
-
-        # Load scenario configuration to get database name
-        production_database = production_config['database_name']
-
-        # Remove application folder and recreate database on server
-        puts "   🔄 Removing application folders (including old trials) and recreating production database..."
-
-        # Create a temporary script for database operations
-        temp_script = "/tmp/reset_database.sh"
-        script_content = <<~SCRIPT
-          #!/bin/bash
-          set -e  # Exit on any error
-          
-          echo "🔄 Starting database reset process..."
-          
-          # Remove existing application folders (including old trials)
-          echo "📁 Removing application folders..."
-          sudo rm -rf /var/www/#{basename}
-          sudo rm -rf /var/www/carambus_#{basename}
-          
-          # Drop and recreate database with verification
-          echo "🗑️  Dropping existing database..."
-          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
-          
-          echo "🆕 Creating new database..."
-          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
-          
-          # Verify database was created successfully
-          echo "🔍 Verifying database creation..."
-          if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
-            echo "✅ Database #{production_database} created successfully"
-          else
-            echo "❌ Database creation failed"
-            exit 1
-          fi
-          
-          echo "✅ Database reset completed successfully"
-        SCRIPT
-
-        # Write script to server
-        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
-        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-          puts "   ✅ Database reset script created"
-
-          # Execute database reset
-          reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
-          if $?.success?
-            puts "   ✅ Application folders removed (including old trials) and production database recreated"
-            puts "   📋 Reset output: #{reset_output}" if reset_output.include?("❌")
-          else
-            puts "   ❌ Database reset failed"
-            puts "   📋 Error output: #{reset_output}"
-            return false
-          end
-
-          # Restore database from dump
-          puts "   📥 Restoring database from dump..."
-
-          # Simply load the dump and ignore user warnings
-          restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
-
-          restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
-          if $?.success?
-            puts "   ✅ Database restored successfully"
-
-            # Verify database was restored correctly
-            puts "   🔍 Verifying database restore..."
-            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
-            verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
-
-            if verify_output.include?("19") && verify_output.include?("(1 row)")
-              puts "   ✅ Database verification successful - 19 regions found"
-
-              # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
-
-              # Clean up temporary files
-              system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
-              puts "   🧹 Temporary files cleaned up"
-            else
-              puts "   ❌ Database verification failed - regions count: #{verify_output}"
-              puts "   📋 Restore output: #{restore_output}"
-              return false
-            end
-          else
-            puts "   ❌ Database restore failed"
-            puts "   📋 Error output: #{restore_output}"
-            return false
-          end
-        else
-          puts "   ❌ Failed to create database reset script"
-          return false
-        end
-      else
-        puts "   ❌ Failed to upload database dump"
-        return false
-      end
-    else
-      puts "   ❌ No production dump found in #{dump_dir}"
-      puts "   Please run 'rake scenario:prepare_deploy[#{scenario_name}]' first"
-      return false
-    end
+    # Step 1: Database and configuration files already prepared
+    puts "\n💾 Step 1: Database and configuration files already prepared by prepare_deploy step"
 
     # Step 2: Configuration files already uploaded during prepare_deploy
     puts "\n📤 Step 2: Configuration files already uploaded during prepare_deploy step"
@@ -2853,44 +2862,9 @@ ENV
       return false
     end
 
-    # Step 4: Start services
-    puts "\n🚀 Step 4: Starting services..."
-
-    # Start Puma service
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-
-    start_puma_cmd = "sudo systemctl start puma-#{basename}.service"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{start_puma_cmd}'")
-      puts "   ✅ Puma service started successfully"
-    else
-      puts "   ❌ Failed to start Puma service"
-      return false
-    end
-
-    # Step 5: Rails application configuration
-    puts "\n⚙️  Step 5: Rails application configuration..."
-    puts "   ℹ️  Rails application configuration already handled by prepare_deploy step"
-
-    # Step 6: Restart services to apply configuration
-    puts "\n🔄 Step 6: Restarting services to apply configuration..."
-
-    restart_puma_cmd = "sudo systemctl restart puma-#{basename}.service"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_puma_cmd}'")
-      puts "   ✅ Puma service restarted successfully"
-    else
-      puts "   ❌ Failed to restart Puma service"
-      return false
-    end
-
-    restart_nginx_cmd = "sudo systemctl reload nginx"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_nginx_cmd}'")
-      puts "   ✅ Nginx service reloaded successfully"
-    else
-      puts "   ❌ Failed to reload Nginx service"
-      return false
-    end
+    # Step 4: Services managed by Capistrano
+    puts "\n🚀 Step 4: Services managed by Capistrano deployment"
+    puts "   ℹ️  Puma and Nginx restarts are handled automatically by Capistrano"
 
     puts "\n✅ Deployment completed successfully!"
     puts "   Application deployed and running on #{production_config['webserver_host']}:#{production_config['webserver_port']}"
