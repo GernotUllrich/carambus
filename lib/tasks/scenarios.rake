@@ -2704,6 +2704,11 @@ ENV
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       puts "   Source: #{dev_database_name}"
       puts "   Target: #{prod_database_name}"
+      
+      # Clean up old dumps (keep only last 5)
+      puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+      cleanup_old_dumps(dump_dir, scenario_name)
+      
       true
     else
       puts "❌ Failed to create production dump"
@@ -2761,6 +2766,11 @@ ENV
           # Clean up temporary database
           system("dropdb #{temp_db_name}")
           puts "   🧹 Cleaned up temporary database"
+          
+          # Clean up old dumps (keep only last 5)
+          puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+          cleanup_old_dumps(dump_dir, scenario_name)
+          
           true
         else
           puts "❌ Failed to create dump from filtered database"
@@ -2793,10 +2803,41 @@ ENV
     if system("pg_dump --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      
+      # Clean up old dumps (keep only last 5)
+      puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+      cleanup_old_dumps(dump_dir, scenario_name)
+      
       true
     else
       puts "❌ Production dump failed"
       false
+    end
+  end
+
+  def cleanup_old_dumps(dump_dir, scenario_name)
+    # Find all production dumps for this scenario
+    dump_pattern = File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")
+    dumps = Dir.glob(dump_pattern)
+    
+    # Sort by modification time (newest first)
+    dumps.sort_by! { |f| File.mtime(f) }.reverse!
+    
+    if dumps.length > 5
+      dumps_to_delete = dumps[5..-1] # Keep first 5, delete the rest
+      total_size = 0
+      
+      dumps_to_delete.each do |dump_file|
+        size = File.size(dump_file)
+        total_size += size
+        File.delete(dump_file)
+        puts "   🗑️  Deleted old dump: #{File.basename(dump_file)} (#{size / 1024 / 1024} MB)"
+      end
+      
+      puts "   ✅ Cleaned up #{dumps_to_delete.length} old dumps, freed #{total_size / 1024 / 1024} MB"
+      puts "   📁 Keeping #{[dumps.length - dumps_to_delete.length, 5].min} most recent dumps"
+    else
+      puts "   ✅ No cleanup needed (#{dumps.length} dumps, keeping all)"
     end
   end
 
