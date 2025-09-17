@@ -236,7 +236,19 @@ state_path "/var/www/carambus_location_5101/shared/pids/puma-production.state"
 activate_control_app
 ```
 
-#### 3.2 Database Transfer and Setup
+#### 3.2 Development Database Preparation
+
+**Migration and Dump Creation:**
+```bash
+# 1. Ensure development database has all migrations applied
+cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_location_5101
+RAILS_ENV=development bundle exec rails db:migrate
+
+# 2. Create production dump from current development database
+pg_dump carambus_location_5101_development | gzip > carambus_data/scenarios/carambus_location_5101/database_dumps/carambus_location_5101_production_20241216_143022.sql.gz
+```
+
+#### 3.3 Database Transfer and Setup
 
 **Upload Process:**
 ```bash
@@ -263,7 +275,7 @@ ssh -p 8910 www-data@192.168.178.107 '
 '
 ```
 
-#### 3.3 Server Configuration Upload
+#### 3.4 Server Configuration Upload
 
 **File Transfer:**
 ```bash

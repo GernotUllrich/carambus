@@ -63,12 +63,15 @@ config.yml → prepare_development → prepare_deploy → deploy
    - `cable.yml` für ActionCable PubSub
    - `deploy.rb` für Capistrano
    - `credentials/` mit Production-Keys
-2. **Datenbank-Setup**:
+2. **Development-Datenbank vorbereiten**:
+   - **Migrations ausführen**: Stellt sicher, dass Development-DB aktuell ist
+   - **Production Dump erstellen**: Erstellt Dump aus aktueller Development-Datenbank
+3. **Datenbank-Setup auf Server**:
    - **Upload und Load Database Dump**: Überträgt Development-Dump zum Server
    - **Database Reset**: Entfernt alte Anwendungsordner, erstellt neue Production-DB
    - **Dump Restoration**: Lädt verarbeitete Development-Datenbank in Production
    - **Verification**: Überprüft korrekte Wiederherstellung (19 Regionen)
-3. **Server-Konfiguration**:
+4. **Server-Konfiguration**:
    - **File Transfers**: Upload aller Konfigurationsdateien zu `/var/www/scenario/shared/config/`
    - **Directory Setup**: Erstellt Deployment-Verzeichnisse mit korrekten Berechtigungen
    - **Service Preparation**: Bereitet systemd und Nginx vor
@@ -110,10 +113,12 @@ carambus_scenarioname_development (processed)
                     ↓
     ┌─────────────────────────────────────┐
     │ prepare_deploy                     │
-    │ 1. Upload dump to server            │
-    │ 2. Reset production database        │
-    │ 3. Restore from development dump    │
-    │ 4. Verify (19 regions)              │
+    │ 1. Run migrations on dev DB         │
+    │ 2. Create production dump           │
+    │ 3. Upload dump to server            │
+    │ 4. Reset production database        │
+    │ 5. Restore from development dump    │
+    │ 6. Verify (19 regions)              │
     └─────────────────────────────────────┘
                     ↓
 carambus_scenarioname_production (on server)
