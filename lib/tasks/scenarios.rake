@@ -1248,6 +1248,7 @@ Rails.application.configure do
   config.action_cable.disable_request_forgery_protection = true
   config.action_cable.url = "#{actioncable_url}"
   config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}]
+  config.action_cable.adapter = :async
 
   # Use Rails credentials as normal
   config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
@@ -1737,6 +1738,22 @@ ENV
       return false
     end
     puts "   ✅ JavaScript dependencies installed"
+
+    # Build JavaScript assets
+    puts "   🔨 Building JavaScript assets (yarn build)..."
+    unless system("cd #{rails_root} && yarn build")
+      puts "   ❌ Failed to build JavaScript assets"
+      return false
+    end
+    puts "   ✅ JavaScript assets built"
+
+    # Build CSS assets
+    puts "   🎨 Building CSS assets (yarn build:css)..."
+    unless system("cd #{rails_root} && yarn build:css")
+      puts "   ❌ Failed to build CSS assets"
+      return false
+    end
+    puts "   ✅ CSS assets built"
 
     true
   end
