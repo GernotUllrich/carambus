@@ -139,12 +139,10 @@ namespace :puma do
 end
 
 # Asset compilation configuration for capistrano-rails
-set :assets_roles, [:app]
-set :assets_prefix, 'assets'
-
 # Skip Rails asset precompilation since we use esbuild
 set :assets_roles, []
 set :keep_assets, 0
+set :assets_prefix, 'assets'
 
 # Configure asset compilation to use yarn
 set :assets_dependencies, %w(assets lib assets.rb config/locales.yml app/assets lib/assets vendor/assets tmp/cache/assets)
@@ -210,10 +208,10 @@ before "deploy:assets:precompile", "deploy:verify_node"
 before "deploy:assets:precompile", "deploy:assets:install_dependencies"
 before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
 
-# Skip Rails asset precompilation and use our custom task instead
+# Completely disable Rails asset precompilation
 Rake::Task["deploy:assets:precompile"].clear_actions
 task "deploy:assets:precompile" do
-  invoke "deploy:assets:build_frontend_assets"
+  puts "Skipping Rails asset precompilation - using esbuild only"
 end
 
 # Fix socket permissions after Puma restart
