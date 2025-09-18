@@ -13,7 +13,7 @@ install_plugin Capistrano::SCM::Git
 # Include tasks from other gems included in your Gemfile
 require "capistrano/rbenv"
 require "capistrano/bundler"
-require "capistrano/rails/assets"
+# require "capistrano/rails/assets"  # Disabled - using esbuild instead
 require "capistrano/rails/migrations"
 require "capistrano/puma"
 

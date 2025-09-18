@@ -144,6 +144,9 @@ set :assets_roles, []
 set :keep_assets, 0
 set :assets_prefix, 'assets'
 
+# Disable Rails asset precompilation completely
+set :normalize_asset_timestamps, false
+
 # Configure asset compilation to use yarn
 set :assets_dependencies, %w(assets lib assets.rb config/locales.yml app/assets lib/assets vendor/assets tmp/cache/assets)
 
@@ -207,12 +210,6 @@ end
 before "deploy:assets:precompile", "deploy:verify_node"
 before "deploy:assets:precompile", "deploy:assets:install_dependencies"
 before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
-
-# Completely disable Rails asset precompilation
-Rake::Task["deploy:assets:precompile"].clear_actions
-task "deploy:assets:precompile" do
-  puts "Skipping Rails asset precompilation - using esbuild only"
-end
 
 # Fix socket permissions after Puma restart
 namespace :deploy do
