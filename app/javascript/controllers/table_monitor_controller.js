@@ -163,7 +163,7 @@ export default class extends ApplicationController {
     setTimeout(() => {
       scoreElement.classList.remove('score-updated')
       inningsElement.classList.remove('score-updated')
-    }, 300)
+    }, 150)
 
     console.log(`TableMonitor optimistic update: ${playerId} ${operation} ${points} = ${newScore} (innings: ${newInnings})`)
   }
@@ -264,13 +264,13 @@ export default class extends ApplicationController {
       if (scoreElement) {
         scoreElement.textContent = lastUpdate.previousScore
         scoreElement.classList.add('score-updated')
-        setTimeout(() => scoreElement.classList.remove('score-updated'), 300)
+        setTimeout(() => scoreElement.classList.remove('score-updated'), 150)
       }
       
       if (inningsElement && lastUpdate.previousInnings !== undefined) {
         inningsElement.textContent = lastUpdate.previousInnings
         inningsElement.classList.add('score-updated')
-        setTimeout(() => inningsElement.classList.remove('score-updated'), 300)
+        setTimeout(() => inningsElement.classList.remove('score-updated'), 150)
       }
       
       console.log(`TableMonitor reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore} (innings: ${lastUpdate.previousInnings})`)
