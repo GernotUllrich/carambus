@@ -290,6 +290,9 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", :as => :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", :as => :pwa_manifest
 
+  # Mount ActionCable
+  mount ActionCable.server => '/cable'
+
   # Public marketing homepage
   root to: "static#index"
   # The priority is based upon order of creation: first created -> highest priority.

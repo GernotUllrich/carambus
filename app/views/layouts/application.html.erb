@@ -54,8 +54,8 @@
   <style>
       /* Initial states */
       .nav-target {
-          transform: translateX(0);
-          transition: transform 0.3s ease-in-out;
+          transform: translateX(0) !important;
+          transition: transform 0.3s ease-in-out !important;
       }
 
       .show-button-target {
@@ -65,13 +65,13 @@
       }
 
       .content-wrapper {
-          margin-left: 16rem; /* ml-64 equivalent */
-          transition: margin-left 0.3s ease-in-out;
+          margin-left: 16rem !important; /* ml-64 equivalent */
+          transition: margin-left 0.3s ease-in-out !important;
       }
 
       /* Collapsed states */
       .sidebar-collapsed .nav-target {
-          transform: translateX(-100%);
+          transform: translateX(-100%) !important;
       }
 
       .sidebar-collapsed .show-button-target {
@@ -80,7 +80,7 @@
       }
 
       .sidebar-collapsed .content-wrapper {
-          margin-left: 0;
+          margin-left: 0 !important;
       }
 
       @media (max-width: 768px) {

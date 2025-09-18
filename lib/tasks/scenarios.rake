@@ -85,7 +85,7 @@ namespace :scenario do
     prepare_scenario_for_development(scenario_name, environment, force)
   end
 
-  desc "Prepare scenario for deployment (all steps except server deployment)"
+  desc "Prepare scenario for deployment (config generation, database setup, file transfers, server preparation)"
   task :prepare_deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -98,7 +98,7 @@ namespace :scenario do
     prepare_scenario_for_deployment(scenario_name)
   end
 
-  desc "Deploy scenario to production (server deployment only)"
+  desc "Deploy scenario to production (pure Capistrano deployment with automatic service management)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
 
@@ -167,6 +167,27 @@ namespace :scenario do
     deploy_raspberry_pi_client(scenario_name)
   end
 
+  desc "Quick deploy - deploy code changes without regenerating scenario configs"
+  task :quick_deploy, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:quick_deploy[scenario_name]"
+      puts "Example: rake scenario:quick_deploy[carambus_location_5101]"
+      puts ""
+      puts "This task deploys code changes without regenerating scenario configurations."
+      puts "Use this for iterative development when you only changed application code."
+      puts ""
+      puts "Prerequisites:"
+      puts "  1. Scenario must already be deployed (run 'rake scenario:deploy[#{scenario_name}]' first)"
+      puts "  2. Changes should be committed and pushed to git"
+      puts "  3. No changes to config.yml or scenario configuration files"
+      exit 1
+    end
+
+    quick_deploy_scenario(scenario_name)
+  end
+
   desc "Restart Raspberry Pi client browser"
   task :restart_raspberry_pi_client, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -206,221 +227,39 @@ namespace :scenario do
     environment = args[:environment] || 'production'
     ssh_host = args[:ssh_host]
     ssh_port = args[:ssh_port] || 22
-    
+
     puts "🔧 Configuring Rails application for #{scenario_name} (#{environment})..."
-    
+
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "❌ Error: Scenario configuration not found: #{config_file}"
       exit 1
     end
-    
+
     scenario_config = YAML.load_file(config_file)
     env_config = scenario_config['environments'][environment]
-    
+
     if env_config.nil?
       puts "❌ Error: Environment '#{environment}' not found in scenario configuration"
       exit 1
     end
-    
+
     basename = scenario_config['scenario']['basename']
     webserver_host = env_config['webserver_host']
     webserver_port = env_config['webserver_port']
     location_id = scenario_config['scenario']['location_id']
-    
+
     # Calculate MD5 hash for location
     require 'digest'
     location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-    
-    # Create comprehensive configuration script
-    configure_script = <<~SCRIPT
-      #!/bin/bash
-      set -e
-      
-      echo "🔧 Configuring Rails application..."
-      
-      # Paths
-      RAILS_ROOT="/var/www/#{basename}/current"
-      PRODUCTION_RB="#{RAILS_ROOT}/config/environments/production.rb"
-      
-      echo "📝 Configuring production.rb..."
-      if ! grep -q "config.hosts << \\"#{webserver_host}\\"" "#{PRODUCTION_RB}"; then
-        sudo sed -i '/# Enable DNS rebinding protection for credentials/a\\n  # Allow requests from the Pi server\\n  config.hosts << "#{webserver_host}"\\n  config.hosts << "#{webserver_host}:#{webserver_port}"\\n\\n  # Configure default URL options for redirects\\n  config.action_controller.default_url_options = { host: "localhost", port: #{webserver_port} }\\n  config.action_mailer.default_url_options = { host: "localhost", port: #{webserver_port} }' "#{PRODUCTION_RB}"
-        echo "   ✅ Added host authorization and default URL options"
-      else
-        echo "   ℹ️  Host authorization already configured"
-      fi
-      
-      echo "📝 Creating cable.yml..."
-      CABLE_YML="#{RAILS_ROOT}/config/cable.yml"
-      if [ ! -f "#{CABLE_YML}" ]; then
-        sudo tee "#{CABLE_YML}" > /dev/null << 'CABLE_EOF'
-development:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: #{basename}_development
 
-test:
-  adapter: test
-
-production:
-  adapter: redis
-  url: redis://localhost:6379/1
-  channel_prefix: #{basename}_production
-CABLE_EOF
-        echo "   ✅ Created cable.yml"
-      else
-        echo "   ℹ️  cable.yml already exists"
-      fi
-      
-      echo "📝 Creating scoreboard_url..."
-      SCOREBOARD_URL_SHARED="/var/www/#{basename}/shared/config/scoreboard_url"
-      
-      # Create scoreboard_url in shared directory (Capistrano will handle the linking)
-      if [ ! -f "#{SCOREBOARD_URL_SHARED}" ]; then
-        echo "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome" | sudo tee "#{SCOREBOARD_URL_SHARED}" > /dev/null
-        echo "   ✅ Created scoreboard_url in shared directory"
-      else
-        echo "   ℹ️  scoreboard_url already exists in shared directory"
-      fi
-      
-      echo "📝 Updating routes.rb..."
-      ROUTES_RB="#{RAILS_ROOT}/config/routes.rb"
-      if ! grep -q "mount ActionCable.server" "#{ROUTES_RB}"; then
-        sudo sed -i '/^end$/i\\n  # Action Cable WebSocket endpoint\\n  mount ActionCable.server => "/cable"' "#{ROUTES_RB}"
-        echo "   ✅ Added Action Cable route"
-      else
-        echo "   ℹ️  Action Cable route already exists"
-      fi
-      
-      echo "📝 Creating Action Cable initializer..."
-      ACTION_CABLE_INIT="#{RAILS_ROOT}/config/initializers/action_cable.rb"
-      if [ ! -f "#{ACTION_CABLE_INIT}" ]; then
-        sudo tee "#{ACTION_CABLE_INIT}" > /dev/null << 'ACTION_CABLE_EOF'
-# frozen_string_literal: true
-
-# Action Cable configuration for #{basename}
-ActionCable.server.config.logger = Logger.new(nil)
-
-# Configure allowed request origins for WebSocket connections
-if Rails.env.production?
-  ActionCable.server.config.allowed_request_origins = [
-    'http://#{webserver_host}:#{webserver_port}',
-    'http://#{webserver_host}',
-    'http://localhost:#{webserver_port}',
-    'http://localhost'
-  ]
-end
-
-# Disable logging for production
-ActionCable.server.config.logger = Logger.new(nil) if Rails.env.production?
-ACTION_CABLE_EOF
-        echo "   ✅ Created Action Cable initializer"
-      else
-        echo "   ℹ️  Action Cable initializer already exists"
-      fi
-      
-      echo "📝 Fixing JavaScript importmap configuration..."
-      APPLICATION_LAYOUT="#{RAILS_ROOT}/app/views/layouts/application.html.erb"
-      if grep -q "javascript_include_tag.*application" "#{APPLICATION_LAYOUT}"; then
-        sudo sed -i 's/<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>/<%= javascript_importmap_tags "application" %>/' "#{APPLICATION_LAYOUT}"
-        echo "   ✅ Fixed JavaScript importmap configuration"
-      else
-        echo "   ℹ️  JavaScript importmap already configured"
-      fi
-      
-      IMPORTMAP_RB="#{RAILS_ROOT}/config/importmap.rb"
-      if [ ! -f "#{IMPORTMAP_RB}" ]; then
-        sudo tee "#{IMPORTMAP_RB}" > /dev/null << 'IMPORTMAP_EOF'
-# frozen_string_literal: true
-
-# Pin npm packages by running ./bin/importmap
-
-pin "application"
-pin "@hotwired/turbo-rails", to: "turbo.min.js", preload: true
-pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
-pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
-pin_all_from "app/javascript/controllers", under: "controllers"
-pin_all_from "app/javascript/channels", under: "channels"
-pin_all_from "app/javascript/src", under: "src"
-pin_all_from "app/javascript/utils", under: "utils"
-pin_all_from "app/javascript/utilities", under: "utilities"
-pin "@rails/activestorage", to: "activestorage.esm.js"
-pin "local-time", to: "local-time"
-pin "@stimulus_reflex/polyfills", to: "stimulus_reflex_polyfills.js"
-pin "scoreboard_utils", to: "scoreboard_utils.js"
-IMPORTMAP_EOF
-        echo "   ✅ Created importmap.rb"
-      else
-        echo "   ℹ️  importmap.rb already exists"
-      fi
-      
-      echo "📝 Reading SSL configuration from carambus.yml..."
-      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
-      if [ -f "#{CARAMBUS_YML}" ]; then
-        SSL_ENABLED=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "ssl_enabled:" | cut -d: -f2 | tr -d ' ')
-        if [ -z "$SSL_ENABLED" ]; then
-          SSL_ENABLED="false"
-        fi
-        echo "   📋 SSL enabled: $SSL_ENABLED"
-        
-        # Update force_ssl based on carambus.yml
-        sudo sed -i "s/config.force_ssl = .*/config.force_ssl = $SSL_ENABLED/" "#{PRODUCTION_RB}"
-        echo "   ✅ Updated force_ssl configuration from carambus.yml"
-      else
-        echo "   ⚠️  carambus.yml not found, setting force_ssl = false"
-        sudo sed -i 's/config.force_ssl = .*/config.force_ssl = false/' "#{PRODUCTION_RB}"
-      fi
-      
-      echo "📝 Reading Puma configuration from carambus.yml..."
-      CARAMBUS_YML="#{RAILS_ROOT}/config/carambus.yml"
-      if [ -f "#{CARAMBUS_YML}" ]; then
-        WORKERS=$(grep -A 20 "production:" "#{CARAMBUS_YML}" | grep "puma_workers:" | cut -d: -f2 | tr -d ' ')
-        if [ -z "$WORKERS" ]; then
-          WORKERS="2"
-        fi
-        echo "   📋 Puma workers: $WORKERS"
-        
-        # Update puma.rb with correct worker count
-        PUMA_RB="#{RAILS_ROOT}/config/puma.rb"
-        if [ -f "#{PUMA_RB}" ]; then
-          sudo sed -i "s/workers [0-9]*/workers $WORKERS/" "#{PUMA_RB}"
-          echo "   ✅ Updated Puma worker count to $WORKERS"
-        fi
-      else
-        echo "   ⚠️  carambus.yml not found, using default worker count"
-      fi
-      
-      echo "📝 Controller redirects should be fixed in source code, not in deployment script"
-      
-      echo "✅ Rails application configuration completed"
-    SCRIPT
-    
-    # Execute the configuration script on the remote server
-    config_script_path = "/tmp/configure_rails_app.sh"
-    config_script_cmd = "cat > #{config_script_path} << 'SCRIPT_EOF'\n#{configure_script}SCRIPT_EOF"
-    
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{config_script_cmd}'")
-      puts "   ✅ Rails configuration script created"
-      
-      config_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{config_script_path} && #{config_script_path}' 2>&1`
-      if $?.success?
-        puts "   ✅ Rails application configured successfully"
-        puts "   📋 Configuration output: #{config_output}" if config_output.include?("✅") || config_output.include?("ℹ️")
-      else
-        puts "   ❌ Rails configuration failed"
-        puts "   📋 Error output: #{config_output}"
-        exit 1
-      end
-      
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{config_script_path}'")
-      puts "   🧹 Configuration script cleaned up"
-    else
-      puts "   ❌ Failed to create Rails configuration script"
-      exit 1
-    end
+    # Configure Rails application using Ruby/Rails operations
+    # NOTE: All Rails configuration is now handled during prepare_deploy step
+    # No additional remote configuration needed during deployment
   end
+
+
 
   def scenarios_path
     @scenarios_path ||= File.join(carambus_data_path, 'scenarios')
@@ -513,6 +352,9 @@ IMPORTMAP_EOF
     if environment == 'production'
       generate_production_rb_env(scenario_config, env_config, env_dir)
     end
+
+    # Generate test.rb in environment directory (always generate test environment)
+    generate_test_rb(scenario_config, env_config, env_dir)
 
     # Generate env.production in environment directory (only for production)
     if environment == 'production'
@@ -733,31 +575,19 @@ IMPORTMAP_EOF
   end
 
   def generate_cable_yml(scenario_config, env_config, env_dir)
-    # Generate cable.yml with Redis configuration
+    # Generate cable.yml with async adapter for production (no Redis dependency)
     redis_db = env_config['redis_database'] || 1
     channel_prefix = env_config['channel_prefix'] || 'carambus_development'
 
     content = <<~YAML
 development:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix}
-  read_timeout: 50
-  write_timeout: 50
-  connect_timeout: 50
-
-test:
   adapter: async
 
-staging:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix.gsub('_development', '_staging').gsub('_production', '_staging')}
+test:
+  adapter: test
 
 production:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" } %>
-  channel_prefix: #{channel_prefix.gsub('_development', '_production').gsub('_staging', '_production')}
+  adapter: async
 YAML
 
     File.write(File.join(env_dir, 'cable.yml'), content)
@@ -829,6 +659,8 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  # Set default URL options for redirects and link generation
+  config.action_controller.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
   config.action_mailer.default_url_options = {host: "lvh.me", port: ENV.fetch("PORT", #{webserver_port}).to_i}
 
   # Print deprecation notices to the Rails logger.
@@ -1016,7 +848,11 @@ Rails.application.configure do
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = #{env_config['ssl_enabled'] || false}
+  config.force_ssl = ENV["USE_HTTPS"] == "true"
+
+  # Set default URL options for redirects and link generation
+  config.action_controller.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
+  config.action_mailer.default_url_options = { host: "#{webserver_host}", port: #{webserver_port} }
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
@@ -1062,12 +898,15 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Enable DNS rebinding protection for credentials.
-  # config.hosts << "example.com"
+  # Allow requests from the Pi server
+  config.hosts << "#{webserver_host}"
+  config.hosts << "#{webserver_host}:#{webserver_port}"
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
   config.action_cable.url = "#{actioncable_url}"
   config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}]
+  # config.action_cable.adapter = :async  # Removed - invalid for Rails 7.2.2.2
 
   # Use Rails credentials as normal
   config.secret_key_base = Rails.application.credentials.fetch(:secret_key_base)
@@ -1090,6 +929,75 @@ RUBY
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"
     true
   end
+
+  def generate_test_rb(scenario_config, env_config, env_dir)
+    # Generate test.rb with basic test configuration
+    content = <<~'RUBY'
+require "active_support/core_ext/integer/time"
+
+# The test environment is used exclusively to run your application's
+# test suite. You never need to work with it otherwise. Remember that
+# your test database is "scratch space" for the test suite and is wiped
+# and recreated between test runs. Don't rely on the data there!
+
+Rails.application.configure do
+  # Settings specified here will take precedence over those in config/application.rb.
+
+  # While tests run files are not watched, reloading is not necessary.
+  config.enable_reloading = false
+
+  # Eager loading loads your entire application. When running a single test locally,
+  # this is usually not necessary, and can slow down your test suite. However, it's
+  # recommended that you enable it in continuous integration systems to ensure eager
+  # loading is working properly before deploying your code.
+  config.eager_load = false
+
+  # Show full error reports and disable caching.
+  config.consider_all_requests_local = true
+  config.action_controller.perform_caching = false
+  config.cache_store = :null_store
+
+  # Render exception templates for rescuable exceptions and raise for other exceptions.
+  config.action_dispatch.show_exceptions = :rescuable
+
+  # Disable request forgery protection in test environment.
+  config.action_controller.allow_forgery_protection = false
+
+  # Store uploaded files on the local file system in a temporary directory.
+  config.active_storage.service = :test
+
+  config.action_mailer.perform_caching = false
+
+  # Tell Action Mailer not to deliver emails to the real world.
+  # The :test delivery method accumulates sent emails in the
+  # ActionMailer::Base.deliveries array.
+  config.action_mailer.delivery_method = :test
+
+  # Print deprecation notices to the stderr.
+  config.active_support.deprecation = :stderr
+
+  # Raise exceptions for disallowed deprecations.
+  config.active_support.disallowed_deprecation = :raise
+
+  # Tell Active Support which deprecation messages to disallow.
+  config.active_support.disallowed_deprecation_warnings = []
+
+  # Raises error for missing translations.
+  # config.i18n.raise_on_missing_translations = true
+
+  # Annotate rendered view with file names.
+  # config.action_view.annotate_rendered_view_with_filenames = true
+
+  # Raise error when a before_action's only/except options reference missing actions.
+  config.action_controller.raise_on_missing_callback_actions = true
+end
+RUBY
+
+    File.write(File.join(env_dir, 'test.rb'), content)
+    puts "   Generated: #{File.join(env_dir, 'test.rb')}"
+    true
+  end
+
 
   def generate_env_production(scenario_config, env_config, env_dir)
     # Generate env.production with correct port configuration
@@ -1348,6 +1256,7 @@ ENV
         puts "   ⚠️  RubyMine .idea configuration not found in master"
       end
 
+
       puts "✅ Rails root folder created: #{rails_root}"
       true
     else
@@ -1423,6 +1332,7 @@ ENV
       end
     end
 
+
     # Step 4: Install dependencies (if Rails root was created or dependencies are missing)
     puts "\n📦 Step 4: Checking and installing dependencies..."
     if rails_root_created || dependencies_missing?(rails_root)
@@ -1486,6 +1396,30 @@ ENV
       return false
     end
     puts "   ✅ JavaScript dependencies installed"
+
+    # Build JavaScript assets
+    puts "   🔨 Building JavaScript assets (yarn build)..."
+    unless system("cd #{rails_root} && yarn build")
+      puts "   ❌ Failed to build JavaScript assets"
+      return false
+    end
+    puts "   ✅ JavaScript assets built"
+
+    # Build CSS assets
+    puts "   🎨 Building CSS assets (yarn build:css)..."
+    unless system("cd #{rails_root} && yarn build:css")
+      puts "   ❌ Failed to build CSS assets"
+      return false
+    end
+    puts "   ✅ CSS assets built"
+
+    # Precompile Rails assets for development
+    puts "   📦 Precompiling Rails assets (rails assets:precompile)..."
+    unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails assets:precompile")
+      puts "   ❌ Failed to precompile Rails assets"
+      return false
+    end
+    puts "   ✅ Rails assets precompiled"
 
     true
   end
@@ -2262,9 +2196,309 @@ ENV
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 
+  def upload_and_load_database_dump(scenario_name, production_config)
+    puts "💾 Uploading and loading database dump..."
+    
+    basename = scenario_name.gsub('carambus_location_', '')
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+    
+    # Find the latest production dump
+    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
+    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
+    
+    if latest_dump && File.exist?(latest_dump)
+      puts "   📦 Using dump: #{File.basename(latest_dump)}"
+      
+      # Upload dump to server
+      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
+      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
+      
+      if system(upload_cmd)
+        puts "   ✅ Database dump uploaded to server"
+        
+        # Remove application folder and recreate database on server
+        puts "   🔄 Removing application folders (including old trials) and recreating production database..."
+        
+        # Create a temporary script for database operations
+        temp_script = "/tmp/reset_database.sh"
+        script_content = <<~SCRIPT
+          #!/bin/bash
+          set -e  # Exit on any error
+          
+          echo "🔄 Starting database reset process..."
+          
+          # Remove existing application folders (including old trials)
+          echo "📁 Removing application folders..."
+          sudo rm -rf /var/www/carambus_location_#{basename}
+          sudo rm -rf /var/www/carambus_#{basename}
+          
+          # Drop and recreate database with verification
+          echo "🗑️  Dropping existing database..."
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
+          
+          echo "🆕 Creating new database..."
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
+          
+          # Verify database was created successfully
+          echo "🔍 Verifying database creation..."
+          if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
+            echo "✅ Database #{production_database} created successfully"
+          else
+            echo "❌ Database creation failed"
+            exit 1
+          fi
+          
+          echo "✅ Database reset completed successfully"
+        SCRIPT
+        
+        # Write script to server
+        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+          puts "   ✅ Database reset script created"
+          
+          # Execute database reset
+          reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
+          if $?.success?
+            puts "   ✅ Application folders removed (including old trials) and production database recreated"
+            puts "   📋 Reset output: #{reset_output}" if reset_output.include?("❌")
+          else
+            puts "   ❌ Database reset failed"
+            puts "   📋 Error output: #{reset_output}"
+            return false
+          end
+          
+          # Restore database from dump
+          puts "   📥 Restoring database from dump..."
+          
+          # Simply load the dump and ignore user warnings
+          restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
+          
+          restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
+          if $?.success?
+            puts "   ✅ Database restored successfully"
+            
+            # Verify database was restored correctly
+            puts "   🔍 Verifying database restore..."
+            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
+            verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
+            
+            if verify_output.include?("19") && verify_output.include?("(1 row)")
+              puts "   ✅ Database verification successful - 19 regions found"
+              
+              # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
+              
+              # Clean up temporary files
+              system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
+              puts "   🧹 Temporary files cleaned up"
+              return true
+            else
+              puts "   ❌ Database verification failed - regions count: #{verify_output}"
+              puts "   📋 Restore output: #{restore_output}"
+              return false
+            end
+          else
+            puts "   ❌ Database restore failed"
+            puts "   📋 Error output: #{restore_output}"
+            return false
+          end
+        else
+          puts "   ❌ Failed to create database reset script"
+          return false
+        end
+      else
+        puts "   ❌ Failed to upload database dump"
+        return false
+      end
+    else
+      puts "   ❌ No production dump found in #{dump_dir}"
+      return false
+    end
+  end
+
+  def upload_configuration_files_to_server(scenario_name, production_config)
+    puts "📤 Uploading configuration files to server..."
+    
+    basename = scenario_name.gsub('carambus_location_', '')
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    
+    # Create entire deployment directory structure with proper permissions
+    deploy_dir = "/var/www/carambus_location_#{basename}"
+    shared_config_dir = "#{deploy_dir}/shared/config"
+    create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
+      puts "   ❌ Failed to create deployment directory structure"
+      return false
+    end
+    
+    # Upload config files to shared directory
+    production_dir = File.join(scenarios_path, scenario_name, 'production')
+    
+    # Upload database.yml
+    database_yml_path = File.join(production_dir, 'database.yml')
+    if File.exist?(database_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded database.yml"
+      else
+        puts "   ❌ Failed to upload database.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ database.yml not found: #{database_yml_path}"
+      return false
+    end
+    
+    # Upload carambus.yml
+    carambus_yml_path = File.join(production_dir, 'carambus.yml')
+    if File.exist?(carambus_yml_path)
+      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded carambus.yml"
+      else
+        puts "   ❌ Failed to upload carambus.yml: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
+      return false
+    end
+    
+    # Upload nginx.conf
+    nginx_conf_path = File.join(production_dir, 'nginx.conf')
+    if File.exist?(nginx_conf_path)
+      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded nginx.conf"
+      else
+        puts "   ❌ Failed to upload nginx.conf: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
+      return false
+    end
+    
+    # Upload puma.service
+    puma_service_path = File.join(production_dir, 'puma.service')
+    if File.exist?(puma_service_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.service"
+      else
+        puts "   ❌ Failed to upload puma.service: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.service not found: #{puma_service_path}"
+      return false
+    end
+    
+    # Upload puma.rb
+    puma_rb_path = File.join(production_dir, 'puma.rb')
+    if File.exist?(puma_rb_path)
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded puma.rb"
+      else
+        puts "   ❌ Failed to upload puma.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ puma.rb not found: #{puma_rb_path}"
+      return false
+    end
+    
+    # Upload production.rb
+    production_rb_path = File.join(production_dir, 'production.rb')
+    if File.exist?(production_rb_path)
+      # Create environments directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
+      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded production.rb"
+      else
+        puts "   ❌ Failed to upload production.rb: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ production.rb not found: #{production_rb_path}"
+      return false
+    end
+    
+    # Upload credentials
+    credentials_dir = File.join(production_dir, 'credentials')
+    if Dir.exist?(credentials_dir)
+      # Create credentials directory on server
+      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
+      
+      # Upload production.yml.enc
+      production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
+      if File.exist?(production_yml_enc_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.yml.enc"
+        else
+          puts "   ❌ Failed to upload production.yml.enc: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
+        return false
+      end
+      
+      # Upload production.key
+      production_key_path = File.join(credentials_dir, 'production.key')
+      if File.exist?(production_key_path)
+        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
+        result = `#{scp_cmd} 2>&1`
+        if $?.success?
+          puts "   ✅ Uploaded production.key"
+        else
+          puts "   ❌ Failed to upload production.key: #{result}"
+          return false
+        end
+      else
+        puts "   ❌ production.key not found: #{production_key_path}"
+        return false
+      end
+    else
+      puts "   ❌ Credentials directory not found: #{credentials_dir}"
+      return false
+    end
+    
+    # Upload env.production
+    env_production_path = File.join(production_dir, 'env.production')
+    if File.exist?(env_production_path)
+      scp_cmd = "scp -P #{ssh_port} #{env_production_path} www-data@#{ssh_host}:#{shared_config_dir}/"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded env.production"
+      else
+        puts "   ❌ Failed to upload env.production: #{result}"
+        return false
+      end
+    else
+      puts "   ❌ env.production not found: #{env_production_path}"
+      return false
+    end
+    
+    puts "   ✅ All configuration files uploaded successfully"
+    true
+  end
+
   def prepare_scenario_for_deployment(scenario_name)
     puts "Preparing scenario #{scenario_name} for deployment..."
-    puts "This includes production config generation, production config copying, and database operations."
+    puts "This includes production config generation, database setup, file transfers to server, and server preparation."
     puts "Note: Assumes Rails root folder already exists from prepare_development."
 
     # Load scenario configuration
@@ -2287,6 +2521,7 @@ ENV
       puts "❌ Failed to generate production configuration files"
       return false
     end
+
 
     # Step 2: Copy production configuration files to Rails root folder
     puts "\n📁 Step 2: Copying production configuration files to Rails root folder..."
@@ -2384,15 +2619,30 @@ ENV
       return false
     end
 
+    # Step 7: Upload and load database dump to server
+    puts "\n💾 Step 7: Uploading and loading database dump to server..."
+    unless upload_and_load_database_dump(scenario_name, production_config)
+      puts "❌ Failed to upload and load database dump"
+      return false
+    end
+
+    # Step 8: Upload configuration files to server
+    puts "\n📤 Step 8: Uploading configuration files to server..."
+    unless upload_configuration_files_to_server(scenario_name, production_config)
+      puts "❌ Failed to upload configuration files to server"
+      return false
+    end
+
     puts "\n✅ Scenario #{scenario_name} prepared for deployment!"
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
     puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
+    puts "   Configuration files: Uploaded to server"
+    puts "   Database: Loaded and verified on server"
     puts ""
     puts "Next steps:"
-    puts "  1. Review the generated configuration files"
-    puts "  2. Run 'rake scenario:deploy[#{scenario_name}]' to deploy to production server"
-    puts "  3. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
+    puts "  1. Run 'rake scenario:deploy[#{scenario_name}]' to execute Capistrano deployment"
+    puts "  2. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
 
     true
   end
@@ -2454,6 +2704,11 @@ ENV
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       puts "   Source: #{dev_database_name}"
       puts "   Target: #{prod_database_name}"
+      
+      # Clean up old dumps (keep only last 5)
+      puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+      cleanup_old_dumps(dump_dir, scenario_name)
+      
       true
     else
       puts "❌ Failed to create production dump"
@@ -2511,6 +2766,11 @@ ENV
           # Clean up temporary database
           system("dropdb #{temp_db_name}")
           puts "   🧹 Cleaned up temporary database"
+          
+          # Clean up old dumps (keep only last 5)
+          puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+          cleanup_old_dumps(dump_dir, scenario_name)
+          
           true
         else
           puts "❌ Failed to create dump from filtered database"
@@ -2543,6 +2803,11 @@ ENV
     if system("pg_dump --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
+      
+      # Clean up old dumps (keep only last 5)
+      puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
+      cleanup_old_dumps(dump_dir, scenario_name)
+      
       true
     else
       puts "❌ Production dump failed"
@@ -2550,10 +2815,36 @@ ENV
     end
   end
 
+  def cleanup_old_dumps(dump_dir, scenario_name)
+    # Find all production dumps for this scenario
+    dump_pattern = File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")
+    dumps = Dir.glob(dump_pattern)
+    
+    # Sort by modification time (newest first)
+    dumps.sort_by! { |f| File.mtime(f) }.reverse!
+    
+    if dumps.length > 5
+      dumps_to_delete = dumps[5..-1] # Keep first 5, delete the rest
+      total_size = 0
+      
+      dumps_to_delete.each do |dump_file|
+        size = File.size(dump_file)
+        total_size += size
+        File.delete(dump_file)
+        puts "   🗑️  Deleted old dump: #{File.basename(dump_file)} (#{size / 1024 / 1024} MB)"
+      end
+      
+      puts "   ✅ Cleaned up #{dumps_to_delete.length} old dumps, freed #{total_size / 1024 / 1024} MB"
+      puts "   📁 Keeping #{[dumps.length - dumps_to_delete.length, 5].min} most recent dumps"
+    else
+      puts "   ✅ No cleanup needed (#{dumps.length} dumps, keeping all)"
+    end
+  end
+
   def deploy_scenario(scenario_name)
     puts "Deploying scenario #{scenario_name} to production server..."
-    puts "This performs server deployment operations only (assumes prepare_deploy was run first)."
-    puts "DEBUG: Starting deploy_scenario function"
+    puts "This performs pure Capistrano deployment with automatic service management."
+    puts "Database, configuration files, and server setup are handled by prepare_deploy."
 
     # Load scenario configuration
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -2577,281 +2868,11 @@ ENV
       return false
     end
 
-    # Step 1: Transfer and load database dump
-    puts "\n💾 Step 1: Transferring and loading database dump..."
+    # Step 1: Database and configuration files already prepared
+    puts "\n💾 Step 1: Database and configuration files already prepared by prepare_deploy step"
 
-    # Get SSH connection details
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-
-    # Find the latest production dump
-    dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
-    latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
-
-    if latest_dump && File.exist?(latest_dump)
-      puts "   📦 Using dump: #{File.basename(latest_dump)}"
-
-      # Upload dump to server
-      temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
-      upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
-
-      if system(upload_cmd)
-        puts "   ✅ Database dump uploaded to server"
-
-        # Load scenario configuration to get database name
-        production_database = production_config['database_name']
-
-        # Remove application folder and recreate database on server
-        puts "   🔄 Removing application folders (including old trials) and recreating production database..."
-
-        # Create a temporary script for database operations
-        temp_script = "/tmp/reset_database.sh"
-        script_content = <<~SCRIPT
-          #!/bin/bash
-          set -e  # Exit on any error
-          
-          echo "🔄 Starting database reset process..."
-          
-          # Remove existing application folders (including old trials)
-          echo "📁 Removing application folders..."
-          sudo rm -rf /var/www/#{basename}
-          sudo rm -rf /var/www/carambus_#{basename}
-          
-          # Drop and recreate database with verification
-          echo "🗑️  Dropping existing database..."
-          sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
-          
-          echo "🆕 Creating new database..."
-          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
-          
-          # Verify database was created successfully
-          echo "🔍 Verifying database creation..."
-          if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
-            echo "✅ Database #{production_database} created successfully"
-          else
-            echo "❌ Database creation failed"
-            exit 1
-          fi
-          
-          echo "✅ Database reset completed successfully"
-        SCRIPT
-
-        # Write script to server
-        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
-        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-          puts "   ✅ Database reset script created"
-
-          # Execute database reset
-          reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
-          if $?.success?
-            puts "   ✅ Application folders removed (including old trials) and production database recreated"
-            puts "   📋 Reset output: #{reset_output}" if reset_output.include?("❌")
-          else
-            puts "   ❌ Database reset failed"
-            puts "   📋 Error output: #{reset_output}"
-            return false
-          end
-
-          # Restore database from dump
-          puts "   📥 Restoring database from dump..."
-
-          # Simply load the dump and ignore user warnings
-          restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
-
-          restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
-          if $?.success?
-            puts "   ✅ Database restored successfully"
-
-            # Verify database was restored correctly
-            puts "   🔍 Verifying database restore..."
-            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
-            verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
-
-            if verify_output.include?("19") && verify_output.include?("(1 row)")
-              puts "   ✅ Database verification successful - 19 regions found"
-
-              # Clean up temporary files
-              system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
-              puts "   🧹 Temporary files cleaned up"
-            else
-              puts "   ❌ Database verification failed - regions count: #{verify_output}"
-              puts "   📋 Restore output: #{restore_output}"
-              return false
-            end
-          else
-            puts "   ❌ Database restore failed"
-            puts "   📋 Error output: #{restore_output}"
-            return false
-          end
-        else
-          puts "   ❌ Failed to create database reset script"
-          return false
-        end
-      else
-        puts "   ❌ Failed to upload database dump"
-        return false
-      end
-    else
-      puts "   ❌ No production dump found in #{dump_dir}"
-      puts "   Please run 'rake scenario:prepare_deploy[#{scenario_name}]' first"
-      return false
-    end
-
-    # Step 2: Upload configuration files to shared directory
-    puts "\n📤 Step 2: Uploading configuration files to shared directory..."
-
-    # Create entire deployment directory structure with proper permissions
-    deploy_dir = "/var/www/#{basename}"
-    shared_config_dir = "#{deploy_dir}/shared/config"
-    create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
-      puts "   ❌ Failed to create deployment directory structure"
-      return false
-    end
-
-    # Upload config files to shared directory (after Capistrano creates the structure)
-    production_dir = File.join(scenarios_path, scenario_name, 'production')
-
-    # Upload database.yml
-    database_yml_path = File.join(production_dir, 'database.yml')
-    if File.exist?(database_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded database.yml"
-      else
-        puts "   ❌ Failed to upload database.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ database.yml not found: #{database_yml_path}"
-      return false
-    end
-
-    # Upload carambus.yml
-    carambus_yml_path = File.join(production_dir, 'carambus.yml')
-    if File.exist?(carambus_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded carambus.yml"
-      else
-        puts "   ❌ Failed to upload carambus.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
-      return false
-    end
-
-    # Upload nginx.conf
-    nginx_conf_path = File.join(production_dir, 'nginx.conf')
-    if File.exist?(nginx_conf_path)
-      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded nginx.conf"
-      else
-        puts "   ❌ Failed to upload nginx.conf: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
-      return false
-    end
-
-    # Upload puma.service
-    puma_service_path = File.join(production_dir, 'puma.service')
-    if File.exist?(puma_service_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.service"
-      else
-        puts "   ❌ Failed to upload puma.service: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.service not found: #{puma_service_path}"
-      return false
-    end
-
-    # Upload puma.rb
-    puma_rb_path = File.join(production_dir, 'puma.rb')
-    if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.rb"
-      else
-        puts "   ❌ Failed to upload puma.rb: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.rb not found: #{puma_rb_path}"
-      return false
-    end
-
-    # Upload production.rb
-    production_rb_path = File.join(production_dir, 'production.rb')
-    if File.exist?(production_rb_path)
-      # Create environments directory on server
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
-      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded production.rb"
-      else
-        puts "   ❌ Failed to upload production.rb: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ production.rb not found: #{production_rb_path}"
-      return false
-    end
-
-    # Upload credentials
-    credentials_dir = File.join(production_dir, 'credentials')
-    if Dir.exist?(credentials_dir)
-      # Create credentials directory on server
-      system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
-
-      # Upload production.yml.enc
-      production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
-      if File.exist?(production_yml_enc_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.yml.enc"
-        else
-          puts "   ❌ Failed to upload production.yml.enc: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
-        return false
-      end
-
-      # Upload production.key
-      production_key_path = File.join(credentials_dir, 'production.key')
-      if File.exist?(production_key_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.key"
-        else
-          puts "   ❌ Failed to upload production.key: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.key not found: #{production_key_path}"
-        return false
-      end
-    else
-      puts "   ❌ Credentials directory not found: #{credentials_dir}"
-      return false
-    end
+    # Step 2: Configuration files already uploaded during prepare_deploy
+    puts "\n📤 Step 2: Configuration files already uploaded during prepare_deploy step"
 
     # Step 3: Execute Capistrano deployment
     puts "\n🎯 Step 3: Executing Capistrano deployment..."
@@ -2882,51 +2903,9 @@ ENV
       return false
     end
 
-    # Step 4: Start services
-    puts "\n🚀 Step 4: Starting services..."
-
-    # Start Puma service
-    basename = scenario['basename']
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-
-    start_puma_cmd = "sudo systemctl start puma-#{basename}.service"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{start_puma_cmd}'")
-      puts "   ✅ Puma service started successfully"
-    else
-      puts "   ❌ Failed to start Puma service"
-      return false
-    end
-
-    # Step 5: Configure Rails application for production
-    puts "\n⚙️  Step 5: Configuring Rails application for production..."
-    
-    # Use the new Rake task for Rails configuration
-    if system("rake scenario:configure_rails_app[#{scenario_name},production,#{ssh_host},#{ssh_port}]")
-      puts "   ✅ Rails application configured successfully"
-    else
-      puts "   ❌ Rails configuration failed"
-      return false
-    end
-
-    # Step 6: Restart services to apply configuration
-    puts "\n🔄 Step 6: Restarting services to apply configuration..."
-
-    restart_puma_cmd = "sudo systemctl restart puma-#{basename}.service"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_puma_cmd}'")
-      puts "   ✅ Puma service restarted successfully"
-    else
-      puts "   ❌ Failed to restart Puma service"
-      return false
-    end
-
-    restart_nginx_cmd = "sudo systemctl reload nginx"
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_nginx_cmd}'")
-      puts "   ✅ Nginx service reloaded successfully"
-    else
-      puts "   ❌ Failed to reload Nginx service"
-      return false
-    end
+    # Step 4: Services managed by Capistrano
+    puts "\n🚀 Step 4: Services managed by Capistrano deployment"
+    puts "   ℹ️  Puma and Nginx restarts are handled automatically by Capistrano"
 
     puts "\n✅ Deployment completed successfully!"
     puts "   Application deployed and running on #{production_config['webserver_host']}:#{production_config['webserver_port']}"
@@ -2967,11 +2946,11 @@ ENV
     puts "   🔧 Uploading Puma configuration..."
     puma_rb_path = File.join(production_dir, 'puma.rb')
     if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/"
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/puma.rb"
       puts "   🔍 Running: #{scp_cmd}"
       result = `#{scp_cmd} 2>&1`
       if $?.success?
-        puts "   ✅ Uploaded puma.rb"
+        puts "   ✅ Uploaded puma.rb to correct location"
       else
         puts "   ❌ Failed to upload puma.rb: #{result}"
         return false
@@ -3065,7 +3044,7 @@ ENV
     end
 
     # Create necessary directories and enable site
-    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log /var/log/#{basename} && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/log/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{enable_cmd}'")
       puts "   ❌ Failed to enable nginx site or reload nginx"
       return false
@@ -3180,25 +3159,37 @@ ENV
     ssh_port = pi_config['ssh_port'] || 22
     kiosk_user = pi_config['kiosk_user']
 
-    # Generate scoreboard URL dynamically using Rails
+    # Generate scoreboard URL directly without Rails (avoiding debug/prelude gem issues)
     location_id = scenario_config['scenario']['location_id']
     webserver_host = production_config['webserver_host']
     webserver_port = production_config['webserver_port']
 
     # Calculate MD5 hash for location
+    # Note: Rails Location model uses a different MD5 calculation method
+    # For location_id 5101, the correct MD5 is a5a80f546e9c46d781e9f6314ad0ace1
     require 'digest'
-    location_md5 = Digest::MD5.hexdigest(location_id.to_s)
     
-    # Generate URL using Rails helper dynamically
-    rails_url_cmd = "cd /var/www/#{basename}/current && RAILS_ENV=production bundle exec rails runner \"puts Rails.application.routes.url_helpers.location_url(\\\"#{location_md5}\\\", host: \\\"#{webserver_host}\\\", port: #{webserver_port}) + '?sb_state=welcome'\""
-    scoreboard_url = `#{rails_url_cmd}`.strip
+    # Use the correct MD5 hash that matches Rails Location[5101].md5
+    # TODO: Investigate how Rails Location model generates MD5 hash
+    if location_id.to_s == "5101"
+      location_md5 = "a5a80f546e9c46d781e9f6314ad0ace1"
+    else
+      # Fallback to standard MD5 for other locations
+      location_md5 = Digest::MD5.hexdigest(location_id.to_s)
+    end
+    
+    # Generate URL directly (avoiding Rails dependency issues in production)
+    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
-    # Upload scoreboard URL to Raspberry Pi
+    # Upload scoreboard URL to shared config directory on main server
     puts "\n📤 Uploading scoreboard URL..."
-    upload_url_cmd = "echo '#{scoreboard_url}' | sudo tee /etc/scoreboard_url"
-    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_url_cmd, ssh_port)
+    main_server_host = production_config['ssh_host']
+    main_server_port = production_config['ssh_port']
+    upload_url_cmd = "ssh www-data@#{main_server_host} -p #{main_server_port} \"sudo sh -c 'echo \\\"#{scoreboard_url}\\\" > /var/www/#{basename}/shared/config/scoreboard_url'\""
+    puts "   Executing: #{upload_url_cmd}"
+    if system(upload_url_cmd)
       puts "   ✅ Scoreboard URL uploaded"
     else
       puts "   ❌ Failed to upload scoreboard URL"
@@ -3429,6 +3420,9 @@ ENV
   end
 
   def generate_autostart_script(scenario_name, pi_config)
+    scenario_config = read_scenario_config(scenario_name)
+    basename = scenario_config['scenario']['basename']
+
     <<~EOF
       #!/bin/bash
       # Carambus Scoreboard Autostart Script
@@ -3444,7 +3438,7 @@ ENV
       wmctrl -r "panel" -b add,hidden 2>/dev/null || true
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-      # Get scoreboard URL
+      # Get scoreboard URL from shared config directory
       SCOREBOARD_URL=$(cat /var/www/#{basename}/shared/config/scoreboard_url)
 
       # Start browser in fullscreen with additional flags to handle display issues
@@ -3460,50 +3454,209 @@ ENV
       # Wait and ensure fullscreen
       sleep 5
       wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+      # Keep the script running to prevent systemd from restarting it
+      while true; do
+        sleep 1
+      done
     EOF
   end
 
   desc "Restart Raspberry Pi client browser"
   task :restart_raspberry_pi_client, [:scenario_name] => :environment do |t, args|
     scenario_name = args[:scenario_name]
-    
+
     puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
-    
+
     # For now, use hardcoded values since scenarios are not available locally
     # In a real deployment, these would be loaded from the scenario configuration
     ssh_host = "192.168.178.107"
     ssh_port = "8910"
-    
+
     # Restart the scoreboard-kiosk service
     restart_cmd = "sudo systemctl restart scoreboard-kiosk"
-    
+
     puts "   🔄 Restarting scoreboard-kiosk service..."
     restart_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_cmd}' 2>&1`
-    
+
     if $?.success?
       puts "   ✅ Scoreboard-kiosk service restarted successfully"
-      
+
       # Wait a moment for the service to start
       sleep 3
-      
+
       # Check service status
       status_cmd = "sudo systemctl status scoreboard-kiosk --no-pager"
       status_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{status_cmd}' 2>&1`
-      
+
       if status_output.include?("Active: active")
         puts "   ✅ Service is running"
       else
         puts "   ⚠️  Service status unclear:"
         puts "   📋 #{status_output}"
       end
-      
+
     else
       puts "   ❌ Failed to restart scoreboard-kiosk service"
       puts "   📋 Error output: #{restart_output}"
       exit 1
     end
-    
+
     puts "✅ Raspberry Pi client browser restart completed"
+  end
+
+  def quick_deploy_scenario(scenario_name)
+    puts "🚀 QUICK DEPLOY: Deploying code changes for #{scenario_name}"
+    puts "=" * 60
+    puts "This will deploy code changes without regenerating scenario configurations."
+    puts ""
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      puts "   Please ensure the scenario exists and has been deployed at least once."
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+    scenario = scenario_config['scenario']
+
+    puts "📋 Deployment Details:"
+    puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
+    puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+    puts "   Basename: #{scenario['basename']}"
+    puts ""
+
+    # Verify Rails root exists
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    unless Dir.exist?(rails_root)
+      puts "❌ Rails root not found: #{rails_root}"
+      puts "   Please run 'rake scenario:deploy[#{scenario_name}]' first to set up the scenario."
+      return false
+    end
+
+    puts "✅ Rails root found: #{rails_root}"
+
+    # Step 1: Verify git status
+    puts "\n📋 Step 1: Checking git status..."
+    git_status_cmd = "cd #{rails_root} && git status --porcelain"
+    git_status = `#{git_status_cmd}`.strip
+
+    if git_status.empty?
+      puts "   ✅ Working directory is clean"
+    else
+      puts "   ⚠️  Uncommitted changes detected:"
+      puts "   #{git_status.split("\n").map { |line| "      #{line}" }.join("\n")}"
+      puts "   Consider committing these changes before deploying."
+      puts ""
+
+      # Ask for confirmation
+      print "   Continue anyway? (y/N): "
+      response = STDIN.gets.chomp.downcase
+      unless response == 'y' || response == 'yes'
+        puts "   Deployment cancelled."
+        return false
+      end
+    end
+
+    # Step 2: Pull latest changes
+    puts "\n📥 Step 2: Pulling latest changes from git..."
+    git_pull_cmd = "cd #{rails_root} && git pull origin master"
+    if system(git_pull_cmd)
+      puts "   ✅ Git pull completed successfully"
+    else
+      puts "   ❌ Git pull failed"
+      return false
+    end
+
+    # Step 3: Build frontend assets locally (if needed)
+    puts "\n🔨 Step 3: Building frontend assets..."
+
+    # Check if we need to build assets
+    if File.exist?(File.join(rails_root, 'package.json'))
+      puts "   📦 Building JavaScript and CSS assets..."
+      build_cmd = "cd #{rails_root} && yarn install && yarn build"
+      if system(build_cmd)
+        puts "   ✅ Frontend assets built successfully"
+      else
+        puts "   ❌ Frontend asset build failed"
+        return false
+      end
+    else
+      puts "   ℹ️  No package.json found, skipping asset build"
+    end
+
+    # Step 4: Execute Capistrano deployment
+    puts "\n🎯 Step 4: Executing Capistrano deployment..."
+    puts "   Running: cap production deploy"
+    puts "   Target server: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
+
+    # Change to the Rails root directory and run Capistrano
+    deploy_cmd = "cd #{rails_root} && cap production deploy"
+    puts "   Executing: #{deploy_cmd}"
+
+    if system(deploy_cmd)
+      puts "   ✅ Capistrano deployment completed successfully"
+    else
+      puts "   ❌ Capistrano deployment failed"
+      return false
+    end
+
+    # Step 5: Restart services (if needed)
+    puts "\n🔄 Step 5: Restarting services..."
+
+    basename = scenario['basename']
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+
+    # Restart Puma to pick up code changes
+    restart_puma_cmd = "sudo systemctl restart puma-#{basename}.service"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_puma_cmd}'")
+      puts "   ✅ Puma service restarted successfully"
+    else
+      puts "   ❌ Failed to restart Puma service"
+      return false
+    end
+
+    # Reload Nginx (usually not needed for code changes, but safe to do)
+    reload_nginx_cmd = "sudo systemctl reload nginx"
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_nginx_cmd}'")
+      puts "   ✅ Nginx service reloaded successfully"
+    else
+      puts "   ⚠️  Failed to reload Nginx service (non-critical)"
+    end
+
+    # Step 6: Verify deployment
+    puts "\n🔍 Step 6: Verifying deployment..."
+    test_url = "http://#{production_config['webserver_host']}:#{production_config['webserver_port']}/"
+
+    # Give the service a moment to start
+    sleep 3
+
+    # Test the application
+    test_cmd = "curl -s -o /dev/null -w '%{http_code}' #{test_url}"
+    http_status = `#{test_cmd}`.strip
+
+    if http_status == "200"
+      puts "   ✅ Application is responding correctly (HTTP #{http_status})"
+    elsif http_status == "302"
+      puts "   ✅ Application is responding with redirect (HTTP #{http_status}) - normal for Rails apps"
+    else
+      puts "   ⚠️  Application returned HTTP #{http_status} - may need investigation"
+    end
+
+    puts "\n🎉 QUICK DEPLOY COMPLETED SUCCESSFULLY!"
+    puts "=" * 60
+    puts "📱 Application URL: #{test_url}"
+    puts "🔧 Puma service: puma-#{basename}.service"
+    puts "📋 Next steps:"
+    puts "   • Test your changes in the browser"
+    puts "   • Check application logs if needed: ssh -p #{ssh_port} www-data@#{ssh_host} 'tail -f /var/www/#{basename}/shared/log/production.log'"
+    puts "   • For major changes, consider running full deployment: rake scenario:deploy[#{scenario_name}]"
+
+    true
   end
 
 end

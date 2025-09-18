@@ -22,6 +22,7 @@ export default class extends Controller {
   }
 
   collapse(event) {
+    console.log('🔧 SidebarController collapse called!', event.currentTarget)
     // Force a reflow before making changes
     void this.navTarget.offsetHeight
 
@@ -33,6 +34,11 @@ export default class extends Controller {
       // Save state
       const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed')
       localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+      console.log('🔧 Sidebar collapsed state:', isCollapsed)
+      console.log('🔧 HTML classes:', document.documentElement.className)
+      console.log('🔧 Nav element:', this.navTarget)
+      console.log('🔧 Nav element classes:', this.navTarget.className)
+      console.log('🔧 Content element:', this.hasContentTarget ? this.contentTarget : 'No content target')
     })
   }
 

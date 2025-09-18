@@ -156,6 +156,31 @@ Deployt ein Scenario zu Production mit Konflikt-Analyse:
    - Prüft existierende Puma-Services
 
 2. **Konflikt-Auflösung**:
+
+#### `scenario:quick_deploy[scenario_name]`
+**NEW**: Schnelles Deployment für iterative Entwicklung ohne Scenario-Regenerierung:
+
+**Verwendung**: Für Code-Änderungen ohne Konfigurationsänderungen (Controller, Views, JavaScript, CSS, Models, Routes)
+
+**Vorraussetzungen**:
+- Scenario muss bereits deployed sein (`scenario:deploy` einmal ausgeführt)
+- Keine Änderungen an `config.yml` oder Scenario-Konfiguration
+- Änderungen sollten committed und gepusht sein
+
+**Ablauf**:
+1. **Validierung**: Prüft Scenario-Konfiguration und Rails-Root
+2. **Git-Status**: Warnt vor uncommitted Changes
+3. **Git-Pull**: Holt neueste Änderungen aus Repository
+4. **Asset-Build**: Kompiliert Frontend-Assets (yarn install && yarn build)
+5. **Capistrano-Deployment**: Standard Rails-Deployment
+6. **Service-Restart**: Startet Puma-Service neu
+7. **Verifikation**: Testet Application-Response
+
+**Performance**: 30-60 Sekunden (vs. 5-10 Minuten für vollständiges Deployment)
+
+**Perfekt für**: Iterative Entwicklung, Code-Änderungen, Frontend-Updates, Hotfixes
+
+**Vollständige Dokumentation**: Siehe `ITERATIVE_DEVELOPMENT_WORKFLOW.md`
    - Fragt Benutzer nach Auflösungsstrategie:
      - Existierendes Deployment ersetzen
      - Paralleles Deployment erstellen
@@ -303,8 +328,11 @@ rake "scenario:prepare_deploy[carambus_location_2459]"
 
 ### 4. Scenario deployen
 ```bash
-# Deployment mit Konflikt-Analyse
+# Vollständiges Deployment (für neue Scenarios oder Konfigurationsänderungen)
 rake "scenario:deploy[carambus_location_2459]"
+
+# Schnelles Deployment (für Code-Änderungen ohne Konfigurationsänderungen)
+rake "scenario:quick_deploy[carambus_location_2459]"
 ```
 
 ### 5. Konfigurationen aktualisieren
@@ -388,7 +416,9 @@ Das Deployment-System wurde vollständig automatisiert und umfasst:
 - Unix-Socket-Proxy-Konfiguration
 - Konfigurationstest und Reload
 
-### Deployment-Workflow
+### Deployment-Workflows
+
+#### Vollständiges Deployment (`scenario:deploy`)
 ```bash
 rake "scenario:deploy[scenario_name]"
 ```
@@ -403,6 +433,35 @@ rake "scenario:deploy[scenario_name]"
 7. SSL-Zertifikat-Setup (Let's Encrypt)
 8. Puma-Service-Konfiguration (Unix-Sockets)
 9. Nginx-Konfiguration-Update (Unix-Socket-Proxy)
+
+**Verwendung**: Neue Scenarios, Konfigurationsänderungen, SSL-Updates
+
+#### Schnelles Deployment (`scenario:quick_deploy`)
+```bash
+rake "scenario:quick_deploy[scenario_name]"
+```
+
+**Führt automatisch aus:**
+1. Git-Status-Prüfung und Pull
+2. Frontend-Asset-Build (yarn install && yarn build)
+3. Capistrano-Deployment
+4. Puma-Service-Restart
+5. Nginx-Reload
+6. Application-Response-Verifikation
+
+**Verwendung**: Code-Änderungen, Frontend-Updates, iterative Entwicklung
+
+#### Workflow-Vergleich
+
+| Operation | Vollständiges Deployment | Schnelles Deployment |
+|-----------|-------------------------|---------------------|
+| **Verwendung** | Neue Scenarios, Config-Änderungen | Code-Änderungen nur |
+| **Zeit** | 5-10 Minuten | 30-60 Sekunden |
+| **Regeneriert Configs** | ✅ Ja | ❌ Nein |
+| **Baut Assets** | ✅ Ja | ✅ Ja |
+| **Datenbank-Operationen** | ✅ Ja | ❌ Nein |
+| **Service-Restarts** | ✅ Alle | ✅ Puma nur |
+| **SSL-Setup** | ✅ Ja | ❌ Nein |
 
 ## Fehlerbehebung
 

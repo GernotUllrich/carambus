@@ -43,7 +43,7 @@ Rails.application.config.content_security_policy do |policy|
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
     policy.style_src :self, :unsafe_inline, "https://rsms.me"
-    policy.connect_src :self, :https
+    policy.connect_src :self, :https, :http
     policy.frame_src :self
     policy.media_src :self
   end

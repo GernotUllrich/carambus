@@ -86,7 +86,9 @@ namespace :deploy do
       # Set proper permissions
       execute :chown, "-R", "www-data:www-data", "#{shared_path}/sockets"
       execute :chown, "-R", "www-data:www-data", "#{shared_path}/pids"
-      execute :chown, "-R", "www-data:www-data", "#{shared_path}/log"
+      
+      # Set permissions for log directory (use sudo for root-owned nginx logs)
+      execute :sudo, :chown, "-R", "www-data:www-data", "#{shared_path}/log"
       
       puts "✅ Puma.rb configuration deployed"
     end

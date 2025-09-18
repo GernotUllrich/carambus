@@ -234,10 +234,10 @@ step_three_deploy() {
     log "=========================="
     
     info "This will:"
-    info "  - Transfer and load database dump to server"
-    info "  - Run standard Capistrano deployment"
-    info "  - Start the Puma service"
+    info "  - Execute pure Capistrano deployment"
+    info "  - Automatically restart Puma service via Capistrano"
     info "  - Complete the application deployment"
+    info "  - Database and config files already prepared by prepare_deploy"
     
     if ! confirm "Proceed with server deployment?"; then
         log "Server deployment cancelled"

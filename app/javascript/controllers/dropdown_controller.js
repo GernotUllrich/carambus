@@ -17,6 +17,12 @@ export default class extends Controller {
     this.menuTarget.classList.toggle("hidden")
   }
 
+  hide(event) {
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden")
+    }
+  }
+
   handleClickOutside(event) {
     if (!this.element.contains(event.target)) {
       this.menuTarget.classList.add("hidden")

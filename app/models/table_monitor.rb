@@ -1814,12 +1814,15 @@ data[\"allow_overflow\"].present?")
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"start_game(#{options.inspect})"} <<<------------------------------------------"
     end
-    @game = game
-    if @game.blank?
-      @game = Game.new(table_monitor: self)
-    else
-      @game.game_participations.destroy_all
+    # Unlink any existing game from this table monitor (preserve game history)
+    if game.present?
+      existing_game_id = game.id
+      game.update(table_monitor: nil)
+      Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
     end
+    
+    # Create a new game for this table monitor
+    @game = Game.new(table_monitor: self)
     reload
     @game.update(data: {})
     players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
