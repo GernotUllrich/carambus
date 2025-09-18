@@ -127,4 +127,8 @@ namespace :deploy do
 end
 
 # Hook into deployment process
-after "deploy:published", "deploy:deploy_templates"
+if ENV["DEPLOY_TEMPLATES"] == "true"
+  after "deploy:published", "deploy:deploy_templates"
+else
+  puts "ℹ️  Skipping template deployment (set DEPLOY_TEMPLATES=true to enable)"
+end
