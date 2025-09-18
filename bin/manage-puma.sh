@@ -51,10 +51,10 @@ echo "Using BASENAME: $BASENAME"
 # Check if the puma service is running by looking for the socket file
 if [ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && pgrep -f "puma.*${BASENAME}" > /dev/null
 then
-  echo "Service is running, performing phased-restart"
+  echo "Service is running, performing graceful phased-restart"
   cd /var/www/${BASENAME}/current
-  # Use systemctl restart instead of pumactl to avoid state file issues
-  sudo systemctl restart puma-${BASENAME}.service
+  # Use pumactl for graceful phased restart (zero downtime)
+  bundle exec pumactl phased-restart
 else
   echo "Service is not running, starting service"
   cd /var/www/${BASENAME}/current
