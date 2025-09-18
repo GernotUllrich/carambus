@@ -148,7 +148,7 @@ function addPoint(playerId, points) {
     // Remove highlight after animation
     setTimeout(() => {
       scoreElement.classList.remove('score-updated');
-    }, 500);
+    }, 250);
   }
   
   // Store in history for undo
@@ -234,7 +234,7 @@ function undo() {
       scoreElement.classList.add('score-updated');
       setTimeout(() => {
         scoreElement.classList.remove('score-updated');
-      }, 500);
+      }, 250);
     }
     
     updateStatus('Undone Score Change', `${lastAction.playerId}: ${lastAction.newScore} → ${previousScore}`);

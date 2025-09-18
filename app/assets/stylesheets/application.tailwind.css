@@ -56,7 +56,7 @@
     background-color: transparent;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.05);
     background-color: rgba(34, 197, 94, 0.3);
   }
   100% {
@@ -79,7 +79,7 @@
 }
 
 .score-updated {
-  animation: scoreUpdate 0.5s ease-in-out;
+  animation: scoreUpdate 0.25s ease-in-out;
 }
 
 .player-active {
