@@ -211,6 +211,17 @@ before "deploy:assets:precompile", "deploy:verify_node"
 before "deploy:assets:precompile", "deploy:assets:install_dependencies"
 before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
 
+# Define our own asset precompilation task since we disabled capistrano-rails assets
+namespace :deploy do
+  namespace :assets do
+    desc "Build frontend assets using esbuild and TailwindCSS"
+    task :precompile do
+      puts "✅ Building frontend assets with esbuild and TailwindCSS"
+      # This task is just a placeholder - the actual work is done by the before hooks
+    end
+  end
+end
+
 # Fix socket permissions after Puma restart
 namespace :deploy do
   desc "Fix socket permissions for NGINX"
