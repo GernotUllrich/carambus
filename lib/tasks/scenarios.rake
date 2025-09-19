@@ -3333,6 +3333,10 @@ ENV
     webserver_host = production_config['webserver_host']
     webserver_port = production_config['webserver_port']
 
+    # Set the correct database for this scenario
+    scenario_database_name = scenario_config['environments']['development']['database_name']
+    ENV['DATABASE_URL'] = "postgresql://localhost/#{scenario_database_name}"
+
     # Get the correct MD5 from the Location model
     location = Location.find(location_id)
     location_md5 = location.md5
