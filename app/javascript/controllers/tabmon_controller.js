@@ -240,8 +240,22 @@ export default class extends ApplicationController {
     const leftPlayer = document.querySelector('#left')
     const rightPlayer = document.querySelector('#right')
     
-    return (leftPlayer && leftPlayer.classList.contains('border-green-400')) ||
-           (rightPlayer && rightPlayer.classList.contains('border-green-400'))
+    console.log("🔍 Tabmon checking for green border:")
+    console.log("   Left player:", leftPlayer)
+    console.log("   Left player classes:", leftPlayer?.classList.toString())
+    console.log("   Right player:", rightPlayer)
+    console.log("   Right player classes:", rightPlayer?.classList.toString())
+    
+    const hasLeftGreen = leftPlayer && leftPlayer.classList.contains('border-green-400')
+    const hasRightGreen = rightPlayer && rightPlayer.classList.contains('border-green-400')
+    
+    console.log("   Has left green:", hasLeftGreen)
+    console.log("   Has right green:", hasRightGreen)
+    
+    const result = hasLeftGreen || hasRightGreen
+    console.log("   Final result:", result)
+    
+    return result
   }
 
   // Revert last score change
