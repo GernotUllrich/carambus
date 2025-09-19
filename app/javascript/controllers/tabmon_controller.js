@@ -408,12 +408,7 @@ export default class extends ApplicationController {
       this.resetOriginalScores()
       this.clearAccumulatedChanges()
       
-        console.log("🎉 Tabmon validation cycle complete - ready for new changes")
-    } catch (error) {
-      console.error(`❌ Tabmon validateAccumulatedChanges ERROR:`, error)
-      console.error(`❌ Error stack:`, error.stack)
-      // Clear accumulated changes to prevent stuck state
-      this.clearAccumulatedChanges()
+      console.log("🎉 Tabmon validation cycle complete - ready for new changes")
     }
   }
 
@@ -550,6 +545,12 @@ export default class extends ApplicationController {
     
     // Clear accumulated changes after sending validation
     this.clearAccumulatedChanges()
+    } catch (error) {
+      console.error(`❌ Tabmon validateAccumulatedChanges ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      // Clear accumulated changes to prevent stuck state
+      this.clearAccumulatedChanges()
+    }
   }
 
   // NEW: Clear accumulated changes after successful validation
