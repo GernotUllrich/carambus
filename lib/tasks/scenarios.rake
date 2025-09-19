@@ -3328,20 +3328,16 @@ ENV
     ssh_port = pi_config['ssh_port'] || 22
     kiosk_user = pi_config['kiosk_user']
 
-    # Generate scoreboard URL directly without Rails (avoiding debug/prelude gem issues)
+    # Generate scoreboard URL using Rails Location model
     location_id = scenario_config['scenario']['location_id']
     webserver_host = production_config['webserver_host']
     webserver_port = production_config['webserver_port']
 
-    # Calculate MD5 hash for location
-    # Note: Rails Location model uses a different MD5 calculation method
-    require 'digest'
+    # Get the correct MD5 from the Location model
+    location = Location.find(location_id)
+    location_md5 = location.md5
     
-    # Generate MD5 hash for the location ID
-    # This should match the Rails Location model's MD5 calculation
-    location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-    
-    # Generate URL directly (avoiding Rails dependency issues in production)
+    # Generate URL using the correct MD5
     scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
