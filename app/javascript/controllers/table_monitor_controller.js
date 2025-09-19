@@ -491,6 +491,50 @@ export default class extends ApplicationController {
     })
   }
 
+  // NEW: Optimistic player change - immediate visual feedback
+  changePlayerOptimistically() {
+    console.log("TableMonitor changing player optimistically")
+    
+    // Store current state for potential rollback
+    this.clientState.updateHistory.push({
+      type: 'player_change',
+      previousPlayer: this.clientState.currentPlayer,
+      timestamp: Date.now()
+    })
+    
+    // Update current player in client state
+    this.clientState.currentPlayer = this.clientState.currentPlayer === 'playera' ? 'playerb' : 'playera'
+    
+    // Update display if available
+    const currentPlayerSpan = document.getElementById('current-player')
+    if (currentPlayerSpan) {
+      currentPlayerSpan.textContent = this.clientState.currentPlayer === 'playera' ? 'Player A' : 'Player B'
+    }
+    
+    // Add pending indicator to center controls
+    const centerControls = document.querySelector('.bg-gray-700')
+    if (centerControls) {
+      centerControls.classList.add('pending-update')
+    }
+    
+    console.log(`TableMonitor optimistic player change: ${this.clientState.currentPlayer}`)
+  }
+
+  // NEW: Next step method for player switching
+  next_step() {
+    const tableMonitorId = this.element.dataset.id
+    console.log('TableMonitor next_step called')
+    
+    // 🚀 IMMEDIATE OPTIMISTIC PLAYER CHANGE
+    this.changePlayerOptimistically()
+    
+    // Mark as pending update
+    this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`)
+    
+    // 🚀 DIRECT SERVER VALIDATION - immediate call
+    this.stimulate('TableMonitor#next_step')
+  }
+
   disconnect() {
     // Clear validation timer when controller disconnects
     if (this.clientState && this.clientState.validationTimer) {
