@@ -337,8 +337,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`undo_${tableMonitorId}`)
     
-    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
-    this.debouncedServerCall('undo', this.element, 500)
+    // 🚀 DIRECT SERVER VALIDATION - immediate call
+    this.stimulate('TableMonitor#undo')
   }
 
   next_step () {
@@ -351,8 +351,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`)
     
-    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
-    this.debouncedServerCall('next_step', this.element, 500)
+    // 🚀 DIRECT SERVER VALIDATION - immediate call
+    this.stimulate('TableMonitor#next_step')
   }
 
   numbers () {
