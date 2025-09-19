@@ -43,6 +43,7 @@ export default class extends ApplicationController {
       const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (!scoreElement) {
       console.error(`❌ Score element not found for player: ${playerId}`)
+      console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
       return
     }
 
@@ -50,6 +51,7 @@ export default class extends ApplicationController {
     const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (!inningsElement) {
       console.error(`❌ Innings element not found for player: ${playerId}`)
+      console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
       return
     }
 
@@ -127,6 +129,7 @@ export default class extends ApplicationController {
     this.addPendingIndicator(scoreElement)
     this.addPendingIndicator(inningsElement)
     
+      console.log(`✅ Tabmon optimistic update complete: ${playerId} display = ${newScore}`)
     } catch (error) {
       console.error(`❌ Tabmon updateScoreOptimistically ERROR:`, error)
       console.error(`❌ Error stack:`, error.stack)
@@ -137,6 +140,7 @@ export default class extends ApplicationController {
 
   // Optimistic player change - immediate visual feedback
   changePlayerOptimistically() {
+    console.log("Tabmon changing player optimistically")
     
     // Store current state for potential rollback
     this.clientState.updateHistory.push({
@@ -160,6 +164,7 @@ export default class extends ApplicationController {
       this.addPendingIndicator(centerControls)
     }
     
+    console.log(`Tabmon optimistic player change: ${this.clientState.currentPlayer}`)
   }
 
   // Add visual indicator for pending updates
@@ -199,6 +204,7 @@ export default class extends ApplicationController {
     const leftPlayer = document.querySelector('#left')
     const rightPlayer = document.querySelector('#right')
     
+    console.log("🔍 Tabmon checking for green border:")
     console.log("   Left player:", leftPlayer)
     console.log("   Left player classes:", leftPlayer?.classList.toString())
     console.log("   Right player:", rightPlayer)
@@ -211,6 +217,7 @@ export default class extends ApplicationController {
     console.log("   Has right green:", hasRightGreen)
     
     const result = hasLeftGreen || hasRightGreen
+    console.log("   Final result:", result)
     
     return result
   }
@@ -314,10 +321,12 @@ export default class extends ApplicationController {
   }
 
   pause () {
+    console.log('Tabmon pause called')
     this.stimulate('TableMonitor#pause')
   }
 
   play () {
+    console.log('Tabmon play called')
     this.stimulate('TableMonitor#play')
   }
 
@@ -379,6 +388,7 @@ export default class extends ApplicationController {
 
   // Rollback optimistic changes when server validation fails
   rollbackOptimisticChanges(reflex) {
+    console.log(`Tabmon rolling back optimistic changes for: ${reflex}`)
     
     if (reflex.includes('add_n') || reflex.includes('minus_n')) {
       // Revert last score change
