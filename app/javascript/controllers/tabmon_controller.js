@@ -132,6 +132,13 @@ export default class extends ApplicationController {
     console.log(`   Current DOM innings: ${currentDomInnings}`)
     console.log(`   Original innings: ${originalInnings}`)
     console.log(`   New innings: ${originalInnings} + ${totalIncrement} = ${newInnings}`)
+    
+    // Additional debugging for accumulated changes
+    console.log(`🔍 Tabmon accumulated changes debug:`)
+    console.log(`   Player changes object:`, playerChanges)
+    console.log(`   All accumulated changes:`, this.clientState.accumulatedChanges)
+    console.log(`   Score element dataset:`, scoreElement.dataset)
+    console.log(`   Innings element dataset:`, inningsElement.dataset)
 
     // Store update in history for potential rollback
     this.clientState.updateHistory.push({
