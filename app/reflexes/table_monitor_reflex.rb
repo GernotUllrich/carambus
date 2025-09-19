@@ -446,6 +446,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "🔍 Tabmon accumulated_data class: #{accumulated_data.class}"
     Rails.logger.info "🔍 Tabmon accumulated_data keys: #{accumulated_data.keys if accumulated_data.respond_to?(:keys)}"
     
+    # Extract the actual player changes from the wrapper
+    player_changes_data = accumulated_data['accumulated_changes'] || accumulated_data['accumulatedChanges'] || {}
+    Rails.logger.info "🔍 Tabmon player_changes_data: #{player_changes_data.inspect}"
+    
     # Log current server state before changes
     Rails.logger.info "📊 Tabmon current server state:"
     Rails.logger.info "   playera result: #{@table_monitor.data['playera']['result']}"
@@ -454,7 +458,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
     
     # Process each player's accumulated changes
-    accumulated_data.each do |player_id, change_data|
+    player_changes_data.each do |player_id, change_data|
       Rails.logger.info "🔍 Tabmon processing player #{player_id} with data: #{change_data.inspect} (class: #{change_data.class})"
       
       # Ensure change_data is a hash
