@@ -24,7 +24,12 @@ export default class extends ApplicationController {
       scores: {},
       currentPlayer: 'playera',
       pendingUpdates: new Set(),
-      updateHistory: []
+      updateHistory: [],
+      accumulatedChanges: {
+        playera: { totalIncrement: 0, operations: [] },
+        playerb: { totalIncrement: 0, operations: [] }
+      },
+      validationTimer: null
     }
     console.log("TableMonitor client state initialized:", this.clientState)
     
@@ -39,13 +44,7 @@ export default class extends ApplicationController {
       console.log("🔍 Event target matches element:", event.target === this.element)
     })
     
-    // Also add a global click listener to catch all clicks
-    document.addEventListener('click', (event) => {
-      if (event.target.getAttribute('data-reflex')) {
-        console.log("🌐 Global click detected on reflex element:", event.target)
-        console.log("🌐 Global click data-reflex:", event.target.getAttribute('data-reflex'))
-      }
-    })
+    // Document click handler removed - was causing interference with Stimulus actions
   }
 
   /* Reflex specific lifecycle methods.
@@ -111,61 +110,89 @@ export default class extends ApplicationController {
 
   // Optimistic score update - immediate visual feedback
   updateScoreOptimistically(playerId, points, operation = 'add') {
-    console.log(`TableMonitor updating score: ${playerId} ${operation} ${points}`)
-    
-    // Look for the main score element with data-player attribute
-    const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
-    if (!scoreElement) {
-      console.error(`Score element not found for player: ${playerId}`)
-      console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
-      return
+    try {
+      console.log(`🎯 TableMonitor updating score: ${playerId} ${operation} ${points}`)
+      
+      // Look for the main score element with data-player attribute
+      const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
+      if (!scoreElement) {
+        console.error(`❌ Score element not found for player: ${playerId}`)
+        console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
+        return
+      }
+
+      // Also look for the innings score element
+      const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
+      if (!inningsElement) {
+        console.error(`❌ Innings element not found for player: ${playerId}`)
+        console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
+        return
+      }
+
+      // Store original scores if not already stored
+      if (!scoreElement.dataset.originalScore) {
+        const currentScore = parseInt(scoreElement.textContent) || 0
+        scoreElement.dataset.originalScore = currentScore
+        console.log(`💾 TableMonitor stored original score for ${playerId}: ${currentScore}`)
+      }
+      
+      if (!inningsElement.dataset.originalInnings) {
+        const currentInnings = parseInt(inningsElement.textContent) || 0
+        inningsElement.dataset.originalInnings = currentInnings
+        console.log(`💾 TableMonitor stored original innings for ${playerId}: ${currentInnings}`)
+      }
+
+      // Get accumulated changes for this player
+      const playerChanges = this.clientState.accumulatedChanges[playerId]
+      const totalIncrement = playerChanges.totalIncrement
+      
+      // Calculate new scores using original + total accumulated increment
+      const originalScore = parseInt(scoreElement.dataset.originalScore) || 0
+      const originalInnings = parseInt(inningsElement.dataset.originalInnings) || 0
+      
+      const newScore = originalScore + totalIncrement
+      const newInnings = originalInnings + totalIncrement
+
+      console.log(`📊 TableMonitor score calculation for ${playerId}:`)
+      console.log(`   Current DOM score: ${scoreElement.textContent}`)
+      console.log(`   Original score: ${originalScore}`)
+      console.log(`   Total increment: ${totalIncrement}`)
+      console.log(`   New score: ${originalScore} + ${totalIncrement} = ${newScore}`)
+      console.log(`   Current DOM innings: ${inningsElement.textContent}`)
+      console.log(`   Original innings: ${originalInnings}`)
+      console.log(`   New innings: ${originalInnings} + ${totalIncrement} = ${newInnings}`)
+
+      // Update both displays immediately
+      scoreElement.textContent = newScore
+      inningsElement.textContent = newInnings
+
+      console.log(`🖥️ TableMonitor updating DOM: score ${scoreElement.textContent} → ${newScore}, innings ${inningsElement.textContent} → ${newInnings}`)
+
+      // Add pending indicator
+      this.addPendingIndicator(scoreElement)
+      this.addPendingIndicator(inningsElement)
+
+      console.log(`✅ TableMonitor optimistic update complete: ${playerId} display = ${newScore}`)
+    } catch (error) {
+      console.error(`❌ TableMonitor updateScoreOptimistically ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
     }
+  }
 
-    // Also look for the innings score element
-    const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
-    if (!inningsElement) {
-      console.error(`Innings element not found for player: ${playerId}`)
-      console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
-      return
+  // Helper method to add pending indicator
+  addPendingIndicator(element) {
+    if (!element.classList.contains('pending-update')) {
+      element.classList.add('pending-update')
+      console.log(`TableMonitor added pending indicator to:`, element)
     }
+  }
 
-    const currentScore = parseInt(scoreElement.textContent) || 0
-    const currentInnings = parseInt(inningsElement.textContent) || 0
-    let newScore, newInnings
-    
-    if (operation === 'add') {
-      newScore = currentScore + points
-      newInnings = currentInnings + points
-    } else if (operation === 'subtract') {
-      newScore = Math.max(0, currentScore - points)
-      newInnings = Math.max(0, currentInnings - points)
-    } else if (operation === 'set') {
-      newScore = points
-      newInnings = points
+  // Helper method to remove pending indicator
+  removePendingIndicator(element) {
+    if (element.classList.contains('pending-update')) {
+      element.classList.remove('pending-update')
+      console.log(`TableMonitor removed pending indicator from:`, element)
     }
-
-    // Store previous scores for potential rollback
-    this.clientState.updateHistory.push({
-      playerId: playerId,
-      previousScore: currentScore,
-      previousInnings: currentInnings,
-      type: 'score_update'
-    })
-
-    // Update both displays immediately
-    scoreElement.textContent = newScore
-    scoreElement.classList.add('score-updated')
-    
-    inningsElement.textContent = newInnings
-    inningsElement.classList.add('score-updated')
-    
-    // Remove animation classes after animation completes
-    setTimeout(() => {
-      scoreElement.classList.remove('score-updated')
-      inningsElement.classList.remove('score-updated')
-    }, 150)
-
-    console.log(`TableMonitor optimistic update: ${playerId} ${operation} ${points} = ${newScore} (innings: ${newInnings})`)
   }
 
   key_a () {
@@ -177,16 +204,14 @@ export default class extends ApplicationController {
     
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if this specific player has a green border
     if (this.hasActivePlayerWithGreenBorder(playerId)) {
+      // 🚀 NEW: Accumulate change FIRST, then update display
+      this.accumulateAndValidateChange(playerId, 1, 'add')
+      
+      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
       console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_a`)
     }
-    
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`key_a_${this.element.dataset.id}`)
-    
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#key_a')
   }
   
   key_b () {
@@ -198,16 +223,14 @@ export default class extends ApplicationController {
     
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if this specific player has a green border
     if (this.hasActivePlayerWithGreenBorder(playerId)) {
+      // 🚀 NEW: Accumulate change FIRST, then update display
+      this.accumulateAndValidateChange(playerId, 1, 'add')
+      
+      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
       console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_b`)
     }
-    
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`key_b_${this.element.dataset.id}`)
-    
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#key_b')
   }
   key_c () {
     console.log('KEY_C')
@@ -251,6 +274,26 @@ export default class extends ApplicationController {
     // Rollback optimistic changes on server error
     this.rollbackLastScoreChange()
     this.showErrorMessage(`Server error: ${error}`)
+  }
+
+  // NEW: Handle successful accumulated validation
+  validate_accumulated_changesSuccess(element, reflex, noop, reflexId) {
+    console.log(`✅ TableMonitor validate_accumulated_changesSuccess: ${reflex}`)
+    
+    // Remove pending indicators on successful server validation
+    document.querySelectorAll('.pending-update').forEach(el => {
+      this.removePendingIndicator(el)
+    })
+    
+    console.log("🎉 TableMonitor accumulated validation successful!")
+    console.log("   Server has processed all accumulated changes")
+    console.log("   Current DOM state should now match server state")
+    
+    // Reset original scores to current values for future calculations
+    this.resetOriginalScores()
+    this.clearAccumulatedChanges()
+    
+    console.log("🎉 TableMonitor validation cycle complete - ready for new changes")
   }
 
   // Rollback last score change
@@ -306,4 +349,150 @@ export default class extends ApplicationController {
   //   console.error('danceError', error);
   //   element.innerText = "Couldn't dance!"
   // }
+
+  // NEW: Accumulate changes and validate with total sum
+  accumulateAndValidateChange(playerId, points, operation = 'add') {
+    try {
+      console.log(`🔄 TableMonitor accumulating change: ${playerId} ${operation} ${points}`)
+      
+      // Add to accumulated changes
+      const playerChanges = this.clientState.accumulatedChanges[playerId]
+      const previousTotal = playerChanges.totalIncrement
+      
+      if (operation === 'add') {
+        playerChanges.totalIncrement += points
+        playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
+      } else if (operation === 'subtract') {
+        playerChanges.totalIncrement -= points
+        playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
+      }
+      
+      console.log(`📊 TableMonitor accumulation update: ${playerId}`)
+      console.log(`   Previous total: ${previousTotal}`)
+      console.log(`   New total: ${playerChanges.totalIncrement}`)
+      console.log(`   Operations count: ${playerChanges.operations.length}`)
+      console.log(`   All operations:`, playerChanges.operations)
+      
+      // Cancel previous validation timer
+      if (this.clientState.validationTimer) {
+        clearTimeout(this.clientState.validationTimer)
+        console.log(`⏰ TableMonitor cancelled previous validation timer`)
+      }
+      
+      // Set new validation timer - validate with total after 500ms of inactivity
+      this.clientState.validationTimer = setTimeout(() => {
+        console.log(`⏰ TableMonitor validation timer triggered - validating accumulated changes`)
+        this.validateAccumulatedChanges()
+      }, 500)
+      
+      console.log(`⏰ TableMonitor set new validation timer (500ms)`)
+    } catch (error) {
+      console.error(`❌ TableMonitor accumulateAndValidateChange ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      // Don't rethrow to prevent breaking the UI
+    }
+  }
+
+  // NEW: Validate all accumulated changes with total sum
+  validateAccumulatedChanges() {
+    try {
+      console.log("🚀 TableMonitor validating accumulated changes:", this.clientState.accumulatedChanges)
+      
+      const changes = this.clientState.accumulatedChanges
+      let hasChanges = false
+      
+      // Check if there are any accumulated changes
+      for (const playerId in changes) {
+        if (changes[playerId].totalIncrement !== 0) {
+          hasChanges = true
+          console.log(`📊 TableMonitor found changes for ${playerId}: ${changes[playerId].totalIncrement}`)
+        }
+      }
+      
+      if (!hasChanges) {
+        console.log("ℹ️ TableMonitor no accumulated changes to validate")
+        return
+      }
+      
+      // Create a single validation call with all accumulated changes
+      const validationData = {
+        accumulatedChanges: {},
+        timestamp: Date.now()
+      }
+      
+      // Prepare validation data for each player
+      for (const playerId in changes) {
+        const playerChanges = changes[playerId]
+        if (playerChanges.totalIncrement !== 0) {
+          validationData.accumulatedChanges[playerId] = {
+            totalIncrement: playerChanges.totalIncrement,
+            operationCount: playerChanges.operations.length,
+            operations: playerChanges.operations
+          }
+          console.log(`📤 TableMonitor preparing validation for ${playerId}:`)
+          console.log(`   Total increment: ${playerChanges.totalIncrement}`)
+          console.log(`   Operations: ${playerChanges.operations.length}`)
+          console.log(`   Operations list:`, playerChanges.operations)
+        }
+      }
+      
+      console.log("📡 TableMonitor sending validation with accumulated data:", validationData)
+      
+      // Send single validation call with accumulated changes
+      this.stimulate('TableMonitor#validate_accumulated_changes', this.element, validationData)
+      
+      // Clear accumulated changes after sending validation
+      this.clearAccumulatedChanges()
+    } catch (error) {
+      console.error(`❌ TableMonitor validateAccumulatedChanges ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      // Clear accumulated changes to prevent stuck state
+      this.clearAccumulatedChanges()
+    }
+  }
+
+  // NEW: Clear accumulated changes after successful validation
+  clearAccumulatedChanges() {
+    console.log("🧹 TableMonitor clearing accumulated changes")
+    console.log("   Before clear:", this.clientState.accumulatedChanges)
+    
+    this.clientState.accumulatedChanges = {
+      playera: { totalIncrement: 0, operations: [] },
+      playerb: { totalIncrement: 0, operations: [] }
+    }
+    
+    console.log("   After clear:", this.clientState.accumulatedChanges)
+    
+    // Reset original scores to current values for future calculations
+    this.resetOriginalScores()
+  }
+
+  // NEW: Reset original scores to current DOM values after successful server validation
+  resetOriginalScores() {
+    console.log("🔄 TableMonitor resetting original scores to current values")
+    
+    const scoreElements = document.querySelectorAll('.main-score[data-player]')
+    const inningsElements = document.querySelectorAll('.inning-score[data-player]')
+    
+    scoreElements.forEach(element => {
+      const currentScore = parseInt(element.textContent) || 0
+      element.dataset.originalScore = currentScore
+      console.log(`🔄 TableMonitor reset original score for ${element.dataset.player}: ${currentScore} → ${currentScore}`)
+    })
+    
+    inningsElements.forEach(element => {
+      const currentInnings = parseInt(element.textContent) || 0
+      element.dataset.originalInnings = currentInnings
+      console.log(`🔄 TableMonitor reset original innings for ${element.dataset.player}: ${currentInnings} → ${currentInnings}`)
+    })
+  }
+
+  disconnect() {
+    // Clear validation timer when controller disconnects
+    if (this.clientState && this.clientState.validationTimer) {
+      clearTimeout(this.clientState.validationTimer)
+      console.log("TableMonitor controller disconnected and timers cleared")
+    }
+    super.disconnect()
+  }
 }
