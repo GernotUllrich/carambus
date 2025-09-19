@@ -1,66 +1,92 @@
 #!/bin/bash
-# Autostart wrapper for scoreboard
-# This script is designed to be called from LXDE autostart
+# Carambus Scoreboard Autostart Script
+# This script is designed to be called from systemd or LXDE autostart
 
-# Create log file with timestamp
-echo "=== Autostart script started at $(date) ===" >> /tmp/scoreboard-autostart.log
-
-# Set proper environment
+# Set display environment
 export DISPLAY=:0
-export XAUTHORITY=/home/pj/.Xauthority
 
-# Log environment
-echo "DISPLAY: $DISPLAY" >> /tmp/scoreboard-autostart.log
-echo "USER: $(whoami)" >> /tmp/scoreboard-autostart.log
-echo "PWD: $(pwd)" >> /tmp/scoreboard-autostart.log
-
-# Wait for display system to be ready
-echo "Waiting for display..." >> /tmp/scoreboard-autostart.log
+# Wait for display to be ready
 sleep 5
 
-# Wait for Rails server (Puma) to be ready
-echo "Waiting for Rails server to start..." >> /tmp/scoreboard-autostart.log
-PUMA_MASTER_PID=$(systemctl show -p MainPID puma-carambus.service --value 2>/dev/null)
+# Hide panel
+wmctrl -r "panel" -b add,hidden 2>/dev/null || true
+wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-if [ -n "$PUMA_MASTER_PID" ]; then
-    # check the number of worker processes
-    while [ $(pgrep -P $PUMA_MASTER_PID | wc -l) -ne 4 ]; do
-        echo "Waiting for Puma server workers to start..." >> /tmp/scoreboard-autostart.log
-        sleep 5
-    done
-    echo "Puma server is ready" >> /tmp/scoreboard-autostart.log
+# Wait for Puma to be ready before starting scoreboard
+echo "Waiting for Puma server to be ready..."
+
+# Try to detect the Puma service name dynamically
+PUMA_SERVICE=""
+for service in puma-carambus_bcw.service puma-carambus.service puma.service; do
+    if systemctl is-active --quiet $service 2>/dev/null; then
+        PUMA_SERVICE=$service
+        break
+    fi
+done
+
+if [ -n "$PUMA_SERVICE" ]; then
+    PUMA_MASTER_PID=$(systemctl show -p MainPID $PUMA_SERVICE --value 2>/dev/null)
+    
+    if [ -n "$PUMA_MASTER_PID" ] && [ "$PUMA_MASTER_PID" != "0" ]; then
+        # Check the number of worker processes (wait for at least 2)
+        while [ $(pgrep -P $PUMA_MASTER_PID | wc -l) -lt 2 ]; do
+            echo "Waiting for Puma server workers to start..."
+            sleep 5
+        done
+        echo "Puma server is ready!"
+    else
+        echo "Puma service found but no master PID, waiting 30 seconds..."
+        sleep 30
+    fi
 else
-    echo "Puma service not found, waiting 30 seconds..." >> /tmp/scoreboard-autostart.log
+    echo "No Puma service found, waiting 30 seconds..."
     sleep 30
 fi
 
-# Check if we're in a graphical session
-if [ -z "$DISPLAY" ]; then
-    echo "ERROR: No display available, exiting" >> /tmp/scoreboard-autostart.log
-    exit 1
+# Additional wait to ensure Rails is fully loaded
+sleep 10
+
+# Get scoreboard URL - try multiple methods
+SCOREBOARD_URL=""
+
+# Method 1: Try to read from config file
+if [ -f "$(dirname "$0")/../config/scoreboard_url" ]; then
+    SCOREBOARD_URL=$(cat "$(dirname "$0")/../config/scoreboard_url")
 fi
 
-# Check if wmctrl is available
-if ! command -v wmctrl &> /dev/null; then
-    echo "wmctrl not found, installing..." >> /tmp/scoreboard-autostart.log
-    sudo apt update && sudo apt install -y wmctrl
+# Method 2: Try to detect from running services
+if [ -z "$SCOREBOARD_URL" ]; then
+    # Look for running carambus services to determine the correct URL
+    if systemctl is-active --quiet puma-carambus_bcw.service 2>/dev/null; then
+        SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
+    elif systemctl is-active --quiet puma-carambus.service 2>/dev/null; then
+        SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
+    fi
 fi
 
-# Check if the startup script exists
-if [ ! -f "$(dirname "$0")/start-scoreboard.sh" ]; then
-    echo "ERROR: start-scoreboard.sh not found at $(dirname "$0")/start-scoreboard.sh" >> /tmp/scoreboard-autostart.log
-    exit 1
+# Method 3: Default fallback
+if [ -z "$SCOREBOARD_URL" ]; then
+    SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
 fi
 
-# Check if config file exists
-if [ ! -f "$(dirname "$0")/../config/scoreboard_url" ]; then
-    echo "ERROR: config/scoreboard_url not found" >> /tmp/scoreboard-autostart.log
-    exit 1
-fi
+echo "Using scoreboard URL: $SCOREBOARD_URL"
 
-# Run the actual startup script
-echo "Starting scoreboard at $(date)" >> /tmp/scoreboard-autostart.log
-$(dirname "$0")/start-scoreboard.sh
+# Start browser in fullscreen with additional flags to handle display issues
+/usr/bin/chromium-browser \
+  --start-fullscreen \
+  --disable-restore-session-state \
+  --user-data-dir=/tmp/chromium-scoreboard \
+  --disable-features=VizDisplayCompositor \
+  --disable-dev-shm-usage \
+  --app="$SCOREBOARD_URL" \
+  >/dev/null 2>&1 &
 
-echo "Autostart completed at $(date)" >> /tmp/scoreboard-autostart.log
+# Wait and ensure fullscreen
+sleep 5
+wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
+
+# Keep the script running to prevent systemd from restarting it
+while true; do
+  sleep 1
+done
 
