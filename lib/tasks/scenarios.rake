@@ -471,7 +471,8 @@ namespace :scenario do
 
     # Extract scenario-specific parameters
     port = env_config['webserver_port'] || 3000
-    host = env_config['webserver_host'] || 'localhost'
+    # For development, always bind to 0.0.0.0 to allow external access (lvh.me)
+    host = '0.0.0.0'
     scenario_name_clean = scenario_config['scenario']['name']
 
     # Generate scenario-specific development puma.rb configuration
@@ -1332,9 +1333,17 @@ ENV
       end
     end
 
+    # Step 4: Enable caching for StimulusReflex (development only, before asset compilation)
+    if environment == 'development'
+      puts "\n🔥 Step 4: Enabling caching for StimulusReflex..."
+      unless enable_development_caching(rails_root)
+        puts "❌ Failed to enable development caching"
+        return false
+      end
+    end
 
-    # Step 4: Install dependencies (if Rails root was created or dependencies are missing)
-    puts "\n📦 Step 4: Checking and installing dependencies..."
+    # Step 5: Install dependencies (if Rails root was created or dependencies are missing)
+    puts "\n📦 Step 5: Checking and installing dependencies..."
     if rails_root_created || dependencies_missing?(rails_root)
       unless install_scenario_dependencies(rails_root)
         puts "❌ Failed to install dependencies"
@@ -1344,15 +1353,15 @@ ENV
       puts "   ✅ Dependencies already installed"
     end
 
-    # Step 5: Check and sync with carambus_api_production if newer
-    puts "\n🔄 Step 5: Checking for newer carambus_api_production data..."
+    # Step 6: Check and sync with carambus_api_production if newer
+    puts "\n🔄 Step 6: Checking for newer carambus_api_production data..."
     unless sync_with_api_production_if_newer(scenario_name, force)
       puts "❌ Failed to sync with carambus_api_production"
       return false
     end
 
-    # Step 6: Create actual development database from template
-    puts "\n🗄️  Step 6: Creating development database..."
+    # Step 7: Create actual development database from template
+    puts "\n🗄️  Step 7: Creating development database..."
     unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
@@ -1429,6 +1438,35 @@ ENV
     puts "   ✅ Rails assets precompiled"
 
     true
+  end
+
+  def enable_development_caching(rails_root)
+    puts "   🔥 Enabling caching for StimulusReflex compatibility..."
+    
+    # Check if caching is already enabled
+    caching_file = File.join(rails_root, 'tmp', 'caching-dev.txt')
+    if File.exist?(caching_file)
+      puts "   ✅ Caching already enabled (caching-dev.txt exists)"
+      return true
+    end
+    
+    # Enable caching by running rails dev:cache
+    puts "   🔧 Running 'rails dev:cache' to enable caching..."
+    unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails dev:cache")
+      puts "   ❌ Failed to enable caching with 'rails dev:cache'"
+      return false
+    end
+    
+    # Verify caching was enabled
+    if File.exist?(caching_file)
+      puts "   ✅ Caching successfully enabled for StimulusReflex"
+      puts "   📝 Note: Caching is now enabled in development mode"
+      puts "   📝 This allows StimulusReflex to modify sessions during ActionCable requests"
+      return true
+    else
+      puts "   ❌ Caching file not created - caching may not be properly enabled"
+      return false
+    end
   end
 
   def sync_with_api_production_if_newer(scenario_name, force = false)
@@ -2416,12 +2454,13 @@ ENV
   def upload_configuration_files_to_server(scenario_name, production_config)
     puts "📤 Uploading configuration files to server..."
     
-    basename = scenario_name.gsub('carambus_location_', '')
+    # Get basename from production config or derive from scenario name
+    basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     
     # Create entire deployment directory structure with proper permissions
-    deploy_dir = "/var/www/carambus_location_#{basename}"
+    deploy_dir = "/var/www/#{basename}"
     shared_config_dir = "#{deploy_dir}/shared/config"
     create_deploy_dirs_cmd = "sudo mkdir -p #{deploy_dir}/shared/config #{deploy_dir}/releases && sudo chown -R www-data:www-data #{deploy_dir}"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_deploy_dirs_cmd}'")
@@ -2676,6 +2715,13 @@ ENV
     puts "\n🔧 Step 4: Preparing server-side configuration..."
     unless prepare_server_configuration(scenario_name, production_config)
       puts "❌ Failed to prepare server-side configuration"
+      return false
+    end
+
+    # Step 4.5: Upload configuration files to server
+    puts "\n📤 Step 4.5: Uploading configuration files to server..."
+    unless upload_configuration_files_to_server(scenario_name, production_config)
+      puts "❌ Failed to upload configuration files to server"
       return false
     end
 
