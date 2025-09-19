@@ -433,8 +433,15 @@ main() {
     log "================================"
     log "Scenario '$SCENARIO_NAME' is now fully deployed and operational"
     log ""
+    # Read the correct port from scenario configuration
+    if [ -f "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/$SCENARIO_NAME/config.yml" ]; then
+        WEBSERVER_PORT=$(grep -A 10 "production:" "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | awk '{print $2}')
+    else
+        WEBSERVER_PORT=3131  # Default for carambus_bcw
+    fi
+    
     log "Access Information:"
-    log "  - Web Interface: http://192.168.178.107:82"
+    log "  - Web Interface: http://192.168.178.107:$WEBSERVER_PORT"
     log "  - SSH Access: ssh -p 8910 www-data@192.168.178.107"
     log ""
     log "Management Commands:"
