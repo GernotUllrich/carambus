@@ -10,7 +10,7 @@ Environment=PATH=/var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin:/var/www/
 Environment=RAILS_ENV=<%= rails_env %>
 Environment=RBENV_ROOT=/var/www/.rbenv
 Environment=RBENV_VERSION=3.2.1
-ExecStart=/var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin/bundle exec /var/www/<%= basename %>/shared/bundle/ruby/3.2.0/bin/puma -C /var/www/<%= basename %>/shared/config/puma.rb
+ExecStart=/bin/bash -c 'cd /var/www/<%= basename %>/current && eval "$(/var/www/.rbenv/bin/rbenv init -)" && bundle exec puma -C /var/www/<%= basename %>/shared/config/puma.rb'
 ExecReload=/bin/kill -USR1 $MAINPID
 Restart=always
 RestartSec=1
