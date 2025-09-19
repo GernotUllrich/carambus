@@ -3333,17 +3333,8 @@ ENV
     webserver_host = production_config['webserver_host']
     webserver_port = production_config['webserver_port']
 
-    # Set the correct database for this scenario
-    scenario_database_name = scenario_config['environments']['development']['database_name']
-    
-    # Configure Rails database connection directly
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      database: scenario_database_name,
-      host: 'localhost'
-    )
-
     # Get the correct MD5 from the Location model
+    # The database connection should be configured via database.yml
     location = Location.find(location_id)
     location_md5 = location.md5
     
