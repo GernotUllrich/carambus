@@ -80,8 +80,7 @@ export default class extends ApplicationController {
   // Optimistic score update - immediate visual feedback using accumulated totals
   updateScoreOptimistically(playerId, points, operation = 'add') {
     try {
-      console.log(`🎯 Tabmon updateScoreOptimistically CALLED: ${playerId} ${operation} ${points}`)
-      console.log(`🎯 Tabmon method entry - about to update DOM`)
+      console.log(`🎯 Tabmon updating score: ${playerId} ${operation} ${points}`)
       
       // Look for the main score element with data-player attribute
       const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
@@ -304,10 +303,8 @@ export default class extends ApplicationController {
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
       const currentPlayer = this.getCurrentActivePlayer()
-      console.log(`🚀 Tabmon calling updateScoreOptimistically for ${currentPlayer} with ${n}`)
       this.updateScoreOptimistically(currentPlayer, n, 'add')
       
-      console.log(`🚀 Tabmon calling accumulateAndValidateChange for ${currentPlayer} with ${n}`)
       // 🚀 NEW: Accumulate change and validate with total sum
       this.accumulateAndValidateChange(currentPlayer, n, 'add')
     } else {
