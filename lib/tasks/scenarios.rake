@@ -2140,6 +2140,14 @@ ENV
 
       if system(deploy_cmd)
         puts "   ✅ Capistrano deployment completed successfully"
+        
+        # Step 9: Apply production environment fixes after deployment
+        puts "\n🔧 Step 9: Applying production environment fixes..."
+        unless apply_production_fixes(scenario_name, production_config)
+          puts "   ❌ Failed to apply production environment fixes"
+          return false
+        end
+        puts "   ✅ Production environment fixes applied"
       else
         puts "   ❌ Capistrano deployment failed"
         return false
@@ -3139,13 +3147,7 @@ ENV
       puts "   ✅ Nginx configuration created"
     end
 
-    # Step 6: Apply production environment fixes
-    puts "   🔧 Applying production environment fixes..."
-    unless apply_production_fixes(scenario_name, production_config)
-      puts "   ❌ Failed to apply production environment fixes"
-      return false
-    end
-    puts "   ✅ Production environment fixes applied"
+    # Step 6: Production environment fixes will be applied after deployment
 
     puts "   ✅ Server-side configuration prepared successfully"
     true
