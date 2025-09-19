@@ -176,7 +176,7 @@ bundle exec cap production deploy:puma_service_config
 
 Die folgenden Dateien werden automatisch übertragen:
 - `config/nginx.conf` → `/var/www/{basename}/shared/config/nginx.conf`
-- `config/puma.rb` → `/var/www/{basename}/shared/puma.rb`
+- `config/puma.rb` → `/var/www/{basename}/shared/config/puma.rb`
 - `config/puma.service` → `/var/www/{basename}/shared/config/puma.service`
 - `config/scoreboard_url` → `/var/www/{basename}/shared/config/scoreboard_url`
 

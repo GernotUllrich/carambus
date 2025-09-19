@@ -2204,7 +2204,7 @@ ENV
       Environment=RAILS_ENV=production
       Environment=RBENV_ROOT=/var/www/.rbenv
       Environment=RBENV_VERSION=3.2.1
-      ExecStart=/var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/bundle exec /var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/puma -C /var/www/#{basename}/shared/puma.rb
+      ExecStart=/var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/bundle exec /var/www/#{basename}/shared/bundle/ruby/3.2.0/bin/puma -C /var/www/#{basename}/shared/config/puma.rb
       ExecReload=/bin/kill -USR1 \\$MAINPID
       Restart=always
       RestartSec=1
@@ -3088,7 +3088,7 @@ ENV
     puts "   🔧 Uploading Puma configuration..."
     puma_rb_path = File.join(production_dir, 'puma.rb')
     if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/puma.rb"
+      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:/var/www/#{basename}/shared/config/puma.rb"
       puts "   🔍 Running: #{scp_cmd}"
       result = `#{scp_cmd} 2>&1`
       if $?.success?
