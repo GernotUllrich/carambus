@@ -7,6 +7,8 @@ de:
       edit: "Bearbeiten"
       new: "Neu"
       back: "Zurück"
+    navigation:
+      back_to_app: "Zurück zur App"
     resources:
       user: "Benutzer"
     # ... add other resource translations as needed ... 

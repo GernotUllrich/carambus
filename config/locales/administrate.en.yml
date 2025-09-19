@@ -1,0 +1,14 @@
+en:
+  administrate:
+    actions:
+      cancel: "Cancel"
+      confirm: "Confirm"
+      destroy: "Delete"
+      edit: "Edit"
+      new: "New"
+      back: "Back"
+    navigation:
+      back_to_app: "Back to App"
+    resources:
+      user: "User"
+    # ... add other resource translations as needed ...
