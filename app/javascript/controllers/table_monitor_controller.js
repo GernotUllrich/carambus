@@ -210,7 +210,9 @@ export default class extends ApplicationController {
       // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
-      console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_a`)
+      console.log(`Player ${playerId} does not have green border - triggering next_step`)
+      // 🚀 TRIGGER NEXT_STEP when clicking in non-green area
+      this.next_step()
     }
   }
   
@@ -229,7 +231,9 @@ export default class extends ApplicationController {
       // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(playerId, 1, 'add')
     } else {
-      console.log(`Player ${playerId} does not have green border - skipping optimistic update for key_b`)
+      console.log(`Player ${playerId} does not have green border - triggering next_step`)
+      // 🚀 TRIGGER NEXT_STEP when clicking in non-green area
+      this.next_step()
     }
   }
   key_c () {
