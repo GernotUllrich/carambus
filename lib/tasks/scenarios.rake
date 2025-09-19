@@ -2364,6 +2364,15 @@ ENV
           
           echo "🔄 Starting database reset process..."
           
+          # Backup shared directory before removing application folders
+          echo "💾 Backing up shared directory..."
+          if [ -d "/var/www/#{basename}/shared" ]; then
+            sudo cp -r /var/www/#{basename}/shared /tmp/#{basename}_shared_backup
+            echo "✅ Shared directory backed up"
+          else
+            echo "ℹ️  No existing shared directory to backup"
+          fi
+          
           # Remove existing application folders (including old trials)
           echo "📁 Removing application folders..."
           sudo rm -rf /var/www/#{basename}
@@ -2382,6 +2391,18 @@ ENV
           else
             echo "❌ Database creation failed"
             exit 1
+          fi
+          
+          # Restore shared directory after database creation
+          echo "🔄 Restoring shared directory..."
+          if [ -d "/tmp/#{basename}_shared_backup" ]; then
+            sudo mkdir -p /var/www/#{basename}
+            sudo cp -r /tmp/#{basename}_shared_backup /var/www/#{basename}/shared
+            sudo chown -R www-data:www-data /var/www/#{basename}/shared
+            sudo rm -rf /tmp/#{basename}_shared_backup
+            echo "✅ Shared directory restored"
+          else
+            echo "ℹ️  No shared directory backup to restore"
           fi
           
           echo "✅ Database reset completed successfully"
@@ -3072,7 +3093,7 @@ ENV
 
     # Step 1: Create deployment directories with proper permissions
     puts "   📁 Creating deployment directories..."
-    create_dirs_cmd = "sudo mkdir -p /var/www/#{basename}/shared /var/www/#{basename}/releases && sudo chown -R www-data:www-data /var/www/#{basename}"
+    create_dirs_cmd = "sudo mkdir -p /var/www/#{basename}/shared/config /var/www/#{basename}/shared/log /var/www/#{basename}/shared/tmp/pids /var/www/#{basename}/shared/tmp/cache /var/www/#{basename}/shared/tmp/sockets /var/www/#{basename}/shared/sockets /var/www/#{basename}/shared/pids /var/www/#{basename}/releases && sudo chown -R www-data:www-data /var/www/#{basename}"
 
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{create_dirs_cmd}'")
       puts "   ❌ Failed to create deployment directories"
