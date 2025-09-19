@@ -303,10 +303,12 @@ export default class extends ApplicationController {
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
       const currentPlayer = this.getCurrentActivePlayer()
-      this.updateScoreOptimistically(currentPlayer, n, 'add')
       
-      // 🚀 NEW: Accumulate change and validate with total sum
+      // 🚀 NEW: Accumulate change FIRST, then update display
       this.accumulateAndValidateChange(currentPlayer, n, 'add')
+      
+      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
+      this.updateScoreOptimistically(currentPlayer, n, 'add')
     } else {
       console.log("No green border detected - skipping optimistic update")
     }
@@ -320,10 +322,12 @@ export default class extends ApplicationController {
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
       const currentPlayer = this.getCurrentActivePlayer()
-      this.updateScoreOptimistically(currentPlayer, n, 'subtract')
       
-      // 🚀 NEW: Accumulate change and validate with total sum
+      // 🚀 NEW: Accumulate change FIRST, then update display
       this.accumulateAndValidateChange(currentPlayer, n, 'subtract')
+      
+      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
+      this.updateScoreOptimistically(currentPlayer, n, 'subtract')
     } else {
       console.log("No green border detected - skipping optimistic update")
     }
