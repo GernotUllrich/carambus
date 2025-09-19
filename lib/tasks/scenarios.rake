@@ -2333,7 +2333,8 @@ ENV
   def upload_and_load_database_dump(scenario_name, production_config)
     puts "💾 Uploading and loading database dump..."
     
-    basename = scenario_name.gsub('carambus_location_', '')
+    # Get basename from production config or derive from scenario name
+    basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     production_database = production_config['database_name']
@@ -2365,8 +2366,7 @@ ENV
           
           # Remove existing application folders (including old trials)
           echo "📁 Removing application folders..."
-          sudo rm -rf /var/www/carambus_location_#{basename}
-          sudo rm -rf /var/www/carambus_#{basename}
+          sudo rm -rf /var/www/#{basename}
           
           # Drop and recreate database with verification
           echo "🗑️  Dropping existing database..."
@@ -3308,17 +3308,11 @@ ENV
 
     # Calculate MD5 hash for location
     # Note: Rails Location model uses a different MD5 calculation method
-    # For location_id 5101, the correct MD5 is a5a80f546e9c46d781e9f6314ad0ace1
     require 'digest'
     
-    # Use the correct MD5 hash that matches Rails Location[5101].md5
-    # TODO: Investigate how Rails Location model generates MD5 hash
-    if location_id.to_s == "5101"
-      location_md5 = "a5a80f546e9c46d781e9f6314ad0ace1"
-    else
-      # Fallback to standard MD5 for other locations
-      location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-    end
+    # Generate MD5 hash for the location ID
+    # This should match the Rails Location model's MD5 calculation
+    location_md5 = Digest::MD5.hexdigest(location_id.to_s)
     
     # Generate URL directly (avoiding Rails dependency issues in production)
     scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
