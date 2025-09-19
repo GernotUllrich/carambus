@@ -434,30 +434,6 @@ namespace :scenario do
     content = template.result(binding)
     File.write(File.join(env_dir, 'puma.service'), content)
     puts "   Generated: #{File.join(env_dir, 'puma.service')}"
-    
-    # Also generate the wrapper script
-    generate_puma_wrapper(scenario_config, env_config, env_dir)
-    
-    true
-  end
-
-  def generate_puma_wrapper(scenario_config, env_config, env_dir)
-    template_file = File.join(templates_path, 'puma', 'puma-wrapper.sh.erb')
-    unless File.exist?(template_file)
-      puts "Error: Puma wrapper template not found: #{template_file}"
-      return false
-    end
-
-    template = ERB.new(File.read(template_file))
-    @scenario = scenario_config['scenario']
-    @config = env_config
-    @environment = File.basename(env_dir)  # 'development' oder 'production'
-
-    content = template.result(binding)
-    wrapper_path = File.join(env_dir, 'puma-wrapper.sh')
-    File.write(wrapper_path, content)
-    File.chmod(0755, wrapper_path)  # Make it executable
-    puts "   Generated: #{wrapper_path}"
     true
   end
 
@@ -2595,23 +2571,6 @@ ENV
       puts "   ❌ puma.rb not found: #{puma_rb_path}"
       return false
     end
-
-    # Upload Puma wrapper script
-    wrapper_path = File.join(production_dir, 'puma-wrapper.sh')
-    if File.exist?(wrapper_path)
-      scp_cmd = "scp -P #{ssh_port} #{wrapper_path} www-data@#{ssh_host}:/var/www/#{basename}/current/bin/puma-wrapper.sh"
-      puts "   🔍 Running: #{scp_cmd}"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma-wrapper.sh to current/bin/"
-      else
-        puts "   ❌ Failed to upload puma-wrapper.sh: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma-wrapper.sh not found: #{wrapper_path}"
-      return false
-    end
     
     # Upload production.rb
     production_rb_path = File.join(production_dir, 'production.rb')
@@ -3097,26 +3056,6 @@ ENV
 
       if system(deploy_cmd)
         puts "   ✅ Capistrano deployment completed successfully"
-        
-        # Step 3.5: Upload wrapper script after Capistrano creates current directory
-        puts "\n📤 Step 3.5: Uploading Puma wrapper script..."
-        production_dir = File.join(scenarios_path, scenario_name, 'production')
-        wrapper_path = File.join(production_dir, 'puma-wrapper.sh')
-        
-        if File.exist?(wrapper_path)
-          scp_cmd = "scp -P #{production_config['ssh_port']} #{wrapper_path} www-data@#{production_config['ssh_host']}:/var/www/#{scenario['basename']}/current/bin/puma-wrapper.sh"
-          puts "   🔍 Running: #{scp_cmd}"
-          result = `#{scp_cmd} 2>&1`
-          if $?.success?
-            puts "   ✅ Uploaded puma-wrapper.sh to current/bin/"
-          else
-            puts "   ❌ Failed to upload puma-wrapper.sh: #{result}"
-            return false
-          end
-        else
-          puts "   ❌ puma-wrapper.sh not found at #{wrapper_path}"
-          return false
-        end
         
       else
         puts "   ❌ Capistrano deployment failed"
