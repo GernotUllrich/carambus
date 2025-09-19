@@ -3335,7 +3335,13 @@ ENV
 
     # Set the correct database for this scenario
     scenario_database_name = scenario_config['environments']['development']['database_name']
-    ENV['DATABASE_URL'] = "postgresql://localhost/#{scenario_database_name}"
+    
+    # Configure Rails database connection directly
+    ActiveRecord::Base.establish_connection(
+      adapter: 'postgresql',
+      database: scenario_database_name,
+      host: 'localhost'
+    )
 
     # Get the correct MD5 from the Location model
     location = Location.find(location_id)
