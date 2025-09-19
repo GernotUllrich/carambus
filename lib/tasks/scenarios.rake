@@ -902,6 +902,9 @@ Rails.application.configure do
   # Allow requests from the Pi server
   config.hosts << "#{webserver_host}"
   config.hosts << "#{webserver_host}:#{webserver_port}"
+  # Allow requests from localhost (needed for scoreboard kiosk)
+  config.hosts << "localhost"
+  config.hosts << "localhost:#{webserver_port}"
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
@@ -2140,14 +2143,6 @@ ENV
 
       if system(deploy_cmd)
         puts "   ✅ Capistrano deployment completed successfully"
-        
-        # Step 9: Apply production environment fixes after deployment
-        puts "\n🔧 Step 9: Applying production environment fixes..."
-        unless apply_production_fixes(scenario_name, production_config)
-          puts "   ❌ Failed to apply production environment fixes"
-          return false
-        end
-        puts "   ✅ Production environment fixes applied"
       else
         puts "   ❌ Capistrano deployment failed"
         return false
@@ -3606,6 +3601,25 @@ ENV
       wmctrl -r "panel" -b add,hidden 2>/dev/null || true
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
+      # Wait for Puma to be ready before starting scoreboard
+      echo "Waiting for Puma server to be ready..."
+      PUMA_MASTER_PID=\\$(systemctl show -p MainPID puma-#{basename}.service --value 2>/dev/null)
+
+      if [ -n "\\$PUMA_MASTER_PID" ] && [ "\\$PUMA_MASTER_PID" != "0" ]; then
+        # Check the number of worker processes
+        while [ \\$(pgrep -P \\$PUMA_MASTER_PID | wc -l) -lt 2 ]; do
+          echo "Waiting for Puma server workers to start..."
+          sleep 5
+        done
+        echo "Puma server is ready!"
+      else
+        echo "Puma service not found, waiting 30 seconds..."
+        sleep 30
+      fi
+
+      # Additional wait to ensure Rails is fully loaded
+      sleep 10
+
       # Get scoreboard URL from shared config directory
       SCOREBOARD_URL=$(cat /var/www/#{basename}/shared/config/scoreboard_url)
 
@@ -3827,108 +3841,6 @@ ENV
     true
   end
 
-  def apply_production_fixes(scenario_name, production_config)
-    puts "Applying production environment fixes for #{scenario_name}..."
-
-    # Get SSH connection details
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port']
-    basename = production_config['basename'] || scenario_name
-
-    # Fix 1: Add localhost to Rails host authorization
-    puts "   🔒 Adding localhost to Rails host authorization..."
-    host_auth_fix_cmd = %{
-      # Backup current production config
-      sudo cp /var/www/#{basename}/shared/config/environments/production.rb /var/www/#{basename}/shared/config/environments/production.rb.backup
-
-      # Add localhost to allowed hosts
-      sudo sed -i '/config\.hosts << "#{ssh_host}:#{production_config['webserver_port']}"/a\\  config.hosts << "localhost"\\n  config.hosts << "localhost:#{production_config['webserver_port']}"' /var/www/#{basename}/shared/config/environments/production.rb
-    }
-
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{host_auth_fix_cmd}'")
-      puts "   ❌ Failed to apply host authorization fix"
-      return false
-    end
-    puts "   ✅ Host authorization fix applied"
-
-    # Fix 2: Update scoreboard autostart script with Puma waiting logic
-    puts "   🖥️  Updating scoreboard autostart script..."
-    
-    # Create the improved autostart script
-    improved_autostart_script = %{#!/bin/bash
-# Carambus Scoreboard Autostart Script
-# Generated for scenario: #{scenario_name}
-
-# Set display environment
-export DISPLAY=:0
-
-# Wait for display to be ready
-sleep 5
-
-# Hide panel
-wmctrl -r "panel" -b add,hidden 2>/dev/null || true
-wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
-
-# Wait for Puma to be ready before starting scoreboard
-echo "Waiting for Puma server to be ready..."
-PUMA_MASTER_PID=\\$(systemctl show -p MainPID puma-#{basename}.service --value 2>/dev/null)
-
-if [ -n "\\$PUMA_MASTER_PID" ] && [ "\\$PUMA_MASTER_PID" != "0" ]; then
-  # Check the number of worker processes
-  while [ \\$(pgrep -P \\$PUMA_MASTER_PID | wc -l) -lt 2 ]; do
-    echo "Waiting for Puma server workers to start..."
-    sleep 5
-  done
-  echo "Puma server is ready!"
-else
-  echo "Puma service not found, waiting 30 seconds..."
-  sleep 30
-fi
-
-# Additional wait to ensure Rails is fully loaded
-sleep 10
-
-# Get scoreboard URL from shared config directory
-SCOREBOARD_URL=http://#{ssh_host}:#{production_config['webserver_port']}/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome
-
-# Start browser in fullscreen with additional flags to handle display issues
-/usr/bin/chromium-browser   --start-fullscreen   --disable-restore-session-state   --user-data-dir=/tmp/chromium-scoreboard   --disable-features=VizDisplayCompositor   --disable-dev-shm-usage   --app="\\$SCOREBOARD_URL"   >/dev/null 2>&1 &
-
-# Wait and ensure fullscreen
-sleep 5
-wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
-
-# Keep the script running to prevent systemd from restarting it
-while true; do
-  sleep 1
-done}
-
-    # Write the improved script to a temporary file
-    temp_script_path = "/tmp/autostart-scoreboard-improved.sh"
-    File.write(temp_script_path, improved_autostart_script)
-
-    # Upload and install the improved script
-    upload_cmd = "scp -P #{ssh_port} #{temp_script_path} www-data@#{ssh_host}:/tmp/autostart-scoreboard-improved.sh"
-    unless system(upload_cmd)
-      puts "   ❌ Failed to upload improved autostart script"
-      File.delete(temp_script_path) if File.exist?(temp_script_path)
-      return false
-    end
-
-    install_cmd = "sudo mv /tmp/autostart-scoreboard-improved.sh /usr/local/bin/autostart-scoreboard.sh && sudo chmod +x /usr/local/bin/autostart-scoreboard.sh"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{install_cmd}'")
-      puts "   ❌ Failed to install improved autostart script"
-      File.delete(temp_script_path) if File.exist?(temp_script_path)
-      return false
-    end
-
-    # Clean up temporary file
-    File.delete(temp_script_path) if File.exist?(temp_script_path)
-    puts "   ✅ Scoreboard autostart script updated"
-
-    puts "   ✅ All production environment fixes applied successfully"
-    true
-  end
 
 end
 
