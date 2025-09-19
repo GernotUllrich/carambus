@@ -455,9 +455,17 @@ class TableMonitorReflex < ApplicationReflex
     
     # Process each player's accumulated changes
     accumulated_data.each do |player_id, change_data|
+      Rails.logger.info "🔍 Tabmon processing player #{player_id} with data: #{change_data.inspect} (class: #{change_data.class})"
+      
+      # Ensure change_data is a hash
+      unless change_data.is_a?(Hash)
+        Rails.logger.error "❌ Tabmon change_data is not a hash for #{player_id}: #{change_data.class}"
+        next
+      end
+      
       # Handle both camelCase and snake_case key formats
-      total_increment = (change_data['totalIncrement'] || change_data['total_increment']).to_i
-      operation_count = (change_data['operationCount'] || change_data['operation_count']).to_i
+      total_increment = (change_data['totalIncrement'] || change_data['total_increment'] || 0).to_i
+      operation_count = (change_data['operationCount'] || change_data['operation_count'] || 0).to_i
       operations = change_data['operations'] || []
       
       Rails.logger.info "🔧 Tabmon processing #{player_id}:"
