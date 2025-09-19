@@ -82,10 +82,30 @@ namespace :deploy do
   end
 end
 
-# Hook into the default asset compilation process
+# Custom asset precompilation task (since capistrano/rails/assets is disabled)
+namespace :deploy do
+  namespace :assets do
+    desc "Precompile Rails assets"
+    task :precompile do
+      on roles(:app) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            # Precompile Rails assets
+            execute :bundle, :exec, :rails, "assets:precompile"
+          end
+        end
+      end
+    end
+  end
+end
+
+# Hook into the custom asset compilation process
 before "deploy:assets:precompile", "deploy:verify_node"
 before "deploy:assets:precompile", "deploy:assets:install_dependencies"
 before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
 
 # Ensure manifest is properly handled after precompilation
 after "deploy:assets:precompile", "deploy:assets:verify_manifest"
+
+# Hook asset precompilation into the deployment process
+before "deploy:symlink:release", "deploy:assets:precompile"
