@@ -26,13 +26,7 @@ export default class extends ApplicationController {
       console.log("🖱️ Mouse up detected on:", event.target)
     })
     
-    // Add document-level click listener to see if clicks are being detected at all
-    document.addEventListener('click', (event) => {
-      if (event.target.closest('[data-controller="tabmon"]')) {
-        console.log("📄 Document click detected on tabmon element:", event.target)
-        console.log("📄 Document click dataset:", event.target.dataset)
-      }
-    })
+    // Document click handler removed - was causing interference with Stimulus actions
     
     this.initializeClientState()
     
