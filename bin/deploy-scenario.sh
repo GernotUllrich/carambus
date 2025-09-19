@@ -118,6 +118,37 @@ confirm() {
     fi
 }
 
+# Function to check if production database version is higher than development
+check_production_version() {
+    local scenario_name="$1"
+    
+    # Get development database version
+    local dev_version
+    dev_version=$(psql -d "${scenario_name}_development" -t -c "SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;" 2>/dev/null | xargs)
+    
+    # Check if production database exists on remote server
+    if ! ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw ${scenario_name}_production" 2>/dev/null; then
+        info "Production database ${scenario_name}_production does not exist on remote server"
+        return 0  # Allow drop (nothing to drop)
+    fi
+    
+    # Get production database version from remote server
+    local prod_version
+    prod_version=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;\"" 2>/dev/null | xargs)
+    
+    # If either version is empty or not numeric, assume we should drop
+    if [[ ! "$dev_version" =~ ^[0-9]+$ ]] || [[ ! "$prod_version" =~ ^[0-9]+$ ]]; then
+        return 0  # Allow drop
+    fi
+    
+    # Compare versions
+    if [ "$prod_version" -gt "$dev_version" ]; then
+        return 1  # Don't drop - production is newer
+    else
+        return 0  # Allow drop - development is same or newer
+    fi
+}
+
 # Step 0: Complete Cleanup
 step_zero_cleanup() {
     log "🧹 Step 0: Complete Cleanup"
@@ -125,8 +156,12 @@ step_zero_cleanup() {
     
     warning "This will completely remove:"
     warning "  - Scenario root folder: /Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
-    warning "  - Database: ${SCENARIO_NAME}_development"
-    warning "  - Database: ${SCENARIO_NAME}_production"
+    if [ "$SCENARIO_NAME" = "carambus_api" ]; then
+        warning "  - Database: ${SCENARIO_NAME}_development (SKIPPED - API server database)"
+    else
+        warning "  - Database: ${SCENARIO_NAME}_development"
+    fi
+    warning "  - Database: ${SCENARIO_NAME}_production (version-checked)"
     warning "  - Raspberry Pi: Puma service, Nginx config, production database"
     
     if ! confirm "Proceed with complete cleanup?"; then
@@ -143,9 +178,11 @@ step_zero_cleanup() {
         info "Local scenario root folder not found (already clean)"
     fi
     
-    # Drop development database
+    # Drop development database (skip for carambus_api)
     info "Dropping development database..."
-    if psql -lqt | cut -d \| -f 1 | grep -qw "${SCENARIO_NAME}_development"; then
+    if [ "$SCENARIO_NAME" = "carambus_api" ]; then
+        info "Skipping development database drop for carambus_api (API server database)"
+    elif psql -lqt | cut -d \| -f 1 | grep -qw "${SCENARIO_NAME}_development"; then
         dropdb "${SCENARIO_NAME}_development"
         log "✅ Development database dropped"
     else
@@ -167,9 +204,19 @@ step_zero_cleanup() {
     ssh -p 8910 www-data@192.168.178.107 "sudo systemctl reload nginx || true"
     log "✅ Nginx configuration removed"
     
-    # Drop production database
-    ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres dropdb ${SCENARIO_NAME}_production || true"
-    log "✅ Production database dropped"
+    # Drop production database (only if version check passes)
+    info "Checking production database version..."
+    if check_production_version "$SCENARIO_NAME"; then
+        info "Production database version check passed - dropping database on remote server"
+        if ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres dropdb ${SCENARIO_NAME}_production 2>/dev/null"; then
+            log "✅ Production database dropped"
+        else
+            info "Production database not found or already dropped"
+        fi
+    else
+        warning "Production database version is higher than development - skipping drop"
+        warning "Production database preserved"
+    fi
     
     # Remove deployment directory
     ssh -p 8910 www-data@192.168.178.107 "sudo rm -rf /var/www/${SCENARIO_NAME} || true"
@@ -187,6 +234,7 @@ step_one_prepare_development() {
     info "This will:"
     info "  - Generate configuration files"
     info "  - Create Rails root folder"
+    info "  - Check and sync with carambus_api_production if newer"
     info "  - Create development database from template"
     info "  - Apply region filtering"
     info "  - Set up development environment"
@@ -196,7 +244,17 @@ step_one_prepare_development() {
         return 1
     fi
     
-    log "Running: rake scenario:prepare_development[$SCENARIO_NAME,development]"
+    if [ "$SCENARIO_NAME" = "carambus_api" ]; then
+        info "Special handling for carambus_api (API server):"
+        info "  - Development environment will be created normally"
+        info "  - Database operations are protected by rake task"
+        info "  - No filtering, Version.sequence_reset, or settings manipulation"
+        info "  - API sync step will be skipped (it is the source)"
+        log "Running: rake scenario:prepare_development[$SCENARIO_NAME,development] (API mode)"
+    else
+        info "This scenario will sync with carambus_api_production if newer data is available"
+        log "Running: rake scenario:prepare_development[$SCENARIO_NAME,development]"
+    fi
     rake "scenario:prepare_development[$SCENARIO_NAME,development]"
     
     log "✅ Step 1 completed: Development environment prepared"

@@ -1344,8 +1344,15 @@ ENV
       puts "   ✅ Dependencies already installed"
     end
 
-    # Step 5: Create actual development database from template
-    puts "\n🗄️  Step 5: Creating development database..."
+    # Step 5: Check and sync with carambus_api_production if newer
+    puts "\n🔄 Step 5: Checking for newer carambus_api_production data..."
+    unless sync_with_api_production_if_newer(scenario_name, force)
+      puts "❌ Failed to sync with carambus_api_production"
+      return false
+    end
+
+    # Step 6: Create actual development database from template
+    puts "\n🗄️  Step 6: Creating development database..."
     unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
@@ -1421,6 +1428,95 @@ ENV
     end
     puts "   ✅ Rails assets precompiled"
 
+    true
+  end
+
+  def sync_with_api_production_if_newer(scenario_name, force = false)
+    puts "Checking if carambus_api_production has newer official versions (< 50000000) than carambus_api_development..."
+    
+    # Skip if this is the carambus_api scenario itself
+    if scenario_name == 'carambus_api'
+      puts "   ℹ️  Skipping API sync for carambus_api scenario (it is the source)"
+      return true
+    end
+    
+    # Check if carambus_api_development exists locally
+    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
+      puts "   ℹ️  carambus_api_development not found locally - skipping sync"
+      return true
+    end
+    
+    # Check if carambus_api_production exists on remote server
+    unless system("ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
+      puts "   ℹ️  carambus_api_production not found on remote server - skipping sync"
+      return true
+    end
+    
+    # Get local carambus_api_development version (only official versions < 50000000)
+    local_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions WHERE id < 50000000;\""
+    local_version_result = `#{local_version_cmd}`.strip
+    local_version = local_version_result.to_i
+    
+    # Get remote carambus_api_production version (only official versions < 50000000)
+    remote_version_cmd = "ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions WHERE id < 50000000;\"'"
+    remote_version_result = `#{remote_version_cmd}`.strip
+    remote_version = remote_version_result.to_i
+    
+    puts "   📊 Local carambus_api_development version (official < 50000000): #{local_version}"
+    puts "   📊 Remote carambus_api_production version (official < 50000000): #{remote_version}"
+    
+    if remote_version > local_version
+      puts "   🔄 Remote carambus_api_production has newer official versions (#{remote_version} > #{local_version})"
+      puts "   📥 Syncing carambus_api_development with newer production data..."
+      
+      # Create backup of current carambus_api_development
+      backup_name = "carambus_api_development_backup_#{Time.now.strftime('%Y%m%d_%H%M%S')}"
+      puts "   💾 Creating backup: #{backup_name}"
+      unless system("createdb #{backup_name}")
+        puts "   ❌ Failed to create backup database"
+        return false
+      end
+      
+      # Copy current data to backup
+      unless system("pg_dump carambus_api_development | psql #{backup_name}")
+        puts "   ❌ Failed to backup current data"
+        system("dropdb #{backup_name}")
+        return false
+      end
+      puts "   ✅ Backup created: #{backup_name}"
+      
+      # Drop and recreate carambus_api_development
+      puts "   🗑️  Dropping current carambus_api_development..."
+      system("dropdb carambus_api_development")
+      
+      puts "   📥 Creating new carambus_api_development from production..."
+      unless system("createdb carambus_api_development")
+        puts "   ❌ Failed to create new carambus_api_development"
+        return false
+      end
+      
+      # Copy data from remote production to local development
+      dump_cmd = "ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres pg_dump carambus_api_production' | psql carambus_api_development"
+      unless system(dump_cmd)
+        puts "   ❌ Failed to sync data from production"
+        puts "   🔄 Restoring from backup..."
+        system("dropdb carambus_api_development")
+        system("createdb carambus_api_development")
+        system("pg_dump #{backup_name} | psql carambus_api_development")
+        system("dropdb #{backup_name}")
+        return false
+      end
+      
+      puts "   ✅ Successfully synced carambus_api_development with production data"
+      puts "   🧹 Cleaning up backup: #{backup_name}"
+      system("dropdb #{backup_name}")
+      
+    elsif remote_version == local_version
+      puts "   ✅ carambus_api_development is already up to date with official versions (#{local_version})"
+    else
+      puts "   ℹ️  Local carambus_api_development has newer official versions (#{local_version} > #{remote_version}) - no sync needed"
+    end
+    
     true
   end
 
