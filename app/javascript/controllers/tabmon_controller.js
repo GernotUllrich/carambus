@@ -65,12 +65,12 @@ export default class extends ApplicationController {
 
   // Optimistic score update - immediate visual feedback using accumulated totals
   updateScoreOptimistically(playerId, points, operation = 'add') {
-    console.log(`Tabmon updating score: ${playerId} ${operation} ${points}`)
+    console.log(`🎯 Tabmon updating score: ${playerId} ${operation} ${points}`)
     
     // Look for the main score element with data-player attribute
     const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (!scoreElement) {
-      console.error(`Score element not found for player: ${playerId}`)
+      console.error(`❌ Score element not found for player: ${playerId}`)
       console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
       return
     }
@@ -78,11 +78,15 @@ export default class extends ApplicationController {
     // Also look for the innings score element
     const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (!inningsElement) {
-      console.error(`Innings element not found for player: ${playerId}`)
+      console.error(`❌ Innings element not found for player: ${playerId}`)
       console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
       return
     }
 
+    // Get current DOM values
+    const currentDomScore = parseInt(scoreElement.textContent) || 0
+    const currentDomInnings = parseInt(inningsElement.textContent) || 0
+    
     // Get the original (server-side) scores - these should be the baseline
     const originalScore = parseInt(scoreElement.dataset.originalScore || scoreElement.textContent) || 0
     const originalInnings = parseInt(inningsElement.dataset.originalInnings || inningsElement.textContent) || 0
@@ -98,18 +102,27 @@ export default class extends ApplicationController {
     // Store original values if not already stored
     if (!scoreElement.dataset.originalScore) {
       scoreElement.dataset.originalScore = originalScore.toString()
+      console.log(`💾 Tabmon stored original score for ${playerId}: ${originalScore}`)
     }
     if (!inningsElement.dataset.originalInnings) {
       inningsElement.dataset.originalInnings = originalInnings.toString()
+      console.log(`💾 Tabmon stored original innings for ${playerId}: ${originalInnings}`)
     }
 
-    console.log(`Tabmon accumulated score: ${originalScore} + ${totalIncrement} = ${newScore} (innings: ${originalInnings} + ${totalIncrement} = ${newInnings})`)
+    console.log(`📊 Tabmon score calculation for ${playerId}:`)
+    console.log(`   Current DOM score: ${currentDomScore}`)
+    console.log(`   Original score: ${originalScore}`)
+    console.log(`   Total increment: ${totalIncrement}`)
+    console.log(`   New score: ${originalScore} + ${totalIncrement} = ${newScore}`)
+    console.log(`   Current DOM innings: ${currentDomInnings}`)
+    console.log(`   Original innings: ${originalInnings}`)
+    console.log(`   New innings: ${originalInnings} + ${totalIncrement} = ${newInnings}`)
 
     // Store update in history for potential rollback
     this.clientState.updateHistory.push({
       playerId,
-      previousScore: parseInt(scoreElement.textContent) || 0,
-      previousInnings: parseInt(inningsElement.textContent) || 0,
+      previousScore: currentDomScore,
+      previousInnings: currentDomInnings,
       newScore,
       newInnings,
       operation,
@@ -117,6 +130,7 @@ export default class extends ApplicationController {
     })
 
     // Immediate visual update for both counters
+    console.log(`🖥️ Tabmon updating DOM: score ${currentDomScore} → ${newScore}, innings ${currentDomInnings} → ${newInnings}`)
     scoreElement.textContent = newScore
     scoreElement.classList.add('score-updated')
     
@@ -136,7 +150,7 @@ export default class extends ApplicationController {
     this.addPendingIndicator(scoreElement)
     this.addPendingIndicator(inningsElement)
     
-    console.log(`Tabmon optimistic update: ${playerId} total accumulated = ${totalIncrement}, display = ${newScore}`)
+    console.log(`✅ Tabmon optimistic update complete: ${playerId} display = ${newScore}`)
   }
 
   // Optimistic player change - immediate visual feedback
@@ -337,7 +351,7 @@ export default class extends ApplicationController {
   }
 
   reflexSuccess (element, reflex, noop, id) {
-    console.log(`Tabmon reflexSuccess: ${reflex}`)
+    console.log(`✅ Tabmon reflexSuccess: ${reflex}`)
     
     // Remove pending indicators on successful server validation
     this.removeAllPendingIndicators()
@@ -354,9 +368,26 @@ export default class extends ApplicationController {
       this.clientState.pendingUpdates.delete(`next_step_${tableMonitorId}`)
     } else if (reflex.includes('validate_accumulated_changes')) {
       // NEW: Reset original scores after successful accumulated validation
-      console.log("Tabmon accumulated validation successful, resetting original scores")
+      console.log("🎉 Tabmon accumulated validation successful!")
+      console.log("   Server has processed all accumulated changes")
+      console.log("   Current DOM state should now match server state")
+      
+      // Get current DOM values before resetting
+      const scoreElements = document.querySelectorAll('.main-score[data-player]')
+      const inningsElements = document.querySelectorAll('.inning-score[data-player]')
+      
+      console.log("📊 Current DOM state before reset:")
+      scoreElements.forEach(element => {
+        console.log(`   ${element.dataset.player} score: ${element.textContent}`)
+      })
+      inningsElements.forEach(element => {
+        console.log(`   ${element.dataset.player} innings: ${element.textContent}`)
+      })
+      
       this.resetOriginalScores()
       this.clearAccumulatedChanges()
+      
+      console.log("🎉 Tabmon validation cycle complete - ready for new changes")
     }
   }
 
@@ -402,10 +433,12 @@ export default class extends ApplicationController {
 
   // NEW: Accumulate changes and validate with total sum
   accumulateAndValidateChange(playerId, points, operation = 'add') {
-    console.log(`Tabmon accumulating change: ${playerId} ${operation} ${points}`)
+    console.log(`🔄 Tabmon accumulating change: ${playerId} ${operation} ${points}`)
     
     // Add to accumulated changes
     const playerChanges = this.clientState.accumulatedChanges[playerId]
+    const previousTotal = playerChanges.totalIncrement
+    
     if (operation === 'add') {
       playerChanges.totalIncrement += points
       playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
@@ -414,22 +447,30 @@ export default class extends ApplicationController {
       playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
     }
     
-    console.log(`Tabmon accumulated changes for ${playerId}:`, playerChanges)
+    console.log(`📊 Tabmon accumulation update: ${playerId}`)
+    console.log(`   Previous total: ${previousTotal}`)
+    console.log(`   New total: ${playerChanges.totalIncrement}`)
+    console.log(`   Operations count: ${playerChanges.operations.length}`)
+    console.log(`   All operations:`, playerChanges.operations)
     
     // Cancel previous validation timer
     if (this.clientState.validationTimer) {
       clearTimeout(this.clientState.validationTimer)
+      console.log(`⏰ Tabmon cancelled previous validation timer`)
     }
     
     // Set new validation timer - validate with total after 500ms of inactivity
     this.clientState.validationTimer = setTimeout(() => {
+      console.log(`⏰ Tabmon validation timer triggered - validating accumulated changes`)
       this.validateAccumulatedChanges()
     }, 500)
+    
+    console.log(`⏰ Tabmon set new validation timer (500ms)`)
   }
 
   // NEW: Validate all accumulated changes with total sum
   validateAccumulatedChanges() {
-    console.log("Tabmon validating accumulated changes:", this.clientState.accumulatedChanges)
+    console.log("🚀 Tabmon validating accumulated changes:", this.clientState.accumulatedChanges)
     
     const changes = this.clientState.accumulatedChanges
     let hasChanges = false
@@ -438,12 +479,12 @@ export default class extends ApplicationController {
     for (const playerId in changes) {
       if (changes[playerId].totalIncrement !== 0) {
         hasChanges = true
-        break
+        console.log(`📊 Tabmon found changes for ${playerId}: ${changes[playerId].totalIncrement}`)
       }
     }
     
     if (!hasChanges) {
-      console.log("Tabmon no accumulated changes to validate")
+      console.log("ℹ️ Tabmon no accumulated changes to validate")
       return
     }
     
@@ -462,10 +503,14 @@ export default class extends ApplicationController {
           operationCount: playerChanges.operations.length,
           operations: playerChanges.operations
         }
+        console.log(`📤 Tabmon preparing validation for ${playerId}:`)
+        console.log(`   Total increment: ${playerChanges.totalIncrement}`)
+        console.log(`   Operations: ${playerChanges.operations.length}`)
+        console.log(`   Operations list:`, playerChanges.operations)
       }
     }
     
-    console.log("Tabmon sending validation with accumulated data:", validationData)
+    console.log("📡 Tabmon sending validation with accumulated data:", validationData)
     
     // Send single validation call with accumulated changes
     this.stimulate('TableMonitor#validate_accumulated_changes', this.element, validationData)
@@ -476,11 +521,15 @@ export default class extends ApplicationController {
 
   // NEW: Clear accumulated changes after successful validation
   clearAccumulatedChanges() {
-    console.log("Tabmon clearing accumulated changes")
+    console.log("🧹 Tabmon clearing accumulated changes")
+    console.log("   Before clear:", this.clientState.accumulatedChanges)
+    
     this.clientState.accumulatedChanges = {
       playera: { totalIncrement: 0, operations: [] },
       playerb: { totalIncrement: 0, operations: [] }
     }
+    
+    console.log("   After clear:", this.clientState.accumulatedChanges)
     
     // Reset original scores to current values for future calculations
     this.resetOriginalScores()
@@ -488,21 +537,23 @@ export default class extends ApplicationController {
 
   // NEW: Reset original scores to current DOM values after successful server validation
   resetOriginalScores() {
-    console.log("Tabmon resetting original scores to current values")
+    console.log("🔄 Tabmon resetting original scores to current values")
     
     const scoreElements = document.querySelectorAll('.main-score[data-player]')
     const inningsElements = document.querySelectorAll('.inning-score[data-player]')
     
     scoreElements.forEach(element => {
       const currentScore = parseInt(element.textContent) || 0
+      const previousOriginal = element.dataset.originalScore
       element.dataset.originalScore = currentScore.toString()
-      console.log(`Tabmon reset original score for ${element.dataset.player}: ${currentScore}`)
+      console.log(`🔄 Tabmon reset original score for ${element.dataset.player}: ${previousOriginal} → ${currentScore}`)
     })
     
     inningsElements.forEach(element => {
       const currentInnings = parseInt(element.textContent) || 0
+      const previousOriginal = element.dataset.originalInnings
       element.dataset.originalInnings = currentInnings.toString()
-      console.log(`Tabmon reset original innings for ${element.dataset.player}: ${currentInnings}`)
+      console.log(`🔄 Tabmon reset original innings for ${element.dataset.player}: ${previousOriginal} → ${currentInnings}`)
     })
   }
 

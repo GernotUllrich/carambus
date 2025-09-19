@@ -442,35 +442,62 @@ class TableMonitorReflex < ApplicationReflex
     
     # Get accumulated changes from params
     accumulated_data = params[:accumulatedChanges] || {}
-    Rails.logger.info "Tabmon validating accumulated changes: #{accumulated_data.inspect}"
+    Rails.logger.info "🔍 Tabmon server validating accumulated changes: #{accumulated_data.inspect}"
+    
+    # Log current server state before changes
+    Rails.logger.info "📊 Tabmon current server state:"
+    Rails.logger.info "   playera result: #{@table_monitor.data['playera']['result']}"
+    Rails.logger.info "   playerb result: #{@table_monitor.data['playerb']['result']}"
+    Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
+    Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
     
     # Process each player's accumulated changes
     accumulated_data.each do |player_id, change_data|
       total_increment = change_data['totalIncrement'].to_i
       operation_count = change_data['operationCount'].to_i
+      operations = change_data['operations'] || []
       
-      Rails.logger.info "Tabmon processing #{player_id}: total_increment=#{total_increment}, operations=#{operation_count}"
+      Rails.logger.info "🔧 Tabmon processing #{player_id}:"
+      Rails.logger.info "   Total increment: #{total_increment}"
+      Rails.logger.info "   Operations count: #{operation_count}"
+      Rails.logger.info "   Operations: #{operations.inspect}"
       
       if total_increment != 0
+        # Log before applying change
+        Rails.logger.info "📈 Tabmon before applying change for #{player_id}:"
+        Rails.logger.info "   Current result: #{@table_monitor.data[player_id]['result']}"
+        Rails.logger.info "   Current innings: #{@table_monitor.data[player_id]['innings_redo_list']&.last}"
+        
         # Apply the total accumulated change in one operation
         if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
           @table_monitor.add_n_balls(total_increment, player_id)
+          Rails.logger.info "🎯 Tabmon applied pool-specific add_n_balls(#{total_increment}, #{player_id})"
         else
           @table_monitor.add_n_balls(total_increment)
+          Rails.logger.info "🎯 Tabmon applied standard add_n_balls(#{total_increment})"
         end
         
         @table_monitor.do_play
         @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
         
-        Rails.logger.info "Tabmon applied accumulated change: #{player_id} += #{total_increment}"
+        # Log after applying change
+        Rails.logger.info "📈 Tabmon after applying change for #{player_id}:"
+        Rails.logger.info "   New result: #{@table_monitor.data[player_id]['result']}"
+        Rails.logger.info "   New innings: #{@table_monitor.data[player_id]['innings_redo_list']&.last}"
+        Rails.logger.info "   Applied increment: #{total_increment}"
       end
     end
     
     @table_monitor.save!
-    Rails.logger.info "Tabmon validation of accumulated changes completed successfully"
+    Rails.logger.info "✅ Tabmon validation of accumulated changes completed successfully"
+    Rails.logger.info "📊 Tabmon final server state:"
+    Rails.logger.info "   playera result: #{@table_monitor.data['playera']['result']}"
+    Rails.logger.info "   playerb result: #{@table_monitor.data['playerb']['result']}"
+    Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
+    Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
     
   rescue StandardError => e
-    Rails.logger.error("Tabmon validate_accumulated_changes ERROR: #{e}")
+    Rails.logger.error("❌ Tabmon validate_accumulated_changes ERROR: #{e}")
     Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
     raise e
   end
