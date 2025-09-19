@@ -433,15 +433,15 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   # NEW: Validate accumulated changes with total sum
-  def validate_accumulated_changes
+  def validate_accumulated_changes(accumulated_data = nil)
     Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     return unless @table_monitor.playing?
     
-    # Get accumulated changes from params
-    accumulated_data = params[:accumulatedChanges] || {}
+    # Get accumulated changes from params or method argument
+    accumulated_data ||= params[:accumulatedChanges] || {}
     Rails.logger.info "🔍 Tabmon server validating accumulated changes: #{accumulated_data.inspect}"
     
     # Log current server state before changes
