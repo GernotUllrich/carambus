@@ -443,6 +443,8 @@ class TableMonitorReflex < ApplicationReflex
     # Get accumulated changes from params or method argument
     accumulated_data ||= params[:accumulatedChanges] || {}
     Rails.logger.info "🔍 Tabmon server validating accumulated changes: #{accumulated_data.inspect}"
+    Rails.logger.info "🔍 Tabmon accumulated_data class: #{accumulated_data.class}"
+    Rails.logger.info "🔍 Tabmon accumulated_data keys: #{accumulated_data.keys if accumulated_data.respond_to?(:keys)}"
     
     # Log current server state before changes
     Rails.logger.info "📊 Tabmon current server state:"
@@ -453,8 +455,9 @@ class TableMonitorReflex < ApplicationReflex
     
     # Process each player's accumulated changes
     accumulated_data.each do |player_id, change_data|
-      total_increment = change_data['totalIncrement'].to_i
-      operation_count = change_data['operationCount'].to_i
+      # Handle both camelCase and snake_case key formats
+      total_increment = (change_data['totalIncrement'] || change_data['total_increment']).to_i
+      operation_count = (change_data['operationCount'] || change_data['operation_count']).to_i
       operations = change_data['operations'] || []
       
       Rails.logger.info "🔧 Tabmon processing #{player_id}:"
