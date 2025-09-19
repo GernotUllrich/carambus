@@ -172,7 +172,6 @@ export default class extends ApplicationController {
       this.addPendingIndicator(scoreElement)
       this.addPendingIndicator(inningsElement)
 
-      console.log(`✅ TableMonitor optimistic update complete: ${playerId} display = ${newScore}`)
     } catch (error) {
       console.error(`❌ TableMonitor updateScoreOptimistically ERROR:`, error)
       console.error(`❌ Error stack:`, error.stack)
@@ -493,7 +492,6 @@ export default class extends ApplicationController {
 
   // NEW: Optimistic player change - immediate visual feedback
   changePlayerOptimistically() {
-    console.log("TableMonitor changing player optimistically")
     
     // Store current state for potential rollback
     this.clientState.updateHistory.push({
@@ -517,13 +515,11 @@ export default class extends ApplicationController {
       centerControls.classList.add('pending-update')
     }
     
-    console.log(`TableMonitor optimistic player change: ${this.clientState.currentPlayer}`)
   }
 
   // NEW: Next step method for player switching
   next_step() {
     const tableMonitorId = this.element.dataset.id
-    console.log('TableMonitor next_step called')
     
     // 🚀 IMMEDIATE OPTIMISTIC PLAYER CHANGE
     this.changePlayerOptimistically()

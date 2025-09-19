@@ -7,36 +7,7 @@ import ApplicationController from './application_controller'
 export default class extends ApplicationController {
   connect () {
     super.connect()
-    console.log("🚀 Tabmon controller connected!")
-    console.log("Tabmon element:", this.element)
-    console.log("Tabmon element actions:", this.element.dataset.action)
-    
-    // Add multiple event listeners for debugging
-    this.element.addEventListener('click', (event) => {
-      console.log("🖱️ Click event detected on:", event.target)
-      console.log("🖱️ Click event dataset:", event.target.dataset)
-      console.log("🖱️ Click event action:", event.target.dataset.action)
-    }, true) // Use capture phase
-    
-    this.element.addEventListener('mousedown', (event) => {
-      console.log("🖱️ Mouse down detected on:", event.target)
-    })
-    
-    this.element.addEventListener('mouseup', (event) => {
-      console.log("🖱️ Mouse up detected on:", event.target)
-    })
-    
-    // Document click handler removed - was causing interference with Stimulus actions
-    
     this.initializeClientState()
-    
-    // Add global error handler for this controller
-    this.errorHandler = (event) => {
-      console.error(`❌ Tabmon GLOBAL ERROR:`, event.error)
-      console.error(`❌ Error stack:`, event.error?.stack)
-      console.error(`❌ Event:`, event)
-    }
-    window.addEventListener('error', this.errorHandler)
   }
 
   disconnect() {
@@ -44,13 +15,7 @@ export default class extends ApplicationController {
     if (this.clientState?.validationTimer) {
       clearTimeout(this.clientState.validationTimer)
     }
-    
-    // Remove global error handler
-    if (this.errorHandler) {
-      window.removeEventListener('error', this.errorHandler)
-    }
-    
-    console.log("Tabmon controller disconnected and timers cleared")
+    super.disconnect()
   }
 
   initializeClientState() {
@@ -67,8 +32,6 @@ export default class extends ApplicationController {
       },
       validationTimer: null
     }
-    
-    console.log("Tabmon client state initialized:", this.clientState)
   }
 
   // Optimistic score update - immediate visual feedback using accumulated totals
@@ -80,7 +43,6 @@ export default class extends ApplicationController {
       const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (!scoreElement) {
       console.error(`❌ Score element not found for player: ${playerId}`)
-      console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
       return
     }
 
@@ -88,7 +50,6 @@ export default class extends ApplicationController {
     const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (!inningsElement) {
       console.error(`❌ Innings element not found for player: ${playerId}`)
-      console.log(`Available innings elements:`, document.querySelectorAll('.inning-score'))
       return
     }
 
@@ -166,7 +127,6 @@ export default class extends ApplicationController {
     this.addPendingIndicator(scoreElement)
     this.addPendingIndicator(inningsElement)
     
-      console.log(`✅ Tabmon optimistic update complete: ${playerId} display = ${newScore}`)
     } catch (error) {
       console.error(`❌ Tabmon updateScoreOptimistically ERROR:`, error)
       console.error(`❌ Error stack:`, error.stack)
@@ -177,7 +137,6 @@ export default class extends ApplicationController {
 
   // Optimistic player change - immediate visual feedback
   changePlayerOptimistically() {
-    console.log("Tabmon changing player optimistically")
     
     // Store current state for potential rollback
     this.clientState.updateHistory.push({
@@ -201,7 +160,6 @@ export default class extends ApplicationController {
       this.addPendingIndicator(centerControls)
     }
     
-    console.log(`Tabmon optimistic player change: ${this.clientState.currentPlayer}`)
   }
 
   // Add visual indicator for pending updates
@@ -241,7 +199,6 @@ export default class extends ApplicationController {
     const leftPlayer = document.querySelector('#left')
     const rightPlayer = document.querySelector('#right')
     
-    console.log("🔍 Tabmon checking for green border:")
     console.log("   Left player:", leftPlayer)
     console.log("   Left player classes:", leftPlayer?.classList.toString())
     console.log("   Right player:", rightPlayer)
@@ -254,7 +211,6 @@ export default class extends ApplicationController {
     console.log("   Has right green:", hasRightGreen)
     
     const result = hasLeftGreen || hasRightGreen
-    console.log("   Final result:", result)
     
     return result
   }
@@ -286,13 +242,7 @@ export default class extends ApplicationController {
   /* Reflex methods for control buttons */
 
   add_n () {
-    console.log("🎯 add_n method called!")
-    console.log("Element:", this.element)
-    console.log("Element dataset:", this.element.dataset)
-    
     const n = parseInt(this.element.dataset.n) || 1
-    const tableMonitorId = this.element.dataset.id
-    console.log(`Tabmon add_n called with n=${n}, tableMonitorId=${tableMonitorId}`)
 
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
@@ -303,15 +253,11 @@ export default class extends ApplicationController {
       
       // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(currentPlayer, n, 'add')
-    } else {
-      console.log("No green border detected - skipping optimistic update")
     }
   }
 
   minus_n () {
     const n = parseInt(this.element.dataset.n) || 1
-    const tableMonitorId = this.element.dataset.id
-    console.log(`Tabmon minus_n called with n=${n}`)
     
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
@@ -322,14 +268,11 @@ export default class extends ApplicationController {
       
       // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
       this.updateScoreOptimistically(currentPlayer, n, 'subtract')
-    } else {
-      console.log("No green border detected - skipping optimistic update")
     }
   }
 
   undo () {
     const tableMonitorId = this.element.dataset.id
-    console.log('Tabmon undo called')
     
     // 🚀 IMMEDIATE OPTIMISTIC UNDO
     this.revertLastScoreChange()
@@ -343,7 +286,6 @@ export default class extends ApplicationController {
 
   next_step () {
     const tableMonitorId = this.element.dataset.id
-    console.log('Tabmon next_step called')
     
     // 🚀 IMMEDIATE OPTIMISTIC PLAYER CHANGE
     this.changePlayerOptimistically()
@@ -356,32 +298,26 @@ export default class extends ApplicationController {
   }
 
   numbers () {
-    console.log('Tabmon numbers called')
     this.stimulate('TableMonitor#numbers')
   }
 
   force_next_state () {
-    console.log('Tabmon force_next_state called')
     this.stimulate('TableMonitor#force_next_state')
   }
 
   stop () {
-    console.log('Tabmon stop called')
     this.stimulate('TableMonitor#stop')
   }
 
   timeout () {
-    console.log('Tabmon timeout called')
     this.stimulate('TableMonitor#timeout')
   }
 
   pause () {
-    console.log('Tabmon pause called')
     this.stimulate('TableMonitor#pause')
   }
 
   play () {
-    console.log('Tabmon play called')
     this.stimulate('TableMonitor#play')
   }
 
@@ -443,7 +379,6 @@ export default class extends ApplicationController {
 
   // Rollback optimistic changes when server validation fails
   rollbackOptimisticChanges(reflex) {
-    console.log(`Tabmon rolling back optimistic changes for: ${reflex}`)
     
     if (reflex.includes('add_n') || reflex.includes('minus_n')) {
       // Revert last score change
