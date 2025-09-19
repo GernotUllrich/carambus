@@ -432,6 +432,49 @@ class TableMonitorReflex < ApplicationReflex
     raise e
   end
 
+  # NEW: Validate accumulated changes with total sum
+  def validate_accumulated_changes
+    Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    return unless @table_monitor.playing?
+    
+    # Get accumulated changes from params
+    accumulated_data = params[:accumulatedChanges] || {}
+    Rails.logger.info "Tabmon validating accumulated changes: #{accumulated_data.inspect}"
+    
+    # Process each player's accumulated changes
+    accumulated_data.each do |player_id, change_data|
+      total_increment = change_data['totalIncrement'].to_i
+      operation_count = change_data['operationCount'].to_i
+      
+      Rails.logger.info "Tabmon processing #{player_id}: total_increment=#{total_increment}, operations=#{operation_count}"
+      
+      if total_increment != 0
+        # Apply the total accumulated change in one operation
+        if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
+          @table_monitor.add_n_balls(total_increment, player_id)
+        else
+          @table_monitor.add_n_balls(total_increment)
+        end
+        
+        @table_monitor.do_play
+        @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+        
+        Rails.logger.info "Tabmon applied accumulated change: #{player_id} += #{total_increment}"
+      end
+    end
+    
+    @table_monitor.save!
+    Rails.logger.info "Tabmon validation of accumulated changes completed successfully"
+    
+  rescue StandardError => e
+    Rails.logger.error("Tabmon validate_accumulated_changes ERROR: #{e}")
+    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+    raise e
+  end
+
   def set_balls
     Rails.logger.info "+++++++++++++++++>>> set_balls <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing

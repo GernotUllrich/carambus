@@ -38,12 +38,10 @@ export default class extends ApplicationController {
   }
 
   disconnect() {
-    // Clean up all debounce timers when controller disconnects
-    Object.values(this.debounceTimers).forEach(timer => {
-      if (timer) {
-        clearTimeout(timer)
-      }
-    })
+    // Clean up validation timer when controller disconnects
+    if (this.clientState.validationTimer) {
+      clearTimeout(this.clientState.validationTimer)
+    }
     console.log("Tabmon controller disconnected and timers cleared")
   }
 
@@ -53,15 +51,13 @@ export default class extends ApplicationController {
       scores: {},
       currentPlayer: 'playera',
       pendingUpdates: new Set(),
-      updateHistory: []
-    }
-    
-    // Initialize debouncing mechanism
-    this.debounceTimers = {
-      add_n: null,
-      minus_n: null,
-      next_step: null,
-      undo: null
+      updateHistory: [],
+      // NEW: Accumulated changes tracking
+      accumulatedChanges: {
+        playera: { totalIncrement: 0, operations: [] },
+        playerb: { totalIncrement: 0, operations: [] }
+      },
+      validationTimer: null
     }
     
     console.log("Tabmon client state initialized:", this.clientState)
@@ -245,16 +241,14 @@ export default class extends ApplicationController {
 
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
-      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'add')
+      const currentPlayer = this.getCurrentActivePlayer()
+      this.updateScoreOptimistically(currentPlayer, n, 'add')
+      
+      // 🚀 NEW: Accumulate change and validate with total sum
+      this.accumulateAndValidateChange(currentPlayer, n, 'add')
     } else {
       console.log("No green border detected - skipping optimistic update")
     }
-
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`)
-
-    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
-    this.debouncedServerCall('add_n', this.element, 500)
   }
 
   minus_n () {
@@ -264,16 +258,14 @@ export default class extends ApplicationController {
     
     // 🚀 IMMEDIATE OPTIMISTIC UPDATE - only if there's a green border
     if (this.hasActivePlayerWithGreenBorder()) {
-      this.updateScoreOptimistically(this.getCurrentActivePlayer(), n, 'subtract')
+      const currentPlayer = this.getCurrentActivePlayer()
+      this.updateScoreOptimistically(currentPlayer, n, 'subtract')
+      
+      // 🚀 NEW: Accumulate change and validate with total sum
+      this.accumulateAndValidateChange(currentPlayer, n, 'subtract')
     } else {
       console.log("No green border detected - skipping optimistic update")
     }
-    
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`minus_n_${tableMonitorId}`)
-    
-    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
-    this.debouncedServerCall('minus_n', this.element, 500)
   }
 
   undo () {
@@ -398,49 +390,89 @@ export default class extends ApplicationController {
     })
   }
 
-  // Debounced server call - waits 500ms after last click before triggering server validation
-  debouncedServerCall(actionType, element, delay = 500) {
-    console.log(`Tabmon debouncing ${actionType} call`)
+  // NEW: Accumulate changes and validate with total sum
+  accumulateAndValidateChange(playerId, points, operation = 'add') {
+    console.log(`Tabmon accumulating change: ${playerId} ${operation} ${points}`)
     
-    // Cancel any existing timer for this action type
-    if (this.debounceTimers[actionType]) {
-      clearTimeout(this.debounceTimers[actionType])
-      console.log(`Tabmon cancelled previous ${actionType} timer`)
+    // Add to accumulated changes
+    const playerChanges = this.clientState.accumulatedChanges[playerId]
+    if (operation === 'add') {
+      playerChanges.totalIncrement += points
+      playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
+    } else if (operation === 'subtract') {
+      playerChanges.totalIncrement -= points
+      playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
     }
     
-    // Set new timer
-    this.debounceTimers[actionType] = setTimeout(() => {
-      console.log(`Tabmon executing delayed ${actionType} server call`)
-      this.executeServerCall(actionType, element)
-      this.debounceTimers[actionType] = null
-    }, delay)
+    console.log(`Tabmon accumulated changes for ${playerId}:`, playerChanges)
+    
+    // Cancel previous validation timer
+    if (this.clientState.validationTimer) {
+      clearTimeout(this.clientState.validationTimer)
+    }
+    
+    // Set new validation timer - validate with total after 500ms of inactivity
+    this.clientState.validationTimer = setTimeout(() => {
+      this.validateAccumulatedChanges()
+    }, 500)
   }
 
-  // Execute the actual server call
-  executeServerCall(actionType, element) {
-    console.log(`Tabmon executing server call: ${actionType}`)
+  // NEW: Validate all accumulated changes with total sum
+  validateAccumulatedChanges() {
+    console.log("Tabmon validating accumulated changes:", this.clientState.accumulatedChanges)
     
-    // Remove pending indicators since we're now processing
-    this.removeAllPendingIndicators()
+    const changes = this.clientState.accumulatedChanges
+    let hasChanges = false
     
-    // Trigger the appropriate StimulusReflex
-    switch(actionType) {
-      case 'add_n':
-        this.stimulate('TableMonitor#add_n', element)
+    // Check if there are any accumulated changes
+    for (const playerId in changes) {
+      if (changes[playerId].totalIncrement !== 0) {
+        hasChanges = true
         break
-      case 'minus_n':
-        this.stimulate('TableMonitor#minus_n', element)
-        break
-      case 'next_step':
-        this.stimulate('TableMonitor#next_step', element)
-        break
-      case 'undo':
-        this.stimulate('TableMonitor#undo', element)
-        break
-      default:
-        console.warn(`Tabmon unknown action type: ${actionType}`)
+      }
+    }
+    
+    if (!hasChanges) {
+      console.log("Tabmon no accumulated changes to validate")
+      return
+    }
+    
+    // Create a single validation call with all accumulated changes
+    const validationData = {
+      accumulatedChanges: {},
+      timestamp: Date.now()
+    }
+    
+    // Prepare validation data for each player
+    for (const playerId in changes) {
+      const playerChanges = changes[playerId]
+      if (playerChanges.totalIncrement !== 0) {
+        validationData.accumulatedChanges[playerId] = {
+          totalIncrement: playerChanges.totalIncrement,
+          operationCount: playerChanges.operations.length,
+          operations: playerChanges.operations
+        }
+      }
+    }
+    
+    console.log("Tabmon sending validation with accumulated data:", validationData)
+    
+    // Send single validation call with accumulated changes
+    this.stimulate('TableMonitor#validate_accumulated_changes', this.element, validationData)
+    
+    // Clear accumulated changes after sending validation
+    this.clearAccumulatedChanges()
+  }
+
+  // NEW: Clear accumulated changes after successful validation
+  clearAccumulatedChanges() {
+    console.log("Tabmon clearing accumulated changes")
+    this.clientState.accumulatedChanges = {
+      playera: { totalIncrement: 0, operations: [] },
+      playerb: { totalIncrement: 0, operations: [] }
     }
   }
+
 
   // Show error message to user
   showErrorMessage(message) {
