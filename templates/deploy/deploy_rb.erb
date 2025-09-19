@@ -109,3 +109,28 @@ after "deploy:assets:precompile", "deploy:assets:verify_manifest"
 
 # Hook asset precompilation into the deployment process
 before "deploy:symlink:release", "deploy:assets:precompile"
+
+# Ensure current symlink exists after database reset
+namespace :deploy do
+  desc "Ensure current symlink exists"
+  task :ensure_current_symlink do
+    on roles(:app) do
+      # Check if current symlink exists and is valid
+      if test("[ ! -L #{deploy_to}/current ]") || test("[ ! -e #{deploy_to}/current ]")
+        # Find the latest release
+        latest_release = capture(:ls, "-t", "#{deploy_to}/releases").split.first
+        if latest_release
+          execute :ln, "-sf", "#{deploy_to}/releases/#{latest_release}", "#{deploy_to}/current"
+          puts "   ✅ Recreated current symlink to #{latest_release}"
+        else
+          puts "   ⚠️  No releases found to symlink"
+        end
+      else
+        puts "   ✅ Current symlink already exists"
+      end
+    end
+  end
+end
+
+# Run symlink check before asset precompilation
+before "deploy:assets:precompile", "deploy:ensure_current_symlink"
