@@ -35,13 +35,27 @@ export default class extends ApplicationController {
     })
     
     this.initializeClientState()
+    
+    // Add global error handler for this controller
+    this.errorHandler = (event) => {
+      console.error(`❌ Tabmon GLOBAL ERROR:`, event.error)
+      console.error(`❌ Error stack:`, event.error?.stack)
+      console.error(`❌ Event:`, event)
+    }
+    window.addEventListener('error', this.errorHandler)
   }
 
   disconnect() {
     // Clean up validation timer when controller disconnects
-    if (this.clientState.validationTimer) {
+    if (this.clientState?.validationTimer) {
       clearTimeout(this.clientState.validationTimer)
     }
+    
+    // Remove global error handler
+    if (this.errorHandler) {
+      window.removeEventListener('error', this.errorHandler)
+    }
+    
     console.log("Tabmon controller disconnected and timers cleared")
   }
 
@@ -65,10 +79,11 @@ export default class extends ApplicationController {
 
   // Optimistic score update - immediate visual feedback using accumulated totals
   updateScoreOptimistically(playerId, points, operation = 'add') {
-    console.log(`🎯 Tabmon updating score: ${playerId} ${operation} ${points}`)
-    
-    // Look for the main score element with data-player attribute
-    const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
+    try {
+      console.log(`🎯 Tabmon updating score: ${playerId} ${operation} ${points}`)
+      
+      // Look for the main score element with data-player attribute
+      const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (!scoreElement) {
       console.error(`❌ Score element not found for player: ${playerId}`)
       console.log(`Available score elements:`, document.querySelectorAll('.main-score'))
@@ -150,7 +165,13 @@ export default class extends ApplicationController {
     this.addPendingIndicator(scoreElement)
     this.addPendingIndicator(inningsElement)
     
-    console.log(`✅ Tabmon optimistic update complete: ${playerId} display = ${newScore}`)
+      console.log(`✅ Tabmon optimistic update complete: ${playerId} display = ${newScore}`)
+    } catch (error) {
+      console.error(`❌ Tabmon updateScoreOptimistically ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      console.error(`❌ PlayerId: ${playerId}, Points: ${points}, Operation: ${operation}`)
+      // Don't rethrow to prevent breaking the UI
+    }
   }
 
   // Optimistic player change - immediate visual feedback
@@ -387,7 +408,12 @@ export default class extends ApplicationController {
       this.resetOriginalScores()
       this.clearAccumulatedChanges()
       
-      console.log("🎉 Tabmon validation cycle complete - ready for new changes")
+        console.log("🎉 Tabmon validation cycle complete - ready for new changes")
+    } catch (error) {
+      console.error(`❌ Tabmon validateAccumulatedChanges ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      // Clear accumulated changes to prevent stuck state
+      this.clearAccumulatedChanges()
     }
   }
 
@@ -433,10 +459,11 @@ export default class extends ApplicationController {
 
   // NEW: Accumulate changes and validate with total sum
   accumulateAndValidateChange(playerId, points, operation = 'add') {
-    console.log(`🔄 Tabmon accumulating change: ${playerId} ${operation} ${points}`)
-    
-    // Add to accumulated changes
-    const playerChanges = this.clientState.accumulatedChanges[playerId]
+    try {
+      console.log(`🔄 Tabmon accumulating change: ${playerId} ${operation} ${points}`)
+      
+      // Add to accumulated changes
+      const playerChanges = this.clientState.accumulatedChanges[playerId]
     const previousTotal = playerChanges.totalIncrement
     
     if (operation === 'add') {
@@ -465,12 +492,18 @@ export default class extends ApplicationController {
       this.validateAccumulatedChanges()
     }, 500)
     
-    console.log(`⏰ Tabmon set new validation timer (500ms)`)
+      console.log(`⏰ Tabmon set new validation timer (500ms)`)
+    } catch (error) {
+      console.error(`❌ Tabmon accumulateAndValidateChange ERROR:`, error)
+      console.error(`❌ Error stack:`, error.stack)
+      // Don't rethrow to prevent breaking the UI
+    }
   }
 
   // NEW: Validate all accumulated changes with total sum
   validateAccumulatedChanges() {
-    console.log("🚀 Tabmon validating accumulated changes:", this.clientState.accumulatedChanges)
+    try {
+      console.log("🚀 Tabmon validating accumulated changes:", this.clientState.accumulatedChanges)
     
     const changes = this.clientState.accumulatedChanges
     let hasChanges = false
