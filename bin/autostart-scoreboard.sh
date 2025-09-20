@@ -5,6 +5,17 @@
 # Set display environment
 export DISPLAY=:0
 
+# Set up X11 authentication for user pj
+if [ "$USER" = "pj" ]; then
+    # Allow user pj to access X11
+    xhost +local:pj 2>/dev/null || true
+    
+    # Try to get X11 authentication
+    if [ -f /home/pj/.Xauthority ]; then
+        export XAUTHORITY=/home/pj/.Xauthority
+    fi
+fi
+
 # Wait for display to be ready
 sleep 5
 
@@ -71,7 +82,13 @@ fi
 
 echo "Using scoreboard URL: $SCOREBOARD_URL"
 
+# Ensure chromium data directory has correct permissions for current user
+if [ -d /tmp/chromium-scoreboard ]; then
+    chmod 755 /tmp/chromium-scoreboard 2>/dev/null || true
+fi
+
 # Start browser in fullscreen with additional flags to handle display issues
+# Note: Removed sudo - runs as current user (pj) for proper X11 access
 /usr/bin/chromium-browser \
   --start-fullscreen \
   --disable-restore-session-state \
@@ -79,6 +96,7 @@ echo "Using scoreboard URL: $SCOREBOARD_URL"
   --disable-features=VizDisplayCompositor \
   --disable-dev-shm-usage \
   --app="$SCOREBOARD_URL" \
+  --no-sandbox \
   >/dev/null 2>&1 &
 
 # Wait and ensure fullscreen
