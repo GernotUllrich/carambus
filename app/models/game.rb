@@ -243,11 +243,11 @@ class Game < ApplicationRecord
   RANKING_KEY_PATTERNS = {
     %r{group(\d+):(\d+)-(\d+)(?:\/(\d+))} => ->(m) { I18n.t("game.display_group_game_name_rp", group_no: m[1], playera: m[2], playerb: m[3], rp: m[4]).html_safe },
     /group(\d+):(\d+)-(\d+)/ => ->(m) { I18n.t("game.display_group_game_name", group_no: m[1], playera: m[2], playerb: m[3]).html_safe },
-    /group(\d+)/i => ->(m) { I18n.t("game.display_group_game_name_short", group_no: clean_key(m[1])).html_safe },
+    /group(\d+)/i => ->(m) { I18n.t("game.display_group_game_name_short", group_no: self.clean_key(m[1])).html_safe },
     # ... repeated for all patterns
   }.freeze
 
-  def clean_key(key)
+  def self.clean_key(key)
     key.to_str.gsub("/", "")
   end
 

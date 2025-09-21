@@ -37,6 +37,16 @@ export default class extends ApplicationController {
     this.initializeClientState()
   }
 
+  disconnect() {
+    // Clean up all debounce timers when controller disconnects
+    Object.values(this.debounceTimers).forEach(timer => {
+      if (timer) {
+        clearTimeout(timer)
+      }
+    })
+    console.log("Tabmon controller disconnected and timers cleared")
+  }
+
   initializeClientState() {
     // Initialize client-side state for immediate feedback
     this.clientState = {
@@ -45,6 +55,15 @@ export default class extends ApplicationController {
       pendingUpdates: new Set(),
       updateHistory: []
     }
+    
+    // Initialize debouncing mechanism
+    this.debounceTimers = {
+      add_n: null,
+      minus_n: null,
+      next_step: null,
+      undo: null
+    }
+    
     console.log("Tabmon client state initialized:", this.clientState)
   }
 
@@ -107,7 +126,7 @@ export default class extends ApplicationController {
     setTimeout(() => {
       scoreElement.classList.remove('score-updated')
       inningsElement.classList.remove('score-updated')
-    }, 250)
+    }, 150)
 
     // Store in client state
     this.clientState.scores[playerId] = newScore
@@ -200,13 +219,13 @@ export default class extends ApplicationController {
       if (scoreElement) {
         scoreElement.textContent = lastUpdate.previousScore
         scoreElement.classList.add('score-updated')
-        setTimeout(() => scoreElement.classList.remove('score-updated'), 250)
+        setTimeout(() => scoreElement.classList.remove('score-updated'), 150)
       }
       
       if (inningsElement && lastUpdate.previousInnings !== undefined) {
         inningsElement.textContent = lastUpdate.previousInnings
         inningsElement.classList.add('score-updated')
-        setTimeout(() => inningsElement.classList.remove('score-updated'), 250)
+        setTimeout(() => inningsElement.classList.remove('score-updated'), 150)
       }
       
       console.log(`Tabmon reverted ${lastUpdate.playerId} to ${lastUpdate.previousScore} (innings: ${lastUpdate.previousInnings})`)
@@ -234,8 +253,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`add_n_${tableMonitorId}`)
 
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#add_n', this.element)
+    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
+    this.debouncedServerCall('add_n', this.element, 500)
   }
 
   minus_n () {
@@ -253,8 +272,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`minus_n_${tableMonitorId}`)
     
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#minus_n', this.element)
+    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
+    this.debouncedServerCall('minus_n', this.element, 500)
   }
 
   undo () {
@@ -267,8 +286,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`undo_${tableMonitorId}`)
     
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#undo')
+    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
+    this.debouncedServerCall('undo', this.element, 500)
   }
 
   next_step () {
@@ -281,8 +300,8 @@ export default class extends ApplicationController {
     // Mark as pending update
     this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`)
     
-    // Background validation via StimulusReflex
-    this.stimulate('TableMonitor#next_step')
+    // 🚀 DEBOUNCED SERVER VALIDATION - wait 500ms after last click
+    this.debouncedServerCall('next_step', this.element, 500)
   }
 
   numbers () {
@@ -377,6 +396,50 @@ export default class extends ApplicationController {
     document.querySelectorAll('.pending-update').forEach(el => {
       this.removePendingIndicator(el)
     })
+  }
+
+  // Debounced server call - waits 500ms after last click before triggering server validation
+  debouncedServerCall(actionType, element, delay = 500) {
+    console.log(`Tabmon debouncing ${actionType} call`)
+    
+    // Cancel any existing timer for this action type
+    if (this.debounceTimers[actionType]) {
+      clearTimeout(this.debounceTimers[actionType])
+      console.log(`Tabmon cancelled previous ${actionType} timer`)
+    }
+    
+    // Set new timer
+    this.debounceTimers[actionType] = setTimeout(() => {
+      console.log(`Tabmon executing delayed ${actionType} server call`)
+      this.executeServerCall(actionType, element)
+      this.debounceTimers[actionType] = null
+    }, delay)
+  }
+
+  // Execute the actual server call
+  executeServerCall(actionType, element) {
+    console.log(`Tabmon executing server call: ${actionType}`)
+    
+    // Remove pending indicators since we're now processing
+    this.removeAllPendingIndicators()
+    
+    // Trigger the appropriate StimulusReflex
+    switch(actionType) {
+      case 'add_n':
+        this.stimulate('TableMonitor#add_n', element)
+        break
+      case 'minus_n':
+        this.stimulate('TableMonitor#minus_n', element)
+        break
+      case 'next_step':
+        this.stimulate('TableMonitor#next_step', element)
+        break
+      case 'undo':
+        this.stimulate('TableMonitor#undo', element)
+        break
+      default:
+        console.warn(`Tabmon unknown action type: ${actionType}`)
+    }
   }
 
   // Show error message to user
