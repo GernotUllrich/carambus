@@ -1,5 +1,8 @@
 import ApplicationController from './application_controller'
 
+// Configuration: Validation delay in milliseconds
+const VALIDATION_DELAY_MS = 5000 // Change this to test different delays
+
 /* This is the custom StimulusReflex controller for the Example Reflex.
  * Learn more at: https://docs.stimulusreflex.com
  */
@@ -382,13 +385,13 @@ export default class extends ApplicationController {
         console.log(`⏰ TableMonitor cancelled previous validation timer`)
       }
       
-      // Set new validation timer - validate with total after 500ms of inactivity
+      // Set new validation timer - validate with total after VALIDATION_DELAY_MS of inactivity
       this.clientState.validationTimer = setTimeout(() => {
         console.log(`⏰ TableMonitor validation timer triggered - validating accumulated changes`)
         this.validateAccumulatedChanges()
-      }, 500)
+      }, VALIDATION_DELAY_MS)
       
-      console.log(`⏰ TableMonitor set new validation timer (500ms)`)
+      console.log(`⏰ TableMonitor set new validation timer (${VALIDATION_DELAY_MS}ms)`)
     } catch (error) {
       console.error(`❌ TableMonitor accumulateAndValidateChange ERROR:`, error)
       console.error(`❌ Error stack:`, error.stack)

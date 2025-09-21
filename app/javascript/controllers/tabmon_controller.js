@@ -1,5 +1,8 @@
 import ApplicationController from './application_controller'
 
+// Configuration: Validation delay in milliseconds
+const VALIDATION_DELAY_MS = 5000 // Change this to test different delays
+
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
  * Now includes optimistic updates for immediate user feedback.
@@ -445,13 +448,13 @@ export default class extends ApplicationController {
       console.log(`⏰ Tabmon cancelled previous validation timer`)
     }
     
-    // Set new validation timer - validate with total after 500ms of inactivity
+    // Set new validation timer - validate with total after VALIDATION_DELAY_MS of inactivity
     this.clientState.validationTimer = setTimeout(() => {
       console.log(`⏰ Tabmon validation timer triggered - validating accumulated changes`)
       this.validateAccumulatedChanges()
-    }, 500)
+    }, VALIDATION_DELAY_MS)
     
-      console.log(`⏰ Tabmon set new validation timer (500ms)`)
+      console.log(`⏰ Tabmon set new validation timer (${VALIDATION_DELAY_MS}ms)`)
     } catch (error) {
       console.error(`❌ Tabmon accumulateAndValidateChange ERROR:`, error)
       console.error(`❌ Error stack:`, error.stack)
