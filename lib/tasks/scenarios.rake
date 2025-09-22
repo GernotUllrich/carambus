@@ -266,7 +266,7 @@ namespace :scenario do
   end
 
   def templates_path
-    @templates_path ||= File.join(Rails.root, 'templates')
+    @templates_path ||= File.join(File.expand_path('../carambus_master', Rails.root), 'templates')
   end
 
   def list_scenarios
@@ -2245,8 +2245,8 @@ ENV
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{service_file_cmd}'")
       puts "   ✅ Puma service configuration updated"
 
-      # Reload systemd and restart service
-      reload_cmd = "sudo systemctl daemon-reload && sudo systemctl restart puma-#{basename}.service"
+      # Clean up any stale socket files and reload systemd and restart service
+      cleanup_cmd = "sudo rm -f /var/www/#{basename}/shared/sockets/puma-production.sock && sudo systemctl daemon-reload && sudo systemctl restart puma-#{basename}.service"
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{reload_cmd}'")
         puts "   ✅ Puma service restarted successfully"
         true
@@ -3213,7 +3213,7 @@ ENV
     end
 
     # Create necessary directories and enable site
-    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/www/carambus/shared/log /var/log/#{basename} && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log /var/www/carambus/shared/log && sudo chown -R www-data:www-data /var/log/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
+    enable_cmd = "sudo mkdir -p /var/www/#{basename}/shared/log /var/log/#{basename} && sudo chown -R www-data:www-data /var/www/#{basename}/shared/log && sudo chown -R www-data:www-data /var/log/#{basename} && sudo ln -sf /etc/nginx/sites-available/#{basename} /etc/nginx/sites-enabled/#{basename} && sudo nginx -t && sudo systemctl reload nginx"
     unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{enable_cmd}'")
       puts "   ❌ Failed to enable nginx site or reload nginx"
       return false
@@ -3359,11 +3359,19 @@ ENV
     # Upload autostart script
     puts "\n📤 Uploading autostart script..."
     autostart_script = generate_autostart_script(scenario_name, pi_config)
-    upload_script_cmd = "cat > /tmp/autostart-scoreboard.sh << 'EOF'\n#{autostart_script}\nEOF"
-    if execute_ssh_command(pi_ip, ssh_user, ssh_password, upload_script_cmd, ssh_port)
+    
+    # Write script to temporary file locally first
+    temp_script_path = "/tmp/autostart-scoreboard-#{scenario_name}.sh"
+    File.write(temp_script_path, autostart_script)
+    
+    # Upload the file using scp
+    if system("scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh")
       puts "   ✅ Autostart script uploaded"
+      # Clean up local temp file
+      File.delete(temp_script_path)
     else
       puts "   ❌ Failed to upload autostart script"
+      File.delete(temp_script_path) if File.exist?(temp_script_path)
       return false
     end
 
@@ -3579,6 +3587,14 @@ ENV
     true
   end
 
+  def read_scenario_config(scenario_name)
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      raise "Scenario configuration not found: #{config_file}"
+    end
+    YAML.load_file(config_file)
+  end
+
   def generate_autostart_script(scenario_name, pi_config)
     scenario_config = read_scenario_config(scenario_name)
     basename = scenario_config['scenario']['basename']
@@ -3599,8 +3615,13 @@ ENV
     webserver_port = scenario_config.dig('environments', 'production', 'webserver_port') || '82'
     
     fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}?sb_state=welcome"
+    
+    # Generate the script using Ruby string manipulation
+    generate_autostart_script_content(scenario_name, basename, fallback_url)
+  end
 
-    <<~EOF
+  def generate_autostart_script_content(scenario_name, basename, fallback_url)
+    <<~SCRIPT
       #!/bin/bash
       # Carambus Scoreboard Autostart Script
       # Generated for scenario: #{scenario_name}
@@ -3631,7 +3652,7 @@ ENV
 
       # Try to detect the Puma service name dynamically
       PUMA_SERVICE=""
-      for service in puma-#{basename}.service puma-carambus_bcw.service puma-carambus.service puma.service; do
+      for service in puma-#{basename}.service puma.service; do
           if systemctl is-active --quiet $service 2>/dev/null; then
               PUMA_SERVICE=$service
               break
@@ -3673,10 +3694,6 @@ ENV
           # Look for running carambus services to determine the correct URL
           if systemctl is-active --quiet puma-#{basename}.service 2>/dev/null; then
               SCOREBOARD_URL="#{fallback_url}"
-          elif systemctl is-active --quiet puma-carambus_bcw.service 2>/dev/null; then
-              SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
-          elif systemctl is-active --quiet puma-carambus.service 2>/dev/null; then
-              SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
           fi
       fi
 
@@ -3712,7 +3729,54 @@ ENV
       while true; do
         sleep 1
       done
-    EOF
+    SCRIPT
+  end
+
+  desc "Preview autostart script for scenario"
+  task :preview_autostart_script, [:scenario_name] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    
+    unless scenario_name
+      puts "❌ Error: Please provide scenario name"
+      puts "Usage: rake scenario:preview_autostart_script[scenario_name]"
+      exit 1
+    end
+    
+    puts "🔍 Previewing autostart script for #{scenario_name}..."
+    
+    begin
+      # Load scenario configuration
+      config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+      unless File.exist?(config_file)
+        puts "❌ Error: Scenario configuration not found: #{config_file}"
+        exit 1
+      end
+      
+      scenario_config = YAML.load_file(config_file)
+      production_config = scenario_config['environments']['production']
+      pi_config = production_config['raspberry_pi_client']
+      
+      unless pi_config && pi_config['enabled']
+        puts "❌ Error: Raspberry Pi client not enabled for this scenario"
+        exit 1
+      end
+      
+      # Generate the script
+      autostart_script = generate_autostart_script(scenario_name, pi_config)
+      
+      puts "\n" + "="*80
+      puts "GENERATED AUTOSTART SCRIPT"
+      puts "="*80
+      puts autostart_script
+      puts "="*80
+      puts "\n✅ Script generated successfully (#{autostart_script.length} characters)"
+      puts "   To deploy this script, run: rake scenario:deploy_raspberry_pi_client[#{scenario_name}]"
+      
+    rescue => e
+      puts "❌ Error generating script: #{e.message}"
+      puts e.backtrace.first(5).join("\n")
+      exit 1
+    end
   end
 
   desc "Restart Raspberry Pi client browser"
@@ -3864,8 +3928,8 @@ ENV
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
 
-    # Restart Puma to pick up code changes
-    restart_puma_cmd = "sudo systemctl restart puma-#{basename}.service"
+    # Clean up any stale socket files and restart Puma to pick up code changes
+    restart_puma_cmd = "sudo rm -f /var/www/#{basename}/shared/sockets/puma-production.sock && sudo systemctl restart puma-#{basename}.service"
     if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{restart_puma_cmd}'")
       puts "   ✅ Puma service restarted successfully"
     else
