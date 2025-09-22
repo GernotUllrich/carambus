@@ -134,3 +134,15 @@ end
 
 # Run symlink check before asset precompilation
 before "deploy:assets:precompile", "deploy:ensure_current_symlink"
+
+# Puma restart configuration
+after 'deploy:publishing', 'puma:restart'
+
+namespace :puma do
+  desc "Restart application"
+  task :restart do
+    on roles(:app) do
+      execute "sudo #{current_path}/bin/manage-puma.sh"
+    end
+  end
+end
