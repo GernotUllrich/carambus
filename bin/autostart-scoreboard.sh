@@ -28,7 +28,7 @@ echo "Waiting for Puma server to be ready..."
 
 # Try to detect the Puma service name dynamically
 PUMA_SERVICE=""
-for service in puma-carambus_bcw.service puma-carambus.service puma.service; do
+for service in puma-carambus_location_5101.service puma-carambus_bcw.service puma-carambus.service puma.service; do
     if systemctl is-active --quiet $service 2>/dev/null; then
         PUMA_SERVICE=$service
         break
@@ -61,14 +61,16 @@ sleep 10
 SCOREBOARD_URL=""
 
 # Method 1: Try to read from config file
-if [ -f "$(dirname "$0")/../config/scoreboard_url" ]; then
-    SCOREBOARD_URL=$(cat "$(dirname "$0")/../config/scoreboard_url")
+if [ -f "/var/www/carambus_location_5101/shared/config/scoreboard_url" ]; then
+    SCOREBOARD_URL=$(cat "/var/www/carambus_location_5101/shared/config/scoreboard_url")
 fi
 
 # Method 2: Try to detect from running services
 if [ -z "$SCOREBOARD_URL" ]; then
     # Look for running carambus services to determine the correct URL
-    if systemctl is-active --quiet puma-carambus_bcw.service 2>/dev/null; then
+    if systemctl is-active --quiet puma-carambus_location_5101.service 2>/dev/null; then
+        SCOREBOARD_URL="http://192.168.178.107:82/locations/a5a80f546e9c46d781e9f6314ad0ace1?sb_state=welcome"
+    elif systemctl is-active --quiet puma-carambus_bcw.service 2>/dev/null; then
         SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
     elif systemctl is-active --quiet puma-carambus.service 2>/dev/null; then
         SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
@@ -77,7 +79,7 @@ fi
 
 # Method 3: Default fallback
 if [ -z "$SCOREBOARD_URL" ]; then
-    SCOREBOARD_URL="http://192.168.178.107:3131/locations/0819bf0d7893e629200c20497ef9cfff?sb_state=welcome"
+    SCOREBOARD_URL="http://192.168.178.107:82/locations/a5a80f546e9c46d781e9f6314ad0ace1?sb_state=welcome"
 fi
 
 echo "Using scoreboard URL: $SCOREBOARD_URL"

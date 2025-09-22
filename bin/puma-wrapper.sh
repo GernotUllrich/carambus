@@ -17,8 +17,9 @@ cd "/var/www/$BASENAME/current" || {
     exit 1
 }
 
-# Initialize rbenv
-eval "$(/var/www/.rbenv/bin/rbenv init -)"
+# Set up rbenv environment
+export RBENV_ROOT="/var/www/.rbenv"
+export PATH="/var/www/.rbenv/shims:$PATH"
 
-# Start Puma with the config file
-exec bundle exec puma -C "/var/www/$BASENAME/shared/config/puma.rb"
+# Start Puma with the config file using rbenv shims
+exec /var/www/.rbenv/shims/bundle exec puma -C "/var/www/$BASENAME/shared/config/puma.rb"

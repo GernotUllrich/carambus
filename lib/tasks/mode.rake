@@ -1117,12 +1117,18 @@ namespace :mode do
       'config/scoreboard_url' => "/var/www/#{deploy_config[:basename]}/shared/config/scoreboard_url",
       'config/nginx.conf' => "/etc/nginx/sites-available/#{deploy_config[:basename]}",
       'config/puma.service' => "/etc/systemd/system/puma-#{deploy_config[:basename]}.service",
-      'config/puma.rb' => "/var/www/#{deploy_config[:basename]}/shared/config/puma.rb"
+      'config/puma.rb' => "/var/www/#{deploy_config[:basename]}/shared/config/puma.rb",
+      'bin/puma-wrapper.sh' => "/var/www/#{deploy_config[:basename]}/current/bin/puma-wrapper.sh"
     }
     
     config_files.each do |source, target|
       if File.exist?(source)
         deploy_file(source, target, deploy_config)
+        # Make puma-wrapper.sh executable
+        if source == 'bin/puma-wrapper.sh'
+          system("ssh -p #{deploy_config[:port]} www-data@#{deploy_config[:host]} 'sudo chmod +x #{target}'")
+          puts "✓ Made #{target} executable"
+        end
       else
         puts "⚠️  #{source} not found, skipping"
       end
