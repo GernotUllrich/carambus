@@ -131,9 +131,7 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      # Clean up any stale socket files and restart Puma service
-      execute "sudo rm -f #{shared_path}/sockets/puma-production.sock"
-      execute "sudo systemctl restart puma-#{fetch(:basename)}.service"
+      execute "sudo #{current_path}/bin/manage-puma.sh"
     end
   end
 end
