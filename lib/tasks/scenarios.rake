@@ -3576,12 +3576,13 @@ ENV
 
     # Test browser process
     puts "\n🌐 Testing browser process..."
-    # Check for both chromium and chromium-browser
-    browser_test_cmd = "pgrep chromium || pgrep chromium-browser"
+    # Check for both chromium and chromium-browser (use -f to match full command line)
+    browser_test_cmd = "pgrep -f chromium || pgrep -f chromium-browser"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, browser_test_cmd, ssh_port)
       puts "   ✅ Browser process is running"
     else
       puts "   ❌ Browser process not found"
+      puts "   💡 Check logs: ssh -p #{ssh_port} #{ssh_user}@#{pi_ip} 'tail /tmp/chromium-kiosk.log'"
     end
 
     puts "\n✅ Raspberry Pi client test completed!"
@@ -4207,6 +4208,7 @@ EOF
         exit 1
       fi
       
+      echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
       $BROWSER_CMD \\
         --start-fullscreen \\
         --disable-restore-session-state \\
@@ -4215,7 +4217,11 @@ EOF
         --disable-dev-shm-usage \\
         --app="$SCOREBOARD_URL" \\
         --no-sandbox \\
-        >/dev/null 2>&1 &
+        --disable-gpu \\
+        >>/tmp/chromium-kiosk.log 2>&1 &
+      
+      BROWSER_PID=$!
+      echo "Browser started with PID: $BROWSER_PID"
 
       # Wait and ensure fullscreen
       sleep 5
