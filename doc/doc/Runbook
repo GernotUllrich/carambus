@@ -37,6 +37,9 @@ OS mit Raspberry Pi Manager laden:
   reboot or restart sshd service using: /etc/init.d/ssh restart\
   Set a root password if there isn't one already: sudo passwd root\
   $ ssh-copy-id root@192.168.178.52       (ggf vorher, brew install ssh-copy-id)
+* Anschliessesd auf dem raspi in /etc/ssh/sshd-config
+* für root den password zugang sperren:
+* PermitRootLogin prohibit-password
 
 ## Konfigurieren mit ansible
 

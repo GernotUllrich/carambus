@@ -79,3 +79,6 @@ def prepare_scenario_for_deployment_with_local_data(scenario_name)
   # ... rest of the function would be the same as the original
   # This is just a template showing where to add the compatibility check
 end
+
+
+

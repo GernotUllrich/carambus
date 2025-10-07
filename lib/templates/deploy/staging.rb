@@ -3,7 +3,9 @@
 # Defines a single server with a list of roles and multiple properties.
 # You can define all roles on a single server, or split them:
 
-server "192.168.178.81", user: "www-data", roles: %w[app db web], ssh_options: {port: "8910"}
+# This template should be replaced by scenario-specific generated staging.rb
+# Use: rake scenario:generate_configs[scenario_name,staging]
+server "localhost", user: "www-data", roles: %w[app db web], ssh_options: {port: "22"}
 # server 'carambus.de', user: 'deploy', roles: %w{app web}, other_property: :other_value
 # server 'db.carambus.de', user: 'deploy', roles: %w{db}
 

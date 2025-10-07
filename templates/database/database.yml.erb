@@ -8,6 +8,7 @@ default: &default
   <<: *default
   database: <%= @config["database_name"] %>
   <% if @config["database_username"] %>
+  host: localhost
   username: <%= @config["database_username"] %>
   <% end %>
   <% if @config["database_password"] %>

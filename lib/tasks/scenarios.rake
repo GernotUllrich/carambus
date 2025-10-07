@@ -214,6 +214,60 @@ namespace :scenario do
     test_raspberry_pi_client(scenario_name)
   end
 
+  desc "Check scenario compatibility and local data"
+  task :check_compatibility, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:check_compatibility[scenario_name]"
+      puts "Example: rake scenario:check_compatibility[carambus_location_5101]"
+      exit 1
+    end
+
+    check_scenario_compatibility(scenario_name)
+  end
+
+  desc "Backup local data from production server"
+  task :backup_local_data, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:backup_local_data[scenario_name]"
+      puts "Example: rake scenario:backup_local_data[carambus_location_5101]"
+      exit 1
+    end
+
+    backup_local_data_from_production(scenario_name)
+  end
+
+  desc "Restore local data to production server"
+  task :restore_local_data, [:scenario_name, :backup_file] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    backup_file = args[:backup_file]
+
+    if scenario_name.nil? || backup_file.nil?
+      puts "Usage: rake scenario:restore_local_data[scenario_name,backup_file]"
+      puts "Example: rake scenario:restore_local_data[carambus_location_5101,local_data_20250117_120000.sql]"
+      exit 1
+    end
+
+    unless File.exist?(backup_file)
+      puts "❌ Backup file not found: #{backup_file}"
+      exit 1
+    end
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    restore_local_data_to_production(scenario_name, backup_file, production_config)
+  end
+
   private
 
   def carambus_data_path
@@ -1445,21 +1499,21 @@ ENV
 
   def enable_development_caching(rails_root)
     puts "   🔥 Enabling caching for StimulusReflex compatibility..."
-    
+
     # Check if caching is already enabled
     caching_file = File.join(rails_root, 'tmp', 'caching-dev.txt')
     if File.exist?(caching_file)
       puts "   ✅ Caching already enabled (caching-dev.txt exists)"
       return true
     end
-    
+
     # Enable caching by running rails dev:cache
     puts "   🔧 Running 'rails dev:cache' to enable caching..."
     unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails dev:cache")
       puts "   ❌ Failed to enable caching with 'rails dev:cache'"
       return false
     end
-    
+
     # Verify caching was enabled
     if File.exist?(caching_file)
       puts "   ✅ Caching successfully enabled for StimulusReflex"
@@ -1474,42 +1528,56 @@ ENV
 
   def sync_with_api_production_if_newer(scenario_name, force = false)
     puts "Checking if carambus_api_production has newer official versions (< 50000000) than carambus_api_development..."
-    
+
     # Skip if this is the carambus_api scenario itself
     if scenario_name == 'carambus_api'
       puts "   ℹ️  Skipping API sync for carambus_api scenario (it is the source)"
       return true
     end
-    
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "   ❌ Scenario configuration not found: #{config_file}"
+      return false
+    end
+    scenario_config = YAML.load_file(config_file)
+
     # Check if carambus_api_development exists locally
     unless system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
       puts "   ℹ️  carambus_api_development not found locally - skipping sync"
       return true
     end
-    
+
     # Check if carambus_api_production exists on remote server
-    unless system("ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
+    api_ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
+    api_ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
+    if api_ssh_host.nil? || api_ssh_host.empty?
+      puts "   ❌ Missing production.ssh_host in scenario config for #{scenario_name}"
+      return false
+    end
+    unless system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
       puts "   ℹ️  carambus_api_production not found on remote server - skipping sync"
       return true
     end
-    
+
     # Get local carambus_api_development version (only official versions < 50000000)
     local_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions WHERE id < 50000000;\""
     local_version_result = `#{local_version_cmd}`.strip
     local_version = local_version_result.to_i
-    
+
     # Get remote carambus_api_production version (only official versions < 50000000)
-    remote_version_cmd = "ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions WHERE id < 50000000;\"'"
+    remote_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions WHERE id < 50000000;\"'"
     remote_version_result = `#{remote_version_cmd}`.strip
     remote_version = remote_version_result.to_i
-    
+
     puts "   📊 Local carambus_api_development version (official < 50000000): #{local_version}"
     puts "   📊 Remote carambus_api_production version (official < 50000000): #{remote_version}"
-    
+
     if remote_version > local_version
       puts "   🔄 Remote carambus_api_production has newer official versions (#{remote_version} > #{local_version})"
       puts "   📥 Syncing carambus_api_development with newer production data..."
-      
+
       # Create backup of current carambus_api_development
       backup_name = "carambus_api_development_backup_#{Time.now.strftime('%Y%m%d_%H%M%S')}"
       puts "   💾 Creating backup: #{backup_name}"
@@ -1517,7 +1585,7 @@ ENV
         puts "   ❌ Failed to create backup database"
         return false
       end
-      
+
       # Copy current data to backup
       unless system("pg_dump carambus_api_development | psql #{backup_name}")
         puts "   ❌ Failed to backup current data"
@@ -1525,19 +1593,19 @@ ENV
         return false
       end
       puts "   ✅ Backup created: #{backup_name}"
-      
+
       # Drop and recreate carambus_api_development
       puts "   🗑️  Dropping current carambus_api_development..."
       system("dropdb carambus_api_development")
-      
+
       puts "   📥 Creating new carambus_api_development from production..."
       unless system("createdb carambus_api_development")
         puts "   ❌ Failed to create new carambus_api_development"
         return false
       end
-      
+
       # Copy data from remote production to local development
-      dump_cmd = "ssh -p 8910 www-data@192.168.178.107 'sudo -u postgres pg_dump carambus_api_production' | psql carambus_api_development"
+      dump_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres pg_dump carambus_api_production' | psql carambus_api_development"
       unless system(dump_cmd)
         puts "   ❌ Failed to sync data from production"
         puts "   🔄 Restoring from backup..."
@@ -1547,17 +1615,17 @@ ENV
         system("dropdb #{backup_name}")
         return false
       end
-      
+
       puts "   ✅ Successfully synced carambus_api_development with production data"
       puts "   🧹 Cleaning up backup: #{backup_name}"
       system("dropdb #{backup_name}")
-      
+
     elsif remote_version == local_version
       puts "   ✅ carambus_api_development is already up to date with official versions (#{local_version})"
     else
       puts "   ℹ️  Local carambus_api_development has newer official versions (#{local_version} > #{remote_version}) - no sync needed"
     end
-    
+
     true
   end
 
@@ -2335,30 +2403,32 @@ ENV
 
   def upload_and_load_database_dump(scenario_name, production_config)
     puts "💾 Uploading and loading database dump..."
-    
+
     # Get basename from production config or derive from scenario name
     basename = production_config['basename'] || scenario_name
+    db_username = production_config['database_username']
+    db_password = production_config['database_password']
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     production_database = production_config['database_name']
-    
+
     # Find the latest production dump
     dump_dir = File.join(scenarios_path, scenario_name, 'database_dumps')
     latest_dump = Dir.glob(File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")).max_by { |f| File.mtime(f) }
-    
+
     if latest_dump && File.exist?(latest_dump)
       puts "   📦 Using dump: #{File.basename(latest_dump)}"
-      
+
       # Upload dump to server
       temp_dump_path = "/tmp/#{File.basename(latest_dump)}"
       upload_cmd = "scp -P #{ssh_port} #{latest_dump} www-data@#{ssh_host}:#{temp_dump_path}"
-      
+
       if system(upload_cmd)
         puts "   ✅ Database dump uploaded to server"
-        
+
         # Remove application folder and recreate database on server
         puts "   🔄 Removing application folders (including old trials) and recreating production database..."
-        
+
         # Create a temporary script for database operations
         temp_script = "/tmp/reset_database.sh"
         script_content = <<~SCRIPT
@@ -2384,8 +2454,20 @@ ENV
           echo "🗑️  Dropping existing database..."
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
           
+          # Ensure database role exists (with password and privileges)
+          echo "👤 Ensuring database role exists..."
+          if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='#{db_username}'" | grep -q 1; then
+            echo "   Role #{db_username} exists"
+          else
+            echo "   Creating role #{db_username}"
+            sudo -u postgres psql -c "CREATE ROLE #{db_username} WITH LOGIN PASSWORD '#{db_password}';"
+          fi
+          # Always enforce password and required privileges
+          sudo -u postgres psql -c "ALTER ROLE #{db_username} WITH PASSWORD '#{db_password}';"
+          sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
+          
           echo "🆕 Creating new database..."
-          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER www_data;"
+          sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{db_username};"
           
           # Verify database was created successfully
           echo "🔍 Verifying database creation..."
@@ -2410,12 +2492,11 @@ ENV
           
           echo "✅ Database reset completed successfully"
         SCRIPT
-        
+        File.write('/tmp/reset_database.sh', script_content)
         # Write script to server
-        script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{script_content}SCRIPT_EOF"
-        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+        if system("scp -P #{ssh_port} '/tmp/reset_database.sh' www-data@#{ssh_host}:/tmp")
           puts "   ✅ Database reset script created"
-          
+
           # Execute database reset
           reset_output = `ssh -p #{ssh_port} www-data@#{ssh_host} 'chmod +x #{temp_script} && #{temp_script}' 2>&1`
           if $?.success?
@@ -2426,27 +2507,27 @@ ENV
             puts "   📋 Error output: #{reset_output}"
             return false
           end
-          
+
           # Restore database from dump
           puts "   📥 Restoring database from dump..."
-          
+
           # Simply load the dump and ignore user warnings
           restore_cmd = "gunzip -c #{temp_dump_path} | sudo -u postgres psql #{production_database} 2>&1"
-          
+
           restore_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{restore_cmd}'`
           if $?.success?
             puts "   ✅ Database restored successfully"
-            
+
             # Verify database was restored correctly
             puts "   🔍 Verifying database restore..."
             verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
             verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
-            
+
             if verify_output.include?("19") && verify_output.include?("(1 row)")
               puts "   ✅ Database verification successful - 19 regions found"
-              
+
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
-              
+
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
               puts "   🧹 Temporary files cleaned up"
@@ -2477,12 +2558,12 @@ ENV
 
   def upload_configuration_files_to_server(scenario_name, production_config)
     puts "📤 Uploading configuration files to server..."
-    
+
     # Get basename from production config or derive from scenario name
     basename = production_config['basename'] || scenario_name
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
-    
+
     # Create entire deployment directory structure with proper permissions
     deploy_dir = "/var/www/#{basename}"
     shared_config_dir = "#{deploy_dir}/shared/config"
@@ -2491,10 +2572,10 @@ ENV
       puts "   ❌ Failed to create deployment directory structure"
       return false
     end
-    
+
     # Upload config files to shared directory
     production_dir = File.join(scenarios_path, scenario_name, 'production')
-    
+
     # Upload database.yml
     database_yml_path = File.join(production_dir, 'database.yml')
     if File.exist?(database_yml_path)
@@ -2510,7 +2591,7 @@ ENV
       puts "   ❌ database.yml not found: #{database_yml_path}"
       return false
     end
-    
+
     # Upload carambus.yml
     carambus_yml_path = File.join(production_dir, 'carambus.yml')
     if File.exist?(carambus_yml_path)
@@ -2526,7 +2607,7 @@ ENV
       puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
       return false
     end
-    
+
     # Upload nginx.conf
     nginx_conf_path = File.join(production_dir, 'nginx.conf')
     if File.exist?(nginx_conf_path)
@@ -2542,7 +2623,7 @@ ENV
       puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
       return false
     end
-    
+
     # Upload puma.service
     puma_service_path = File.join(production_dir, 'puma.service')
     if File.exist?(puma_service_path)
@@ -2558,7 +2639,7 @@ ENV
       puts "   ❌ puma.service not found: #{puma_service_path}"
       return false
     end
-    
+
     # Upload puma.rb
     puma_rb_path = File.join(production_dir, 'puma.rb')
     if File.exist?(puma_rb_path)
@@ -2574,7 +2655,7 @@ ENV
       puts "   ❌ puma.rb not found: #{puma_rb_path}"
       return false
     end
-    
+
     # Upload production.rb
     production_rb_path = File.join(production_dir, 'production.rb')
     if File.exist?(production_rb_path)
@@ -2592,13 +2673,13 @@ ENV
       puts "   ❌ production.rb not found: #{production_rb_path}"
       return false
     end
-    
+
     # Upload credentials
     credentials_dir = File.join(production_dir, 'credentials')
     if Dir.exist?(credentials_dir)
       # Create credentials directory on server
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
-      
+
       # Upload production.yml.enc
       production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
       if File.exist?(production_yml_enc_path)
@@ -2614,7 +2695,7 @@ ENV
         puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
         return false
       end
-      
+
       # Upload production.key
       production_key_path = File.join(credentials_dir, 'production.key')
       if File.exist?(production_key_path)
@@ -2634,7 +2715,7 @@ ENV
       puts "   ❌ Credentials directory not found: #{credentials_dir}"
       return false
     end
-    
+
     # Upload env.production
     env_production_path = File.join(production_dir, 'env.production')
     if File.exist?(env_production_path)
@@ -2650,7 +2731,7 @@ ENV
       puts "   ❌ env.production not found: #{env_production_path}"
       return false
     end
-    
+
     puts "   ✅ All configuration files uploaded successfully"
     true
   end
@@ -2870,11 +2951,11 @@ ENV
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
       puts "   Source: #{dev_database_name}"
       puts "   Target: #{prod_database_name}"
-      
+
       # Clean up old dumps (keep only last 5)
       puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
       cleanup_old_dumps(dump_dir, scenario_name)
-      
+
       true
     else
       puts "❌ Failed to create production dump"
@@ -2932,11 +3013,11 @@ ENV
           # Clean up temporary database
           system("dropdb #{temp_db_name}")
           puts "   🧹 Cleaned up temporary database"
-          
+
           # Clean up old dumps (keep only last 5)
           puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
           cleanup_old_dumps(dump_dir, scenario_name)
-          
+
           true
         else
           puts "❌ Failed to create dump from filtered database"
@@ -2969,11 +3050,11 @@ ENV
     if system("pg_dump --no-owner --no-privileges carambus_api_development | gzip > #{dump_file}")
       puts "✅ Production dump created: #{File.basename(dump_file)}"
       puts "   Size: #{File.size(dump_file) / 1024 / 1024} MB"
-      
+
       # Clean up old dumps (keep only last 5)
       puts "   🧹 Cleaning up old database dumps (keeping last 5)..."
       cleanup_old_dumps(dump_dir, scenario_name)
-      
+
       true
     else
       puts "❌ Production dump failed"
@@ -2985,21 +3066,21 @@ ENV
     # Find all production dumps for this scenario
     dump_pattern = File.join(dump_dir, "#{scenario_name}_production_*.sql.gz")
     dumps = Dir.glob(dump_pattern)
-    
+
     # Sort by modification time (newest first)
     dumps.sort_by! { |f| File.mtime(f) }.reverse!
-    
+
     if dumps.length > 5
       dumps_to_delete = dumps[5..-1] # Keep first 5, delete the rest
       total_size = 0
-      
+
       dumps_to_delete.each do |dump_file|
         size = File.size(dump_file)
         total_size += size
         File.delete(dump_file)
         puts "   🗑️  Deleted old dump: #{File.basename(dump_file)} (#{size / 1024 / 1024} MB)"
       end
-      
+
       puts "   ✅ Cleaned up #{dumps_to_delete.length} old dumps, freed #{total_size / 1024 / 1024} MB"
       puts "   📁 Keeping #{[dumps.length - dumps_to_delete.length, 5].min} most recent dumps"
     else
@@ -3059,7 +3140,7 @@ ENV
 
       if system(deploy_cmd)
         puts "   ✅ Capistrano deployment completed successfully"
-        
+
       else
         puts "   ❌ Capistrano deployment failed"
         return false
@@ -3337,7 +3418,7 @@ ENV
     # The database connection should be configured via database.yml
     location = Location.find(location_id)
     location_md5 = location.md5
-    
+
     # Generate URL using the correct MD5
     scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
 
@@ -3359,11 +3440,11 @@ ENV
     # Upload autostart script
     puts "\n📤 Uploading autostart script..."
     autostart_script = generate_autostart_script(scenario_name, pi_config)
-    
+
     # Write script to temporary file locally first
     temp_script_path = "/tmp/autostart-scoreboard-#{scenario_name}.sh"
     File.write(temp_script_path, autostart_script)
-    
+
     # Upload the file using scp
     if system("scp -P #{ssh_port} #{temp_script_path} #{ssh_user}@#{pi_ip}:/tmp/autostart-scoreboard.sh")
       puts "   ✅ Autostart script uploaded"
@@ -3483,7 +3564,9 @@ ENV
 
     # Test scoreboard URL file
     puts "\n📄 Testing scoreboard URL file..."
-    url_test_cmd = "cat /etc/scoreboard_url"
+    scenario_config = read_scenario_config(scenario_name)
+    basename = scenario_config['scenario']['basename']
+    url_test_cmd = "cat /var/www/#{basename}/shared/config/scoreboard_url"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, url_test_cmd, ssh_port)
       puts "   ✅ Scoreboard URL file exists"
     else
@@ -3595,11 +3678,406 @@ ENV
     YAML.load_file(config_file)
   end
 
+  # ============================================================================
+  # LOCAL DATA PRESERVATION FUNCTIONS
+  # ============================================================================
+
+  def check_scenario_compatibility(scenario_name)
+    puts "🔍 Checking scenario compatibility..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      return { compatible: false, error: "config_not_found" }
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    # Check if production database exists
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+
+    # Check database existence
+    db_exists_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw #{production_database}'"
+    db_exists = system(db_exists_cmd)
+
+    if db_exists
+      puts "   ✅ Production database exists: #{production_database}"
+
+      # Check for local data (ID > 50,000,000)
+      local_data_count = get_local_data_count(scenario_name, production_config)
+
+      if local_data_count > 0
+        puts "⚠️  WARNING: Found #{local_data_count} local records (ID > 50,000,000)"
+        puts "   These will be LOST during database replacement!"
+
+        # Show details of local data
+        show_local_data_details(scenario_name, production_config)
+
+        return {
+          compatible: false,
+          has_local_data: true,
+          local_data_count: local_data_count,
+          requires_backup: true
+        }
+      else
+        puts "✅ No local data found - safe to proceed"
+        return { compatible: true, has_local_data: false }
+      end
+    else
+      puts "✅ No existing database - safe to proceed"
+      return { compatible: true, has_local_data: false }
+    end
+  end
+
+  def get_local_data_count(scenario_name, production_config)
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+
+    # Count total local records
+    count_query = <<~SQL
+      SELECT COUNT(*) FROM (
+        SELECT id FROM users WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM tournaments WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM games WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM players WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM tables WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM settings WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM locations WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM clubs WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM regions WHERE id > 50000000
+        UNION ALL
+        SELECT id FROM versions WHERE id > 50000000
+      ) as local_records;
+    SQL
+
+    count_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -d #{production_database} -t -c \"#{count_query}\"'"
+
+    result = `#{count_cmd}`.strip
+    result.to_i
+  end
+
+  def show_local_data_details(scenario_name, production_config)
+    puts "\n📊 Local data details:"
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+
+    # Query to get local data summary
+    query = <<~SQL
+      SELECT 
+        'users' as table_name, COUNT(*) as count 
+      FROM users 
+      WHERE id > 50000000
+      UNION ALL
+      SELECT 'tournaments', COUNT(*) FROM tournaments WHERE id > 50000000
+      UNION ALL
+      SELECT 'games', COUNT(*) FROM games WHERE id > 50000000
+      UNION ALL
+      SELECT 'players', COUNT(*) FROM players WHERE id > 50000000
+      UNION ALL
+      SELECT 'tables', COUNT(*) FROM tables WHERE id > 50000000
+      UNION ALL
+      SELECT 'settings', COUNT(*) FROM settings WHERE id > 50000000
+      UNION ALL
+      SELECT 'locations', COUNT(*) FROM locations WHERE id > 50000000
+      UNION ALL
+      SELECT 'clubs', COUNT(*) FROM clubs WHERE id > 50000000
+      UNION ALL
+      SELECT 'regions', COUNT(*) FROM regions WHERE id > 50000000
+      UNION ALL
+      SELECT 'versions', COUNT(*) FROM versions WHERE id > 50000000
+      ORDER BY count DESC;
+    SQL
+
+    # Execute query on server
+    query_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -d #{production_database} -t -c \"#{query}\"'"
+
+    if system(query_cmd)
+      puts "   Local data summary:"
+      # Parse and display results
+      result = `#{query_cmd}`.strip
+      if result.present?
+        result.split("\n").each do |line|
+          if line.strip.present?
+            parts = line.strip.split("|")
+            if parts.length >= 2
+              table_name = parts[0].strip
+              count = parts[1].strip.to_i
+              if count > 0
+                puts "     #{table_name}: #{count} records"
+              end
+            end
+          end
+        end
+      end
+    else
+      puts "   Could not retrieve local data details"
+    end
+  end
+
+  def backup_local_data_from_production(scenario_name)
+    puts "💾 Backing up local data from production server..."
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+    basename = production_config['basename'] || scenario_name
+
+    # Create backup directory
+    backup_dir = File.join(scenarios_path, scenario_name, 'local_data_backups')
+    FileUtils.mkdir_p(backup_dir)
+
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    backup_file = File.join(backup_dir, "local_data_#{timestamp}.sql")
+
+    # Define table dependency order (parents first, children last)
+    # This ensures foreign key constraints are satisfied during restore
+    table_dependency_order = [
+      'regions',           # No dependencies
+      'clubs',             # No dependencies
+      'table_kinds',       # No dependencies
+      'locations',         # Depends on regions
+      'players',           # Depends on regions
+      'tournaments',       # Depends on regions
+      'users',            # Depends on players
+      'tables',           # Depends on locations, table_kinds
+      'settings',         # Depends on clubs, regions, tournaments
+      'games',            # Depends on tournaments, players
+      'game_participations', # Depends on games, players
+      'seedings',         # Depends on tournaments, players
+      'versions'          # Depends on regions
+    ]
+
+    # Create backup script on server
+    backup_script = <<~SCRIPT
+      #!/bin/bash
+      set -e
+      
+      echo "💾 Creating local data backup with proper dependency ordering..."
+      
+      # Create temporary files for each table
+      temp_dir="/tmp/local_data_backup_#{timestamp}"
+      mkdir -p "$temp_dir"
+      
+      # Define table dependency order
+      tables=(
+        "regions"
+        "clubs" 
+        "table_kinds"
+        "locations"
+        "players"
+        "tournaments"
+        "users"
+        "tables"
+        "settings"
+        "games"
+        "game_participations"
+        "seedings"
+        "versions"
+      )
+      
+      # Create dump for each table separately
+      for table in "${tables[@]}"; do
+        echo "📋 Processing table: $table"
+        
+        # Create dump for this table
+        pg_dump #{production_database} \\
+          --data-only \\
+          --disable-triggers \\
+          --no-owner \\
+          --no-privileges \\
+          --no-tablespaces \\
+          --verbose \\
+          --table="$table" \\
+          --file="$temp_dir/${table}.sql"
+        
+        # Filter to only include records with ID > 50,000,000
+        if [ -s "$temp_dir/${table}.sql" ]; then
+          grep -E '^(\\d+)\\t' "$temp_dir/${table}.sql" | awk -F'\\t' '\$1 > 50000000' > "$temp_dir/${table}_filtered.sql"
+          
+          # Check if filtered file has content
+          if [ -s "$temp_dir/${table}_filtered.sql" ]; then
+            echo "✅ Found local data in $table"
+          else
+            echo "ℹ️  No local data in $table"
+            rm -f "$temp_dir/${table}_filtered.sql"
+          fi
+        fi
+        
+        rm -f "$temp_dir/${table}.sql"
+      done
+      
+      # Combine all filtered tables in dependency order
+      echo "🔄 Combining tables in dependency order..."
+      combined_file="/tmp/local_data_#{timestamp}.sql"
+      
+      # Start with schema setup
+      cat > "$combined_file" << 'EOF'
+-- Local data backup (ID > 50,000,000)
+-- Generated with proper dependency ordering
+SET session_replication_role = replica;
+EOF
+      
+      # Add each table's data in dependency order
+      for table in "${tables[@]}"; do
+        if [ -f "$temp_dir/${table}_filtered.sql" ]; then
+          echo "-- Table: $table" >> "$combined_file"
+          cat "$temp_dir/${table}_filtered.sql" >> "$combined_file"
+          echo "" >> "$combined_file"
+        fi
+      done
+      
+      # End with constraints
+      cat >> "$combined_file" << 'EOF'
+SET session_replication_role = DEFAULT;
+EOF
+      
+      # Check if combined file has content
+      if [ -s "$combined_file" ]; then
+        echo "✅ Local data backup created with proper ordering"
+        mv "$combined_file" "/tmp/local_data_#{timestamp}.sql"
+      else
+        echo "ℹ️  No local data found"
+        rm -f "$combined_file"
+        exit 0
+      fi
+      
+      # Clean up temporary directory
+      rm -rf "$temp_dir"
+    SCRIPT
+
+    # Execute backup on server
+    temp_script = "/tmp/backup_local_data.sh"
+    script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{backup_script}SCRIPT_EOF"
+
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+      execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
+
+      if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
+        # Download backup file
+        download_cmd = "scp -P #{ssh_port} www-data@#{ssh_host}:/tmp/local_data_#{timestamp}.sql #{backup_file}"
+
+        if system(download_cmd)
+          puts "✅ Local data backup created with proper dependency ordering: #{File.basename(backup_file)}"
+
+          # Clean up remote file
+          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f /tmp/local_data_#{timestamp}.sql'")
+
+          return backup_file
+        else
+          puts "❌ Failed to download backup file"
+          return false
+        end
+      else
+        puts "❌ Failed to create local data backup on server"
+        return false
+      end
+    else
+      puts "❌ Failed to create backup script on server"
+      return false
+    end
+  end
+
+  def restore_local_data_to_production(scenario_name, backup_file, production_config)
+    puts "🔄 Restoring local data to production server..."
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+    basename = production_config['basename'] || scenario_name
+
+    # Upload backup file to server
+    temp_backup_path = "/tmp/#{File.basename(backup_file)}"
+    upload_cmd = "scp -P #{ssh_port} #{backup_file} www-data@#{ssh_host}:#{temp_backup_path}"
+
+    if system(upload_cmd)
+      puts "   ✅ Local data backup uploaded to server"
+
+      # Create restore script
+      restore_script = <<~SCRIPT
+        #!/bin/bash
+        set -e
+        
+        echo "🔄 Restoring local data to production database..."
+        
+        # Check if backup file has content
+        if [ ! -s #{temp_backup_path} ]; then
+          echo "ℹ️  No local data to restore"
+          exit 0
+        fi
+        
+        # Restore local data
+        echo "📥 Loading local data into #{production_database}..."
+        sudo -u postgres psql -d #{production_database} < #{temp_backup_path}
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ Local data restored successfully"
+          
+          # Reset sequences to prevent ID conflicts
+          echo "🔄 Resetting sequences..."
+          cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'
+          
+          echo "✅ Sequences reset successfully"
+        else
+          echo "❌ Failed to restore local data"
+          exit 1
+        fi
+        
+        # Clean up
+        rm -f #{temp_backup_path}
+      SCRIPT
+
+      # Execute restore on server
+      temp_script = "/tmp/restore_local_data.sh"
+      script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{restore_script}SCRIPT_EOF"
+
+      if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
+        execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
+
+        if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
+          puts "   ✅ Local data restored successfully"
+          return true
+        else
+          puts "   ❌ Failed to restore local data"
+          return false
+        end
+      else
+        puts "   ❌ Failed to create restore script"
+        return false
+      end
+    else
+      puts "   ❌ Failed to upload local data backup"
+      return false
+    end
+  end
+
+  # ============================================================================
+  # END LOCAL DATA PRESERVATION FUNCTIONS
+  # ============================================================================
+
   def generate_autostart_script(scenario_name, pi_config)
     scenario_config = read_scenario_config(scenario_name)
     basename = scenario_config['scenario']['basename']
     location_id = scenario_config['scenario']['location_id']
-    
+
     # Get the correct MD5 hash from database
     md5_hash = ""
     begin
@@ -3609,13 +4087,16 @@ ENV
       puts "⚠️  Warning: Could not get MD5 hash for location #{location_id}: #{e.message}"
       md5_hash = Digest::MD5.hexdigest(location_id.to_s)
     end
-    
+
     # Get server configuration
-    webserver_host = scenario_config.dig('environments', 'production', 'webserver_host') || '192.168.178.107'
-    webserver_port = scenario_config.dig('environments', 'production', 'webserver_port') || '82'
-    
+    webserver_host = scenario_config.dig('environments', 'production', 'webserver_host')
+    webserver_port = scenario_config.dig('environments', 'production', 'webserver_port')
+    if webserver_host.nil? || webserver_port.nil?
+      raise "Missing production.webserver_host or production.webserver_port in scenario configuration for #{scenario_name}"
+    end
+
     fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}?sb_state=welcome"
-    
+
     # Generate the script using Ruby string manipulation
     generate_autostart_script_content(scenario_name, basename, fallback_url)
   end
@@ -3735,15 +4216,15 @@ ENV
   desc "Preview autostart script for scenario"
   task :preview_autostart_script, [:scenario_name] => :environment do |t, args|
     scenario_name = args[:scenario_name]
-    
+
     unless scenario_name
       puts "❌ Error: Please provide scenario name"
       puts "Usage: rake scenario:preview_autostart_script[scenario_name]"
       exit 1
     end
-    
+
     puts "🔍 Previewing autostart script for #{scenario_name}..."
-    
+
     begin
       # Load scenario configuration
       config_file = File.join(scenarios_path, scenario_name, 'config.yml')
@@ -3751,19 +4232,19 @@ ENV
         puts "❌ Error: Scenario configuration not found: #{config_file}"
         exit 1
       end
-      
+
       scenario_config = YAML.load_file(config_file)
       production_config = scenario_config['environments']['production']
       pi_config = production_config['raspberry_pi_client']
-      
+
       unless pi_config && pi_config['enabled']
         puts "❌ Error: Raspberry Pi client not enabled for this scenario"
         exit 1
       end
-      
+
       # Generate the script
       autostart_script = generate_autostart_script(scenario_name, pi_config)
-      
+
       puts "\n" + "="*80
       puts "GENERATED AUTOSTART SCRIPT"
       puts "="*80
@@ -3771,7 +4252,7 @@ ENV
       puts "="*80
       puts "\n✅ Script generated successfully (#{autostart_script.length} characters)"
       puts "   To deploy this script, run: rake scenario:deploy_raspberry_pi_client[#{scenario_name}]"
-      
+
     rescue => e
       puts "❌ Error generating script: #{e.message}"
       puts e.backtrace.first(5).join("\n")
@@ -3785,10 +4266,17 @@ ENV
 
     puts "🔄 Restarting Raspberry Pi client browser for #{scenario_name}..."
 
-    # For now, use hardcoded values since scenarios are not available locally
-    # In a real deployment, these would be loaded from the scenario configuration
-    ssh_host = "192.168.178.107"
-    ssh_port = "8910"
+    # Resolve SSH parameters from scenario config
+  config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+  unless File.exist?(config_file)
+    raise "Scenario configuration not found: #{config_file}"
+  end
+  scenario_config = YAML.load_file(config_file)
+  ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
+  ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
+    if ssh_host.nil? || ssh_host.empty?
+      raise "Missing production.ssh_host in scenario configuration for #{scenario_name}"
+    end
 
     # Restart the scoreboard-kiosk service
     restart_cmd = "sudo systemctl restart scoreboard-kiosk"
