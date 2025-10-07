@@ -74,8 +74,6 @@ ssh pi@raspberrypi.local
 ssh pi@<IP-ADDRESS>
 ```
 
-📖 **Detailed Guide:** [Raspberry Pi OS Installation](raspberry_pi_setup.md)
-
 ## Step 2: Ansible Configuration (10 minutes)
 
 ### 2.1 Initial Server Setup
@@ -99,8 +97,6 @@ This will:
 - ✅ Configure firewall
 
 **Duration:** ~10 minutes (depending on network speed)
-
-📖 **Detailed Guide:** [Ansible Server Setup](ansible_setup.md)
 
 ## Step 3: Deploy Scenario (10 minutes)
 
@@ -143,8 +139,6 @@ environments:
       local_server_enabled: true
       autostart_enabled: true
 ```
-
-📖 **Detailed Guide:** [Scenario Configuration](scenario_configuration.md)
 
 ### 3.2 Run Complete Deployment
 
@@ -205,8 +199,6 @@ Management Commands:
   - Test Client: rake scenario:test_raspberry_pi_client[carambus_bcw]
   - Check Service: ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status scoreboard-kiosk'
 ```
-
-📖 **Detailed Guide:** [Complete Deployment Workflow](deployment_workflow.md)
 
 ## Step 4: Verify Installation (2 minutes)
 
@@ -278,8 +270,6 @@ If you see permission errors for Chromium profile directory:
 ssh -p 8910 www-data@192.168.178.107 'sudo rm -rf /tmp/chromium-scoreboard*'
 rake "scenario:restart_raspberry_pi_client[carambus_bcw]"
 ```
-
-📖 **Detailed Guide:** [Troubleshooting Guide](troubleshooting.md)
 
 ## Management Commands
 
@@ -361,8 +351,6 @@ raspberry_pi_client:
   enabled: false  # Disable kiosk mode
 ```
 
-📖 **Detailed Guide:** [Advanced Configuration](advanced_configuration.md)
-
 ## Architecture Overview
 
 ```
@@ -407,21 +395,13 @@ After completing all steps, verify:
 - [ ] Touch input working (if touch display)
 - [ ] No error messages in logs
 
-## Next Steps
-
-- 📖 [User Guide](user_guide.md) - Learn how to use the scoreboard
-- 📖 [API Documentation](api_documentation.md) - Integrate with other systems
-- 📖 [Backup and Recovery](backup_recovery.md) - Protect your data
-- 📖 [Performance Tuning](performance_tuning.md) - Optimize for your needs
-
 ## Support
 
 If you encounter issues:
 
-1. Check the [Troubleshooting Guide](troubleshooting.md)
-2. Review system logs
-3. Verify network configuration
-4. Check GitHub issues: https://github.com/GernotUllrich/carambus/issues
+1. Review system logs
+2. Verify network configuration
+3. Check GitHub issues: https://github.com/GernotUllrich/carambus/issues
 
 ## Credits
 

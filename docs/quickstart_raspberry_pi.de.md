@@ -74,8 +74,6 @@ ssh pi@raspberrypi.local
 ssh pi@<IP-ADRESSE>
 ```
 
-📖 **Detaillierte Anleitung:** [Raspberry Pi OS Installation](raspberry_pi_setup.md)
-
 ## Schritt 2: Ansible Konfiguration (10 Minuten)
 
 ### 2.1 Initiales Server-Setup
@@ -99,8 +97,6 @@ Dies wird:
 - ✅ Firewall konfigurieren
 
 **Dauer:** ~10 Minuten (abhängig von Netzwerkgeschwindigkeit)
-
-📖 **Detaillierte Anleitung:** [Ansible Server Setup](ansible_setup.md)
 
 ## Schritt 3: Szenario deployen (10 Minuten)
 
@@ -143,8 +139,6 @@ environments:
       local_server_enabled: true
       autostart_enabled: true
 ```
-
-📖 **Detaillierte Anleitung:** [Szenario-Konfiguration](scenario_configuration.md)
 
 ### 3.2 Vollständiges Deployment ausführen
 
@@ -205,8 +199,6 @@ Management-Befehle:
   - Client testen: rake scenario:test_raspberry_pi_client[carambus_bcw]
   - Service prüfen: ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status scoreboard-kiosk'
 ```
-
-📖 **Detaillierte Anleitung:** [Vollständiger Deployment-Workflow](deployment_workflow.md)
 
 ## Schritt 4: Installation überprüfen (2 Minuten)
 
@@ -278,8 +270,6 @@ Falls Berechtigungsfehler für Chromium-Profilverzeichnis auftreten:
 ssh -p 8910 www-data@192.168.178.107 'sudo rm -rf /tmp/chromium-scoreboard*'
 rake "scenario:restart_raspberry_pi_client[carambus_bcw]"
 ```
-
-📖 **Detaillierte Anleitung:** [Fehlerbehebungs-Handbuch](troubleshooting.md)
 
 ## Management-Befehle
 
@@ -361,8 +351,6 @@ raspberry_pi_client:
   enabled: false  # Kiosk-Modus deaktivieren
 ```
 
-📖 **Detaillierte Anleitung:** [Erweiterte Konfiguration](advanced_configuration.md)
-
 ## Architektur-Überblick
 
 ```
@@ -407,21 +395,13 @@ Nach Abschluss aller Schritte überprüfen:
 - [ ] Touch-Eingabe funktioniert (bei Touch-Display)
 - [ ] Keine Fehlermeldungen in Logs
 
-## Nächste Schritte
-
-- 📖 [Benutzerhandbuch](user_guide.md) - Lernen Sie, wie man das Scoreboard benutzt
-- 📖 [API-Dokumentation](api_documentation.md) - Integration mit anderen Systemen
-- 📖 [Backup und Wiederherstellung](backup_recovery.md) - Schützen Sie Ihre Daten
-- 📖 [Performance-Tuning](performance_tuning.md) - Optimieren Sie für Ihre Bedürfnisse
-
 ## Support
 
 Falls Sie auf Probleme stoßen:
 
-1. Prüfen Sie das [Fehlerbehebungs-Handbuch](troubleshooting.md)
-2. Überprüfen Sie System-Logs
-3. Verifizieren Sie Netzwerk-Konfiguration
-4. Prüfen Sie GitHub Issues: https://github.com/GernotUllrich/carambus/issues
+1. Überprüfen Sie System-Logs
+2. Verifizieren Sie Netzwerk-Konfiguration
+3. Prüfen Sie GitHub Issues: https://github.com/GernotUllrich/carambus/issues
 
 ## Credits
 
