@@ -3347,7 +3347,8 @@ ENV
 
     # Install required packages
     puts "\n📦 Installing required packages..."
-    install_packages_cmd = "sudo apt update && sudo apt install -y chromium-browser wmctrl xdotool"
+    # Try chromium first (newer Debian/Raspberry Pi OS), fallback to chromium-browser
+    install_packages_cmd = "sudo apt update && (sudo apt install -y chromium wmctrl xdotool || sudo apt install -y chromium-browser wmctrl xdotool)"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, install_packages_cmd, ssh_port)
       puts "   ✅ Required packages installed"
     else
@@ -3575,7 +3576,8 @@ ENV
 
     # Test browser process
     puts "\n🌐 Testing browser process..."
-    browser_test_cmd = "pgrep chromium-browser"
+    # Check for both chromium and chromium-browser
+    browser_test_cmd = "pgrep chromium || pgrep chromium-browser"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, browser_test_cmd, ssh_port)
       puts "   ✅ Browser process is running"
     else
@@ -4192,7 +4194,18 @@ EOF
 
       # Start browser in fullscreen with additional flags to handle display issues
       # Note: Removed sudo - runs as current user (pj) for proper X11 access
-      /usr/bin/chromium-browser \\
+      # Try chromium first (newer systems), fallback to chromium-browser (older systems)
+      BROWSER_CMD=""
+      if command -v chromium >/dev/null 2>&1; then
+        BROWSER_CMD="chromium"
+      elif command -v chromium-browser >/dev/null 2>&1; then
+        BROWSER_CMD="chromium-browser"
+      else
+        echo "❌ Neither chromium nor chromium-browser found!"
+        exit 1
+      fi
+      
+      $BROWSER_CMD \\
         --start-fullscreen \\
         --disable-restore-session-state \\
         --user-data-dir=/tmp/chromium-scoreboard \\
