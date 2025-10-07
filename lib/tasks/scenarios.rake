@@ -4489,6 +4489,173 @@ EOF
   end
 
 
+  desc "Restart scoreboard kiosk for a specific table by scenario and table name"
+  task :restart_table_scoreboard, [:scenario_name, :table_name] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    table_name = args[:table_name]
+
+    unless scenario_name && table_name
+      puts "❌ Error: Both scenario_name and table_name are required"
+      puts "Usage: rake scenario:restart_table_scoreboard[scenario_name,table_name]"
+      puts "Example: rake scenario:restart_table_scoreboard[carambus_location_5101,Tisch 1]"
+      exit 1
+    end
+
+    puts "🔄 Restarting scoreboard for table '#{table_name}' in scenario '#{scenario_name}'..."
+
+    # Load scenario configuration to get location_id and SSH settings
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    location_id = scenario_config['scenario']['location_id']
+    production_config = scenario_config['environments']['production']
+    
+    # Get default SSH settings from config (used if table doesn't specify)
+    default_ssh_user = production_config.dig('raspberry_pi_client', 'ssh_user') || 'pi'
+    default_ssh_password = production_config.dig('raspberry_pi_client', 'ssh_password')
+    default_ssh_port = production_config.dig('raspberry_pi_client', 'ssh_port') || 22
+
+    puts "   📍 Location ID: #{location_id}"
+
+    # Load Rails environment to access database
+    # Find the table in the database
+    location = Location.find_by(id: location_id)
+    unless location
+      puts "❌ Error: Location with ID #{location_id} not found in database"
+      exit 1
+    end
+
+    table = location.tables.find_by(name: table_name)
+    unless table
+      puts "❌ Error: Table '#{table_name}' not found in location '#{location.name}'"
+      puts "Available tables:"
+      location.tables.each { |t| puts "   - #{t.name} (IP: #{t.ip_address || 'not set'})" }
+      exit 1
+    end
+
+    unless table.ip_address.present?
+      puts "❌ Error: Table '#{table_name}' has no IP address configured"
+      puts "   Please set the IP address for this table in the database"
+      exit 1
+    end
+
+    puts "   🎯 Table: #{table.name}"
+    puts "   🌐 IP Address: #{table.ip_address}"
+    puts "   📊 Scoreboard enabled: #{table.scoreboard ? 'Yes' : 'No'}"
+
+    # Use default SSH settings
+    ssh_user = default_ssh_user
+    ssh_password = default_ssh_password
+    ssh_port = default_ssh_port
+
+    puts "   👤 SSH User: #{ssh_user}"
+    puts "   🔌 SSH Port: #{ssh_port}"
+
+    # Test SSH connection
+    puts "\n🔌 Testing SSH connection..."
+    unless test_ssh_connection(table.ip_address, ssh_user, ssh_password, ssh_port)
+      puts "❌ SSH connection failed to #{table.ip_address}"
+      puts "   Please check:"
+      puts "   - Is the Raspberry Pi powered on?"
+      puts "   - Is the IP address correct?"
+      puts "   - Are SSH credentials correct?"
+      exit 1
+    end
+    puts "   ✅ SSH connection successful"
+
+    # Restart the scoreboard kiosk service
+    puts "\n🔄 Restarting scoreboard kiosk service..."
+    restart_cmd = "sudo systemctl restart scoreboard-kiosk"
+    
+    if execute_ssh_command(table.ip_address, ssh_user, ssh_password, restart_cmd, ssh_port)
+      puts "   ✅ Restart command executed successfully"
+      
+      # Wait a bit and check if service is running
+      sleep 2
+      status_cmd = "sudo systemctl is-active scoreboard-kiosk"
+      if execute_ssh_command(table.ip_address, ssh_user, ssh_password, status_cmd, ssh_port)
+        puts "   ✅ Scoreboard kiosk service is running"
+      else
+        puts "   ⚠️  Scoreboard kiosk service may not be running"
+        puts "   💡 Check logs: ssh -p #{ssh_port} #{ssh_user}@#{table.ip_address} 'sudo journalctl -u scoreboard-kiosk -n 50'"
+      end
+    else
+      puts "   ❌ Failed to restart scoreboard kiosk service"
+      exit 1
+    end
+
+    puts "\n✅ Scoreboard restart completed for table '#{table_name}'!"
+    puts "\n📱 Access Information:"
+    puts "   - Table: #{table.name}"
+    puts "   - IP: #{table.ip_address}"
+    puts "   - SSH: ssh -p #{ssh_port} #{ssh_user}@#{table.ip_address}"
+  end
+
+  desc "List all tables with their IP addresses for a scenario"
+  task :list_table_scoreboards, [:scenario_name] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+
+    unless scenario_name
+      puts "❌ Error: scenario_name is required"
+      puts "Usage: rake scenario:list_table_scoreboards[scenario_name]"
+      puts "Example: rake scenario:list_table_scoreboards[carambus_location_5101]"
+      exit 1
+    end
+
+    puts "📋 Listing tables for scenario '#{scenario_name}'..."
+
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Error: Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    location_id = scenario_config['scenario']['location_id']
+
+    puts "   📍 Location ID: #{location_id}"
+
+    # Find location and tables
+    location = Location.find_by(id: location_id)
+    unless location
+      puts "❌ Error: Location with ID #{location_id} not found in database"
+      exit 1
+    end
+
+    puts "\n📍 Location: #{location.name}"
+    puts "=" * 80
+
+    tables = location.tables.order(:name)
+    
+    if tables.empty?
+      puts "   ℹ️  No tables found for this location"
+    else
+      puts "\n#{tables.count} table(s) found:\n\n"
+      
+      tables.each do |table|
+        ip_status = table.ip_address.present? ? "✅ #{table.ip_address}" : "❌ No IP"
+        scoreboard_status = table.scoreboard ? "🖥️  ON" : "⬜ OFF"
+        
+        puts "   #{table.name}"
+        puts "   ├─ IP Address: #{ip_status}"
+        puts "   ├─ Scoreboard: #{scoreboard_status}"
+        puts "   ├─ Scoreboard ON at: #{table.scoreboard_on_at || 'N/A'}"
+        puts "   └─ Scoreboard OFF at: #{table.scoreboard_off_at || 'N/A'}"
+        puts
+      end
+      
+      puts "\n💡 To restart a specific table's scoreboard:"
+      puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"TABLE_NAME\"]"
+      puts "\n   Example:"
+      puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"#{tables.first.name}\"]"
+    end
+  end
+
 end
 
 
