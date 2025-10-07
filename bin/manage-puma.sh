@@ -52,16 +52,23 @@ echo "Using BASENAME: $BASENAME"
 export RBENV_ROOT="/var/www/.rbenv"
 export PATH="/var/www/.rbenv/shims:$PATH"
 
-# Check if the puma service is running by looking for the socket file
-if [ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && pgrep -f "puma.*${BASENAME}" > /dev/null
+# Check if the puma service is running
+if sudo systemctl is-active --quiet puma-${BASENAME}.service
 then
-  echo "Service is running, performing graceful phased-restart"
-  cd /var/www/${BASENAME}/current
-  # Use pumactl for graceful phased restart (zero downtime)
-  RAILS_ENV=production /var/www/.rbenv/shims/bundle exec pumactl phased-restart
+  echo "Service is running, performing graceful restart via systemd"
+  # Use systemd reload for graceful restart (sends USR1 signal to Puma)
+  sudo systemctl reload puma-${BASENAME}.service
+  echo "Reload signal sent, checking service status..."
+  sleep 2
+  if sudo systemctl is-active --quiet puma-${BASENAME}.service
+  then
+    echo "Service reloaded successfully"
+  else
+    echo "Service failed after reload, attempting full restart..."
+    sudo systemctl restart puma-${BASENAME}.service
+  fi
 else
   echo "Service is not running, starting service"
-  cd /var/www/${BASENAME}/current
   sudo systemctl start puma-${BASENAME}.service
 fi
 
