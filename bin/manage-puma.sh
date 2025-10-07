@@ -48,13 +48,17 @@ fi
 
 echo "Using BASENAME: $BASENAME"
 
+# Set up rbenv environment (required for bundle command)
+export RBENV_ROOT="/var/www/.rbenv"
+export PATH="/var/www/.rbenv/shims:$PATH"
+
 # Check if the puma service is running by looking for the socket file
 if [ -S "/var/www/${BASENAME}/shared/sockets/puma-production.sock" ] && pgrep -f "puma.*${BASENAME}" > /dev/null
 then
   echo "Service is running, performing graceful phased-restart"
   cd /var/www/${BASENAME}/current
   # Use pumactl for graceful phased restart (zero downtime)
-  RAILS_ENV=production bundle exec pumactl phased-restart
+  RAILS_ENV=production /var/www/.rbenv/shims/bundle exec pumactl phased-restart
 else
   echo "Service is not running, starting service"
   cd /var/www/${BASENAME}/current
