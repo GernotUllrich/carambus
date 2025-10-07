@@ -133,7 +133,7 @@ namespace :puma do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      execute "sudo #{current_path}/bin/manage-puma.sh #{fetch(:basename)}"
+      execute "#{current_path}/bin/manage-puma.sh #{fetch(:basename)}"
     end
   end
 end
@@ -183,7 +183,7 @@ namespace :deploy do
           with rails_env: fetch(:rails_env) do
             # Build JavaScript assets
             execute :yarn, :build
-            
+
             # Build CSS assets
             execute :yarn, "build:css"
 
