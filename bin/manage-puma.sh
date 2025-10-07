@@ -6,7 +6,7 @@ BASENAME=$1
 # If not provided, try to determine from current directory
 if [ -z "$BASENAME" ]; then
   echo "DEBUG: No BASENAME provided, trying to determine automatically"
-  
+
   # Check if we're in a deployment directory
   if [[ "$PWD" == */current ]]; then
     # Extract basename from path like /var/www/carambus/current
@@ -23,13 +23,13 @@ if [ -z "$BASENAME" ]; then
       BASENAME=$(grep "set :basename" config/deploy.rb | sed 's/.*set :basename, *"\([^"]*\)".*/\1/')
       echo "DEBUG: Extracted BASENAME from deploy.rb: '$BASENAME'"
     fi
-    
+
     # If still not found, try environment variable
     if [ -z "$BASENAME" ]; then
       BASENAME="$DEPLOY_BASENAME"
       echo "DEBUG: Using DEPLOY_BASENAME environment variable: '$BASENAME'"
     fi
-    
+
     # Last resort: try to guess from current directory name
     if [ -z "$BASENAME" ]; then
       BASENAME=$(basename "$PWD")
@@ -54,7 +54,7 @@ then
   echo "Service is running, performing graceful phased-restart"
   cd /var/www/${BASENAME}/current
   # Use pumactl for graceful phased restart (zero downtime)
-  bundle exec pumactl phased-restart
+  RAILS_ENV=production bundle exec pumactl phased-restart
 else
   echo "Service is not running, starting service"
   cd /var/www/${BASENAME}/current
