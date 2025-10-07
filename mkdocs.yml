@@ -40,6 +40,7 @@ nav:
       - README: README.md
   - Installation:
       - Übersicht: installation_overview.md
+      - Quick Start Raspberry Pi: quickstart_raspberry_pi.md
   - Benutzerhandbuch:
       - Turnierverwaltung: tournament.md
       - Ligaspieltage: league.md
