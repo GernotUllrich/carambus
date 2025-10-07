@@ -4191,9 +4191,10 @@ EOF
       echo "Using scoreboard URL: $SCOREBOARD_URL"
 
       # Ensure chromium data directory has correct permissions for current user
-      if [ -d /tmp/chromium-scoreboard ]; then
-          chmod 755 /tmp/chromium-scoreboard 2>/dev/null || true
-      fi
+      # Remove old directory if it exists and create fresh one
+      rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
+      mkdir -p /tmp/chromium-scoreboard
+      chmod 755 /tmp/chromium-scoreboard
 
       # Start browser in fullscreen with additional flags to handle display issues
       # Note: Removed sudo - runs as current user (pj) for proper X11 access
