@@ -4112,16 +4112,18 @@ EOF
       # Set display environment
       export DISPLAY=:0
 
-      # Set up X11 authentication for user pj
-      if [ "$USER" = "pj" ]; then
-          # Allow user pj to access X11
-          xhost +local:pj 2>/dev/null || true
-          
-          # Try to get X11 authentication
-          if [ -f /home/pj/.Xauthority ]; then
-              export XAUTHORITY=/home/pj/.Xauthority
+      # Set up X11/Wayland authentication
+      # Try to find .Xauthority in common locations
+      for auth_file in /home/pi/.Xauthority /home/pj/.Xauthority /run/user/*/gdm/Xauthority /run/user/1000/.Xauthority; do
+          if [ -f "$auth_file" ]; then
+              export XAUTHORITY="$auth_file"
+              echo "Using X11 authority: $auth_file"
+              break
           fi
-      fi
+      done
+
+      # Allow access to X11 display
+      xhost +local: 2>/dev/null || true
 
       # Wait for display to be ready
       sleep 5
