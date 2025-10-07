@@ -4191,10 +4191,11 @@ EOF
       echo "Using scoreboard URL: $SCOREBOARD_URL"
 
       # Ensure chromium data directory has correct permissions for current user
-      # Remove old directory if it exists and create fresh one
-      rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
-      mkdir -p /tmp/chromium-scoreboard
-      chmod 755 /tmp/chromium-scoreboard
+      # Use a user-specific directory to avoid permission conflicts
+      CHROMIUM_USER_DIR="/tmp/chromium-scoreboard-$USER"
+      rm -rf "$CHROMIUM_USER_DIR" 2>/dev/null || true
+      mkdir -p "$CHROMIUM_USER_DIR"
+      chmod 755 "$CHROMIUM_USER_DIR"
 
       # Start browser in fullscreen with additional flags to handle display issues
       # Note: Removed sudo - runs as current user (pj) for proper X11 access
@@ -4210,10 +4211,11 @@ EOF
       fi
       
       echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
+      echo "Using profile directory: $CHROMIUM_USER_DIR"
       $BROWSER_CMD \\
         --start-fullscreen \\
         --disable-restore-session-state \\
-        --user-data-dir=/tmp/chromium-scoreboard \\
+        --user-data-dir="$CHROMIUM_USER_DIR" \\
         --disable-features=VizDisplayCompositor \\
         --disable-dev-shm-usage \\
         --app="$SCOREBOARD_URL" \\
