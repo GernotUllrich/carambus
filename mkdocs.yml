@@ -35,6 +35,41 @@ plugins:
         - locale: en
           name: English
           build: true
+          nav_translations:
+            Startseite: Home
+            Einführung: Introduction
+            Über: About
+            README: README
+            Installation: Installation
+            Übersicht: Overview
+            Schnellstart Raspberry Pi: Quick Start Raspberry Pi
+            Benutzerhandbuch: User Guide
+            Turnierverwaltung: Tournament Management
+            Ligaspieltage: League Days
+            Tischreservierung: Table Reservation
+            Einzelturnierverwaltung: Individual Tournament Management
+            Scoreboard Setup: Scoreboard Setup
+            Entwicklerhandbuch: Developer Guide
+            Getting Started: Getting Started
+            Scenario Management: Scenario Management
+            Datenbank-Setup: Database Setup
+            MkDocs Dokumentation: MkDocs Documentation
+            Datenbankdesign: Database Design
+            Datenbank-Partitionierung: Database Partitioning
+            Admin-Rollen: Admin Roles
+            Datenverwaltung: Data Management
+            Spielplan-Rekonstruktion: Game Plan Reconstruction
+            PaperTrail Optimierung: PaperTrail Optimization
+            ER-Diagramm: ER Diagram
+            Filter-Popup: Filter Popup
+            Turnier-Duplikate: Tournament Duplicates
+            Regions-Tagging: Region Tagging
+            Referenz: Reference
+            API: API
+            AGB: Terms
+            Datenschutz: Privacy
+            Sonstiges: Miscellaneous
+            Tischreservierung Heizung: Table Reservation Heating
 
 # Navigation (will be automatically localized by the i18n plugin)
 nav:
