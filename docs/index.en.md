@@ -23,6 +23,7 @@ Complete documentation in English including:
 1. **For Users**: Start with the [Tournament Management](tournament.md) guide
 2. **For Developers**: Begin with [Getting Started](GETTING_STARTED_DEVELOPER.md)
 3. **For System Administrators**: Check [Installation Overview](installation_overview.md)
+4. **For Raspberry Pi**: Follow the [Quick Start Raspberry Pi](quickstart_raspberry_pi.md)
 
 ## 📚 Documentation Categories
 
@@ -53,12 +54,23 @@ Carambus is a comprehensive billiards tournament management system built with:
 - **Real-time**: Action Cable, WebSockets
 - **Deployment**: Capistrano
 
+## 📱 Raspberry Pi Integration
+
+Carambus supports full Raspberry Pi integration for:
+- **All-in-One Kiosk Systems**: Server and display in one device
+- **Automatic Browser Start**: Kiosk mode with Chromium
+- **Touch Display Support**: Intuitive operation at the table
+- **Quick Installation**: From blank SD card to working system in 30 minutes
+
+➡️ **[Quick Start Raspberry Pi Installation](quickstart_raspberry_pi.md)**
+
 ## 📞 Support
 
 For technical support or documentation questions:
 - **Email**: gernot.ullrich@gmx.de
 - **Project**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
+- **GitHub**: [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
 
 ---
 
-*Last updated: January 27, 2025*
+*Last updated: October 2025*
