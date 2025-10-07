@@ -11,7 +11,7 @@
 
 *Dem Projekt ging also zunächst eine ca 4-wöchige Evaluierung möglicher Entwicklungsumgebungen voraus - insbesondere React, React Native und Angular. Leider führte das jeweils zu sehr aufwendigen Bruchstellen zwischen serverseitiger Datenbankorientierte Logik und den JavaScriptbasierten Endgeräten. Also verschiedene Betriebssysteme, Sprachen und Frameworks. Keine gute Idee. Glücklicherweise kam ich über [GoRails](https://gorails.com) zu einer idealen Lösung - Stimulus Reflex und Cable Ready! Carambus ist ein serverbasierte Weblösung mit Single Page Feeling and den Scoreboards!*
 
-*Ab 2024 kam mit der KI-Unterstützung mit Werkzeugen wie Cursor, LLM Modellen von Anthropy und OpenAi eine ganz neue Dimension der Softwareentwicklung.  Es stellte sich heraus, dass die auf wohldefinierten Standards beruhende Struktur der Ruby und Rails Umgebung exzellent geeignet war von der KI verstanden zu werden.  So war es sehr einfach komplexe Erweiterungen am System und in der Dokumentation vorzunehmen, die ich aus Zeitmangel sonst nie angegangen wäre.*
+*Ab 2024 kam mit der KI-Unterstützung mit Werkzeugen wie Cursor, LLM Modellen von Anthropic und OpenAi eine ganz neue Dimension der Softwareentwicklung.  Es stellte sich heraus, dass die auf wohldefinierten Standards beruhende Struktur der Ruby und Rails Umgebung exzellent geeignet war von der KI verstanden zu werden.  So war es sehr einfach komplexe Erweiterungen am System und in der Dokumentation vorzunehmen, die ich aus Zeitmangel sonst nie angegangen wäre.*
 
 *Dr. Gernot Ullrich*
  

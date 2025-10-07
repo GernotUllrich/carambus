@@ -11,7 +11,7 @@
 
 *The project was therefore preceded by an approximately four-week evaluation of possible development environments – in particular React, React Native, and Angular. Unfortunately, this led to very complex breakpoints between server-side database-oriented logic and JavaScript-based end devices. In other words, different operating systems, languages, and frameworks. Not a good idea. Fortunately, I came across an ideal solution via [GoRails](https://gorails.com) – Stimulus Reflex and Cable Ready! Carambus is a server-based web solution with a single-page feel and scoreboards!*
 
-*Starting in 2024, AI support with tools such as Cursor, LLM models from Anthropy, and OpenAi brought a whole new dimension to software development.  It turned out that the structure of the Ruby and Rails environment, based on well-defined standards, was excellently suited to being understood by AI. This made it very easy to make complex enhancements to the system and documentation that I would never have tackled otherwise due to lack of time.*
+*Starting in 2024, AI support with tools such as Cursor, LLM models from Anthropic, and OpenAi brought a whole new dimension to software development.  It turned out that the structure of the Ruby and Rails environment, based on well-defined standards, was excellently suited to being understood by AI. This made it very easy to make complex enhancements to the system and documentation that I would never have tackled otherwise due to lack of time.*
 
 *Dr. Gernot Ullrich*
  
