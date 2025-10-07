@@ -1,7 +1,7 @@
 # Site Basics
 site_name: Carambus Documentation
 site_description: Docs for Carambus - Billiards management with Ruby on Rails
-site_url: https://GernotUllrich.github.io/carambus-docs
+site_url: https://GernotUllrich.github.io/carambus
 repo_url: https://github.com/GernotUllrich/carambus
 repo_name: GernotUllrich/carambus
 docs_dir: docs  # THIS DEFINES THE SUBFOLDER FOR .md FILES (instead of default 'docs')
@@ -23,6 +23,10 @@ theme:
 plugins:
   - search
   - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
       languages:
         - locale: de
           name: Deutsch
@@ -40,7 +44,7 @@ nav:
       - README: README.md
   - Installation:
       - Übersicht: installation_overview.md
-      - Schnellstart Raspberry Pi: quickstart_raspberry_pi.de.md
+      - Schnellstart Raspberry Pi: quickstart_raspberry_pi.md
   - Benutzerhandbuch:
       - Turnierverwaltung: tournament.md
       - Ligaspieltage: league.md
