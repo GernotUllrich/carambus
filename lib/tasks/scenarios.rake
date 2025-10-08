@@ -1535,27 +1535,29 @@ ENV
       return true
     end
 
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "   ❌ Scenario configuration not found: #{config_file}"
-      return false
-    end
-    scenario_config = YAML.load_file(config_file)
-
     # Check if carambus_api_development exists locally
     unless system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
       puts "   ℹ️  carambus_api_development not found locally - skipping sync"
       return true
     end
 
-    # Check if carambus_api_production exists on remote server
-    api_ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
-    api_ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
+    # Load carambus_api configuration to get API server SSH details
+    api_config_file = File.join(scenarios_path, 'carambus_api', 'config.yml')
+    unless File.exist?(api_config_file)
+      puts "   ❌ carambus_api configuration not found: #{api_config_file}"
+      puts "   ℹ️  Skipping API sync (API scenario not configured)"
+      return true
+    end
+    api_config = YAML.load_file(api_config_file)
+
+    # Check if carambus_api_production exists on remote API server
+    api_ssh_host = api_config.dig('environments', 'production', 'ssh_host')
+    api_ssh_port = api_config.dig('environments', 'production', 'ssh_port') || '22'
     if api_ssh_host.nil? || api_ssh_host.empty?
-      puts "   ❌ Missing production.ssh_host in scenario config for #{scenario_name}"
+      puts "   ❌ Missing production.ssh_host in carambus_api config"
       return false
     end
+    puts "   🔍 Checking API server at #{api_ssh_host}:#{api_ssh_port}"
     unless system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
       puts "   ℹ️  carambus_api_production not found on remote server - skipping sync"
       return true
