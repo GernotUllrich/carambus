@@ -1241,7 +1241,7 @@ ENV
       remote_dump_file = "/tmp/#{scenario_name}_#{environment}_#{timestamp}.sql.gz"
 
       # Create dump on remote server (include schema and data)
-      dump_cmd = "pg_dump --no-owner --no-privileges #{database_name} | gzip > #{remote_dump_file}"
+      dump_cmd = "sudo -u postgres pg_dump --no-owner --no-privileges #{database_name} | gzip > #{remote_dump_file}"
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{dump_cmd}'")
         puts "   ✅ Dump created on remote server"
 
@@ -3902,7 +3902,7 @@ ENV
         echo "📋 Processing table: $table"
         
         # Create dump for this table
-        pg_dump #{production_database} \\
+        sudo -u postgres pg_dump #{production_database} \\
           --data-only \\
           --disable-triggers \\
           --no-owner \\
