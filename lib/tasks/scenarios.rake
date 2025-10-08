@@ -3914,7 +3914,7 @@ ENV
         
         # Filter to only include records with ID > 50,000,000
         if [ -s "$temp_dir/${table}.sql" ]; then
-          awk -F'\\t' '\$1 > 50000000' "$temp_dir/${table}.sql" > "$temp_dir/${table}_filtered.sql"
+          awk -F'\\t' '$$1 > 50000000' "$temp_dir/${table}.sql" > "$temp_dir/${table}_filtered.sql"
           
           # Check if filtered file has content
           if [ -s "$temp_dir/${table}_filtered.sql" ]; then
