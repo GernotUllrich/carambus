@@ -118,7 +118,7 @@ confirm() {
     fi
 }
 
-# Function to check if production database version is higher than development
+# Function to check if production database version is higher than development OR has local data
 check_production_version() {
     local scenario_name="$1"
     
@@ -132,6 +132,18 @@ check_production_version() {
         return 0  # Allow drop (nothing to drop)
     fi
     
+    # Check for local data (ID > 50,000,000)
+    info "Checking for local data (ID > 50,000,000)..."
+    local has_local_data
+    has_local_data=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t;\"" 2>/dev/null | xargs)
+    
+    if [ "$has_local_data" = "1" ]; then
+        warning "Production database contains local data (ID > 50,000,000)"
+        warning "Database will NOT be dropped in cleanup - local data will be preserved"
+        info "Step 2 (prepare_deploy) will automatically backup and restore local data"
+        return 1  # Don't drop - has local data
+    fi
+    
     # Get production database version from remote server
     local prod_version
     prod_version=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;\"" 2>/dev/null | xargs)
@@ -143,8 +155,10 @@ check_production_version() {
     
     # Compare versions
     if [ "$prod_version" -gt "$dev_version" ]; then
+        warning "Production database version ($prod_version) is higher than development ($dev_version)"
         return 1  # Don't drop - production is newer
     else
+        info "Production database version ($prod_version) is same or lower than development ($dev_version)"
         return 0  # Allow drop - development is same or newer
     fi
 }
@@ -161,8 +175,13 @@ step_zero_cleanup() {
     else
         warning "  - Database: ${SCENARIO_NAME}_development"
     fi
-    warning "  - Database: ${SCENARIO_NAME}_production (version-checked)"
+    warning "  - Database: ${SCENARIO_NAME}_production (checked for local data & version)"
     warning "  - Raspberry Pi: Puma service, Nginx config, production database"
+    info ""
+    info "Note: Production database will NOT be dropped if:"
+    info "  - It contains local data (ID > 50,000,000)"
+    info "  - Its version is higher than development"
+    info "  → In these cases, Step 2 (prepare_deploy) will handle data preservation"
     
     if ! confirm "Proceed with complete cleanup?"; then
         log "Cleanup cancelled"
@@ -204,18 +223,18 @@ step_zero_cleanup() {
     ssh -p 8910 www-data@192.168.178.107 "sudo systemctl reload nginx || true"
     log "✅ Nginx configuration removed"
     
-    # Drop production database (only if version check passes)
-    info "Checking production database version..."
+    # Drop production database (only if version check AND local data check pass)
+    info "Checking production database (version and local data)..."
     if check_production_version "$SCENARIO_NAME"; then
-        info "Production database version check passed - dropping database on remote server"
+        info "No conflicts detected - dropping database on remote server"
         if ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres dropdb ${SCENARIO_NAME}_production 2>/dev/null"; then
             log "✅ Production database dropped"
         else
             info "Production database not found or already dropped"
         fi
     else
-        warning "Production database version is higher than development - skipping drop"
-        warning "Production database preserved"
+        log "✅ Production database preserved (has local data or newer version)"
+        info "Step 2 (prepare_deploy) will handle database update with data preservation"
     fi
     
     # Remove deployment directory
