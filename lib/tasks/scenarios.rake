@@ -4731,7 +4731,8 @@ EOF
     # Get production SSH details
     ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
     ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
-    ssh_user = scenario_config.dig('environments', 'production', 'database_username') || 'www-data'
+    # SSH user: try raspberry_pi_client.ssh_user first, then default to 'www-data' (with dash)
+    ssh_user = scenario_config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_user') || 'www-data'
     database_name = "#{scenario_name}_production"
     
     if ssh_host.nil? || ssh_host.empty?
@@ -4815,7 +4816,8 @@ EOF
     # Get production SSH details
     ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
     ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
-    ssh_user = scenario_config.dig('environments', 'production', 'database_username') || 'www-data'
+    # SSH user: try raspberry_pi_client.ssh_user first, then default to 'www-data' (with dash)
+    ssh_user = scenario_config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_user') || 'www-data'
     database_name = "#{scenario_name}_production"
     
     if ssh_host.nil? || ssh_host.empty?
