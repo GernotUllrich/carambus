@@ -2429,6 +2429,25 @@ ENV
         # Remove application folder and recreate database on server
         puts "   🔄 Removing application folders (including old trials) and recreating production database..."
 
+        # Check if production database has local data (id > 50000000) that needs to be preserved
+        local_backup_file = nil
+        puts "   🔍 Checking for local data in production database..."
+        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t;\""
+        has_local_data_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{check_local_data_cmd}' 2>/dev/null`.strip
+        has_local_data = has_local_data_output.to_i > 0
+
+        if has_local_data
+          puts "   ⚠️  Local data detected (id > 50,000,000) - backing up before database replacement..."
+          local_backup_file = backup_local_data(scenario_name)
+          unless local_backup_file
+            puts "   ❌ Failed to backup local data - aborting deployment"
+            return false
+          end
+          puts "   ✅ Local data backed up: #{File.basename(local_backup_file)}"
+        else
+          puts "   ℹ️  No local data detected - proceeding with clean database replacement"
+        end
+
         # Create a temporary script for database operations
         temp_script = "/tmp/reset_database.sh"
         script_content = <<~SCRIPT
@@ -2527,6 +2546,18 @@ ENV
               puts "   ✅ Database verification successful - 19 regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
+
+              # Restore local data if it was backed up
+              if local_backup_file
+                puts "\n   🔄 Restoring local data..."
+                unless restore_local_data(scenario_name, local_backup_file)
+                  puts "   ❌ Failed to restore local data - manual restoration may be needed"
+                  puts "   💾 Backup file available at: #{local_backup_file}"
+                  # Don't fail deployment, but warn user
+                else
+                  puts "   ✅ Local data restored successfully"
+                end
+              end
 
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
@@ -4654,6 +4685,182 @@ EOF
       puts "\n   Example:"
       puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"#{tables.first.name}\"]"
     end
+  end
+
+  desc "Backup local data from production (with automatic cleanup)"
+  task :backup_local_data, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:backup_local_data[scenario_name]"
+      puts "Example: rake scenario:backup_local_data[carambus_bcw]"
+      exit 1
+    end
+
+    backup_local_data(scenario_name)
+  end
+
+  desc "Restore local data to production"
+  task :restore_local_data, [:scenario_name, :backup_file] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    backup_file = args[:backup_file]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:restore_local_data[scenario_name,backup_file]"
+      puts "Example: rake scenario:restore_local_data[carambus_bcw,/path/to/backup.sql]"
+      exit 1
+    end
+
+    restore_local_data(scenario_name, backup_file)
+  end
+
+  # Helper function to backup local data with cleanup
+  def backup_local_data(scenario_name)
+    puts "\n💾 Backing up local data from #{scenario_name}_production with cleanup..."
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      return false
+    end
+    scenario_config = YAML.load_file(config_file)
+    
+    # Get production SSH details
+    ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
+    ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
+    ssh_user = scenario_config.dig('environments', 'production', 'database_username') || 'www-data'
+    database_name = "#{scenario_name}_production"
+    
+    if ssh_host.nil? || ssh_host.empty?
+      puts "❌ Missing production.ssh_host in scenario config"
+      return false
+    end
+    
+    # Create timestamp for backup
+    timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
+    
+    # Find the backup script
+    scripts_dir = File.join(carambus_data_path, 'scripts')
+    backup_script = File.join(scripts_dir, 'backup_local_data_remote_clean.sh')
+    
+    unless File.exist?(backup_script)
+      puts "❌ Backup script not found: #{backup_script}"
+      return false
+    end
+    
+    # Create backup directory
+    backup_dir = File.join(scenarios_path, scenario_name, 'local_data_backups')
+    FileUtils.mkdir_p(backup_dir)
+    
+    puts "   📤 Transferring backup script to remote server..."
+    unless system("scp -P #{ssh_port} '#{backup_script}' #{ssh_user}@#{ssh_host}:/tmp/backup_script.sh")
+      puts "❌ Failed to transfer backup script"
+      return false
+    end
+    
+    # Make it executable
+    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'chmod +x /tmp/backup_script.sh'")
+    
+    puts "   🔄 Executing backup with cleanup on remote server..."
+    remote_output = `ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} '/tmp/backup_script.sh #{database_name} #{timestamp} 2>&1'`
+    puts remote_output
+    
+    # Extract backup file path
+    remote_file = remote_output.match(/BACKUP_FILE_PATH=(.+)$/)&.captures&.first
+    if remote_file.nil?
+      puts "❌ Failed to get backup file path from remote server"
+      return false
+    end
+    
+    # Download backup
+    local_backup = File.join(backup_dir, "local_data_#{timestamp}.sql")
+    puts "   📥 Downloading backup from #{remote_file}..."
+    unless system("scp -P #{ssh_port} #{ssh_user}@#{ssh_host}:#{remote_file} '#{local_backup}'")
+      puts "❌ Failed to download backup"
+      return false
+    end
+    
+    # Cleanup remote files
+    puts "   🧹 Cleaning up remote server..."
+    remote_dir = File.dirname(remote_file)
+    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'rm -f /tmp/backup_script.sh && rm -rf #{remote_dir}'")
+    
+    puts "\n✅ Backup complete!"
+    puts "   File: #{local_backup}"
+    puts "   Size: #{File.size(local_backup) / 1024}  KB"
+    
+    local_backup
+  end
+
+  # Helper function to restore local data
+  def restore_local_data(scenario_name, backup_file)
+    puts "\n🔄 Restoring local data to #{scenario_name}_production..."
+    
+    unless File.exist?(backup_file)
+      puts "❌ Backup file not found: #{backup_file}"
+      return false
+    end
+    
+    # Load scenario configuration
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      return false
+    end
+    scenario_config = YAML.load_file(config_file)
+    
+    # Get production SSH details
+    ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
+    ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
+    ssh_user = scenario_config.dig('environments', 'production', 'database_username') || 'www-data'
+    database_name = "#{scenario_name}_production"
+    
+    if ssh_host.nil? || ssh_host.empty?
+      puts "❌ Missing production.ssh_host in scenario config"
+      return false
+    end
+    
+    # Create timestamp
+    timestamp = Time.now.to_i
+    remote_file = "/tmp/local_data_restore_#{timestamp}.sql"
+    
+    # Find the restore script
+    scripts_dir = File.join(carambus_data_path, 'scripts')
+    restore_script = File.join(scripts_dir, 'restore_local_data_remote.sh')
+    
+    unless File.exist?(restore_script)
+      puts "❌ Restore script not found: #{restore_script}"
+      return false
+    end
+    
+    puts "   📤 Transferring restore script to remote server..."
+    unless system("scp -P #{ssh_port} '#{restore_script}' #{ssh_user}@#{ssh_host}:/tmp/restore_script.sh")
+      puts "❌ Failed to transfer restore script"
+      return false
+    end
+    
+    # Make it executable
+    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'chmod +x /tmp/restore_script.sh'")
+    
+    puts "   📤 Transferring backup file to remote server..."
+    unless system("scp -P #{ssh_port} '#{backup_file}' #{ssh_user}@#{ssh_host}:#{remote_file}")
+      puts "❌ Failed to transfer backup file"
+      return false
+    end
+    
+    puts "   🔄 Executing restore on remote server..."
+    unless system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} '/tmp/restore_script.sh #{database_name} #{remote_file}'")
+      puts "❌ Failed to restore local data"
+      return false
+    end
+    
+    # Cleanup
+    puts "   🧹 Cleaning up remote server..."
+    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'rm -f /tmp/restore_script.sh #{remote_file}'")
+    
+    puts "\n✅ Local data restored successfully!"
+    true
   end
 
 end

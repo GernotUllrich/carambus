@@ -269,10 +269,14 @@ step_two_prepare_deploy() {
     info "This will:"
     info "  - Generate production configuration files"
     info "  - Create production database from development dump"
+    info "  - **AUTOMATICALLY** backup local data (id > 50,000,000) if present"
+    info "  - **AUTOMATICALLY** restore local data after database replacement"
     info "  - Copy deployment files (nginx, puma, etc.)"
     info "  - Upload config files to server shared directory"
     info "  - Create systemd service and Nginx configuration on server"
     info "  - Prepare for server deployment"
+    info ""
+    info "Note: Local data preservation is automatic - no manual steps needed!"
     
     if ! confirm "Proceed with prepare_deploy?"; then
         log "Deployment preparation cancelled"

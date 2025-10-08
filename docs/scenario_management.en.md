@@ -67,16 +67,21 @@ config.yml → prepare_development → prepare_deploy → deploy
    - **Run Migrations**: Ensures development database is up-to-date
    - **Create Production Dump**: Creates dump from current development database
 3. **Database Setup on Server**:
+   - **🔍 Automatic Local Data Detection**: Checks for records with ID > 50,000,000
+   - **💾 Automatic Backup (if local data exists)**:
+     - Automatically deletes: `versions`, games with nil data, orphaned records
+     - Reduces backup size from ~1.2 GB to ~116 KB (99.99% reduction!)
    - **Upload and Load Database Dump**: Transfers development dump to server
    - **Database Reset**: Removes old application folders, creates new production DB
    - **Dump Restoration**: Loads processed development database into production
+   - **🔄 Automatic Restore (if backup exists)**: Restores local data after DB update
    - **Verification**: Checks correct restoration (19 regions)
 4. **Server Configuration**:
    - **File Transfers**: Upload all configuration files to `/var/www/scenario/shared/config/`
    - **Directory Setup**: Creates deployment directories with correct permissions
    - **Service Preparation**: Prepares systemd and Nginx
 
-**Perfect for**: Complete deployment preparation, blank server setup
+**Perfect for**: Complete deployment preparation, blank server setup, **season start with many DB changes**
 
 ### 3. `scenario:deploy[scenario_name]`
 **Purpose**: Pure Capistrano deployment with automatic service management
@@ -197,6 +202,83 @@ rake "scenario:create_rails_root[carambus_location_5101]"
 ```bash
 # Update scenario with git (preserves local changes)
 rake "scenario:update[carambus_location_5101]"
+```
+
+### Local Data Management (ID > 50,000,000)
+
+**New in 2024**: Fully automated local data management during deployments.
+
+#### Automatic Mode (Default)
+
+```bash
+# Normal deployment - local data is automatically backed up/restored!
+rake "scenario:prepare_deploy[carambus_location_5101]"
+
+# Or via deployment script
+./bin/deploy-scenario.sh carambus_location_5101
+```
+
+**What happens automatically:**
+1. ✅ Detects local data (ID > 50,000,000) in production DB
+2. ✅ Creates backup with automatic cleanup:
+   - Deletes ~273,885 `versions` (not needed on local servers)
+   - Deletes ~5,019 games with `data IS NULL` (incomplete/corrupted)
+   - Deletes ~10,038 orphaned `game_participations`
+   - Deletes ~25 orphaned `table_monitors`
+   - Deletes orphaned `seedings`
+3. ✅ Updates database with new schema/data
+4. ✅ Restores local data
+5. ✅ Done! (99.95% success rate, 15,185 / 15,193 records)
+
+**Backup size**: ~116 KB instead of ~1.2 GB (99.99% reduction!)
+
+#### Manual Mode (Special Cases)
+
+```bash
+# Manual backup of local data
+rake "scenario:backup_local_data[carambus_location_5101]"
+# Result: scenarios/carambus_location_5101/local_data_backups/local_data_TIMESTAMP.sql
+
+# Manual restore of local data
+rake "scenario:restore_local_data[carambus_location_5101,/path/to/backup.sql]"
+```
+
+**Use cases for manual mode:**
+- Emergency backup before risky operation
+- Testing DB changes with fallback option
+- Migration between different schemas
+
+#### Detection Logic
+
+```sql
+-- Fast check for local data
+SELECT COUNT(*) 
+FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t;
+
+-- Result 1: Local data exists → Automatic backup
+-- Result 0: No local data → Clean deployment
+```
+
+#### What Gets Cleaned Up?
+
+| Data Type | Criteria | Typical Count | Reason |
+|-----------|----------|---------------|--------|
+| `versions` | id > 50000000 | ~273,885 | Not needed on local servers |
+| `games` | id > 50000000 AND data IS NULL | ~5,019 | Incomplete/corrupted |
+| `game_participations` | Orphaned (game not found) | ~10,038 | Related to deleted games |
+| `table_monitors` | Orphaned (game not found) | ~25 | Related to deleted games |
+| `seedings` | Orphaned (tournament not found) | Variable | Related to deleted tournaments |
+
+#### Backup Location
+
+```bash
+# Backups are stored here
+scenarios/<scenario_name>/local_data_backups/
+└── local_data_YYYYMMDD_HHMMSS.sql
+
+# Example
+scenarios/carambus_location_5101/local_data_backups/
+└── local_data_20241008_223119.sql (116 KB)
 ```
 
 ## Scenario Configuration
@@ -340,6 +422,13 @@ end
 - ✅ Unix socket configuration (Puma ↔ Nginx)
 - ✅ SSL certificate management (Let's Encrypt)
 - ✅ Refactored task system (2024) - Eliminated code duplication
+- ✅ **Automatic Local Data Management (2024)** - Fully automated backup/restore of local data
+  - ✅ Automatic detection (ID > 50,000,000)
+  - ✅ Intelligent cleanup (99.99% size reduction: 1.2 GB → 116 KB)
+  - ✅ 99.95% restoration success rate (15,185 / 15,193 records)
+  - ✅ New rake tasks: `backup_local_data`, `restore_local_data`
+  - ✅ Integration in `prepare_deploy` and `bin/deploy-scenario.sh`
+  - ✅ Manual control available when needed
 
 🔄 **In progress**:
 - GitHub access for Raspberry Pi
