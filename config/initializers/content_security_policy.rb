@@ -29,7 +29,8 @@
 Rails.application.config.content_security_policy do |policy|
   if Rails.env.development?
     # Development policy with unsafe-inline
-    policy.style_src :self, :unsafe_inline, "https://rsms.me"
+    policy.style_src :self, :unsafe_inline, "https://rsms.me", "https://cdnjs.cloudflare.com"
+    policy.font_src :self, :https, :data, "https://cdnjs.cloudflare.com"
     policy.script_src :self, :unsafe_inline, :unsafe_eval,
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
@@ -42,7 +43,7 @@ Rails.application.config.content_security_policy do |policy|
     policy.script_src :self, :unsafe_inline, :unsafe_eval,
       "https://cdn.jsdelivr.net",
       "https://unpkg.com"
-    policy.style_src :self, :unsafe_inline, "https://rsms.me"
+    policy.style_src :self, :unsafe_inline, "https://rsms.me", "https://cdnjs.cloudflare.com"
     policy.connect_src :self, :https, :http
     policy.frame_src :self
     policy.media_src :self

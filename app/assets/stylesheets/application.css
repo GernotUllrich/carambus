@@ -28,4 +28,17 @@
   padding: 0 !important;
   vertical-align: middle;
   color: #d1d5db !important; /* fallback for text-gray-300 */
-} 
+  font-size: 1.5vw !important; /* ensure font icons scale */
+  line-height: 1 !important;   /* align font icons */
+}
+
+/* Ensure Font Awesome font icons render with correct font family/weight */
+.fa,
+.fa-solid,
+.fa-regular,
+.fa-brands {
+  font-family: "Font Awesome 6 Free" !important;
+  font-style: normal !important;
+}
+.fa-solid { font-weight: 900 !important; }
+.fa-regular { font-weight: 400 !important; }
