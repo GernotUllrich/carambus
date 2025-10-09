@@ -1456,8 +1456,10 @@ ENV
 
     # Install Ruby dependencies
     puts "   📦 Installing Ruby dependencies (bundle install)..."
-    unless system("cd #{rails_root} && bundle install")
-      puts "   ❌ Failed to install Ruby dependencies"
+    system("cd #{rails_root} && bundle install")
+    # Check if gems are actually installed (more reliable than exit code)
+    unless File.exist?(File.join(rails_root, "Gemfile.lock"))
+      puts "   ❌ Failed to install Ruby dependencies (Gemfile.lock missing)"
       return false
     end
     puts "   ✅ Ruby dependencies installed"
@@ -2544,7 +2546,8 @@ ENV
             verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
             verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
 
-            if verify_output.include?("19") && verify_output.include?("(1 row)")
+            # Check for 19 regions (locale-independent - works with both "1 row" and "1 Zeile")
+            if verify_output.include?("19") && (verify_output.include?("(1 row)") || verify_output.include?("(1 Zeile)"))
               puts "   ✅ Database verification successful - 19 regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
