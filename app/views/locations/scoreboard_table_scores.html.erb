@@ -6,12 +6,12 @@
         height: auto;
     }
 </style>
-<div class="w-1/12 grid grid-flow-col auto-cols-max gap-[0.75vw] justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="w-fit grid grid-flow-col auto-cols-max items-center gap-[0.75vw] justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
-    <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-gray-300 dark:text-white inline-block", title: "toggle dark mode" %>
+    <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "toggle dark mode" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
-    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-gray-300 dark:text-white inline-block", title: "home" %>
+    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "home" %>
   <% end %>
 </div>
 <turbo-frame id="table_scores" class="p-8 w-full m-auto flex flex-col bg-cover h-screen bg-center bg-no-repeat">
