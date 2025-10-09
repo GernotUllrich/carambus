@@ -10,16 +10,16 @@
 
 <div class="w-1/12 grid grid-cols-4 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
+    <%= fa_icon "circle-info", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
   <% end %>
   <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
-    <%= render_svg "icons/adjust", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
+    <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle dark mode" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
   <% end %>
   <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-    <%= render_svg "icons/refresh", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "refresh/resize window (restores exit button)" %>
+    <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-icon", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle fullscreen / resize window" %>
   <% end %>
 </div>
 <div class="p-7 lg:p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/bg_pool2-.jpg')">
@@ -115,3 +115,22 @@
     <% end %>
   <%- end %>
 </div>
+
+<script>
+  (function() {
+    function updateFullscreenIcon() {
+      var icon = document.getElementById('fullscreen-toggle-icon');
+      if (!icon) return;
+      var isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      icon.classList.toggle('fa-expand', !isFull);
+      icon.classList.toggle('fa-compress', isFull);
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenIcon);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+    document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+    document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+    document.addEventListener('DOMContentLoaded', updateFullscreenIcon);
+    updateFullscreenIcon();
+  })();
+  </script>
