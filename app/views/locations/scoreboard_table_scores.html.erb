@@ -6,7 +6,7 @@
         height: auto;
     }
 </style>
-<div class="inline-flex items-center justify-end space-x-[1vw] mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: 10px;">
+<div class="inline-flex items-center justify-end space-x-[1.5vw] mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: 10px;">
   <%= custom_link_to toggle_dark_mode_location_path(@location), :"data-turbo" => false do %>
     <%= fa_icon "circle-half-stroke", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-gray-300 dark:text-white inline-block", title: "toggle dark mode" %>
   <% end %>
