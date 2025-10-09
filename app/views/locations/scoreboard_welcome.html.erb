@@ -136,33 +136,11 @@
 <div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
 
 <!-- Scoreboard Menu -->
-<div class="w-1/12 grid grid-cols-2 gap-8 justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
-  <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-    <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-icon", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle fullscreen / resize window" %>
-  <% end %>
+<div class="w-1/12 grid grid-flow-col auto-cols-max gap-[0.75vw] justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
     <%= fa_icon "circle-info", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
   <% end %>
 </div>
-
-<script>
-  (function() {
-    function updateFullscreenIcon() {
-      var icon = document.getElementById('fullscreen-toggle-icon');
-      if (!icon) return;
-      var isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-      icon.classList.toggle('fa-expand', !isFull);
-      icon.classList.toggle('fa-compress', isFull);
-    }
-
-    document.addEventListener('fullscreenchange', updateFullscreenIcon);
-    document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
-    document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
-    document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
-    document.addEventListener('DOMContentLoaded', updateFullscreenIcon);
-    updateFullscreenIcon();
-  })();
-  </script>
 
 <!-- Language Switcher Bottom Right -->
 <% if I18n.locale.to_s == "en" %>
