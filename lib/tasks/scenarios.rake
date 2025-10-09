@@ -85,15 +85,6 @@ namespace :scenario do
     prepare_scenario_for_development(scenario_name, environment, force)
   end
 
-  desc "Sync API production to development (when production is newer)"
-  task :sync_api_production_to_development => :environment do
-    puts "\n🔄 Syncing carambus_api_production → carambus_api_development"
-    puts "=" * 70
-    
-    # Call the existing sync function with force=true to allow API scenario sync
-    sync_with_api_production_if_newer('carambus_api', force: true)
-  end
-
   desc "Prepare scenario for deployment (config generation, database setup, file transfers, server preparation)"
   task :prepare_deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -1535,11 +1526,11 @@ ENV
     end
   end
 
-  def sync_with_api_production_if_newer(scenario_name, force: false)
+  def sync_with_api_production_if_newer(scenario_name, force = false)
     puts "Checking if carambus_api_production has newer official versions (< 50000000) than carambus_api_development..."
 
-    # Skip if this is the carambus_api scenario itself (unless force is true)
-    if scenario_name == 'carambus_api' && !force
+    # Skip if this is the carambus_api scenario itself
+    if scenario_name == 'carambus_api'
       puts "   ℹ️  Skipping API sync for carambus_api scenario (it is the source)"
       return true
     end
