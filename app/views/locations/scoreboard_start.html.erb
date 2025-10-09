@@ -81,7 +81,7 @@
     });
   });
 </script>
-<div class="w-fit grid grid-flow-col auto-cols-max items-center gap-[0.75vw] justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="inline-flex items-center justify-end space-x-[0.75vw] mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
     <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-icon", class: "responsive-svg fill-current icon-lg m-0 text-white inline-block", title: "toggle fullscreen / resize window" %>
   <% end %>
