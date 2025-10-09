@@ -24,7 +24,7 @@ default:
   application_name: <%= @scenario['application_name'] %>
   basename: <%= @scenario['basename'] %>
   support_email: gernot.ullrich@gmx.de
-  business_name: <%= @scenario['name'] == 'carambus_api' ? 'Ullrich IT Consulting' : 'PHAT Consulting' %>
+  business_name: Ullrich IT Consulting
   business_address: 22869 Schenefeld, Sandstückenweg 15
   carambus_domain: <%= (@config['webserver_host'] || 'carambus.de') + (@config['webserver_port'] && @config['webserver_port'] != 80 && @config['webserver_port'] != 443 ? ":#{@config['webserver_port']}" : '') %>
   queue_adapter: async
