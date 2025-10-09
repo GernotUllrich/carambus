@@ -136,7 +136,7 @@
 <div id="info" class="mb-5 ml-5">Version: <%= Rails.env == "production" ? "#{File.read("#{Rails.root}/REVISION").truncate(11)}<br />#{File.ctime("#{Rails.root}/REVISION")}".html_safe : `git show --pretty=%H -q`.truncate(11) %></div>
 
 <!-- Scoreboard Menu -->
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="w-1/12 grid grid-cols-2 gap-8 justify-items-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
     <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-icon", class: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "toggle fullscreen / resize window" %>
   <% end %>
