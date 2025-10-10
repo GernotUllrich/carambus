@@ -88,6 +88,25 @@ rails region_taggings:set_global_context
 rails region_taggings:verify
 ```
 
+### Database Sync Check Script
+
+To quickly verify synchronization among the API and a scenario (development vs. production), use the generalized script:
+
+```bash
+bin/check_database_sync.sh <scenario_name>
+
+# Example
+bin/check_database_sync.sh carambus_bcw
+```
+
+- Reads endpoints from `carambus_data/scenarios/<scenario>/config.yml` and `carambus_data/scenarios/carambus_api/config.yml`.
+- Compares official API version (id < 50M) across API dev/prod.
+- Compares the scenario’s `last_version_id` (settings[14]) to the API version.
+- Compares key counts (games total, local games id>50M, players/tournaments official) between scenario dev and prod.
+
+Environment override:
+- `CARAMBUS_DATA_DIR=/path/to/carambus_data bin/check_database_sync.sh carambus_bcw`
+
 ### Modelle mit RegionTaggable
 - Region, Club, Tournament, League, Party
 - Location, LeagueTeam, Game, PartyGame, GameParticipation
