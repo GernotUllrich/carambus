@@ -10,5 +10,6 @@
 #  table_id       :integer
 #
 class TableLocal < ApplicationRecord
+  include ApiProtector
   belongs_to :table
 end

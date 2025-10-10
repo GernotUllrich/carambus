@@ -2436,7 +2436,7 @@ ENV
         # Check if production database has local data (id > 50000000) that needs to be preserved
         local_backup_file = nil
         puts "   🔍 Checking for local data in production database..."
-        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t;\""
+        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT (\n          (SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t1) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tournaments WHERE id > 50000000 LIMIT 1) AS t2) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tables WHERE id > 50000000 LIMIT 1) AS t3) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM users WHERE id > 50000000 LIMIT 1) AS t4) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM players WHERE id > 50000000 LIMIT 1) AS t5) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM table_locals LIMIT 1) AS t6) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tournament_locals LIMIT 1) AS t7)\n        );\""
         has_local_data_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{check_local_data_cmd}' 2>/dev/null`.strip
         has_local_data = has_local_data_output.to_i > 0
 
@@ -3896,8 +3896,10 @@ ENV
       'locations',         # Depends on regions
       'players',           # Depends on regions
       'tournaments',       # Depends on regions
+      'tournament_locals', # Depends on tournaments
       'users',            # Depends on players
       'tables',           # Depends on locations, table_kinds
+      'table_locals',     # Depends on tables
       'settings',         # Depends on clubs, regions, tournaments
       'games',            # Depends on tournaments, players
       'game_participations', # Depends on games, players
@@ -3924,8 +3926,10 @@ ENV
         "locations"
         "players"
         "tournaments"
+        "tournament_locals"
         "users"
         "tables"
+        "table_locals"
         "settings"
         "games"
         "game_participations"
@@ -3948,9 +3952,14 @@ ENV
           --table="$table" \\
           --file="$temp_dir/${table}.sql"
         
-        # Filter to only include records with ID > 50,000,000
+        # Filter: For most tables include only records with ID > 50,000,000.
+        # For local extension tables, include all rows (they are local-only by design).
         if [ -s "$temp_dir/${table}.sql" ]; then
-          awk -F'\\t' '$$1 > 50000000' "$temp_dir/${table}.sql" > "$temp_dir/${table}_filtered.sql"
+          if [ "$table" = "table_locals" ] || [ "$table" = "tournament_locals" ]; then
+            cp "$temp_dir/${table}.sql" "$temp_dir/${table}_filtered.sql"
+          else
+            awk -F'\\t' '$$1 > 50000000' "$temp_dir/${table}.sql" > "$temp_dir/${table}_filtered.sql"
+          fi
           
           # Check if filtered file has content
           if [ -s "$temp_dir/${table}_filtered.sql" ]; then

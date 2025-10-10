@@ -19,5 +19,6 @@
 #  tournament_id          :integer
 #
 class TournamentLocal < ApplicationRecord
+  include ApiProtector
   belongs_to :tournament
 end

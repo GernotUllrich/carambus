@@ -589,6 +589,17 @@ namespace :carambus do
     database = config[Rails.env]["database"]
     unless ENV["SKIP_PG_DUMP"].present?
       puts "======== make a pg_dump of #{database} =========="
+      # Ensure local extension tables use the local ID range before extracting delta
+      # This shifts IDs for table_locals and tournament_locals where needed and resets their sequences
+      bump_sql = <<~SQL
+        BEGIN;
+        UPDATE public.table_locals SET id = id + 50000000 WHERE id < 50000000;
+        UPDATE public.tournament_locals SET id = id + 50000000 WHERE id < 50000000;
+        SELECT setval(pg_get_serial_sequence('public.table_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.table_locals)), true);
+        SELECT setval(pg_get_serial_sequence('public.tournament_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.tournament_locals)), true);
+        COMMIT;
+      SQL
+      system(%Q(psql #{database} -v ON_ERROR_STOP=1 -c "#{bump_sql.gsub("\n"," ").gsub('"','\\\"')}"))
       `pg_dump #{"-Uwww_data" if Rails.env == "production"} #{database} > #{Rails.root}/#{database}.sql`
     end
     in_copy_users_or_tournaments = false
@@ -650,6 +661,16 @@ namespace :carambus do
     database = ENV["DATABASE"]
     in_copy_users_or_tournaments = false
     priority_tables = []
+    # Ensure local extension tables use the local ID range before extracting delta
+    bump_sql = <<~SQL
+      BEGIN;
+      UPDATE public.table_locals SET id = id + 50000000 WHERE id < 50000000;
+      UPDATE public.tournament_locals SET id = id + 50000000 WHERE id < 50000000;
+      SELECT setval(pg_get_serial_sequence('public.table_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.table_locals)), true);
+      SELECT setval(pg_get_serial_sequence('public.tournament_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.tournament_locals)), true);
+      COMMIT;
+    SQL
+    system(%Q(psql #{database} -v ON_ERROR_STOP=1 -c "#{bump_sql.gsub("\n"," ").gsub('"','\\\"')}"))
     File.open("#{Rails.root}/#{database}.sql", "r").each_line do |line|
       if /^COPY/.match?(line)
         in_copy_users_or_tournaments = case line
