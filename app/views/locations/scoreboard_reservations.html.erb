@@ -6,7 +6,7 @@
         width: 100%;
         height: auto;
     }
-    
+
     /* Kiosk Keyboard Styles */
     .kiosk-keyboard {
         position: fixed;
@@ -18,18 +18,18 @@
         z-index: 1000;
         display: none;
     }
-    
+
     .kiosk-keyboard.show {
         display: block;
     }
-    
+
     .kiosk-keyboard .keyboard__keys {
         display: flex;
         justify-content: center;
         gap: 10px;
         flex-wrap: wrap;
     }
-    
+
     .kiosk-keyboard .keyboard__key {
         padding: 15px 20px;
         border: none;
@@ -40,25 +40,25 @@
         min-width: 80px;
         text-align: center;
     }
-    
+
     .kiosk-keyboard .keyboard__key--wide {
         min-width: 120px;
     }
-    
+
     .kiosk-keyboard .keyboard__key--extra-wide {
         min-width: 200px;
     }
-    
+
     .kiosk-keyboard .keyboard__key--dark {
         background: #e53e3e;
         color: white;
     }
-    
+
     .kiosk-keyboard .keyboard__key--activatable {
         background: #4a5568;
         color: white;
     }
-    
+
     .kiosk-keyboard .keyboard__key--active {
         background: #2d3748;
     }
@@ -81,11 +81,11 @@
   function open_kiosk_keyboard() {
     logMessage("Opening kiosk keyboard...");
     logMessage("Keyboard object available: " + (typeof Keyboard !== 'undefined'));
-    
+
     // Force fallback keyboard for testing
     logMessage("Forcing fallback keyboard for testing");
     showFallbackKioskKeyboard();
-    
+
     // Original logic (commented out for now)
     /*
     if (typeof Keyboard !== 'undefined' && Keyboard._setupKeyboard) {
@@ -101,7 +101,7 @@
 
   function showFallbackKioskKeyboard() {
     logMessage("Creating fallback kiosk keyboard...");
-    
+
     // Create fallback kiosk keyboard if it doesn't exist
     let kioskKeyboard = document.getElementById('fallback-kiosk-keyboard');
     if (!kioskKeyboard) {
@@ -134,10 +134,10 @@
       `;
       document.body.appendChild(kioskKeyboard);
       logMessage("Keyboard element added to DOM");
-      
+
       // Add event listeners
       let altPressed = false;
-      
+
       document.getElementById('alt-key').addEventListener('click', function() {
         logMessage("ALT key clicked, current state: " + altPressed);
         altPressed = !altPressed;
@@ -145,7 +145,7 @@
         this.style.backgroundColor = altPressed ? '#2d3748' : '#4a5568';
         logMessage("ALT key state changed to: " + altPressed);
       });
-      
+
       document.getElementById('space-key').addEventListener('click', function() {
         logMessage("SPACE key clicked, ALT pressed: " + altPressed);
         if (altPressed) {
@@ -158,17 +158,17 @@
           logMessage("SPACE clicked without ALT");
         }
       });
-      
+
       document.getElementById('exit-kiosk-key').addEventListener('click', function() {
         logMessage("EXIT KIOSK button clicked");
         fireAltSpaceEvent();
       });
-      
+
       document.getElementById('close-kiosk-key').addEventListener('click', function() {
         logMessage("CLOSE button clicked");
         kioskKeyboard.style.display = 'none';
       });
-      
+
       document.getElementById('debug-key').addEventListener('click', function() {
         logMessage("DEBUG button clicked");
         logMessage("Current window properties:");
@@ -178,11 +178,11 @@
         logMessage("- window.screen.height: " + window.screen.height);
         logMessage("- window.screen.width: " + window.screen.width);
         logMessage("- navigator.userAgent: " + navigator.userAgent.substring(0, 50) + "...");
-        
+
         // Try to detect if we're in kiosk mode
         const isKiosk = window.innerHeight === window.screen.height && window.innerWidth === window.screen.width;
         logMessage("Detected kiosk mode: " + isKiosk);
-        
+
         // Show alert with debug info
         alert(`Debug Info:
 - Fullscreen: ${document.fullscreenElement ? 'Yes' : 'No'}
@@ -191,21 +191,21 @@
 - Kiosk detected: ${isKiosk}
 - User Agent: ${navigator.userAgent.substring(0, 50)}...`);
       });
-      
+
       document.getElementById('logs-key').addEventListener('click', function() {
         showDebugLogs();
       });
-      
+
       logMessage("Fallback keyboard event listeners added");
     }
-    
+
     kioskKeyboard.style.display = 'block';
     logMessage("Fallback keyboard shown");
   }
 
   function fireAltSpaceEvent() {
     logMessage("Firing ALT+SPACE event...");
-    
+
     // Method 1: Try ESC key FIRST (since physical ESC works)
     try {
       logMessage("Trying ESC key (primary method)...");
@@ -219,7 +219,7 @@
         view: window
       });
       document.dispatchEvent(escEvent);
-      
+
       // Also try keyup event
       setTimeout(() => {
         const escUpEvent = new KeyboardEvent("keyup", {
@@ -234,12 +234,12 @@
         document.dispatchEvent(escUpEvent);
         logMessage("ESC keyup event sent");
       }, 50);
-      
+
     } catch (e) {
       logMessage("ESC method failed: " + e.message);
     }
-    
-    // Method 2: Try direct window.focus() 
+
+    // Method 2: Try direct window.focus()
     setTimeout(() => {
       try {
         window.focus();
@@ -248,7 +248,7 @@
         logMessage("Window focus failed: " + e.message);
       }
     }, 100);
-    
+
     // Method 3: Try to trigger window menu (Linux desktop environment)
     setTimeout(() => {
       try {
@@ -311,7 +311,7 @@
             setTimeout(() => {
               document.dispatchEvent(altUpEvent);
               logMessage("ALT+SPACE events completed");
-              
+
               // Method 2.1: Try to click on "Fullscreen" menu item after ALT+SPACE
               setTimeout(() => {
                 try {
@@ -329,7 +329,7 @@
                   logMessage("Menu item click failed: " + e.message);
                 }
               }, 200);
-              
+
             }, 100);
           }, 100);
         }, 100);
@@ -337,7 +337,7 @@
         logMessage("Method 2 failed: " + e.message);
       }
     }, 200);
-    
+
     // Method 4: Try F11 to toggle fullscreen
     setTimeout(() => {
       try {
@@ -356,7 +356,7 @@
         logMessage("F11 method failed: " + e.message);
       }
     }, 500);
-    
+
     // Method 5: Try Super+Down (Linux window management)
     setTimeout(() => {
       try {
@@ -376,7 +376,7 @@
         logMessage("Super+Down method failed: " + e.message);
       }
     }, 1000);
-    
+
     // Method 6: Try to exit fullscreen via browser API
     setTimeout(() => {
       try {
@@ -395,7 +395,7 @@
         logMessage("Fullscreen exit API failed: " + e.message);
       }
     }, 1500);
-    
+
     // Method 7: Try to open browser menu programmatically
     setTimeout(() => {
       try {
@@ -413,7 +413,7 @@
         logMessage("Context menu method failed: " + e.message);
       }
     }, 2000);
-    
+
     logMessage("All exit methods attempted");
   }
 
@@ -421,13 +421,13 @@
   function logMessage(message) {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `[${timestamp}] ${message}`;
-    
+
     // Save to localStorage
     let logs = JSON.parse(localStorage.getItem('kioskDebugLogs') || '[]');
     logs.push(logEntry);
     if (logs.length > 50) logs = logs.slice(-50); // Keep only last 50 entries
     localStorage.setItem('kioskDebugLogs', JSON.stringify(logs));
-    
+
     // Also log to console if available
     console.log(logEntry);
   }
@@ -438,7 +438,7 @@
       alert("No debug logs found. Try clicking 'Exit Kiosk Mode' first.");
       return;
     }
-    
+
     const logText = logs.slice(-10).join('\n'); // Show last 10 entries
     alert("Last 10 Debug Logs:\n\n" + logText);
   }
@@ -454,7 +454,7 @@
       alert("No debug logs found. Try clicking 'Exit Kiosk Mode' first.");
       return;
     }
-    
+
     const logText = logs.join('\n');
     const blob = new Blob([logText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -465,7 +465,7 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     logMessage("Debug logs downloaded as kiosk-debug-logs.txt");
   }
 
@@ -473,7 +473,7 @@
     logMessage("Trying Linux-specific window management...");
     logMessage("Session type: LXDE-pi-labwc");
     logMessage("Browser started with --kiosk flag");
-    
+
     // Method 1: Try ALT+F4 (close window)
     setTimeout(() => {
       try {
@@ -493,7 +493,7 @@
         logMessage("ALT+F4 failed: " + e.message);
       }
     }, 100);
-    
+
     // Method 2: Try Super+Space (KDE window menu)
     setTimeout(() => {
       try {
@@ -513,7 +513,7 @@
         logMessage("Super+Space failed: " + e.message);
       }
     }, 500);
-    
+
     // Method 3: Try to simulate mouse click on window title bar
     setTimeout(() => {
       try {
@@ -530,7 +530,7 @@
         logMessage("Title bar click failed: " + e.message);
       }
     }, 1000);
-    
+
     // Method 4: Try to send message to parent window
     setTimeout(() => {
       try {
@@ -543,7 +543,7 @@
         logMessage("Parent window message failed: " + e.message);
       }
     }, 1500);
-    
+
     // Method 5: Try to restart browser in non-kiosk mode
     setTimeout(() => {
       try {
@@ -580,7 +580,7 @@ Current startup command:
 
   function sendEscKey() {
     logMessage("Sending ESC key (should work since physical ESC works)...");
-    
+
     try {
       // Send keydown event
       const escDownEvent = new KeyboardEvent("keydown", {
@@ -594,7 +594,7 @@ Current startup command:
       });
       document.dispatchEvent(escDownEvent);
       logMessage("ESC keydown sent");
-      
+
       // Send keyup event after a short delay
       setTimeout(() => {
         const escUpEvent = new KeyboardEvent("keyup", {
@@ -609,7 +609,7 @@ Current startup command:
         document.dispatchEvent(escUpEvent);
         logMessage("ESC keyup sent");
       }, 100);
-      
+
     } catch (e) {
       logMessage("ESC key sending failed: " + e.message);
     }
@@ -617,7 +617,7 @@ Current startup command:
 
   function triggerXButton() {
     logMessage("Trying to trigger X button by mouse movement...");
-    
+
     // Method 1: Move mouse to top of screen to trigger X button
     try {
       logMessage("Moving mouse to top of screen...");
@@ -630,7 +630,7 @@ Current startup command:
       });
       document.dispatchEvent(mouseMoveEvent);
       logMessage("Mouse moved to top");
-      
+
       // Wait a bit and then try to click where X button might appear
       setTimeout(() => {
         try {
@@ -648,11 +648,11 @@ Current startup command:
           logMessage("X button click failed: " + e.message);
         }
       }, 500);
-      
+
     } catch (e) {
       logMessage("Mouse movement failed: " + e.message);
     }
-    
+
     // Method 2: Try to find and click any close button
     setTimeout(() => {
       try {
@@ -660,8 +660,8 @@ Current startup command:
         const closeButtons = document.querySelectorAll('button, a, div');
         for (let button of closeButtons) {
           const text = button.textContent || button.title || '';
-          if (text.toLowerCase().includes('close') || 
-              text.toLowerCase().includes('exit') || 
+          if (text.toLowerCase().includes('close') ||
+              text.toLowerCase().includes('exit') ||
               text.toLowerCase().includes('x') ||
               button.className.toLowerCase().includes('close') ||
               button.id.toLowerCase().includes('close')) {
@@ -678,7 +678,7 @@ Current startup command:
 
   function tryAlternativeStartup() {
     logMessage("Trying to restart browser with alternative flags...");
-    
+
     // Try to navigate to a special URL that might trigger restart
     try {
       // Method 1: Try chrome://restart
@@ -686,7 +686,7 @@ Current startup command:
       logMessage("Navigated to chrome://restart");
     } catch (e) {
       logMessage("chrome://restart failed: " + e.message);
-      
+
       // Method 2: Try to reload with different parameters
       try {
         const currentUrl = window.location.href;
@@ -734,7 +734,7 @@ Empfehlung: Option 1 oder 7 testen!
 
   function tryEnterFullscreen() {
     logMessage("Trying to enter fullscreen mode programmatically...");
-    
+
     try {
       // Method 1: Try standard fullscreen API
       if (document.documentElement.requestFullscreen) {
@@ -755,7 +755,7 @@ Empfehlung: Option 1 oder 7 testen!
     } catch (e) {
       logMessage("Fullscreen API failed: " + e.message);
     }
-    
+
     // Method 2: Try F11 key
     setTimeout(() => {
       try {
@@ -872,7 +872,7 @@ SOLUTIONS:
    wmctrl -r "panel" -b add,hidden 2>/dev/null || true
    # or
    xdotool search --name "panel" windowunmap 2>/dev/null || true
-   
+
    # Start browser
    /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
 
@@ -883,7 +883,7 @@ SOLUTIONS:
      <skip_taskbar>yes</skip_taskbar>
      <skip_pager>yes</skip_pager>
    </application>
-   
+
    <application name="chromium-browser">
      <fullscreen>yes</fullscreen>
      <decor>no</decor>
@@ -899,14 +899,14 @@ SOLUTIONS:
    # Kill panel process
    pkill lxpanel 2>/dev/null || true
    pkill lxpanelctl 2>/dev/null || true
-   
+
    # Start browser
    /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
 
 5. ALTERNATIVE: USE OPENBOX INSTEAD OF LABWC:
    # Install openbox
    sudo apt install openbox
-   
+
    # Configure openbox to hide panel
    # Edit ~/.config/openbox/rc.xml
 
@@ -914,10 +914,10 @@ SOLUTIONS:
    #!/bin/bash
    # Hide panel
    wmctrl -r "panel" -b add,hidden 2>/dev/null || true
-   
+
    # Start browser
    /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --disable-restore-session-state &
-   
+
    # Wait and make fullscreen
    sleep 3
    wmctrl -r "Chromium" -b add,fullscreen
@@ -940,7 +940,7 @@ PERMANENT SOLUTIONS:
    # Comment out or remove these lines:
    # @lxpanel --profile LXDE-pi
    # @pcmanfm --desktop --profile LXDE-pi
-   
+
    # Add your browser startup instead:
    @/usr/local/bin/start-scoreboard.sh
 
@@ -956,7 +956,7 @@ PERMANENT SOLUTIONS:
    [*]
    window_manager=labwc
    panel=
-   
+
    # Create ~/.config/lxsession/LXDE-pi/autostart
    @/usr/local/bin/start-scoreboard.sh
 
@@ -965,7 +965,7 @@ PERMANENT SOLUTIONS:
    [Unit]
    Description=Scoreboard Browser
    After=graphical-session.target
-   
+
    [Service]
    Type=simple
    User=pi
@@ -973,7 +973,7 @@ PERMANENT SOLUTIONS:
    ExecStartPre=/bin/bash -c "pkill lxpanel || true"
    ExecStart=/usr/local/bin/start-scoreboard.sh
    Restart=always
-   
+
    [Install]
    WantedBy=graphical-session.target
 
@@ -984,7 +984,7 @@ PERMANENT SOLUTIONS:
      <skip_pager>yes</skip_pager>
      <decor>no</decor>
    </application>
-   
+
    <application name="panel">
      <skip_taskbar>yes</skip_taskbar>
      <skip_pager>yes</skip_pager>
@@ -994,7 +994,7 @@ PERMANENT SOLUTIONS:
 6. ALTERNATIVE: MINIMAL SESSION:
    # Install minimal window manager
    sudo apt install openbox
-   
+
    # Create ~/.xinitrc
    #!/bin/bash
    /usr/local/bin/start-scoreboard.sh &
@@ -1015,21 +1015,21 @@ SOLUTIONS:
 
 1. APP MODE WITH EXIT BUTTON:
    /usr/bin/chromium-browser --app="$(cat /var/www/carambus/current/config/scoreboard_url)" --window-size=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1),$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f2) --window-position=0,0 --disable-restore-session-state
-   
+
    - X button in top-right corner works
    - ALT+F4 works to close
    - Returns to desktop with panel visible
 
 2. MAXIMIZED MODE WITH EXIT:
    /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security
-   
+
    - ESC exits fullscreen
    - ALT+F4 closes browser
    - Panel remains visible
 
 3. HYBRID APPROACH:
    /usr/bin/chromium-browser --start-maximized --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)"
-   
+
    - Combines app mode with maximized
    - Multiple exit options
 
@@ -1040,7 +1040,7 @@ SOLUTIONS:
    sleep 2
    # Optional: Start file manager or terminal
    pcmanfm &
-   
+
    # Create /usr/local/bin/restart-scoreboard.sh
    pkill pcmanfm 2>/dev/null || true
    /usr/local/bin/start-scoreboard.sh
@@ -1052,7 +1052,7 @@ SOLUTIONS:
        <command>/usr/local/bin/exit-scoreboard.sh</command>
      </action>
    </keybind>
-   
+
    <keybind key="F11">
      <action name="Execute">
        <command>/usr/local/bin/restart-scoreboard.sh</command>
@@ -1084,42 +1084,42 @@ SOLUTIONS:
 1. PANEL HIDE/SHOW SCRIPT:
    #!/bin/bash
    # /usr/local/bin/start-scoreboard.sh
-   
+
    # Hide panel before starting
    wmctrl -r "panel" -b add,hidden 2>/dev/null || true
    wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
-   
+
    # Start browser in true fullscreen
    /usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --app="$(cat /var/www/carambus/current/config/scoreboard_url)" &
-   
+
    # Wait for browser to start
    sleep 3
-   
+
    # Make sure it's fullscreen
    wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
 
 2. EXIT SCRIPT WITH PANEL RESTORE:
    #!/bin/bash
    # /usr/local/bin/exit-scoreboard.sh
-   
+
    # Kill browser
    pkill chromium-browser
    sleep 2
-   
+
    # Show panel again
    wmctrl -r "panel" -b remove,hidden 2>/dev/null || true
    wmctrl -r "lxpanel" -b remove,hidden 2>/dev/null || true
-   
+
    # Start desktop environment
    pcmanfm --desktop &
 
 3. RESTART SCRIPT:
    #!/bin/bash
    # /usr/local/bin/restart-scoreboard.sh
-   
+
    # Kill desktop apps
    pkill pcmanfm 2>/dev/null || true
-   
+
    # Restart scoreboard
    /usr/local/bin/start-scoreboard.sh
 
@@ -1130,7 +1130,7 @@ SOLUTIONS:
      <decor>no</decor>
      <skip_taskbar>yes</skip_taskbar>
    </application>
-   
+
    <application name="panel">
      <skip_taskbar>yes</skip_taskbar>
      <skip_pager>yes</skip_pager>
@@ -1143,7 +1143,7 @@ SOLUTIONS:
        <command>/usr/local/bin/exit-scoreboard.sh</command>
      </action>
    </keybind>
-   
+
    <keybind key="F11">
      <action name="Execute">
        <command>/usr/local/bin/restart-scoreboard.sh</command>
@@ -1155,7 +1155,7 @@ SOLUTIONS:
    [Unit]
    Description=Scoreboard Browser
    After=graphical-session.target
-   
+
    [Service]
    Type=simple
    User=pi
@@ -1164,7 +1164,7 @@ SOLUTIONS:
    ExecStart=/usr/local/bin/start-scoreboard.sh
    ExecStop=/bin/bash -c "wmctrl -r panel -b remove,hidden 2>/dev/null || true"
    Restart=no
-   
+
    [Install]
    WantedBy=graphical-session.target
 
@@ -1351,7 +1351,7 @@ RECOMMENDATION: Follow steps 1-7 in order!
   function toggleDebugMode() {
     const debugToggle = document.getElementById('debug-toggle');
     const debugButtons = document.getElementById('debug-buttons');
-    
+
     if (debugButtons.style.display === 'none') {
       debugButtons.style.display = 'block';
       debugToggle.textContent = 'Hide Debug Mode';
@@ -1505,12 +1505,12 @@ RECOMMENDATION: Follow steps 1-7 in order!
   </div>
 </div>
 <!-- Scoreboard Menu -->
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black" style="right: 10px; top: -10px;">
-  <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-    <%= render_svg "icons/refresh", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "refresh/resize window (restores exit button)" %>
-  <% end %>
+<div class="inline-flex items-center justify-end mr-4 fixed text-gray-300 hover:text-black" style="right: 10px; top: 10px; gap: 1.2vw;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "tables overview" %>
+    <%= fa_icon "circle-info", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-white inline-block", title: "tables overview", style: "font-size:2.2vw !important;width:2.2vw !important;height:2.2vw !important;" %>
+  <% end %>
+  <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false) do %>
+    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-white inline-block", title: "home", style: "font-size:2.2vw !important;width:2.2vw !important;height:2.2vw !important;" %>
   <% end %>
 </div>
 <div class="p-7 lg:p-14 text-gray-200 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('/bg_pool2-.jpg')">
@@ -1524,13 +1524,13 @@ RECOMMENDATION: Follow steps 1-7 in order!
     <p>
       <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
     </p>
-    
+
     <!-- Debug Mode Toggle (hidden by default) -->
     <%#
     <p id="debug-toggle" style="display: none;">
       <%= custom_link_to "Toggle Debug Mode", "javascript:toggleDebugMode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-gray-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-1-5vw", id: "debug_toggle", tabindex: "1" %>
     </p>
-    
+
     <!-- Debug Buttons (hidden by default) -->
     <div id="debug-buttons" style="display: none;">
       <p>
@@ -1555,7 +1555,6 @@ RECOMMENDATION: Follow steps 1-7 in order!
         <%= custom_link_to "Show Current Status", "javascript:showCurrentStatus()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-1-5vw", id: "show_status", tabindex: "1" %>
       </p>
     </div>
-    %>
     <p class="w-3/4 mt-5">
       Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
       Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmail.com oder wcauel@gmail.com.

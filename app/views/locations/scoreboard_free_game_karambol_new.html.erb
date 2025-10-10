@@ -153,12 +153,12 @@
         </div>
   </div>
 </div>
-<div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
+<div class="inline-flex items-center justify-end mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: 10px; gap: 1.2vw;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
-    <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= fa_icon "circle-info", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-white inline-block", title: "home", style: "font-size:2.2vw !important;width:2.2vw !important;height:2.2vw !important;" %>
   <% end %>
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbolinks" => false) do %>
-    <%= render_svg "icons/home", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>
+    <%= fa_icon "house", weight: "fa-solid", class: "responsive-svg fill-current icon-lg m-0 text-white inline-block", title: "home", style: "font-size:2.2vw !important;width:2.2vw !important;height:2.2vw !important;" %>
   <% end %>
 </div>
 <div data-controller="table-monitor" class="p-4 w-full m-auto flex
