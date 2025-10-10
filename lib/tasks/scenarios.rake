@@ -3937,40 +3937,28 @@ ENV
         "versions"
       )
       
-      # Create dump for each table separately
+      # Create filtered COPY files for each table with proper headers
       for table in "${tables[@]}"; do
         echo "📋 Processing table: $table"
-        
-        # Create dump for this table
-        sudo -u postgres pg_dump #{production_database} \\
-          --data-only \\
-          --disable-triggers \\
-          --no-owner \\
-          --no-privileges \\
-          --no-tablespaces \\
-          --verbose \\
-          --table="$table" \\
-          --file="$temp_dir/${table}.sql"
-        
-        # Filter: For most tables include only records with ID > 50,000,000.
-        # For local extension tables, include all rows (they are local-only by design).
-        if [ -s "$temp_dir/${table}.sql" ]; then
-          if [ "$table" = "table_locals" ] || [ "$table" = "tournament_locals" ]; then
-            cp "$temp_dir/${table}.sql" "$temp_dir/${table}_filtered.sql"
-          else
-            awk -F'\\t' '$$1 > 50000000' "$temp_dir/${table}.sql" > "$temp_dir/${table}_filtered.sql"
-          fi
-          
-          # Check if filtered file has content
-          if [ -s "$temp_dir/${table}_filtered.sql" ]; then
-            echo "✅ Found local data in $table"
-          else
-            echo "ℹ️  No local data in $table"
-            rm -f "$temp_dir/${table}_filtered.sql"
-          fi
+        out_file="$temp_dir/${table}_filtered.sql"
+        echo "COPY public.${table} FROM stdin;" > "$out_file"
+
+        if [ "$table" = "table_locals" ] || [ "$table" = "tournament_locals" ]; then
+          # Export all rows for extension tables
+          sudo -u postgres psql -At -d #{production_database} -c "COPY (SELECT * FROM public.${table}) TO STDOUT" >> "$out_file" || true
+        else
+          # Export only id>50M when an id column exists; ignore errors quietly if not
+          sudo -u postgres psql -At -d #{production_database} -c "COPY (SELECT * FROM public.${table} WHERE id > 50000000) TO STDOUT" >> "$out_file" 2>/dev/null || true
         fi
-        
-        rm -f "$temp_dir/${table}.sql"
+
+        echo "\\." >> "$out_file"
+        data_lines=$(grep -vcE '^(COPY |\\\.|$)' "$out_file" || true)
+        if [ "$data_lines" -eq 0 ]; then
+          echo "ℹ️  No local data in $table"
+          rm -f "$out_file"
+        else
+          echo "✅ Found local data in $table"
+        fi
       done
       
       # Combine all filtered tables in dependency order
