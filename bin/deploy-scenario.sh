@@ -4,6 +4,10 @@
 
 set -e
 
+# Reduce Ruby warning noise in output
+export RUBYOPT="${RUBYOPT:-} -W0"
+export BUNDLE_SILENCE_DEPRECATIONS=1
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
