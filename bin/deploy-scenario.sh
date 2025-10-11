@@ -132,12 +132,22 @@ check_production_version() {
         return 0  # Allow drop (nothing to drop)
     fi
     
-    # Check for local data (ID > 50,000,000)
-    info "Checking for local data (ID > 50,000,000)..."
+    # Check for local data: official id>50M in core tables or any rows in extension tables
+    info "Checking for local data (ID > 50,000,000 or extension tables present)..."
     local has_local_data
-    has_local_data=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t;\"" 2>/dev/null | xargs)
+    local local_query
+    local_query="SELECT (
+      (SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t1) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM tournaments WHERE id > 50000000 LIMIT 1) AS t2) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM tables WHERE id > 50000000 LIMIT 1) AS t3) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM users WHERE id > 50000000 LIMIT 1) AS t4) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM players WHERE id > 50000000 LIMIT 1) AS t5) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM table_locals LIMIT 1) AS t6) +
+      (SELECT COUNT(*) FROM (SELECT 1 FROM tournament_locals LIMIT 1) AS t7)
+    );"
+    has_local_data=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"${local_query}\"" 2>/dev/null | xargs)
     
-    if [ "$has_local_data" = "1" ]; then
+    if [ "$has_local_data" != "0" ]; then
         warning "Production database contains local data (ID > 50,000,000)"
         warning "Database will NOT be dropped in cleanup - local data will be preserved"
         info "Step 2 (prepare_deploy) will automatically backup and restore local data"
