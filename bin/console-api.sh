@@ -12,7 +12,16 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_ROOT="/Volumes/EXT2TB/gullrich/DEV/projects/carambus_api"
+# Load Carambus environment
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/carambus_env.sh" ]; then
+    source "$SCRIPT_DIR/lib/carambus_env.sh"
+else
+    echo "ERROR: carambus_env.sh not found"
+    exit 1
+fi
+
+PROJECT_ROOT="${PROJECT_ROOT:-$CARAMBUS_API}"
 ENVIRONMENT="development-api"
 
 # Logging function

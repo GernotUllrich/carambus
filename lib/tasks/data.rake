@@ -2,8 +2,9 @@
 namespace :data do
   desc "Set data directory for current environment"
   task :set_directory, [:environment] => :environment do |task, args|
+    load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
     env = args.environment || 'api_server'
-    data_dir = "/Volumes/EXT2TB/gullrich/DEV/carambus_data/#{env}"
+    data_dir = "#{CarambusEnv.data_path}/#{env}"
     
     # Erstelle Directory-Struktur
     dirs = [
@@ -25,7 +26,8 @@ namespace :data do
 
   desc "Generate templates to external data directory"
   task :generate_templates => :environment do
-    data_dir = ENV['CARAMBUS_DATA_DIR'] || "/Volumes/EXT2TB/gullrich/DEV/carambus_data/api_server"
+    load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
+    data_dir = ENV['CARAMBUS_DATA_DIR'] || "#{CarambusEnv.data_path}/api_server"
     
     puts "🔧 Generating templates to external data directory..."
     puts "📁 Target: #{data_dir}"
@@ -73,7 +75,8 @@ namespace :data do
 
   desc "Deploy from external data directory"
   task :deploy => :environment do
-    data_dir = ENV['CARAMBUS_DATA_DIR'] || "/Volumes/EXT2TB/gullrich/DEV/carambus_data/api_server"
+    load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
+    data_dir = ENV['CARAMBUS_DATA_DIR'] || "#{CarambusEnv.data_path}/api_server"
     
     puts "📤 Deploying from external data directory..."
     puts "📁 Source: #{data_dir}"

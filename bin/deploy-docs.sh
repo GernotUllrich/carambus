@@ -5,6 +5,15 @@
 
 set -e
 
+# Load Carambus environment
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/carambus_env.sh" ]; then
+    source "$SCRIPT_DIR/lib/carambus_env.sh"
+else
+    echo "ERROR: carambus_env.sh not found"
+    exit 1
+fi
+
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -12,8 +21,8 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Configuration
-PROJECT_ROOT="/Volumes/EXT2TB/gullrich/DEV/projects/carambus_api"
+# Configuration - use CARAMBUS_API from environment
+PROJECT_ROOT="${PROJECT_ROOT:-$CARAMBUS_API}"
 
 # Logging function
 log() {

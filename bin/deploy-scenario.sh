@@ -4,6 +4,15 @@
 
 set -e
 
+# Load Carambus environment
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/carambus_env.sh" ]; then
+    source "$SCRIPT_DIR/lib/carambus_env.sh"
+else
+    echo "ERROR: carambus_env.sh not found"
+    exit 1
+fi
+
 # Reduce Ruby warning noise in output
 export RUBYOPT="${RUBYOPT:-} -W0"
 export BUNDLE_SILENCE_DEPRECATIONS=1
@@ -183,7 +192,7 @@ step_zero_cleanup() {
     log "=========================="
     
     warning "This will completely remove:"
-    warning "  - Scenario root folder: /Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
+    warning "  - Scenario root folder: $CARAMBUS_BASE/$SCENARIO_NAME"
     if [ "$SCENARIO_NAME" = "carambus_api" ]; then
         warning "  - Database: ${SCENARIO_NAME}_development (SKIPPED - API server database)"
     else
@@ -204,8 +213,8 @@ step_zero_cleanup() {
     
     # Clean up local scenario root folder
     info "Removing local scenario root folder..."
-    if [ -d "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME" ]; then
-        rm -rf "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
+    if [ -d "$CARAMBUS_BASE/$SCENARIO_NAME" ]; then
+        rm -rf "$CARAMBUS_BASE/$SCENARIO_NAME"
         log "✅ Local scenario root folder removed"
     else
         info "Local scenario root folder not found (already clean)"
@@ -471,8 +480,8 @@ main() {
     log "Scenario '$SCENARIO_NAME' is now fully deployed and operational"
     log ""
     # Read the correct port from scenario configuration
-    if [ -f "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/$SCENARIO_NAME/config.yml" ]; then
-        WEBSERVER_PORT=$(grep -A 10 "production:" "/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | awk '{print $2}')
+    if [ -f "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" ]; then
+        WEBSERVER_PORT=$(grep -A 10 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | awk '{print $2}')
     else
         WEBSERVER_PORT=3131  # Default for carambus_bcw
     fi

@@ -4,6 +4,15 @@
 
 set -e
 
+# Load Carambus environment
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/carambus_env.sh" ]; then
+    source "$SCRIPT_DIR/lib/carambus_env.sh"
+else
+    echo "ERROR: carambus_env.sh not found"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,7 +69,7 @@ step_zero_cleanup() {
     log "=========================="
 
     warning "This will completely remove:"
-    warning "  - Scenario root folder: /Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
+    warning "  - Scenario root folder: $CARAMBUS_BASE/$SCENARIO_NAME"
     warning "  - Database: doesn't effect the mother of all carambus_api_development!"
     warning "  - Database: carambus_api_production"
     warning "  - Raspberry Pi: Puma service, Nginx config, production database"
@@ -72,8 +81,8 @@ step_zero_cleanup() {
 
     # Clean up local scenario root folder
     info "Removing local scenario root folder..."
-    if [ -d "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME" ]; then
-        rm -rf "/Volumes/EXT2TB/gullrich/DEV/carambus/$SCENARIO_NAME"
+    if [ -d "$CARAMBUS_BASE/$SCENARIO_NAME" ]; then
+        rm -rf "$CARAMBUS_BASE/$SCENARIO_NAME"
         log "✅ Local scenario root folder removed"
     else
         info "Local scenario root folder not found (already clean)"
