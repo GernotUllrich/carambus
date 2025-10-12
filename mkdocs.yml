@@ -52,6 +52,8 @@ plugins:
             Entwicklerhandbuch: Developer Guide
             Getting Started: Getting Started
             Scenario Management: Scenario Management
+            Raspberry Pi Scripts: Raspberry Pi Scripts
+            Server Management Scripts: Server Management Scripts
             Datenbank-Setup: Database Setup
             MkDocs Dokumentation: MkDocs Documentation
             Datenbankdesign: Database Design
@@ -90,6 +92,8 @@ nav:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md
       - Scenario Management: scenario_management.md
+      - Raspberry Pi Scripts: raspberry_pi_scripts.md
+      - Server Management Scripts: server_management_scripts.md
       - Datenbank-Setup: DATABASE_SETUP.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
