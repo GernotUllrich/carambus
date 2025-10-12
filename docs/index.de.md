@@ -75,3 +75,5 @@ Für technischen Support oder Dokumentationsfragen:
 
 *Letzte Aktualisierung: Oktober 2025*
 
+
+

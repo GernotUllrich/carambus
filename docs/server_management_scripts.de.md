@@ -685,3 +685,5 @@ sudo systemctl restart nginx
 - [Raspberry Pi Scripts](raspberry_pi_scripts.de.md) - RasPi-Client-Management
 - [Database Syncing](database_syncing.de.md) - Datenbank-Synchronisation
 
+
+

@@ -103,3 +103,5 @@ rake "scenario:prepare_development[carambus_location_5101,development]"
 **Stand**: 2024-10-12  
 **Status**: Archiviert (nicht für Production verwenden)
 
+
+
