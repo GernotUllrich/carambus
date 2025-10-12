@@ -54,6 +54,7 @@ plugins:
             Scenario Management: Scenario Management
             Raspberry Pi Scripts: Raspberry Pi Scripts
             Server Management Scripts: Server Management Scripts
+            Rake Tasks & Debugging: Rake Tasks & Debugging
             Datenbank-Setup: Database Setup
             MkDocs Dokumentation: MkDocs Documentation
             Datenbankdesign: Database Design
@@ -94,6 +95,7 @@ nav:
       - Scenario Management: scenario_management.md
       - Raspberry Pi Scripts: raspberry_pi_scripts.md
       - Server Management Scripts: server_management_scripts.md
+      - Rake Tasks & Debugging: entwickler-rake-tasks-debugging.md
       - Datenbank-Setup: DATABASE_SETUP.md
       - MkDocs Dokumentation: mkdocs_dokumentation.md
       - Datenbankdesign: database_design.md
