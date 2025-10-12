@@ -351,15 +351,19 @@ Carambus uses an **Enhanced Mode System** with Ruby/Rake Named Parameters for ea
 - ✅ **Multi-environment deployment** with automatic repo pull
 
 #### Quick Start
-```bash
-# API Server Mode
-bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_HOST=newapi.carambus.de
 
-# Local Server Mode  
-bundle exec rails 'mode:local' MODE_SEASON_NAME='2025/2026' MODE_CONTEXT=NBV
+> ⚠️ **OBSOLETE:** The Mode System has been replaced by Scenario Management.
+
+```bash
+# Use Scenario Management instead
+rake scenario:deploy[scenario_name,target_environment]
+
+# Example:
+rake scenario:deploy[carambus_location_5101,production]
 ```
 
-**[🚀 Complete Enhanced Mode System Documentation](enhanced_mode_system.en.md)**
+**[🚀 Current: Scenario Management Documentation](scenario_management.en.md)**  
+~~**Old (Obsolete): [Enhanced Mode System](obsolete/enhanced_mode_system.de.md)**~~
 
 ### Production Setup
 The application is designed for deployment on Raspberry Pi or similar hardware:
@@ -450,7 +454,8 @@ sudo systemctl status carambus
 - [Scoreboard Setup](scoreboard_autostart_setup.en.md): Scoreboard configuration
 - [Tournament Management](tournament.md): Tournament workflows
 - [Installation Overview](installation_overview.md): Installation overview
-- [Enhanced Mode System](enhanced_mode_system.en.md): Deployment configuration and multi-environment support
+- [Scenario Management](scenario_management.en.md): Deployment configuration and multi-environment support
+- ~~[Enhanced Mode System](obsolete/enhanced_mode_system.de.md)~~ - **OBSOLETE** (replaced by Scenario Management)
 
 ### External Links
 - [Ruby on Rails Guides](https://guides.rubyonrails.org/)

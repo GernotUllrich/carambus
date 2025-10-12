@@ -39,12 +39,14 @@ Während Shell-Scripts ideal für automatisierte Deployments sind, bieten **Rake
 
 | Shell Script | Rake Task | Debug-Vorteil |
 |-------------|-----------|---------------|
-| `bin/api2_dev_from_api2_db.sh` | `mode:restore_local_db_with_preservation[dump_file]` | Backup/Restore-Filter inspizieren |
-| `bin/dev_from_api_dev.sh` | `mode:restore_local_db[dump_file]` | SQL-Dump-Prozess Step-by-Step |
+| `bin/api2_dev_from_api2_db.sh` | ~~`mode:restore_local_db_with_preservation[dump_file]`~~ ❌ OBSOLETE | Backup/Restore-Filter inspizieren |
+| `bin/dev_from_api_dev.sh` | ~~`mode:restore_local_db[dump_file]`~~ ❌ OBSOLETE | SQL-Dump-Prozess Step-by-Step |
 | - | `carambus:filter_local_changes_from_sql_dump` | **ID-Bump-Logik** debuggen (TableLocal/TournamentLocal) |
 | - | `carambus:filter_local_changes_from_sql_dump_new` | Neue Filter-Implementierung testen |
-| - | `mode:backup_local_changes` | Filter für id > 50000000 validieren |
-| - | `mode:check_version_safety[dump_file]` | Version-Sequenzen prüfen |
+| - | ~~`mode:backup_local_changes`~~ ❌ OBSOLETE | Filter für id > 50000000 validieren |
+| - | ~~`mode:check_version_safety[dump_file]`~~ ❌ OBSOLETE | Version-Sequenzen prüfen |
+
+> ⚠️ **Hinweis:** Die `mode:*` Tasks sind **obsolet** und wurden durch das Scenario Management System ersetzt. Siehe [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
 
 **Debugging-Tipp:**  
 ```ruby
@@ -74,12 +76,14 @@ puts "Nach Bump: #{TableLocal.where('id < 50000000').count}"
 
 | Shell Script | Rake Task | Debug-Vorteil |
 |-------------|-----------|---------------|
-| - | `mode:api` | Config-Generierung für API-Modus debuggen |
-| - | `mode:local` | Config-Generierung für LOCAL-Modus debuggen |
-| - | `mode:status[detailed,source]` | Config-Extraktion aus Prod-Server testen |
-| - | `mode:generate_templates` | NGINX/Puma-Templates inspizieren |
-| - | `mode:prepare_db_dump` | pg_dump-Kommandos validieren |
-| - | `mode:deploy_templates` | SCP/SSH-Transfers debuggen |
+| - | ~~`mode:api`~~ ❌ OBSOLETE | Config-Generierung für API-Modus debuggen |
+| - | ~~`mode:local`~~ ❌ OBSOLETE | Config-Generierung für LOCAL-Modus debuggen |
+| - | ~~`mode:status[detailed,source]`~~ ❌ OBSOLETE | Config-Extraktion aus Prod-Server testen |
+
+> ⚠️ **Hinweis:** Alle `mode:*` Tasks sind **obsolet** und durch das Scenario Management System ersetzt. Für Config-Management nutze `scenario:*` Tasks. Siehe [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
+| - | ~~`mode:generate_templates`~~ ❌ OBSOLETE | NGINX/Puma-Templates inspizieren |
+| - | ~~`mode:prepare_db_dump`~~ ❌ OBSOLETE | pg_dump-Kommandos validieren |
+| - | ~~`mode:deploy_templates`~~ ❌ OBSOLETE | SCP/SSH-Transfers debuggen |
 
 ---
 
@@ -303,12 +307,9 @@ end
 
 | Task | Status | Notiz |
 |------|--------|-------|
-| `mode:api` | ⚠️ Legacy | Durch Scenario-System ersetzt? |
-| `mode:local` | ⚠️ Legacy | Durch Scenario-System ersetzt? |
-| `mode:save[name]` | ❓ Unklar | Named Configs - noch genutzt? |
-| `mode:load[name]` | ❓ Unklar | Named Configs - noch genutzt? |
-| `mode:prepare_db_dump` | ⚠️ Duplikat | Überschneidung mit `scenario:create_database_dump` |
-| `mode:full_deploy` | ❌ Obsolet | Niemals genutzt, komplex, ungetestet |
+| ~~`mode:*` (alle)~~ | ❌ **OBSOLETE** | **Mode-System vollständig entfernt** - nutze `scenario:*` Tasks |
+
+**Hinweis:** Die gesamte `lib/tasks/mode.rake` (2.132 Zeilen) wurde nach `lib/tasks/obsolete/` verschoben. Alle Mode-Management-Funktionen sind jetzt Teil des Scenario Management Systems. Details: [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md)
 
 **Empfehlung:** `mode:*` Tasks sollten auf Duplikate/Obsoleszenz geprüft werden.
 

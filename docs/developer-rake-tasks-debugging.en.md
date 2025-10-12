@@ -39,12 +39,14 @@ While shell scripts are ideal for automated deployments, **Rake tasks** offer de
 
 | Shell Script | Rake Task | Debug Advantage |
 |-------------|-----------|-----------------|
-| `bin/api2_dev_from_api2_db.sh` | `mode:restore_local_db_with_preservation[dump_file]` | Inspect backup/restore filters |
-| `bin/dev_from_api_dev.sh` | `mode:restore_local_db[dump_file]` | Step through SQL dump process |
+| `bin/api2_dev_from_api2_db.sh` | ~~`mode:restore_local_db_with_preservation[dump_file]`~~ ❌ OBSOLETE | Inspect backup/restore filters |
+| `bin/dev_from_api_dev.sh` | ~~`mode:restore_local_db[dump_file]`~~ ❌ OBSOLETE | Step through SQL dump process |
 | - | `carambus:filter_local_changes_from_sql_dump` | Debug **ID bump logic** (TableLocal/TournamentLocal) |
 | - | `carambus:filter_local_changes_from_sql_dump_new` | Test new filter implementation |
-| - | `mode:backup_local_changes` | Validate filter for id > 50000000 |
-| - | `mode:check_version_safety[dump_file]` | Check version sequences |
+| - | ~~`mode:backup_local_changes`~~ ❌ OBSOLETE | Validate filter for id > 50000000 |
+| - | ~~`mode:check_version_safety[dump_file]`~~ ❌ OBSOLETE | Check version sequences |
+
+> ⚠️ **Note:** The `mode:*` tasks are **obsolete** and have been replaced by the Scenario Management System. See [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
 
 **Debugging Tip:**  
 ```ruby
@@ -74,12 +76,14 @@ puts "After Bump: #{TableLocal.where('id < 50000000').count}"
 
 | Shell Script | Rake Task | Debug Advantage |
 |-------------|-----------|-----------------|
-| - | `mode:api` | Debug config generation for API mode |
-| - | `mode:local` | Debug config generation for LOCAL mode |
-| - | `mode:status[detailed,source]` | Test config extraction from prod server |
-| - | `mode:generate_templates` | Inspect NGINX/Puma templates |
-| - | `mode:prepare_db_dump` | Validate pg_dump commands |
-| - | `mode:deploy_templates` | Debug SCP/SSH transfers |
+| - | ~~`mode:api`~~ ❌ OBSOLETE | Debug config generation for API mode |
+| - | ~~`mode:local`~~ ❌ OBSOLETE | Debug config generation for LOCAL mode |
+| - | ~~`mode:status[detailed,source]`~~ ❌ OBSOLETE | Test config extraction from prod server |
+| - | ~~`mode:generate_templates`~~ ❌ OBSOLETE | Inspect NGINX/Puma templates |
+| - | ~~`mode:prepare_db_dump`~~ ❌ OBSOLETE | Validate pg_dump commands |
+| - | ~~`mode:deploy_templates`~~ ❌ OBSOLETE | Debug SCP/SSH transfers |
+
+> ⚠️ **Note:** All `mode:*` tasks are **obsolete** and replaced by the Scenario Management System. For config management use `scenario:*` tasks. See [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md).
 
 ---
 
@@ -303,14 +307,9 @@ end
 
 | Task | Status | Note |
 |------|--------|------|
-| `mode:api` | ⚠️ Legacy | Replaced by Scenario system? |
-| `mode:local` | ⚠️ Legacy | Replaced by Scenario system? |
-| `mode:save[name]` | ❓ Unclear | Named configs - still used? |
-| `mode:load[name]` | ❓ Unclear | Named configs - still used? |
-| `mode:prepare_db_dump` | ⚠️ Duplicate | Overlaps with `scenario:create_database_dump` |
-| `mode:full_deploy` | ❌ Obsolete | Never used, complex, untested |
+| ~~`mode:*` (all)~~ | ❌ **OBSOLETE** | **Mode system completely removed** - use `scenario:*` tasks |
 
-**Recommendation:** `mode:*` tasks should be checked for duplicates/obsolescence.
+**Note:** The entire `lib/tasks/mode.rake` (2,132 lines) has been moved to `lib/tasks/obsolete/`. All Mode Management functionality is now part of the Scenario Management System. Details: [lib/tasks/obsolete/README.md](../../lib/tasks/obsolete/README.md)
 
 ### Database Operations (Core)
 
@@ -319,8 +318,8 @@ end
 | `carambus:filter_local_changes_from_sql_dump` | ✅ Core | Critical for local-data extraction |
 | `carambus:filter_local_changes_from_sql_dump_new` | ⚠️ New | Successor to `filter_local_changes`? |
 | `carambus:create_local_seed` | ✅ Core | Seed generation |
-| `mode:backup_local_changes` | ✅ Core | Before DB replace |
-| `mode:restore_local_changes` | ✅ Core | After DB replace |
+| ~~`mode:backup_local_changes`~~ | ❌ OBSOLETE | Before DB replace |
+| ~~`mode:restore_local_changes`~~ | ❌ OBSOLETE | After DB replace |
 
 **Recommendation:** Clarify `_new` suffix in `filter_local_changes_from_sql_dump_new` - is the old one obsolete?
 
@@ -360,11 +359,9 @@ end
 
 ### To Review/Delete:
 
-1. **`mode:full_deploy`** - Never used in production, duplicate of Scenario system
-2. **`mode:deploy_templates`** - Overlaps with `scenario:generate_configs`
-3. **`mode:save/load`** - Named configs: Still used?
-4. **`carambus:filter_local_changes_from_sql_dump`** - Will `_new` become standard?
-5. **`adhoc:test`, `adhoc:test_old`** - Clean up old test tasks
+1. ~~**`mode:*` (all tasks)**~~ - ✅ **DONE** - Moved to `lib/tasks/obsolete/mode.rake` (2025-10-12)
+2. **`carambus:filter_local_changes_from_sql_dump`** - Will `_new` become standard?
+3. **`adhoc:test`, `adhoc:test_old`** - Clean up old test tasks
 
 ### To Document:
 

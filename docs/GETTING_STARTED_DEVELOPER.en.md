@@ -95,10 +95,10 @@ psql -d carambus_development -f /path/to/carambus_api_development_dump.sql
 
 ## 🗄️ **Setup Database**
 
-### **Option 1: Automatically via Enhanced Mode System (Recommended)**
+### **Option 1: Automatically via Scenario Management (Recommended)**
 ```bash
-# 1. Configure Enhanced Mode - this automatically imports all dumps!
-bundle exec rails 'mode:api' MODE_BASENAME=carambus_api MODE_DATABASE=carambus_api_development
+# 1. Configure and deploy scenario
+rake scenario:prepare_development[scenario_name,development]
 
 # 2. Start server
 rails server
@@ -200,8 +200,10 @@ These errors are normal if the database was already partially initialized.
 - Read [Developer Guide](DEVELOPER_GUIDE.md)
 - Study [API Documentation](API.md)
 - Understand [Database Design](database_design.md)
-- [Enhanced Mode System](enhanced_mode_system.en.md) for deployment configuration
+- [Scenario Management](scenario_management.en.md) for deployment configuration
 - Talk to the team about current tasks
+
+> ⚠️ **Note:** The old "Enhanced Mode System" is obsolete. See [docs/obsolete/](obsolete/) for migration notes.
 
 ## 🆘 **Need Help?**
 
