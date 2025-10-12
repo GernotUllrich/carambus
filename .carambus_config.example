@@ -1,0 +1,20 @@
+# Carambus Configuration Example
+# Copy this file to ~/.carambus_config and adjust paths for your system
+
+# Set your local Carambus base directory
+# Mac Mini (default)
+CARAMBUS_BASE=/Volumes/EXT2TB/gullrich/DEV/carambus
+
+# MacBook Pro (uncomment when on MacBook)
+# CARAMBUS_BASE=/Users/gullrich/Development/carambus
+
+# Linux/WSL
+# CARAMBUS_BASE=/home/gullrich/dev/carambus
+
+# Optional: Enable debug output
+# CARAMBUS_DEBUG=true
+
+# Optional: Default SSH settings (for future use)
+# CARAMBUS_DEFAULT_SSH_USER=www-data
+# CARAMBUS_DEFAULT_SSH_PORT=8910
+

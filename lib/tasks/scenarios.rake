@@ -271,7 +271,39 @@ namespace :scenario do
   private
 
   def carambus_data_path
-    @carambus_data_path ||= File.expand_path('../carambus_data', Rails.root)
+    @carambus_data_path ||= begin
+      load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
+      CarambusEnv.data_path
+    end
+  end
+
+  # Helper task to get location MD5 hash for a scenario
+  desc "Get MD5 hash for a scenario's location"
+  task :get_location_md5, [:scenario_name] => :environment do |t, args|
+    scenario_name = args[:scenario_name]
+    
+    unless scenario_name
+      puts "Error: scenario_name is required"
+      exit 1
+    end
+    
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      exit 1
+    end
+    
+    scenario_config = YAML.load_file(config_file)
+    location_id = scenario_config['scenario']['location_id']
+    
+    begin
+      location = Location.find(location_id)
+      puts location.md5
+    rescue => e
+      # Fallback to generated MD5 if location not found
+      require 'digest'
+      puts Digest::MD5.hexdigest(location_id.to_s)
+    end
   end
 
   # Rails Configuration Tasks
@@ -316,11 +348,17 @@ namespace :scenario do
 
 
   def scenarios_path
-    @scenarios_path ||= File.join(carambus_data_path, 'scenarios')
+    @scenarios_path ||= begin
+      load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
+      CarambusEnv.scenarios_path
+    end
   end
 
   def templates_path
-    @templates_path ||= File.join(File.expand_path('../carambus_master', Rails.root), 'templates')
+    @templates_path ||= begin
+      load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
+      File.join(CarambusEnv.base_path, 'carambus_master', 'templates')
+    end
   end
 
   def list_scenarios
@@ -2436,9 +2474,13 @@ ENV
         # Check if production database has local data (id > 50000000) that needs to be preserved
         local_backup_file = nil
         puts "   🔍 Checking for local data in production database..."
-        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT (\n          (SELECT COUNT(*) FROM (SELECT 1 FROM games WHERE id > 50000000 LIMIT 1) AS t1) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tournaments WHERE id > 50000000 LIMIT 1) AS t2) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tables WHERE id > 50000000 LIMIT 1) AS t3) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM users WHERE id > 50000000 LIMIT 1) AS t4) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM players WHERE id > 50000000 LIMIT 1) AS t5) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM table_locals LIMIT 1) AS t6) +\n          (SELECT COUNT(*) FROM (SELECT 1 FROM tournament_locals LIMIT 1) AS t7)\n        );\""
+        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT (\n          (SELECT COUNT(*) FROM games WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM tournaments WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM tables WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM users WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM players WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM table_locals) +\n          (SELECT COUNT(*) FROM tournament_locals)\n        );\""
         has_local_data_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{check_local_data_cmd}' 2>/dev/null`.strip
         has_local_data = has_local_data_output.to_i > 0
+        
+        if has_local_data
+          puts "   📊 Found #{has_local_data_output.to_i} local records to preserve"
+        end
 
         if has_local_data
           puts "   ⚠️  Local data detected (id > 50,000,000) - backing up before database replacement..."
@@ -3989,7 +4031,10 @@ EOF
       # Check if combined file has content
       if [ -s "$combined_file" ]; then
         echo "✅ Local data backup created with proper ordering"
-        mv "$combined_file" "/tmp/local_data_#{timestamp}.sql"
+        echo "📦 Compressing backup with gzip..."
+        gzip "$combined_file"
+        mv "${combined_file}.gz" "/tmp/local_data_#{timestamp}.sql.gz"
+        echo "✅ Backup compressed"
       else
         echo "ℹ️  No local data found"
         rm -f "$combined_file"
@@ -4008,16 +4053,17 @@ EOF
       execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
 
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
-        # Download backup file
-        download_cmd = "scp -P #{ssh_port} www-data@#{ssh_host}:/tmp/local_data_#{timestamp}.sql #{backup_file}"
+        # Download compressed backup file
+        download_cmd = "scp -P #{ssh_port} www-data@#{ssh_host}:/tmp/local_data_#{timestamp}.sql.gz #{backup_file}.gz"
 
         if system(download_cmd)
-          puts "✅ Local data backup created with proper dependency ordering: #{File.basename(backup_file)}"
+          puts "✅ Local data backup created with proper dependency ordering: #{File.basename(backup_file)}.gz"
+          puts "   Size: #{File.size("#{backup_file}.gz") / 1024} KB (compressed)"
 
           # Clean up remote file
-          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f /tmp/local_data_#{timestamp}.sql'")
+          system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f /tmp/local_data_#{timestamp}.sql.gz'")
 
-          return backup_file
+          return "#{backup_file}.gz"
         else
           puts "❌ Failed to download backup file"
           return false
@@ -4040,12 +4086,15 @@ EOF
     production_database = production_config['database_name']
     basename = production_config['basename'] || scenario_name
 
-    # Upload backup file to server
+    # Upload backup file to server (may be compressed)
     temp_backup_path = "/tmp/#{File.basename(backup_file)}"
     upload_cmd = "scp -P #{ssh_port} #{backup_file} www-data@#{ssh_host}:#{temp_backup_path}"
 
     if system(upload_cmd)
       puts "   ✅ Local data backup uploaded to server"
+      
+      # Check if file is compressed
+      is_gzipped = backup_file.end_with?('.gz')
 
       # Create restore script
       restore_script = <<~SCRIPT
@@ -4060,9 +4109,9 @@ EOF
           exit 0
         fi
         
-        # Restore local data
+        # Restore local data (decompress if needed)
         echo "📥 Loading local data into #{production_database}..."
-        sudo -u postgres psql -d #{production_database} < #{temp_backup_path}
+        #{is_gzipped ? "gunzip -c #{temp_backup_path} | sudo -u postgres psql -d #{production_database}" : "sudo -u postgres psql -d #{production_database} < #{temp_backup_path}"}
         
         if [ $? -eq 0 ]; then
           echo "✅ Local data restored successfully"

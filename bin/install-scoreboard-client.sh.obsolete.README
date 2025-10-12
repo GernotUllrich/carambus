@@ -1,0 +1,34 @@
+# OBSOLETE: install-scoreboard-client.sh
+
+This script has been marked as obsolete and replaced by `install-client-only.sh`.
+
+## Reason for Obsolescence
+
+The standalone script `install-scoreboard-client.sh` has been superseded by the scenario-based 
+approach in `install-client-only.sh`, which:
+
+1. Integrates with the scenario system
+2. Automatically retrieves the correct MD5 hash from the database
+3. Uses the correct URL format: `/locations/{md5}?sb_state=welcome`
+4. Requires fewer manual parameters
+
+## Migration
+
+Instead of:
+```bash
+./bin/install-scoreboard-client.sh 192.168.178.107 3132 1 192.168.1.100
+```
+
+Use:
+```bash
+./bin/install-client-only.sh carambus_bcw 192.168.1.100
+```
+
+The scenario-based script will automatically:
+- Read the production server configuration from the scenario's config.yml
+- Retrieve the correct MD5 hash for the location from the database
+- Generate the proper scoreboard URL
+
+## Date Marked Obsolete
+October 12, 2025
+

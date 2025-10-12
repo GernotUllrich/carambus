@@ -4,6 +4,15 @@
 
 set -e
 
+# Load Carambus environment
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/carambus_env.sh" ]; then
+    source "$SCRIPT_DIR/lib/carambus_env.sh"
+else
+    echo "ERROR: carambus_env.sh not found"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -48,11 +57,16 @@ show_usage() {
     echo "  $0 carambus_bcw 192.168.1.100 22 pi"
     echo ""
     echo "This script will:"
-    echo "  1. Install required packages on the Raspberry Pi"
-    echo "  2. Create the scoreboard autostart script"
-    echo "  3. Create systemd service for kiosk mode"
-    echo "  4. Configure the scoreboard URL"
-    echo "  5. Enable and start the scoreboard service"
+    echo "  1. Load scenario configuration from carambus_data/scenarios/"
+    echo "  2. Retrieve location MD5 hash from database"
+    echo "  3. Install required packages on the Raspberry Pi"
+    echo "  4. Create the scoreboard autostart script with correct URL"
+    echo "  5. Create systemd service for kiosk mode"
+    echo "  6. Enable and start the scoreboard service"
+    echo ""
+    echo "Note: The script automatically uses the production server configuration"
+    echo "      from the scenario and generates the correct scoreboard URL format:"
+    echo "      http://server:port/locations/{md5}?sb_state=welcome"
 }
 
 # Parse arguments
@@ -92,7 +106,7 @@ if [ -z "$CLIENT_IP" ]; then
 fi
 
 # Load scenario configuration
-SCENARIO_CONFIG="/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/scenarios/$SCENARIO_NAME/config.yml"
+SCENARIO_CONFIG="$SCENARIOS_PATH/$SCENARIO_NAME/config.yml"
 if [ ! -f "$SCENARIO_CONFIG" ]; then
     error "Scenario configuration not found: $SCENARIO_CONFIG"
     exit 1
@@ -101,15 +115,38 @@ fi
 # Extract configuration values
 WEBSERVER_HOST=$(grep -A 20 "production:" "$SCENARIO_CONFIG" | grep "webserver_host:" | awk '{print $2}')
 WEBSERVER_PORT=$(grep -A 20 "production:" "$SCENARIO_CONFIG" | grep "webserver_port:" | awk '{print $2}')
-LOCATION_ID=$(grep "location_id:" "$SCENARIO_CONFIG" | awk '{print $2}')
 
-if [ -z "$WEBSERVER_HOST" ] || [ -z "$WEBSERVER_PORT" ] || [ -z "$LOCATION_ID" ]; then
+if [ -z "$WEBSERVER_HOST" ] || [ -z "$WEBSERVER_PORT" ]; then
     error "Failed to extract required configuration from $SCENARIO_CONFIG"
     exit 1
 fi
 
-# Generate scoreboard URL
-SCOREBOARD_URL="http://${WEBSERVER_HOST}:${WEBSERVER_PORT}/locations/${LOCATION_ID}/scoreboard_reservations"
+# Get MD5 hash from Rails application
+# Determine which Rails application directory to use
+RAILS_APP_DIR=""
+if [ -d "$CARAMBUS_BASE/${SCENARIO_NAME}" ]; then
+    RAILS_APP_DIR="$CARAMBUS_BASE/${SCENARIO_NAME}"
+elif [ -d "$CARAMBUS_MASTER" ]; then
+    RAILS_APP_DIR="$CARAMBUS_MASTER"
+else
+    error "Could not find Rails application directory"
+    error "Checked: $CARAMBUS_BASE/${SCENARIO_NAME} and $CARAMBUS_MASTER"
+    exit 1
+fi
+
+info "Getting location MD5 hash from database..."
+MD5_HASH=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails scenarios:get_location_md5[$SCENARIO_NAME] 2>/dev/null | tail -1)
+
+if [ -z "$MD5_HASH" ] || [[ "$MD5_HASH" == *"Error"* ]]; then
+    error "Failed to get MD5 hash for scenario $SCENARIO_NAME"
+    error "Make sure the database is set up and the location exists"
+    exit 1
+fi
+
+log "Location MD5 hash: $MD5_HASH"
+
+# Generate scoreboard URL with MD5 and welcome state
+SCOREBOARD_URL="http://${WEBSERVER_HOST}:${WEBSERVER_PORT}/locations/${MD5_HASH}?sb_state=welcome"
 
 log "🎯 Carambus Client-Only Installation"
 log "=================================="
@@ -117,6 +154,8 @@ log "Scenario: $SCENARIO_NAME"
 log "Client IP: $CLIENT_IP"
 log "SSH Port: $SSH_PORT"
 log "SSH User: $SSH_USER"
+log "Server: ${WEBSERVER_HOST}:${WEBSERVER_PORT}"
+log "Location MD5: $MD5_HASH"
 log "Scoreboard URL: $SCOREBOARD_URL"
 echo ""
 
@@ -304,6 +343,8 @@ log "Raspberry Pi at $CLIENT_IP is now configured as a Carambus scoreboard clien
 log ""
 log "Configuration Details:"
 log "  - Scenario: $SCENARIO_NAME"
+log "  - Server: ${WEBSERVER_HOST}:${WEBSERVER_PORT}"
+log "  - Location MD5: $MD5_HASH"
 log "  - Scoreboard URL: $SCOREBOARD_URL"
 log "  - Service: scoreboard-kiosk.service"
 log ""
