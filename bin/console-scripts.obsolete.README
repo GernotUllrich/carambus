@@ -1,0 +1,68 @@
+# Obsolete Console/Debug Scripts
+
+**Date:** 2025-10-12  
+**Status:** Obsolete - No longer needed
+
+## Obsolete Files
+
+- `console-api.sh.obsolete`
+- `console-local.sh.obsolete`
+- `console-production.sh.obsolete`
+- `debug-production.sh.obsolete`
+
+## Reason
+
+These scripts were part of the old mode management system which has been replaced by the scenario-based deployment system.
+
+## Replacement
+
+### Instead of `console-api.sh`:
+```bash
+cd carambus_api  # or scenario directory
+bundle exec rails console
+```
+
+### Instead of `console-local.sh`:
+```bash
+cd carambus_master
+bundle exec rails console
+```
+
+### Instead of `console-production.sh`:
+```bash
+# On production server
+cd /var/www/carambus_<scenario>
+RAILS_ENV=production bundle exec rails console
+```
+
+### Instead of `debug-production.sh`:
+Use standard Rails debugging tools:
+```bash
+# SSH to server
+ssh -p <port> www-data@<server>
+cd /var/www/carambus_<scenario>
+RAILS_ENV=production bundle exec rails runner "puts Location.count"
+```
+
+Or use the Rails console:
+```bash
+RAILS_ENV=production bundle exec rails console
+```
+
+## Migration Notes
+
+The mode management system (`:api`, `:local`, `:production`) has been deprecated in favor of:
+- **Scenarios**: Each deployment is a separate scenario with its own configuration
+- **Standard Rails environments**: Use `RAILS_ENV=development|production|test`
+- **Direct console access**: No wrapper scripts needed
+
+## Can These Be Deleted?
+
+Yes, after verifying no one is using them. They are kept as `.obsolete` for reference only.
+
+## See Also
+
+- `install-scoreboard-client.sh.obsolete.README` - Similar obsolete script
+- `lib/tasks/scenarios.rake` - Current scenario management
+- `bin/deploy-scenario.sh` - Current deployment script
+
