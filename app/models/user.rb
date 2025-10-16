@@ -104,7 +104,7 @@ class User < ApplicationRecord
 
   def set_default_preferences
     self.preferences ||= {
-      "theme" => "system",
+      "theme" => email == "scoreboard@carambus.de" ? "dark" : "system",
       "locale" => I18n.default_locale.to_s,
       "timezone" => "Berlin"
     }

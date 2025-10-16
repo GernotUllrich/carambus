@@ -36,8 +36,10 @@
     (function () {
       const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
       const isMobile = window.innerWidth < 768;
+      const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de';
 
-      if (isMobile || isSidebarCollapsed) {
+      // For scoreboard, default to collapsed unless explicitly set to expanded
+      if (isMobile || isSidebarCollapsed || (isScoreboard && localStorage.getItem('sidebarCollapsed') !== 'false')) {
         document.documentElement.classList.add('sidebar-collapsed');
       }
 
@@ -46,7 +48,7 @@
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
           document.documentElement.classList.add('sidebar-collapsed');
-        } else if (!localStorage.getItem('sidebarCollapsed')) {
+        } else if (!localStorage.getItem('sidebarCollapsed') && !isScoreboard) {
           document.documentElement.classList.remove('sidebar-collapsed');
         }
       });
@@ -92,7 +94,7 @@
       }
   </style>
 </head>
-<body class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-50" data-controller="theme" data-theme-preference-value="<%= current_user&.theme %>">
+<body class="h-full font-sans antialiased font-normal leading-normal dark:text-gray-50" data-controller="theme" data-theme-preference-value="<%= current_user&.theme %>" data-user-email="<%= current_user&.email %>">
 <div class="flex flex-col min-h-screen <%= "no-navbar" unless @navbar %>" data-controller="sidebar">
   <header>
     <%= render "flash" %>

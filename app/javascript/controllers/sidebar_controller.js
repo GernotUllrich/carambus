@@ -6,9 +6,11 @@ export default class extends Controller {
   connect() {
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const isMobile = window.innerWidth < 768
+    const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
 
     // Apply initial state immediately
-    if (isMobile || isSidebarCollapsed) {
+    // For scoreboard, always start collapsed (ignore localStorage)
+    if (isMobile || isSidebarCollapsed || isScoreboard) {
       document.documentElement.classList.add('sidebar-collapsed')
     } else {
       document.documentElement.classList.remove('sidebar-collapsed')
