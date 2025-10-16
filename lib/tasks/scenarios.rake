@@ -1370,6 +1370,18 @@ ENV
       puts "⚠️  This can cause DATA LOSS!"
     end
 
+    # Step 0: Ensure carambus_master gems are installed
+    puts "\n📦 Step 0: Ensuring carambus_master dependencies are installed..."
+    master_root = Rails.root.to_s
+    puts "   Running bundle install in #{master_root}..."
+    bundle_install_cmd = "cd #{master_root} && bundle install"
+    if system(bundle_install_cmd)
+      puts "   ✅ carambus_master gems installed"
+    else
+      puts "   ❌ Failed to install carambus_master gems"
+      return false
+    end
+
     # Step 1: Create Rails root folder (if it doesn't exist)
     puts "\n📁 Step 1: Ensuring Rails root folder exists..."
     rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)

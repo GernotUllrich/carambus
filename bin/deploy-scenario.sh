@@ -131,16 +131,39 @@ confirm() {
     fi
 }
 
+# Function to get SSH config from scenario
+get_ssh_config() {
+    local scenario_name="$1"
+    local config_file="$SCENARIOS_PATH/$scenario_name/config.yml"
+    
+    if [ ! -f "$config_file" ]; then
+        error "Config file not found: $config_file"
+        return 1
+    fi
+    
+    # Extract SSH host and port from config.yml
+    SSH_HOST=$(grep -A 15 "production:" "$config_file" | grep "ssh_host:" | head -1 | awk '{print $2}')
+    SSH_PORT=$(grep -A 15 "production:" "$config_file" | grep "ssh_port:" | head -1 | awk '{print $2}')
+    
+    if [ -z "$SSH_HOST" ] || [ -z "$SSH_PORT" ]; then
+        error "Could not extract SSH config from $config_file"
+        return 1
+    fi
+}
+
 # Function to check if production database version is higher than development OR has local data
 check_production_version() {
     local scenario_name="$1"
+    
+    # Get SSH config
+    get_ssh_config "$scenario_name"
     
     # Get development database version
     local dev_version
     dev_version=$(psql -d "${scenario_name}_development" -t -c "SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;" 2>/dev/null | xargs)
     
     # Check if production database exists on remote server
-    if ! ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw ${scenario_name}_production" 2>/dev/null; then
+    if ! ssh -p $SSH_PORT www-data@$SSH_HOST "sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw ${scenario_name}_production" 2>/dev/null; then
         info "Production database ${scenario_name}_production does not exist on remote server"
         return 0  # Allow drop (nothing to drop)
     fi
@@ -158,7 +181,7 @@ check_production_version() {
       (SELECT COUNT(*) FROM (SELECT 1 FROM table_locals LIMIT 1) AS t6) +
       (SELECT COUNT(*) FROM (SELECT 1 FROM tournament_locals LIMIT 1) AS t7)
     );"
-    has_local_data=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"${local_query}\"" 2>/dev/null | xargs)
+    has_local_data=$(ssh -p $SSH_PORT www-data@$SSH_HOST "sudo -u postgres psql -d ${scenario_name}_production -t -c \"${local_query}\"" 2>/dev/null | xargs)
     
     if [ "$has_local_data" != "0" ]; then
         warning "Production database contains local data (ID > 50,000,000)"
@@ -169,7 +192,7 @@ check_production_version() {
     
     # Get production database version from remote server
     local prod_version
-    prod_version=$(ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;\"" 2>/dev/null | xargs)
+    prod_version=$(ssh -p $SSH_PORT www-data@$SSH_HOST "sudo -u postgres psql -d ${scenario_name}_production -t -c \"SELECT last_version_id FROM schema_migrations ORDER BY version DESC LIMIT 1;\"" 2>/dev/null | xargs)
     
     # If either version is empty or not numeric, assume we should drop
     if [[ ! "$dev_version" =~ ^[0-9]+$ ]] || [[ ! "$prod_version" =~ ^[0-9]+$ ]]; then
@@ -231,26 +254,29 @@ step_zero_cleanup() {
         info "Development database not found (already clean)"
     fi
     
+    # Get SSH config for this scenario
+    get_ssh_config "$SCENARIO_NAME"
+    
     # Clean up Raspberry Pi
     info "Cleaning up Raspberry Pi..."
     
     # Stop and remove Puma service
-    ssh -p 8910 www-data@192.168.178.107 "sudo systemctl stop puma-${SCENARIO_NAME}.service || true"
-    ssh -p 8910 www-data@192.168.178.107 "sudo systemctl disable puma-${SCENARIO_NAME}.service || true"
-    ssh -p 8910 www-data@192.168.178.107 "sudo rm -f /etc/systemd/system/puma-${SCENARIO_NAME}.service || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo systemctl stop puma-${SCENARIO_NAME}.service || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo systemctl disable puma-${SCENARIO_NAME}.service || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/systemd/system/puma-${SCENARIO_NAME}.service || true"
     log "✅ Puma service removed"
     
     # Remove Nginx configuration
-    ssh -p 8910 www-data@192.168.178.107 "sudo rm -f /etc/nginx/sites-enabled/*${SCENARIO_NAME}* || true"
-    ssh -p 8910 www-data@192.168.178.107 "sudo rm -f /etc/nginx/sites-available/*${SCENARIO_NAME}* || true"
-    ssh -p 8910 www-data@192.168.178.107 "sudo systemctl reload nginx || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-enabled/*${SCENARIO_NAME}* || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -f /etc/nginx/sites-available/*${SCENARIO_NAME}* || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo systemctl reload nginx || true"
     log "✅ Nginx configuration removed"
     
     # Drop production database (only if version check AND local data check pass)
     info "Checking production database (version and local data)..."
     if check_production_version "$SCENARIO_NAME"; then
         info "No conflicts detected - dropping database on remote server"
-        if ssh -p 8910 www-data@192.168.178.107 "sudo -u postgres dropdb ${SCENARIO_NAME}_production 2>/dev/null"; then
+        if ssh -p $SSH_PORT www-data@$SSH_HOST "sudo -u postgres dropdb ${SCENARIO_NAME}_production 2>/dev/null"; then
             log "✅ Production database dropped"
         else
             info "Production database not found or already dropped"
@@ -261,7 +287,7 @@ step_zero_cleanup() {
     fi
     
     # Remove deployment directory
-    ssh -p 8910 www-data@192.168.178.107 "sudo rm -rf /var/www/${SCENARIO_NAME} || true"
+    ssh -p $SSH_PORT www-data@$SSH_HOST "sudo rm -rf /var/www/${SCENARIO_NAME} || true"
     log "✅ Deployment directory removed"
     
     log "✅ Complete cleanup finished"
@@ -479,21 +505,27 @@ main() {
     log "================================"
     log "Scenario '$SCENARIO_NAME' is now fully deployed and operational"
     log ""
-    # Read the correct port from scenario configuration
+    # Read the configuration from scenario file
     if [ -f "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" ]; then
-        WEBSERVER_PORT=$(grep -A 10 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | awk '{print $2}')
+        WEBSERVER_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_host:" | head -1 | awk '{print $2}')
+        WEBSERVER_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | head -1 | awk '{print $2}')
+        SSH_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "ssh_host:" | head -1 | awk '{print $2}')
+        SSH_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "ssh_port:" | head -1 | awk '{print $2}')
     else
-        WEBSERVER_PORT=3131  # Default for carambus_bcw
+        WEBSERVER_HOST="localhost"
+        WEBSERVER_PORT=3131
+        SSH_HOST="localhost"
+        SSH_PORT=8910
     fi
     
     log "Access Information:"
-    log "  - Web Interface: http://192.168.178.107:$WEBSERVER_PORT"
-    log "  - SSH Access: ssh -p 8910 www-data@192.168.178.107"
+    log "  - Web Interface: http://$WEBSERVER_HOST:$WEBSERVER_PORT"
+    log "  - SSH Access: ssh -p $SSH_PORT www-data@$SSH_HOST"
     log ""
     log "Management Commands:"
     log "  - Restart Browser: rake scenario:restart_raspberry_pi_client[$SCENARIO_NAME]"
     log "  - Test Client: rake scenario:test_raspberry_pi_client[$SCENARIO_NAME]"
-    log "  - Check Service: ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status scoreboard-kiosk'"
+    log "  - Check Service: ssh -p $SSH_PORT www-data@$SSH_HOST 'sudo systemctl status scoreboard-kiosk'"
 }
 
 # Run main workflow

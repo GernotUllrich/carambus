@@ -235,17 +235,66 @@ echo ""
 log "🌐 Step 3: Configuring Static IP"
 log "==============================="
 
-# Create dhcpcd configuration for static IP
-DHCPCD_CONFIG="
+# Detect network management system
+info "Detecting network management system..."
+NETWORK_MANAGER=$(ssh -p $SSH_PORT $SSH_USER@$CURRENT_IP "systemctl is-active NetworkManager 2>/dev/null || echo inactive")
+DHCPCD_SERVICE=$(ssh -p $SSH_PORT $SSH_USER@$CURRENT_IP "systemctl is-active dhcpcd 2>/dev/null || echo inactive")
+
+if [ "$NETWORK_MANAGER" = "active" ]; then
+    log "✓ NetworkManager detected - using nmcli for configuration"
+    
+    # Get current WiFi connection name
+    WIFI_CONN=$(ssh -p $SSH_PORT $SSH_USER@$CURRENT_IP "nmcli -t -f NAME,TYPE connection show | grep wireless | head -1 | cut -d: -f1")
+    
+    if [ -z "$WIFI_CONN" ]; then
+        warning "No WiFi connection found, using SSID as connection name"
+        WIFI_CONN="$TARGET_SSID"
+    fi
+    
+    info "WiFi connection: $WIFI_CONN"
+    
+    # Configure static IP using nmcli
+    execute_ssh_command "sudo nmcli connection modify '$WIFI_CONN' ipv4.addresses ${STATIC_IP}/24" "Setting static IP"
+    execute_ssh_command "sudo nmcli connection modify '$WIFI_CONN' ipv4.gateway ${GATEWAY}" "Setting gateway"
+    execute_ssh_command "sudo nmcli connection modify '$WIFI_CONN' ipv4.dns '8.8.8.8 1.1.1.1'" "Setting DNS"
+    execute_ssh_command "sudo nmcli connection modify '$WIFI_CONN' ipv4.method manual" "Switching to manual IP configuration"
+    
+    log "✅ NetworkManager configuration complete"
+    
+elif [ "$DHCPCD_SERVICE" = "active" ]; then
+    log "✓ dhcpcd detected - using dhcpcd.conf for configuration"
+    
+    # Create dhcpcd configuration for static IP
+    DHCPCD_CONFIG="
 # Static IP configuration for Table ${TABLE_NUMBER}
 interface wlan0
 static ip_address=${STATIC_IP}/24
 static routers=${GATEWAY}
 static domain_name_servers=8.8.8.8 1.1.1.1
 "
+    
+    upload_file_content "$DHCPCD_CONFIG" "/tmp/dhcpcd_static.conf" "Uploading dhcpcd configuration"
+    execute_ssh_command "sudo sh -c 'cat /tmp/dhcpcd_static.conf >> /etc/dhcpcd.conf'" "Appending static IP configuration to dhcpcd.conf"
+    
+    log "✅ dhcpcd configuration complete"
+    
+else
+    warning "⚠️  Could not detect network manager (NetworkManager or dhcpcd)"
+    warning "    Trying dhcpcd.conf as fallback..."
+    
+    # Fallback to dhcpcd configuration
+    DHCPCD_CONFIG="
+# Static IP configuration for Table ${TABLE_NUMBER}
+interface wlan0
+static ip_address=${STATIC_IP}/24
+static routers=${GATEWAY}
+static domain_name_servers=8.8.8.8 1.1.1.1
+"
+    
+    upload_file_content "$DHCPCD_CONFIG" "/tmp/dhcpcd_static.conf" "Uploading dhcpcd configuration"
+    execute_ssh_command "sudo sh -c 'cat /tmp/dhcpcd_static.conf >> /etc/dhcpcd.conf'" "Appending static IP configuration to dhcpcd.conf"
+fi
 
-upload_file_content "$DHCPCD_CONFIG" "/tmp/dhcpcd_static.conf" "Uploading dhcpcd configuration"
-execute_ssh_command "sudo sh -c 'cat /tmp/dhcpcd_static.conf >> /etc/dhcpcd.conf'" "Appending static IP configuration to dhcpcd.conf"
 echo ""
 
 # Step 4: Install required packages
