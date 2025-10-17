@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+> 🇩🇪 **Deutsche Version**: [docs/changelog/CHANGELOG.de.md](docs/changelog/CHANGELOG.de.md)
+
 ## [Unreleased]
 
 ### Added
@@ -58,4 +60,26 @@ The script automatically detects:
 - Correct chromium package name
 - Network management system in use (dhcpcd/NetworkManager)
 - Configures WLAN and static IP accordingly
+
+### Database State Analysis
+
+To check database states before/after deployments:
+
+```bash
+./bin/check-database-states.sh carambus_bcw
+```
+
+---
+
+## Historical Notes
+
+### Docker Approach (Abandoned)
+
+Earlier versions experimented with a Docker-based deployment approach. This has been abandoned in favor of the current Capistrano-based deployment strategy. Docker configurations remain in the repository for reference purposes but are not the recommended deployment path.
+
+**Current Deployment Approach:**
+- Capistrano for production deployments
+- Systemd services for Puma
+- Nginx as reverse proxy
+- Direct server installation (no containers)
 
