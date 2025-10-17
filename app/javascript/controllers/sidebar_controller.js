@@ -30,13 +30,6 @@ export default class extends Controller {
   }
 
   collapse(event) {
-    // Prevent scoreboard users from toggling the sidebar
-    const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
-    if (isScoreboard) {
-      console.log('🔧 Sidebar toggle blocked for scoreboard user')
-      return
-    }
-
     console.log('🔧 SidebarController collapse called!', event.currentTarget)
     // Force a reflow before making changes
     void this.navTarget.offsetHeight
@@ -46,7 +39,7 @@ export default class extends Controller {
       // Toggle collapsed state on html element
       document.documentElement.classList.toggle('sidebar-collapsed')
 
-      // Save state
+      // Save state (but scoreboard users will get reset on next page load)
       const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed')
       localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
       console.log('🔧 Sidebar collapsed state:', isCollapsed)
