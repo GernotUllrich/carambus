@@ -399,3 +399,56 @@ Das Raspberry Pi Client System bietet:
 ✅ **Umfassende Test- und Debug-Tools**  
 
 Das System ermöglicht es, Raspberry Pi-basierte Kiosk-Clients effizient zu verwalten und in die bestehende Carambus-Infrastruktur zu integrieren.
+
+---
+
+## Änderungshistorie
+
+### 2025-10-17: Kompatibilität mit Debian Trixie und Utility-Scripts
+
+**Änderungen:**
+
+1. **Chromium-Package-Name aktualisiert** (Commit: ca4c665)
+   - Neuere Raspberry Pi OS-Versionen (Debian Trixie) verwenden `chromium` statt `chromium-browser`
+   - `bin/setup-raspi-table-client.sh` angepasst:
+     - Installation: `chromium` statt `chromium-browser`
+     - Executable: `/usr/bin/chromium` statt `/usr/bin/chromium-browser`
+   - Behebt Installationsfehler: "Package chromium-browser is not available"
+
+2. **Neue Utility-Scripts hinzugefügt** (Commit: c304d18)
+   - **`bin/check-database-states.sh`**: Umfassendes Analyse-Tool
+     - Vergleicht Datenbank-Zustände zwischen Local, Production und API Server
+     - Prüft Version-IDs, table_locals, tournament_locals
+     - Warnt bei unbumped IDs (< 50,000,000)
+     - Zeigt ID-Bereiche und lokale Daten an
+     - Usage: `./bin/check-database-states.sh <scenario_name>`
+   
+   - **`bin/puma-wrapper.sh`**: Systemd-Service-Wrapper
+     - Initialisiert rbenv korrekt für Puma-Dienst
+     - Wechselt ins richtige Deployment-Verzeichnis
+     - Usage: `puma-wrapper.sh <basename>` oder via `PUMA_BASENAME` Environment-Variable
+
+3. **Scoreboard-Menu-Integration abgeschlossen**
+   - Branch `scorebord_menu` erfolgreich in master integriert
+   - NetworkManager-Unterstützung im Setup-Script vorhanden
+   - Automatische Erkennung von dhcpcd vs. NetworkManager
+
+**Kompatibilität:**
+
+- ✅ Raspberry Pi OS (Debian Bullseye) - `chromium-browser` Fallback vorhanden
+- ✅ Raspberry Pi OS (Debian Trixie/Bookworm) - Primäre Unterstützung
+- ✅ dhcpcd-basierte Netzwerkkonfiguration
+- ✅ NetworkManager-basierte Konfiguration
+
+**Deployment-Hinweise:**
+
+Beim Setup auf neuen Raspberry Pi mit Debian Trixie:
+```bash
+sh bin/setup-raspi-table-client.sh carambus_bcw <current_ip> \
+  <ssid> <password> <static_ip> <table_number> [ssh_port] [ssh_user] [server_ip]
+```
+
+Das Script erkennt automatisch:
+- Den richtigen Chromium-Package-Namen
+- Das verwendete Netzwerk-Management-System (dhcpcd/NetworkManager)
+- Konfiguriert entsprechend WLAN und statische IP
