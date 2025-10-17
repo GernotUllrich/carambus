@@ -330,6 +330,8 @@ echo "Table '"$TABLE_NUMBER"': Using scoreboard URL: $SCOREBOARD_URL"
 rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
 
 # Start browser in fullscreen
+# Note: Using --start-fullscreen instead of wmctrl to allow browser fullscreen API to work
+# This enables the fullscreen toggle button to work properly without keyboard
 /usr/bin/chromium \
   --start-fullscreen \
   --disable-restore-session-state \
@@ -351,9 +353,8 @@ rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
   --app="$SCOREBOARD_URL" \
   >/dev/null 2>&1 &
 
-# Ensure fullscreen
-sleep 5
-wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true'
+# Wait for Chromium to start
+sleep 5'
 
 upload_file_content "$AUTOSTART_SCRIPT" "/tmp/autostart-scoreboard.sh" "Uploading autostart script"
 execute_ssh_command "chmod +x /tmp/autostart-scoreboard.sh" "Making autostart script executable"
