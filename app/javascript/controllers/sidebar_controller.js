@@ -3,25 +3,31 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
-  initialize() {
-    // Listen for Turbo navigation events to reapply sidebar state
-    this.boundApplySidebarState = this.applySidebarState.bind(this)
-    this.boundHandleResize = this.handleResize.bind(this)
+  connect() {
+    console.log('🔧 Sidebar Controller CONNECT')
+    // Apply state immediately on connect
+    this.applySidebarState()
     
-    document.addEventListener('turbo:load', this.boundApplySidebarState)
-    document.addEventListener('turbo:render', this.boundApplySidebarState)
-    window.addEventListener('resize', this.boundHandleResize)
+    // Set up Turbo listeners only once per controller instance
+    if (!this.turboListenersSet) {
+      console.log('🔧 Setting up Turbo listeners')
+      this.boundApplySidebarState = this.applySidebarState.bind(this)
+      this.boundHandleResize = this.handleResize.bind(this)
+      
+      document.addEventListener('turbo:before-render', this.boundApplySidebarState)
+      window.addEventListener('resize', this.boundHandleResize)
+      this.turboListenersSet = true
+    }
   }
 
   disconnect() {
+    console.log('🔧 Sidebar Controller DISCONNECT')
     // Clean up event listeners
-    document.removeEventListener('turbo:load', this.boundApplySidebarState)
-    document.removeEventListener('turbo:render', this.boundApplySidebarState)
-    window.removeEventListener('resize', this.boundHandleResize)
-  }
-
-  connect() {
-    this.applySidebarState()
+    if (this.turboListenersSet) {
+      document.removeEventListener('turbo:before-render', this.boundApplySidebarState)
+      window.removeEventListener('resize', this.boundHandleResize)
+      this.turboListenersSet = false
+    }
   }
 
   handleResize() {

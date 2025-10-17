@@ -4,9 +4,12 @@
   html_classes = []
   html_classes << (current_user&.prefers_dark_mode? ? 'dark' : 'light')
   # Only force collapsed for scoreboard users when sb_state parameter is present (direct scoreboard URL)
-  html_classes << 'sidebar-collapsed' if current_user&.email == 'scoreboard@carambus.de' && params[:sb_state].present?
+  is_scoreboard_url = current_user&.email == 'scoreboard@carambus.de' && params[:sb_state].present?
+  html_classes << 'sidebar-collapsed' if is_scoreboard_url
+  # Debug logging
+  Rails.logger.debug "🔧 HTML class setup: user=#{current_user&.email}, sb_state=#{params[:sb_state]}, is_scoreboard_url=#{is_scoreboard_url}, classes=#{html_classes.inspect}"
 %>
-<html lang="en" class="<%= html_classes.join(' ') %>">
+<html lang="en" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_url %>">
 <head>
   <title>
     <% if content_for?(:title) %>
