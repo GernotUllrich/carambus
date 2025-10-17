@@ -4,16 +4,16 @@ export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
   connect() {
+    // Note: Scoreboard users already have sidebar-collapsed class set by server
+    // This controller just ensures proper behavior for all users
     const isMobile = window.innerWidth < 768
     const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
 
-    // Apply initial state immediately
-    // For scoreboard, ALWAYS start collapsed and ignore localStorage completely
+    // For scoreboard users, class is already set by server - just clear localStorage
     if (isScoreboard) {
-      document.documentElement.classList.add('sidebar-collapsed')
-      // Clear any stored preference for scoreboard users
       localStorage.removeItem('sidebarCollapsed')
     } else {
+      // For regular users, apply localStorage state if not already set
       const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
       if (isMobile || isSidebarCollapsed) {
         document.documentElement.classList.add('sidebar-collapsed')

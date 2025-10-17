@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--TODO JS current_user-->
-<html lang="en" class="<%= current_user&.prefers_dark_mode? ? 'dark' : 'light' %>">
+<% 
+  html_classes = []
+  html_classes << (current_user&.prefers_dark_mode? ? 'dark' : 'light')
+  html_classes << 'sidebar-collapsed' if current_user&.email == 'scoreboard@carambus.de'
+%>
+<html lang="en" class="<%= html_classes.join(' ') %>">
 <head>
   <title>
     <% if content_for?(:title) %>
@@ -37,11 +42,11 @@
       const isMobile = window.innerWidth < 768;
       const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de';
 
-      // For scoreboard users, ALWAYS collapse and clear any stored preferences
+      // For scoreboard users, clear any stored preferences (already collapsed by server)
       if (isScoreboard) {
-        document.documentElement.classList.add('sidebar-collapsed');
         localStorage.removeItem('sidebarCollapsed');
       } else {
+        // For regular users, apply localStorage state
         const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         if (isMobile || isSidebarCollapsed) {
           document.documentElement.classList.add('sidebar-collapsed');
