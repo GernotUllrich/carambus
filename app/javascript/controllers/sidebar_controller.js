@@ -6,18 +6,31 @@ export default class extends Controller {
   initialize() {
     // Listen for Turbo navigation events to reapply sidebar state
     this.boundApplySidebarState = this.applySidebarState.bind(this)
+    this.boundHandleResize = this.handleResize.bind(this)
+    
     document.addEventListener('turbo:load', this.boundApplySidebarState)
     document.addEventListener('turbo:render', this.boundApplySidebarState)
+    window.addEventListener('resize', this.boundHandleResize)
   }
 
   disconnect() {
     // Clean up event listeners
     document.removeEventListener('turbo:load', this.boundApplySidebarState)
     document.removeEventListener('turbo:render', this.boundApplySidebarState)
+    window.removeEventListener('resize', this.boundHandleResize)
   }
 
   connect() {
     this.applySidebarState()
+  }
+
+  handleResize() {
+    const isMobile = window.innerWidth <= 768
+    if (isMobile) {
+      document.documentElement.classList.add('sidebar-collapsed')
+    } else if (localStorage.getItem('sidebarCollapsed') !== 'true') {
+      document.documentElement.classList.remove('sidebar-collapsed')
+    }
   }
 
   applySidebarState() {
@@ -27,7 +40,7 @@ export default class extends Controller {
     const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
     const hasSbState = window.location.search.includes('sb_state=')
     
-    console.log('🔧 Sidebar Controller connect:', {
+    console.log('🔧 Sidebar Controller applySidebarState:', {
       isScoreboard,
       hasSbState,
       url: window.location.href,
@@ -35,11 +48,13 @@ export default class extends Controller {
       currentClasses: document.documentElement.className
     })
 
-    // Only clear localStorage when scoreboard user accesses sb_state URL (class already set by server)
+    // For scoreboard users with sb_state URL, force collapsed and set localStorage
     if (isScoreboard && hasSbState) {
-      console.log('🔧 Scoreboard with sb_state - clearing localStorage')
-      localStorage.removeItem('sidebarCollapsed')
-      // Class already set by server, no need to manipulate
+      console.log('🔧 Scoreboard with sb_state - forcing collapsed')
+      // Set localStorage to 'true' so it stays collapsed on navigation
+      localStorage.setItem('sidebarCollapsed', 'true')
+      // Class already set by server, but ensure it's there
+      document.documentElement.classList.add('sidebar-collapsed')
     } else {
       // For all other cases, explicitly set or remove class based on localStorage
       const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'

@@ -38,37 +38,8 @@
         /* Development styles without nonce */
     </style>
   <% end %>
-  <script>
-    (function () {
-      const isMobile = window.innerWidth < 768;
-      const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de';
-      const hasSbState = window.location.search.includes('sb_state=');
-
-      // For scoreboard users with sb_state, clear localStorage and force collapsed (already set by server)
-      if (isScoreboard && hasSbState) {
-        localStorage.removeItem('sidebarCollapsed');
-      } else {
-        // For all other cases (including scoreboard without sb_state), use localStorage
-        const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        if (isMobile || isSidebarCollapsed) {
-          document.documentElement.classList.add('sidebar-collapsed');
-        } else {
-          // Explicitly remove the class if localStorage says sidebar should be open
-          document.documentElement.classList.remove('sidebar-collapsed');
-        }
-      }
-
-      // Add resize listener to handle mobile transitions
-      window.addEventListener('resize', function() {
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-          document.documentElement.classList.add('sidebar-collapsed');
-        } else if (localStorage.getItem('sidebarCollapsed') !== 'true') {
-          document.documentElement.classList.remove('sidebar-collapsed');
-        }
-      });
-    })();
-  </script>
+  <!-- Note: Sidebar state management is now handled entirely by sidebar_controller.js -->
+  <!-- This ensures consistent behavior during Turbo navigation -->
 
   <style>
       /* Initial states */
