@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
+console.log('🔧 Sidebar Controller FILE LOADED')
+
 export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
