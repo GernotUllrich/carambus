@@ -302,7 +302,7 @@ log "📦 Step 4: Installing Required Packages"
 log "======================================"
 
 execute_ssh_command "sudo apt update" "Updating package list"
-execute_ssh_command "sudo apt install -y chromium-browser wmctrl xdotool" "Installing packages (chromium, wmctrl, xdotool)"
+execute_ssh_command "sudo apt install -y chromium wmctrl xdotool" "Installing packages (chromium, wmctrl, xdotool)"
 echo ""
 
 # Step 5: Create autostart script
@@ -330,7 +330,7 @@ echo "Table '"$TABLE_NUMBER"': Using scoreboard URL: $SCOREBOARD_URL"
 rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
 
 # Start browser in fullscreen
-/usr/bin/chromium-browser \
+/usr/bin/chromium \
   --start-fullscreen \
   --disable-restore-session-state \
   --user-data-dir=/tmp/chromium-scoreboard \
