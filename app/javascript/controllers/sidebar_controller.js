@@ -4,16 +4,22 @@ export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
   connect() {
-    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const isMobile = window.innerWidth < 768
     const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
 
     // Apply initial state immediately
-    // For scoreboard, always start collapsed (ignore localStorage)
-    if (isMobile || isSidebarCollapsed || isScoreboard) {
+    // For scoreboard, ALWAYS start collapsed and ignore localStorage completely
+    if (isScoreboard) {
       document.documentElement.classList.add('sidebar-collapsed')
+      // Clear any stored preference for scoreboard users
+      localStorage.removeItem('sidebarCollapsed')
     } else {
-      document.documentElement.classList.remove('sidebar-collapsed')
+      const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+      if (isMobile || isSidebarCollapsed) {
+        document.documentElement.classList.add('sidebar-collapsed')
+      } else {
+        document.documentElement.classList.remove('sidebar-collapsed')
+      }
     }
   }
 
@@ -24,6 +30,13 @@ export default class extends Controller {
   }
 
   collapse(event) {
+    // Prevent scoreboard users from toggling the sidebar
+    const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
+    if (isScoreboard) {
+      console.log('🔧 Sidebar toggle blocked for scoreboard user')
+      return
+    }
+
     console.log('🔧 SidebarController collapse called!', event.currentTarget)
     // Force a reflow before making changes
     void this.navTarget.offsetHeight
