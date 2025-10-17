@@ -3,27 +3,57 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["nav", "submenu", "icon", "content", "showButton"]
 
+  initialize() {
+    // Listen for Turbo navigation events to reapply sidebar state
+    this.boundApplySidebarState = this.applySidebarState.bind(this)
+    document.addEventListener('turbo:load', this.boundApplySidebarState)
+    document.addEventListener('turbo:render', this.boundApplySidebarState)
+  }
+
+  disconnect() {
+    // Clean up event listeners
+    document.removeEventListener('turbo:load', this.boundApplySidebarState)
+    document.removeEventListener('turbo:render', this.boundApplySidebarState)
+  }
+
   connect() {
+    this.applySidebarState()
+  }
+
+  applySidebarState() {
     // Note: For scoreboard URLs with sb_state, sidebar-collapsed is already set by server
     // For all other pages, use normal localStorage behavior
     const isMobile = window.innerWidth < 768
     const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
     const hasSbState = window.location.search.includes('sb_state=')
+    
+    console.log('🔧 Sidebar Controller connect:', {
+      isScoreboard,
+      hasSbState,
+      url: window.location.href,
+      localStorage: localStorage.getItem('sidebarCollapsed'),
+      currentClasses: document.documentElement.className
+    })
 
     // Only clear localStorage when scoreboard user accesses sb_state URL (class already set by server)
     if (isScoreboard && hasSbState) {
+      console.log('🔧 Scoreboard with sb_state - clearing localStorage')
       localStorage.removeItem('sidebarCollapsed')
       // Class already set by server, no need to manipulate
     } else {
       // For all other cases, explicitly set or remove class based on localStorage
       const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+      console.log('🔧 Normal navigation - isSidebarCollapsed:', isSidebarCollapsed)
       if (isMobile || isSidebarCollapsed) {
+        console.log('🔧 Adding sidebar-collapsed class')
         document.documentElement.classList.add('sidebar-collapsed')
       } else {
-        // Explicitly remove class if sidebar should be open
+        console.log('🔧 Removing sidebar-collapsed class')
         document.documentElement.classList.remove('sidebar-collapsed')
       }
     }
+    
+    console.log('🔧 Final classes:', document.documentElement.className)
   }
 
   toggle(event) {
