@@ -24,6 +24,10 @@ application.register("clipboard", ClipboardController)
 import PagyUrlController from "./pagy_url_controller"
 application.register("pagy-url", PagyUrlController)
 
+import SidebarController from "./sidebar_controller"
+application.register("sidebar", SidebarController)
+console.log("🔧 Sidebar Controller manually registered")
+
 // Set the consumer on the Stimulus application object first
 application.consumer = consumer
 
