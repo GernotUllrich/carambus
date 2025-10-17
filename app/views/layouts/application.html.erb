@@ -52,6 +52,9 @@
         const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         if (isMobile || isSidebarCollapsed) {
           document.documentElement.classList.add('sidebar-collapsed');
+        } else {
+          // Explicitly remove the class if localStorage says sidebar should be open
+          document.documentElement.classList.remove('sidebar-collapsed');
         }
       }
 
@@ -60,7 +63,7 @@
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
           document.documentElement.classList.add('sidebar-collapsed');
-        } else if (!localStorage.getItem('sidebarCollapsed')) {
+        } else if (localStorage.getItem('sidebarCollapsed') !== 'true') {
           document.documentElement.classList.remove('sidebar-collapsed');
         }
       });

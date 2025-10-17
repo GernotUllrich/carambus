@@ -13,12 +13,14 @@ export default class extends Controller {
     // Only clear localStorage when scoreboard user accesses sb_state URL (class already set by server)
     if (isScoreboard && hasSbState) {
       localStorage.removeItem('sidebarCollapsed')
+      // Class already set by server, no need to manipulate
     } else {
-      // For all other cases, apply localStorage state
+      // For all other cases, explicitly set or remove class based on localStorage
       const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
       if (isMobile || isSidebarCollapsed) {
         document.documentElement.classList.add('sidebar-collapsed')
       } else {
+        // Explicitly remove class if sidebar should be open
         document.documentElement.classList.remove('sidebar-collapsed')
       }
     }
