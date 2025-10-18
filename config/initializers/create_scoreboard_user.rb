@@ -6,6 +6,9 @@
 Rails.application.config.after_initialize do
   unless Rails.env.test?
     begin
+      # Skip if database doesn't exist or tables aren't created yet
+      next unless ActiveRecord::Base.connection.data_source_exists?('users')
+      
       User.find_or_create_by!(email: "scoreboard@carambus.de") do |user|
         user.password = "scoreboard123"
         user.password_confirmation = "scoreboard123"
@@ -17,11 +20,13 @@ Rails.application.config.after_initialize do
         user.skip_confirmation!
         puts "[Initializer] ✅ Created scoreboard user"
       end
+    rescue ActiveRecord::NoDatabaseError
+      # Database doesn't exist yet - silently skip
     rescue ActiveRecord::RecordInvalid => e
       puts "[Initializer] ℹ️  Scoreboard user already exists: #{e.message}"
     rescue => e
-      puts "[Initializer] ❌ Error creating scoreboard user: #{e.message}"
-      puts e.backtrace.first(5).join("\n")
+      # Silently skip other errors during initialization (db might not be ready)
+      # This is expected during rake tasks like db:create, db:migrate, etc.
     end
   end
 end
