@@ -141,9 +141,9 @@ get_ssh_config() {
         return 1
     fi
     
-    # Extract SSH host and port from config.yml
-    SSH_HOST=$(grep -A 15 "production:" "$config_file" | grep "ssh_host:" | head -1 | awk '{print $2}')
-    SSH_PORT=$(grep -A 15 "production:" "$config_file" | grep "ssh_port:" | head -1 | awk '{print $2}')
+    # Extract SSH host and port from config.yml (ignore commented lines)
+    SSH_HOST=$(grep -A 15 "production:" "$config_file" | grep -v "^\s*#" | grep "ssh_host:" | head -1 | awk '{print $2}')
+    SSH_PORT=$(grep -A 15 "production:" "$config_file" | grep -v "^\s*#" | grep "ssh_port:" | head -1 | awk '{print $2}')
     
     if [ -z "$SSH_HOST" ] || [ -z "$SSH_PORT" ]; then
         error "Could not extract SSH config from $config_file"
@@ -505,12 +505,12 @@ main() {
     log "================================"
     log "Scenario '$SCENARIO_NAME' is now fully deployed and operational"
     log ""
-    # Read the configuration from scenario file
+    # Read the configuration from scenario file (ignore commented lines)
     if [ -f "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" ]; then
-        WEBSERVER_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_host:" | head -1 | awk '{print $2}')
-        WEBSERVER_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "webserver_port:" | head -1 | awk '{print $2}')
-        SSH_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "ssh_host:" | head -1 | awk '{print $2}')
-        SSH_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep "ssh_port:" | head -1 | awk '{print $2}')
+        WEBSERVER_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep -v "^\s*#" | grep "webserver_host:" | head -1 | awk '{print $2}')
+        WEBSERVER_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep -v "^\s*#" | grep "webserver_port:" | head -1 | awk '{print $2}')
+        SSH_HOST=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep -v "^\s*#" | grep "ssh_host:" | head -1 | awk '{print $2}')
+        SSH_PORT=$(grep -A 15 "production:" "$SCENARIOS_PATH/$SCENARIO_NAME/config.yml" | grep -v "^\s*#" | grep "ssh_port:" | head -1 | awk '{print $2}')
     else
         WEBSERVER_HOST="localhost"
         WEBSERVER_PORT=3131
