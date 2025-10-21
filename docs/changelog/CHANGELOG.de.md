@@ -10,6 +10,20 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 ### Hinzugefügt
+- **Carambus2 Migration-Feature**
+  - Automatische Schema-Migration von Carambus2 zu aktueller Version
+  - Erkennt alte Schema-Struktur (ohne region_id, global_context)
+  - Konvertiert automatisch beim `prepare_development`
+  - Erstellt schema-kompatibles Backup vor Migration
+  - Dokumentiert in scenario_management.de.md
+
+- **Vereinfachtes Table-Client-Setup** (`bin/setup-table-raspi.sh`)
+  - Nur noch 3 Parameter nötig: scenario, current_ip, table_name
+  - Club-WLAN aus `config.yml` (production.network.club_wlan)
+  - Dev-WLAN aus `~/.carambus_config` (CARAMBUS_DEV_WLAN_*)
+  - Statische IP automatisch aus Database (table_locals.ip_address)
+  - Multi-WLAN mit automatischem Fallback
+
 - **Datenbank-Analyse-Tool** (`bin/check-database-states.sh`)
   - Umfassende Analyse von Datenbank-Zuständen über Local, Production und API Server
   - Vergleicht Version-IDs, table_locals und tournament_locals
@@ -22,13 +36,20 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - Wechselt ins richtige Deployment-Verzeichnis
   - Verwendung: `puma-wrapper.sh <basename>` oder via `PUMA_BASENAME` Umgebungsvariable
 
-- **Multi-WLAN-Unterstützung** für Raspberry Pi Client Setup
-  - Konfiguration mehrerer WLAN-Netzwerke möglich
-  - Automatischer Wechsel zwischen Entwicklungs- und Produktions-WLAN
-  - DHCP für Entwicklungs-WLAN (flexible IP)
-  - Statische IP für Produktions-WLAN (stabile Deployment)
-
 ### Geändert
+- **Scoreboard-Client Optimierungen**
+  - Chromium --kiosk Mode für saubere UI (keine Warnungen, keine URL-Leiste)
+  - Startup-Zeit von ~45s auf ~18s reduziert (60% schneller)
+  - Bedingte Puma-Wartezeit nur für lokale Server
+  - Vereinfachte URL-Logik für Remote-Clients
+  - Deutsche Standardsprache (`locale=de` Parameter)
+
+- **Sidebar-Verhalten** für Scoreboard verbessert
+  - Prüft sowohl `current_user` als auch `Current.user` für Auto-Login
+  - Sidebar startet immer geschlossen bei `sb_state` Parameter
+  - JavaScript erzwingt collapsed State für Scoreboard-URLs
+  - Korrekte `sidebar-collapsed` CSS-Klasse
+
 - **Raspberry Pi Client Setup** für Debian Trixie-Kompatibilität
   - Von `chromium-browser` auf `chromium` Paket umgestellt (neuere Raspberry Pi OS Versionen)
   - Executable-Pfad von `/usr/bin/chromium-browser` auf `/usr/bin/chromium` aktualisiert
@@ -40,6 +61,21 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - Automatische nmcli-Konfiguration für NetworkManager-Systeme
 
 ### Behoben
+- **Chromium-Sandbox-Warnung** auf Raspberry Pi Clients
+  - `--no-sandbox` durch `--disable-setuid-sandbox` ersetzt
+  - Keine "unsupported command-line flag" Warnung mehr
+  - Zusätzliche Flags: `--disable-infobars`, `--noerrdialogs`
+
+- **Scoreboard-URL** korrigiert
+  - Explizite `/scoreboard` Route für Auto-Login
+  - `locale` Parameter bleibt bei Redirect erhalten
+  - Scoreboard startet nun immer auf Deutsch
+
+- **Lokale Daten Migration**
+  - Schema-kompatibles Backup bei Carambus2-Migration
+  - Korrekte `region_id` und `global_context` Spalten
+  - Automatische Role-Konvertierung (String → Integer)
+
 - Chromium-Paket-Installation auf neueren Raspberry Pi OS (Debian Trixie/Bookworm)
 - Kompatibilität mit alten (Debian Bullseye) und neuen Raspberry Pi OS Versionen sichergestellt
 - NetworkManager-basierte Systeme werden jetzt korrekt erkannt und konfiguriert
