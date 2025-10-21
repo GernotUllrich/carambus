@@ -18,6 +18,13 @@ CARAMBUS_BASE=/Volumes/EXT2TB/gullrich/DEV/carambus
 # CARAMBUS_DEFAULT_SSH_USER=www-data
 # CARAMBUS_DEFAULT_SSH_PORT=8910
 
+# Development/Office WLAN Configuration
+# Used for preparing Raspberry Pi table clients in the office before deployment
+# These credentials are NOT committed to git (developer-specific)
+# CARAMBUS_DEV_WLAN_SSID="YOUR_OFFICE_WLAN"
+# CARAMBUS_DEV_WLAN_PASSWORD="your_office_password"
+# CARAMBUS_DEV_WLAN_PRIORITY=10
+
 
 
 
