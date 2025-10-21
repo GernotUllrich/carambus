@@ -4646,7 +4646,8 @@ EOF
         --disable-setuid-sandbox \\
         --app="$SCOREBOARD_URL" \\
         --disable-gpu \\
-        --test-type \\
+        --disable-infobars \\
+        --noerrdialogs \\
         >>/tmp/chromium-kiosk.log 2>&1 &
       
       BROWSER_PID=$!
