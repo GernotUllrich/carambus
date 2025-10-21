@@ -412,10 +412,11 @@ fi
 
 echo "Starting: $BROWSER_CMD"
 $BROWSER_CMD \
-  --kiosk \
+  --start-fullscreen \
+  --app="$SCOREBOARD_URL" \
   --disable-restore-session-state \
   --user-data-dir="$CHROMIUM_USER_DIR" \
-  --disable-features=VizDisplayCompositor \
+  --disable-features=VizDisplayCompositor,TranslateUI \
   --disable-dev-shm-usage \
   --disable-setuid-sandbox \
   --disable-gpu \
@@ -423,8 +424,8 @@ $BROWSER_CMD \
   --noerrdialogs \
   --no-first-run \
   --disable-session-crashed-bubble \
-  --disable-features=TranslateUI \
-  "$SCOREBOARD_URL" \
+  --check-for-update-interval=31536000 \
+  --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \
   >>/tmp/chromium-kiosk.log 2>&1 &
 
 BROWSER_PID=$!
