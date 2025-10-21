@@ -412,16 +412,19 @@ fi
 
 echo "Starting: $BROWSER_CMD"
 $BROWSER_CMD \
-  --start-fullscreen \
+  --kiosk \
   --disable-restore-session-state \
   --user-data-dir="$CHROMIUM_USER_DIR" \
   --disable-features=VizDisplayCompositor \
   --disable-dev-shm-usage \
   --disable-setuid-sandbox \
-  --app="$SCOREBOARD_URL" \
   --disable-gpu \
   --disable-infobars \
   --noerrdialogs \
+  --no-first-run \
+  --disable-session-crashed-bubble \
+  --disable-features=TranslateUI \
+  "$SCOREBOARD_URL" \
   >>/tmp/chromium-kiosk.log 2>&1 &
 
 BROWSER_PID=$!
