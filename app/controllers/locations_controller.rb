@@ -199,7 +199,7 @@ class LocationsController < ApplicationController
     unless scoreboard_current == scoreboard_url
       File.write("#{Rails.root}/config/scoreboard_url", scoreboard_location_url(@location.md5, sb_state: "welcome"))
     end
-    redirect_to location_url(@location, sb_state: sb_state, host: request.server_name, port: request.server_port)
+    redirect_to location_url(@location, sb_state: sb_state, locale: params[:locale], host: request.server_name, port: request.server_port)
   end
 
   def game_results
