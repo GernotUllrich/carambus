@@ -4638,8 +4638,8 @@ EOF
       echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
       echo "Using profile directory: $CHROMIUM_USER_DIR"
       $BROWSER_CMD \\
-        --start-fullscreen \\
-        --app="$SCOREBOARD_URL" \\
+        --kiosk \\
+        "$SCOREBOARD_URL" \\
         --disable-restore-session-state \\
         --user-data-dir="$CHROMIUM_USER_DIR" \\
         --disable-features=VizDisplayCompositor,TranslateUI \\

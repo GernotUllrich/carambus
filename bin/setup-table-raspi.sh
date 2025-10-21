@@ -412,8 +412,8 @@ fi
 
 echo "Starting: $BROWSER_CMD"
 $BROWSER_CMD \
-  --start-fullscreen \
-  --app="$SCOREBOARD_URL" \
+  --kiosk \
+  "$SCOREBOARD_URL" \
   --disable-restore-session-state \
   --user-data-dir="$CHROMIUM_USER_DIR" \
   --disable-features=VizDisplayCompositor,TranslateUI \
