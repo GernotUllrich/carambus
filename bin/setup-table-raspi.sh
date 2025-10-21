@@ -361,7 +361,7 @@ fi
 log "✓ Location MD5: $LOCATION_MD5"
 
 # Create autostart script
-SCOREBOARD_URL="http://$WEBSERVER_HOST:$WEBSERVER_PORT/locations/$LOCATION_MD5/scoreboard?sb_state=welcome"
+SCOREBOARD_URL="http://$WEBSERVER_HOST:$WEBSERVER_PORT/locations/$LOCATION_MD5/scoreboard?sb_state=welcome&locale=de"
 info "Scoreboard URL: $SCOREBOARD_URL"
 
 AUTOSTART_SCRIPT='#!/bin/bash
