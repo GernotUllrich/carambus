@@ -4518,12 +4518,13 @@ EOF
     end
 
     fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome"
+    local_server_enabled = pi_config['local_server_enabled'] || false
 
     # Generate the script using Ruby string manipulation
-    generate_autostart_script_content(scenario_name, basename, fallback_url)
+    generate_autostart_script_content(scenario_name, basename, fallback_url, local_server_enabled)
   end
 
-  def generate_autostart_script_content(scenario_name, basename, fallback_url)
+  def generate_autostart_script_content(scenario_name, basename, fallback_url, local_server_enabled = false)
     <<~SCRIPT
       #!/bin/bash
       # Carambus Scoreboard Autostart Script
@@ -4552,58 +4553,63 @@ EOF
       wmctrl -r "panel" -b add,hidden 2>/dev/null || true
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-      # Wait for Puma to be ready before starting scoreboard
-      echo "Waiting for Puma server to be ready..."
+      # Wait for Puma to be ready before starting scoreboard (only if local server is enabled)
+      LOCAL_SERVER_ENABLED=#{local_server_enabled ? 'true' : 'false'}
+      
+      if [ "$LOCAL_SERVER_ENABLED" = "true" ]; then
+          echo "Waiting for local Puma server to be ready..."
 
-      # Try to detect the Puma service name dynamically
-      PUMA_SERVICE=""
-      for service in puma-#{basename}.service puma.service; do
-          if systemctl is-active --quiet $service 2>/dev/null; then
-              PUMA_SERVICE=$service
-              break
-          fi
-      done
+          # Try to detect the Puma service name dynamically
+          PUMA_SERVICE=""
+          for service in puma-#{basename}.service puma.service; do
+              if systemctl is-active --quiet $service 2>/dev/null; then
+                  PUMA_SERVICE=$service
+                  break
+              fi
+          done
 
-      if [ -n "$PUMA_SERVICE" ]; then
-          PUMA_MASTER_PID=$(systemctl show -p MainPID $PUMA_SERVICE --value 2>/dev/null)
-          
-          if [ -n "$PUMA_MASTER_PID" ] && [ "$PUMA_MASTER_PID" != "0" ]; then
-              # Check the number of worker processes (wait for at least 2)
-              while [ $(pgrep -P $PUMA_MASTER_PID 2>/dev/null | wc -l) -lt 2 ]; do
-                  echo "Waiting for Puma server workers to start..."
-                  sleep 5
-              done
-              echo "Puma server is ready!"
+          if [ -n "$PUMA_SERVICE" ]; then
+              PUMA_MASTER_PID=$(systemctl show -p MainPID $PUMA_SERVICE --value 2>/dev/null)
+              
+              if [ -n "$PUMA_MASTER_PID" ] && [ "$PUMA_MASTER_PID" != "0" ]; then
+                  # Check the number of worker processes (wait for at least 2)
+                  while [ $(pgrep -P $PUMA_MASTER_PID 2>/dev/null | wc -l) -lt 2 ]; do
+                      echo "Waiting for Puma server workers to start..."
+                      sleep 5
+                  done
+                  echo "Puma server is ready!"
+              else
+                  echo "Puma service found but no master PID, waiting 30 seconds..."
+                  sleep 30
+              fi
           else
-              echo "Puma service found but no master PID, waiting 30 seconds..."
+              echo "No Puma service found, waiting 30 seconds..."
               sleep 30
           fi
+
+          # Additional wait to ensure Rails is fully loaded
+          sleep 10
       else
-          echo "No Puma service found, waiting 30 seconds..."
-          sleep 30
+          echo "Remote server mode - skipping local Puma wait"
+          sleep 2
       fi
 
-      # Additional wait to ensure Rails is fully loaded
-      sleep 10
-
-      # Get scoreboard URL - try multiple methods
+      # Get scoreboard URL - different logic for local vs remote server
       SCOREBOARD_URL=""
 
-      # Method 1: Try to read from config file
-      if [ -f "/var/www/#{basename}/shared/config/scoreboard_url" ]; then
-          SCOREBOARD_URL=$(cat "/var/www/#{basename}/shared/config/scoreboard_url")
-      fi
-
-      # Method 2: Try to detect from running services
-      if [ -z "$SCOREBOARD_URL" ]; then
-          # Look for running carambus services to determine the correct URL
-          if systemctl is-active --quiet puma-#{basename}.service 2>/dev/null; then
+      if [ "$LOCAL_SERVER_ENABLED" = "true" ]; then
+          # For local server: Try to read from local config file
+          echo "Local server mode - checking for local config file"
+          if [ -f "/var/www/#{basename}/shared/config/scoreboard_url" ]; then
+              SCOREBOARD_URL=$(cat "/var/www/#{basename}/shared/config/scoreboard_url")
+              echo "Found local scoreboard_url config"
+          else
               SCOREBOARD_URL="#{fallback_url}"
+              echo "No local config, using fallback URL"
           fi
-      fi
-
-      # Method 3: Default fallback
-      if [ -z "$SCOREBOARD_URL" ]; then
+      else
+          # For remote server: Use fallback URL directly (no local config file)
+          echo "Remote server mode - using remote URL directly"
           SCOREBOARD_URL="#{fallback_url}"
       fi
 
