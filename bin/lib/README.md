@@ -106,3 +106,6 @@ cd ~/Development/carambus/carambus_master/bin
 - `../../.carambus_config.example` - Beispiel-Konfiguration
 - `/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_data/CARAMBUS_BASE_IMPLEMENTATION.md` - Vollständige Dokumentation
 
+
+
+

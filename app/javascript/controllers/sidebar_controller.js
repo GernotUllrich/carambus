@@ -47,33 +47,37 @@ export default class extends Controller {
     const isMobile = window.innerWidth < 768
     const isScoreboard = document.body.dataset.userEmail === 'scoreboard@carambus.de'
     const hasSbState = window.location.search.includes('sb_state=')
+    const isScoreboardUrl = document.documentElement.dataset.scoreboardUrl === 'true'
     
     console.log('🔧 Sidebar Controller applySidebarState:', {
       isScoreboard,
       hasSbState,
+      isScoreboardUrl,
       url: window.location.href,
       localStorage: localStorage.getItem('sidebarCollapsed'),
       currentClasses: document.documentElement.className
     })
 
-    // For scoreboard users with sb_state URL, force collapsed and set localStorage
-    if (isScoreboard && hasSbState) {
-      console.log('🔧 Scoreboard with sb_state - forcing collapsed')
+    // PRIORITY 1: For scoreboard URLs (checked by server), ALWAYS force collapsed
+    // This takes precedence over everything else
+    if (isScoreboardUrl || (isScoreboard && hasSbState)) {
+      console.log('🔧 Scoreboard URL detected - forcing collapsed (HIGHEST PRIORITY)')
       // Set localStorage to 'true' so it stays collapsed on navigation
       localStorage.setItem('sidebarCollapsed', 'true')
-      // Class already set by server, but ensure it's there
+      // ALWAYS ensure sidebar-collapsed class is present
+      document.documentElement.classList.add('sidebar-collapsed')
+      return // Exit early - don't run any other logic
+    }
+    
+    // PRIORITY 2: For all other cases, use localStorage behavior
+    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+    console.log('🔧 Normal navigation - isSidebarCollapsed:', isSidebarCollapsed)
+    if (isMobile || isSidebarCollapsed) {
+      console.log('🔧 Adding sidebar-collapsed class')
       document.documentElement.classList.add('sidebar-collapsed')
     } else {
-      // For all other cases, explicitly set or remove class based on localStorage
-      const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
-      console.log('🔧 Normal navigation - isSidebarCollapsed:', isSidebarCollapsed)
-      if (isMobile || isSidebarCollapsed) {
-        console.log('🔧 Adding sidebar-collapsed class')
-        document.documentElement.classList.add('sidebar-collapsed')
-      } else {
-        console.log('🔧 Removing sidebar-collapsed class')
-        document.documentElement.classList.remove('sidebar-collapsed')
-      }
+      console.log('🔧 Removing sidebar-collapsed class')
+      document.documentElement.classList.remove('sidebar-collapsed')
     }
     
     console.log('🔧 Final classes:', document.documentElement.className)

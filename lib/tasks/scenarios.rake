@@ -281,21 +281,21 @@ namespace :scenario do
   desc "Get MD5 hash for a scenario's location"
   task :get_location_md5, [:scenario_name] => :environment do |t, args|
     scenario_name = args[:scenario_name]
-    
+
     unless scenario_name
       puts "Error: scenario_name is required"
       exit 1
     end
-    
+
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
       puts "Error: Scenario configuration not found: #{config_file}"
       exit 1
     end
-    
+
     scenario_config = YAML.load_file(config_file)
     location_id = scenario_config['scenario']['location_id']
-    
+
     begin
       location = Location.find(location_id)
       puts location.md5
@@ -1409,6 +1409,7 @@ ENV
     env_dir = File.join(scenarios_path, scenario_name, environment)
 
     if Dir.exist?(env_dir)
+      FileUtils.mkdir_p(File.join(rails_root, 'config'))
       # Copy database.yml
       if File.exist?(File.join(env_dir, 'database.yml'))
         FileUtils.cp(File.join(env_dir, 'database.yml'), File.join(rails_root, 'config', 'database.yml'))
@@ -1467,11 +1468,42 @@ ENV
       return false
     end
 
+    # Step 6.5: One-time migration: Create schema-compliant backup of old production database
+    # This is for migrating from old carambus2 schema to new carambus schema
+    puts "\n💾 Step 6.5: Creating schema-compliant backup for one-time migration..."
+    backup_file = create_schema_compliant_backup(scenario_name)
+    if backup_file
+      # Store backup path in scenario config for later use
+      puts "   💾 Storing backup reference in scenario config..."
+      config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+      if File.exist?(config_file)
+        scenario_config = YAML.load_file(config_file)
+        scenario_config['last_local_backup'] = backup_file
+        File.write(config_file, scenario_config.to_yaml)
+        puts "   ✅ Backup stored: #{backup_file}"
+      end
+    else
+      puts "   ℹ️  No local data found on production server or backup not needed"
+    end
+
     # Step 7: Create actual development database from template
     puts "\n🗄️  Step 7: Creating development database..."
     unless create_development_database(scenario_name, environment, force)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
+    end
+
+    # Step 8: Restore local data to development database (if backup exists)
+    puts "\n🔄 Step 8: Restoring local data to development database..."
+    if backup_file && File.exist?(backup_file)
+      puts "   💾 Found local data backup: #{File.basename(backup_file)}"
+      unless restore_local_data_to_development(scenario_name, backup_file, environment)
+        puts "   ⚠️  Failed to restore local data to development - manual restoration may be needed"
+        puts "   💾 Backup file available at: #{backup_file}"
+        # Don't fail - continue without local data
+      end
+    else
+      puts "   ℹ️  No local data backup found - development database has only official data"
     end
 
     puts "\n✅ Scenario #{scenario_name} prepared for development!"
@@ -2482,29 +2514,7 @@ ENV
 
         # Remove application folder and recreate database on server
         puts "   🔄 Removing application folders (including old trials) and recreating production database..."
-
-        # Check if production database has local data (id > 50000000) that needs to be preserved
-        local_backup_file = nil
-        puts "   🔍 Checking for local data in production database..."
-        check_local_data_cmd = "sudo -u postgres psql -d #{production_database} -t -c \"SELECT (\n          (SELECT COUNT(*) FROM games WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM tournaments WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM tables WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM users WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM players WHERE id > 50000000) +\n          (SELECT COUNT(*) FROM table_locals) +\n          (SELECT COUNT(*) FROM tournament_locals)\n        );\""
-        has_local_data_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{check_local_data_cmd}' 2>/dev/null`.strip
-        has_local_data = has_local_data_output.to_i > 0
-        
-        if has_local_data
-          puts "   📊 Found #{has_local_data_output.to_i} local records to preserve"
-        end
-
-        if has_local_data
-          puts "   ⚠️  Local data detected (id > 50,000,000) - backing up before database replacement..."
-          local_backup_file = backup_local_data(scenario_name)
-          unless local_backup_file
-            puts "   ❌ Failed to backup local data - aborting deployment"
-            return false
-          end
-          puts "   ✅ Local data backed up: #{File.basename(local_backup_file)}"
-        else
-          puts "   ℹ️  No local data detected - proceeding with clean database replacement"
-        end
+        puts "   ℹ️  Note: Development database already includes restored local data"
 
         # Create a temporary script for database operations
         temp_script = "/tmp/reset_database.sh"
@@ -2605,18 +2615,7 @@ ENV
               puts "   ✅ Database verification successful - 19 regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
-
-              # Restore local data if it was backed up
-              if local_backup_file
-                puts "\n   🔄 Restoring local data..."
-                unless restore_local_data(scenario_name, local_backup_file)
-                  puts "   ❌ Failed to restore local data - manual restoration may be needed"
-                  puts "   💾 Backup file available at: #{local_backup_file}"
-                  # Don't fail deployment, but warn user
-                else
-                  puts "   ✅ Local data restored successfully"
-                end
-              end
+              # Note: Local data already included in development database - no separate restore needed
 
               # Clean up temporary files
               system("ssh -p #{ssh_port} www-data@#{ssh_host} 'rm -f #{temp_dump_path} #{temp_script}'")
@@ -3922,6 +3921,244 @@ ENV
     end
   end
 
+  def create_schema_compliant_backup(scenario_name)
+    puts "💾 Creating schema-compliant backup for one-time migration..."
+    puts "   📋 This will:"
+    puts "      1. Download old production database"
+    puts "      2. Create temporary local copy"
+    puts "      3. Add missing schema columns (region_id, etc.)"
+    puts "      4. Update local records with appropriate values"
+    puts "      5. Extract local data (id > 50000000) with new schema"
+    puts "      6. Clean up temporary database"
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ Scenario configuration not found: #{config_file}"
+      return false
+    end
+    
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port']
+    production_database = production_config['database_name']
+    basename = production_config['basename'] || scenario_name
+
+    # Create backup directory
+    backup_dir = File.join(scenarios_path, scenario_name, 'local_data_backups')
+    FileUtils.mkdir_p(backup_dir)
+
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    temp_database = "#{scenario_name}_migration_temp"
+    backup_file = File.join(backup_dir, "local_data_#{timestamp}.sql")
+
+    puts "\n   📥 Step 1: Downloading production database..."
+    temp_dump = "/tmp/#{production_database}_#{timestamp}.sql.gz"
+    download_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres pg_dump #{production_database} | gzip' > #{temp_dump}"
+    
+    unless system(download_cmd)
+      puts "   ❌ Failed to download production database"
+      return false
+    end
+    puts "   ✅ Downloaded: #{File.size(temp_dump) / 1024 / 1024} MB"
+    
+    puts "\n   🗄️  Step 2: Creating temporary local database..."
+    # Drop temp database if it exists
+    system("dropdb #{temp_database} 2>/dev/null")
+    unless system("createdb #{temp_database}")
+      puts "   ❌ Failed to create temporary database"
+      File.delete(temp_dump)
+      return false
+    end
+    
+    puts "   📥 Loading production data into temporary database..."
+    unless system("gunzip -c #{temp_dump} | psql #{temp_database} > /dev/null 2>&1")
+      puts "   ❌ Failed to load production data"
+      system("dropdb #{temp_database}")
+      File.delete(temp_dump)
+      return false
+    end
+    puts "   ✅ Temporary database loaded"
+    
+    puts "\n   🔍 Step 3: Detecting schema mismatches..."
+    # Check if region_id column exists in players table
+    check_region_id = `psql #{temp_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_name='players' AND column_name='region_id';"`.strip
+    needs_migration = check_region_id.empty?
+    
+    puts "   🔍 Debug: region_id check result: '#{check_region_id}' (empty=#{check_region_id.empty?})"
+    
+    if needs_migration
+      puts "   ⚠️  Old schema detected (carambus2) - migration required"
+      puts "\n   🔧 Step 4: Adding missing schema columns and updating values..."
+      
+      # Write migration SQL to a temp file to avoid escaping issues
+      migration_sql_file = "/tmp/migration_#{timestamp}.sql"
+      
+      # List of tables that need both region_id and global_context (all tables with local data)
+      tables_to_migrate = [
+        'clubs',
+        'locations', 
+        'players',
+        'tournaments',
+        'tournament_locals',
+        'users',
+        'tables',
+        'table_locals',
+        'settings',
+        'games',
+        'game_participations',
+        'seedings',
+        'versions'
+      ]
+      
+      migration_sql = StringIO.new
+      migration_sql.puts "-- Add missing region_id and global_context columns to all local tables"
+      
+      tables_to_migrate.each do |table|
+        migration_sql.puts "ALTER TABLE #{table} ADD COLUMN IF NOT EXISTS region_id integer;"
+        migration_sql.puts "ALTER TABLE #{table} ADD COLUMN IF NOT EXISTS global_context boolean;"
+      end
+      
+      migration_sql.puts "\n-- Convert users.role from text to integer (if needed)"
+      migration_sql.puts "DO $$"
+      migration_sql.puts "BEGIN"
+      migration_sql.puts "  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='role' AND data_type = 'character varying') THEN"
+      migration_sql.puts "    ALTER TABLE users DROP COLUMN role;"
+      migration_sql.puts "    ALTER TABLE users ADD COLUMN role integer DEFAULT 0;"
+      migration_sql.puts "  ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='role') THEN"
+      migration_sql.puts "    ALTER TABLE users ADD COLUMN role integer DEFAULT 0;"
+      migration_sql.puts "  END IF;"
+      migration_sql.puts "END $$;"
+      
+      migration_sql.puts "\n-- Update local records (id > 50000000) with appropriate values"
+      
+      tables_to_migrate.each do |table|
+        migration_sql.puts "UPDATE #{table} SET region_id = 1, global_context = false WHERE id > 50000000;"
+      end
+      
+      migration_sql.puts "\n-- Set default role for local users"
+      migration_sql.puts "UPDATE users SET role = 0 WHERE id > 50000000;"
+      
+      File.write(migration_sql_file, migration_sql.string)
+      
+      puts "   🔧 Executing migration SQL..."
+      unless system("psql #{temp_database} -f #{migration_sql_file}")
+        puts "   ❌ Failed to migrate schema"
+        File.delete(migration_sql_file)
+        system("dropdb #{temp_database}")
+        File.delete(temp_dump)
+        return false
+      end
+      File.delete(migration_sql_file)
+      
+      # Verify migration worked
+      verify_result = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM players WHERE id > 50000000 AND region_id = 1;"`.strip
+      puts "   ✅ Schema migrated successfully - #{verify_result} players updated with region_id = 1"
+    else
+      puts "   ✅ Current schema detected - no migration needed"
+    end
+    
+    puts "\n   📤 Step 5: Extracting local data (id > 50000000) with correct schema..."
+    
+    # Define table dependency order (parents first, children last)
+    table_dependency_order = [
+      'regions',
+      'clubs',
+      'table_kinds',
+      'locations',
+      'players',
+      'tournaments',
+      'tournament_locals',
+      'users',
+      'tables',
+      'table_locals',
+      'settings',
+      'games',
+      'game_participations',
+      'seedings',
+      'versions'
+    ]
+    
+    # Create SQL file with schema-compliant local data
+    File.open(backup_file, 'w') do |f|
+      f.puts "-- Local data backup (ID > 50,000,000) with schema migration applied"
+      f.puts "-- Generated: #{Time.current}"
+      f.puts "SET session_replication_role = replica;"
+      f.puts ""
+    end
+    
+    # Get API database name for schema reference
+    dev_database = scenario_config.dig('environments', 'development', 'database_name') || "#{scenario_name}_development"
+    api_database = dev_database.gsub(/_bcw/, '_api').gsub(/_development$/, '_development')
+    # Ensure it's carambus_api_development
+    api_database = 'carambus_api_development'
+    puts "   🔍 Using #{api_database} as schema reference"
+    
+    table_dependency_order.each do |table|
+      # Check if table has local data
+      if ['table_locals', 'tournament_locals'].include?(table)
+        # Export all rows for extension tables
+        count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table};"`.strip.to_i
+      else
+        count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table} WHERE id > 50000000;"`.strip.to_i
+      end
+      
+      if count > 0
+        puts "   📋 Extracting #{table}: #{count} records"
+        
+        # Get column list from API database (target schema), excluding generated columns
+        target_columns = `psql #{api_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='#{table}' AND (is_generated = 'NEVER' OR is_generated IS NULL) ORDER BY ordinal_position;"`.split("\n").map(&:strip).reject(&:empty?).join(", ")
+        
+        # Check which of those columns exist in temp database (also excluding generated columns)
+        temp_columns_result = `psql #{temp_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='#{table}' AND (is_generated = 'NEVER' OR is_generated IS NULL) ORDER BY ordinal_position;"`.split("\n").map(&:strip).reject(&:empty?)
+        
+        # Use only columns that exist in both
+        available_columns = target_columns.split(", ").select { |col| temp_columns_result.include?(col) }
+        column_list = available_columns.join(", ")
+        
+        if column_list.empty?
+          puts "   ⚠️  Warning: No matching columns found for #{table}, skipping"
+          next
+        end
+        
+        # Append table comment with explicit column list
+        File.open(backup_file, 'a') do |f|
+          f.puts "-- Table: #{table} (#{count} records)"
+          f.puts "COPY public.#{table} (#{column_list}) FROM stdin;"
+        end
+        
+        # Append data using COPY TO STDOUT with explicit column list
+        if ['table_locals', 'tournament_locals'].include?(table)
+          system("psql #{temp_database} -c \"COPY (SELECT #{column_list} FROM #{table}) TO STDOUT\" >> #{backup_file}")
+        else
+          system("psql #{temp_database} -c \"COPY (SELECT #{column_list} FROM #{table} WHERE id > 50000000) TO STDOUT\" >> #{backup_file}")
+        end
+        
+        # Append terminator
+        File.open(backup_file, 'a') do |f|
+          f.puts "\\."
+          f.puts ""
+        end
+      end
+    end
+    
+    # Append footer
+    File.open(backup_file, 'a') do |f|
+      f.puts "SET session_replication_role = DEFAULT;"
+    end
+    
+    puts "\n   🧹 Step 6: Cleaning up temporary database and files..."
+    system("dropdb #{temp_database}")
+    File.delete(temp_dump)
+    
+    puts "\n✅ Schema-compliant backup created!"
+    puts "   File: #{backup_file}"
+    puts "   Size: #{File.size(backup_file) / 1024} KB"
+    
+    backup_file
+  end
+
   def backup_local_data_from_production(scenario_name)
     puts "💾 Backing up local data from production server..."
 
@@ -3940,26 +4177,6 @@ ENV
 
     timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
     backup_file = File.join(backup_dir, "local_data_#{timestamp}.sql")
-
-    # Define table dependency order (parents first, children last)
-    # This ensures foreign key constraints are satisfied during restore
-    table_dependency_order = [
-      'regions',           # No dependencies
-      'clubs',             # No dependencies
-      'table_kinds',       # No dependencies
-      'locations',         # Depends on regions
-      'players',           # Depends on regions
-      'tournaments',       # Depends on regions
-      'tournament_locals', # Depends on tournaments
-      'users',            # Depends on players
-      'tables',           # Depends on locations, table_kinds
-      'table_locals',     # Depends on tables
-      'settings',         # Depends on clubs, regions, tournaments
-      'games',            # Depends on tournaments, players
-      'game_participations', # Depends on games, players
-      'seedings',         # Depends on tournaments, players
-      'versions'          # Depends on regions
-    ]
 
     # Create backup script on server
     backup_script = <<~SCRIPT
@@ -4045,8 +4262,8 @@ EOF
         echo "✅ Local data backup created with proper ordering"
         echo "📦 Compressing backup with gzip..."
         gzip "$combined_file"
-        mv "${combined_file}.gz" "/tmp/local_data_#{timestamp}.sql.gz"
-        echo "✅ Backup compressed"
+        # gzip automatically renames the file to .gz, so it's already at the right location
+        echo "✅ Backup compressed: ${combined_file}.gz"
       else
         echo "ℹ️  No local data found"
         rm -f "$combined_file"
@@ -4058,11 +4275,19 @@ EOF
     SCRIPT
 
     # Execute backup on server
-    temp_script = "/tmp/backup_local_data.sh"
-    script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{backup_script}SCRIPT_EOF"
-
-    if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-      execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
+    # Write script to local temp file first (avoids escaping issues)
+    local_script = "/tmp/backup_local_data_#{timestamp}.sh"
+    File.write(local_script, backup_script)
+    
+    remote_script = "/tmp/backup_local_data.sh"
+    
+    # Transfer script to server
+    if system("scp -P #{ssh_port} '#{local_script}' www-data@#{ssh_host}:#{remote_script}")
+      # Execute script on server
+      execute_cmd = "chmod +x #{remote_script} && #{remote_script} && rm #{remote_script}"
+      
+      # Clean up local temp file
+      File.delete(local_script)
 
       if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
         # Download compressed backup file
@@ -4104,7 +4329,7 @@ EOF
 
     if system(upload_cmd)
       puts "   ✅ Local data backup uploaded to server"
-      
+
       # Check if file is compressed
       is_gzipped = backup_file.end_with?('.gz')
 
@@ -4121,18 +4346,57 @@ EOF
           exit 0
         fi
         
+        # Temporarily make new columns nullable for old backup compatibility (COPY ignores defaults)
+        echo "🔧 Preparing schema for one-time migration from old backup..."
+        sudo -u postgres psql -d #{production_database} << 'SCHEMA_PREP_EOF'
+          -- Temporarily make new columns nullable to accept old backups
+          ALTER TABLE players ALTER COLUMN region_id DROP NOT NULL;
+          ALTER TABLE tournaments ALTER COLUMN global_context DROP NOT NULL;
+          ALTER TABLE tables ALTER COLUMN region_id DROP NOT NULL;
+          ALTER TABLE games ALTER COLUMN region_id DROP NOT NULL;
+          ALTER TABLE game_participations ALTER COLUMN region_id DROP NOT NULL;
+          ALTER TABLE seedings ALTER COLUMN region_id DROP NOT NULL;
+          ALTER TABLE versions ALTER COLUMN region_id DROP NOT NULL;
+        SCHEMA_PREP_EOF
+        
         # Restore local data (decompress if needed)
         echo "📥 Loading local data into #{production_database}..."
-        #{is_gzipped ? "gunzip -c #{temp_backup_path} | sudo -u postgres psql -d #{production_database}" : "sudo -u postgres psql -d #{production_database} < #{temp_backup_path}"}
+        #{is_gzipped ? "gunzip -c #{temp_backup_path} | sudo -u postgres psql -d #{production_database} 2>&1 | grep -v 'ERROR:  relation' || true" : "sudo -u postgres psql -d #{production_database} < #{temp_backup_path} 2>&1 | grep -v 'ERROR:  relation' || true"}
+        
+        # Fill in missing values for LOCAL records only (id > 50000000) and restore NOT NULL constraints
+        echo "🔧 Updating missing values for local records and restoring schema constraints..."
+        sudo -u postgres psql -d #{production_database} << 'SCHEMA_RESTORE_EOF'
+          -- Fill in default values for new columns where NULL (LOCAL RECORDS ONLY)
+          UPDATE players SET region_id = 1 WHERE region_id IS NULL AND id > 50000000;
+          UPDATE tournaments SET global_context = false WHERE global_context IS NULL AND id > 50000000;
+          UPDATE tables SET region_id = 1 WHERE region_id IS NULL AND id > 50000000;
+          UPDATE games SET region_id = 1 WHERE region_id IS NULL AND id > 50000000;
+          UPDATE game_participations SET region_id = 1 WHERE region_id IS NULL AND id > 50000000;
+          UPDATE seedings SET region_id = 1 WHERE region_id IS NULL AND id > 50000000;
+          -- Note: versions not updated - not necessary for migration
+          
+          -- Restore NOT NULL constraints
+          ALTER TABLE players ALTER COLUMN region_id SET NOT NULL;
+          ALTER TABLE tournaments ALTER COLUMN global_context SET NOT NULL;
+          ALTER TABLE tables ALTER COLUMN region_id SET NOT NULL;
+          ALTER TABLE games ALTER COLUMN region_id SET NOT NULL;
+          ALTER TABLE game_participations ALTER COLUMN region_id SET NOT NULL;
+          ALTER TABLE seedings ALTER COLUMN region_id SET NOT NULL;
+          ALTER TABLE versions ALTER COLUMN region_id SET NOT NULL;
+        SCHEMA_RESTORE_EOF
         
         if [ $? -eq 0 ]; then
           echo "✅ Local data restored successfully"
           
-          # Reset sequences to prevent ID conflicts
-          echo "🔄 Resetting sequences..."
-          cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'
-          
-          echo "✅ Sequences reset successfully"
+          # Reset sequences to prevent ID conflicts (if app is deployed)
+          if [ -d "/var/www/#{basename}/current" ]; then
+            echo "🔄 Resetting sequences..."
+            cd /var/www/#{basename}/current && RAILS_ENV=production $HOME/.rbenv/bin/rbenv exec bundle exec rails runner 'Version.sequence_reset'
+            echo "✅ Sequences reset successfully"
+          else
+            echo "ℹ️  Skipping sequence reset (app not yet deployed via Capistrano)"
+            echo "   Sequences will be reset on first app startup"
+          fi
         else
           echo "❌ Failed to restore local data"
           exit 1
@@ -4143,11 +4407,20 @@ EOF
       SCRIPT
 
       # Execute restore on server
-      temp_script = "/tmp/restore_local_data.sh"
-      script_cmd = "cat > #{temp_script} << 'SCRIPT_EOF'\n#{restore_script}SCRIPT_EOF"
-
-      if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{script_cmd}'")
-        execute_cmd = "chmod +x #{temp_script} && #{temp_script} && rm #{temp_script}"
+      # Write script to local temp file first (avoids escaping issues)
+      timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
+      local_script = "/tmp/restore_local_data_#{timestamp}.sh"
+      File.write(local_script, restore_script)
+      
+      remote_script = "/tmp/restore_local_data.sh"
+      
+      # Transfer script to server
+      if system("scp -P #{ssh_port} '#{local_script}' www-data@#{ssh_host}:#{remote_script}")
+        # Execute script on server
+        execute_cmd = "chmod +x #{remote_script} && #{remote_script} && rm #{remote_script}"
+        
+        # Clean up local temp file
+        File.delete(local_script)
 
         if system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{execute_cmd}'")
           puts "   ✅ Local data restored successfully"
@@ -4163,6 +4436,58 @@ EOF
     else
       puts "   ❌ Failed to upload local data backup"
       return false
+    end
+  end
+
+  # Helper function to restore local data to LOCAL development database
+  def restore_local_data_to_development(scenario_name, backup_file, environment)
+    puts "🔄 Restoring local data to #{scenario_name}_#{environment}..."
+
+    unless File.exist?(backup_file)
+      puts "❌ Backup file not found: #{backup_file}"
+      return false
+    end
+
+    database_name = "#{scenario_name}_#{environment}"
+    
+    # Check if file is compressed
+    is_gzipped = backup_file.end_with?('.gz')
+
+    puts "   📥 Loading schema-compliant local data into #{database_name}..."
+    
+    # Delete any existing local data (id > 50000000) to avoid conflicts
+    puts "   🧹 Clearing existing local data (id > 50000000) to avoid conflicts..."
+    table_order = [
+      'versions', 'seedings', 'game_participations', 'games', 'table_locals', 'tables',
+      'users', 'tournament_locals', 'tournaments', 'players', 'locations', 'clubs', 'regions'
+    ]
+    table_order.each do |table|
+      if ['table_locals', 'tournament_locals'].include?(table)
+        # Extension tables - delete all
+        system("psql #{database_name} -c 'DELETE FROM #{table};' 2>/dev/null")
+      else
+        # Regular tables - delete only local data
+        system("psql #{database_name} -c 'DELETE FROM #{table} WHERE id > 50000000;' 2>/dev/null")
+      end
+    end
+    
+    # Restore local data (backup is already schema-compliant from create_schema_compliant_backup)
+    if is_gzipped
+      if system("gunzip -c '#{backup_file}' | psql #{database_name}")
+        puts "   ✅ Local data restored to development database successfully"
+        return true
+      else
+        puts "   ❌ Failed to restore local data"
+        return false
+      end
+    else
+      if system("psql #{database_name} < '#{backup_file}'")
+        puts "   ✅ Local data restored to development database successfully"
+        return true
+      else
+        puts "   ❌ Failed to restore local data"
+        return false
+      end
     end
   end
 
@@ -4312,9 +4637,10 @@ EOF
         --user-data-dir="$CHROMIUM_USER_DIR" \\
         --disable-features=VizDisplayCompositor \\
         --disable-dev-shm-usage \\
+        --disable-setuid-sandbox \\
         --app="$SCOREBOARD_URL" \\
-        --no-sandbox \\
         --disable-gpu \\
+        --test-type \\
         >>/tmp/chromium-kiosk.log 2>&1 &
       
       BROWSER_PID=$!
@@ -4607,7 +4933,7 @@ EOF
     scenario_config = YAML.load_file(config_file)
     location_id = scenario_config['scenario']['location_id']
     production_config = scenario_config['environments']['production']
-    
+
     # Get default SSH settings from config (used if table doesn't specify)
     default_ssh_user = production_config.dig('raspberry_pi_client', 'ssh_user') || 'pi'
     default_ssh_password = production_config.dig('raspberry_pi_client', 'ssh_password')
@@ -4664,10 +4990,10 @@ EOF
     # Restart the scoreboard kiosk service
     puts "\n🔄 Restarting scoreboard kiosk service..."
     restart_cmd = "sudo systemctl restart scoreboard-kiosk"
-    
+
     if execute_ssh_command(table.ip_address, ssh_user, ssh_password, restart_cmd, ssh_port)
       puts "   ✅ Restart command executed successfully"
-      
+
       # Wait a bit and check if service is running
       sleep 2
       status_cmd = "sudo systemctl is-active scoreboard-kiosk"
@@ -4725,16 +5051,16 @@ EOF
     puts "=" * 80
 
     tables = location.tables.order(:name)
-    
+
     if tables.empty?
       puts "   ℹ️  No tables found for this location"
     else
       puts "\n#{tables.count} table(s) found:\n\n"
-      
+
       tables.each do |table|
         ip_status = table.ip_address.present? ? "✅ #{table.ip_address}" : "❌ No IP"
         scoreboard_status = table.scoreboard ? "🖥️  ON" : "⬜ OFF"
-        
+
         puts "   #{table.name}"
         puts "   ├─ IP Address: #{ip_status}"
         puts "   ├─ Scoreboard: #{scoreboard_status}"
@@ -4742,7 +5068,7 @@ EOF
         puts "   └─ Scoreboard OFF at: #{table.scoreboard_off_at || 'N/A'}"
         puts
       end
-      
+
       puts "\n💡 To restart a specific table's scoreboard:"
       puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"TABLE_NAME\"]"
       puts "\n   Example:"
@@ -4750,183 +5076,6 @@ EOF
     end
   end
 
-  desc "Backup local data from production (with automatic cleanup)"
-  task :backup_local_data, [:scenario_name] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-
-    if scenario_name.nil?
-      puts "Usage: rake scenario:backup_local_data[scenario_name]"
-      puts "Example: rake scenario:backup_local_data[carambus_bcw]"
-      exit 1
-    end
-
-    backup_local_data(scenario_name)
-  end
-
-  desc "Restore local data to production"
-  task :restore_local_data, [:scenario_name, :backup_file] => :environment do |task, args|
-    scenario_name = args[:scenario_name]
-    backup_file = args[:backup_file]
-
-    if scenario_name.nil?
-      puts "Usage: rake scenario:restore_local_data[scenario_name,backup_file]"
-      puts "Example: rake scenario:restore_local_data[carambus_bcw,/path/to/backup.sql]"
-      exit 1
-    end
-
-    restore_local_data(scenario_name, backup_file)
-  end
-
-  # Helper function to backup local data with cleanup
-  def backup_local_data(scenario_name)
-    puts "\n💾 Backing up local data from #{scenario_name}_production with cleanup..."
-    
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "❌ Scenario configuration not found: #{config_file}"
-      return false
-    end
-    scenario_config = YAML.load_file(config_file)
-    
-    # Get production SSH details
-    ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
-    ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
-    # SSH user: try raspberry_pi_client.ssh_user first, then default to 'www-data' (with dash)
-    ssh_user = scenario_config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_user') || 'www-data'
-    database_name = "#{scenario_name}_production"
-    
-    if ssh_host.nil? || ssh_host.empty?
-      puts "❌ Missing production.ssh_host in scenario config"
-      return false
-    end
-    
-    # Create timestamp for backup
-    timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
-    
-    # Find the backup script
-    scripts_dir = File.join(carambus_data_path, 'scripts')
-    backup_script = File.join(scripts_dir, 'backup_local_data_remote_clean.sh')
-    
-    unless File.exist?(backup_script)
-      puts "❌ Backup script not found: #{backup_script}"
-      return false
-    end
-    
-    # Create backup directory
-    backup_dir = File.join(scenarios_path, scenario_name, 'local_data_backups')
-    FileUtils.mkdir_p(backup_dir)
-    
-    puts "   📤 Transferring backup script to remote server..."
-    unless system("scp -P #{ssh_port} '#{backup_script}' #{ssh_user}@#{ssh_host}:/tmp/backup_script.sh")
-      puts "❌ Failed to transfer backup script"
-      return false
-    end
-    
-    # Make it executable
-    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'chmod +x /tmp/backup_script.sh'")
-    
-    puts "   🔄 Executing backup with cleanup on remote server..."
-    remote_output = `ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} '/tmp/backup_script.sh #{database_name} #{timestamp} 2>&1'`
-    puts remote_output
-    
-    # Extract backup file path
-    remote_file = remote_output.match(/BACKUP_FILE_PATH=(.+)$/)&.captures&.first
-    if remote_file.nil?
-      puts "❌ Failed to get backup file path from remote server"
-      return false
-    end
-    
-    # Download backup
-    local_backup = File.join(backup_dir, "local_data_#{timestamp}.sql")
-    puts "   📥 Downloading backup from #{remote_file}..."
-    unless system("scp -P #{ssh_port} #{ssh_user}@#{ssh_host}:#{remote_file} '#{local_backup}'")
-      puts "❌ Failed to download backup"
-      return false
-    end
-    
-    # Cleanup remote files
-    puts "   🧹 Cleaning up remote server..."
-    remote_dir = File.dirname(remote_file)
-    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'rm -f /tmp/backup_script.sh && rm -rf #{remote_dir}'")
-    
-    puts "\n✅ Backup complete!"
-    puts "   File: #{local_backup}"
-    puts "   Size: #{File.size(local_backup) / 1024}  KB"
-    
-    local_backup
-  end
-
-  # Helper function to restore local data
-  def restore_local_data(scenario_name, backup_file)
-    puts "\n🔄 Restoring local data to #{scenario_name}_production..."
-    
-    unless File.exist?(backup_file)
-      puts "❌ Backup file not found: #{backup_file}"
-      return false
-    end
-    
-    # Load scenario configuration
-    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
-    unless File.exist?(config_file)
-      puts "❌ Scenario configuration not found: #{config_file}"
-      return false
-    end
-    scenario_config = YAML.load_file(config_file)
-    
-    # Get production SSH details
-    ssh_host = scenario_config.dig('environments', 'production', 'ssh_host')
-    ssh_port = scenario_config.dig('environments', 'production', 'ssh_port') || '22'
-    # SSH user: try raspberry_pi_client.ssh_user first, then default to 'www-data' (with dash)
-    ssh_user = scenario_config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_user') || 'www-data'
-    database_name = "#{scenario_name}_production"
-    
-    if ssh_host.nil? || ssh_host.empty?
-      puts "❌ Missing production.ssh_host in scenario config"
-      return false
-    end
-    
-    # Create timestamp
-    timestamp = Time.now.to_i
-    remote_file = "/tmp/local_data_restore_#{timestamp}.sql"
-    
-    # Find the restore script
-    scripts_dir = File.join(carambus_data_path, 'scripts')
-    restore_script = File.join(scripts_dir, 'restore_local_data_remote.sh')
-    
-    unless File.exist?(restore_script)
-      puts "❌ Restore script not found: #{restore_script}"
-      return false
-    end
-    
-    puts "   📤 Transferring restore script to remote server..."
-    unless system("scp -P #{ssh_port} '#{restore_script}' #{ssh_user}@#{ssh_host}:/tmp/restore_script.sh")
-      puts "❌ Failed to transfer restore script"
-      return false
-    end
-    
-    # Make it executable
-    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'chmod +x /tmp/restore_script.sh'")
-    
-    puts "   📤 Transferring backup file to remote server..."
-    unless system("scp -P #{ssh_port} '#{backup_file}' #{ssh_user}@#{ssh_host}:#{remote_file}")
-      puts "❌ Failed to transfer backup file"
-      return false
-    end
-    
-    puts "   🔄 Executing restore on remote server..."
-    unless system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} '/tmp/restore_script.sh #{database_name} #{remote_file}'")
-      puts "❌ Failed to restore local data"
-      return false
-    end
-    
-    # Cleanup
-    puts "   🧹 Cleaning up remote server..."
-    system("ssh -p #{ssh_port} #{ssh_user}@#{ssh_host} 'rm -f /tmp/restore_script.sh #{remote_file}'")
-    
-    puts "\n✅ Local data restored successfully!"
-    true
-  end
 
 end
 
