@@ -281,6 +281,307 @@ scenarios/carambus_location_5101/local_data_backups/
 └── local_data_20241008_223119.sql (116 KB)
 ```
 
+## Migration von Carambus2
+
+**Neu ab Oktober 2025**: Automatische Schema-Migration für Server mit der alten Carambus2-Version.
+
+### Überblick
+
+Das System erkennt automatisch alte Carambus2-Datenbanken und migriert sie zum aktuellen Schema. Die Migration erfolgt **transparent während `prepare_development`** - keine manuellen Schritte erforderlich!
+
+### Was wird migriert?
+
+| Schema-Änderung | Aktion | Wert |
+|----------------|--------|------|
+| `region_id` Spalte fehlt | Spalte hinzufügen + Wert setzen | `1` (für lokale Daten) |
+| `global_context` Spalte fehlt | Spalte hinzufügen + Wert setzen | `false` (für lokale Daten) |
+| `users.role` ist TEXT | Konvertierung zu INTEGER | `0` (player) |
+
+**Betroffene Tabellen:**
+- `clubs`, `locations`, `players`, `tournaments`, `tournament_locals`
+- `users`, `tables`, `table_locals`, `settings`
+- `games`, `game_participations`, `seedings`, `versions`
+
+### Automatischer Workflow
+
+```
+prepare_development[scenario_name,development]
+        ↓
+  Step 6.5: Schema-Migration
+    ├─ Download old production DB
+    ├─ Create temp local database
+    ├─ Detect schema mismatches
+    ├─ Add missing columns
+    ├─ Update local records (id > 50M)
+    └─ Extract migrated data
+        ↓
+  Step 8: Restore to Development
+    ├─ Load migrated data
+    └─ Ready for testing!
+        ↓
+  Development DB enthält jetzt:
+    ✅ Official data (id < 50M)
+    ✅ Migrated local data (id > 50M)
+```
+
+### Praktisches Beispiel
+
+```bash
+# Einmalige Migration von Carambus2 → Current
+rake "scenario:prepare_development[carambus_bcw,development]"
+
+# Was passiert automatisch:
+# 1. Download old production database
+# 2. Detect old schema (missing region_id, global_context columns)
+# 3. Add missing columns to temp database
+# 4. Update local records: region_id=1, global_context=false
+# 5. Extract local data with NEW schema
+# 6. Load into development database
+# 7. Backup stored: local_data_20251021_204254.sql
+
+# Ergebnis prüfen:
+psql carambus_bcw_development -c "
+  SELECT COUNT(*) FROM players WHERE id > 50000000 AND region_id = 1;
+  -- Sollte alle migrierten Spieler zeigen
+"
+```
+
+### Migration-Backup
+
+Das migrierte Backup wird gespeichert und in `config.yml` referenziert:
+
+```yaml
+last_local_backup: "/path/to/scenarios/scenario_name/local_data_backups/local_data_TIMESTAMP.sql"
+```
+
+Dieses Backup ist **schema-kompatibel** und kann jederzeit wiederverwendet werden!
+
+### Troubleshooting
+
+**Problem**: Migration erkennt kein altes Schema
+```bash
+# Lösung: Manuell prüfen
+psql old_database -c "
+  SELECT column_name 
+  FROM information_schema.columns 
+  WHERE table_name='players' AND column_name='region_id';
+"
+# Leer = altes Schema → Migration wird durchgeführt
+```
+
+**Problem**: Migration schlägt fehl
+```bash
+# Lösung: Backup existiert bereits
+ls scenarios/scenario_name/local_data_backups/
+# Nutze existierendes Backup für Restore
+```
+
+### Wichtige Hinweise
+
+⚠️ **Einmalige Migration**: Diese Feature ist für die **erste Migration** von Carambus2 → Current gedacht.  
+✅ **Backward Compatible**: Funktioniert auch mit bereits migrierten Datenbanken.  
+✅ **Non-Destructive**: Erstellt temporäre Datenbank, berührt Production nicht.  
+✅ **Automatic Detection**: Erkennt automatisch ob Migration nötig ist.
+
+## Raspberry Pi Table Clients (Multi-WLAN Setup)
+
+**Neu ab Oktober 2025**: Vereinfachtes Multi-WLAN Setup für Tisch-Raspberry Pis mit automatischer Konfiguration.
+
+### Überblick
+
+Tisch-Raspberry Pis müssen in **zwei verschiedenen WLANs** funktionieren:
+- **Büro/Development WLAN** (192.168.178.x) - Vorbereitung und Testing mit DHCP
+- **Club/Production WLAN** (192.168.2.x) - Produktiveinsatz mit statischer IP
+
+Das neue Setup-Script `bin/setup-table-raspi.sh` konfiguriert automatisch beide Netzwerke!
+
+### Konfigurationsquellen
+
+Das Script liest Konfiguration aus **drei Quellen**:
+
+#### 1. Club-WLAN (config.yml)
+
+```yaml
+production:
+  network:
+    club_wlan:
+      ssid: "WLAN-BCW-CLUB"
+      password: "club_passwort"
+      priority: 20
+      gateway: "192.168.2.1"
+      subnet: "192.168.2.0/24"
+```
+
+#### 2. Dev-WLAN (~/.carambus_config)
+
+```bash
+# Development/Office WLAN Configuration (nicht committed!)
+CARAMBUS_DEV_WLAN_SSID="DEIN_BÜRO_WLAN"
+CARAMBUS_DEV_WLAN_PASSWORD="büro_passwort"
+CARAMBUS_DEV_WLAN_PRIORITY=10
+```
+
+#### 3. Statische IP (Datenbank)
+
+```sql
+-- IP-Adresse wird aus table_locals geholt
+SELECT ip_address FROM table_locals 
+WHERE table_id = (SELECT id FROM tables WHERE name = 'Tisch 2');
+-- Ergebnis: 192.168.2.212
+```
+
+### Vereinfachte Verwendung
+
+```bash
+# Nur 3 Parameter benötigt!
+./bin/setup-table-raspi.sh carambus_bcw 192.168.178.81 "Tisch 2"
+
+# Das Script holt automatisch:
+# ✅ Club-WLAN aus config.yml
+# ✅ Dev-WLAN aus ~/.carambus_config
+# ✅ Statische IP (192.168.2.212) aus Datenbank
+# ✅ Server-URL aus config.yml
+# ✅ Location MD5 aus Datenbank
+```
+
+### Was wird konfiguriert?
+
+**Multi-WLAN (wpa_supplicant.conf)**:
+```
+network={
+    ssid="BÜRO_WLAN"
+    psk="***"
+    priority=10      # Niedrigere Priorität
+}
+
+network={
+    ssid="CLUB_WLAN"
+    psk="***"
+    priority=20      # Höhere Priorität (bevorzugt!)
+}
+```
+
+**Netzwerk-Konfiguration**:
+- **Dev-WLAN**: DHCP (flexible IP, wechselt bei jedem Neustart)
+- **Club-WLAN**: Statische IP aus Datenbank (192.168.2.212)
+
+**Scoreboard-Client**:
+- Chromium Kiosk-Modus (ohne Sandbox-Warnung!)
+- Automatischer Start via systemd
+- Schneller Start (~18 Sekunden)
+- Sidebar automatisch geschlossen
+
+### Automatisches WLAN-Switching
+
+Der Raspberry Pi wählt automatisch das verfügbare WLAN:
+
+```
+┌─ Im Büro ─────────────────┐     ┌─ Im Club ─────────────────┐
+│ BÜRO_WLAN verfügbar       │     │ CLUB_WLAN verfügbar       │
+│ ├─ Verbindet zu Priorität │     │ ├─ Verbindet zu Priorität │
+│ │  10 (niedrig)           │     │ │  20 (hoch)              │
+│ ├─ Verwendet DHCP         │     │ ├─ Verwendet Static IP    │
+│ └─ IP: 192.168.178.81     │     │ └─ IP: 192.168.2.212      │
+│ Server: 192.168.178.107   │     │ Server: 192.168.178.107   │
+└───────────────────────────┘     └───────────────────────────┘
+```
+
+### Workflow: Tisch-Raspi vorbereiten
+
+```bash
+# 1. Konfiguration vorbereiten
+#    a) ~/.carambus_config: DEV_WLAN Settings
+#    b) config.yml: Club WLAN + Passwort
+#    c) Datenbank: table_local.ip_address für den Tisch
+
+# 2. Raspberry Pi im Büro-WLAN identifizieren
+./bin/find-raspberry-pi.sh
+# Ergebnis z.B.: 192.168.178.81
+
+# 3. Multi-WLAN Setup ausführen
+./bin/setup-table-raspi.sh carambus_bcw 192.168.178.81 "Tisch 2"
+
+# 4. Testen im Büro
+ssh pi@192.168.178.81 'sudo systemctl status scoreboard-kiosk'
+# Scoreboard sollte im Browser laufen
+
+# 5. Raspberry Pi in den Club bringen und einschalten
+#    → Verbindet automatisch zu Club-WLAN
+#    → Nutzt statische IP: 192.168.2.212
+#    → Scoreboard startet automatisch
+
+# 6. Verifizieren im Club
+ping 192.168.2.212
+ssh pi@192.168.2.212 'sudo systemctl status scoreboard-kiosk'
+```
+
+### Unterstützte Netzwerk-Manager
+
+**NetworkManager** (bevorzugt auf Debian Trixie):
+- Verwendet `nmcli` für Konfiguration
+- Separate Connection-Profile pro WLAN
+- Sauberes Switching zwischen Netzwerken
+
+**dhcpcd** (ältere Raspberry Pi OS):
+- Verwendet dhcpcd.conf + hooks
+- SSID-spezifische IP-Konfiguration
+- Automatische Anwendung beim Verbinden
+
+### Voraussetzungen
+
+**Datenbank**:
+```sql
+-- Table muss existieren mit table_local
+SELECT t.name, tl.ip_address 
+FROM tables t
+JOIN table_locals tl ON t.id = tl.table_id
+WHERE t.location_id = 1;
+
+-- Beispiel:
+-- Tisch 2 | 192.168.2.212
+```
+
+**WLAN-Credentials**:
+- Club-WLAN Passwort in `config.yml` setzen
+- Dev-WLAN in `~/.carambus_config` konfigurieren (optional)
+
+**SSH-Zugriff**:
+- Raspberry Pi muss über aktuelle IP erreichbar sein
+- Standard: `pi@192.168.178.81` Port 22
+
+### Troubleshooting
+
+**WLAN verbindet nicht**:
+```bash
+# Auf dem Raspberry Pi prüfen
+ssh pi@<current_ip> 'sudo wpa_cli status'
+ssh pi@<current_ip> 'sudo wpa_cli list_networks'
+
+# WLAN neu scannen
+ssh pi@<current_ip> 'sudo wpa_cli scan && sudo wpa_cli scan_results'
+```
+
+**Falsche IP nach Reboot**:
+```bash
+# NetworkManager: Connection prüfen
+ssh pi@<current_ip> 'nmcli connection show'
+
+# dhcpcd: Hook prüfen
+ssh pi@<current_ip> 'cat /etc/dhcpcd.exit-hook'
+```
+
+**Scoreboard startet nicht**:
+```bash
+# Service-Status prüfen
+ssh pi@<ip> 'sudo systemctl status scoreboard-kiosk'
+
+# Logs ansehen
+ssh pi@<ip> 'sudo journalctl -u scoreboard-kiosk -n 50'
+
+# Browser-Log prüfen
+ssh pi@<ip> 'tail -50 /tmp/chromium-kiosk.log'
+```
+
 ## Scenario-Konfiguration
 
 Jedes Scenario wird durch eine `config.yml` Datei definiert:
@@ -429,15 +730,30 @@ end
   - ✅ Neue Rake Tasks: `backup_local_data`, `restore_local_data`
   - ✅ Integration in `prepare_deploy` und `bin/deploy-scenario.sh`
   - ✅ Manuelle Kontrolle verfügbar bei Bedarf
+- ✅ **Carambus2 Migration (Oktober 2025)** - Automatische Schema-Migration
+  - ✅ Automatische Erkennung alter Carambus2-Schemas
+  - ✅ Transparente Migration während `prepare_development`
+  - ✅ Fügt fehlende Spalten hinzu (region_id, global_context)
+  - ✅ Konvertiert users.role von TEXT zu INTEGER
+  - ✅ Nicht-destruktiv (verwendet temporäre Datenbank)
+  - ✅ Schema-kompatibles Backup für Wiederverwendung
+- ✅ **Multi-WLAN Table Client Setup (Oktober 2025)** - Vereinfachtes Raspberry Pi Setup
+  - ✅ Automatisches Multi-WLAN mit Prioritäts-basiertem Failover
+  - ✅ Dev-WLAN mit DHCP (Büro-Testing)
+  - ✅ Club-WLAN mit statischer IP aus Datenbank
+  - ✅ Vereinfachter Aufruf (nur Scenario, IP, Tischname)
+  - ✅ WLAN-Credentials aus config.yml und ~/.carambus_config
+  - ✅ NetworkManager + dhcpcd Support
+  - ✅ Schneller Startup (~18s statt ~45s)
+  - ✅ Optimierte Chromium-Flags (keine Sandbox-Warnung)
+  - ✅ Sidebar automatisch geschlossen bei Scoreboard-URLs
 
 🔄 **In Arbeit**:
-- GitHub-Zugriff für Raspberry Pi
-- Production-Datenbank-Setup
+- Weitere Location-Scenarios
 
 📋 **Geplant**:
-- Mode-Switch-System deaktivieren
 - Automatisierte Tests
-- Weitere Location-Scenarios
+- Performance-Monitoring
 
 ## Best Practices
 
