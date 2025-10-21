@@ -425,7 +425,6 @@ $BROWSER_CMD \
   --no-first-run \
   --disable-session-crashed-bubble \
   --check-for-update-interval=31536000 \
-  --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \
   >>/tmp/chromium-kiosk.log 2>&1 &
 
 BROWSER_PID=$!
