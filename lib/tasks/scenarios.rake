@@ -3510,7 +3510,7 @@ ENV
     location_md5 = location.md5
 
     # Generate URL using the correct MD5
-    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=welcome"
+    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=welcome&locale=de"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
@@ -4517,7 +4517,7 @@ EOF
       raise "Missing production.webserver_host or production.webserver_port in scenario configuration for #{scenario_name}"
     end
 
-    fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome"
+    fallback_url = "http://#{webserver_host}:#{webserver_port}/locations/#{md5_hash}/scoreboard?sb_state=welcome&locale=de"
     local_server_enabled = pi_config['local_server_enabled'] || false
 
     # Generate the script using Ruby string manipulation
