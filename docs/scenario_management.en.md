@@ -322,6 +322,107 @@ environments:
     deploy_to: /var/www/carambus_location_5101
 ```
 
+## Carambus2 Migration
+
+**New as of October 2025**: Automatic schema migration for servers running the old Carambus2 version.
+
+### Overview
+
+The system automatically detects old Carambus2 databases and migrates them to the current schema. Migration happens **transparently during `prepare_development`** - no manual steps required!
+
+### What Gets Migrated?
+
+| Schema Change | Action | Value |
+|--------------|--------|-------|
+| Missing `region_id` column | Add column + set value | `1` (for local data) |
+| Missing `global_context` column | Add column + set value | `false` (for local data) |
+| `users.role` is TEXT | Convert to INTEGER | `0` (player) |
+
+**Affected Tables:**
+- `clubs`, `locations`, `players`, `tournaments`, `tournament_locals`
+- `users`, `tables`, `table_locals`, `settings`
+- `games`, `game_participations`, `seedings`, `versions`
+
+### Automatic Workflow
+
+```
+prepare_development[scenario_name,development]
+        ↓
+  Step 6.5: Schema Migration
+    ├─ Download old production DB
+    ├─ Create temp local database
+    ├─ Detect schema mismatches
+    ├─ Add missing columns
+    ├─ Update local records (id > 50M)
+    └─ Extract migrated data
+        ↓
+  Step 8: Restore to Development
+    ├─ Load migrated data
+    └─ Ready for testing!
+        ↓
+  Development DB now contains:
+    ✅ Official data (id < 50M)
+    ✅ Migrated local data (id > 50M)
+```
+
+### Practical Example
+
+```bash
+# One-time migration from Carambus2 → Current
+rake "scenario:prepare_development[carambus_bcw,development]"
+
+# What happens automatically:
+# 1. Download old production database
+# 2. Detect old schema (missing region_id, global_context columns)
+# 3. Add missing columns to temp database
+# 4. Update local records: region_id=1, global_context=false
+# 5. Extract local data with NEW schema
+# 6. Load into development database
+# 7. Backup stored: local_data_20251021_204254.sql
+
+# Verify result:
+psql carambus_bcw_development -c "
+  SELECT COUNT(*) FROM players WHERE id > 50000000 AND region_id = 1;
+  -- Should show all migrated players
+"
+```
+
+### Migration Backup
+
+The migrated backup is saved and referenced in `config.yml`:
+
+```yaml
+last_local_backup: "/path/to/scenarios/scenario_name/local_data_backups/local_data_TIMESTAMP.sql"
+```
+
+This backup is **schema-compatible** and can be reused anytime!
+
+### Troubleshooting
+
+**Problem**: Migration doesn't detect old schema
+```bash
+# Solution: Check manually
+psql old_database -c "
+  SELECT column_name 
+  FROM information_schema.columns 
+  WHERE table_name='players' AND column_name='region_id';
+"
+# Empty = old schema → Migration will be performed
+```
+
+**Problem**: Migration fails
+```bash
+# Solution: Backup already exists
+ls scenarios/scenario_name/local_data_backups/
+# Use existing backup for restore
+```
+
+### Important Notes
+
+⚠️ **One-time Migration**: This feature is intended for the **first migration** from Carambus2 → Current.  
+✅ **Backward Compatible**: Also works with already migrated databases.  
+✅ **Non-Destructive**: Creates temporary database, doesn't touch production.
+
 ## Technical Details
 
 ### Asset Pipeline (Sprockets)
@@ -429,15 +530,30 @@ end
   - ✅ New rake tasks: `backup_local_data`, `restore_local_data`
   - ✅ Integration in `prepare_deploy` and `bin/deploy-scenario.sh`
   - ✅ Manual control available when needed
+- ✅ **Carambus2 Migration (October 2025)** - Automatic schema migration
+  - ✅ Automatic detection of old Carambus2 schemas
+  - ✅ Transparent migration during `prepare_development`
+  - ✅ Adds missing columns (region_id, global_context)
+  - ✅ Converts users.role from TEXT to INTEGER
+  - ✅ Non-destructive (uses temporary database)
+  - ✅ Schema-compatible backup for reuse
+- ✅ **Multi-WLAN Table Client Setup (October 2025)** - Simplified Raspberry Pi setup
+  - ✅ Automatic Multi-WLAN with priority-based failover
+  - ✅ Dev-WLAN with DHCP (office testing)
+  - ✅ Club-WLAN with static IP from database
+  - ✅ Simplified invocation (only scenario, IP, table name)
+  - ✅ WLAN credentials from config.yml and ~/.carambus_config
+  - ✅ NetworkManager + dhcpcd support
+  - ✅ Fast startup (~18s instead of ~45s)
+  - ✅ Optimized Chromium flags (no sandbox warning)
+  - ✅ Sidebar automatically collapsed for scoreboard URLs
 
 🔄 **In progress**:
-- GitHub access for Raspberry Pi
-- Production database setup
+- Additional location scenarios
 
 📋 **Planned**:
-- Mode switch system deactivation
 - Automated tests
-- Additional location scenarios
+- Performance monitoring
 
 ## Best Practices
 
