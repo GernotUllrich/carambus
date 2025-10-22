@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TableMonitorsController < ApplicationController
+  skip_before_action :verify_authenticity_token, only: [:start_game], if: :scoreboard_user?
   before_action :set_table_monitor,
                 only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
 
@@ -186,6 +187,10 @@ class TableMonitorsController < ApplicationController
   end
 
   private
+
+  def scoreboard_user?
+    current_user&.email == 'scoreboard@carambus.de'
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_table_monitor
