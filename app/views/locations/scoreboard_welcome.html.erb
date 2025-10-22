@@ -1,4 +1,5 @@
 <!--suppress RubyScope, RubyScope, RubyScope -->
+<script defer src="/alpine.min.js"></script>
 <style>
     .responsive-svg {
         width: 100%;
@@ -162,21 +163,29 @@
   </script>
 
 <!-- Language Switcher Bottom Right (+ fullscreen toggle left) -->
-<% if I18n.locale.to_s == "de" %>
-  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
-    <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-      <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
-    <% end %>
-    <%= custom_link_to image_tag("flag_de.png", style: "width: 40px; height: 28px;"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
+  <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
+    <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
+  <% end %>
+  <div x-data="{ open: false }" @click.outside="open = false" class="relative inline-block text-left">
+    <button type="button" @click="open = !open" class="inline-flex items-center justify-center text-white hover:text-gray-300 focus:outline-none" style="height: 40px;">
+      <%= image_tag "flag_#{I18n.locale}.png", style: "width: 40px; height: 28px;", alt: I18n.locale.to_s.upcase %>
+      <svg class="ml-1 transform rotate-180" style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+      </svg>
+    </button>
+    <div x-show="open" class="absolute right-0 bottom-full mb-2 origin-bottom-right bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5" style="min-width: 100px;">
+      <div class="py-1" role="menu" aria-orientation="vertical">
+        <% I18n.available_locales.each do |locale| %>
+          <% next if locale == I18n.locale %>
+          <%= link_to({ locale: locale }, class: "flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700", role: "menuitem", data: { turbo: false }, tabindex: 0) do %>
+            <%= image_tag "flag_#{locale}.png", style: "width: 40px; height: 28px;", alt: locale.to_s.upcase %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
   </div>
-<% else %>
-  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
-    <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-      <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
-    <% end %>
-    <%= custom_link_to image_tag("flag_en.png", style: "width: 40px; height: 28px;"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-  </div>
-<% end %>
+</div>
 
 <div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
