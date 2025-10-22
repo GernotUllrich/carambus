@@ -382,7 +382,6 @@ class LocationsController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  # Final asset optimization test
   def set_location
     Rails.logger.info "Session Data: #{session.to_hash}"
     # Optimize query with eager loading

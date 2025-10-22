@@ -3275,6 +3275,23 @@ ENV
     end
     puts "   ✅ Deployment directories created"
 
+    # Step 1.5: Ensure Redis is installed and running
+    puts "   🔧 Ensuring Redis is installed and running..."
+    redis_check_cmd = "systemctl is-active redis-server 2>/dev/null || systemctl is-active redis 2>/dev/null"
+    redis_running = system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{redis_check_cmd}' >/dev/null 2>&1")
+    
+    unless redis_running
+      puts "   📦 Redis not running, installing..."
+      redis_install_cmd = "sudo apt-get update -qq && sudo apt-get install -y redis-server"
+      unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{redis_install_cmd}'")
+        puts "   ❌ Failed to install Redis"
+        return false
+      end
+      puts "   ✅ Redis installed and started"
+    else
+      puts "   ✅ Redis already running"
+    end
+
     # Step 2: Upload configuration files to shared directory
     puts "   📤 Configuration files will be uploaded during deployment..."
     puts "   ✅ Skipping config file upload (done during deploy step)"
