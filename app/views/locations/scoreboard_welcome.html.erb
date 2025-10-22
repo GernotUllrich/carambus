@@ -168,17 +168,17 @@
     <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
   <% end %>
   <div x-data="{ open: false }" @click.outside="open = false" class="relative inline-block text-left">
-    <button type="button" @click="open = !open" class="inline-flex items-center justify-center text-white hover:text-gray-300 focus:outline-none" style="height: 40px;">
+    <button type="button" id="language" tabindex="0" @click.stop="open = !open" class="inline-flex items-center justify-center text-white hover:text-gray-300 focus:outline-none" style="height: 40px;">
       <%= image_tag "flag_#{I18n.locale}.png", style: "width: 40px; height: 28px;", alt: I18n.locale.to_s.upcase %>
       <svg class="ml-1 transform rotate-180" style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
       </svg>
     </button>
-    <div x-show="open" class="absolute right-0 bottom-full mb-2 origin-bottom-right bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5" style="min-width: 100px;">
+    <div x-show="open" @click.stop class="absolute right-0 bottom-full mb-2 origin-bottom-right bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5" style="min-width: 100px; z-index: 1002;">
       <div class="py-1" role="menu" aria-orientation="vertical">
         <% I18n.available_locales.each do |locale| %>
           <% next if locale == I18n.locale %>
-          <%= link_to({ locale: locale }, class: "flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700", role: "menuitem", data: { turbo: false }, tabindex: 0) do %>
+          <%= link_to({ locale: locale }, class: "flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700", role: "menuitem", data: { turbo: false }) do %>
             <%= image_tag "flag_#{locale}.png", style: "width: 40px; height: 28px;", alt: locale.to_s.upcase %>
           <% end %>
         <% end %>
