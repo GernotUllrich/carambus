@@ -4,6 +4,7 @@
 class LocationsController < ApplicationController
   attr_accessor :game
 
+  skip_before_action :verify_authenticity_token, only: [:toggle_dark_mode], if: :scoreboard_user?
   include FiltersHelper
   before_action :set_location,
                 only: %i[scoreboard show edit update destroy
@@ -380,6 +381,10 @@ class LocationsController < ApplicationController
   end
 
   private
+
+  def scoreboard_user?
+    current_user&.email == 'scoreboard@carambus.de'
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_location

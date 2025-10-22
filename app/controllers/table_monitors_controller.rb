@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TableMonitorsController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [:start_game], if: :scoreboard_user?
+  skip_before_action :verify_authenticity_token, only: [:start_game, :toggle_dark_mode], if: :scoreboard_user?
   before_action :set_table_monitor,
                 only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
 
