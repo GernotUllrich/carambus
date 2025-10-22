@@ -45,27 +45,54 @@ namespace :deploy do
     # Check if assets have changed - shared helper
     task :check_changes do
       on roles(:app) do
-        within release_path do
-          # Check if asset-relevant files have changed since last release
-          changed_files = capture(
-            :git, :diff, "--name-only", "HEAD~1", "HEAD", "2>/dev/null || echo 'all'"
-          ).strip
-          
-          # If git diff fails or returns 'all', assume assets changed (first deploy)
-          if changed_files == 'all'
-            set :assets_changed, true
-            info "First deployment or git diff unavailable - will compile assets"
+        # Check if previous release exists
+        previous_release = capture(:ls, "-t", "#{deploy_to}/releases", "2>/dev/null || echo ''").split("\n")[1]
+        
+        if previous_release.nil? || previous_release.empty? || ENV['FORCE_ASSETS']
+          set :assets_changed, true
+          if ENV['FORCE_ASSETS']
+            info "🔨 FORCE_ASSETS=1 - will compile assets"
           else
-            assets_changed = changed_files.split("\n").any? do |file|
-              file =~ %r{^(app/(javascript|assets|views)|config/locales|package\.json|yarn\.lock|esbuild\.config\.mjs|tailwind\.config\.js)}
+            info "📦 First deployment - will compile assets"
+          end
+        else
+          # Compare asset-relevant files between current and previous release
+          previous_path = "#{deploy_to}/releases/#{previous_release}"
+          
+          # Check for differences in asset-related files
+          assets_differ = false
+          asset_paths = %w[
+            app/javascript
+            app/assets
+            app/views
+            config/locales
+            package.json
+            yarn.lock
+            esbuild.config.mjs
+            tailwind.config.js
+          ]
+          
+          asset_paths.each do |path|
+            if test("[ -e #{release_path}/#{path} ]") && test("[ -e #{previous_path}/#{path} ]")
+              # Both exist, check for differences
+              if test("! diff -rq #{release_path}/#{path} #{previous_path}/#{path} >/dev/null 2>&1")
+                assets_differ = true
+                break
+              end
+            elsif test("[ -e #{release_path}/#{path} ]") || test("[ -e #{previous_path}/#{path} ]")
+              # One exists, one doesn't - that's a change
+              assets_differ = true
+              break
             end
-            set :assets_changed, assets_changed || ENV['FORCE_ASSETS']
-            
-            if fetch(:assets_changed)
-              info "✅ Asset files changed, will compile assets"
-            else
-              info "⏭️  No asset changes detected, skipping compilation (use FORCE_ASSETS=1 to force)"
-            end
+          end
+          
+          set :assets_changed, assets_differ
+          
+          if assets_differ
+            info "✅ Asset files changed since last deployment - will compile assets"
+          else
+            info "⏭️  No asset changes detected - skipping compilation (saves ~45 seconds)"
+            info "💡 Use FORCE_ASSETS=1 to force asset compilation if needed"
           end
         end
       end
