@@ -42,12 +42,43 @@ end
 # Hook into the default asset compilation process
 namespace :deploy do
   namespace :assets do
+    # Check if assets have changed - shared helper
+    task :check_changes do
+      on roles(:app) do
+        within release_path do
+          # Check if asset-relevant files have changed since last release
+          changed_files = capture(
+            :git, :diff, "--name-only", "HEAD~1", "HEAD", "2>/dev/null || echo 'all'"
+          ).strip
+          
+          # If git diff fails or returns 'all', assume assets changed (first deploy)
+          if changed_files == 'all'
+            set :assets_changed, true
+            info "First deployment or git diff unavailable - will compile assets"
+          else
+            assets_changed = changed_files.split("\n").any? do |file|
+              file =~ %r{^(app/(javascript|assets|views)|config/locales|package\.json|yarn\.lock|esbuild\.config\.mjs|tailwind\.config\.js)}
+            end
+            set :assets_changed, assets_changed || ENV['FORCE_ASSETS']
+            
+            if fetch(:assets_changed)
+              info "✅ Asset files changed, will compile assets"
+            else
+              info "⏭️  No asset changes detected, skipping compilation (use FORCE_ASSETS=1 to force)"
+            end
+          end
+        end
+      end
+    end
+    
     desc "Install yarn dependencies before asset compilation"
     task :install_dependencies do
       on roles(:app) do
         within release_path do
-          # Install JavaScript dependencies
-          execute :yarn, :install
+          if fetch(:assets_changed, true)
+            # Install JavaScript dependencies
+            execute :yarn, :install
+          end
         end
       end
     end
@@ -57,14 +88,16 @@ namespace :deploy do
       on roles(:app) do
         within release_path do
           with rails_env: fetch(:rails_env) do
-            # Build JavaScript assets
-            execute :yarn, :build
-            
-            # Build CSS assets
-            execute :yarn, "build:css"
+            if fetch(:assets_changed, true)
+              # Build JavaScript assets
+              execute :yarn, :build
+              
+              # Build CSS assets
+              execute :yarn, "build:css"
 
-            # Ensure the builds directory exists for Rails asset pipeline
-            execute :mkdir, "-p app/assets/builds"
+              # Ensure the builds directory exists for Rails asset pipeline
+              execute :mkdir, "-p app/assets/builds"
+            end
           end
         end
       end
@@ -79,19 +112,18 @@ namespace :deploy do
         end
       end
     end
-  end
-end
-
-# Custom asset precompilation task (since capistrano/rails/assets is disabled)
-namespace :deploy do
-  namespace :assets do
+    
     desc "Precompile Rails assets"
     task :precompile do
       on roles(:app) do
         within release_path do
           with rails_env: fetch(:rails_env) do
-            # Precompile Rails assets
-            execute :bundle, :exec, :rails, "assets:precompile"
+            if fetch(:assets_changed, true)
+              info "Running Rails asset precompilation..."
+              execute :bundle, :exec, :rails, "assets:precompile"
+            else
+              info "Skipping Rails asset precompilation"
+            end
           end
         end
       end
@@ -100,6 +132,7 @@ namespace :deploy do
 end
 
 # Hook into the custom asset compilation process
+before "deploy:assets:precompile", "deploy:assets:check_changes"
 before "deploy:assets:precompile", "deploy:verify_node"
 before "deploy:assets:precompile", "deploy:assets:install_dependencies"
 before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
