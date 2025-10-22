@@ -187,11 +187,8 @@ class TableMonitorsController < ApplicationController
 
   private
 
-  def scoreboard_user?
-    current_user&.email == 'scoreboard@carambus.de'
-  end
-
   # Use callbacks to share common setup or constraints between actions.
+  # Asset optimization test - this comment should trigger fast deployment
   def set_table_monitor
     @table_monitor = TableMonitor.where(id: params[:id]).first
     @table_monitor.get_options!(I18n.locale)
