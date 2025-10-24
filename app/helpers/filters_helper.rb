@@ -27,16 +27,37 @@ module FiltersHelper
             value = m[2].strip
           end
           value = (Date.today - 1.week).to_s if %w[heute today].include?(value)
+          
+          # First try exact match (case-insensitive), then prefix match
+          matched_column = nil
+          matched_name = nil
+          
           columns.each do |ext_name, int_name|
             next if search_matches.include?(key)
-
+            next unless int_name.present?
+            
+            # Exact match has priority
+            if ext_name.downcase == key.strip.downcase
+              matched_column = int_name
+              matched_name = ext_name
+              break
+            # Prefix match as fallback
+            elsif matched_column.nil? && ext_name.downcase.start_with?(key.strip.downcase)
+              matched_column = int_name
+              matched_name = ext_name
+            end
+          end
+          
+          if matched_column.present?
+            int_name = matched_column
+            
             if int_name.present?
               # TODO: FILTERS
               if / as /.match?(int_name)
                 int_name.split(" as ").map(&:strip)
                 # no search on virtual columns
                 # query = query.where("(#{tempname} ilike :search)", search: "%#{value}%")
-              elsif ext_name.downcase.start_with?(key.strip.downcase)
+              else
                 query = if int_name =~ /id$/ || %w[players points sets ba_id ba2_id cc_id balls innings hs sp_g
                                                  sp_v g v].include?(int_name.split(".").last)
                         query.where("(#{int_name} #{comp.present? ? comp : "="} :isearch)", isearch: (value.to_i != 0 ? value.to_i : -7_235_553))
@@ -53,9 +74,8 @@ module FiltersHelper
                         query.where("(#{int_name} #{comp.present? ? comp : "ilike"} :search)",
                                     search: (comp.present? ? value : "%#{value.gsub('%20', ' ')}%").to_s)
                       end
-                search_matches << key
-                break  # Exit the columns loop once we find a match
               end
+              search_matches << key
             end
           end
         end
