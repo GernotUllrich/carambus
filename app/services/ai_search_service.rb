@@ -174,11 +174,13 @@ class AiSearchService < ApplicationService
       
       BEISPIELE FÜR KORREKTE ÜBERSETZUNGEN:
       
-      STÄDTE (Freitext verwenden!):
+      STÄDTE UND VEREINSNAMEN (Freitext verwenden!):
       - "Clubs aus Hamburg" → entity: "clubs", filters: "Hamburg"
+      - "Spieler im BC Wedel" → entity: "players", filters: "BC Wedel"
       - "Turniere in Wedel" → entity: "tournaments", filters: "Wedel"
       - "Spieler aus München" → entity: "players", filters: "München"
       - "Vereine in Dortmund" → entity: "clubs", filters: "Dortmund"
+      - "Spieler vom SC Berlin" → entity: "players", filters: "SC Berlin"
       
       REGIONEN/VERBÄNDE (Region-Filter verwenden):
       - "Clubs aus dem NBV" → entity: "clubs", filters: "Region:NBV"
@@ -204,11 +206,13 @@ class AiSearchService < ApplicationService
       WICHTIGE REGELN:
       - Bei mehrdeutigen Anfragen wähle die wahrscheinlichste Entity
       - STÄDTE = Freitext (Hamburg, Berlin, München, Wedel, etc.)
+      - VEREINSNAMEN = Freitext (BC Wedel, SC Berlin, BV Hamburg, etc.)
       - VERBÄNDE/BUNDESLÄNDER = Region-Filter (NBV, BVW, Bayern, NRW, etc.)
       - Region-Filter nur mit VERBANDS-Kürzeln (BVW, NBV, BBV - NICHT WL, HH, BE!)
       - Bei "aus dem NBV" oder "im Verband" → Region-Filter
-      - Bei "in Hamburg" oder "aus Hamburg" (Stadt!) → Freitext
+      - Bei "in Hamburg", "im BC Wedel", "vom SC Berlin" → Freitext
       - Bundesländer-Mapping: Bayern→BBV, Hessen→HBU, NRW→BVNRW, Westfalen→BVW
+      - NIEMALS Club: Filter verwenden - nur Freitext für Vereinsnamen!
       - Seasons im Format "2024/2025" (Slash verwenden!)
       - Bei Datums-Filtern relative Ausdrücke bevorzugen
       - Confidence unter 70 wenn Anfrage unklar ist

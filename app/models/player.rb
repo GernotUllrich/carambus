@@ -88,7 +88,10 @@ class Player < ApplicationRecord
   end
 
   def self.search_joins
-    [:season_participations, :region]
+    [
+      :region,
+      { season_participations: :club }
+    ]
   end
 
   def self.search_distinct?
