@@ -56,20 +56,34 @@ export default class extends Controller {
       const data = await response.json()
 
       if (data.success && data.path) {
+        console.log('✅ AI Search successful:', data)
+        
         // Save query to localStorage for reference
         this.saveLastQuery(query)
         
+        // Prepare success message
+        const successMessage = `✓ "${query}"<br>${data.explanation} (${data.confidence}% Sicherheit)`
+        
+        // Save message for display after navigation
+        try {
+          localStorage.setItem('carambus_ai_last_message', successMessage)
+          console.log('💾 Saved success message')
+        } catch (e) {
+          console.error('❌ Could not save message:', e)
+        }
+        
         // Mark that panel should stay open after navigation
+        console.log('📍 About to call setPanelShouldBeOpen()')
         this.setPanelShouldBeOpen()
         
         // Show success message with query and explanation
-        this.showMessage(
-          `✓ "${query}"\n${data.explanation} (${data.confidence}% Sicherheit)`,
-          "success"
-        )
+        this.showMessage(successMessage, "success")
+        
+        console.log('🚀 Will navigate to:', data.path, 'in 1 second')
         
         // Keep panel open and navigate after delay
         setTimeout(() => {
+          console.log('⏰ Navigation timeout fired, navigating now...')
           window.location.href = data.path
         }, 1000)
       } else {
@@ -172,33 +186,57 @@ export default class extends Controller {
   // Mark that panel should be open after navigation
   setPanelShouldBeOpen() {
     try {
+      console.log('💾 Setting panel open flag')
       localStorage.setItem('carambus_ai_panel_open', 'true')
-      localStorage.setItem('carambus_ai_panel_open_time', Date.now())
+      localStorage.setItem('carambus_ai_panel_open_time', Date.now().toString())
+      
+      // Verify it was saved
+      const saved = localStorage.getItem('carambus_ai_panel_open')
+      console.log('✓ Panel flag saved:', saved)
     } catch (e) {
-      console.warn('Could not save panel state:', e)
+      console.error('❌ Could not save panel state:', e)
     }
   }
 
   // Check if panel should be open and open it
   checkPanelState() {
-    try {
-      const shouldBeOpen = localStorage.getItem('carambus_ai_panel_open')
-      const openTime = localStorage.getItem('carambus_ai_panel_open_time')
-      
-      if (shouldBeOpen === 'true' && openTime) {
-        // Only open if navigation happened within last 5 seconds
-        const ageSeconds = (Date.now() - parseInt(openTime)) / 1000
-        if (ageSeconds < 5) {
-          // Open panel
-          this.panelTarget.classList.remove('hidden')
-          // Clear the flag
-          localStorage.removeItem('carambus_ai_panel_open')
-          localStorage.removeItem('carambus_ai_panel_open_time')
+    // Use setTimeout to ensure DOM is fully loaded
+    setTimeout(() => {
+      try {
+        const shouldBeOpen = localStorage.getItem('carambus_ai_panel_open')
+        const openTime = localStorage.getItem('carambus_ai_panel_open_time')
+        
+        console.log('🔍 Checking panel state:', { shouldBeOpen, openTime })
+        
+        if (shouldBeOpen === 'true' && openTime) {
+          // Only open if navigation happened within last 10 seconds
+          const ageSeconds = (Date.now() - parseInt(openTime)) / 1000
+          console.log('⏱️ Panel open age:', ageSeconds, 'seconds')
+          
+          if (ageSeconds < 10) {
+            console.log('✅ Opening panel')
+            // Open panel
+            this.panelTarget.classList.remove('hidden')
+            // Also show last success message if available
+            const lastMessage = localStorage.getItem('carambus_ai_last_message')
+            if (lastMessage && this.hasMessageTarget) {
+              this.messageTarget.innerHTML = lastMessage
+              this.messageTarget.classList.remove('hidden')
+              this.messageTarget.classList.add('bg-green-100', 'text-green-700', 'dark:bg-green-900', 'dark:text-green-200')
+            }
+            // Clear the flags
+            localStorage.removeItem('carambus_ai_panel_open')
+            localStorage.removeItem('carambus_ai_panel_open_time')
+          } else {
+            console.log('⏰ Panel open time expired')
+          }
+        } else {
+          console.log('❌ No panel open flag found')
         }
+      } catch (e) {
+        console.error('Could not check panel state:', e)
       }
-    } catch (e) {
-      console.warn('Could not check panel state:', e)
-    }
+    }, 100)
   }
 }
 
