@@ -26,7 +26,9 @@ module FiltersHelper
             comp = m[1]
             value = m[2].strip
           end
-          value = (Date.today - 1.week).to_s if %w[heute today].include?(value)
+          
+          # Parse relative date expressions
+          value = parse_relative_date(value) if value.present?
           
           # First try exact match (case-insensitive), then prefix match
           matched_column = nil
@@ -86,5 +88,36 @@ module FiltersHelper
       query
     end
     query
+  end
+  
+  private
+  
+  # Parse relative date expressions like "heute-14", "today-2w", "heute+1m"
+  def parse_relative_date(value)
+    return value unless value.is_a?(String)
+    
+    # Match patterns like: heute, heute-14, heute-2w, heute+1m, today-7, etc.
+    if (m = value.match(/^(heute|today)([+-])?(\d+)?([dwm])?$/i))
+      base_date = Date.today
+      operator = m[2]  # + or -
+      amount = m[3]&.to_i || 0
+      unit = m[4]&.downcase  # d=days, w=weeks, m=months
+      
+      if operator && amount > 0
+        offset = case unit
+                 when 'w' then amount.weeks
+                 when 'm' then amount.months
+                 else amount.days  # default to days, or 'd'
+                 end
+        
+        result_date = operator == '+' ? base_date + offset : base_date - offset
+        return result_date.to_s
+      else
+        # Just "heute" or "today" without offset
+        return base_date.to_s
+      end
+    end
+    
+    value  # Return unchanged if no match
   end
 end
