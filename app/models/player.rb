@@ -84,7 +84,9 @@ class Player < ApplicationRecord
      or (players.firstname ilike :search)
      or (players.lastname ilike :search)
      or (players.nickname ilike :search)
-     or (players.cc_id = :isearch)"
+     or (players.cc_id = :isearch)
+     or (clubs.name ilike :search)
+     or (clubs.shortname ilike :search)"
   end
 
   def self.search_joins
