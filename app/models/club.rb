@@ -34,6 +34,7 @@ class Club < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
   self.ignored_columns = ["region_ids"]
 
   # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
@@ -56,33 +57,69 @@ class Club < ApplicationRecord
 
   REFLECTION_KEYS = %w[region season_participations].freeze
 
-  COLUMN_NAMES = { "ID" => "clubs.id",
-                   "BA_ID" => "clubs.ba_id",
-                   "CC_ID" => "clubs.cc_id",
-                   "Region" => "regions.shortname",
-                   "Club" => "clubs.shortname",
-                   "Address" => "clubs.address",
-                   "Homepage" => "",
-                   "Status" => "",
-                   "Founded" => "",
-                   "Dbu entry" => "" }.freeze
-  def self.search_hash(params)
-    {
-      model: Club,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: Club::COLUMN_NAMES.merge({
-        "region_id" => "clubs.region_id",
-        "club_id" => "clubs.id"
-      }),
-      raw_sql: "(regions.shortname ilike :search)
- or (clubs.address ilike :search)
- or (clubs.shortname ilike :search)
- or (clubs.email ilike :search)
- or (clubs.cc_id = :isearch)",
-      joins: :region
-    }
+  COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "clubs.id",
+    "region_id" => "clubs.region_id",
+    
+    # Externe IDs (sichtbar, filterbar)
+    "BA_ID" => "clubs.ba_id",
+    "CC_ID" => "clubs.cc_id",
+    
+    # Referenzen (Dropdown/Select)
+    "Region" => "regions.shortname",
+    
+    # Eigene Felder
+    "Name" => "clubs.shortname",
+    "Address" => "clubs.address",
+    "Email" => "clubs.email",
+    "Homepage" => "clubs.homepage",
+    "Status" => "clubs.status",
+    "Founded" => "clubs.founded",
+  }.freeze
+  # Searchable concern provides search_hash, we only need to define the specifics
+  
+  def self.text_search_sql
+    "(regions.shortname ilike :search)
+     or (clubs.address ilike :search)
+     or (clubs.shortname ilike :search)
+     or (clubs.email ilike :search)
+     or (clubs.cc_id = :isearch)"
+  end
+
+  def self.search_joins
+    [:region]
+  end
+
+  def self.search_distinct?
+    false
+  end
+
+  def self.cascading_filters
+    {}  # Club hat keine abhängigen Filter
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Name'
+      { description: "Vereinsname oder Kurzname", examples: ["BC Berlin", "1. BC"] }
+    when 'Address'
+      { description: "Vereinsadresse", examples: ["Berlin", "Hauptstraße 1"] }
+    when 'Email'
+      { description: "E-Mail-Adresse des Vereins", examples: ["info@verein.de"] }
+    when 'Homepage'
+      { description: "Webseite des Vereins", examples: ["www.verein.de"] }
+    when 'BA_ID', 'CC_ID'
+      { description: "Externe Vereins-ID", examples: ["12345", "67890"] }
+    when 'Region'
+      { description: "Region auswählen", examples: [] }
+    when 'Status'
+      { description: "Vereinsstatus", examples: [] }
+    when 'Founded'
+      { description: "Gründungsjahr", examples: ["1950", "2000"] }
+    else
+      super
+    end
   end
 
   def update_synonyms

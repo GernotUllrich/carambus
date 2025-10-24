@@ -23,6 +23,7 @@
 class Seeding < ApplicationRecord
   include LocalProtector
   include RegionTaggable
+  include Searchable
   include AASM
   aasm column: "state", skip_validation_on_save: true do
     state :registered, initial: true
@@ -105,44 +106,91 @@ class Seeding < ApplicationRecord
   ].freeze
 
   COLUMN_NAMES = {
-    "Player" => "players.lastname||', '||players.firstname",
-    "Tournament" => "tournaments.title",
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "seedings.id",
+    "tournament_id" => "tournaments.id",
     "league_team_id" => "seedings.league_team_id",
+    "discipline_id" => "disciplines.id",
+    "player_id" => "players.id",
+    
+    # Referenzen (Dropdown/Select)
+    "Tournament" => "tournaments.title",
     "LeagueTeam" => "league_teams.name",
     "Discipline" => "disciplines.name",
-    "Date" => "tournaments.date::date",
-    "Season" => "tournament_seasons.name||league_seasons.name",
     "Region" => "tournament_regions.shortname||league_regions.shortname",
-    "Status" => "seeding.state",
-    "Position" => "seeding.position",
-    "Remarks" => "seeding.data"
+    "Season" => "tournament_seasons.name||league_seasons.name",
+    
+    # Eigene Felder
+    "Player" => "players.lastname||', '||players.firstname",
+    "Date" => "tournaments.date::date",
+    "Status" => "seedings.state",
+    "Position" => "seedings.position",
   }.freeze
 
   self.ignored_columns = ["region_ids"]
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(players.fl_name ilike :search)
+     or (players.lastname ilike :search)
+     or (players.firstname ilike :search)
+     or (players.nickname ilike :search)
+     or (tournaments.title ilike :search)
+     or (league_teams.name ilike :search)
+     or (disciplines.name ilike :search)
+     or (seedings.state ilike :search)
+     or (tournament_seasons.name ilike :search)
+     or (league_seasons.name ilike :search)"
+  end
+  
+  def self.search_joins
+    [
+      "LEFT JOIN tournaments ON (seedings.tournament_id = tournaments.id AND seedings.tournament_type = 'Tournament')",
+      "LEFT JOIN leagues ON (seedings.tournament_id = leagues.id AND seedings.tournament_type = 'League')",
+      "LEFT JOIN league_teams ON league_teams.id = seedings.league_team_id",
+      "LEFT JOIN disciplines ON disciplines.id = seedings.playing_discipline_id",
+      "LEFT JOIN seasons AS tournament_seasons ON tournaments.season_id = tournament_seasons.id",
+      "LEFT JOIN seasons AS league_seasons ON leagues.season_id = league_seasons.id",
+      'LEFT JOIN "regions" AS tournament_regions ON ("tournament_regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
+      'LEFT JOIN "regions" AS league_regions ON ("league_regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
+      :player
+    ]
+  end
+  
+  def self.search_distinct?
+    false
+  end
+  
+  def self.cascading_filters
     {
-      model: Seeding,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: [params[:sSearch], params[:search]].compact.join("&").to_s,
-      column_names: Seeding::COLUMN_NAMES,
-      raw_sql: "(players.fl_name ilike :search)
-or (players.nickname ilike :search)
-or (seedings.state ilike :search)
-or (tournament_seasons.name ilike :search)
-or (league_seasons.name ilike :search)
-",
-      joins: [
-        "LEFT JOIN tournaments ON (seedings.tournament_id = tournaments.id)",
-        "LEFT JOIN leagues ON (seedings.tournament_type = 'League' AND seedings.tournament_id = leagues.id)",
-        "LEFT JOIN seasons AS tournament_seasons ON tournaments.season_id = tournament_seasons.id",
-        "LEFT JOIN seasons AS league_seasons ON leagues.season_id = league_seasons.id",
-        'LEFT JOIN "regions" AS tournament_regions ON ("tournament_regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
-        'LEFT JOIN "regions" AS league_regions ON ("league_regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
-        :player
-      ]
+      'tournament_id' => [],
+      'discipline_id' => []
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Player'
+      { description: "Spieler-Name", examples: ["Meyer, Hans"] }
+    when 'Tournament'
+      { description: "Turnier/Liga", examples: [] }
+    when 'LeagueTeam'
+      { description: "Mannschaft", examples: [] }
+    when 'Discipline'
+      { description: "Disziplin", examples: [] }
+    when 'Date'
+      { description: "Turnier-Datum", examples: ["2024-01-15", "> 2024-01-01"] }
+    when 'Season'
+      { description: "Saison", examples: [] }
+    when 'Region'
+      { description: "Region", examples: [] }
+    when 'Status'
+      { description: "Teilnahme-Status", examples: ["registered", "confirmed", "cancelled"] }
+    when 'Position'
+      { description: "Setzposition", examples: ["1", "2", "> 5"] }
+    else
+      super
+    end
   end
 
   def loggit

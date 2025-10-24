@@ -48,6 +48,7 @@ class Party < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
 
   self.ignored_columns = ["region_ids"]
 
@@ -83,29 +84,61 @@ class Party < ApplicationRecord
                    party_games]
 
   COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "parties.id",
+    "league_id" => "parties.league_id",
+    "season_id" => "seasons.id",
+    "region_id" => "regions.id",
+    
+    # Referenzen (Dropdown/Select)
     "League" => "leagues.name",
-    "League_id" => "parties.league_id",
+    "Season" => "seasons.name",
+    "Region" => "regions.shortname",
+    
+    # Eigene Felder
     "Date" => "parties.date::date",
-    "Organizer" => "regions.shortname",
-    "Season" => "seasons.name"
-  }
+  }.freeze
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(leagues.name ilike :search)
+     or (leagues.shortname ilike :search)
+     or (regions.shortname ilike :search)
+     or (seasons.name ilike :search)"
+  end
+  
+  def self.search_joins
+    [
+      :league,
+      'LEFT OUTER JOIN "regions" ON ("regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
+      'LEFT OUTER JOIN "seasons" ON "seasons"."id" = "leagues"."season_id"'
+    ]
+  end
+  
+  def self.search_distinct?
+    false
+  end
+  
+  def self.cascading_filters
     {
-      model: Party,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: params[:sSearch],
-      column_names: Party::COLUMN_NAMES,
-      raw_sql: "(leagues.name ilike :search)
- or (regions.shortname ilike :search)
- or (seasons.name ilike :search)",
-      joins: [
-        :league,
-        'LEFT OUTER JOIN "regions" ON ("regions"."id" = "leagues"."organizer_id" AND "leagues"."organizer_type" = \'Region\')',
-        'LEFT OUTER JOIN "seasons" ON "seasons"."id" = "leagues"."season_id"'
-      ]
+      'season_id' => ['league_id'],
+      'region_id' => []
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'League'
+      { description: "Liga auswählen", examples: [] }
+    when 'Season'
+      { description: "Saison auswählen", examples: [] }
+    when 'Region'
+      { description: "Region/Veranstalter auswählen", examples: [] }
+    when 'Date'
+      { description: "Spieltag-Datum", examples: ["2024-01-15", "> 2024-01-01"] }
+    else
+      super
+    end
   end
 
   def kickoff_switches_with

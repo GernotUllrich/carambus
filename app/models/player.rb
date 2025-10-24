@@ -11,6 +11,7 @@ class Player < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
   has_many :game_participations, dependent: :nullify
   has_many :season_participations, dependent: :destroy
   has_many :clubs, through: :season_participations
@@ -55,33 +56,66 @@ class Player < ApplicationRecord
     a: {},
     b: {}
   }
-  COLUMN_NAMES = { "Region" => "regions.shortname",
-                   "Club" => "clubs.shortname",
-                   "CC_ID" => "players.cc_id",
-                   "DBU_ID" => "players.dbu_nr",
-                   "Nickname" => "players.nickname",
-                   "Firstname" => "players.firstname",
-                   "Lastname" => "players.lastname",
-                   "Title" => "players.title",
+  COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "players.id",
+    "region_id" => "regions.id",
+    "club_id" => "season_participations.club_id",
+    
+    # Externe IDs (sichtbar, filterbar)
+    "CC_ID" => "players.cc_id",
+    "DBU_ID" => "players.dbu_nr",
+    
+    # Referenzen (Dropdown/Select)
+    "Region" => "regions.shortname",
+    "Club" => "clubs.shortname",
+    
+    # Eigene Felder
+    "Firstname" => "players.firstname",
+    "Lastname" => "players.lastname",
+    "Nickname" => "players.nickname",
+    "Title" => "players.title",
   }.freeze
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash, we only need to define the specifics
+  
+  def self.text_search_sql
+    "(players.fl_name ilike :search)
+     or (players.firstname ilike :search)
+     or (players.lastname ilike :search)
+     or (players.nickname ilike :search)
+     or (players.cc_id = :isearch)"
+  end
+
+  def self.search_joins
+    [:season_participations, :region]
+  end
+
+  def self.search_distinct?
+    true # wegen season_participations können Duplikate entstehen
+  end
+
+  def self.cascading_filters
     {
-      model: Player,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: Player::COLUMN_NAMES.merge({
-                                                 "region_id" => "regions.id",
-                                                 "club_id" => "season_participations.club_id"
-                                               }),
-      raw_sql: "(players.firstname ilike :search)
- or (players.nickname ilike :search)
- or (players.cc_id = :isearch)
- or (players.lastname ilike :search)",
-      joins: [:season_participations, :region],
-      distinct: true
+      'region_id' => ['club_id']  # Region-Auswahl filtert verfügbare Clubs
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Firstname', 'Lastname', 'Nickname'
+      { description: "Textsuche nach #{field_name}", examples: ["Meyer", "Hans", "Hansi"] }
+    when 'CC_ID', 'DBU_ID'
+      { description: "Numerische ID", examples: ["12345", "67890"] }
+    when 'Region'
+      { description: "Region auswählen", examples: [] }
+    when 'Club'
+      { description: "Verein auswählen (nach Region gefiltert)", examples: [] }
+    when 'Title'
+      { description: "Titel/Anrede", examples: ["Herr", "Frau", "Dr."] }
+    else
+      super
+    end
   end
 
   def self.default_guest(ab, location)

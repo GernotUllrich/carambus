@@ -25,6 +25,7 @@ class GameParticipation < ApplicationRecord
   include LocalProtector
   include CableReady::Broadcaster
   include RegionTaggable
+  include Searchable
   belongs_to :player, optional: true
   belongs_to :game
 
@@ -60,12 +61,23 @@ class GameParticipation < ApplicationRecord
   serialize :data, coder: JSON, type: Hash
 
   COLUMN_NAMES = {
-    "Game" => "games.gname",
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "game_participations.id",
+    "game_id" => "games.id",
+    "tournament_id" => "tournaments.id",
+    "discipline_id" => "disciplines.id",
+    "player_id" => "players.id",
+    "club_id" => "clubs.id",
+    
+    # Referenzen (Dropdown/Select)
     "Tournament" => "tournaments.title",
     "Discipline" => "disciplines.name",
-    "Date" => "tournaments.date",
-    "Player" => "players.lastname||players.firstname",
     "Club" => "clubs.shortname",
+    
+    # Eigene Felder
+    "Game" => "games.gname",
+    "Date" => "tournaments.date::date",
+    "Player" => "players.lastname||', '||players.firstname",
     "Role" => "game_participations.role",
     "Points" => "game_participations.points",
     "Result" => "game_participations.result",
@@ -76,32 +88,60 @@ class GameParticipation < ApplicationRecord
 
   self.ignored_columns = ["region_ids"]
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(tournaments.title ilike :search)
+     or (games.gname ilike :search)
+     or (disciplines.name ilike :search)
+     or (players.fl_name ilike :search)
+     or (players.lastname ilike :search)
+     or (players.firstname ilike :search)
+     or (clubs.shortname ilike :search)"
+  end
+  
+  def self.search_joins
+    [
+      "LEFT JOIN games on (game_participations.game_id = games.id)",
+      "LEFT JOIN tournaments ON (games.tournament_id = tournaments.id)",
+      "LEFT JOIN disciplines ON (disciplines.id = tournaments.discipline_id)",
+      "LEFT JOIN players ON players.id = game_participations.player_id",
+      "LEFT JOIN season_participations ON season_participations.player_id = players.id",
+      "LEFT JOIN clubs ON clubs.id = season_participations.club_id"
+    ]
+  end
+  
+  def self.search_distinct?
+    true # wegen season_participations können Duplikate entstehen
+  end
+  
+  def self.cascading_filters
     {
-      model: GameParticipation,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: GameParticipation::COLUMN_NAMES,
-      raw_sql: "(tournaments.title ilike :search)
-      or (regions.shortname ilike :search)
-      or (games.gname ilike :search)
-      or (seasons.name ilike :search)
-      or exists (
-        select 1
-        from game_participations gp
-        join players p on p.id = gp.player_id
-        where gp.game_id = games.id
-        and p.fl_name ilike :search
-      )",
-      joins: [
-        "LEFT JOIN games on (game_participations.game_id = games.id)",
-        "LEFT JOIN tournaments ON (games.tournament_id = tournaments.id)",
-        'LEFT JOIN regions ON (regions.id = tournaments.organizer_id AND tournaments.organizer_type = \'Region\')',
-        'LEFT JOIN seasons ON (seasons.id = tournaments.season_id)',
-        'LEFT JOIN players ON players.id = game_participations.player_id'
-      ]
+      'tournament_id' => [],
+      'discipline_id' => []
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Game'
+      { description: "Partie-Name/Nummer", examples: ["Partie 1", "Finale"] }
+    when 'Tournament'
+      { description: "Turnier auswählen", examples: [] }
+    when 'Discipline'
+      { description: "Disziplin auswählen", examples: [] }
+    when 'Player'
+      { description: "Spieler-Name", examples: ["Meyer, Hans"] }
+    when 'Club'
+      { description: "Verein", examples: [] }
+    when 'Date'
+      { description: "Spiel-Datum", examples: ["2024-01-15", "> 2024-01-01"] }
+    when 'Role'
+      { description: "Spieler-Rolle", examples: ["home", "guest", "playera", "playerb"] }
+    when 'Points', 'Result', 'Innings', 'GD', 'HS'
+      { description: "Numerischer Wert", examples: ["> 100", "= 50", "<= 200"] }
+    else
+      super
+    end
   end
 
   def deep_merge_data!(hash)

@@ -23,6 +23,7 @@
 class SeasonParticipation < ApplicationRecord
   include LocalProtector
   include RegionTaggable
+  include Searchable
 
   self.ignored_columns = ["region_ids"]
 
@@ -36,26 +37,64 @@ class SeasonParticipation < ApplicationRecord
 
   REFLECTION_KEYS = %w[season player club].freeze
   COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "season_participations.id",
+    "season_id" => "seasons.id",
+    "player_id" => "players.id",
+    "club_id" => "clubs.id",
+    "region_id" => "regions.id",
+    
+    # Referenzen (Dropdown/Select)
     "Season" => "seasons.name",
-    "Name" => "players.lastname||', '||players.firstname",
+    "Region" => "regions.shortname",
     "Club" => "clubs.shortname",
-    "Region" => "regions.shortname"
+    
+    # Eigene Felder (mit concat für Player-Name)
+    "Player" => "players.lastname||', '||players.firstname",
+    "Status" => "season_participations.status",
   }.freeze
-  def self.search_hash(params)
+  
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(players.lastname ilike :search)
+     or (players.firstname ilike :search)
+     or (players.fl_name ilike :search)
+     or (players.nickname ilike :search)
+     or (clubs.name ilike :search)
+     or (clubs.shortname ilike :search)
+     or (seasons.name ilike :search)"
+  end
+  
+  def self.search_joins
+    [:season, :player, { club: :region }]
+  end
+  
+  def self.search_distinct?
+    false
+  end
+  
+  def self.cascading_filters
     {
-      model: SeasonParticipation,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: [params[:sSearch], params[:search]].compact.join("&").to_s,
-      column_names: SeasonParticipation::COLUMN_NAMES,
-      raw_sql: "(players.lastname ilike :search)
-or (players.nickname ilike :search)
-or (players.firstname ilike :search)
-or (clubs.name ilike :search)
-or (clubs.shortname ilike :search)
-or (seasons.name ilike :search)",
-      joins: %i[season player club]
+      'season_id' => [],
+      'region_id' => ['club_id']
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Season'
+      { description: "Saison auswählen", examples: [] }
+    when 'Region'
+      { description: "Region auswählen", examples: [] }
+    when 'Club'
+      { description: "Verein auswählen", examples: [] }
+    when 'Player'
+      { description: "Spieler-Name", examples: ["Meyer, Hans", "Schmidt, Peter"] }
+    when 'Status'
+      { description: "Mitgliedsstatus", examples: ["active", "passive", "guest"] }
+    else
+      super
+    end
   end
   # status:
   # "active" member

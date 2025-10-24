@@ -35,6 +35,7 @@ class Region < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
   # TODO: check country association, because RuboCop complains
   # Unable to find an associated Rails Model for the ':country' association field
   belongs_to :country, optional: true
@@ -106,14 +107,50 @@ class Region < ApplicationRecord
     SHORTNAMES_OTHERS + SHORTNAMES_NO_CC
 
   COLUMN_NAMES = {
-    "Logo" => "",
+    # IDs (versteckt, nur für Backend-Filterung)
     "id" => "regions.id",
+    
+    # Eigene Felder
     "Shortname" => "regions.shortname",
     "Name" => "regions.name",
     "Email" => "regions.email",
     "Address" => "regions.address",
-    "Country" => ""
   }.freeze
+  
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(regions.shortname ilike :search)
+     or (regions.name ilike :search)
+     or (regions.email ilike :search)
+     or (regions.address ilike :search)"
+  end
+  
+  def self.search_joins
+    []
+  end
+  
+  def self.search_distinct?
+    false
+  end
+  
+  def self.cascading_filters
+    {}
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Shortname'
+      { description: "Region-Kürzel", examples: ["NBV", "BBV", "BVNR"] }
+    when 'Name'
+      { description: "Voller Name der Region", examples: ["Norddeutscher Billard Verband"] }
+    when 'Email'
+      { description: "Kontakt-E-Mail", examples: ["info@region.de"] }
+    when 'Address'
+      { description: "Adresse der Region", examples: ["Berlin", "Hamburg"] }
+    else
+      super
+    end
+  end
 
   def self.region_map
     regions = all.to_a

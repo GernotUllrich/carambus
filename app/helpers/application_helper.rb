@@ -159,33 +159,35 @@ module ApplicationHelper
 
     search_hash = model_class.search_hash({})
     column_names = search_hash[:column_names]
+    
+    # Use model's field type detection if Searchable concern is included
+    field_types = model_class.respond_to?(:filter_field_types) ? 
+                    model_class.filter_field_types : {}
 
     fields = []
     column_names.each do |display_name, column_def|
-      input_type, input_type_name, options = detect_field_type_and_options(column_def, display_name, model_class)
+      # Get field type from Searchable concern or fallback to legacy detection
+      field_type = field_types[display_name] || :text
       
-      field_key = if column_def.include?('regions.shortname')
-                    'region_shortname'
-                  elsif column_def.include?('clubs.shortname')
-                    'club_shortname'
-                  elsif column_def.include?('seasons.name')
-                    'season_name'
-                  elsif column_def.include?('leagues.shortname')
-                    'league_shortname'
-                  elsif column_def.include?('parties.id')
-                    'party_shortname'
-                  elsif column_def.include?('regions.id')
-                    'region_id'
-                  elsif column_def.include?('seasons.id')
-                    'season_id'
-                  elsif column_def.include?('clubs.id')
-                    'club_id'
-                  elsif column_def.include?('leagues.id')
-                    'league_id'
-                  else
-                    column_def.split('.').last
-                  end
+      # Skip hidden fields in UI
+      next if field_type == :hidden
+      
+      # Legacy compatibility: convert symbol to string and get options
+      input_type, input_type_name, options = if field_type == :select
+        detect_field_type_and_options(column_def, display_name, model_class)
+      else
+        [field_type.to_s, field_type.to_s, []]
+      end
+      
+      # Determine field key (for form name attribute)
+      field_key = determine_field_key(display_name, column_def)
+      
       max_options = options.is_a?(Array) ? options.length : nil
+      
+      # Get examples and description from model if available
+      field_examples = model_class.respond_to?(:field_examples) ? 
+                        model_class.field_examples(display_name) : 
+                        { description: display_name, examples: [] }
       
       field = {
         display_name: display_name,
@@ -195,14 +197,57 @@ module ApplicationHelper
         input_type_name: input_type_name,
         options: options,
         max_options: max_options,
-        show_operators: should_show_operators(input_type),
-        model_class: model_class
+        show_operators: should_show_operators_for_type(field_type),
+        model_class: model_class,
+        field_type: field_type,
+        description: field_examples[:description],
+        examples: field_examples[:examples]
       }
       
       fields << field
     end
 
     fields
+  end
+  
+  # Determine field key for form input name attribute
+  def determine_field_key(display_name, column_def)
+    # Check for specific reference patterns
+    return 'region_shortname' if column_def.include?('regions.shortname')
+    return 'club_shortname' if column_def.include?('clubs.shortname')
+    return 'season_name' if column_def.include?('seasons.name')
+    return 'league_shortname' if column_def.include?('leagues.shortname')
+    return 'party_shortname' if column_def.include?('parties.id')
+    
+    # ID fields
+    return 'region_id' if column_def.include?('regions.id')
+    return 'season_id' if column_def.include?('seasons.id')
+    return 'club_id' if column_def.include?('clubs.id')
+    return 'league_id' if column_def.include?('leagues.id')
+    return 'discipline_id' if column_def.include?('disciplines.id')
+    
+    # Default: use display_name or extract from column_def
+    display_name.downcase.gsub(/\s+/, '_')
+  end
+  
+  # Determine if operators should be shown based on field type
+  def should_show_operators_for_type(field_type)
+    [:number, :date].include?(field_type)
+  end
+  
+  # Render tooltip content for filter field (plain text for data attributes)
+  def render_filter_tooltip(field)
+    parts = []
+    
+    if field[:description].present?
+      parts << field[:description]
+    end
+    
+    if field[:examples].present? && field[:examples].any?
+      parts << "Beispiele: #{field[:examples].join(', ')}"
+    end
+    
+    parts.join(' | ')
   end
 
   def render_filter_input(field, value = nil)

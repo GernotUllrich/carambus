@@ -2,17 +2,22 @@
 
 module FiltersHelper
   def apply_filters(query, columns, search_query)
-    searches = @sSearch.to_s.split(/[,&\s]+/)
+    searches = @sSearch.to_s.split(/[,&\s]+/).reject(&:blank?)
     search_matches = []
     
-    # Handle simple text searches using raw_sql if no colons are found
-    if searches.all? { |search| !/:/.match?(search) } && search_query.present?
-      # Use raw_sql for simple text searches
-      search_term = searches.join(' ')
-      return query.where(search_query, search: "%#{search_term}%", isearch: search_term.to_i)
+    # Separate plain text searches from field-specific filters
+    plain_searches = searches.select { |s| !/:/.match?(s) }
+    field_searches = searches.select { |s| /:/.match?(s) }
+    
+    # Apply plain text searches with AND logic if raw_sql is available
+    if plain_searches.any? && search_query.present?
+      plain_searches.each do |search_term|
+        query = query.where(search_query, search: "%#{search_term}%", isearch: search_term.to_i)
+      end
     end
     
-    searches.each do |search|
+    # Apply field-specific filters
+    field_searches.each do |search|
       if /:/.match?(search)
         key, value = search.split(":")
         if value.present?

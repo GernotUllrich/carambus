@@ -16,6 +16,7 @@
 class PartyGame < ApplicationRecord
   include LocalProtector
   include RegionTaggable
+  include Searchable
 
   self.ignored_columns = ["region_ids"]
 
@@ -35,27 +36,27 @@ class PartyGame < ApplicationRecord
                    party_game_cc]
 
   COLUMN_NAMES = {
-    # Cascading references
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "party_games.id",
+    "region_id" => "regions.id",
+    "season_id" => "seasons.id",
+    "league_id" => "leagues.id",
+    "party_id" => "parties.id",
+    "discipline_id" => "disciplines.id",
+    
+    # Referenzen (Dropdown/Select)
     "Region" => "regions.shortname",
     "Season" => "seasons.name",
     "League" => "leagues.shortname",
-    #  party_id      :integer
     "Party" => "parties.id",
-    #  name          :string
-    "Name" => "party_games.name",
-    #  seqno         :integer
-    "Seqno" => "party_games.seqno",
-    #  created_at    :datetime         not null
-    #  updated_at    :datetime         not null
-    #  discipline_id :integer
     "Discipline" => "disciplines.name",
-    #  player_a_id   :integer
-    "Player A" => "player_a.name",
-    #  player_b_id   :integer
-    "Player B" => "player_b.name",
-    #  tournament_id :integer
-    "Tournament" => "tournaments.name",
-  }
+    
+    # Eigene Felder
+    "Name" => "party_games.name",
+    "Seqno" => "party_games.seqno",
+    "Player A" => "player_a.fl_name",
+    "Player B" => "player_b.fl_name",
+  }.freeze
 
   # data 14.1 endlos
   #   data:
@@ -69,22 +70,62 @@ class PartyGame < ApplicationRecord
   #   "#{party.league_team_a.shortname.presence||party.league_team_a.name}-#{seqno} - #{party.league_team_b.shortname.presence||party.league_team_b.name}-#{seqno}"
   # end
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash
+  def self.text_search_sql
+    "(leagues.shortname ilike :search)
+     or (leagues.name ilike :search)
+     or (parties.id = :isearch)
+     or (party_games.name ilike :search)
+     or (disciplines.name ilike :search)
+     or (regions.shortname ilike :search)
+     or (seasons.name ilike :search)
+     or (player_a.fl_name ilike :search)
+     or (player_b.fl_name ilike :search)"
+  end
+  
+  def self.search_joins
+    "INNER JOIN parties ON parties.id = party_games.party_id 
+     INNER JOIN leagues ON leagues.id = parties.league_id 
+     INNER JOIN seasons ON seasons.id = leagues.season_id 
+     INNER JOIN regions ON regions.id = leagues.organizer_id AND leagues.organizer_type = 'Region'
+     LEFT JOIN disciplines ON disciplines.id = party_games.discipline_id
+     LEFT JOIN players AS player_a ON player_a.id = party_games.player_a_id
+     LEFT JOIN players AS player_b ON player_b.id = party_games.player_b_id"
+  end
+  
+  def self.search_distinct?
+    true
+  end
+  
+  def self.cascading_filters
     {
-      model: PartyGame,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: "#{[params[:sSearch], params[:search]].compact.join("&")}",
-      column_names: PartyGame::COLUMN_NAMES.merge({
-        "region_id" => "regions.id",
-        "season_id" => "seasons.id",
-        "league_id" => "leagues.id",
-        "party_id" => "parties.id"
-      }),
-      raw_sql: "(leagues.shortname ilike :search) or (parties.id = :isearch) or (party_games.name ilike :search) or (disciplines.name ilike :search) or (regions.shortname ilike :search) or (seasons.name ilike :search)",
-      joins: "INNER JOIN parties ON parties.id = party_games.party_id INNER JOIN leagues ON leagues.id = parties.league_id INNER JOIN seasons ON seasons.id = leagues.season_id INNER JOIN regions ON regions.id = leagues.organizer_id AND leagues.organizer_type = 'Region'",
-      distinct: true
+      'region_id' => ['season_id'],
+      'season_id' => ['league_id'],
+      'league_id' => ['party_id']
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Region'
+      { description: "Region auswählen (filtert Seasons)", examples: [] }
+    when 'Season'
+      { description: "Saison auswählen (filtert Ligen)", examples: [] }
+    when 'League'
+      { description: "Liga auswählen (filtert Spieltage)", examples: [] }
+    when 'Party'
+      { description: "Spieltag-ID", examples: ["123", "456"] }
+    when 'Discipline'
+      { description: "Disziplin", examples: [] }
+    when 'Name'
+      { description: "Partie-Name", examples: ["Team A - Team B"] }
+    when 'Seqno'
+      { description: "Sequenz-Nummer", examples: ["1", "2", "> 5"] }
+    when 'Player A', 'Player B'
+      { description: "Spieler-Name", examples: ["Meyer, Hans"] }
+    else
+      super
+    end
   end
 
   def update_discipline_from_name

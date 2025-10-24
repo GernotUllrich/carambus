@@ -27,6 +27,7 @@ class Location < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
   # belongs_to :club
   has_many :club_locations, dependent: :destroy
   has_many :clubs, through: :club_locations
@@ -48,29 +49,62 @@ class Location < ApplicationRecord
   serialize :data, coder: JSON, type: Hash
 
   REFLECTION_KEYS = %w[club region].freeze
-  # TODO: Filters
-  COLUMN_NAMES = { "Id" => "clubs.id",
-                   "Region" => "regions.shortname",
-                   "Club" => "clubs.shortname",
-                   "Address" => "locations.address",
-                   "Name" => "locations.name" }.freeze
-  def self.search_hash(params)
+  
+  COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "locations.id",
+    "region_id" => "regions.id",
+    "club_id" => "clubs.id",
+    
+    # Referenzen (Dropdown/Select)
+    "Region" => "regions.shortname",
+    "Club" => "clubs.shortname",
+    
+    # Eigene Felder
+    "Name" => "locations.name",
+    "Address" => "locations.address",
+  }.freeze
+  # Searchable concern provides search_hash, we only need to define the specifics
+  
+  def self.text_search_sql
+    "(locations.name ilike :search)
+     or (locations.address ilike :search)
+     or (locations.synonyms ilike :search)
+     or (clubs.shortname ilike :search)"
+  end
+
+  def self.search_joins
+    # Komplexe JOINs als String-Array für Performance-Optimierung
+    [
+      'LEFT OUTER JOIN "club_locations" ON "club_locations"."location_id" = "locations"."id"',
+      'LEFT OUTER JOIN "clubs" ON "clubs"."id" = "club_locations"."club_id"',
+      'LEFT OUTER JOIN "regions" ON "regions"."id" = "clubs"."region_id"'
+    ]
+  end
+
+  def self.search_distinct?
+    false # LEFT OUTER JOIN erzeugt keine Duplikate
+  end
+
+  def self.cascading_filters
     {
-      model: Location,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: params[:sSearch],
-      column_names: Location::COLUMN_NAMES.merge({
-        "region_id" => "regions.id",
-        "club_id" => "clubs.id"
-      }),
-      raw_sql: "(locations.name ilike :search)
- or (locations.address ilike :search)
- or (locations.synonyms ilike :search)
- or (clubs.shortname ilike :search)",
-      # joins: [{ club_locations: :club }],
-      joins: ['LEFT OUTER JOIN "club_locations" ON "club_locations"."location_id" = "locations"."id"', 'LEFT OUTER JOIN "clubs" ON "clubs"."id" = "club_locations"."club_id"', 'LEFT OUTER JOIN "regions" ON "regions"."id" = "clubs"."region_id"']
+      'region_id' => ['club_id']  # Region-Auswahl filtert verfügbare Clubs
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Name'
+      { description: "Name der Location/Spielstätte", examples: ["Vereinsheim", "Clubhaus", "Sportcenter"] }
+    when 'Address'
+      { description: "Adresse der Location", examples: ["Berlin", "Hauptstraße", "10115"] }
+    when 'Region'
+      { description: "Region auswählen", examples: [] }
+    when 'Club'
+      { description: "Verein auswählen (nach Region gefiltert)", examples: [] }
+    else
+      super
+    end
   end
 
   before_save :add_md5
