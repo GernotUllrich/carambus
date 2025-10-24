@@ -202,6 +202,7 @@ GEM
     erubi (1.13.1)
     ethon (0.15.0)
       ffi (>= 1.15.0)
+    event_stream_parser (1.0.0)
     factory_bot (6.5.5)
       activesupport (>= 6.1.0)
     factory_bot_rails (6.5.1)
@@ -211,6 +212,8 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
+    faraday-multipart (1.1.1)
+      multipart-post (~> 2.0)
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     ffi (1.17.2-aarch64-linux-gnu)
@@ -526,6 +529,10 @@ GEM
       rubocop-rails (>= 2.30)
     ruby-graphviz (1.2.5)
       rexml
+    ruby-openai (7.4.0)
+      event_stream_parser (>= 0.3.0, < 2.0.0)
+      faraday (>= 1)
+      faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.5)
       ffi (~> 1.12)
@@ -655,7 +662,7 @@ PLATFORMS
   aarch64-linux-musl
   arm-linux-gnu
   arm-linux-musl
-  arm64-darwin
+  arm64-darwin-24
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -715,6 +722,7 @@ DEPENDENCIES
   redis-session-store (~> 0.11.5)
   rouge (~> 3.26)
   rubocop-rails-omakase
+  ruby-openai (~> 7.3)
   selenium-webdriver (>= 4.20.1)
   sprockets-rails (>= 3.4.1)
   stackprof

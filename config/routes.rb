@@ -14,6 +14,9 @@ Rails.application.routes.draw do
 
   # API routes
   namespace :api do
+    # AI-powered search
+    resources :ai_search, only: [:create]
+    
     resources :players, only: [] do
       collection do
         get :autocomplete

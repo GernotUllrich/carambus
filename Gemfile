@@ -147,3 +147,6 @@ gem 'cancancan', '~> 3.5'
 
 # Syntax highlighting for code blocks
 gem 'rouge', '~> 3.26'
+
+# OpenAI API integration for AI-powered search
+gem 'ruby-openai', '~> 7.3'
