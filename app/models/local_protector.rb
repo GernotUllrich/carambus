@@ -3,7 +3,9 @@ module LocalProtector
   included do
     attr_accessor :unprotected
 
-    has_paper_trail unless Carambus.config.carambus_api_url.present?
+    # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+    # This prevents unnecessary version records during scraping operations
+    has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
     after_save :disallow_saving_global_records
     before_destroy :disallow_saving_global_records
 
