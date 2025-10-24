@@ -148,27 +148,50 @@ class AiSearchService < ApplicationService
       #{entity_list}
       
       FILTER-SYNTAX:
-      1. Freitext: Einfach Text eingeben (z.B. "Meyer" sucht in allen Textfeldern)
+      1. Freitext: Einfach Text eingeben (z.B. "Meyer", "Hamburg", "Wedel" für Namen/Städte)
+      
       2. Season: "Season:2024/2025" oder "Season:2023/2024"
-      3. Region: WICHTIG - Verwende die VERBANDS-KÜRZEL (nicht Bundesland-Kürzel!):
+      
+      3. Region: NUR verwenden wenn EXPLIZIT ein VERBAND oder BUNDESLAND gemeint ist!
+         WICHTIG: Bei Städtenamen (Hamburg, Berlin, München, etc.) → Freitext verwenden!
+         Region-Filter nur für:
+         - Verbandsnamen: "aus dem NBV", "aus dem BVW", "im Verband"
+         - Bundesländer: "aus Bayern", "in Hessen", "in Nordrhein-Westfalen"
+         
+         Verfügbare Verbände:
          #{region_mappings}
+      
       4. Discipline: "Discipline:Freie Partie" "Discipline:Dreiband" "Discipline:Einband"
+      
       5. Date: 
          - Relativ: "Date:>heute-2w" (vor 2 Wochen), "Date:<heute+7" (in 7 Tagen)
          - Absolut: "Date:>2025-01-01" "Date:<2025-12-31"
          - Einheiten: d=Tage, w=Wochen, m=Monate
+         
       6. Status: "Status:upcoming" "Status:finished" "Status:running"
-      7. AND-Logik: Mehrere Filter mit Leerzeichen trennen
+      
+      7. AND-Logik: Mehrere Filter mit Leerzeichen kombinieren
       
       BEISPIELE FÜR KORREKTE ÜBERSETZUNGEN:
-      - "Turniere in Hamburg" → entity: "tournaments", filters: "Region:NBV"
+      
+      STÄDTE (Freitext verwenden!):
+      - "Clubs aus Hamburg" → entity: "clubs", filters: "Hamburg"
+      - "Turniere in Wedel" → entity: "tournaments", filters: "Wedel"
+      - "Spieler aus München" → entity: "players", filters: "München"
+      - "Vereine in Dortmund" → entity: "clubs", filters: "Dortmund"
+      
+      REGIONEN/VERBÄNDE (Region-Filter verwenden):
+      - "Clubs aus dem NBV" → entity: "clubs", filters: "Region:NBV"
+      - "Spieler aus Bayern" → entity: "players", filters: "Region:BBV"
       - "Alle Spieler aus Westfalen" → entity: "players", filters: "Region:BVW"
-      - "Vereine in Bayern" → entity: "clubs", filters: "Region:BBV"
+      - "Turniere im Norddeutschen Verband" → entity: "tournaments", filters: "Region:NBV"
+      - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
+      
+      WEITERE BEISPIELE:
       - "Dreiband Turniere 2024" → entity: "tournaments", filters: "Discipline:Dreiband Season:2024/2025"
       - "Turniere letzte 2 Wochen" → entity: "tournaments", filters: "Date:>heute-2w"
-      - "Spieler aus Berlin" → entity: "players", filters: "Region:BVB"
       - "Freie Partie heute" → entity: "tournaments", filters: "Discipline:Freie Partie Date:heute"
-      - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
+      - "Meyer Hamburg" → entity: "players", filters: "Meyer Hamburg"
       
       ANTWORTFORMAT (IMMER als gültiges JSON):
       {
@@ -180,8 +203,12 @@ class AiSearchService < ApplicationService
       
       WICHTIGE REGELN:
       - Bei mehrdeutigen Anfragen wähle die wahrscheinlichste Entity
-      - Region-Filter IMMER mit VERBANDS-Kürzeln (BVW, NBV, BBV, etc. - NICHT WL, HH, BE!)
-      - Bei "Westfalen" → BVW (nicht BVNRW), bei "NRW" → BVNRW, bei "Hamburg" → NBV
+      - STÄDTE = Freitext (Hamburg, Berlin, München, Wedel, etc.)
+      - VERBÄNDE/BUNDESLÄNDER = Region-Filter (NBV, BVW, Bayern, NRW, etc.)
+      - Region-Filter nur mit VERBANDS-Kürzeln (BVW, NBV, BBV - NICHT WL, HH, BE!)
+      - Bei "aus dem NBV" oder "im Verband" → Region-Filter
+      - Bei "in Hamburg" oder "aus Hamburg" (Stadt!) → Freitext
+      - Bundesländer-Mapping: Bayern→BBV, Hessen→HBU, NRW→BVNRW, Westfalen→BVW
       - Seasons im Format "2024/2025" (Slash verwenden!)
       - Bei Datums-Filtern relative Ausdrücke bevorzugen
       - Confidence unter 70 wenn Anfrage unklar ist
