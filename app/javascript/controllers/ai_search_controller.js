@@ -11,6 +11,9 @@ export default class extends Controller {
     
     // Restore last query from localStorage
     this.restoreLastQuery()
+    
+    // Check if panel should be open (after navigation from search)
+    this.checkPanelState()
   }
 
   // Toggle search panel visibility
@@ -56,14 +59,16 @@ export default class extends Controller {
         // Save query to localStorage for reference
         this.saveLastQuery(query)
         
+        // Mark that panel should stay open after navigation
+        this.setPanelShouldBeOpen()
+        
         // Show success message with query and explanation
         this.showMessage(
           `✓ "${query}"\n${data.explanation} (${data.confidence}% Sicherheit)`,
           "success"
         )
         
-        // Keep input value for reference and potential refinement
-        // Navigate to results after short delay
+        // Keep panel open and navigate after delay
         setTimeout(() => {
           window.location.href = data.path
         }, 1000)
@@ -161,6 +166,38 @@ export default class extends Controller {
     } catch (e) {
       // Ignore localStorage errors
       console.warn('Could not restore query from localStorage:', e)
+    }
+  }
+
+  // Mark that panel should be open after navigation
+  setPanelShouldBeOpen() {
+    try {
+      localStorage.setItem('carambus_ai_panel_open', 'true')
+      localStorage.setItem('carambus_ai_panel_open_time', Date.now())
+    } catch (e) {
+      console.warn('Could not save panel state:', e)
+    }
+  }
+
+  // Check if panel should be open and open it
+  checkPanelState() {
+    try {
+      const shouldBeOpen = localStorage.getItem('carambus_ai_panel_open')
+      const openTime = localStorage.getItem('carambus_ai_panel_open_time')
+      
+      if (shouldBeOpen === 'true' && openTime) {
+        // Only open if navigation happened within last 5 seconds
+        const ageSeconds = (Date.now() - parseInt(openTime)) / 1000
+        if (ageSeconds < 5) {
+          // Open panel
+          this.panelTarget.classList.remove('hidden')
+          // Clear the flag
+          localStorage.removeItem('carambus_ai_panel_open')
+          localStorage.removeItem('carambus_ai_panel_open_time')
+        }
+      }
+    } catch (e) {
+      console.warn('Could not check panel state:', e)
     }
   }
 }
