@@ -159,7 +159,7 @@ class Tournament < ApplicationRecord
     "Date" => "tournaments.date::date",
   }.freeze
 
-  self.ignored_columns = ["region_id"]
+  self.ignored_columns = ["region_ids"]
 
   # Searchable concern provides search_hash, we only need to define the specifics
   
