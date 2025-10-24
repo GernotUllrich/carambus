@@ -72,19 +72,25 @@ class AiSearchService < ApplicationService
     }
   }.freeze
 
-  # Region shortnames for quick reference
+  # Region shortnames for quick reference (from database)
   REGIONS = {
-    'WL' => ['Westfalen-Lippe', 'WL', 'Westfalen'],
-    'HH' => ['Hamburg', 'HH'],
-    'BE' => ['Berlin', 'BE'],
-    'BY' => ['Bayern', 'BY'],
-    'NI' => ['Niedersachsen', 'NI'],
-    'BW' => ['Baden-Württemberg', 'BW'],
-    'HE' => ['Hessen', 'HE'],
-    'NW' => ['Nordrhein-Westfalen', 'NW', 'NRW'],
-    'RP' => ['Rheinland-Pfalz', 'RP'],
-    'SH' => ['Schleswig-Holstein', 'SH'],
-    'SL' => ['Saarland', 'SL']
+    'BBV' => ['Bayerischer Billardverband', 'Bayern', 'BBV', 'BY'],
+    'SBV' => ['Sächsischer Billardverband', 'Sachsen', 'SBV'],
+    'BVBW' => ['Billard-Verband Baden-Württemberg', 'Baden-Württemberg', 'BVBW', 'BW'],
+    'BVRP' => ['Billard Verband Rheinland-Pfalz', 'Rheinland-Pfalz', 'BVRP', 'RP'],
+    'HBU' => ['Hessische Billard Union', 'Hessen', 'HBU', 'HE'],
+    'BVW' => ['Billard-Verband Westfalen', 'Westfalen', 'BVW', 'WL'],
+    'BVB' => ['Billard-Verband Berlin', 'Berlin', 'BVB', 'BE'],
+    'BBBV' => ['Brandenburgischer Billardverband', 'Brandenburg', 'BBBV', 'BB'],
+    'BLVN' => ['Billard Landesverband Niedersachsen', 'Niedersachsen', 'BLVN', 'NI'],
+    'NBV' => ['Norddeutscher Billard Verband', 'Norddeutschland', 'NBV', 'Hamburg', 'HH', 'Schleswig-Holstein', 'SH'],
+    'BLVSA' => ['Billard Landesverband Sachsen-Anhalt', 'Sachsen-Anhalt', 'BLVSA', 'SA'],
+    'DBU' => ['Deutsche Billard-Union', 'Deutschland', 'DBU'],
+    'BVS' => ['Billard-Verband-Saar', 'Saarland', 'BVS', 'SL'],
+    'BLMR' => ['Billard Landesverband Mittleres Rheinland', 'Mittleres Rheinland', 'BLMR'],
+    'BVNRW' => ['Billard-Verband Nordrhein-Westfalen', 'Nordrhein-Westfalen', 'BVNRW', 'NRW', 'NW'],
+    'BVNR' => ['Billard-Verband Niederrhein', 'Niederrhein', 'BVNR'],
+    'TBV' => ['Thüringer Billard Verband', 'Thüringen', 'TBV', 'TH']
   }.freeze
 
   # Common disciplines
@@ -97,10 +103,10 @@ class AiSearchService < ApplicationService
     'Snooker'
   ].freeze
 
-  def initialize(query:, user: nil)
+  def initialize(options = {})
     super()
-    @query = query&.strip
-    @user = user
+    @query = options[:query]&.strip
+    @user = options[:user]
     @client = OpenAI::Client.new
   end
 
