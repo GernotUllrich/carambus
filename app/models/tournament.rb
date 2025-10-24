@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include Searchable
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
 
   include AASM
@@ -137,35 +138,77 @@ class Tournament < ApplicationRecord
                    tournament_local
                    parties].freeze
 
-  COLUMN_NAMES = { # TODO: FILTERS
-                   "ID" => "tournaments.id",
-                   "CC_ID" => "tournament_ccs.cc_id",
-                   "Title" => "tournaments.title",
-                   "Shortname" => "tournaments.shortname",
-                   "Date" => "tournaments.date::date",
-                   "Discipline" => "disciplines.name",
-                   "Region" => "regions.shortname",
-                   "Organization" => "regions.shortname",
-                   "Season" => "seasons.name"
+  COLUMN_NAMES = {
+    # IDs (versteckt, nur für Backend-Filterung)
+    "id" => "tournaments.id",
+    "region_id" => "regions.id",
+    "season_id" => "seasons.id",
+    "discipline_id" => "disciplines.id",
+    
+    # Externe IDs (sichtbar, filterbar)
+    "CC_ID" => "tournament_ccs.cc_id",
+    
+    # Referenzen (Dropdown/Select)
+    "Region" => "regions.shortname",
+    "Season" => "seasons.name",
+    "Discipline" => "disciplines.name",
+    
+    # Eigene Felder
+    "Title" => "tournaments.title",
+    "Shortname" => "tournaments.shortname",
+    "Date" => "tournaments.date::date",
   }.freeze
 
   self.ignored_columns = ["region_ids"]
 
-  def self.search_hash(params)
+  # Searchable concern provides search_hash, we only need to define the specifics
+  
+  def self.text_search_sql
+    "(tournaments.ba_id = :isearch)
+     or (tournaments.title ilike :search)
+     or (tournaments.shortname ilike :search)
+     or (seasons.name ilike :search)"
+  end
+
+  def self.search_joins
+    # Organizer ist polymorphisch (Region), daher custom JOIN
+    [
+      'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
+      :season,
+      :discipline,
+      :tournament_cc
+    ]
+  end
+
+  def self.search_distinct?
+    false
+  end
+
+  def self.cascading_filters
     {
-      model: Tournament,
-      sort: params[:sort],
-      direction: sort_direction(params[:direction]),
-      search: [params[:sSearch], params[:search]].compact.join("&").to_s,
-      column_names: Tournament::COLUMN_NAMES,
-      raw_sql: "(tournaments.ba_id = :isearch)
-or (tournaments.title ilike :search)
-or (tournaments.shortname ilike :search)
-or (seasons.name ilike :search)",
-      joins: [
-        'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')', :season, :discipline, :tournament_cc
-      ]
+      'season_id' => []  # Season ist unabhängig, könnte aber Disciplines filtern (optional)
     }
+  end
+  
+  def self.field_examples(field_name)
+    case field_name
+    when 'Title'
+      { description: "Turniertitel", examples: ["Stadtmeisterschaft", "Pokalturnier"] }
+    when 'Shortname'
+      { description: "Kurzbezeichnung des Turniers", examples: ["SM2024", "Cup"] }
+    when 'Date'
+      { description: "Turnierdatum", examples: ["2024-01-15", "> 2024-01-01", "heute"] }
+    when 'CC_ID'
+      { description: "Externe Turnier-ID", examples: ["12345"] }
+    when 'Region'
+      { description: "Region/Veranstalter auswählen", examples: [] }
+    when 'Season'
+      { description: "Saison auswählen", examples: [] }
+    when 'Discipline'
+      { description: "Disziplin auswählen", examples: [] }
+    else
+      super
+    end
   end
 
   validates_each :data do |record, attr, _value|
