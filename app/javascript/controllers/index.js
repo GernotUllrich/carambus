@@ -28,6 +28,10 @@ import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)
 console.log("🔧 Sidebar Controller manually registered")
 
+import AiSearchController from "./ai_search_controller"
+application.register("ai-search", AiSearchController)
+console.log("🔧 AI Search Controller manually registered")
+
 // Set the consumer on the Stimulus application object first
 application.consumer = consumer
 
