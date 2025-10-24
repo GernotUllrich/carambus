@@ -466,16 +466,6 @@ module ApplicationHelper
       return 'number', 'number', nil
     end
 
-    # Region fields
-    if column_def.include?('regions.shortname')
-      regions = Region.order(:shortname).limit(50).pluck(:id, :shortname, :name)
-      region_options = regions.map { |id, shortname, name| { value: shortname, label: "#{shortname} (#{name})", id: id } }
-      
-      # Sort alphabetically by label
-      region_options.sort_by! { |option| option[:label].downcase }
-      
-      return 'select', 'select', region_options
-    end
 
     # Season fields (for PartyGame model)
     if column_def.include?('seasons.name') && model_class == PartyGame
