@@ -66,7 +66,6 @@ class User < ApplicationRecord
   end
 
   def prefers_dark_mode?
-    # Check if user prefers dark mode
     preferences["theme"] == "dark" || false
   end
 

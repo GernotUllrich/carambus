@@ -1231,10 +1231,9 @@ ENV
       puts "Restoring from #{latest_dump}..."
       if system("gunzip -c #{latest_dump} | psql #{database_name}")
         puts "✅ Database restored successfully"
-
-        # Reset sequences for local server (prevents ID conflicts with API)
-        puts "Resetting sequences for local server..."
-        system("cd #{File.expand_path("../#{scenario_name}", carambus_data_path)} && bundle exec rails runner 'Version.sequence_reset'")
+        
+        # NOTE: Version.sequence_reset is NOT called here because local data 
+        # will be loaded later in Step 8. Sequences must be reset AFTER local data is loaded.
 
         true
       else
@@ -1495,15 +1494,39 @@ ENV
 
     # Step 8: Restore local data to development database (if backup exists)
     puts "\n🔄 Step 8: Restoring local data to development database..."
+    local_data_restored = false
     if backup_file && File.exist?(backup_file)
       puts "   💾 Found local data backup: #{File.basename(backup_file)}"
-      unless restore_local_data_to_development(scenario_name, backup_file, environment)
+      if restore_local_data_to_development(scenario_name, backup_file, environment)
+        local_data_restored = true
+      else
         puts "   ⚠️  Failed to restore local data to development - manual restoration may be needed"
         puts "   💾 Backup file available at: #{backup_file}"
         # Don't fail - continue without local data
       end
     else
       puts "   ℹ️  No local data backup found - development database has only official data"
+    end
+
+    # Step 9: Reset sequences for local server (if not already done during local data restore)
+    unless local_data_restored
+      puts "\n🔄 Step 9: Resetting sequences for local server..."
+      # The scenario directory is a sibling of carambus_master (or carambus_data/scenarios for archived scenarios)
+      scenario_dir = File.expand_path("../#{scenario_name}", Rails.root)
+      unless File.directory?(scenario_dir)
+        scenario_dir = File.expand_path("scenarios/#{scenario_name}", carambus_data_path)
+      end
+      
+      if File.directory?(scenario_dir)
+        if system("cd #{scenario_dir} && bundle exec rails runner 'Version.sequence_reset'")
+          puts "   ✅ Sequences reset successfully"
+        else
+          puts "   ⚠️  Warning: Sequence reset failed"
+        end
+      else
+        puts "   ⚠️  Warning: Scenario directory not found: #{scenario_dir}"
+        puts "      Skipping sequence reset"
+      end
     end
 
     puts "\n✅ Scenario #{scenario_name} prepared for development!"
@@ -3279,7 +3302,7 @@ ENV
     puts "   🔧 Ensuring Redis is installed and running..."
     redis_check_cmd = "systemctl is-active redis-server 2>/dev/null || systemctl is-active redis 2>/dev/null"
     redis_running = system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{redis_check_cmd}' >/dev/null 2>&1")
-    
+
     unless redis_running
       puts "   📦 Redis not running, installing..."
       redis_install_cmd = "sudo apt-get update -qq && sudo apt-get install -y redis-server"
@@ -3515,6 +3538,7 @@ ENV
     ssh_password = pi_config['ssh_password']
     ssh_port = pi_config['ssh_port'] || 22
     kiosk_user = pi_config['kiosk_user']
+    sb_state = pi_config['sb_state'] || 'welcome'
 
     # Generate scoreboard URL using Rails Location model
     location_id = scenario_config['scenario']['location_id']
@@ -3527,7 +3551,7 @@ ENV
     location_md5 = location.md5
 
     # Generate URL using the correct MD5
-    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=welcome&locale=de"
+    scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
 
     puts "   Scoreboard URL: #{scoreboard_url}"
 
@@ -3953,7 +3977,7 @@ ENV
       puts "❌ Scenario configuration not found: #{config_file}"
       return false
     end
-    
+
     scenario_config = YAML.load_file(config_file)
     production_config = scenario_config['environments']['production']
 
@@ -3973,13 +3997,13 @@ ENV
     puts "\n   📥 Step 1: Downloading production database..."
     temp_dump = "/tmp/#{production_database}_#{timestamp}.sql.gz"
     download_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres pg_dump #{production_database} | gzip' > #{temp_dump}"
-    
+
     unless system(download_cmd)
       puts "   ❌ Failed to download production database"
       return false
     end
     puts "   ✅ Downloaded: #{File.size(temp_dump) / 1024 / 1024} MB"
-    
+
     puts "\n   🗄️  Step 2: Creating temporary local database..."
     # Drop temp database if it exists
     system("dropdb #{temp_database} 2>/dev/null")
@@ -3988,7 +4012,7 @@ ENV
       File.delete(temp_dump)
       return false
     end
-    
+
     puts "   📥 Loading production data into temporary database..."
     unless system("gunzip -c #{temp_dump} | psql #{temp_database} > /dev/null 2>&1")
       puts "   ❌ Failed to load production data"
@@ -3997,25 +4021,25 @@ ENV
       return false
     end
     puts "   ✅ Temporary database loaded"
-    
+
     puts "\n   🔍 Step 3: Detecting schema mismatches..."
     # Check if region_id column exists in players table
     check_region_id = `psql #{temp_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_name='players' AND column_name='region_id';"`.strip
     needs_migration = check_region_id.empty?
-    
+
     puts "   🔍 Debug: region_id check result: '#{check_region_id}' (empty=#{check_region_id.empty?})"
-    
+
     if needs_migration
       puts "   ⚠️  Old schema detected (carambus2) - migration required"
       puts "\n   🔧 Step 4: Adding missing schema columns and updating values..."
-      
+
       # Write migration SQL to a temp file to avoid escaping issues
       migration_sql_file = "/tmp/migration_#{timestamp}.sql"
-      
+
       # List of tables that need both region_id and global_context (all tables with local data)
       tables_to_migrate = [
         'clubs',
-        'locations', 
+        'locations',
         'players',
         'tournaments',
         'tournament_locals',
@@ -4028,15 +4052,15 @@ ENV
         'seedings',
         'versions'
       ]
-      
+
       migration_sql = StringIO.new
       migration_sql.puts "-- Add missing region_id and global_context columns to all local tables"
-      
+
       tables_to_migrate.each do |table|
         migration_sql.puts "ALTER TABLE #{table} ADD COLUMN IF NOT EXISTS region_id integer;"
         migration_sql.puts "ALTER TABLE #{table} ADD COLUMN IF NOT EXISTS global_context boolean;"
       end
-      
+
       migration_sql.puts "\n-- Convert users.role from text to integer (if needed)"
       migration_sql.puts "DO $$"
       migration_sql.puts "BEGIN"
@@ -4047,18 +4071,18 @@ ENV
       migration_sql.puts "    ALTER TABLE users ADD COLUMN role integer DEFAULT 0;"
       migration_sql.puts "  END IF;"
       migration_sql.puts "END $$;"
-      
+
       migration_sql.puts "\n-- Update local records (id > 50000000) with appropriate values"
-      
+
       tables_to_migrate.each do |table|
         migration_sql.puts "UPDATE #{table} SET region_id = 1, global_context = false WHERE id > 50000000;"
       end
-      
+
       migration_sql.puts "\n-- Set default role for local users"
       migration_sql.puts "UPDATE users SET role = 0 WHERE id > 50000000;"
-      
+
       File.write(migration_sql_file, migration_sql.string)
-      
+
       puts "   🔧 Executing migration SQL..."
       unless system("psql #{temp_database} -f #{migration_sql_file}")
         puts "   ❌ Failed to migrate schema"
@@ -4068,16 +4092,16 @@ ENV
         return false
       end
       File.delete(migration_sql_file)
-      
+
       # Verify migration worked
       verify_result = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM players WHERE id > 50000000 AND region_id = 1;"`.strip
       puts "   ✅ Schema migrated successfully - #{verify_result} players updated with region_id = 1"
     else
       puts "   ✅ Current schema detected - no migration needed"
     end
-    
+
     puts "\n   📤 Step 5: Extracting local data (id > 50000000) with correct schema..."
-    
+
     # Define table dependency order (parents first, children last)
     table_dependency_order = [
       'regions',
@@ -4096,7 +4120,7 @@ ENV
       'seedings',
       'versions'
     ]
-    
+
     # Create SQL file with schema-compliant local data
     File.open(backup_file, 'w') do |f|
       f.puts "-- Local data backup (ID > 50,000,000) with schema migration applied"
@@ -4104,14 +4128,14 @@ ENV
       f.puts "SET session_replication_role = replica;"
       f.puts ""
     end
-    
+
     # Get API database name for schema reference
     dev_database = scenario_config.dig('environments', 'development', 'database_name') || "#{scenario_name}_development"
     api_database = dev_database.gsub(/_bcw/, '_api').gsub(/_development$/, '_development')
     # Ensure it's carambus_api_development
     api_database = 'carambus_api_development'
     puts "   🔍 Using #{api_database} as schema reference"
-    
+
     table_dependency_order.each do |table|
       # Check if table has local data
       if ['table_locals', 'tournament_locals'].include?(table)
@@ -4120,38 +4144,38 @@ ENV
       else
         count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table} WHERE id > 50000000;"`.strip.to_i
       end
-      
+
       if count > 0
         puts "   📋 Extracting #{table}: #{count} records"
-        
+
         # Get column list from API database (target schema), excluding generated columns
         target_columns = `psql #{api_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='#{table}' AND (is_generated = 'NEVER' OR is_generated IS NULL) ORDER BY ordinal_position;"`.split("\n").map(&:strip).reject(&:empty?).join(", ")
-        
+
         # Check which of those columns exist in temp database (also excluding generated columns)
         temp_columns_result = `psql #{temp_database} -t -c "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='#{table}' AND (is_generated = 'NEVER' OR is_generated IS NULL) ORDER BY ordinal_position;"`.split("\n").map(&:strip).reject(&:empty?)
-        
+
         # Use only columns that exist in both
         available_columns = target_columns.split(", ").select { |col| temp_columns_result.include?(col) }
         column_list = available_columns.join(", ")
-        
+
         if column_list.empty?
           puts "   ⚠️  Warning: No matching columns found for #{table}, skipping"
           next
         end
-        
+
         # Append table comment with explicit column list
         File.open(backup_file, 'a') do |f|
           f.puts "-- Table: #{table} (#{count} records)"
           f.puts "COPY public.#{table} (#{column_list}) FROM stdin;"
         end
-        
+
         # Append data using COPY TO STDOUT with explicit column list
         if ['table_locals', 'tournament_locals'].include?(table)
           system("psql #{temp_database} -c \"COPY (SELECT #{column_list} FROM #{table}) TO STDOUT\" >> #{backup_file}")
         else
           system("psql #{temp_database} -c \"COPY (SELECT #{column_list} FROM #{table} WHERE id > 50000000) TO STDOUT\" >> #{backup_file}")
         end
-        
+
         # Append terminator
         File.open(backup_file, 'a') do |f|
           f.puts "\\."
@@ -4159,20 +4183,20 @@ ENV
         end
       end
     end
-    
+
     # Append footer
     File.open(backup_file, 'a') do |f|
       f.puts "SET session_replication_role = DEFAULT;"
     end
-    
+
     puts "\n   🧹 Step 6: Cleaning up temporary database and files..."
     system("dropdb #{temp_database}")
     File.delete(temp_dump)
-    
+
     puts "\n✅ Schema-compliant backup created!"
     puts "   File: #{backup_file}"
     puts "   Size: #{File.size(backup_file) / 1024} KB"
-    
+
     backup_file
   end
 
@@ -4295,14 +4319,14 @@ EOF
     # Write script to local temp file first (avoids escaping issues)
     local_script = "/tmp/backup_local_data_#{timestamp}.sh"
     File.write(local_script, backup_script)
-    
+
     remote_script = "/tmp/backup_local_data.sh"
-    
+
     # Transfer script to server
     if system("scp -P #{ssh_port} '#{local_script}' www-data@#{ssh_host}:#{remote_script}")
       # Execute script on server
       execute_cmd = "chmod +x #{remote_script} && #{remote_script} && rm #{remote_script}"
-      
+
       # Clean up local temp file
       File.delete(local_script)
 
@@ -4428,14 +4452,14 @@ EOF
       timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
       local_script = "/tmp/restore_local_data_#{timestamp}.sh"
       File.write(local_script, restore_script)
-      
+
       remote_script = "/tmp/restore_local_data.sh"
-      
+
       # Transfer script to server
       if system("scp -P #{ssh_port} '#{local_script}' www-data@#{ssh_host}:#{remote_script}")
         # Execute script on server
         execute_cmd = "chmod +x #{remote_script} && #{remote_script} && rm #{remote_script}"
-        
+
         # Clean up local temp file
         File.delete(local_script)
 
@@ -4466,12 +4490,12 @@ EOF
     end
 
     database_name = "#{scenario_name}_#{environment}"
-    
+
     # Check if file is compressed
     is_gzipped = backup_file.end_with?('.gz')
 
     puts "   📥 Loading schema-compliant local data into #{database_name}..."
-    
+
     # Delete any existing local data (id > 50000000) to avoid conflicts
     puts "   🧹 Clearing existing local data (id > 50000000) to avoid conflicts..."
     table_order = [
@@ -4487,24 +4511,41 @@ EOF
         system("psql #{database_name} -c 'DELETE FROM #{table} WHERE id > 50000000;' 2>/dev/null")
       end
     end
-    
+
     # Restore local data (backup is already schema-compliant from create_schema_compliant_backup)
-    if is_gzipped
-      if system("gunzip -c '#{backup_file}' | psql #{database_name}")
-        puts "   ✅ Local data restored to development database successfully"
-        return true
-      else
-        puts "   ❌ Failed to restore local data"
-        return false
+    restore_success = if is_gzipped
+                        system("gunzip -c '#{backup_file}' | psql #{database_name}")
+                      else
+                        system("psql #{database_name} < '#{backup_file}'")
+                      end
+    
+    if restore_success
+      puts "   ✅ Local data restored to development database successfully"
+      
+      # Reset sequences AFTER local data is loaded (prevents ID conflicts with API)
+      puts "   🔄 Resetting sequences for local server..."
+      # The scenario directory is a sibling of carambus_master (or carambus_data/scenarios for archived scenarios)
+      carambus_data_path = ENV['CARAMBUS_DATA_PATH'] || File.expand_path('../../carambus_data', Rails.root)
+      scenario_dir = File.expand_path("../#{scenario_name}", Rails.root)
+      unless File.directory?(scenario_dir)
+        scenario_dir = File.expand_path("scenarios/#{scenario_name}", carambus_data_path)
       end
+      
+      if File.directory?(scenario_dir)
+        if system("cd #{scenario_dir} && bundle exec rails runner 'Version.sequence_reset'")
+          puts "   ✅ Sequences reset successfully"
+        else
+          puts "   ⚠️  Warning: Sequence reset failed"
+        end
+      else
+        puts "   ⚠️  Warning: Scenario directory not found: #{scenario_dir}"
+        puts "      Skipping sequence reset"
+      end
+      
+      return true
     else
-      if system("psql #{database_name} < '#{backup_file}'")
-        puts "   ✅ Local data restored to development database successfully"
-        return true
-      else
-        puts "   ❌ Failed to restore local data"
-        return false
-      end
+      puts "   ❌ Failed to restore local data"
+      return false
     end
   end
 
@@ -4643,6 +4684,7 @@ EOF
       # Note: Removed sudo - runs as current user (pj) for proper X11 access
       # Try chromium first (newer systems), fallback to chromium-browser (older systems)
       BROWSER_CMD=""
+      KIOSK=""
       if command -v chromium >/dev/null 2>&1; then
         BROWSER_CMD="chromium"
       elif command -v chromium-browser >/dev/null 2>&1; then
@@ -4654,21 +4696,37 @@ EOF
       
       echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
       echo "Using profile directory: $CHROMIUM_USER_DIR"
-      $BROWSER_CMD \\
-        --kiosk \\
-        "$SCOREBOARD_URL" \\
-        --disable-restore-session-state \\
-        --user-data-dir="$CHROMIUM_USER_DIR" \\
-        --disable-features=VizDisplayCompositor,TranslateUI \\
-        --disable-dev-shm-usage \\
-        --disable-setuid-sandbox \\
-        --disable-gpu \\
-        --disable-infobars \\
-        --noerrdialogs \\
-        --no-first-run \\
-        --disable-session-crashed-bubble \\
-        --check-for-update-interval=31536000 \\
+
+      if [ -z "$KIOSK" ]; then
+      $BROWSER_CMD \
+        --start-fullscreen \
+        --disable-restore-session-state \
+        --user-data-dir="$CHROMIUM_USER_DIR" \
+        --disable-features=VizDisplayCompositor \
+        --disable-dev-shm-usage \
+        --app="$SCOREBOARD_URL" \
+        # --no-sandbox \
+        --disable-gpu \
         >>/tmp/chromium-kiosk.log 2>&1 &
+      else
+      # Start browser in fullscreen
+      $BROWSER_CMD \
+        --kiosk \
+        "$SCOREBOARD_URL" \
+        --disable-restore-session-state \
+        --user-data-dir="$CHROMIUM_USER_DIR" \
+        --disable-features=VizDisplayCompositor,TranslateUI \
+        --disable-dev-shm-usage \
+        --disable-setuid-sandbox \
+        --disable-gpu \
+        --disable-infobars \
+        --noerrdialogs \
+        --no-first-run \
+        --disable-session-crashed-bubble \
+        --check-for-update-interval=31536000 \
+        >>/tmp/chromium-kiosk.log 2>&1 &
+      fi
+
       
       BROWSER_PID=$!
       echo "Browser started with PID: $BROWSER_PID"

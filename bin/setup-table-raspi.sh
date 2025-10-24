@@ -82,6 +82,7 @@ CURRENT_IP="$2"
 TABLE_NAME="$3"
 SSH_PORT="${4:-22}"
 SSH_USER="${5:-pi}"
+KIOSK=""
 
 # Validate CARAMBUS_BASE is set
 if [ -z "$CARAMBUS_BASE" ]; then
@@ -260,7 +261,7 @@ NETWORK_MANAGER=$(ssh -p $SSH_PORT "$SSH_USER@$CURRENT_IP" "systemctl is-active 
 
 if [ "$NETWORK_MANAGER" = "active" ]; then
     log "✓ NetworkManager detected - using nmcli"
-    
+
     # Create or modify connection for club WLAN
     info "Configuring static IP for club WLAN: $CLUB_WLAN_SSID"
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "
@@ -285,7 +286,7 @@ if [ "$NETWORK_MANAGER" = "active" ]; then
                 ipv4.dns '8.8.8.8 1.1.1.1' \
                 ipv4.method manual
         fi
-        
+
         # Configure dev WLAN with DHCP (if provided)
         if [ -n '$DEV_WLAN_SSID' ]; then
             if sudo nmcli connection show '$DEV_WLAN_SSID' >/dev/null 2>&1; then
@@ -303,12 +304,12 @@ if [ "$NETWORK_MANAGER" = "active" ]; then
             fi
         fi
     " 2>/dev/null
-    
+
     log "✅ NetworkManager configuration complete"
 else
     # dhcpcd configuration
     log "✓ dhcpcd detected - using dhcpcd.conf"
-    
+
     # For dhcpcd, we use SSID-specific configuration via wpa_cli hooks
     # Static IP is applied when connected to club SSID
     DHCPCD_HOOK="#!/bin/bash
@@ -316,7 +317,7 @@ else
 
 if [ \"\$interface\" = \"wlan0\" ] && [ \"\$reason\" = \"BOUND\" ]; then
     CURRENT_SSID=\$(iwgetid -r)
-    
+
     if [ \"\$CURRENT_SSID\" = \"$CLUB_WLAN_SSID\" ]; then
         # Club WLAN - apply static IP
         echo \"Applying static IP for club WLAN: $TABLE_IP\"
@@ -329,7 +330,7 @@ fi
 "
     echo "$DHCPCD_HOOK" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/dhcp-ssid-hook" 2>/dev/null
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/dhcp-ssid-hook /etc/dhcpcd.exit-hook && sudo chmod +x /etc/dhcpcd.exit-hook" 2>/dev/null
-    
+
     log "✅ dhcpcd configuration complete"
 fi
 echo ""
@@ -410,7 +411,21 @@ else
   exit 1
 fi
 
-echo "Starting: $BROWSER_CMD"
+
+
+if [ -z "$KIOSK" ]; then
+$BROWSER_CMD \
+  --start-fullscreen \
+  --disable-restore-session-state \
+  --user-data-dir="$CHROMIUM_USER_DIR" \
+  --disable-features=VizDisplayCompositor \
+  --disable-dev-shm-usage \
+  --app="$SCOREBOARD_URL" \
+  # --no-sandbox \
+  --disable-gpu \
+  >>/tmp/chromium-kiosk.log 2>&1 &
+else
+# Start browser in fullscreen
 $BROWSER_CMD \
   --kiosk \
   "$SCOREBOARD_URL" \
@@ -426,6 +441,7 @@ $BROWSER_CMD \
   --disable-session-crashed-bubble \
   --check-for-update-interval=31536000 \
   >>/tmp/chromium-kiosk.log 2>&1 &
+fi
 
 BROWSER_PID=$!
 echo "Browser started (PID: $BROWSER_PID)"

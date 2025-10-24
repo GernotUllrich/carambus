@@ -56,6 +56,8 @@ CUSTOMER_PASSWORD=""
 CUSTOMER_PRIORITY="20"  # Higher priority - preferred when available
 CUSTOMER_STATIC_IP=""
 
+KIOSK=""
+
 show_usage() {
     echo "Usage: $0 <scenario_name> <current_ip> <table_number> [options]"
     echo ""
@@ -76,6 +78,8 @@ show_usage() {
     echo ""
     echo "  --ssh-port PORT          SSH port (default: 22)"
     echo "  --ssh-user USER          SSH username (default: pi)"
+    echo ""
+    echo "  --kiosk                  Start in kiosk mode"
     echo ""
     echo "Examples:"
     echo "  # With dev and customer WLAN:"
@@ -146,6 +150,10 @@ while [[ $# -gt 0 ]]; do
         --ssh-user)
             SSH_USER="$2"
             shift 2
+            ;;
+        --kiosk)
+            KIOSK="true"
+            shift 1
             ;;
         *)
             error "Unknown option: $1"
@@ -441,20 +449,52 @@ SCOREBOARD_URL="'"$SCOREBOARD_URL"'"
 
 echo "Table '"$TABLE_NUMBER"': Using scoreboard URL: $SCOREBOARD_URL"
 
-# Clean up old chromium data
-rm -rf /tmp/chromium-scoreboard 2>/dev/null || true
+# Clean browser profile
+CHROMIUM_USER_DIR="/tmp/chromium-scoreboard-$USER"
+rm -rf "$CHROMIUM_USER_DIR" 2>/dev/null || true
+mkdir -p "$CHROMIUM_USER_DIR"
+chmod 755 "$CHROMIUM_USER_DIR"
 
+# Detect chromium command
+BROWSER_CMD=""
+if command -v chromium >/dev/null 2>&1; then
+  BROWSER_CMD="chromium"
+elif command -v chromium-browser >/dev/null 2>&1; then
+  BROWSER_CMD="chromium-browser"
+else
+  echo "❌ Chromium not found!"
+  exit 1
+fi
+
+if [ -z "$KIOSK" ]; then
+$BROWSER_CMD \
+  --start-fullscreen \
+  --disable-restore-session-state \
+  --user-data-dir="$CHROMIUM_USER_DIR" \
+  --disable-features=VizDisplayCompositor \
+  --disable-dev-shm-usage \
+  --app="$SCOREBOARD_URL" \
+  # --no-sandbox \
+  --disable-gpu \
+  >>/tmp/chromium-kiosk.log 2>&1 &
+else
 # Start browser in fullscreen
-/usr/bin/chromium-browser \
+$BROWSER_CMD \
   --kiosk \
-  --noerrdialogs \
+  "$SCOREBOARD_URL" \
+  --disable-restore-session-state \
+  --user-data-dir="$CHROMIUM_USER_DIR" \
+  --disable-features=VizDisplayCompositor,TranslateUI \
+  --disable-dev-shm-usage \
+  --disable-setuid-sandbox \
+  --disable-gpu \
   --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-features=TranslateUI \
+  --noerrdialogs \
   --no-first-run \
+  --disable-session-crashed-bubble \
   --check-for-update-interval=31536000 \
-  --user-data-dir=/tmp/chromium-scoreboard \
-  "$SCOREBOARD_URL" &
+  >>/tmp/chromium-kiosk.log 2>&1 &
+fi
 
 BROWSER_PID=$!
 echo "Browser started with PID: $BROWSER_PID"
