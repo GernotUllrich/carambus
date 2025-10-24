@@ -8,6 +8,9 @@ export default class extends Controller {
   connect() {
     // Initialize CSRF token for POST requests
     this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+    
+    // Restore last query from localStorage
+    this.restoreLastQuery()
   }
 
   // Toggle search panel visibility
@@ -18,6 +21,8 @@ export default class extends Controller {
     // Focus input when opening
     if (!this.panelTarget.classList.contains("hidden")) {
       this.inputTarget.focus()
+      // Select text for easy editing
+      this.inputTarget.select()
     }
   }
 
@@ -48,16 +53,20 @@ export default class extends Controller {
       const data = await response.json()
 
       if (data.success && data.path) {
-        // Show success message with explanation
+        // Save query to localStorage for reference
+        this.saveLastQuery(query)
+        
+        // Show success message with query and explanation
         this.showMessage(
-          `✓ ${data.explanation} (${data.confidence}% Sicherheit)`,
+          `✓ "${query}"\n${data.explanation} (${data.confidence}% Sicherheit)`,
           "success"
         )
         
+        // Keep input value for reference and potential refinement
         // Navigate to results after short delay
         setTimeout(() => {
           window.location.href = data.path
-        }, 800)
+        }, 1000)
       } else {
         // Show error message
         this.showMessage(
@@ -99,7 +108,8 @@ export default class extends Controller {
 
   // Show message (success or error)
   showMessage(text, type) {
-    this.messageTarget.textContent = text
+    // Support newlines in messages
+    this.messageTarget.innerHTML = text.replace(/\n/g, '<br>')
     this.messageTarget.classList.remove("hidden", "bg-red-100", "bg-green-100", "text-red-700", "text-green-700", "dark:bg-red-900", "dark:bg-green-900", "dark:text-red-200", "dark:text-green-200")
     
     if (type === "error") {
@@ -121,6 +131,36 @@ export default class extends Controller {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       this.search(event)
+    }
+  }
+
+  // Save query to localStorage
+  saveLastQuery(query) {
+    try {
+      localStorage.setItem('carambus_last_ai_query', query)
+      localStorage.setItem('carambus_last_ai_query_time', Date.now())
+    } catch (e) {
+      // Ignore localStorage errors
+      console.warn('Could not save query to localStorage:', e)
+    }
+  }
+
+  // Restore last query from localStorage
+  restoreLastQuery() {
+    try {
+      const lastQuery = localStorage.getItem('carambus_last_ai_query')
+      const lastTime = localStorage.getItem('carambus_last_ai_query_time')
+      
+      // Only restore if query is less than 1 hour old
+      if (lastQuery && lastTime) {
+        const ageMinutes = (Date.now() - parseInt(lastTime)) / 1000 / 60
+        if (ageMinutes < 60) {
+          this.inputTarget.value = lastQuery
+        }
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+      console.warn('Could not restore query from localStorage:', e)
     }
   }
 }
