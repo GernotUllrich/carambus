@@ -57,10 +57,6 @@ class Region < ApplicationRecord
 
   self.ignored_columns = ["location_url", "region_ids"]
 
-  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
-  # This prevents unnecessary version records during scraping operations
-  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
-
   NON_CC = {
     "BBV" => "https://billardbayern.de/",
     "BLVSA" => "https://www.blv-sa.de/",

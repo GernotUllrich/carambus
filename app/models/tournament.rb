@@ -70,10 +70,6 @@ class Tournament < ApplicationRecord
   before_save :set_paper_trail_whodunnit
   MIN_ID = 50_000_000
 
-  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
-  # This prevents unnecessary version records during scraping operations
-  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
-
   belongs_to :discipline, optional: true
   belongs_to :region, optional: true
   belongs_to :season

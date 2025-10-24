@@ -38,10 +38,6 @@ class Location < ApplicationRecord
 
   self.ignored_columns = ["club_id", "region_ids"]
 
-  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
-  # This prevents unnecessary version records during scraping operations
-  has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
-
   # after_save :update_club_location
 
   cattr_accessor :table_kinds

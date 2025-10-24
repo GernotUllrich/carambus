@@ -37,10 +37,6 @@ class Club < ApplicationRecord
   include Searchable
   self.ignored_columns = ["region_ids"]
 
-  # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
-  # This prevents unnecessary version records during scraping operations
-  has_paper_trail ignore: [:updated_at, :sync_date]  unless Carambus.config.carambus_api_url.present?
-
   belongs_to :region, optional: true
   # has_many :players, -> { where(type: nil) }
   has_many :season_participations, dependent: :destroy
