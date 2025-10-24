@@ -212,19 +212,21 @@ module ApplicationHelper
   
   # Determine field key for form input name attribute
   def determine_field_key(display_name, column_def)
-    # Check for specific reference patterns
-    return 'region_shortname' if column_def.include?('regions.shortname')
-    return 'club_shortname' if column_def.include?('clubs.shortname')
-    return 'season_name' if column_def.include?('seasons.name')
-    return 'league_shortname' if column_def.include?('leagues.shortname')
-    return 'party_shortname' if column_def.include?('parties.id')
-    
-    # ID fields
+    # ID fields (direct references)
     return 'region_id' if column_def.include?('regions.id')
     return 'season_id' if column_def.include?('seasons.id')
     return 'club_id' if column_def.include?('clubs.id')
     return 'league_id' if column_def.include?('leagues.id')
     return 'discipline_id' if column_def.include?('disciplines.id')
+    
+    # Reference fields that should use _id for filtering
+    # (these are displayed as select dropdowns with IDs as values)
+    return 'region_id' if column_def.include?('regions.shortname') || column_def.include?('regions.name')
+    return 'season_id' if column_def.include?('seasons.name')
+    return 'discipline_id' if column_def.include?('disciplines.name')
+    return 'club_id' if column_def.include?('clubs.shortname')
+    return 'league_id' if column_def.include?('leagues.shortname')
+    return 'party_id' if column_def.include?('parties.id')
     
     # Default: use display_name or extract from column_def
     display_name.downcase.gsub(/\s+/, '_')
@@ -580,14 +582,23 @@ module ApplicationHelper
 
     # Season fields
     if column_def.include?('seasons.name')
-      seasons = Season.order(id: :desc).limit(10).pluck(:name)
-      return 'select', 'select', seasons.map { |name| { value: name, label: name } }
+      seasons = Season.order(id: :desc).limit(10).pluck(:id, :name)
+      return 'select', 'select', seasons.map { |id, name| { value: id, label: name } }
     end
 
     # Discipline fields
     if column_def.include?('disciplines.name')
-      disciplines = Discipline.order(:name).pluck(:name)
-      return 'select', 'select', disciplines.map { |name| { value: name, label: name } }
+      disciplines = Discipline.order(:name).pluck(:id, :name)
+      return 'select', 'select', disciplines.map { |id, name| { value: id, label: name } }
+    end
+    
+    # Region fields
+    if column_def.include?('regions.shortname') || column_def.include?('regions.name')
+      regions = Region.order(:shortname).pluck(:id, :shortname, :name)
+      return 'select', 'select', regions.map { |id, shortname, name| 
+        label = name.present? ? "#{shortname} (#{name})" : shortname
+        { value: id, label: label }
+      }
     end
 
     # Player fields (complex concatenated fields)
