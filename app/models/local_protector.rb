@@ -3,9 +3,12 @@ module LocalProtector
   included do
     attr_accessor :unprotected
 
-    # Configure PaperTrail to ignore automatic timestamp updates and sync_date changes
+    # Configure PaperTrail to ignore automatic timestamp updates
+    # Only ignore sync_date if the column exists (models with SourceHandler have it)
     # This prevents unnecessary version records during scraping operations
-    has_paper_trail ignore: [:updated_at, :sync_date] unless Carambus.config.carambus_api_url.present?
+    ignored_columns = [:updated_at]
+    ignored_columns << :sync_date if column_names.include?('sync_date')
+    has_paper_trail ignore: ignored_columns unless Carambus.config.carambus_api_url.present?
     after_save :disallow_saving_global_records
     before_destroy :disallow_saving_global_records
 
