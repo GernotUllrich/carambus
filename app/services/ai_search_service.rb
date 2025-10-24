@@ -150,8 +150,8 @@ class AiSearchService < ApplicationService
       FILTER-SYNTAX:
       1. Freitext: Einfach Text eingeben (z.B. "Meyer" sucht in allen Textfeldern)
       2. Season: "Season:2024/2025" oder "Season:2023/2024"
-      3. Region: "Region:WL" "Region:HH" "Region:BE" (Kürzel verwenden!)
-         Verfügbare Regionen: #{REGIONS.keys.join(', ')}
+      3. Region: WICHTIG - Verwende die VERBANDS-KÜRZEL (nicht Bundesland-Kürzel!):
+         #{region_mappings}
       4. Discipline: "Discipline:Freie Partie" "Discipline:Dreiband" "Discipline:Einband"
       5. Date: 
          - Relativ: "Date:>heute-2w" (vor 2 Wochen), "Date:<heute+7" (in 7 Tagen)
@@ -161,12 +161,14 @@ class AiSearchService < ApplicationService
       7. AND-Logik: Mehrere Filter mit Leerzeichen trennen
       
       BEISPIELE FÜR KORREKTE ÜBERSETZUNGEN:
-      - "Turniere in Hamburg" → entity: "tournaments", filters: "Region:HH"
-      - "Alle Spieler aus Westfalen" → entity: "players", filters: "Region:WL"
+      - "Turniere in Hamburg" → entity: "tournaments", filters: "Region:NBV"
+      - "Alle Spieler aus Westfalen" → entity: "players", filters: "Region:BVW"
+      - "Vereine in Bayern" → entity: "clubs", filters: "Region:BBV"
       - "Dreiband Turniere 2024" → entity: "tournaments", filters: "Discipline:Dreiband Season:2024/2025"
       - "Turniere letzte 2 Wochen" → entity: "tournaments", filters: "Date:>heute-2w"
-      - "Meyer Hamburg" → entity: "players", filters: "Meyer Region:HH"
+      - "Spieler aus Berlin" → entity: "players", filters: "Region:BVB"
       - "Freie Partie heute" → entity: "tournaments", filters: "Discipline:Freie Partie Date:heute"
+      - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
       
       ANTWORTFORMAT (IMMER als gültiges JSON):
       {
@@ -178,7 +180,8 @@ class AiSearchService < ApplicationService
       
       WICHTIGE REGELN:
       - Bei mehrdeutigen Anfragen wähle die wahrscheinlichste Entity
-      - Region-Filter IMMER mit Kürzeln (WL, HH, BE, etc.)
+      - Region-Filter IMMER mit VERBANDS-Kürzeln (BVW, NBV, BBV, etc. - NICHT WL, HH, BE!)
+      - Bei "Westfalen" → BVW (nicht BVNRW), bei "NRW" → BVNRW, bei "Hamburg" → NBV
       - Seasons im Format "2024/2025" (Slash verwenden!)
       - Bei Datums-Filtern relative Ausdrücke bevorzugen
       - Confidence unter 70 wenn Anfrage unklar ist
@@ -191,6 +194,14 @@ class AiSearchService < ApplicationService
   def entity_list
     ENTITY_MAPPING.map do |key, config|
       "- #{key}: #{config[:names].join(', ')} (Filter: #{config[:common_filters].join(', ')})"
+    end.join("\n")
+  end
+
+  def region_mappings
+    REGIONS.map do |code, names|
+      main_name = names.first
+      alternatives = names[1..-1].join(', ')
+      "         Region:#{code} = #{main_name} (auch: #{alternatives})"
     end.join("\n")
   end
 
