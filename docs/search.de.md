@@ -546,3 +546,47 @@ Bei Problemen mit der Suche:
 
 **Letzte Aktualisierung:** Oktober 2024 (neue Filter-Architektur)
 
+
+## Relative Datumsangaben
+
+### Syntax
+
+Statt feste Daten wie `Date:>2025-10-23` können Sie relative Ausdrücke verwenden:
+
+```
+Date:heute              # genau heute
+Date:>heute-14          # größer als heute minus 14 Tage
+Date:>heute-2w          # größer als heute minus 2 Wochen (lesbarer)
+Date:>heute-1m          # größer als heute minus 1 Monat
+Date:<heute+7           # kleiner als heute plus 7 Tage
+Date:>=heute-2w         # größer oder gleich heute minus 2 Wochen
+```
+
+### Einheiten
+
+- **d** = Tage (Default, kann weggelassen werden)
+- **w** = Wochen
+- **m** = Monate
+
+### Beispiele
+
+| Filter | Bedeutung | Ergebnis (wenn heute = 24.10.2025) |
+|--------|-----------|-----------------------------------|
+| `Date:heute` | Genau heute | `2025-10-24` |
+| `Date:>heute-7` | Letzte 7 Tage | `> 2025-10-17` |
+| `Date:>heute-2w` | Letzte 2 Wochen | `> 2025-10-10` |
+| `Date:>heute-1m` | Letzter Monat | `> 2025-09-24` |
+| `Date:<heute+14` | Nächste 2 Wochen | `< 2025-11-07` |
+
+### Kombiniert mit anderen Filtern
+
+```
+Season:2024/2025 Date:>heute-2w Region:WL    # Turniere der letzten 2 Wochen in WL für Saison 2024/2025
+```
+
+### Vorteile
+
+✅ **Lesbar:** `heute-2w` ist verständlicher als `2025-10-10`  
+✅ **Wartbar:** Links/Bookmarks bleiben gültig  
+✅ **Flexibel:** Funktioniert jeden Tag automatisch  
+
