@@ -158,6 +158,26 @@ Eine **GameParticipation** ist die Teilnahme eines Spielers an einem einzelnen S
 
 ## 🖥️ Server-Architektur
 
+### ClubCloud
+Die **[ClubCloud](https://club-cloud.de/)** ist eine webbasierte Verwaltungssoftware für Sport-Verbände und Vereine.
+
+**Wichtig:** ClubCloud ist **NICHT** Carambus!
+
+**Was ist ClubCloud?**
+- Externe Verwaltungssoftware für Verbände
+- 14 der 17 deutschen Billard-Verbände nutzen es
+- Jeder Verband hat eigene ClubCloud-Instanz (z.B. ndbv.de, westfalenbillard.net)
+- Verwaltet: Spieler, Vereine, Turniere, Ligen, Ranglisten
+
+**Beziehung zu Carambus:**
+- Carambus **scrap** Daten von ClubCloud (täglich um 4:00 Uhr)
+- Carambus ist **unabhängig** und funktioniert auch ohne ClubCloud
+- Ergebnisse können per CSV zurück zu ClubCloud exportiert werden
+
+**Siehe:** [ClubCloud-Integration](clubcloud_integration.de.md) für Details zum Scraping-Prozess
+
+---
+
 ### API Server (Zentraler Server)
 Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installationen.
 
@@ -167,6 +187,8 @@ Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installatione
 - **Synchronisation:** Verteilt Daten an Local Servers (gefiltert nach Region)
 
 **Beispiel:** carambus.de
+
+**Datenquelle:** Scraping von ClubCloud-Instanzen (siehe [ClubCloud-Integration](clubcloud_integration.de.md))
 
 ### Local Server (Regionaler/Vereins-Server)
 Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Standort.
