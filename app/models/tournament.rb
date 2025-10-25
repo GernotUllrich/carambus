@@ -140,6 +140,7 @@ class Tournament < ApplicationRecord
     "region_id" => "regions.id",
     "season_id" => "seasons.id",
     "discipline_id" => "disciplines.id",
+    "location_id" => "locations.id",
     
     # Externe IDs (sichtbar, filterbar)
     "CC_ID" => "tournament_ccs.cc_id",
@@ -148,6 +149,7 @@ class Tournament < ApplicationRecord
     "Region" => "regions.shortname",
     "Season" => "seasons.name",
     "Discipline" => "disciplines.name",
+    "Location" => "locations.name",
     
     # Eigene Felder
     "Title" => "tournaments.title",
@@ -172,7 +174,8 @@ class Tournament < ApplicationRecord
       'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
       :season,
       :discipline,
-      :tournament_cc
+      :tournament_cc,
+      :location
     ]
   end
 
@@ -202,6 +205,8 @@ class Tournament < ApplicationRecord
       { description: "Saison auswählen", examples: [] }
     when 'Discipline'
       { description: "Disziplin auswählen", examples: [] }
+    when 'Location'
+      { description: "Spielort auswählen", examples: [] }
     else
       super
     end
