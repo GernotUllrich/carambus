@@ -17,6 +17,9 @@ Rails.application.routes.draw do
     # AI-powered search
     resources :ai_search, only: [:create]
     
+    # AI-powered documentation search
+    resources :ai_docs, only: [:create]
+    
     resources :players, only: [] do
       collection do
         get :autocomplete

@@ -31,9 +31,27 @@
 
       <!-- Search Panel (expandable) -->
       <div data-ai-search-target="panel" class="hidden mt-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-lg">
+        <!-- Mode Selector Tabs -->
+        <div class="flex gap-2 mb-3">
+          <button type="button"
+                  data-action="click->ai-search#setMode"
+                  data-mode="search"
+                  data-ai-search-target="searchTab"
+                  class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium transition-colors">
+            🔍 Daten suchen
+          </button>
+          <button type="button"
+                  data-action="click->ai-search#setMode"
+                  data-mode="docs"
+                  data-ai-search-target="docsTab"
+                  class="flex-1 px-3 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium transition-colors">
+            📚 Hilfe & Docs
+          </button>
+        </div>
+
         <form data-action="submit->ai-search#search" class="space-y-3">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-ai-search-target="label">
               Was möchten Sie finden?
             </label>
             <textarea 
@@ -47,13 +65,18 @@
             </p>
           </div>
 
-          <!-- Examples -->
-          <div class="text-xs text-gray-500 dark:text-gray-400">
+          <!-- Examples (context-sensitive based on mode) -->
+          <div class="text-xs text-gray-500 dark:text-gray-400" data-ai-search-target="examples">
             <div class="font-medium mb-1">Beispiele:</div>
-            <div class="space-y-1">
+            <div class="space-y-1" data-ai-search-target="searchExamples">
               <div>• "Turniere in Hamburg letzte 2 Wochen"</div>
               <div>• "Dreiband Spieler aus Berlin"</div>
               <div>• "Freie Partie Saison 2024/2025"</div>
+            </div>
+            <div class="space-y-1 hidden" data-ai-search-target="docsExamples">
+              <div>• "Wie erstelle ich ein Turnier?"</div>
+              <div>• "Wie funktioniert die Setzung?"</div>
+              <div>• "Was ist der Unterschied zwischen Party und PartyGame?"</div>
             </div>
           </div>
 

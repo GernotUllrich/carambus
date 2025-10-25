@@ -3,11 +3,15 @@ import { Controller } from "@hotwired/stimulus"
 // AI-powered search controller
 // Handles natural language search queries via OpenAI
 export default class extends Controller {
-  static targets = ["panel", "input", "submitButton", "loading", "message"]
+  static targets = ["panel", "input", "submitButton", "loading", "message", 
+                    "searchTab", "docsTab", "label", "searchExamples", "docsExamples"]
 
   connect() {
     // Initialize CSRF token for POST requests
     this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+    
+    // Initialize mode (default: search)
+    this.mode = 'search'
     
     // Restore last query from localStorage
     this.restoreLastQuery()
@@ -29,13 +33,52 @@ export default class extends Controller {
     }
   }
 
+  // Set search mode (search or docs)
+  setMode(event) {
+    const mode = event.currentTarget.dataset.mode
+    this.mode = mode
+    
+    console.log('🔄 Switching to mode:', mode)
+    
+    // Update tab styling
+    if (mode === 'search') {
+      this.searchTabTarget.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
+      this.searchTabTarget.classList.add('bg-blue-600', 'text-white')
+      this.docsTabTarget.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
+      this.docsTabTarget.classList.remove('bg-purple-600', 'text-white')
+      
+      // Update label and examples
+      this.labelTarget.textContent = 'Was möchten Sie finden?'
+      this.searchExamplesTarget.classList.remove('hidden')
+      this.docsExamplesTarget.classList.add('hidden')
+    } else {
+      this.docsTabTarget.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
+      this.docsTabTarget.classList.add('bg-purple-600', 'text-white')
+      this.searchTabTarget.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
+      this.searchTabTarget.classList.remove('bg-blue-600', 'text-white')
+      
+      // Update label and examples
+      this.labelTarget.textContent = 'Was möchten Sie wissen?'
+      this.docsExamplesTarget.classList.remove('hidden')
+      this.searchExamplesTarget.classList.add('hidden')
+    }
+    
+    // Clear messages
+    this.hideMessage()
+  }
+
   // Handle search form submission
   async search(event) {
     event.preventDefault()
     
     const query = this.inputTarget.value.trim()
     if (!query) {
-      this.showMessage("Bitte geben Sie eine Suchanfrage ein.", "error")
+      this.showMessage(
+        this.mode === 'docs' 
+          ? "Bitte stellen Sie eine Frage." 
+          : "Bitte geben Sie eine Suchanfrage ein.", 
+        "error"
+      )
       return
     }
 
@@ -43,7 +86,10 @@ export default class extends Controller {
     this.showLoading()
     
     try {
-      const response = await fetch("/api/ai_search", {
+      // Different endpoint based on mode
+      const endpoint = this.mode === 'docs' ? '/api/ai_docs' : '/api/ai_search'
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,46 +101,13 @@ export default class extends Controller {
 
       const data = await response.json()
 
-      if (data.success && data.path) {
-        console.log('✅ AI Search successful:', data)
-        
-        // Save query to localStorage for reference
-        this.saveLastQuery(query)
-        
-        // Prepare success message
-        const successMessage = `✓ "${query}"<br>${data.explanation} (${data.confidence}% Sicherheit)`
-        
-        // Save message for display after navigation
-        try {
-          localStorage.setItem('carambus_ai_last_message', successMessage)
-          console.log('💾 Saved success message')
-        } catch (e) {
-          console.error('❌ Could not save message:', e)
-        }
-        
-        // Mark that panel should stay open after navigation
-        console.log('📍 About to call setPanelShouldBeOpen()')
-        this.setPanelShouldBeOpen()
-        
-        // Show success message with query and explanation
-        this.showMessage(successMessage, "success")
-        
-        console.log('🚀 Will navigate to:', data.path, 'in 1 second')
-        
-        // Keep panel open and navigate after delay
-        setTimeout(() => {
-          console.log('⏰ Navigation timeout fired, navigating now...')
-          window.location.href = data.path
-        }, 1000)
+      if (this.mode === 'docs') {
+        this.handleDocsResponse(data, query)
       } else {
-        // Show error message
-        this.showMessage(
-          data.error || "Die KI konnte Ihre Anfrage nicht verstehen. Bitte versuchen Sie es anders zu formulieren.",
-          "error"
-        )
+        this.handleSearchResponse(data, query)
       }
     } catch (error) {
-      console.error("AI Search error:", error)
+      console.error("AI error:", error)
       this.showMessage(
         "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
         "error"
@@ -102,6 +115,109 @@ export default class extends Controller {
     } finally {
       this.hideLoading()
     }
+  }
+
+  // Handle documentation search response
+  handleDocsResponse(data, query) {
+    if (data.success) {
+      console.log('✅ AI Docs successful:', data)
+      
+      // Save query
+      this.saveLastQuery(query)
+      
+      // Show formatted documentation answer
+      this.showDocsResult(data)
+    } else {
+      this.showMessage(
+        data.error || "Keine Antwort in der Dokumentation gefunden.",
+        "error"
+      )
+    }
+  }
+
+  // Handle data search response
+  handleSearchResponse(data, query) {
+    if (data.success && data.path) {
+      console.log('✅ AI Search successful:', data)
+      
+      // Save query to localStorage for reference
+      this.saveLastQuery(query)
+      
+      // Prepare success message
+      const successMessage = `✓ "${query}"<br>${data.explanation} (${data.confidence}% Sicherheit)`
+      
+      // Save message for display after navigation
+      try {
+        localStorage.setItem('carambus_ai_last_message', successMessage)
+        console.log('💾 Saved success message')
+      } catch (e) {
+        console.error('❌ Could not save message:', e)
+      }
+      
+      // Mark that panel should stay open after navigation
+      console.log('📍 About to call setPanelShouldBeOpen()')
+      this.setPanelShouldBeOpen()
+      
+      // Show success message with query and explanation
+      this.showMessage(successMessage, "success")
+      
+      console.log('🚀 Will navigate to:', data.path, 'in 1 second')
+      
+      // Keep panel open and navigate after delay
+      setTimeout(() => {
+        console.log('⏰ Navigation timeout fired, navigating now...')
+        window.location.href = data.path
+      }, 1000)
+    } else {
+      // Show error message
+      this.showMessage(
+        data.error || "Die KI konnte Ihre Anfrage nicht verstehen. Bitte versuchen Sie es anders zu formulieren.",
+        "error"
+      )
+    }
+  }
+
+  // Show documentation search results
+  showDocsResult(data) {
+    let html = '<div class="text-sm space-y-3">'
+    
+    // AI Answer
+    html += `<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">`
+    html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">💡 Antwort:</div>`
+    html += `<div class="text-gray-700 dark:text-gray-300">${this.escapeHtml(data.answer)}</div>`
+    html += `</div>`
+    
+    // Documentation Links
+    if (data.docs_links && data.docs_links.length > 0) {
+      html += `<div class="border-t border-gray-200 dark:border-gray-600 pt-3">`
+      html += `<div class="font-medium text-gray-700 dark:text-gray-300 mb-2">📚 Relevante Dokumentation:</div>`
+      html += `<ul class="space-y-1">`
+      data.docs_links.forEach(link => {
+        html += `<li><a href="${link.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
+      })
+      html += `</ul></div>`
+    }
+    
+    // Confidence indicator
+    if (data.confidence) {
+      const confidenceColor = data.confidence >= 80 ? 'green' : data.confidence >= 60 ? 'yellow' : 'red'
+      html += `<div class="text-xs text-gray-500 dark:text-gray-400 mt-2">`
+      html += `Relevanz: ${data.confidence}%`
+      html += `</div>`
+    }
+    
+    html += '</div>'
+    
+    this.messageTarget.innerHTML = html
+    this.messageTarget.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700')
+    this.messageTarget.classList.add('bg-white', 'dark:bg-gray-800')
+  }
+
+  // Escape HTML to prevent XSS
+  escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
   }
 
   // Clear input and messages
