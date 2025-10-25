@@ -156,6 +156,55 @@ Eine **GameParticipation** ist die Teilnahme eines Spielers an einem einzelnen S
 
 ---
 
+## 🖥️ Server-Architektur
+
+### API Server (Zentraler Server)
+Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installationen.
+
+**Hauptaufgaben:**
+- **Scraping:** Lädt Daten von ClubCloud und anderen externen Quellen
+- **Zentrale Datenhaltung:** Speichert **alle** Daten aus **allen** Regionen
+- **Synchronisation:** Verteilt Daten an Local Servers (gefiltert nach Region)
+
+**Beispiel:** carambus.de
+
+### Local Server (Regionaler/Vereins-Server)
+Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Standort.
+
+**Hauptaufgaben:**
+- **Lokale Spielverwaltung:** Turniere, Scoreboards, Spieltage
+- **Regionale Daten:** Nur Daten der eigenen Region (vom API Server gefiltert)
+- **Offline-Fähigkeit:** Kann unabhängig vom API Server arbeiten
+
+**Vorteile:**
+- ✅ Offline-fähig (wichtig bei Spieltagen!)
+- ✅ Schnelle Scoreboards (kein Internet nötig)
+- ✅ Kleinere Datenbank (nur eigene Region)
+
+**Beispiel:** Raspberry Pi im BC Hamburg Vereinslokal
+
+### Local Data (Lokal erstellte Daten)
+**Local Data** sind Daten, die auf einem Local Server erstellt werden (nicht durch Scraping).
+
+**ID-Bereiche:**
+- IDs **< 50.000.000:** Von API Server gescraped
+- IDs **≥ 50.000.000:** Local Data (lokal erstellt)
+
+**Warum wichtig:**
+- Local Server kann offline Turniere erstellen
+- Keine ID-Konflikte zwischen Servern
+- Klare Trennung: Extern vs. Intern
+
+**Beispiel:**
+```
+Gescraptes Turnier: ID 12.345 (von ClubCloud)
+Lokales Turnier:    ID 50.001.234 (im Verein erstellt)
+```
+
+**Siehe auch:** [Server-Architektur](server_architektur.de.md)
+
+---
+
 ## 📍 Orte und Organisationen
 
 ### Region (Landesverband)
