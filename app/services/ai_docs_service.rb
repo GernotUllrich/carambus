@@ -69,25 +69,51 @@ class AiDocsService < ApplicationService
       # Escape for shell
       safe_keyword = keyword.gsub(/['\\]/, '\\\\\&')
       
-      # Use ripgrep with JSON output for better parsing
-      # -i: case insensitive
-      # -A 3: 3 lines after match
-      # -B 1: 1 line before match  
-      # --json: JSON output for easier parsing
-      # --type md: only markdown files
-      cmd = "rg -i '#{safe_keyword}' #{docs_path} -A 3 -B 1 --json --type md 2>/dev/null"
-      
-      output = `#{cmd}`
-      next if output.blank?
-      
-      # Parse ripgrep JSON output for this keyword
-      parse_ripgrep_output(output, all_matches)
+      # Try ripgrep first, fall back to grep if not available
+      if ripgrep_available?
+        search_with_ripgrep(safe_keyword, docs_path, all_matches)
+      else
+        search_with_grep(safe_keyword, docs_path, all_matches)
+      end
     end
     
     # Return top docs sorted by number of matches
     all_matches.values
       .sort_by { |d| -d[:snippets].count }
       .first(MAX_DOCS)
+  end
+  
+  def ripgrep_available?
+    # Check if ripgrep is installed (cache result)
+    return @ripgrep_available unless @ripgrep_available.nil?
+    
+    @ripgrep_available = system('which rg > /dev/null 2>&1')
+    
+    if @ripgrep_available
+      Rails.logger.info "✓ Using ripgrep for docs search"
+    else
+      Rails.logger.info "⚠ Ripgrep not found, falling back to grep"
+    end
+    
+    @ripgrep_available
+  end
+  
+  def search_with_ripgrep(keyword, docs_path, matches_by_file)
+    # Use ripgrep with JSON output for better parsing
+    cmd = "rg -i '#{keyword}' #{docs_path} -A 3 -B 1 --json --type md 2>/dev/null"
+    output = `#{cmd}`
+    return if output.blank?
+    
+    parse_ripgrep_output(output, matches_by_file)
+  end
+  
+  def search_with_grep(keyword, docs_path, matches_by_file)
+    # Fallback to grep (available everywhere)
+    cmd = "grep -rin -A 3 -B 1 --include='*.md' '#{keyword}' #{docs_path} 2>/dev/null"
+    output = `#{cmd}`
+    return if output.blank?
+    
+    parse_grep_output(output, matches_by_file)
   end
   
   def extract_keywords(query)
@@ -109,7 +135,6 @@ class AiDocsService < ApplicationService
   end
   
   def parse_ripgrep_output(output, matches_by_file = {})
-
     output.each_line do |line|
       begin
         data = JSON.parse(line)
@@ -143,6 +168,37 @@ class AiDocsService < ApplicationService
       rescue JSON::ParserError
         # Skip non-JSON lines (summary, etc.)
         next
+      end
+    end
+    
+    matches_by_file
+  end
+  
+  def parse_grep_output(output, matches_by_file = {})
+    # Parse standard grep output
+    # Format: /path/to/file.md:123:content or /path/to/file.md-123-content
+    output.each_line do |line|
+      # Match both actual matches (:) and context lines (-)
+      if line =~ /^([^:]+)[:-](\d+)[:-](.+)$/
+        file = $1
+        content = $3.strip
+        
+        # Skip separators, empty lines, short snippets
+        next if content.blank? || content == '--' || content.length < 10
+        
+        # Skip markdown headings
+        next if content.match?(/^#+\s/)
+        
+        matches_by_file[file] ||= {
+          file: file,
+          title: extract_title_from_file(file),
+          snippets: []
+        }
+        
+        # Add snippet (avoid duplicates)
+        unless matches_by_file[file][:snippets].include?(content)
+          matches_by_file[file][:snippets] << content
+        end
       end
     end
     
