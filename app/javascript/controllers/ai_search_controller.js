@@ -17,9 +17,6 @@ export default class extends Controller {
     // Initialize CSRF token for POST requests
     this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
     
-    // Get current locale from HTML lang attribute
-    this.locale = document.documentElement.lang || 'de'
-    
     // Initialize mode (default: search)
     this.mode = 'search'
     
@@ -143,6 +140,11 @@ export default class extends Controller {
       // Different endpoint based on mode
       const endpoint = this.mode === 'docs' ? '/api/ai_docs' : '/api/ai_search'
       
+      // Get current locale DYNAMICALLY (not cached) in case user switched language
+      const currentLocale = document.documentElement.lang || 'de'
+      
+      console.log('🌍 Using locale:', currentLocale)
+      
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -150,7 +152,7 @@ export default class extends Controller {
           "X-CSRF-Token": this.csrfToken,
           "Accept": "application/json"
         },
-        body: JSON.stringify({ query, locale: this.locale })
+        body: JSON.stringify({ query, locale: currentLocale })
       })
 
       const data = await response.json()
