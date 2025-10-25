@@ -347,7 +347,8 @@ class AiDocsService < ApplicationService
 
   def doc_link(doc)
     # Extract relative path from docs/ directory
-    relative_path = doc[:file].to_s.sub(%r{.*/docs/}, '').sub(/\.md$/, '')
+    # Remove both .md extension AND locale suffix (.de or .en)
+    relative_path = doc[:file].to_s.sub(%r{.*/docs/}, '').sub(/\.(de|en)\.md$/, '').sub(/\.md$/, '')
     
     {
       title: doc[:title],
