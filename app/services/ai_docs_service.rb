@@ -58,35 +58,77 @@ class AiDocsService < ApplicationService
   def search_documentation
     docs_path = Rails.root.join('docs')
     
-    # Escape query for shell
-    safe_query = @query.gsub(/[`$"\\]/, '\\\\\\&')
+    # Extract keywords from query (remove question words)
+    keywords = extract_keywords(@query)
+    return [] if keywords.blank?
     
-    # Use grep to search through markdown files
-    # -i: case insensitive
-    # -r: recursive
-    # -n: line numbers
-    # -A 3: 3 lines after match
-    # -B 1: 1 line before match
-    # --include: only .md files
-    cmd = "grep -rin -A 3 -B 1 --include='*.md' '#{safe_query}' #{docs_path} 2>/dev/null"
+    # Search for each keyword and combine results
+    all_matches = {}
     
-    output = `#{cmd}`
+    keywords.each do |keyword|
+      # Escape for shell
+      safe_keyword = keyword.gsub(/['\\]/, '\\\\\&')
+      
+      # Use ripgrep with JSON output for better parsing
+      # -i: case insensitive
+      # -A 3: 3 lines after match
+      # -B 1: 1 line before match  
+      # --json: JSON output for easier parsing
+      # --type md: only markdown files
+      cmd = "rg -i '#{safe_keyword}' #{docs_path} -A 3 -B 1 --json --type md 2>/dev/null"
+      
+      output = `#{cmd}`
+      next if output.blank?
+      
+      # Parse ripgrep JSON output for this keyword
+      parse_ripgrep_output(output, all_matches)
+    end
     
-    return [] if output.blank?
+    # Return top docs sorted by number of matches
+    all_matches.values
+      .sort_by { |d| -d[:snippets].count }
+      .first(MAX_DOCS)
+  end
+  
+  def extract_keywords(query)
+    # Remove common German question words and prepositions
+    stopwords = %w[wie was wo wann warum welche welcher welches wie aus in 
+                   der die das den dem des ist sind ein eine einen einem einer
+                   ich du er sie es wir ihr sie mich dich sich uns euch
+                   zu auf von mit bei nach über unter zwischen]
     
-    # Parse grep output
-    # Format: filepath:line:content
-    matches_by_file = {}
-    current_file = nil
+    # Remove punctuation and split into words
+    cleaned = query.gsub(/[?!.,;:]/, '').downcase
+    words = cleaned.split(/\s+/)
+    keywords = words.reject { |w| stopwords.include?(w) || w.length < 3 }
     
+    # Keep at least one keyword
+    keywords = [words.last] if keywords.empty?
+    
+    keywords
+  end
+  
+  def parse_ripgrep_output(output, matches_by_file = {})
+
     output.each_line do |line|
-      # Match format: /path/to/file.md:123:content
-      # or /path/to/file.md-123-content (for context lines)
-      if line =~ /^([^:]+):(\d+):(.+)$/
-        file = $1
-        content = $3.strip
+      begin
+        data = JSON.parse(line)
         
-        next if content.blank? || content.start_with?('#') # Skip headings as matches
+        # Only process match lines (not context or other types)
+        next unless data['type'] == 'match'
+        
+        file = data.dig('data', 'path', 'text')
+        line_text = data.dig('data', 'lines', 'text')
+        
+        next if file.blank? || line_text.blank?
+        
+        content = line_text.strip
+        
+        # Skip empty lines and very short snippets
+        next if content.blank? || content.length < 10
+        
+        # Skip markdown headings (they'll be used for titles)
+        next if content.match?(/^#+\s/)
         
         matches_by_file[file] ||= {
           file: file,
@@ -95,16 +137,16 @@ class AiDocsService < ApplicationService
         }
         
         # Add snippet (avoid duplicates)
-        unless matches_by_file[file][:snippets].include?(content) || content.length < 20
+        unless matches_by_file[file][:snippets].include?(content)
           matches_by_file[file][:snippets] << content
         end
+      rescue JSON::ParserError
+        # Skip non-JSON lines (summary, etc.)
+        next
       end
     end
     
-    # Return top docs sorted by number of matches
-    matches_by_file.values
-      .sort_by { |d| -d[:snippets].count }
-      .first(MAX_DOCS)
+    matches_by_file
   end
 
   def extract_title_from_file(filepath)
