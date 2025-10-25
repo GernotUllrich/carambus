@@ -11,7 +11,7 @@
   # Debug logging
   Rails.logger.info "🔧 HTML class setup: current_user=#{current_user&.email}, Current.user=#{Current.user&.email}, sb_state=#{params[:sb_state]}, is_scoreboard_url=#{is_scoreboard_url}, classes=#{html_classes.inspect}"
 %>
-<html lang="en" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_url %>">
+<html lang="<%= I18n.locale %>" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_url %>">
 <head>
   <title>
     <% if content_for?(:title) %>
