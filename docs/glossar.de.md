@@ -186,19 +186,31 @@ Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Stan
 ### Local Data (Lokal erstellte Daten)
 **Local Data** sind Daten, die auf einem Local Server erstellt werden (nicht durch Scraping).
 
+**Einfach gesagt:** Alles was der Verein selbst erstellt und verwaltet, ohne dass es in der überregionalen ClubCloud erfasst ist.
+
 **ID-Bereiche:**
-- IDs **< 50.000.000:** Von API Server gescraped
-- IDs **≥ 50.000.000:** Local Data (lokal erstellt)
+- IDs **< 50.000.000:** Von API Server gescraped (aus ClubCloud)
+- IDs **≥ 50.000.000:** Local Data (lokal im Verein erstellt)
+
+**Praktische Beispiele:**
+- 🏆 Vereinsturnier (Jahresabschluss-Turnier, nicht in ClubCloud)
+- 🎯 Trainingsspiele (Dienstag-Training zur Leistungsmessung)
+- 👥 Gastspieler (Besucher ohne Vereinsmitgliedschaft)
+- 📅 Tischreservierung (mit Heizungssteuerung)
+- 🏅 Interne Vereinsmeisterschaft (über mehrere Wochen)
 
 **Warum wichtig:**
-- Local Server kann offline Turniere erstellen
-- Keine ID-Konflikte zwischen Servern
-- Klare Trennung: Extern vs. Intern
+- ✅ Offline-fähig (kein Internet nötig)
+- ✅ Keine ID-Konflikte
+- ✅ Verein hat volle Kontrolle
+- ✅ Statistiken für Training
+- ✅ LocalProtector verhindert versehentliches Überschreiben
 
 **Beispiel:**
 ```
-Gescraptes Turnier: ID 12.345 (von ClubCloud)
-Lokales Turnier:    ID 50.001.234 (im Verein erstellt)
+Gescraptes Turnier:     ID 12.345 (ClubCloud, offiziell)
+Vereinsturnier (lokal): ID 50.001.234 (nur im Verein)
+Training-Game (lokal):  ID 50.100.567 (Dienstag-Training)
 ```
 
 **Siehe auch:** [Server-Architektur](server_architektur.de.md)

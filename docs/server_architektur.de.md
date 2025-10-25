@@ -110,32 +110,172 @@ Andere Local Server (erhalten Hamburg's Local Data)
 
 **Local Data** sind Daten, die auf einem **Local Server erstellt** werden und nicht durch Scraping vom API Server kommen.
 
-**Warum wichtig?**
-- Local Server kann **offline** Turniere erstellen
-- Keine ID-Konflikte mit API Server
-- Klare Unterscheidung: Gescraped vs. Lokal erstellt
+**Einfach gesagt:** Alles was der Verein **selbst** erstellt und verwaltet, ohne dass es in der überregionalen ClubCloud erfasst ist.
 
 ### ID-Bereiche
 
 ```
-IDs:           1 - 49.999.999    → Von API Server (gescraped)
-IDs: 50.000.000 - 99.999.999    → Local Data (lokal erstellt)
+IDs:           1 - 49.999.999    → Von API Server (gescraped aus ClubCloud)
+IDs: 50.000.000 - 99.999.999    → Local Data (lokal im Verein erstellt)
 ```
 
-**Beispiel:**
-```ruby
-# Gescraptes Turnier vom API Server:
-Tournament.find(12345)
-  id: 12345
-  cc_id: 98765 (von ClubCloud)
-  source: "scraped"
+**Warum wichtig?**
+- ✅ Local Server kann **offline** arbeiten
+- ✅ Keine ID-Konflikte zwischen Servern
+- ✅ Klare Unterscheidung: Extern vs. Intern
+- ✅ Verein hat volle Kontrolle über eigene Daten
 
-# Lokal erstelltes Turnier:
-Tournament.find(50001234)
-  id: 50001234
-  cc_id: nil (nicht in ClubCloud)
-  source: "local"
+---
+
+### 💡 Praktische Beispiele für Local Data
+
+#### 1. Vereinsturnier ohne ClubCloud-Buchführung
+
+**Szenario:** Der BC Hamburg organisiert ein internes Vereinsturnier zum Jahresabschluss.
+
 ```
+Problem:
+- Turnier findet nur im Verein statt
+- Soll NICHT in ClubCloud eingetragen werden (intern)
+- Braucht trotzdem Carambus für Scoreboards und Verwaltung
+
+Lösung mit Local Data:
+- Turnier lokal erstellen → ID: 50.012.345
+- Vollständige Carambus-Funktionalität
+- Scoreboards, Setzung, Ergebnisse
+- Bleibt lokal, nicht in ClubCloud
+```
+
+#### 2. Trainingsspiele zur Leistungsmessung
+
+**Szenario:** Spieler wollen ihre Entwicklung verfolgen, aber nicht jedes Training in die ClubCloud eintragen.
+
+```
+Beispiel BC Hamburg:
+- Jeden Dienstag: Training mit 8 Spielern
+- Erfassung über Scoreboards
+- Statistiken: GD-Entwicklung, Höchstserien, etc.
+- Lokale Rangliste für den Verein
+
+Local Data:
+- Training-Games: IDs 50.100.001, 50.100.002, ...
+- Nur im Verein sichtbar
+- Langzeit-Statistiken möglich
+- Motiviert Spieler (messbare Verbesserung!)
+```
+
+#### 3. Gastspieler im Verein
+
+**Szenario:** Ein Spieler aus einem anderen Verein besucht regelmäßig und nimmt an Trainings teil.
+
+```
+Problem:
+- Spieler ist nicht Vereinsmitglied
+- Steht nicht in ClubCloud als BC Hamburg Spieler
+- Soll trotzdem am Scoreboard spielen können
+
+Lösung:
+- Gastspieler lokal anlegen → ID: 50.200.123
+- Kann an lokalen Spielen teilnehmen
+- Erscheint NICHT in offiziellen Listen
+- Wird NICHT an API Server synchronisiert
+```
+
+#### 4. Tischreservierung mit Heizungssteuerung
+
+**Szenario:** Der Verein hat ein automatisches Reservierungssystem für die Billardtische mit Heizungssteuerung.
+
+```
+Local Data Tabellen:
+- Reservierungen: ID 50.300.001, 50.300.002, ...
+- Tischbelegungen
+- Heizungs-Zeitpläne
+- Vereinsinterne Verwaltung
+
+Warum lokal?
+- Nicht relevant für andere Vereine
+- Keine ClubCloud-Integration nötig
+- Schneller Zugriff (lokal)
+- Datenschutz (nur Vereinsmitglieder)
+```
+
+#### 5. Interne Vereinsmeisterschaft über mehrere Wochen
+
+**Szenario:** Der Verein organisiert eine mehrwöchige interne Meisterschaft.
+
+```
+Setup:
+- League (lokal): "BC Hamburg Wintermeisterschaft"
+  ID: 50.400.001
+- LeagueTeams (lokal): "Die Alten", "Die Jungen", etc.
+  IDs: 50.400.010, 50.400.011, ...
+- Parties (Spieltage): Jeden Freitag
+  IDs: 50.400.100, 50.400.101, ...
+- PartyGames: Hunderte von Spielen
+  IDs: 50.400.500+
+
+Vorteil:
+- Vollständige Liga-Verwaltung im Verein
+- Nicht in offizieller ClubCloud
+- Eigene Regeln und Modus möglich
+- Langzeitstatistiken lokal gespeichert
+```
+
+---
+
+### 🔄 Was passiert mit Local Data?
+
+#### Lokal erstellt (Local Server):
+```
+BC Hamburg Local Server
+  ↓ Turnier erstellen
+  ID: 50.012.345 (Local Data)
+  cc_id: NULL (nicht in ClubCloud)
+```
+
+#### Optional: Upload zum API Server
+```
+Local Server
+  ↓ rake sync:to_api (falls gewünscht)
+API Server
+  ↓ speichert mit gleicher ID
+  ID: 50.012.345 bleibt erhalten!
+```
+
+#### Synchronisation zu anderen Local Servern
+```
+API Server (hat jetzt BC Hamburg Local Data)
+  ↓ Synchronisation (regional gefiltert!)
+Andere NBV-Server bekommen es
+  ↓
+BV Wedel Local Server sieht:
+  "BC Hamburg Vereinsturnier" (read-only)
+```
+
+**Wichtig:**
+- Local Data bleibt **geschützt** (LocalProtector)
+- Nur der **Ersteller-Server** kann bearbeiten
+- Andere Server: **nur lesen**
+- Kein versehentliches Überschreiben
+
+---
+
+### 🎯 Wann nutzt man Local Data?
+
+**Nutze Local Data für:**
+- ✅ Vereinsinterne Turniere
+- ✅ Trainingsspiele und Statistiken
+- ✅ Gastspieler ohne Vereinsmitgliedschaft
+- ✅ Reservierungssysteme
+- ✅ Interne Ligen/Meisterschaften
+- ✅ Alles was NICHT in ClubCloud soll
+
+**Nutze gescrapte Daten für:**
+- ✅ Offizielle Verbandsturniere
+- ✅ Bundesliga-Spieltage
+- ✅ Ranglisten-Turniere
+- ✅ Regionale Meisterschaften
+- ✅ Alles was in ClubCloud steht
 
 ### Synchronisation von Local Data
 
