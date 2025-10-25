@@ -10,6 +10,9 @@ export default class extends Controller {
     // Initialize CSRF token for POST requests
     this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
     
+    // Get current locale from HTML lang attribute
+    this.locale = document.documentElement.lang || 'de'
+    
     // Initialize mode (default: search)
     this.mode = 'search'
     
@@ -138,7 +141,7 @@ export default class extends Controller {
           "X-CSRF-Token": this.csrfToken,
           "Accept": "application/json"
         },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query, locale: this.locale })
       })
 
       const data = await response.json()

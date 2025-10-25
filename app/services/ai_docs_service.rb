@@ -105,7 +105,8 @@ class AiDocsService < ApplicationService
   
   def search_with_ripgrep(keyword, docs_path, matches_by_file)
     # Use ripgrep with JSON output for better parsing
-    cmd = "rg -i '#{keyword}' #{docs_path} -A 3 -B 1 --json --type md 2>/dev/null"
+    # Search only for files with the correct locale extension
+    cmd = "rg -i '#{keyword}' #{docs_path} -g '*.#{@locale}.md' -A 3 -B 1 --json 2>/dev/null"
     output = `#{cmd}`
     return if output.blank?
     
@@ -114,7 +115,8 @@ class AiDocsService < ApplicationService
   
   def search_with_grep(keyword, docs_path, matches_by_file)
     # Fallback to grep (available everywhere)
-    cmd = "grep -rin -A 3 -B 1 --include='*.md' '#{keyword}' #{docs_path} 2>/dev/null"
+    # Search only for files with the correct locale extension
+    cmd = "grep -rin -A 3 -B 1 --include='*.#{@locale}.md' '#{keyword}' #{docs_path} 2>/dev/null"
     output = `#{cmd}`
     return if output.blank?
     
@@ -122,16 +124,28 @@ class AiDocsService < ApplicationService
   end
   
   def extract_keywords(query)
-    # Remove common German question words and prepositions
-    stopwords = %w[wie was wo wann warum welche welcher welches wieso weshalb
-                   der die das den dem des ein eine einen einem einer
-                   ich du er sie es wir ihr sie mich dich sich uns euch
-                   ist sind hat haben kann können muss müssen soll sollen
-                   gibt gibt's hat's kann's
-                   für von mit bei nach über unter zwischen durch ohne
-                   zu auf aus in an als ob wenn dann aber oder und
-                   dass weil denn also doch noch nur auch schon mal
-                   diese dieser dieses diesem diesen]
+    # Remove common question words and prepositions (German and English)
+    stopwords_de = %w[wie was wo wann warum welche welcher welches wieso weshalb
+                      der die das den dem des ein eine einen einem einer
+                      ich du er sie es wir ihr sie mich dich sich uns euch
+                      ist sind hat haben kann können muss müssen soll sollen
+                      gibt gibt's hat's kann's
+                      für von mit bei nach über unter zwischen durch ohne
+                      zu auf aus in an als ob wenn dann aber oder und
+                      dass weil denn also doch noch nur auch schon mal
+                      diese dieser dieses diesem diesen]
+    
+    stopwords_en = %w[how what where when why which whose whom who
+                      the a an of to in for on at from by with
+                      is are was were be been being have has had
+                      can could may might must should shall will would
+                      do does did done doing
+                      i you he she it we they me him her us them
+                      this that these those
+                      and or but if then else also still yet
+                      because since therefore however]
+    
+    stopwords = (@locale == 'en' ? stopwords_en : stopwords_de)
     
     # Remove punctuation and split into words
     cleaned = query.gsub(/[?!.,;:]/, '').downcase
@@ -270,6 +284,10 @@ class AiDocsService < ApplicationService
   end
 
   def system_prompt(context)
+    @locale == 'en' ? system_prompt_en(context) : system_prompt_de(context)
+  end
+
+  def system_prompt_de(context)
     <<~PROMPT
       Du bist der Carambus Hilfe-Assistent für eine deutsche Billard-Verwaltungs-App.
       
@@ -291,6 +309,31 @@ class AiDocsService < ApplicationService
       - Nur Informationen aus der Dokumentation verwenden
       - Keine Erfindungen oder Annahmen
       - Bei Unsicherheit: Alternative Suchbegriffe vorschlagen
+    PROMPT
+  end
+
+  def system_prompt_en(context)
+    <<~PROMPT
+      You are the Carambus help assistant for a German billard management app.
+      
+      Answer questions based on the following documentation.
+      
+      DOCUMENTATION:
+      #{context}
+      
+      ANSWER RULES:
+      - Short and concise (2-5 sentences)
+      - Step-by-step instructions when possible
+      - In English
+      - Friendly, helpful tone
+      - Use bullet points for lists
+      - If information not in docs: Say so honestly
+      - Reference UI elements: "Go to...", "Click on..."
+      
+      IMPORTANT:
+      - Only use information from the documentation
+      - No inventions or assumptions
+      - If uncertain: Suggest alternative search terms
     PROMPT
   end
 

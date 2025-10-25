@@ -8,7 +8,8 @@ module Api
     
     # POST /api/ai_search
     # Parameters:
-    #   - query: Natural language search string (German)
+    #   - query: Natural language search string
+    #   - locale: 'de' or 'en' (optional, defaults to current I18n.locale)
     # 
     # Returns:
     #   {
@@ -22,15 +23,16 @@ module Api
     #   }
     def create
       query = params[:query]&.strip
+      locale = params[:locale].presence || I18n.locale.to_s
       
       if query.blank?
         return render json: {
           success: false,
-          error: 'Keine Suchanfrage angegeben'
+          error: locale == 'en' ? 'No search query provided' : 'Keine Suchanfrage angegeben'
         }, status: :unprocessable_entity
       end
 
-      result = AiSearchService.call(query: query, user: current_user)
+      result = AiSearchService.call(query: query, user: current_user, locale: locale)
       
       if result[:success]
         render json: result, status: :ok
@@ -39,9 +41,10 @@ module Api
       end
     rescue StandardError => e
       Rails.logger.error "AiSearchController error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      locale = params[:locale].presence || I18n.locale.to_s
       render json: {
         success: false,
-        error: 'Ein unerwarteter Fehler ist aufgetreten'
+        error: locale == 'en' ? 'An unexpected error occurred' : 'Ein unerwarteter Fehler ist aufgetreten'
       }, status: :internal_server_error
     end
   end

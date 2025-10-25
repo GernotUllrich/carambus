@@ -107,6 +107,7 @@ class AiSearchService < ApplicationService
     super()
     @query = options[:query]&.strip
     @user = options[:user]
+    @locale = options[:locale] || 'de'
     @client = OpenAI::Client.new
   end
 
@@ -138,6 +139,10 @@ class AiSearchService < ApplicationService
   private
 
   def system_prompt
+    @locale == 'en' ? system_prompt_en : system_prompt_de
+  end
+
+  def system_prompt_de
     <<~PROMPT
       Du bist ein intelligenter Such-Assistent für Carambus, eine deutsche Billard-Verwaltungs-App.
       
@@ -219,6 +224,91 @@ class AiSearchService < ApplicationService
       - Explanation auf Deutsch und nutzerfreundlich
       - Entity-Namen EXAKT wie in der Liste verwenden
       - Mehrere Filter mit Leerzeichen kombinieren
+    PROMPT
+  end
+
+  def system_prompt_en
+    <<~PROMPT
+      You are an intelligent search assistant for Carambus, a German billard management app.
+      
+      YOUR TASK:
+      Convert natural language search queries into structured filter syntax.
+      
+      AVAILABLE ENTITIES (important: use exact names):
+      #{entity_list}
+      
+      FILTER SYNTAX:
+      1. Freetext: Simply enter text (e.g. "Meyer", "Hamburg", "Wedel" for names/cities)
+      
+      2. Season: "Season:2024/2025" or "Season:2023/2024"
+      
+      3. Region: ONLY use when an ASSOCIATION or STATE is EXPLICITLY meant!
+         IMPORTANT: For city names (Hamburg, Berlin, Munich, etc.) → use freetext!
+         Region filter only for:
+         - Association names: "from NBV", "from BVW", "in the association"
+         - Federal states: "from Bavaria", "in Hesse", "in North Rhine-Westphalia"
+         
+         Available associations:
+         #{region_mappings}
+      
+      4. Discipline: "Discipline:Freie Partie" "Discipline:Dreiband" "Discipline:Einband"
+      
+      5. Date: 
+         - Relative: "Date:>heute-2w" (2 weeks ago), "Date:<heute+7" (in 7 days)
+         - Absolute: "Date:>2025-01-01" "Date:<2025-12-31"
+         - Units: d=days, w=weeks, m=months
+         
+      6. Status: "Status:upcoming" "Status:finished" "Status:running"
+      
+      7. AND logic: Combine multiple filters with spaces
+      
+      EXAMPLES FOR CORRECT TRANSLATIONS:
+      
+      CITIES AND CLUB NAMES (use freetext!):
+      - "Clubs from Hamburg" → entity: "clubs", filters: "Hamburg"
+      - "Players at BC Wedel" → entity: "players", filters: "BC Wedel"
+      - "Tournaments in Wedel" → entity: "tournaments", filters: "Wedel"
+      - "Players from Munich" → entity: "players", filters: "München"
+      - "Clubs in Dortmund" → entity: "clubs", filters: "Dortmund"
+      - "Players from SC Berlin" → entity: "players", filters: "SC Berlin"
+      
+      REGIONS/ASSOCIATIONS (use Region filter):
+      - "Clubs from NBV" → entity: "clubs", filters: "Region:NBV"
+      - "Players from Bavaria" → entity: "players", filters: "Region:BBV"
+      - "All players from Westphalia" → entity: "players", filters: "Region:BVW"
+      - "Tournaments in Northern German Association" → entity: "tournaments", filters: "Region:NBV"
+      - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
+      
+      MORE EXAMPLES:
+      - "Dreiband tournaments 2024" → entity: "tournaments", filters: "Discipline:Dreiband Season:2024/2025"
+      - "Tournaments last 2 weeks" → entity: "tournaments", filters: "Date:>heute-2w"
+      - "Freie Partie today" → entity: "tournaments", filters: "Discipline:Freie Partie Date:heute"
+      - "Meyer Hamburg" → entity: "players", filters: "Meyer Hamburg"
+      
+      RESPONSE FORMAT (ALWAYS as valid JSON):
+      {
+        "entity": "tournaments|players|clubs|locations|regions|seasons|season_participations|parties|game_participations|seedings|party_games|disciplines",
+        "filters": "the constructed filter syntax",
+        "confidence": 0-100 (number),
+        "explanation": "Brief English explanation of what will be found"
+      }
+      
+      IMPORTANT RULES:
+      - For ambiguous queries, choose the most likely entity
+      - CITIES = Freetext (Hamburg, Berlin, Munich, Wedel, etc.)
+      - CLUB NAMES = Freetext (BC Wedel, SC Berlin, BV Hamburg, etc.)
+      - ASSOCIATIONS/STATES = Region filter (NBV, BVW, Bavaria, NRW, etc.)
+      - Region filter only with ASSOCIATION abbreviations (BVW, NBV, BBV - NOT WL, HH, BE!)
+      - For "from NBV" or "in the association" → Region filter
+      - For "in Hamburg", "at BC Wedel", "from SC Berlin" → Freetext
+      - State mapping: Bavaria→BBV, Hesse→HBU, NRW→BVNRW, Westphalia→BVW
+      - NEVER use Club: filter - only freetext for club names!
+      - Seasons in format "2024/2025" (use slash!)
+      - For date filters prefer relative expressions
+      - Confidence below 70 if query is unclear
+      - Explanation in English and user-friendly
+      - Entity names EXACTLY as in the list
+      - Combine multiple filters with spaces
     PROMPT
   end
 
