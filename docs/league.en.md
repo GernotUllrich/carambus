@@ -16,6 +16,51 @@ id: 2
 
 # League Match Day Management
 
+### Important Terms and Concepts
+
+#### League
+A **League** is a team competition over a season with multiple teams.
+
+#### LeagueTeam (Team)
+A **LeagueTeam** is a team within a league. Each team consists of multiple players.
+
+#### Party (Match Day)
+A **Party** (match day) is a meeting between **two LeagueTeams** at a specific date and location.
+
+**Important:** In a league, there is typically:
+- **First leg:** Each team plays once against every other (home or away)
+- **Second leg:** The same matches with switched home advantage
+
+Example: Team A vs. Team B
+- First leg: Party 1 (at Team A)
+- Second leg: Party 2 (at Team B)
+
+#### PartyGame (Individual Game within a Match Day)
+A **PartyGame** is an individual game between two players during a match day (Party).
+
+On a match day, **multiple PartyGames** are played according to a predefined pattern:
+- Each player from Team A plays against multiple players from Team B
+- The number and order is defined by the **Game Plan**
+- Typical: 6-12 individual games per match day
+
+**Summary:**
+```
+League
+  └── LeagueTeam (Teams)
+        └── Party (Match day between 2 teams)
+              └── PartyGame (Individual games within match day)
+                    └── Player A vs. Player B
+```
+
+**Example:** Bundesliga Nord, 1st Match Day
+- **League:** Bundesliga Nord
+- **LeagueTeam:** BC Hamburg, BV Wedel
+- **Party:** BC Hamburg vs. BV Wedel (Match day on 10/15/2024)
+- **PartyGames:** 
+  - Game 1: Player Müller (Hamburg) vs. Schmidt (Wedel)
+  - Game 2: Player Meyer (Hamburg) vs. Wagner (Wedel)
+  - ... (total of e.g. 8 games)
+
 ### Overview
 
 The handling of league matches runs fundamentally different compared to individual tournaments and is therefore specially supported. The structure of league matches is predetermined for the individual leagues and does not change during a season.
