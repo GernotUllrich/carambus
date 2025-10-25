@@ -77,9 +77,14 @@ class AiDocsService < ApplicationService
       end
     end
     
-    # Return top docs sorted by number of matches
+    # Return top docs sorted by relevance
+    # Prioritize files with keywords in filename
     all_matches.values
-      .sort_by { |d| -d[:snippets].count }
+      .sort_by { |d| 
+        filename_score = keywords.count { |kw| d[:file].downcase.include?(kw.downcase) } * 100
+        snippet_score = d[:snippets].count
+        -(filename_score + snippet_score)
+      }
       .first(MAX_DOCS)
   end
   
@@ -118,17 +123,28 @@ class AiDocsService < ApplicationService
   
   def extract_keywords(query)
     # Remove common German question words and prepositions
-    stopwords = %w[wie was wo wann warum welche welcher welches wie aus in 
-                   der die das den dem des ist sind ein eine einen einem einer
+    stopwords = %w[wie was wo wann warum welche welcher welches wieso weshalb
+                   der die das den dem des ein eine einen einem einer
                    ich du er sie es wir ihr sie mich dich sich uns euch
-                   zu auf von mit bei nach über unter zwischen]
+                   ist sind hat haben kann können muss müssen soll sollen
+                   gibt gibt's hat's kann's
+                   für von mit bei nach über unter zwischen durch ohne
+                   zu auf aus in an als ob wenn dann aber oder und
+                   dass weil denn also doch noch nur auch schon mal
+                   diese dieser dieses diesem diesen]
     
     # Remove punctuation and split into words
     cleaned = query.gsub(/[?!.,;:]/, '').downcase
     words = cleaned.split(/\s+/)
     keywords = words.reject { |w| stopwords.include?(w) || w.length < 3 }
     
-    # Keep at least one keyword
+    # Keep at least one meaningful keyword
+    if keywords.empty?
+      # Fall back to all non-stopwords
+      keywords = words.reject { |w| stopwords.include?(w) }
+    end
+    
+    # If still empty, use last word
     keywords = [words.last] if keywords.empty?
     
     keywords
