@@ -1,4 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
+import { marked } from 'marked'
+
+// Configure marked for safe rendering
+marked.setOptions({
+  breaks: true,        // Convert \n to <br>
+  gfm: true,          // GitHub Flavored Markdown
+  headerIds: false,   // Don't add IDs to headers
+  mangle: false       // Don't mangle email addresses
+})
 
 // AI-powered search controller
 // Handles natural language search queries via OpenAI
@@ -237,11 +246,11 @@ export default class extends Controller {
   showDocsResult(data) {
     let html = '<div class="text-sm space-y-3">'
     
-    // AI Answer (use localized label)
+    // AI Answer (use localized label and render Markdown)
     const answerLabel = this.answerLabelValue || "💡 Answer:"
     html += `<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">`
     html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">${answerLabel}</div>`
-    html += `<div class="text-gray-700 dark:text-gray-300">${this.escapeHtml(data.answer)}</div>`
+    html += `<div class="prose prose-sm max-w-none dark:prose-invert text-gray-700 dark:text-gray-300">${marked.parse(data.answer)}</div>`
     html += `</div>`
     
     // Documentation Links (use localized label)
