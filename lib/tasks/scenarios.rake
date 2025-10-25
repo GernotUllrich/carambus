@@ -1373,8 +1373,13 @@ ENV
     puts "\n📦 Step 0: Ensuring carambus_master dependencies are installed..."
     master_root = Rails.root.to_s
     puts "   Running bundle install in #{master_root}..."
-    bundle_install_cmd = "cd #{master_root} && bundle install"
-    if system(bundle_install_cmd)
+    
+    # Use Bundler.with_unbundled_env to ensure a clean environment
+    success = Bundler.with_unbundled_env do
+      system("cd #{master_root} && bundle install")
+    end
+    
+    if success
       puts "   ✅ carambus_master gems installed"
     else
       puts "   ❌ Failed to install carambus_master gems"
@@ -1561,7 +1566,12 @@ ENV
 
     # Install Ruby dependencies
     puts "   📦 Installing Ruby dependencies (bundle install)..."
-    system("cd #{rails_root} && bundle install")
+    
+    # Use Bundler.with_unbundled_env to ensure a clean environment
+    Bundler.with_unbundled_env do
+      system("cd #{rails_root} && bundle install")
+    end
+    
     # Check if gems are actually installed (more reliable than exit code)
     unless File.exist?(File.join(rails_root, "Gemfile.lock"))
       puts "   ❌ Failed to install Ruby dependencies (Gemfile.lock missing)"
@@ -1571,7 +1581,10 @@ ENV
 
     # Install JavaScript dependencies
     puts "   📦 Installing JavaScript dependencies (yarn install)..."
-    unless system("cd #{rails_root} && yarn install")
+    success = Bundler.with_unbundled_env do
+      system("cd #{rails_root} && yarn install")
+    end
+    unless success
       puts "   ❌ Failed to install JavaScript dependencies"
       return false
     end
@@ -1579,7 +1592,10 @@ ENV
 
     # Build JavaScript assets
     puts "   🔨 Building JavaScript assets (yarn build)..."
-    unless system("cd #{rails_root} && yarn build")
+    success = Bundler.with_unbundled_env do
+      system("cd #{rails_root} && yarn build")
+    end
+    unless success
       puts "   ❌ Failed to build JavaScript assets"
       return false
     end
@@ -1587,7 +1603,10 @@ ENV
 
     # Build CSS assets
     puts "   🎨 Building CSS assets (yarn build:css)..."
-    unless system("cd #{rails_root} && yarn build:css")
+    success = Bundler.with_unbundled_env do
+      system("cd #{rails_root} && yarn build:css")
+    end
+    unless success
       puts "   ❌ Failed to build CSS assets"
       return false
     end
@@ -1595,7 +1614,10 @@ ENV
 
     # Precompile Rails assets for development
     puts "   📦 Precompiling Rails assets (rails assets:precompile)..."
-    unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails assets:precompile")
+    success = Bundler.with_unbundled_env do
+      system("cd #{rails_root} && RAILS_ENV=development bundle exec rails assets:precompile")
+    end
+    unless success
       puts "   ❌ Failed to precompile Rails assets"
       return false
     end
