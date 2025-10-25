@@ -22,13 +22,23 @@ export default class extends Controller {
     // Listen for ESC key globally
     this.escapeHandler = this.handleEscape.bind(this)
     document.addEventListener('keydown', this.escapeHandler)
+    
+    // Listen for custom event from button in navbar
+    this.toggleHandler = this.toggle.bind(this)
+    window.addEventListener('ai-search:toggle', this.toggleHandler)
+    
+    console.log('✅ AI Search Controller connected')
   }
 
   // Toggle search panel visibility
   toggle(event) {
-    event.preventDefault()
+    if (event && event.preventDefault) {
+      event.preventDefault()
+    }
     
     const isHidden = this.panelTarget.classList.contains("hidden")
+    
+    console.log('🔄 Toggle called, panel hidden:', isHidden)
     
     if (isHidden) {
       // Open panel
@@ -402,6 +412,11 @@ export default class extends Controller {
     // Remove ESC key listener
     if (this.escapeHandler) {
       document.removeEventListener('keydown', this.escapeHandler)
+    }
+    
+    // Remove custom event listener
+    if (this.toggleHandler) {
+      window.removeEventListener('ai-search:toggle', this.toggleHandler)
     }
   }
 }
