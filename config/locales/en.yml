@@ -1275,3 +1275,34 @@ en:
     edit_in_mkdocs: "Edit in MkDocs"
     back_to_documentation: "Back to Documentation"
     related_documentation: "Related Documentation"
+  
+  ai_assistant:
+    title: "AI Assistant"
+    close: "Close"
+    tabs:
+      data_search: "🔍 Data Search"
+      docs_help: "📚 Help & Docs"
+    labels:
+      search_question: "What would you like to find?"
+      docs_question: "What would you like to know?"
+    placeholders:
+      search: "e.g. 'Tournaments in Hamburg 2024' or 'All players from Westphalia'"
+      docs: "e.g. 'How do I create a tournament?' or 'What is a Party?'"
+    tips:
+      last_query: "💡 Tip: Last search is automatically restored"
+    examples:
+      title: "Examples:"
+      search:
+        - "Tournaments in Hamburg last 2 weeks"
+        - "Dreiband players from Berlin"
+        - "Players at BC Wedel"
+        - "Freie Partie season 2024/2025"
+      docs:
+        - "How do I create a tournament?"
+        - "How does seeding work?"
+        - "What is the difference between Party and PartyGame?"
+        - "How do I sync with Club-Cloud?"
+    buttons:
+      search: "Search"
+      clear: "Clear"
+    loading: "AI is analyzing your query..."
