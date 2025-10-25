@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // AI-powered search controller
 // Handles natural language search queries via OpenAI
 export default class extends Controller {
-  static targets = ["panel", "input", "submitButton", "loading", "message", 
+  static targets = ["panel", "backdrop", "input", "submitButton", "loading", "message", 
                     "searchTab", "docsTab", "label", "searchExamples", "docsExamples"]
 
   connect() {
@@ -18,19 +18,51 @@ export default class extends Controller {
     
     // Check if panel should be open (after navigation from search)
     this.checkPanelState()
+    
+    // Listen for ESC key globally
+    this.escapeHandler = this.handleEscape.bind(this)
+    document.addEventListener('keydown', this.escapeHandler)
   }
 
   // Toggle search panel visibility
   toggle(event) {
     event.preventDefault()
-    this.panelTarget.classList.toggle("hidden")
     
-    // Focus input when opening
-    if (!this.panelTarget.classList.contains("hidden")) {
-      this.inputTarget.focus()
-      // Select text for easy editing
-      this.inputTarget.select()
+    const isHidden = this.panelTarget.classList.contains("hidden")
+    
+    if (isHidden) {
+      // Open panel
+      this.open()
+    } else {
+      // Close panel
+      this.close()
     }
+  }
+  
+  // Open panel
+  open() {
+    this.panelTarget.classList.remove("hidden")
+    this.backdropTarget.classList.remove("hidden")
+    
+    // Focus and select input
+    setTimeout(() => {
+      this.inputTarget.focus()
+      this.inputTarget.select()
+    }, 100)
+    
+    // Prevent body scroll when panel is open
+    document.body.style.overflow = 'hidden'
+  }
+  
+  // Close panel
+  close(event) {
+    if (event) event.preventDefault()
+    
+    this.panelTarget.classList.add("hidden")
+    this.backdropTarget.classList.add("hidden")
+    
+    // Restore body scroll
+    document.body.style.overflow = ''
   }
 
   // Set search mode (search or docs)
@@ -331,8 +363,9 @@ export default class extends Controller {
           
           if (ageSeconds < 10) {
             console.log('✅ Opening panel')
-            // Open panel
-            this.panelTarget.classList.remove('hidden')
+            // Open panel using new open() method
+            this.open()
+            
             // Also show last success message if available
             const lastMessage = localStorage.getItem('carambus_ai_last_message')
             if (lastMessage && this.hasMessageTarget) {
@@ -353,6 +386,23 @@ export default class extends Controller {
         console.error('Could not check panel state:', e)
       }
     }, 100)
+  }
+  
+  // Handle ESC key to close panel
+  handleEscape(event) {
+    if (event.key === 'Escape') {
+      this.close()
+    }
+  }
+  
+  disconnect() {
+    // Cleanup: restore body scroll on disconnect
+    document.body.style.overflow = ''
+    
+    // Remove ESC key listener
+    if (this.escapeHandler) {
+      document.removeEventListener('keydown', this.escapeHandler)
+    }
   }
 }
 

@@ -1,0 +1,121 @@
+<!-- AI Search Panel - Central overlay above main content -->
+<div data-controller="ai-search" 
+     data-ai-search-target="container"
+     class="ai-search-panel-container">
+  
+  <!-- Backdrop (dark overlay) -->
+  <div data-ai-search-target="backdrop" 
+       data-action="click->ai-search#close"
+       class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity">
+  </div>
+  
+  <!-- Search Panel (centered, max-height 50vh) -->
+  <div data-ai-search-target="panel" 
+       class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 w-full max-w-3xl z-50 transition-all duration-300">
+    
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[50vh] overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          KI-Assistent
+        </h3>
+        <button data-action="click->ai-search#close" 
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Content -->
+      <div class="px-6 py-4">
+        
+        <!-- Mode Selector Tabs -->
+        <div class="flex gap-2 mb-4">
+          <button type="button"
+                  data-action="click->ai-search#setMode"
+                  data-mode="search"
+                  data-ai-search-target="searchTab"
+                  class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium transition-colors">
+            🔍 Daten suchen
+          </button>
+          <button type="button"
+                  data-action="click->ai-search#setMode"
+                  data-mode="docs"
+                  data-ai-search-target="docsTab"
+                  class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium transition-colors">
+            📚 Hilfe & Docs
+          </button>
+        </div>
+
+        <form data-action="submit->ai-search#search" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-ai-search-target="label">
+              Was möchten Sie finden?
+            </label>
+            <textarea 
+              data-ai-search-target="input"
+              data-action="keydown->ai-search#handleKeydown"
+              placeholder="z.B. 'Turniere in Hamburg 2024' oder 'Alle Spieler aus Westfalen'"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base"
+              rows="3"></textarea>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              💡 Tipp: Letzte Suche wird automatisch wiederhergestellt
+            </p>
+          </div>
+
+          <!-- Examples (context-sensitive based on mode) -->
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-md p-3 text-xs text-gray-600 dark:text-gray-400">
+            <div class="font-medium mb-2">Beispiele:</div>
+            <div class="space-y-1" data-ai-search-target="searchExamples">
+              <div>• "Turniere in Hamburg letzte 2 Wochen"</div>
+              <div>• "Dreiband Spieler aus Berlin"</div>
+              <div>• "Spieler im BC Wedel"</div>
+              <div>• "Freie Partie Saison 2024/2025"</div>
+            </div>
+            <div class="space-y-1 hidden" data-ai-search-target="docsExamples">
+              <div>• "Wie erstelle ich ein Turnier?"</div>
+              <div>• "Wie funktioniert die Setzung?"</div>
+              <div>• "Was ist der Unterschied zwischen Party und PartyGame?"</div>
+              <div>• "Wie synchronisiere ich mit der Club-Cloud?"</div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button type="submit" 
+                    data-ai-search-target="submitButton"
+                    class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-sm hover:shadow">
+              Suchen
+            </button>
+            <button type="button" 
+                    data-action="click->ai-search#clear"
+                    class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md font-medium transition-colors">
+              Löschen
+            </button>
+          </div>
+
+          <!-- Loading State -->
+          <div data-ai-search-target="loading" class="hidden">
+            <div class="flex items-center justify-center py-4">
+              <svg class="animate-spin h-6 w-6 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-base text-gray-600 dark:text-gray-300">KI analysiert Ihre Anfrage...</span>
+            </div>
+          </div>
+
+          <!-- Result/Error Message -->
+          <div data-ai-search-target="message" class="hidden p-4 rounded-md"></div>
+        </form>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
