@@ -1306,3 +1306,10 @@ en:
       search: "Search"
       clear: "Clear"
     loading: "AI is analyzing your query..."
+    results:
+      answer_label: "💡 Answer:"
+      docs_label: "📚 Relevant Documentation:"
+      confidence: "Relevance:"
+    errors:
+      generic: "An error occurred. Please try again."
+      no_docs_found: "No answer found in the documentation."

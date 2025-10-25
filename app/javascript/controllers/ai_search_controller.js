@@ -5,6 +5,13 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["panel", "backdrop", "input", "submitButton", "loading", "message", 
                     "searchTab", "docsTab", "label", "searchExamples", "docsExamples"]
+  static values = {
+    answerLabel: String,
+    docsLabel: String,
+    confidenceLabel: String,
+    errorGeneric: String,
+    errorNoDocs: String
+  }
 
   connect() {
     // Initialize CSRF token for POST requests
@@ -156,7 +163,7 @@ export default class extends Controller {
     } catch (error) {
       console.error("AI error:", error)
       this.showMessage(
-        "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        this.errorGenericValue || "An error occurred. Please try again.",
         "error"
       )
     } finally {
@@ -176,7 +183,7 @@ export default class extends Controller {
       this.showDocsResult(data)
     } else {
       this.showMessage(
-        data.error || "Keine Antwort in der Dokumentation gefunden.",
+        data.error || this.errorNoDocsValue || "No answer found in documentation.",
         "error"
       )
     }
@@ -228,16 +235,18 @@ export default class extends Controller {
   showDocsResult(data) {
     let html = '<div class="text-sm space-y-3">'
     
-    // AI Answer
+    // AI Answer (use localized label)
+    const answerLabel = this.answerLabelValue || "💡 Answer:"
     html += `<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">`
-    html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">💡 Antwort:</div>`
+    html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">${answerLabel}</div>`
     html += `<div class="text-gray-700 dark:text-gray-300">${this.escapeHtml(data.answer)}</div>`
     html += `</div>`
     
-    // Documentation Links
+    // Documentation Links (use localized label)
     if (data.docs_links && data.docs_links.length > 0) {
+      const docsLabel = this.docsLabelValue || "📚 Relevant Documentation:"
       html += `<div class="border-t border-gray-200 dark:border-gray-600 pt-3">`
-      html += `<div class="font-medium text-gray-700 dark:text-gray-300 mb-2">📚 Relevante Dokumentation:</div>`
+      html += `<div class="font-medium text-gray-700 dark:text-gray-300 mb-2">${docsLabel}</div>`
       html += `<ul class="space-y-1">`
       data.docs_links.forEach(link => {
         html += `<li><a href="${link.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
@@ -245,11 +254,12 @@ export default class extends Controller {
       html += `</ul></div>`
     }
     
-    // Confidence indicator
+    // Confidence indicator (use localized label)
     if (data.confidence) {
+      const confidenceLabel = this.confidenceLabelValue || "Relevance:"
       const confidenceColor = data.confidence >= 80 ? 'green' : data.confidence >= 60 ? 'yellow' : 'red'
       html += `<div class="text-xs text-gray-500 dark:text-gray-400 mt-2">`
-      html += `Relevanz: ${data.confidence}%`
+      html += `${confidenceLabel} ${data.confidence}%`
       html += `</div>`
     }
     

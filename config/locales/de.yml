@@ -1376,3 +1376,10 @@ de:
       search: "Suchen"
       clear: "Löschen"
     loading: "KI analysiert Ihre Anfrage..."
+    results:
+      answer_label: "💡 Antwort:"
+      docs_label: "📚 Relevante Dokumentation:"
+      confidence: "Relevanz:"
+    errors:
+      generic: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      no_docs_found: "Keine Antwort in der Dokumentation gefunden."

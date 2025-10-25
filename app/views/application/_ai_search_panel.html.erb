@@ -1,6 +1,11 @@
 <!-- AI Search Panel - Central overlay above main content -->
 <div data-controller="ai-search" 
      data-ai-search-target="container"
+     data-ai-search-answer-label-value="<%= t('ai_assistant.results.answer_label') %>"
+     data-ai-search-docs-label-value="<%= t('ai_assistant.results.docs_label') %>"
+     data-ai-search-confidence-label-value="<%= t('ai_assistant.results.confidence') %>"
+     data-ai-search-error-generic-value="<%= t('ai_assistant.errors.generic') %>"
+     data-ai-search-error-no-docs-value="<%= t('ai_assistant.errors.no_docs_found') %>"
      class="ai-search-panel-container">
   
   <!-- Backdrop (dark overlay) -->
