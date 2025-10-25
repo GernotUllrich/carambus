@@ -350,9 +350,10 @@ class AiDocsService < ApplicationService
     # Remove both .md extension AND locale suffix (.de or .en)
     relative_path = doc[:file].to_s.sub(%r{.*/docs/}, '').sub(/\.(de|en)\.md$/, '').sub(/\.md$/, '')
     
+    # Use docs_page_with_locale_path to include locale in the URL path
     {
       title: doc[:title],
-      url: Rails.application.routes.url_helpers.docs_page_path(path: relative_path, locale: @locale),
+      url: Rails.application.routes.url_helpers.docs_page_with_locale_path(locale: @locale, path: relative_path),
       file: doc[:file]
     }
   end
