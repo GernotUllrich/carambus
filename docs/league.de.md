@@ -1,5 +1,50 @@
 # Verwaltung von Ligaspieltagen
 
+### Wichtige Begriffe und Konzepte
+
+#### League (Liga)
+Eine **Liga** ist ein Mannschaftswettbewerb über eine Saison mit mehreren Teams.
+
+#### LeagueTeam (Mannschaft)
+Ein **LeagueTeam** ist eine Mannschaft innerhalb einer Liga. Jedes Team besteht aus mehreren Spielern.
+
+#### Party (Spieltag)
+Ein **Party** (Spieltag) ist eine Begegnung zwischen **zwei LeagueTeams** an einem bestimmten Datum und Ort.
+
+**Wichtig:** In einer Liga gibt es typischerweise:
+- **Hinrunde:** Jedes Team spielt einmal gegen jedes andere (zu Hause oder auswärts)
+- **Rückrunde:** Die gleichen Begegnungen, mit getauschtem Heimrecht
+
+Beispiel: Team A vs. Team B
+- Hinrunde: Party 1 (bei Team A)
+- Rückrunde: Party 2 (bei Team B)
+
+#### PartyGame (Einzelspiel innerhalb eines Spieltags)
+Ein **PartyGame** ist ein einzelnes Spiel zwischen zwei Spielern während eines Spieltags (Party).
+
+An einem Spieltag werden **mehrere PartyGames** nach einem festgelegten Muster ausgetragen:
+- Jeder Spieler aus Team A spielt gegen mehrere Spieler aus Team B
+- Die Anzahl und Reihenfolge ist durch den **Game Plan** vorgegeben
+- Typisch: 6-12 Einzelspiele pro Spieltag
+
+**Zusammenfassung:**
+```
+League (Liga)
+  └── LeagueTeam (Mannschaften)
+        └── Party (Spieltag zwischen 2 Teams)
+              └── PartyGame (Einzelspiele innerhalb des Spieltags)
+                    └── Spieler A vs. Spieler B
+```
+
+**Beispiel:** Bundesliga Nord, 1. Spieltag
+- **League:** Bundesliga Nord
+- **LeagueTeam:** BC Hamburg, BV Wedel
+- **Party:** BC Hamburg vs. BV Wedel (Spieltag am 15.10.2024)
+- **PartyGames:** 
+  - Spiel 1: Spieler Müller (Hamburg) vs. Schmidt (Wedel)
+  - Spiel 2: Spieler Meyer (Hamburg) vs. Wagner (Wedel)
+  - ... (insgesamt z.B. 8 Spiele)
+
 ### Überblick
 
 Die Behandlung von Ligabegegnungen läuft grundlegend verschieden verglichen mit Einzelturnieren und wird daher auch speziell unterstützt. Die Struktur der Ligabegegnungen ist für die einzelnen Ligen vorgegeben und ändert sich nicht im Laufe einer Saison.
