@@ -73,7 +73,7 @@ server {
 
     location / {
         root /var/www/<%= @scenario['basename'] %>/current/public;
-        try_files $uri @<%= @scenario['basename'] %>_upstream;
+        try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
     }
 
     location @<%= @scenario['basename'] %>_upstream {
@@ -150,7 +150,7 @@ server {
 
     location / {
         root /var/www/<%= @scenario['basename'] %>/current/public;
-        try_files $uri @<%= @scenario['basename'] %>_upstream;
+        try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
     }
 
     location @<%= @scenario['basename'] %>_upstream {
