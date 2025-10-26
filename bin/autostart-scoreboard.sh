@@ -5,7 +5,7 @@
 # Set display environment
 export DISPLAY=:0
 
-# Set up X11 authentication for user pj
+# Set up X11 authentication
 if [ "$USER" = "pj" ]; then
     # Allow user pj to access X11
     xhost +local:pj 2>/dev/null || true
@@ -13,6 +13,26 @@ if [ "$USER" = "pj" ]; then
     # Try to get X11 authentication
     if [ -f /home/pj/.Xauthority ]; then
         export XAUTHORITY=/home/pj/.Xauthority
+    fi
+elif [ "$USER" = "www-data" ]; then
+    # Find the user who owns the X11 display
+    X11_USER=$(who | grep '(:0)' | awk '{print $1}' | head -1)
+    if [ -z "$X11_USER" ]; then
+        # Fallback: Try common users
+        for user in pi pj ubuntu; do
+            if [ -f /home/$user/.Xauthority ]; then
+                X11_USER=$user
+                break
+            fi
+        done
+    fi
+    
+    if [ -n "$X11_USER" ]; then
+        echo "Found X11 user: $X11_USER"
+        export XAUTHORITY=/home/$X11_USER/.Xauthority
+        # Allow www-data to access X11 display
+        sudo -u $X11_USER DISPLAY=:0 xhost +local:www-data 2>/dev/null || true
+        sudo -u $X11_USER DISPLAY=:0 xhost +SI:localuser:www-data 2>/dev/null || true
     fi
 fi
 
