@@ -676,7 +676,7 @@ DEPENDENCIES
   annotate (>= 3.2.0)
   bootsnap (>= 1.4.2)
   brakeman
-  bundler (= 2.5.15)
+  bundler (= 2.7.2)
   cable_ready (= 5.0.6)
   cancancan (~> 3.5)
   capistrano (~> 3.19.2)
@@ -739,4 +739,4 @@ RUBY VERSION
    ruby 3.2.1p31
 
 BUNDLED WITH
-   2.5.15
+   2.7.2
