@@ -883,7 +883,6 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
-    duckdns_domain = env_config['duckdns_domain'] || ''
 
     content = <<~'RUBY'
 require "active_support/core_ext/integer/time"
@@ -998,14 +997,11 @@ Rails.application.configure do
   # Allow requests from localhost (needed for scoreboard kiosk)
   config.hosts << "localhost"
   config.hosts << "localhost:#{webserver_port}"
-  # Allow requests from DuckDNS domains (for remote access)
-  config.hosts << "#{duckdns_domain}" if "#{duckdns_domain}".present?
-  config.hosts << "#{duckdns_domain}:#{webserver_port}" if "#{duckdns_domain}".present?
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
   config.action_cable.url = "#{actioncable_url}"
-  config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}, %r{http://192\.168\..*}, %r{http://#{duckdns_domain}}]
+  config.action_cable.allowed_request_origins = [%r{http://#{webserver_host}}, %r{https://#{webserver_host}}]
   # config.action_cable.adapter = :async  # Removed - invalid for Rails 7.2.2.2
 
   # Use Rails credentials as normal
@@ -1024,7 +1020,6 @@ RUBY
                     .gsub('#{webserver_port}', webserver_port.to_s)
                     .gsub('#{actioncable_url}', actioncable_url)
                     .gsub('#{webserver_host}', webserver_host)
-                    .gsub('#{duckdns_domain}', duckdns_domain)
 
     File.write(File.join(env_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"
