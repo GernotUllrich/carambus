@@ -1,7 +1,7 @@
 import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
-const VALIDATION_DELAY_MS = 0 // Immediate validation for Raspberry Pi 3 performance
+const VALIDATION_DELAY_MS = 3000
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
@@ -22,7 +22,7 @@ export default class extends ApplicationController {
   }
 
   initializeClientState() {
-    
+
     // 🚀 CRITICAL: Use global storage for accumulated changes to persist across controller reconnections
     if (!window.TabmonGlobalState) {
       window.TabmonGlobalState = {
@@ -34,12 +34,12 @@ export default class extends ApplicationController {
         validationTimer: null
       }
     }
-    
+
     const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
     const existingPendingPlayerSwitch = window.TabmonGlobalState.pendingPlayerSwitch
     const existingValidationTimer = window.TabmonGlobalState.validationTimer
-    
-    
+
+
     // Initialize client-side state for immediate feedback
     this.clientState = {
       scores: {},
@@ -52,7 +52,7 @@ export default class extends ApplicationController {
       // NEW: Track if a player switch is pending after validation
       pendingPlayerSwitch: existingPendingPlayerSwitch
     }
-    
+
   }
 
   // Optimistic score update - immediate visual feedback using accumulated totals
@@ -196,9 +196,9 @@ export default class extends ApplicationController {
     if (!goalElement) {
       return null
     }
-    
+
     const goalText = goalElement.textContent
-    
+
     // Extract number from "Goal: 50" or "Goal: no limit" or "Ziel: 20"
     const match = goalText.match(/(?:Goal|Ziel):\s*(\d+|no limit)/i)
     if (match) {
@@ -209,36 +209,36 @@ export default class extends ApplicationController {
         return goal
       }
     }
-    
+
     return null
   }
 
   // NEW: Check if an increment would be valid (not negative score, not exceeding goal)
   isValidIncrement(playerId, points, operation) {
-    
+
     // Get current score from DOM
     const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
-    
+
     if (!scoreElement || !inningsElement) {
       return false
     }
-    
+
     const currentScore = parseInt(scoreElement.textContent) || 0
     const currentInnings = parseInt(inningsElement.textContent) || 0
-    
-    
+
+
     // Get accumulated changes
     const accumulated = this.clientState.accumulatedChanges[playerId] || { totalIncrement: 0, operations: [] }
     const totalAccumulated = accumulated.totalIncrement || 0
-    
-    
+
+
     // Calculate what the new values would be after this increment
     // Note: totalAccumulated does NOT include the current operation being validated
     // We need to calculate from the ORIGINAL score, not the current displayed score
     let originalScore = parseInt(scoreElement.dataset.originalScore) || 0
     let originalInnings = parseInt(inningsElement.dataset.originalInnings) || 0
-    
+
     // If data-original-score doesn't exist yet, use current score minus accumulated changes
     if (originalScore === 0 && totalAccumulated !== 0) {
       originalScore = currentScore - totalAccumulated
@@ -249,11 +249,11 @@ export default class extends ApplicationController {
       originalInnings = currentInnings
     } else {
     }
-    
-    
+
+
     let newScore = originalScore + totalAccumulated
     let newInnings = originalInnings + totalAccumulated
-    
+
     // Then add/subtract the current increment
     if (operation === 'add') {
       newScore += points
@@ -262,27 +262,27 @@ export default class extends ApplicationController {
       newScore -= points
       newInnings -= points
     }
-    
-    
+
+
     // Check if score would be negative
     if (newScore < 0) {
       return false
     }
-    
+
     // Check if score would exceed goal
     const goal = this.getPlayerGoal(playerId)
     if (goal !== null && newScore > goal) {
       return false
     }
-    
-    
+
+
     // 🚀 NEW: Check if this increment reaches the goal - if so, trigger immediate validation
     const goalValue = this.getPlayerGoal(playerId)
     if (goalValue !== null && newScore === goalValue) {
       // Mark this as a goal-reaching increment for immediate validation
       return { valid: true, reachesGoal: true }
     }
-    
+
     return true
   }
 
@@ -377,7 +377,7 @@ export default class extends ApplicationController {
 
 
     // Always increment the active player (the one with green border)
-    
+
     // 🚀 NEW: Accumulate change FIRST, then update display
     const accumulated = this.accumulateAndValidateChange(activePlayerId, n, 'add')
 
@@ -394,7 +394,7 @@ export default class extends ApplicationController {
 
 
     // Always decrement the active player (the one with green border)
-    
+
     // 🚀 NEW: Accumulate change FIRST, then update display
     const accumulated = this.accumulateAndValidateChange(activePlayerId, n, 'subtract')
 
@@ -428,14 +428,14 @@ export default class extends ApplicationController {
     } catch (error) {
       hasPendingChanges = false
     }
-    
+
     if (hasPendingChanges) {
-      
+
       // 🚀 Set flag to trigger player switch after validation completes
       this.clientState.pendingPlayerSwitch = tableMonitorId
-      
+
       this.validateAccumulatedChangesImmediately()
-      
+
       // 🚀 IMPORTANT: Don't proceed with switch until validation completes
       // The switch will be handled in the reflexSuccess callback after validation
       return // Exit early - switch will happen after validation success
@@ -447,7 +447,7 @@ export default class extends ApplicationController {
 
   // 🚀 NEW: Perform the actual player switch (extracted for reuse)
   performPlayerSwitch(tableMonitorId) {
-    
+
     // 🚀 IMMEDIATE OPTIMISTIC PLAYER CHANGE
     this.changePlayerOptimistically()
 
@@ -516,14 +516,14 @@ export default class extends ApplicationController {
       this.resetOriginalScores()
       this.clearAccumulatedChanges()
 
-      
+
       // 🚀 NEW: Check if there's a pending player switch after validation
       if (this.clientState.pendingPlayerSwitch) {
         const tableMonitorId = this.clientState.pendingPlayerSwitch
-        
+
         // Clear the pending flag
         this.clientState.pendingPlayerSwitch = null
-        
+
         // Perform the player switch
         this.performPlayerSwitch(tableMonitorId)
       }
@@ -577,7 +577,7 @@ export default class extends ApplicationController {
       if (!validationResult || validationResult === false) {
         return false // Block the increment
       }
-      
+
       // Check if this increment reaches the goal
       const reachesGoal = validationResult && typeof validationResult === 'object' && validationResult.reachesGoal
 
@@ -667,9 +667,9 @@ export default class extends ApplicationController {
 
   // NEW: Check if there are any pending accumulated changes
   hasPendingAccumulatedChanges() {
-    
+
     const changes = this.clientState.accumulatedChanges
-    
+
     for (const playerId in changes) {
       if (changes[playerId].totalIncrement !== 0) {
         return true
@@ -699,9 +699,9 @@ export default class extends ApplicationController {
       playera: { totalIncrement: 0, operations: [] },
       playerb: { totalIncrement: 0, operations: [] }
     }
-    
+
     this.clientState.accumulatedChanges = clearedChanges
-    
+
     // Also clear global state
     if (window.TabmonGlobalState) {
       window.TabmonGlobalState.accumulatedChanges = clearedChanges
