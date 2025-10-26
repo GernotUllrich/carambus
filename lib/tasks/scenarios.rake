@@ -2197,17 +2197,27 @@ ENV
       Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
         if File.file?(file)
           filename = File.basename(file)
-          FileUtils.cp(file, File.join(rails_root, 'config', filename))
-          puts "   ✅ #{filename} copied to Rails root folder"
+          target_file = File.join(rails_root, 'config', filename)
+          if File.exist?(target_file)
+            puts "   ⏭️  #{filename} already exists in Rails root folder (skipped)"
+          else
+            FileUtils.cp(file, target_file)
+            puts "   ✅ #{filename} copied to Rails root folder"
+          end
         end
       end
     end
 
     # Copy master.key from main repository
     master_key_file = File.join(Rails.root, 'config', 'master.key')
+    target_master_key = File.join(rails_root, 'config', 'master.key')
     if File.exist?(master_key_file)
-      FileUtils.cp(master_key_file, File.join(rails_root, 'config', 'master.key'))
-      puts "   ✅ master.key copied to Rails root folder"
+      if File.exist?(target_master_key)
+        puts "   ⏭️  master.key already exists in Rails root folder (skipped)"
+      else
+        FileUtils.cp(master_key_file, target_master_key)
+        puts "   ✅ master.key copied to Rails root folder"
+      end
     end
 
     puts "   ✅ Configuration files copied to Rails root folder"
@@ -2955,8 +2965,13 @@ ENV
       Dir.glob(File.join(main_credentials_dir, '*')).each do |file|
         if File.file?(file)
           filename = File.basename(file)
-          FileUtils.cp(file, File.join(production_credentials_dir, filename))
-          puts "   ✅ #{filename} copied to production directory"
+          target_file = File.join(production_credentials_dir, filename)
+          if File.exist?(target_file)
+            puts "   ⏭️  #{filename} already exists in production directory (skipped)"
+          else
+            FileUtils.cp(file, target_file)
+            puts "   ✅ #{filename} copied to production directory"
+          end
         end
       end
     end

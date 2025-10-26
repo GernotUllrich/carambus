@@ -2,7 +2,7 @@
 
 module FiltersHelper
   def apply_filters(query, columns, search_query)
-    searches = @sSearch.to_s.split(/[,&\s]+/).reject(&:blank?)
+    searches = parse_search_terms(@sSearch.to_s)
     search_matches = []
     
     # Separate plain text searches from field-specific filters
@@ -91,6 +91,63 @@ module FiltersHelper
   end
   
   private
+  
+  # Parse search terms, respecting quoted strings and field:value pairs with spaces
+  # Examples:
+  #   'Location:"BC Wedel" Season:2025/2026' => ['Location:BC Wedel', 'Season:2025/2026']
+  #   'Location:BC Wedel Season:2025/2026' => ['Location:BC', 'Wedel', 'Season:2025/2026'] (backwards compatible)
+  #   'Meyer Hamburg' => ['Meyer', 'Hamburg']
+  def parse_search_terms(search_string)
+    return [] if search_string.blank?
+    
+    terms = []
+    current_term = ""
+    in_quotes = false
+    quote_char = nil
+    
+    i = 0
+    while i < search_string.length
+      char = search_string[i]
+      
+      # Handle quotes
+      if ['"', "'"].include?(char) && !in_quotes
+        in_quotes = true
+        quote_char = char
+        i += 1
+        next
+      elsif char == quote_char && in_quotes
+        in_quotes = false
+        quote_char = nil
+        # Don't skip the next character, it might be a separator
+        i += 1
+        # Check if we should finalize the current term
+        if i >= search_string.length || [',', '&', ' '].include?(search_string[i])
+          terms << current_term unless current_term.blank?
+          current_term = ""
+        end
+        next
+      end
+      
+      # Handle separators (space, comma, ampersand)
+      if !in_quotes && [',', '&', ' '].include?(char)
+        unless current_term.blank?
+          terms << current_term
+          current_term = ""
+        end
+        i += 1
+        next
+      end
+      
+      # Regular character
+      current_term += char
+      i += 1
+    end
+    
+    # Add the last term if exists
+    terms << current_term unless current_term.blank?
+    
+    terms.reject(&:blank?)
+  end
   
   # Parse relative date expressions like "heute-14", "today-2w", "heute+1m"
   def parse_relative_date(value)

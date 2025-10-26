@@ -166,10 +166,12 @@ class AiSearchService < ApplicationService
          Verfügbare Verbände:
          #{region_mappings}
       
-      4. Location: "Location:BC Wedel" "Location:Billard-Centrum Hamburg"
+      4. Location: "Location:\"BC Wedel\"" "Location:\"Billard-Centrum Hamburg\""
          Verwendung für SPIELORT-Namen bei Turnieren (NICHT für Städte oder Vereinszugehörigkeit!)
+         WICHTIG: Location-Namen mit Leerzeichen benötigen Anführungszeichen!
       
-      5. Discipline: "Discipline:Freie Partie" "Discipline:Dreiband" "Discipline:Einband"
+      5. Discipline: "Discipline:\"Freie Partie\"" "Discipline:Dreiband" "Discipline:Einband"
+         WICHTIG: Disziplinen mit Leerzeichen benötigen Anführungszeichen!
       
       6. Date: 
          - Relativ: "Date:>heute-2w" (vor 2 Wochen), "Date:<heute+7" (in 7 Tagen)
@@ -197,16 +199,16 @@ class AiSearchService < ApplicationService
       - "Turniere im Norddeutschen Verband" → entity: "tournaments", filters: "Region:NBV"
       - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
       
-      TURNIERE MIT LOCATION (Location-Filter verwenden):
-      - "Turniere im BC Wedel" → entity: "tournaments", filters: "Location:BC Wedel"
-      - "Turniere im BC Wedel 2025" → entity: "tournaments", filters: "Location:BC Wedel Season:2025/2026"
-      - "NBV Turniere im BC Wedel" → entity: "tournaments", filters: "Region:NBV Location:BC Wedel"
-      - "Dreiband im Billard-Centrum Hamburg" → entity: "tournaments", filters: "Discipline:Dreiband Location:Billard-Centrum Hamburg"
+      TURNIERE MIT LOCATION (Location-Filter mit Anführungszeichen bei Werten mit Leerzeichen):
+      - "Turniere im BC Wedel" → entity: "tournaments", filters: "Location:\"BC Wedel\""
+      - "Turniere im BC Wedel 2025" → entity: "tournaments", filters: "Location:\"BC Wedel\" Season:2025/2026"
+      - "NBV Turniere im BC Wedel" → entity: "tournaments", filters: "Region:NBV Location:\"BC Wedel\""
+      - "Dreiband im Billard-Centrum Hamburg" → entity: "tournaments", filters: "Discipline:Dreiband Location:\"Billard-Centrum Hamburg\""
       
       WEITERE BEISPIELE:
       - "Dreiband Turniere 2024" → entity: "tournaments", filters: "Discipline:Dreiband Season:2024/2025"
       - "Turniere letzte 2 Wochen" → entity: "tournaments", filters: "Date:>heute-2w"
-      - "Freie Partie heute" → entity: "tournaments", filters: "Discipline:Freie Partie Date:heute"
+      - "Freie Partie heute" → entity: "tournaments", filters: "Discipline:\"Freie Partie\" Date:heute"
       - "Meyer Hamburg" → entity: "players", filters: "Meyer Hamburg"
       
       ANTWORTFORMAT (IMMER als gültiges JSON):
@@ -225,8 +227,9 @@ class AiSearchService < ApplicationService
       - VERBÄNDE/BUNDESLÄNDER = Region-Filter (NBV, BVW, Bayern, NRW, etc.)
       - Region-Filter nur mit VERBANDS-Kürzeln (BVW, NBV, BBV - NICHT WL, HH, BE!)
       - Bei "aus dem NBV" oder "im Verband" → Region-Filter
-      - Bei "Turniere im BC Wedel" → Location-Filter (Location:BC Wedel)
+      - Bei "Turniere im BC Wedel" → Location-Filter mit Anführungszeichen: Location:"BC Wedel"
       - Bei "Spieler im BC Wedel" → Freitext (BC Wedel)
+      - WICHTIG: Filterwerte mit Leerzeichen MÜSSEN in Anführungszeichen (Location:"BC Wedel", Discipline:"Freie Partie")
       - Bei "in Hamburg", "vom SC Berlin" → Freitext
       - Bundesländer-Mapping: Bayern→BBV, Hessen→HBU, NRW→BVNRW, Westfalen→BVW
       - NIEMALS Club: Filter verwenden - nur Freitext für Vereinsnamen!
@@ -263,10 +266,12 @@ class AiSearchService < ApplicationService
          Available associations:
          #{region_mappings}
       
-      4. Location: "Location:BC Wedel" "Location:Billard-Centrum Hamburg"
+      4. Location: "Location:\"BC Wedel\"" "Location:\"Billard-Centrum Hamburg\""
          Use for tournament VENUE names (NOT for cities or club membership!)
+         IMPORTANT: Location names with spaces require quotes!
       
-      5. Discipline: "Discipline:Freie Partie" "Discipline:Dreiband" "Discipline:Einband"
+      5. Discipline: "Discipline:\"Freie Partie\"" "Discipline:Dreiband" "Discipline:Einband"
+         IMPORTANT: Disciplines with spaces require quotes!
       
       6. Date: 
          - Relative: "Date:>heute-2w" (2 weeks ago), "Date:<heute+7" (in 7 days)
@@ -294,16 +299,16 @@ class AiSearchService < ApplicationService
       - "Tournaments in Northern German Association" → entity: "tournaments", filters: "Region:NBV"
       - "Clubs in NRW" → entity: "clubs", filters: "Region:BVNRW"
       
-      TOURNAMENTS WITH LOCATION (use Location filter):
-      - "Tournaments at BC Wedel" → entity: "tournaments", filters: "Location:BC Wedel"
-      - "Tournaments at BC Wedel 2025" → entity: "tournaments", filters: "Location:BC Wedel Season:2025/2026"
-      - "NBV tournaments at BC Wedel" → entity: "tournaments", filters: "Region:NBV Location:BC Wedel"
-      - "Dreiband at Billard-Centrum Hamburg" → entity: "tournaments", filters: "Discipline:Dreiband Location:Billard-Centrum Hamburg"
+      TOURNAMENTS WITH LOCATION (use Location filter with quotes for values with spaces):
+      - "Tournaments at BC Wedel" → entity: "tournaments", filters: "Location:\"BC Wedel\""
+      - "Tournaments at BC Wedel 2025" → entity: "tournaments", filters: "Location:\"BC Wedel\" Season:2025/2026"
+      - "NBV tournaments at BC Wedel" → entity: "tournaments", filters: "Region:NBV Location:\"BC Wedel\""
+      - "Dreiband at Billard-Centrum Hamburg" → entity: "tournaments", filters: "Discipline:Dreiband Location:\"Billard-Centrum Hamburg\""
       
       MORE EXAMPLES:
       - "Dreiband tournaments 2024" → entity: "tournaments", filters: "Discipline:Dreiband Season:2024/2025"
       - "Tournaments last 2 weeks" → entity: "tournaments", filters: "Date:>heute-2w"
-      - "Freie Partie today" → entity: "tournaments", filters: "Discipline:Freie Partie Date:heute"
+      - "Freie Partie today" → entity: "tournaments", filters: "Discipline:\"Freie Partie\" Date:heute"
       - "Meyer Hamburg" → entity: "players", filters: "Meyer Hamburg"
       
       RESPONSE FORMAT (ALWAYS as valid JSON):
@@ -322,8 +327,9 @@ class AiSearchService < ApplicationService
       - ASSOCIATIONS/STATES = Region filter (NBV, BVW, Bavaria, NRW, etc.)
       - Region filter only with ASSOCIATION abbreviations (BVW, NBV, BBV - NOT WL, HH, BE!)
       - For "from NBV" or "in the association" → Region filter
-      - For "tournaments at BC Wedel" → Location filter (Location:BC Wedel)
+      - For "tournaments at BC Wedel" → Location filter with quotes: Location:"BC Wedel"
       - For "players at BC Wedel" → Freetext (BC Wedel)
+      - IMPORTANT: Filter values with spaces MUST be quoted (Location:"BC Wedel", Discipline:"Freie Partie")
       - For "in Hamburg", "from SC Berlin" → Freetext
       - State mapping: Bavaria→BBV, Hesse→HBU, NRW→BVNRW, Westphalia→BVW
       - NEVER use Club: filter - only freetext for club names!

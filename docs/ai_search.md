@@ -89,6 +89,12 @@ Navigiert zu: /tournaments?sSearch=Region:HH+Date:>heute-2w
 
 "Freie Partie in Westfalen heute"
 → tournaments mit Filter: Discipline:Freie Partie Region:WL Date:heute
+
+"Turniere im BC Wedel"
+→ tournaments mit Filter: Location:"BC Wedel"
+
+"Turniere im BC Wedel Saison 2025"
+→ tournaments mit Filter: Location:"BC Wedel" Season:2025/2026
 ```
 
 ### Spieler finden
@@ -135,7 +141,7 @@ Die KI kann folgende Datentypen durchsuchen:
 |--------|---------------|----------------|
 | `players` | Spieler, Player, Teilnehmer | Region, Club, Firstname, Lastname, Season |
 | `clubs` | Vereine, Clubs, Verein | Region, Name |
-| `tournaments` | Turniere, Turnier, Veranstaltung | Season, Region, Discipline, Date, Title |
+| `tournaments` | Turniere, Turnier, Veranstaltung | Season, Region, Discipline, Date, Title, Location |
 | `locations` | Spielorte, Locations, Orte | Region, Name, City |
 | `regions` | Regionen, Region, Landesverbände | Shortname, Name |
 | `seasons` | Saisons, Saison, Spielzeit | Name |
@@ -177,6 +183,18 @@ Discipline:Pool
 Discipline:Snooker
 ```
 
+### Locations (Spielorte)
+
+```
+# Für Werte mit Leerzeichen: Anführungszeichen verwenden
+Location:"BC Wedel"
+Location:"Billard-Centrum Hamburg"
+
+# Alternativ: Wenn der Name eindeutig ist
+Location:Wedel
+Location:Hamburg
+```
+
 ### Seasons
 
 ```
@@ -214,9 +232,30 @@ Dreiband Hamburg        → Kombiniert mehrere Suchbegriffe mit AND-Logik
 ### Kombination (mehrere Filter)
 
 ```
-Season:2024/2025 Region:HH              → Saison UND Region
-Discipline:Dreiband Date:>heute-2w      → Disziplin UND Datum
-Meyer Region:WL Season:2024/2025        → Freitext UND Filter
+Season:2024/2025 Region:HH                  → Saison UND Region
+Discipline:Dreiband Date:>heute-2w          → Disziplin UND Datum
+Meyer Region:WL Season:2024/2025            → Freitext UND Filter
+Location:"BC Wedel" Season:2025/2026        → Location mit Leerzeichen UND Saison
+```
+
+### Wichtig: Werte mit Leerzeichen
+
+Wenn ein Filterwert Leerzeichen enthält (z.B. Spielortnamen), **müssen** Anführungszeichen verwendet werden:
+
+```
+✅ Richtig:
+Location:"BC Wedel" Season:2025/2026
+Discipline:"Freie Partie" Region:HH
+
+❌ Falsch (wird nicht korrekt geparst):
+Location:BC Wedel Season:2025/2026
+→ Wird interpretiert als: Location:BC + Freitext "Wedel" + Season:2025/2026
+```
+
+Sie können sowohl `"` als auch `'` verwenden:
+```
+Location:"BC Wedel"
+Location:'BC Wedel'
 ```
 
 ## 🔧 Troubleshooting
