@@ -1,4 +1,4 @@
-<%# Vanilla JavaScript version - No Alpine.js - Optimized for Raspberry Pi 3 %>
+<%# Vanilla JavaScript version - No Alpine.js - CSP-compliant - Optimized for Raspberry Pi 3 %>
 <%- default_val = values.first %>
 <div id="<%= varname %>_section" style="<%= show.presence == 'true' ? '' : 'display:none' %>">
   <div><%= header %></div>
@@ -11,8 +11,8 @@
                name="<%= varname %>_choice" 
                value="<%= val %>" 
                <%= 'checked' if val == default_val %>
-               class="sr-only" 
-               onchange="vanillaRadioChange('<%= varname %>', '<%= val %>')">
+               class="sr-only vanilla-radio" 
+               data-varname="<%= varname %>">
         <span><%= displays[ix] %></span>
       </label>
     <%- end %>
@@ -20,13 +20,13 @@
 </div>
 <%- unless local_assigns[:no_counter] %>
   <div id="<%= varname %>_counter" style="<%= show.presence == 'true' ? '' : 'display:none' %>" class="grid grid-cols-3">
-    <div class="flex text-4vw justify-center font-bold" onclick="vanillaDecrement('<%= varname %>')">-</div>
+    <div class="flex text-4vw justify-center font-bold vanilla-decrement" data-varname="<%= varname %>">-</div>
     <input id="<%= varname %>_display" 
            name="<%= varname %>_choice" 
            value="<%= default_val %>"
            type="number"
            class="flex items-center justify-center text-2vw font-medium shadow-sm bg-blue-600 dark:text-gray-200 text-gray-200 border rounded-md">
-    <div class="flex text-4vw justify-center font-bold" onclick="vanillaIncrement('<%= varname %>', <%= local_assigns[:maxval] %>)">+</div>
+    <div class="flex text-4vw justify-center font-bold vanilla-increment" data-varname="<%= varname %>" data-maxval="<%= local_assigns[:maxval] %>">+</div>
   </div>
   <script>
     // Initialize vanilla state for <%= varname %>
