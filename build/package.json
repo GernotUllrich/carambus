@@ -26,7 +26,7 @@
     "js-cookie": "^3.0.1",
     "jstz": "^2.1.1",
     "local-time": "^3.0.0",
-    "marked": "^16.4.1",
+    "marked": "^14.0.0",
     "postcss": "^8.5.1",
     "postcss-import": "^16.1.0",
     "postcss-import-ext-glob": "^2.1.1",
