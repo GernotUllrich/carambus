@@ -95,7 +95,8 @@ fi
   --start-fullscreen \
   --disable-restore-session-state \
   --user-data-dir=/tmp/chromium-scoreboard \
-  --disable-features=VizDisplayCompositor \
+  --disable-features=VizDisplayCompositor,TranslateUI \
+  --disable-translate \
   --disable-dev-shm-usage \
   --app="$SCOREBOARD_URL" \
   --no-sandbox \

@@ -223,7 +223,7 @@ wmctrl -r "panel" -b add,hidden 2>/dev/null || true
 wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
 # Start browser in true fullscreen
-/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --app="$(cat /opt/carambus/config/scoreboard_url)" &
+/usr/bin/chromium-browser --start-fullscreen --disable-restore-session-state --disable-web-security --disable-features=VizDisplayCompositor,TranslateUI --disable-translate --app="$(cat /opt/carambus/config/scoreboard_url)" &
 
 # Wait for browser to start
 sleep 3

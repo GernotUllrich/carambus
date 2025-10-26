@@ -4774,7 +4774,8 @@ EOF
         --start-fullscreen \
         --disable-restore-session-state \
         --user-data-dir="$CHROMIUM_USER_DIR" \
-        --disable-features=VizDisplayCompositor \
+        --disable-features=VizDisplayCompositor,TranslateUI \
+        --disable-translate \
         --disable-dev-shm-usage \
         --app="$SCOREBOARD_URL" \
         # --no-sandbox \
@@ -4788,6 +4789,7 @@ EOF
         --disable-restore-session-state \
         --user-data-dir="$CHROMIUM_USER_DIR" \
         --disable-features=VizDisplayCompositor,TranslateUI \
+        --disable-translate \
         --disable-dev-shm-usage \
         --disable-setuid-sandbox \
         --disable-gpu \

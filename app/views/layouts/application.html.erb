@@ -22,6 +22,7 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= viewport_meta_tag %>
+  <meta name="google" content="notranslate">
   <% if current_user&.system_theme? %>
     <script>document.documentElement.classList.toggle("dark", window.matchMedia('(prefers-color-scheme: dark)').matches)</script>
   <% end %>
