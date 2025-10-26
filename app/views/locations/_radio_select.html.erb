@@ -1,26 +1,48 @@
-<div x-show="<%= show.presence %>" x-init="increment_<%= varname %> = <%= increment %>"><%= header %></div>
-<div x-show="<%= show.presence %>" class="col-span-4">
-  <div class="grid grid-cols-<%= cols %> gap-4">
-    <%- values.each_with_index do |val, ix| %>
-      <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer undefined" :class="{ 'bg-blue-600 text-white': (<%= varname %> == '<%= val %>'), ' text-gray-200': !(<%= varname %> == '<%= val %>') }">
-        <input type="radio" x-model.number="<%= varname %>" name="<%= varname %>_choice" value="<%= val %>" class="sr-only" aria-labelledby="<%= varname %>-choice-<%= ix %>-label" @change="if (discipline != 3)   increment_<%= varname %> = Math.round(parseInt(<%= varname %>)/2); if ('<%= varname %>' == 'games' && games > 0) {sets = 0}; if ('<%= varname %>' == 'sets' && sets > 0) {games = 0}; if ('<%= varname %>' != 'multiset' && sets == 0 && games == 0) {multiset = 0}; if ('<%= varname %>' == 'discipline') {discipline_a = discipline_b = discipline}; if ('<%= varname %>' == 'balls_goal') {balls_goal_a = balls_goal_b = balls_goal}; if (!('<%= varname %>'.endsWith('_a')) && !('<%= varname %>'.endsWith('_b'))) { <%= varname %>_a = <%= varname %>_b = <%= varname %>_2 = <%= varname %>_a_2 = <%= varname %>_b_2 = <%= varname %>} else {<%= varname %>_2 = <%= varname %> }">
-        <span id="<%= varname %>-choice-<%= ix %>-label"><%= displays[ix] %></span>
-      </label>
-    <%- end %>
-  </div>
-</div>
-<div x-show="<%= show.presence %>" class="grid grid-cols-3">
-    <%- unless local_assigns[:no_counter] %>
-    <div x-show="'discipline' != '<%= varname %>'" class="flex text-4vw justify-center font-bold" @click="if (increment_<%= varname %> == 0) increment_<%= varname %> = parseInt(<%= "#{varname}_2" %>); if (last_direction == 'r') { increment_<%= varname %> = Math.round(increment_<%= varname %>/2); }; <%= "#{varname}_2" %> = parseInt(<%= "#{varname}_2" %>) - increment_<%= varname %>; last_direction = 'l'; if (increment_<%= varname %> < 1) {increment_<%= varname %> = 1}; if (<%= "#{varname}_2" %> < 0) {<%= "#{varname}_2" %> = 0}; if ('<%= varname %>' == 'games' && games > 0) {sets = 0}; if ('<%= varname %>' == 'sets' && sets > 0) {games = 0}; if (!('<%= varname %>'.endsWith('_a')) && !('<%= varname %>'.endsWith('_b'))) { <%= varname %> = <%= varname %>_a_2 = <%= varname %>_b_2 = <%= varname %>_a = <%= varname %>_b = <%= varname %>_2} else {<%= varname %> = <%= varname %>_2 }">-</div>
-    <input name="<%= "#{varname}_2" %>_choice" x-model.number="<%= "#{varname}_2" %>" x-show="'discipline' != '<%= varname %>'" x-text="<%= "#{varname}_2" %>" @change="if (increment_<%= varname %> == 0) increment_<%= varname %> = parseInt(<%= "#{varname}_2" %>); if (last_direction == 'r') { increment_<%= varname %> = Math.round(increment_<%= varname %>/2); }; <%= "#{varname}_2" %> = parseInt(<%= "#{varname}_2" %>) - increment_<%= varname %>; last_direction = 'l'; if (increment_<%= varname %> < 1) {increment_<%= varname %> = 1}; if (<%= "#{varname}_2" %> < 0)<%= "#{varname}_2" %> = 0; if ('<%= varname %>' == 'games' && games > 0) {sets = 0; sets_2 = 0}; if ('<%= varname %>' == 'sets' && sets > 0) {games = 0; games_2 = 0}; if (!('<%= varname %>'.endsWith('_a')) && !('<%= varname %>'.endsWith('_b'))) { <%= varname %> = <%= varname %>_a_2 = <%= varname %>_b_2 = <%= varname %>_a = <%= varname %>_b = <%= varname %>_2} else {<%= varname %> = <%= varname %>_2 }" class="flex items-center justify-center text-2vw font-medium  shadow-sm bg-blue-600 dark:text-gray-200 text-gray-200 border rounded-md">
-      <%- if table.table_kind.name == "Pool" %>
-        <div x-show="'discipline' == '<%= varname %>'" class="flex col-span-3 items-center justify-center w-full">
-          <div x-show="discipline == 0" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p8.png" %></div>
-          <div x-show="discipline == 1" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p9.png" %></div>
-          <div x-show="discipline == 2" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p10.png" %></div>
-          <div x-show="discipline == 3" class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p14.1.png" %></div>
-        </div>
+<template x-if="<%= show.presence %>">
+  <div x-init="increment_<%= varname %> = <%= increment %>"><%= header %></div>
+</template>
+<template x-if="<%= show.presence %>">
+  <div class="col-span-4">
+    <div class="grid grid-cols-<%= cols %> gap-4">
+      <%- values.each_with_index do |val, ix| %>
+        <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer undefined" :class="{ 'bg-blue-600 text-white': (<%= varname %> == '<%= val %>'), ' text-gray-200': !(<%= varname %> == '<%= val %>') }">
+          <input type="radio" x-model.number="<%= varname %>" name="<%= varname %>_choice" value="<%= val %>" class="sr-only" aria-labelledby="<%= varname %>-choice-<%= ix %>-label" @change="handleRadioChange('<%= varname %>', <%= val %>)">
+          <span id="<%= varname %>-choice-<%= ix %>-label"><%= displays[ix] %></span>
+        </label>
       <%- end %>
-    <div x-show="'discipline' != '<%= varname %>'" class="flex text-4vw justify-center font-bold" @click="if (increment_<%= varname %> == 0) {increment_<%= varname %> = parseInt(<%= "#{varname}_2" %>)}; if (last_direction == 'l') { increment_<%= varname %> = Math.round(increment_<%= varname %>/2); }; <%= "#{varname}_2" %> = parseInt(<%= "#{varname}_2" %>) + increment_<%= varname %>; last_direction = 'r'; if (<%= "#{varname}_2" %> > <%= local_assigns[:maxval] %>){<%= "#{varname}_2" %> = <%= local_assigns[:maxval] %>}; if ('<%= "#{varname}_2" %>' == 'games' && games > 0) {sets = 0}; if ('<%= "#{varname}_2" %>' == 'sets' && sets > 0) {games = 0}; if (!('<%= varname %>'.endsWith('_a')) && !('<%= varname %>'.endsWith('_b'))) { <%= varname %> = <%= varname %>_a_2 = <%= varname %>_b_2 = <%= varname %>_a = <%= varname %>_b = <%= varname %>_2} else {<%= varname %> = <%= varname %>_2 }">+</div>
+    </div>
+  </div>
+</template>
+<template x-if="<%= show.presence %>">
+  <div class="grid grid-cols-3">
+    <%- unless local_assigns[:no_counter] %>
+      <template x-if="'discipline' != '<%= varname %>'">
+        <div class="flex text-4vw justify-center font-bold" @click="decrement('<%= varname %>')">-</div>
+      </template>
+      <template x-if="'discipline' != '<%= varname %>'">
+        <input name="<%= varname %>_choice" x-model.number="<%= varname %>" x-text="<%= varname %>" class="flex items-center justify-center text-2vw font-medium shadow-sm bg-blue-600 dark:text-gray-200 text-gray-200 border rounded-md">
+      </template>
+      <%- if table.table_kind.name == "Pool" %>
+        <template x-if="'discipline' == '<%= varname %>'">
+          <div class="flex col-span-3 items-center justify-center w-full">
+            <template x-if="discipline == 0">
+              <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p8.png" %></div>
+            </template>
+            <template x-if="discipline == 1">
+              <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p9.png" %></div>
+            </template>
+            <template x-if="discipline == 2">
+              <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p10.png" %></div>
+            </template>
+            <template x-if="discipline == 3">
+              <div class="overflow-hidden flex pb-1 justify-center hover:bg-gray-700 w-16 h-16"><%= image_tag "p14.1.png" %></div>
+            </template>
+          </div>
+        </template>
+      <%- end %>
+      <template x-if="'discipline' != '<%= varname %>'">
+        <div class="flex text-4vw justify-center font-bold" @click="increment('<%= varname %>', <%= local_assigns[:maxval] %>)">+</div>
+      </template>
     <%- end %>
   </div>
+</template>

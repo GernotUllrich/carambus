@@ -19,11 +19,6 @@
     set_new_player_modal();
   }
 
-  function set_checked_player(ab, ix, val) {
-    document.getElementById("player" + ab + "_" + ix).checked = true
-    document.getElementById("player_" + ab + "_id").value = val
-  }
-
   function set_players_modal() {
     document.getElementById("modal-players").classList.toggle("hidden");
     document.getElementById("modal-players" + "-bg").classList.toggle("hidden");
@@ -37,6 +32,31 @@
     document.getElementById("modal-new-player").classList.toggle("flex");
     document.getElementById("modal-new-player" + "-bg").classList.toggle("flex");
   }
+
+  // Event Delegation for Player Selection - Much faster on Raspberry Pi!
+  document.addEventListener('DOMContentLoaded', function() {
+    ['a', 'b'].forEach(function(playerType) {
+      const container = document.getElementById('player_' + playerType + '_w');
+      if (!container) return;
+      
+      container.addEventListener('click', function(e) {
+        const playerOption = e.target.closest('.player-option');
+        if (!playerOption) return;
+        
+        const playerId = playerOption.dataset.playerId;
+        const playerIndex = playerOption.dataset.playerIndex;
+        
+        if (playerId) {
+          const radioBtn = document.getElementById('player' + playerType + '_' + playerIndex);
+          if (radioBtn) {
+            radioBtn.checked = true;
+            const selectElement = document.getElementById('player_' + playerType + '_id');
+            if (selectElement) selectElement.value = playerId;
+          }
+        }
+      });
+    });
+  });
 </script>
 <div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
 <div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
@@ -58,30 +78,30 @@
       <%- count = players.count %>
       <div class="flex justify-between w-full text-2vw">
         <div class="mr-2">
-          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3", data: { player_type: 'a' } do %>
             <div class="flex flex-row w-full">
               <div class="flex-col">
                 <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="flex mb-2">
+                  <div class="flex mb-2 player-option" data-player-id="<%= players[ix][1] %>" data-player-index="<%= ix %>">
                     <div class="">
                       <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}" %>
                       <%- end %>
                     </div>
-                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                    <div class="cursor-pointer flex-1">
                       <%= players[ix][0] %></div>
                   </div>
                 <%- end %>
               </div>
               <div class="flex-col">
                 <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="flex mb-2">
+                  <div class="flex mb-2 player-option" data-player-id="<%= players[ix][1] %>" data-player-index="<%= ix %>">
                     <div class="">
                       <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}" %>
                       <%- end %>
                     </div>
-                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                    <div class="cursor-pointer flex-1">
                       <%= players[ix][0] %></div>
                   </div>
                 <%- end %>
@@ -90,30 +110,30 @@
           <%- end %>
         </div>
         <div class="">
-          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3", data: { player_type: 'b' } do %>
             <div class="flex flex-row w-full">
               <div class="flex-col">
                 <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="flex mb-2">
+                  <div class="flex mb-2 player-option" data-player-id="<%= players[ix][1] %>" data-player-index="<%= ix %>">
                     <div class="">
                       <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}" %>
                       <%- end %>
                     </div>
-                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                    <div class="cursor-pointer flex-1">
                       <%= players[ix][0] %></div>
                   </div>
                 <%- end %>
               </div>
               <div class="flex-col">
                 <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="flex mb-2">
+                  <div class="flex mb-2 player-option" data-player-id="<%= players[ix][1] %>" data-player-index="<%= ix %>">
                     <div class="">
                       <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}" %>
                       <%- end %>
                     </div>
-                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                    <div class="cursor-pointer flex-1">
                       <%= players[ix][0] %></div>
                   </div>
                 <%- end %>
@@ -202,33 +222,55 @@
       table_kind: '<%= table.andand.table_kind.andand.name || "Small Billard" %>',
       multiset: 0,
       last_direction: 'r',
-      incr_d: {200:50, 100:10, 50:10, 30:10, 20:10, 10:5, 5:1},
-      sets: 1, sets_2: 1, parameters: 0,
+      parameters: 0,
       gametime: <%= options[:gametime].presence || 30 %>,
       warntime: <%= options[:warntime].presence || 5 %>,
-      increment_balls_goal: 5,
-      increment_balls_goal_a: 5,
-      increment_balls_goal_b: 5,
-
+      
       balls_goal: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
-      balls_goal_2: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
       balls_goal_a: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
-      balls_goal_a_2: <%= options[:player_a][:balls_goal].to_i > 0 ? options[:player_a][:balls_goal] : "80" %>,
       balls_goal_b: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal] : "80" %>,
-      balls_goal_b_2: <%= options[:player_b][:balls_goal].to_i > 0 ? options[:player_b][:balls_goal] : "80" %>,
-      increment_games: 5,
+      
       games: <%= options[:sets_to_win].presence || 0 %>,
-      games_2: <%= options[:sets_to_win].presence || 0 %>,
-      increment_innings: 5,
+      sets: 1,
+      
       innings: <%= options[:innings_goal].to_i > 0 ? options[:innings_goal].to_i : 20 %>,
-      innings_2: <%= options[:innings_goal].to_i > 0 ? options[:innings_goal].to_i : 20 %>,
+      
       first_break: <%= options[:first_break_choice].presence || "0" %>,
       next_break: <%= %w{winner set}.index(options[:kickoff_switches_with].presence) || 0 %>,
+      
       discipline: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
       discipline_a: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_a][:discipline].presence || "Freie Partie klein").to_i %>,
       discipline_b: <%= Discipline::KARAMBOL_DISCIPLINE_MAP.index(options[:player_b][:discipline].presence || "Freie Partie klein").to_i %>,
-      increment: 0,
-      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>
+      
+      allow_follow_up: <%= options[:allow_follow_up] ? "true" : "false" %>,
+      
+      handleRadioChange(varname, val) {
+        if (varname === 'games' && this.games > 0) this.sets = 0;
+        if (varname === 'sets' && this.sets > 0) this.games = 0;
+        if (varname !== 'multiset' && this.sets === 0 && this.games === 0) this.multiset = 0;
+        if (varname === 'discipline') {
+          this.discipline_a = this.discipline_b = this.discipline;
+        }
+        if (varname === 'balls_goal') {
+          this.balls_goal_a = this.balls_goal_b = this.balls_goal;
+        }
+      },
+      
+      increment(varname, maxval) {
+        let newVal = parseInt(this[varname]) + 5;
+        if (newVal > maxval) newVal = maxval;
+        this[varname] = newVal;
+        if (varname === 'games' && this.games > 0) this.sets = 0;
+        if (varname === 'sets' && this.sets > 0) this.games = 0;
+      },
+      
+      decrement(varname) {
+        let newVal = parseInt(this[varname]) - 5;
+        if (newVal < 0) newVal = 0;
+        this[varname] = newVal;
+        if (varname === 'games' && this.games > 0) this.sets = 0;
+        if (varname === 'sets' && this.sets > 0) this.games = 0;
+      }
       }" class="mt-8 text-2vw grid grid-cols-6 gap-3 items-center">
         <div class="  flex flex-row">Spieler</div>
         <div class="col-span-4 flex flex-row">
