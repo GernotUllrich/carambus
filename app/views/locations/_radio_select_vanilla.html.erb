@@ -1,0 +1,37 @@
+<%# Vanilla JavaScript version - No Alpine.js - Optimized for Raspberry Pi 3 %>
+<%- default_val = values.first %>
+<div id="<%= varname %>_section" style="<%= show.presence == 'true' ? '' : 'display:none' %>">
+  <div><%= header %></div>
+</div>
+<div id="<%= varname %>_controls" style="<%= show.presence == 'true' ? '' : 'display:none' %>" class="col-span-4">
+  <div class="grid grid-cols-<%= cols %> gap-4">
+    <%- values.each_with_index do |val, ix| %>
+      <label id="<%= varname %>_label_<%= val %>" class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer <%= val == default_val ? 'bg-blue-600 text-white' : 'text-gray-200' %>">
+        <input type="radio" 
+               name="<%= varname %>_choice" 
+               value="<%= val %>" 
+               <%= 'checked' if val == default_val %>
+               class="sr-only" 
+               onchange="vanillaRadioChange('<%= varname %>', '<%= val %>')">
+        <span><%= displays[ix] %></span>
+      </label>
+    <%- end %>
+  </div>
+</div>
+<%- unless local_assigns[:no_counter] %>
+  <div id="<%= varname %>_counter" style="<%= show.presence == 'true' ? '' : 'display:none' %>" class="grid grid-cols-3">
+    <div class="flex text-4vw justify-center font-bold" onclick="vanillaDecrement('<%= varname %>')">-</div>
+    <input id="<%= varname %>_display" 
+           name="<%= varname %>_choice" 
+           value="<%= default_val %>"
+           type="number"
+           class="flex items-center justify-center text-2vw font-medium shadow-sm bg-blue-600 dark:text-gray-200 text-gray-200 border rounded-md">
+    <div class="flex text-4vw justify-center font-bold" onclick="vanillaIncrement('<%= varname %>', <%= local_assigns[:maxval] %>)">+</div>
+  </div>
+  <script>
+    // Initialize vanilla state for <%= varname %>
+    if (typeof vanillaState === 'undefined') vanillaState = {};
+    vanillaState['<%= varname %>'] = <%= default_val %>;
+  </script>
+<%- end %>
+
