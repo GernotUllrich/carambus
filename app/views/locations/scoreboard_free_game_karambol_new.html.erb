@@ -7,8 +7,7 @@
     }
 </style>
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
-<!-- POC TEST: Alpine.js disabled for performance testing on Pi 3 -->
-<!-- <script defer src="/alpine.min.js"></script> -->
+<script defer src="/alpine.min.js"></script>
 <script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
 <script type="text/javascript">
 
@@ -60,75 +59,55 @@
   });
 
   // ========================================================================
-  // POC: Vanilla JavaScript for Radio-Select (No Alpine.js, CSP-compliant)
-  // Ultra-fast for Raspberry Pi 3 - Uses Event Delegation
+  // POC: Vanilla JavaScript for Radio-Select (No Alpine.js)
+  // Ultra-fast for Raspberry Pi 3
   // ========================================================================
   
   var vanillaState = {};
   
-  // Event Delegation for all vanilla controls - CSP compliant!
-  document.addEventListener('DOMContentLoaded', function() {
-    // Handle increment buttons
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.vanilla-increment')) {
-        var btn = e.target.closest('.vanilla-increment');
-        var varname = btn.dataset.varname;
-        var maxval = parseInt(btn.dataset.maxval);
-        var el = document.getElementById(varname + '_display');
-        if (!el) return;
-        var val = parseInt(el.value) || 0;
-        val += 5;
-        if (val > maxval) val = maxval;
-        el.value = val;
-        vanillaState[varname] = val;
-      }
-    });
+  function vanillaIncrement(varname, maxval) {
+    var el = document.getElementById(varname + '_display');
+    if (!el) return;
+    var val = parseInt(el.value) || 0;
+    val += 5;
+    if (val > maxval) val = maxval;
+    el.value = val;
+    vanillaState[varname] = val;
+  }
+  
+  function vanillaDecrement(varname) {
+    var el = document.getElementById(varname + '_display');
+    if (!el) return;
+    var val = parseInt(el.value) || 0;
+    val -= 5;
+    if (val < 0) val = 0;
+    el.value = val;
+    vanillaState[varname] = val;
+  }
+  
+  function vanillaRadioChange(varname, value) {
+    vanillaState[varname] = value;
     
-    // Handle decrement buttons
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.vanilla-decrement')) {
-        var btn = e.target.closest('.vanilla-decrement');
-        var varname = btn.dataset.varname;
-        var el = document.getElementById(varname + '_display');
-        if (!el) return;
-        var val = parseInt(el.value) || 0;
-        val -= 5;
-        if (val < 0) val = 0;
-        el.value = val;
-        vanillaState[varname] = val;
-      }
-    });
+    // Update visual selection
+    var section = document.getElementById(varname + '_controls');
+    if (section) {
+      var labels = section.querySelectorAll('label');
+      labels.forEach(function(label) {
+        var input = label.querySelector('input');
+        if (input && input.value == value) {
+          label.className = label.className.replace('text-gray-200', 'bg-blue-600 text-white');
+        } else {
+          label.className = label.className.replace('bg-blue-600 text-white', 'text-gray-200');
+        }
+      });
+    }
     
-    // Handle radio button changes
-    document.addEventListener('change', function(e) {
-      if (e.target.classList.contains('vanilla-radio')) {
-        var input = e.target;
-        var varname = input.dataset.varname;
-        var value = input.value;
-        vanillaState[varname] = value;
-        
-        // Update visual selection
-        var section = document.getElementById(varname + '_controls');
-        if (section) {
-          var labels = section.querySelectorAll('label');
-          labels.forEach(function(label) {
-            var radioInput = label.querySelector('input');
-            if (radioInput && radioInput.value == value) {
-              label.className = label.className.replace('text-gray-200', '').trim() + ' bg-blue-600 text-white';
-            } else {
-              label.className = label.className.replace('bg-blue-600 text-white', '').trim() + ' text-gray-200';
-            }
-          });
-        }
-        
-        // Update counter display
-        var display = document.getElementById(varname + '_display');
-        if (display) {
-          display.value = value;
-        }
-      }
-    });
-  });
+    // Update counter display
+    var display = document.getElementById(varname + '_display');
+    if (display) {
+      display.value = value;
+    }
+  }
 </script>
 <div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
 <div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
