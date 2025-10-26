@@ -38,7 +38,7 @@
     </div>
   </div>
   <hr>
-  <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('tournaments_season')} #{Season.current_season.name}", tournaments_path(sSearch: "Region:#{@region.shortname} Season:#{Season.current_season.name}+Date:>heute-2w") %></h3>
+  <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('tournaments_season')} #{Season.current_season.name}", tournaments_path(sSearch: "Region:#{@region.shortname} Season:#{Season.current_season.name} Date:>heute-2w") %></h3>
   <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('leagues_season')} #{Season.current_season.name}", parties_path(sSearch: "Region:#{@region.shortname} Season:#{Season.current_season.name} Date:>heute-2w") %></h3>
   <h3><%= custom_link_to "=> Clubs", clubs_path(sSearch: "reg:#{@region.shortname}") %></h3>
   <%= render partial: "rankings" %>
