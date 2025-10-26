@@ -32,6 +32,7 @@ Vollständige Dokumentation auf Englisch inklusive:
 - Ligaverwaltung
 - Tischreservierung
 - Scoreboard-Einrichtung
+- KI-gestützte Suche
 
 ### Technische Dokumentation
 - Datenbankdesign

@@ -349,7 +349,7 @@ Der KI-Service nutzt einen optimierten System-Prompt:
 
 - [OpenAI Platform](https://platform.openai.com)
 - [GPT-4o-mini Pricing](https://openai.com/pricing)
-- [Carambus Filter-Dokumentation](./search.md)
+- [Carambus Filter-Dokumentation](./search.de.md)
 
 ## 🤝 Support
 

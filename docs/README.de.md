@@ -14,6 +14,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 - **[tournament.md](tournament.md)**: Turnierverwaltungs-Workflows
 - **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)**: Einzelturnierverwaltung
 - **[league.md](league.md)**: Ligaspieltage
+- **[ai_search.md](ai_search.md)**: KI-gestützte Suche mit natürlicher Sprache
 
 ### Technische Dokumentation
 - **[datenbank-partitionierung-und-synchronisierung.md](datenbank-partitionierung-und-synchronisierung.md)**: Datenbank-Partitionierung
@@ -49,6 +50,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 ### Für API-Benutzer
 1. Beginnen Sie mit **[API.md](API.md)** für vollständige API-Dokumentation
 2. Überprüfen Sie **[database_design.md](database_design.md)** für Datenstruktur
+3. Nutzen Sie **[ai_search.md](ai_search.md)** für KI-gestützte Datensuche
 
 ## 📖 Dokumentationsstruktur
 

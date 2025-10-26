@@ -78,6 +78,8 @@ Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel http://192.168
 
 Die Turniere findet man am besten über die `Regionalverbände -> Suchen -> Ansehen`. Dort sind die aktuell bekannten Turniere der laufenden Saison gelistet. Das Turnier kann über den Titel ausgewählt werden.
 
+Mit dem KI-Assistenten (ab Okt 2025) könntest Du auch einfach suchen mit "Turniere im NBV in der Saison 2025/2026 nicht älter als 2 Wochen"
+
 Sollte ein Turnier noch nicht gelistet sein, so kann das mehrere Gründe haben:
 
 * Das Turnier ist noch nicht in der ClubCloud eingetragen

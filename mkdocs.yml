@@ -49,6 +49,7 @@ plugins:
             Tischreservierung: Table Reservation
             Einzelturnierverwaltung: Individual Tournament Management
             Scoreboard Setup: Scoreboard Setup
+            KI-gestützte Suche: AI-Powered Search
             Entwicklerhandbuch: Developer Guide
             Getting Started: Getting Started
             Scenario Management: Scenario Management
@@ -89,6 +90,7 @@ nav:
       - Tischreservierung: table_reservation_heating_control.md
       - Einzelturnierverwaltung: einzelturnierverwaltung.md
       - Scoreboard Setup: scoreboard_autostart_setup.md
+      - KI-gestützte Suche: ai_search.md
   - Entwicklerhandbuch:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
       - Entwicklerhandbuch: DEVELOPER_GUIDE.md

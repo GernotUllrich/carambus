@@ -33,6 +33,7 @@ Welcome to the Carambus API documentation. This directory contains comprehensive
 - **[ER Diagram](er_diagram.md)** - Entity-Relationship diagram
 - **[Paper Trail Optimization](paper_trail_optimization.md)** - Optimizing paper trail functionality
 - **[Filter Popup Usage](filter_popup_usage.md)** - How to use filter popups in the interface
+- **[AI-Powered Search](ai_search.en.md)** - Natural language search using AI
 
 ### Terms & Legal
 - **[Terms](terms.md)** - General terms
