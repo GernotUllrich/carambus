@@ -1374,9 +1374,21 @@ ENV
     master_root = Rails.root.to_s
     puts "   Running bundle install in #{master_root}..."
     
+    # Detect required Bundler version from Gemfile.lock
+    bundler_version = nil
+    gemfile_lock = File.join(master_root, "Gemfile.lock")
+    if File.exist?(gemfile_lock)
+      content = File.read(gemfile_lock)
+      if content =~ /BUNDLED WITH\s+(\d+\.\d+\.\d+)/
+        bundler_version = $1
+        puts "   📌 Detected Bundler version: #{bundler_version}"
+      end
+    end
+    
     # Use Bundler.with_unbundled_env to ensure a clean environment
+    bundle_cmd = bundler_version ? "bundle _#{bundler_version}_" : "bundle"
     success = Bundler.with_unbundled_env do
-      system("cd #{master_root} && bundle install")
+      system("cd #{master_root} && #{bundle_cmd} install")
     end
     
     if success
@@ -1564,12 +1576,24 @@ ENV
   def install_scenario_dependencies(rails_root)
     puts "Installing dependencies for scenario..."
 
+    # Detect required Bundler version from Gemfile.lock
+    bundler_version = nil
+    gemfile_lock = File.join(rails_root, "Gemfile.lock")
+    if File.exist?(gemfile_lock)
+      content = File.read(gemfile_lock)
+      if content =~ /BUNDLED WITH\s+(\d+\.\d+\.\d+)/
+        bundler_version = $1
+        puts "   📌 Detected Bundler version: #{bundler_version}"
+      end
+    end
+
     # Install Ruby dependencies
     puts "   📦 Installing Ruby dependencies (bundle install)..."
     
     # Use Bundler.with_unbundled_env to ensure a clean environment
+    bundle_cmd = bundler_version ? "bundle _#{bundler_version}_" : "bundle"
     Bundler.with_unbundled_env do
-      system("cd #{rails_root} && bundle install")
+      system("cd #{rails_root} && #{bundle_cmd} install")
     end
     
     # Check if gems are actually installed (more reliable than exit code)
@@ -1615,7 +1639,7 @@ ENV
     # Precompile Rails assets for development
     puts "   📦 Precompiling Rails assets (rails assets:precompile)..."
     success = Bundler.with_unbundled_env do
-      system("cd #{rails_root} && RAILS_ENV=development bundle exec rails assets:precompile")
+      system("cd #{rails_root} && RAILS_ENV=development #{bundle_cmd} exec rails assets:precompile")
     end
     unless success
       puts "   ❌ Failed to precompile Rails assets"
@@ -1636,9 +1660,20 @@ ENV
       return true
     end
 
+    # Detect required Bundler version from Gemfile.lock
+    bundler_version = nil
+    gemfile_lock = File.join(rails_root, "Gemfile.lock")
+    if File.exist?(gemfile_lock)
+      content = File.read(gemfile_lock)
+      if content =~ /BUNDLED WITH\s+(\d+\.\d+\.\d+)/
+        bundler_version = $1
+      end
+    end
+    bundle_cmd = bundler_version ? "bundle _#{bundler_version}_" : "bundle"
+
     # Enable caching by running rails dev:cache
     puts "   🔧 Running 'rails dev:cache' to enable caching..."
-    unless system("cd #{rails_root} && RAILS_ENV=development bundle exec rails dev:cache")
+    unless system("cd #{rails_root} && RAILS_ENV=development #{bundle_cmd} exec rails dev:cache")
       puts "   ❌ Failed to enable caching with 'rails dev:cache'"
       return false
     end
