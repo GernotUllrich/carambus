@@ -99,6 +99,62 @@ class LocationsController < ApplicationController
         render "scoreboard_reservations", locals: { tournament: tournament }
       when "training"
         render "scoreboard_training"
+      when "free_game_quick"
+        # Quick Game Setup - Ultra-simple for Pi 3 Performance
+        player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
+        player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
+        Table.transaction do
+          if @table.present?
+            table_monitor = @table.table_monitor || @table.table_monitor!
+            if table_monitor.present?
+              game = table_monitor.game
+              if game.blank?
+                game = Game.create!
+                game.game_participations.create(player: player_a, role: "playera") if player_a
+                game.game_participations.create(player: player_b, role: "playerb") if player_b
+              end
+              table_monitor.assign_game(game)
+              table_monitor.get_options!(I18n.locale)
+            end
+          end
+        end
+        club = @location.club.presence
+        if club.present?
+          player_ids = club.season_participations
+                           .where(season_id: Season.current_season&.id)
+                           .map(&:player_id).compact.uniq
+          default_guest_a = Player.default_guest(:a, @location)
+          default_guest_b = Player.default_guest(:b, @location)
+          guest_player_ids = club.season_participations.where(status: "guest")
+                                 .where(season_id: Season.current_season&.id).map(&:player_id).compact.uniq
+          club_player_ids = player_ids - guest_player_ids
+          players = Player.joins(:season_participations).where(season_participations: {
+            season_id: Season.current_season&.id, club_id: club.id
+          }).where(id: (guest_player_ids + club_player_ids)).to_a
+          
+          # Prepare players list for select
+          players_list = []
+          players_list += [["---Gäste---", ""]]
+          players_list += players.select { |p| guest_player_ids.include?(p.id) }
+                                .map { |p| ["#{p.firstname} #{p.lastname}", p.id] }
+          players_list += [["---Club---", ""]]
+          players_list += players.select { |p| club_player_ids.include?(p.id) }
+                                .map { |p| ["#{p.firstname} #{p.lastname}", p.id] }
+          
+          if @table.present?
+            render "scoreboard_free_game_quick",
+                   locals: {
+                     table: @table,
+                     table_monitor: table_monitor,
+                     club: club,
+                     players: players_list,
+                     player_a: player_a,
+                     player_b: player_b,
+                     default_guest_a: default_guest_a,
+                     default_guest_b: default_guest_b
+                   }
+          end
+        end
       when "free_game"
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
@@ -377,6 +433,12 @@ class LocationsController < ApplicationController
   def scoreboard_free_game_karambol_new
     authorize! :manage, TableMonitor
     # controller logic
+  end
+
+  def scoreboard_free_game_quick
+    authorize! :manage, TableMonitor
+    # Reuse same player preparation logic as scoreboard_free_game_karambol_new
+    # The view is ultra-simple for Pi 3 performance
   end
 
   private

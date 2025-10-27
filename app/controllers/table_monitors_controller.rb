@@ -68,10 +68,26 @@ class TableMonitorsController < ApplicationController
                 :balls_goal_b, :balls_goal_b_choice, :balls_goal_b_2_choice, :innings_goal, :discipline_a, :discipline_a_choice,
                 :discipline_b, :discipline_b_choice, :kickoff_switches_with,
                 :fixed_display_left, :color_remains_with_set,
-                :allow_overflow, :allow_follow_up, :free_game_form,
+                :allow_overflow, :allow_follow_up, :free_game_form, :quick_game_form, :preset,
                 :discipline_choice, :next_break_choice, :games_choice, :games_2_choice, :four_ball,
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
                 :first_break_choice)
+    
+    # Handle Quick Game Presets (for Pi 3 performance)
+    if p[:quick_game_form].present? && p[:preset].present?
+      preset_index = p[:preset].to_i
+      presets = Rails.application.config_for(:carambus)['free_game_presets'] || []
+      if preset = presets[preset_index]
+        p[:discipline_a] = p[:discipline_b] = preset['discipline']
+        p[:balls_goal_a] = p[:balls_goal_b] = preset['balls_goal']
+        p[:innings_goal] = preset['innings_goal'] || 0
+        p[:sets_to_win] = preset['sets_to_win'] || 0
+        p[:sets_to_play] = 1
+        p[:kickoff_switches_with] = 'set'
+        p[:allow_follow_up] = true
+        p[:first_break_choice] = 0 # Ausstoßen
+      end
+    end
     p[:innings_choice] = p[:innings_2_choice].presence || p[:innings_choice]
     p[:points_choice] = p[:points_2_choice].presence || p[:points_choice]
     p[:balls_goal_a] =
