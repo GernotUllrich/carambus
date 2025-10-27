@@ -4,11 +4,27 @@
 <% 
   table_kind_key = case table_kind_name
                    when /klein/i then 'small_billard'
+<<<<<<< HEAD
                    when /groß|gross/i then 'match_billard'
                    else 'small_billard'
                    end
   
   presets = Rails.application.config_for(:carambus)['quick_game_presets']&.dig(table_kind_key) || []
+=======
+                   when /groß|gross/i, /Match/i then 'match_billard'
+                   else 'small_billard'
+                   end
+  
+  config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
+  presets = config.dig('default', 'quick_game_presets', table_kind_key) || []
+  
+  # DEBUG
+  Rails.logger.info "=== QUICK GAME DEBUG ==="
+  Rails.logger.info "table_kind_name: #{table_kind_name}"
+  Rails.logger.info "table_kind_key: #{table_kind_key}"
+  Rails.logger.info "presets count: #{presets.size}"
+  Rails.logger.info "========================"
+>>>>>>> a2dcbf7 (Fix: Quick Game parameter handling - prevent override)
 %>
 
 <div class="w-full max-w-6xl mx-auto">
@@ -25,8 +41,18 @@
       <div class="flex flex-wrap gap-4 justify-center">
         <% category_group['buttons'].each do |button| %>
           <% 
+<<<<<<< HEAD
             label = button['label'] || "#{button['balls']}/#{button['innings']}"
             label = label.gsub('0/', '-/')
+=======
+            if button['label']
+              label = button['label']
+            else
+              balls_str = button['balls'] == 0 ? '-' : button['balls'].to_s
+              innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
+              label = "#{balls_str}/#{innings_str}"
+            end
+>>>>>>> a2dcbf7 (Fix: Quick Game parameter handling - prevent override)
           %>
           <%= form_tag start_game_table_monitor_path(table_monitor), 
                        method: :post, 

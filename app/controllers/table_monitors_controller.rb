@@ -73,35 +73,38 @@ class TableMonitorsController < ApplicationController
                 :points_choice, :points_2_choice, :innings_choice, :innings_2_choice, :warntime, :gametime, :commit,
                 :first_break_choice)
     
-    # Handle Quick Game Presets (for Pi 3 performance)
-    if p[:quick_game_form].present? && p[:preset].present?
-      preset_index = p[:preset].to_i
-      presets = Rails.application.config_for(:carambus)['free_game_presets'] || []
-      if preset = presets[preset_index]
-        p[:discipline_a] = p[:discipline_b] = preset['discipline']
-        p[:balls_goal_a] = p[:balls_goal_b] = preset['balls_goal']
-        p[:innings_goal] = preset['innings_goal'] || 0
-        p[:sets_to_win] = preset['sets_to_win'] || 0
-        p[:sets_to_play] = 1
-        p[:kickoff_switches_with] = 'set'
-        p[:allow_follow_up] = true
-        p[:first_break_choice] = 0 # Ausstoßen
-      end
+    # Process standard form parameters (unless quick_game_form)
+    unless p[:quick_game_form].present?
+      p[:innings_choice] = p[:innings_2_choice].presence || p[:innings_choice]
+      p[:points_choice] = p[:points_2_choice].presence || p[:points_choice]
+      p[:balls_goal_a] =
+        p[:balls_goal_b] = p[:balls_goal_choice] = p[:balls_goal_2_choice].presence || p[:balls_goal_choice]
+      p[:balls_goal_a_choice] = p[:balls_goal_a_2_choice].presence || p[:balls_goal_a_choice].presence
+      p[:balls_goal_b_choice] = p[:balls_goal_b_2_choice].presence || p[:balls_goal_b_choice].presence
+      p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
+      p[:discipline_a] = p[:discipline_a_choice]
+      p[:discipline_b] = p[:discipline_b_choice]
+      p[:balls_goal_a] = p[:balls_goal_a_choice]
+      p[:balls_goal_b] = p[:balls_goal_b_choice]
+      p[:innings_goal] = p[:innings_choice]
+      p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
+      p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
+    else
+      # Handle Quick Game (for Pi 3 performance)
+      # Quick buttons send parameters directly via hidden fields - DON'T override them!
+      p[:balls_goal_a] = p[:balls_goal_a].to_i if p[:balls_goal_a].present?
+      p[:balls_goal_b] = p[:balls_goal_b].to_i if p[:balls_goal_b].present?
+      p[:innings_goal] = p[:innings_goal].to_i if p[:innings_goal].present?
+      p[:sets_to_win] = p[:sets_to_win].to_i if p[:sets_to_win].present?
+      p[:sets_to_play] = 1
+      p[:allow_follow_up] = (p[:allow_follow_up] == "true" || p[:allow_follow_up] == true)
+      
+      Rails.logger.info "=== QUICK GAME START ==="
+      Rails.logger.info "discipline_a: #{p[:discipline_a]}"
+      Rails.logger.info "balls_goal_a: #{p[:balls_goal_a]}"
+      Rails.logger.info "innings_goal: #{p[:innings_goal]}"
+      Rails.logger.info "======================="
     end
-    p[:innings_choice] = p[:innings_2_choice].presence || p[:innings_choice]
-    p[:points_choice] = p[:points_2_choice].presence || p[:points_choice]
-    p[:balls_goal_a] =
-      p[:balls_goal_b] = p[:balls_goal_choice] = p[:balls_goal_2_choice].presence || p[:balls_goal_choice]
-    p[:balls_goal_a_choice] = p[:balls_goal_a_2_choice].presence || p[:balls_goal_a_choice].presence
-    p[:balls_goal_b_choice] = p[:balls_goal_b_2_choice].presence || p[:balls_goal_b_choice].presence
-    p[:kickoff_switches_with] = (p[:kickoff_switches_with].presence || "set")
-    p[:discipline_a] = p[:discipline_a_choice]
-    p[:discipline_b] = p[:discipline_b_choice]
-    p[:balls_goal_a] = p[:balls_goal_a_choice]
-    p[:balls_goal_b] = p[:balls_goal_b_choice]
-    p[:innings_goal] = p[:innings_choice]
-    p[:sets_to_play] = p[:sets_2_choice].presence || p[:sets_choice]
-    p[:sets_to_win] = p[:games_2_choice].presence || p[:games_choice]
     if p[:four_ball].present?
       p[:discipline_a] = p[:discipline_b] = "4 Ball"
       p[:balls_goal_a] = p[:balls_goal_b] = 120
