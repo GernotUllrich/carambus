@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_24_213620) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_27_122519) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -66,6 +66,24 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_24_213620) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "ai_search_logs", force: :cascade do |t|
+    t.text "query"
+    t.string "entity"
+    t.text "filters"
+    t.integer "confidence"
+    t.text "explanation"
+    t.boolean "success"
+    t.text "error_message"
+    t.integer "user_id"
+    t.json "raw_response"
+    t.string "locale"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_ai_search_logs_on_created_at"
+    t.index ["success"], name: "index_ai_search_logs_on_success"
+    t.index ["user_id"], name: "index_ai_search_logs_on_user_id"
   end
 
   create_table "branch_ccs", force: :cascade do |t|

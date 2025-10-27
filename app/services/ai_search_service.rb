@@ -112,8 +112,17 @@ class AiSearchService < ApplicationService
   end
 
   def call
-    return error_response('Keine Anfrage angegeben') if @query.blank?
-    return error_response('OpenAI nicht konfiguriert') unless openai_configured?
+    if @query.blank?
+      result = error_response('Keine Anfrage angegeben')
+      log_search(result)
+      return result
+    end
+
+    unless openai_configured?
+      result = error_response('OpenAI nicht konfiguriert')
+      log_search(result)
+      return result
+    end
 
     begin
       response = @client.chat(
@@ -129,10 +138,14 @@ class AiSearchService < ApplicationService
         }
       )
 
-      parse_ai_response(response)
+      result = parse_ai_response(response)
+      log_search(result, response)
+      result
     rescue StandardError => e
       Rails.logger.error "AiSearchService error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
-      error_response("Fehler bei der KI-Anfrage: #{e.message}")
+      result = error_response("Fehler bei der KI-Anfrage: #{e.message}")
+      log_search(result)
+      result
     end
   end
 
@@ -403,6 +416,20 @@ class AiSearchService < ApplicationService
 
   def respond_to_missing?(method_name, include_private = false)
     method_name.to_s.end_with?('_path') || super
+  end
+
+  # Log the search query and response
+  def log_search(result, raw_response = nil)
+    AiSearchLog.create_from_response(
+      query: @query,
+      response: result,
+      user: @user,
+      locale: @locale,
+      raw_response: raw_response
+    )
+  rescue StandardError => e
+    # Don't let logging errors break the search
+    Rails.logger.error "Failed to log AI search: #{e.message}"
   end
 end
 
