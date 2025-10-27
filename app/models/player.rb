@@ -649,8 +649,12 @@ in region #{region.shortname}"
     Array(player_tmp_arr).each do |player_tmp|
       Player.transaction do
         SeasonParticipation.where(player_id: player_tmp.id).each do |sp|
-          unless SeasonParticipation.where(player_id: player_ok.id, season_id: sp.season_id,
-                                           club_id: sp.club_id).first.present?
+          if SeasonParticipation.where(player_id: player_ok.id, season_id: sp.season_id,
+                                       club_id: sp.club_id).first.present?
+            # Duplicate SeasonParticipation exists, delete this one
+            sp.destroy
+          else
+            # Move to master player
             sp.update(player_id: player_ok.id)
           end
         end
@@ -659,7 +663,10 @@ in region #{region.shortname}"
         Seeding.where(player_id: player_tmp.id).all.each { |l| l.update(player_id: player_ok.id) }
         PartyGame.where(player_a_id: player_tmp.id).all.each { |l| l.update(player_a_id: player_ok.id) }
         PartyGame.where(player_b_id: player_tmp.id).all.each { |l| l.update(player_b_id: player_ok.id) }
-        player_tmp.destroy if player_tmp.id != player_ok.id
+        if player_tmp.id != player_ok.id
+          player_tmp.unprotected = true
+          player_tmp.destroy
+        end
         Team.where("data ilike '%#{player_ok.fl_name.gsub("'", "''")}%'").each do |team|
           players = team.data["players"]
           players.each do |players_hash|
