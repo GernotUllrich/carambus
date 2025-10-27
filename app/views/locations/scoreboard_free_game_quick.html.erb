@@ -88,8 +88,8 @@
           <div class="preset-title">Eigene Einstellung</div>
           <div class="preset-details">
             <%= link_to "→ Zur Detail-Konfiguration", 
-                scoreboard_location_path(@location.md5, 
-                  sb_state: "free_game", 
+                location_path(@location.md5, 
+                  sb_state: "free_game_detail", 
                   table_id: table.id,
                   :"data-turbo" => false),
                 style: "color: white; text-decoration: underline;", 
@@ -111,7 +111,7 @@
     <%# Back Link %>
     <div class="flex justify-center mt-4">
       <%= link_to "← Zurück", 
-          scoreboard_location_path(@location.md5, sb_state: "welcome", :"data-turbo" => false),
+          location_path(@location.md5, sb_state: "start", table_id: table.id, :"data-turbo" => false),
           class: "text-white text-xl underline",
           data: { turbo: false } %>
     </div>

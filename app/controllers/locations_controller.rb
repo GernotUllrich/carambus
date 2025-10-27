@@ -99,8 +99,8 @@ class LocationsController < ApplicationController
         render "scoreboard_reservations", locals: { tournament: tournament }
       when "training"
         render "scoreboard_training"
-      when "free_game_quick"
-        # Quick Game Setup - Ultra-simple for Pi 3 Performance
+      when "free_game"
+        # Quick Game Setup - Ultra-simple for Pi 3 Performance (DEFAULT)
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
@@ -155,7 +155,8 @@ class LocationsController < ApplicationController
                    }
           end
         end
-      when "free_game"
+      when "free_game_detail"
+        # Original detailed configuration with Alpine.js
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
