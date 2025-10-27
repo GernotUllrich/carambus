@@ -1,0 +1,111 @@
+<%# Quick Game Buttons - TableKind specific %>
+<%# Parameters: table_kind_name, table_monitor, location %>
+
+<% 
+  table_kind_key = case table_kind_name
+                   when /klein/i then 'small_billard'
+                   when /groß|gross/i then 'match_billard'
+                   else 'small_billard'
+                   end
+  
+  presets = Rails.application.config_for(:carambus)['quick_game_presets']&.dig(table_kind_key) || []
+%>
+
+<div class="w-full max-w-6xl mx-auto">
+  <h2 class="text-4xl font-bold text-center mb-6 text-white" style="text-shadow: 2px 2px #000000">
+    Schnellauswahl - <%= table_kind_name %>
+  </h2>
+  
+  <% presets.each do |category_group| %>
+    <div class="mb-8">
+      <h3 class="text-3xl font-bold mb-4 text-white" style="text-shadow: 2px 2px #000000">
+        <%= category_group['category'] %>
+      </h3>
+      
+      <div class="flex flex-wrap gap-4 justify-center">
+        <% category_group['buttons'].each do |button| %>
+          <% 
+            label = button['label'] || "#{button['balls']}/#{button['innings']}"
+            label = label.gsub('0/', '-/')
+          %>
+          <%= form_tag start_game_table_monitor_path(table_monitor), 
+                       method: :post, 
+                       data: { turbo: false },
+                       class: "inline-block" do %>
+            <%= hidden_field_tag :player_a_id, '', id: "quick_player_a_#{button['balls']}_#{button['innings']}" %>
+            <%= hidden_field_tag :player_b_id, '', id: "quick_player_b_#{button['balls']}_#{button['innings']}" %>
+            <%= hidden_field_tag :quick_game_form, 'karambol' %>
+            <%= hidden_field_tag :discipline_a, button['discipline'] %>
+            <%= hidden_field_tag :discipline_b, button['discipline'] %>
+            <%= hidden_field_tag :balls_goal_a, button['balls'] %>
+            <%= hidden_field_tag :balls_goal_b, button['balls'] %>
+            <%= hidden_field_tag :innings_goal, button['innings'] %>
+            <%= hidden_field_tag :sets_to_win, 0 %>
+            <%= hidden_field_tag :kickoff_switches_with, 'set' %>
+            <%= hidden_field_tag :allow_follow_up, true %>
+            <%= hidden_field_tag :first_break_choice, 0 %>
+            
+            <%= submit_tag label,
+                class: "px-8 py-6 text-4xl font-bold rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
+                disabled: true,
+                data: { 
+                  form_id: "quick_player_a_#{button['balls']}_#{button['innings']}",
+                  enabled_class: "bg-blue-500 hover:bg-blue-600 cursor-pointer",
+                  disabled_class: "bg-gray-400 cursor-not-allowed"
+                } %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  
+  <%# Link to detailed configuration %>
+  <div class="text-center mt-8">
+    <%= link_to "⚙️ Detail-Konfiguration", 
+        location_path(location.md5, 
+          sb_state: "free_game_detail", 
+          table_id: table_monitor.table.id,
+          :"data-turbo" => false),
+        class: "text-white text-2xl underline hover:text-blue-300",
+        data: { turbo: false } %>
+  </div>
+</div>
+
+<script>
+// Enable/disable quick start buttons based on player selection
+document.addEventListener('DOMContentLoaded', function() {
+  function updateQuickButtons() {
+    var playerAId = document.getElementById('player_a_id')?.value;
+    var playerBId = document.getElementById('player_b_id')?.value;
+    var allButtons = document.querySelectorAll('.quick-start-btn');
+    
+    allButtons.forEach(function(btn) {
+      var formId = btn.dataset.formId;
+      var playerAField = document.getElementById(formId);
+      var playerBField = document.getElementById(formId.replace('player_a', 'player_b'));
+      
+      if (playerAId && playerBId && playerAId !== playerBId) {
+        btn.disabled = false;
+        btn.className = btn.className.replace(btn.dataset.disabledClass, btn.dataset.enabledClass);
+        playerAField.value = playerAId;
+        playerBField.value = playerBId;
+      } else {
+        btn.disabled = true;
+        btn.className = btn.className.replace(btn.dataset.enabledClass, btn.dataset.disabledClass);
+      }
+    });
+  }
+  
+  // Listen to player selection changes
+  document.addEventListener('change', function(e) {
+    if (e.target.id === 'player_a_id' || e.target.id === 'player_b_id' || 
+        e.target.name && (e.target.name.includes('playera') || e.target.name.includes('playerb'))) {
+      updateQuickButtons();
+    }
+  });
+  
+  // Initial update
+  setTimeout(updateQuickButtons, 100);
+});
+</script>
+

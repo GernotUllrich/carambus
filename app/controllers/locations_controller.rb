@@ -132,22 +132,28 @@ class LocationsController < ApplicationController
             season_id: Season.current_season&.id, club_id: club.id
           }).where(id: (guest_player_ids + club_player_ids)).to_a
           
-          # Prepare players list for select
-          players_list = []
-          players_list += [["---Gäste---", ""]]
-          players_list += players.select { |p| guest_player_ids.include?(p.id) }
-                                .map { |p| ["#{p.firstname} #{p.lastname}", p.id] }
-          players_list += [["---Club---", ""]]
-          players_list += players.select { |p| club_player_ids.include?(p.id) }
-                                .map { |p| ["#{p.firstname} #{p.lastname}", p.id] }
+          guest_players_default = Player.where(id: [default_guest_a.player.id,
+                                                    default_guest_b.player.id]).order("fl_name")
+          guest_players_other = Player.joins(season_participations: %i[club season])
+                                      .where(clubs: { id: club.id })
+                                      .where.not(id: [default_guest_a.player.id,
+                                                      default_guest_b.player.id])
+                                      .where(season_participations: { status: "guest" })
+                                      .where(seasons: { id: Season.current_season&.id })
+                                      .order("fl_name")
+
+          club_players = Player.where(id: club_player_ids).order("fl_name")
           
           if @table.present?
-            render "scoreboard_free_game_quick",
+            @bg_color ||= "#1B0909"
+            render "scoreboard_free_game_karambol_quick",
                    locals: {
                      table: @table,
                      table_monitor: table_monitor,
                      club: club,
-                     players: players_list,
+                     guest_players_default: guest_players_default,
+                     guest_players_other: guest_players_other,
+                     club_players: club_players,
                      player_a: player_a,
                      player_b: player_b,
                      default_guest_a: default_guest_a,

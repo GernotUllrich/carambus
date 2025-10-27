@@ -17,33 +17,30 @@ default:
   force_update: 'true'
   no_local_protection: 'false'
   club_id: nil
-  # Quick Game Presets for Raspberry Pi 3 Performance (90% use cases)
-  free_game_presets:
-    - name: "Freie Partie 80"
-      discipline: "Freie Partie klein"
-      balls_goal: 80
-      innings_goal: 0
-      sets_to_win: 0
-    - name: "3-Band 40"
-      discipline: "Dreiband klein"
-      balls_goal: 40
-      innings_goal: 0
-      sets_to_win: 0
-    - name: "Cadre 52/2 - 40"
-      discipline: "Cadre 52/2"
-      balls_goal: 40
-      innings_goal: 0
-      sets_to_win: 0
-    - name: "Einband 60"
-      discipline: "Einband klein"
-      balls_goal: 60
-      innings_goal: 0
-      sets_to_win: 0
-    - name: "Mehrsatz 3x30"
-      discipline: "Freie Partie klein"
-      balls_goal: 30
-      innings_goal: 0
-      sets_to_win: 2
+  # Quick Game Presets - TableKind specific (90% use cases)
+  quick_game_presets:
+    small_billard:
+      - category: "Freie Partie"
+        buttons:
+          - { balls: 40, innings: 20, discipline: "Freie Partie klein" }
+          - { balls: 80, innings: 20, discipline: "Freie Partie klein" }
+          - { balls: 100, innings: 20, discipline: "Freie Partie klein" }
+          - { balls: 0, innings: 20, discipline: "Freie Partie klein", label: "-/20" }
+      - category: "Dreiband"
+        buttons:
+          - { balls: 30, innings: 25, discipline: "Dreiband klein" }
+          - { balls: 20, innings: 20, discipline: "Dreiband klein" }
+      - category: "Eurokegel"
+        buttons:
+          - { balls: 120, innings: 0, discipline: "Eurokegel klein", label: "120/-" }
+    match_billard:
+      - category: "Dreiband"
+        buttons:
+          - { balls: 20, innings: 30, discipline: "Dreiband groß" }
+          - { balls: 15, innings: 0, discipline: "Dreiband groß", label: "15/-" }
+      - category: "Vierball"
+        buttons:
+          - { balls: 120, innings: 0, discipline: "4 Ball", label: "120/-" }
 development:
   carambus_api_url: <%= carambus_api_url %>
   location_id: <%= location_id %>

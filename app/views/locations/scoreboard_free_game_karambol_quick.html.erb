@@ -1,0 +1,204 @@
+<%# Quick Game Setup - NO Alpine.js, ultra-fast for Pi 3 %>
+<%# Player Panel + TableKind-specific Quick Buttons %>
+
+<script type="text/javascript">
+  function set_checked_player(ab, ix, val) {
+    document.getElementById("player" + ab + "_" + ix).checked = true;
+    document.getElementById("player_" + ab + "_id").value = val;
+    
+    // Trigger change event to update quick buttons
+    var event = new Event('change', { bubbles: true });
+    document.getElementById("player_" + ab + "_id").dispatchEvent(event);
+  }
+
+  function set_players_modal() {
+    document.getElementById("modal-players").classList.toggle("hidden");
+    document.getElementById("modal-players-bg").classList.toggle("hidden");
+    document.getElementById("modal-players").classList.toggle("flex");
+    document.getElementById("modal-players-bg").classList.toggle("flex");
+  }
+</script>
+
+<%# Player Selection Modal %>
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-players-bg"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-players">
+  <div class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col w-5/6 dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none">
+    <div class="flex flex-col">
+      <div class="flex justify-around pt-5 space-x-10">
+        <%= custom_link_to t('continue'), "javascript:set_players_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+      </div>
+      <div class="flex justify-around w-full text-3vw">
+        <div class="">Spieler A</div>
+        <div class="">Spieler B</div>
+      </div>
+      
+      <%- players = [] %>
+      <%- players += [["---Gäste---", ""]] +
+        Array(guest_players_default.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) +
+        Array(guest_players_other.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] })
+      %>
+      <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
+      <%- count = players.count %>
+      
+      <div class="flex justify-between w-full text-2vw">
+        <%# Player A Panel %>
+        <div class="mr-2">
+          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+            <div class="flex flex-row w-full">
+              <div class="flex-col">
+                <%- (0..(count / 2 - 1)).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %>
+                    </div>
+                  </div>
+                <%- end %>
+              </div>
+              <div class="flex-col">
+                <%- ((count / 2)..count - 1).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %>
+                    </div>
+                  </div>
+                <%- end %>
+              </div>
+            </div>
+          <%- end %>
+        </div>
+        
+        <%# Player B Panel %>
+        <div class="">
+          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
+            <div class="flex flex-row w-full">
+              <div class="flex-col">
+                <%- (0..(count / 2 - 1)).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %>
+                    </div>
+                  </div>
+                <%- end %>
+              </div>
+              <div class="flex-col">
+                <%- ((count / 2)..count - 1).each do |ix| %>
+                  <div class="flex mb-2">
+                    <div class="">
+                      <%- if players[ix][1].present? %>
+                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
+                      <%- end %>
+                    </div>
+                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
+                      <%= players[ix][0] %>
+                    </div>
+                  </div>
+                <%- end %>
+              </div>
+            </div>
+          <%- end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Main Page %>
+<div class="p-4 w-full m-auto flex items-center flex-col bg-cover min-h-screen bg-center bg-no-repeat" 
+     style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
+  
+  <h1 style="text-shadow: 2px 2px #000000" class="text-5vw flex text-gray-300 mb-4">
+    <%= "#{table.andand.table_kind.andand.name} - #{table.andand.name}" %>
+  </h1>
+  
+  <h2 style="text-shadow: 2px 2px #000000" class="text-3vw flex text-gray-300 mb-6">
+    Schnellstart - Freies Spiel
+  </h2>
+
+  <%# Hidden Fields for Player IDs %>
+  <input type="hidden" id="player_a_id" name="player_a_id" value="<%= player_a&.id || default_guest_a&.player&.id %>" />
+  <input type="hidden" id="player_b_id" name="player_b_id" value="<%= player_b&.id || default_guest_b&.player&.id %>" />
+
+  <%# Player Selection Button %>
+  <div class="mb-6">
+    <%= custom_link_to "👥 Spieler auswählen", 
+        "javascript:set_players_modal()", 
+        data: { turbolinks: false }, 
+        class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw px-10 py-4", 
+        id: "select_players_btn", 
+        tabindex: "1" %>
+  </div>
+
+  <%# Selected Players Display %>
+  <div class="mb-8 text-center">
+    <div class="text-2xl text-white" style="text-shadow: 2px 2px #000000">
+      <span id="player_a_name"><%= player_a&.fullname || default_guest_a&.player&.fullname || "Spieler A" %></span>
+      <span class="mx-4">vs.</span>
+      <span id="player_b_name"><%= player_b&.fullname || default_guest_b&.player&.fullname || "Spieler B" %></span>
+    </div>
+  </div>
+
+  <%# Quick Game Buttons (TableKind-specific) %>
+  <%= render 'quick_game_buttons', 
+      table_kind_name: table.table_kind.name, 
+      table_monitor: table_monitor,
+      location: @location %>
+
+  <%# Back Link %>
+  <div class="flex justify-center mt-8">
+    <%= link_to "← Zurück", 
+        location_path(@location.md5, sb_state: "start", table_id: table.id, :"data-turbo" => false),
+        class: "text-white text-xl underline hover:text-blue-300",
+        data: { turbo: false } %>
+  </div>
+</div>
+
+<script>
+// Update player names display when selection changes
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'player_a_id' || e.target.id === 'player_b_id') {
+    updatePlayerNames();
+  }
+});
+
+function updatePlayerNames() {
+  var playerAId = document.getElementById('player_a_id')?.value;
+  var playerBId = document.getElementById('player_b_id')?.value;
+  
+  // Find selected player names from radio buttons
+  if (playerAId) {
+    var playerARadio = document.querySelector('input[name="player_a_id"]:checked');
+    if (playerARadio) {
+      var playerALabel = playerARadio.parentElement.nextElementSibling;
+      if (playerALabel) {
+        document.getElementById('player_a_name').textContent = playerALabel.textContent.trim();
+      }
+    }
+  }
+  
+  if (playerBId) {
+    var playerBRadio = document.querySelector('input[name="player_b_id"]:checked');
+    if (playerBRadio) {
+      var playerBLabel = playerBRadio.parentElement.nextElementSibling;
+      if (playerBLabel) {
+        document.getElementById('player_b_name').textContent = playerBLabel.textContent.trim();
+      }
+    }
+  }
+}
+</script>
+
