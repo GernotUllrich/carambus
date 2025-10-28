@@ -883,6 +883,22 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
+    
+    # Prepare raspberry_pi_client hosts
+    raspberry_pi_client = env_config['raspberry_pi_client']
+    raspberry_pi_hosts = ""
+    if raspberry_pi_client && raspberry_pi_client['enabled'] && raspberry_pi_client['ip_address']
+      pi_ip = raspberry_pi_client['ip_address']
+      pi_port = raspberry_pi_client['local_server_enabled'] ? raspberry_pi_client['local_server_port'] : webserver_port
+      raspberry_pi_hosts = "  # Allow requests from Raspberry Pi client\n  config.hosts << \"#{pi_ip}\"\n  config.hosts << \"#{pi_ip}:#{pi_port}\""
+    end
+    
+    # Prepare DuckDNS hosts
+    duckdns_domain = env_config['duckdns_domain']
+    duckdns_hosts = ""
+    if duckdns_domain
+      duckdns_hosts = "  # Allow requests from DuckDNS domain\n  config.hosts << \"#{duckdns_domain}\"\n  config.hosts << \"#{duckdns_domain}:#{webserver_port}\""
+    end
 
     content = <<~'RUBY'
 require "active_support/core_ext/integer/time"
@@ -997,6 +1013,8 @@ Rails.application.configure do
   # Allow requests from localhost (needed for scoreboard kiosk)
   config.hosts << "localhost"
   config.hosts << "localhost:#{webserver_port}"
+#{raspberry_pi_hosts}
+#{duckdns_hosts}
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
@@ -1020,6 +1038,8 @@ RUBY
                     .gsub('#{webserver_port}', webserver_port.to_s)
                     .gsub('#{actioncable_url}', actioncable_url)
                     .gsub('#{webserver_host}', webserver_host)
+                    .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
+                    .gsub('#{duckdns_hosts}', duckdns_hosts)
 
     File.write(File.join(env_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"

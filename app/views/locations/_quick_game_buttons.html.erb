@@ -55,7 +55,7 @@
             <%= hidden_field_tag :innings_goal, button['innings'] %>
             <%= hidden_field_tag :sets_to_win, 0 %>
             <%= hidden_field_tag :kickoff_switches_with, 'set' %>
-            <%= hidden_field_tag :allow_follow_up, true %>
+            <%= hidden_field_tag :allow_follow_up, button['allow_follow_up'].nil? ? true : button['allow_follow_up'] %>
             <%= hidden_field_tag :first_break_choice, 0 %>
             
             <%= submit_tag label,

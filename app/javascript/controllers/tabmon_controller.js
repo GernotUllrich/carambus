@@ -190,6 +190,25 @@ export default class extends ApplicationController {
     return this.clientState.currentPlayer || 'playera'
   }
 
+  getDisciplineIncrement(playerId) {
+    // For Eurokegel, each pin is worth 2 points (only even numbers allowed)
+    const playerSide = playerId === 'playera' ? '#left' : '#right'
+    const sideElement = document.querySelector(playerSide)
+    
+    if (!sideElement) return 1
+    
+    // Check discipline from data attribute or text content
+    const disciplineText = sideElement.dataset.discipline || 
+                          sideElement.querySelector('.discipline, [class*="discipline"]')?.textContent || ''
+    
+    // Eurokegel uses 2-point increments (each pin = 2 points)
+    if (disciplineText.toLowerCase().includes('eurokegel')) {
+      return 2
+    }
+    
+    return 1
+  }
+
   // NEW: Get the goal for a specific player
   getPlayerGoal(playerId) {
     const goalElement = document.querySelector(`.goal[data-player="${playerId}"]`)
@@ -325,13 +344,16 @@ export default class extends ApplicationController {
 
     // Check if we're clicking on the active player's side or opposite side
     if (activePlayerId === playerId) {
+      // Get increment based on discipline (Eurokegel = 2, others = 1)
+      const increment = this.getDisciplineIncrement(playerId)
+      
       // 🚀 NEW: Accumulate change FIRST, then update display
-      const accumulated = this.accumulateAndValidateChange(playerId, 1, 'add')
+      const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
       // Only update display if accumulation was successful
       if (accumulated) {
         // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-        this.updateScoreOptimistically(playerId, 1, 'add')
+        this.updateScoreOptimistically(playerId, increment, 'add')
       }
     } else {
       // 🚀 TRIGGER NEXT_STEP when clicking on opposite side of active player
@@ -351,13 +373,16 @@ export default class extends ApplicationController {
 
     // Check if we're clicking on the active player's side or opposite side
     if (activePlayerId === playerId) {
+      // Get increment based on discipline (Eurokegel = 2, others = 1)
+      const increment = this.getDisciplineIncrement(playerId)
+      
       // 🚀 NEW: Accumulate change FIRST, then update display
-      const accumulated = this.accumulateAndValidateChange(playerId, 1, 'add')
+      const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
       // Only update display if accumulation was successful
       if (accumulated) {
         // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-        this.updateScoreOptimistically(playerId, 1, 'add')
+        this.updateScoreOptimistically(playerId, increment, 'add')
       }
     } else {
       // 🚀 TRIGGER NEXT_STEP when clicking on opposite side of active player

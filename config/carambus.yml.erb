@@ -22,25 +22,27 @@ default:
     small_billard:
       - category: "Freie Partie"
         buttons:
-          - { balls: 40, innings: 20, discipline: "Freie Partie klein" }
-          - { balls: 80, innings: 20, discipline: "Freie Partie klein" }
-          - { balls: 100, innings: 20, discipline: "Freie Partie klein" }
-          - { balls: 0, innings: 20, discipline: "Freie Partie klein", label: "-/20" }
+          - { balls: 40, innings: 20, discipline: "Freie Partie klein", allow_follow_up: true }
+          - { balls: 80, innings: 20, discipline: "Freie Partie klein", allow_follow_up: true }
+          - { balls: 100, innings: 20, discipline: "Freie Partie klein", allow_follow_up: true }
+          - { balls: 0, innings: 20, discipline: "Freie Partie klein", label: "-/20", allow_follow_up: true }
       - category: "Dreiband"
         buttons:
-          - { balls: 30, innings: 25, discipline: "Dreiband klein" }
-          - { balls: 20, innings: 20, discipline: "Dreiband klein" }
+          - { balls: 30, innings: 25, discipline: "Dreiband klein", allow_follow_up: true }
+          - { balls: 20, innings: 20, discipline: "Dreiband klein", allow_follow_up: true }
       - category: "Eurokegel"
         buttons:
-          - { balls: 120, innings: 0, discipline: "Eurokegel", label: "Eurokegel" }
+          - { balls: 80, innings: 0, discipline: "Eurokegel", label: "80/-", allow_follow_up: false }
+          - { balls: 100, innings: 0, discipline: "Eurokegel", label: "100/-", allow_follow_up: false }
+          - { balls: 120, innings: 0, discipline: "Eurokegel", label: "120/-", allow_follow_up: false }
     match_billard:
       - category: "Dreiband"
         buttons:
-          - { balls: 20, innings: 30, discipline: "Dreiband groß" }
-          - { balls: 15, innings: 0, discipline: "Dreiband groß", label: "15/-" }
+          - { balls: 20, innings: 30, discipline: "Dreiband groß", allow_follow_up: true }
+          - { balls: 15, innings: 0, discipline: "Dreiband groß", label: "15/-", allow_follow_up: true }
       - category: "Vierball"
         buttons:
-          - { balls: 120, innings: 0, discipline: "4 Ball", label: "120/-" }
+          - { balls: 120, innings: 0, discipline: "4 Ball", label: "120/-", allow_follow_up: false }
 development:
   carambus_api_url: <%= carambus_api_url %>
   location_id: <%= location_id %>
