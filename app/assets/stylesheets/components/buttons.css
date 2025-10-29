@@ -64,6 +64,15 @@ button[disabled] .when-enabled { display: none; }
     color: white !important;
   }
 
+  /* Extra specificity to override base a:hover color */
+  .btn.btn-primary,
+  .btn.btn-primary:hover,
+  .btn.btn-primary:focus,
+  .btn.btn-primary:active,
+  .btn.btn-primary:visited {
+    color: white !important;
+  }
+
   .btn-primary.btn-outline {
     @apply bg-transparent border border-primary-500 text-primary-500 shadow-none;
     @apply hover:bg-primary-500;
