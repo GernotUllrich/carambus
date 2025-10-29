@@ -43,13 +43,25 @@ button[disabled] .when-enabled { display: none; }
 
   .btn-primary {
     @apply bg-primary-600 text-white;
-    @apply hover:bg-primary-500 hover:text-white;
+    @apply hover:bg-primary-700;
+    @apply active:bg-primary-800;
     @apply focus:text-white focus-visible:text-white focus-visible:outline-primary-500;
+  }
+  
+  .btn-primary,
+  .btn-primary:hover,
+  .btn-primary:focus,
+  .btn-primary:active {
+    color: white !important;
   }
 
   .btn-primary.btn-outline {
     @apply bg-transparent border border-primary-500 text-primary-500 shadow-none;
-    @apply hover:bg-primary-500 hover:text-white;
+    @apply hover:bg-primary-500;
+  }
+  
+  .btn-primary.btn-outline:hover {
+    color: white !important;
   }
 
   .btn-secondary,
