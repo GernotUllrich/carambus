@@ -46,7 +46,7 @@
           </div>
         <%- end %>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_a", id: table_monitor.id }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1, onclick: "console.time('key_a_click')" do %>
+      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_a", id: table_monitor.id, discipline: left_player[:discipline] }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1, onclick: "console.time('key_a_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex-1 text-left font-bold text-red-400">
@@ -202,7 +202,7 @@
           <div class="flex-nowrap w-full mr-4 text-right <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && right_player[:fullname].andand.length.to_i < 20 %> text-<%= vw3 %>"><%= right_player[:fullname] %></div>
         </div>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_b", id: table_monitor.id }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
+      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_b", id: table_monitor.id, discipline: right_player[:discipline] }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %>">
