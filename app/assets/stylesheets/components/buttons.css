@@ -155,3 +155,47 @@ button[disabled] .when-enabled { display: none; }
     @apply flex justify-center w-full;
   }
 }
+
+/* Critical: Button text colors MUST override base link styles
+   These rules are outside @layer to ensure they win specificity war */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary:visited {
+  color: white !important;
+}
+
+a.btn-primary,
+a.btn-primary:hover,
+a.btn-primary:focus,
+a.btn-primary:active,
+a.btn-primary:visited {
+  color: white !important;
+}
+
+a.btn.btn-primary,
+a.btn.btn-primary:hover,
+a.btn.btn-primary:focus,
+a.btn.btn-primary:active,
+a.btn.btn-primary:visited {
+  color: white !important;
+}
+
+/* Handle Chromium variants (Comet) that apply :any-link or WebKit text paint */
+a.btn.btn-primary:any-link,
+a.btn.btn-primary:hover:any-link,
+a.btn.btn-primary:focus:any-link,
+a.btn.btn-primary:active:any-link,
+a.btn.btn-primary:visited:any-link {
+  color: white !important;
+}
+
+/* WebKit-specific text fill to lock white text in some skins */
+a.btn.btn-primary,
+a.btn.btn-primary:hover,
+a.btn.btn-primary:focus,
+a.btn.btn-primary:active,
+a.btn.btn-primary:visited {
+  -webkit-text-fill-color: #ffffff !important;
+}
