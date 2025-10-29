@@ -9,7 +9,9 @@
                    end
   
   config = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
-  presets = config.dig('default', 'quick_game_presets', table_kind_key) || []
+  # Try environment-specific presets first, fallback to default
+  presets = config.dig(Rails.env, 'quick_game_presets', table_kind_key) || 
+            config.dig('default', 'quick_game_presets', table_kind_key) || []
   
   # DEBUG
   Rails.logger.info "=== QUICK GAME DEBUG ==="
