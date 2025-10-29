@@ -234,7 +234,7 @@
         <div class="col-span-4 flex flex-row">
           <div class="grid grid-cols-3 gap-4">
             <div class="flex">
-              <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full dark:text-white border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+              <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-white hover:text-white text-2vw", id: "cancel", tabindex: "1" %>
             </div>
             <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
               <%= select_tag :player_a_id,
