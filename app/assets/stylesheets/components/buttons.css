@@ -55,6 +55,15 @@ button[disabled] .when-enabled { display: none; }
     color: white !important;
   }
 
+  /* Ensure anchor buttons don't inherit base link color */
+  a.btn-primary,
+  a.btn-primary:hover,
+  a.btn-primary:focus,
+  a.btn-primary:active,
+  a.btn-primary:visited {
+    color: white !important;
+  }
+
   .btn-primary.btn-outline {
     @apply bg-transparent border border-primary-500 text-primary-500 shadow-none;
     @apply hover:bg-primary-500;
