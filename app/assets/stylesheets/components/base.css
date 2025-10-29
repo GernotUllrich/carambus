@@ -15,16 +15,16 @@ body {
   flex: 1;
 }
 
-a {
+/* Do not style button-like anchors; they handle their own colors */
+a:not(.btn) {
   @apply text-primary-600;
   @apply dark:text-primary-400;
+}
 
-  &:hover,
-  &:focus {
-    @apply text-primary-300;
-
-    transform: none;
-  }
+a:not(.btn):hover,
+a:not(.btn):focus {
+  @apply text-primary-300;
+  transform: none;
 }
 
 ul {
