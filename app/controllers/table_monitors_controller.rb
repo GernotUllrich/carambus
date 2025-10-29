@@ -134,7 +134,12 @@ class TableMonitorsController < ApplicationController
 
     p[:color_remains_with_set] = (p[:color_remains_with_set] == "1")
     p[:allow_overflow] = (p[:allow_overflow] == "1")
-    p[:allow_follow_up] = (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
+    # Normalize allow_follow_up depending on form source
+    p[:allow_follow_up] = if p[:quick_game_form].present?
+                            (p[:allow_follow_up].to_s == "true") && p[:discipline_a] != "14.1 endlos"
+                          else
+                            (p[:allow_follow_up] == "1") && p[:discipline_a] != "14.1 endlos"
+                          end
     if p[:commit] == "Start Shootout"
       p[:discipline_b] = p[:discipline_a] = p[:discipline] = "shootout"
       p[:timeouts] = 0
