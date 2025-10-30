@@ -34,6 +34,17 @@
 
 @import "tailwindcss/utilities";
 
+/* IMMEDIATE OVERRIDE: Prevent a:is(.dark *) from applying blue text to btn-primary */
+/* This must be first after utilities to catch the dark mode rule */
+a:is(.dark *).btn.btn-primary,
+a.btn.btn-primary:is(.dark *),
+a[class*="btn-primary"]:is(.dark *),
+a:is(.dark *)[class*="btn-primary"] {
+  --tw-text-opacity: 1 !important;
+  color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
 /* CRITICAL: Button overrides MUST come after Tailwind utilities to override text-primary-* classes */
 /* Override a:is(.dark *) rule that sets light blue text (rgb(96 165 250)) on anchors */
 /* Must use same specificity but with !important and come AFTER the utility rule */
