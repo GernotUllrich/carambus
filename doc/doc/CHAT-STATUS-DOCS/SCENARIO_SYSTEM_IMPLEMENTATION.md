@@ -147,6 +147,8 @@ Prepares a scenario for deployment with all deployment preparation steps except 
 
 **Perfect for**: Local preparation before deployment, testing deployment configuration, or when you want to prepare everything locally before deploying to production.
 
+**💡 Config Lock Files**: Configuration files can be protected from being overwritten on the server by creating a `.lock` file. For example, create `/var/www/[basename]/shared/config/carambus.yml.lock` on the server to prevent `carambus.yml` from being updated during deployment. This is useful for preserving server-specific settings. See [CONFIG_LOCK_FILES.md](../../../docs/CONFIG_LOCK_FILES.md) for details.
+
 #### `scenario:deploy[scenario_name]`
 Deployt ein Scenario zu Production mit Konflikt-Analyse:
 
@@ -195,11 +197,13 @@ Deployt ein Scenario zu Production mit Konflikt-Analyse:
    - Generiert Production-Konfigurationen
    - Erstellt Production-Datenbank-Dump (mit Transformation für carambus-Scenario)
    - Kopiert Konfigurationsdateien in Rails-Root-Folder
-   - Uploads shared Konfigurationsdateien auf Server
+   - Uploads shared Konfigurationsdateien auf Server (respektiert `.lock` Dateien)
    - Führt Capistrano-Deployment aus
    - Konfiguriert SSL-Zertifikate (Let's Encrypt)
    - Setzt Nginx-Konfiguration für Unix-Sockets
    - Konfiguriert Puma-Service für Unix-Sockets
+
+   **Hinweis**: Konfigurationsdateien mit einer `.lock` Datei werden beim Upload übersprungen. Siehe [CONFIG_LOCK_FILES.md](../../../docs/CONFIG_LOCK_FILES.md).
 
 ## Templates
 

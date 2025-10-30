@@ -2755,8 +2755,47 @@ ENV
     end
   end
 
+  # Check if a config file is locked on the server
+  def config_file_locked?(ssh_host, ssh_port, remote_path)
+    lock_path = "#{remote_path}.lock"
+    check_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'test -f #{lock_path} && echo locked || echo unlocked' 2>/dev/null"
+    result = `#{check_cmd}`.strip
+    result == 'locked'
+  end
+
+  # Upload a config file to server, respecting lock files
+  def upload_config_file(local_path, remote_dir, filename, ssh_host, ssh_port, required: true)
+    remote_path = "#{remote_dir}/#{filename}"
+    
+    if config_file_locked?(ssh_host, ssh_port, remote_path)
+      puts "   🔒 Skipped #{filename} (locked on server)"
+      return true  # Not an error - file is intentionally locked
+    end
+    
+    if File.exist?(local_path)
+      scp_cmd = "scp -P #{ssh_port} #{local_path} www-data@#{ssh_host}:#{remote_path}"
+      result = `#{scp_cmd} 2>&1`
+      if $?.success?
+        puts "   ✅ Uploaded #{filename}"
+        return true
+      else
+        puts "   ❌ Failed to upload #{filename}: #{result}"
+        return false
+      end
+    else
+      if required
+        puts "   ❌ #{filename} not found: #{local_path}"
+        return false
+      else
+        puts "   ⏭️  #{filename} not found (optional)"
+        return true
+      end
+    end
+  end
+
   def upload_configuration_files_to_server(scenario_name, production_config)
     puts "📤 Uploading configuration files to server..."
+    puts "   💡 Tip: Create a .lock file on server to prevent overwriting (e.g., carambus.yml.lock)"
 
     # Get basename from production config or derive from scenario name
     basename = production_config['basename'] || scenario_name
@@ -2777,97 +2816,30 @@ ENV
 
     # Upload database.yml
     database_yml_path = File.join(production_dir, 'database.yml')
-    if File.exist?(database_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{database_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded database.yml"
-      else
-        puts "   ❌ Failed to upload database.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ database.yml not found: #{database_yml_path}"
-      return false
-    end
+    return false unless upload_config_file(database_yml_path, shared_config_dir, 'database.yml', ssh_host, ssh_port, required: true)
 
     # Upload carambus.yml
     carambus_yml_path = File.join(production_dir, 'carambus.yml')
-    if File.exist?(carambus_yml_path)
-      scp_cmd = "scp -P #{ssh_port} #{carambus_yml_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded carambus.yml"
-      else
-        puts "   ❌ Failed to upload carambus.yml: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ carambus.yml not found: #{carambus_yml_path}"
-      return false
-    end
+    return false unless upload_config_file(carambus_yml_path, shared_config_dir, 'carambus.yml', ssh_host, ssh_port, required: true)
 
     # Upload nginx.conf
     nginx_conf_path = File.join(production_dir, 'nginx.conf')
-    if File.exist?(nginx_conf_path)
-      scp_cmd = "scp -P #{ssh_port} #{nginx_conf_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded nginx.conf"
-      else
-        puts "   ❌ Failed to upload nginx.conf: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ nginx.conf not found: #{nginx_conf_path}"
-      return false
-    end
+    return false unless upload_config_file(nginx_conf_path, shared_config_dir, 'nginx.conf', ssh_host, ssh_port, required: true)
 
     # Upload puma.service
     puma_service_path = File.join(production_dir, 'puma.service')
-    if File.exist?(puma_service_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_service_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.service"
-      else
-        puts "   ❌ Failed to upload puma.service: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.service not found: #{puma_service_path}"
-      return false
-    end
+    return false unless upload_config_file(puma_service_path, shared_config_dir, 'puma.service', ssh_host, ssh_port, required: true)
 
     # Upload puma.rb
     puma_rb_path = File.join(production_dir, 'puma.rb')
-    if File.exist?(puma_rb_path)
-      scp_cmd = "scp -P #{ssh_port} #{puma_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded puma.rb"
-      else
-        puts "   ❌ Failed to upload puma.rb: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ puma.rb not found: #{puma_rb_path}"
-      return false
-    end
+    return false unless upload_config_file(puma_rb_path, shared_config_dir, 'puma.rb', ssh_host, ssh_port, required: true)
 
     # Upload production.rb
     production_rb_path = File.join(production_dir, 'production.rb')
     if File.exist?(production_rb_path)
       # Create environments directory on server
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/environments'")
-      scp_cmd = "scp -P #{ssh_port} #{production_rb_path} www-data@#{ssh_host}:#{shared_config_dir}/environments/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded production.rb"
-      else
-        puts "   ❌ Failed to upload production.rb: #{result}"
-        return false
-      end
+      return false unless upload_config_file(production_rb_path, "#{shared_config_dir}/environments", 'production.rb', ssh_host, ssh_port, required: true)
     else
       puts "   ❌ production.rb not found: #{production_rb_path}"
       return false
@@ -2881,35 +2853,11 @@ ENV
 
       # Upload production.yml.enc
       production_yml_enc_path = File.join(credentials_dir, 'production.yml.enc')
-      if File.exist?(production_yml_enc_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_yml_enc_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.yml.enc"
-        else
-          puts "   ❌ Failed to upload production.yml.enc: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.yml.enc not found: #{production_yml_enc_path}"
-        return false
-      end
+      return false unless upload_config_file(production_yml_enc_path, "#{shared_config_dir}/credentials", 'production.yml.enc', ssh_host, ssh_port, required: true)
 
       # Upload production.key
       production_key_path = File.join(credentials_dir, 'production.key')
-      if File.exist?(production_key_path)
-        scp_cmd = "scp -P #{ssh_port} #{production_key_path} www-data@#{ssh_host}:#{shared_config_dir}/credentials/"
-        result = `#{scp_cmd} 2>&1`
-        if $?.success?
-          puts "   ✅ Uploaded production.key"
-        else
-          puts "   ❌ Failed to upload production.key: #{result}"
-          return false
-        end
-      else
-        puts "   ❌ production.key not found: #{production_key_path}"
-        return false
-      end
+      return false unless upload_config_file(production_key_path, "#{shared_config_dir}/credentials", 'production.key', ssh_host, ssh_port, required: true)
     else
       puts "   ❌ Credentials directory not found: #{credentials_dir}"
       return false
@@ -2917,19 +2865,7 @@ ENV
 
     # Upload env.production
     env_production_path = File.join(production_dir, 'env.production')
-    if File.exist?(env_production_path)
-      scp_cmd = "scp -P #{ssh_port} #{env_production_path} www-data@#{ssh_host}:#{shared_config_dir}/"
-      result = `#{scp_cmd} 2>&1`
-      if $?.success?
-        puts "   ✅ Uploaded env.production"
-      else
-        puts "   ❌ Failed to upload env.production: #{result}"
-        return false
-      end
-    else
-      puts "   ❌ env.production not found: #{env_production_path}"
-      return false
-    end
+    return false unless upload_config_file(env_production_path, shared_config_dir, 'env.production', ssh_host, ssh_port, required: true)
 
     puts "   ✅ All configuration files uploaded successfully"
     true

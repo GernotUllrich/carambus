@@ -19,6 +19,7 @@
    - Konflikt-Erkennung (Verzeichnisse, Ports, Services)
    - Interaktive Konflikt-Auflösung (ersetzen, parallel, abbrechen)
    - Parallele Deployments (basename + scenario_name, Port-Inkrementierung)
+   - Config Lock Files (Schutz vor Überschreibung durch `.lock` Dateien)
 
 ## Aktueller Status
 
@@ -60,6 +61,13 @@ rake "scenario:setup_with_rails_root[carambus_location_2459,development]"
 # Deployment mit Konflikt-Analyse
 rake "scenario:deploy[carambus_location_2459]"
 ```
+
+**💡 Tipp**: Auf dem Produktionsserver können Konfigurationsdateien durch `.lock` Dateien vor Überschreibung geschützt werden:
+```bash
+# Beispiel: carambus.yml vor Überschreibung schützen
+touch /var/www/[basename]/shared/config/carambus.yml.lock
+```
+Siehe [CONFIG_LOCK_FILES.md](../../../docs/CONFIG_LOCK_FILES.md) für Details.
 
 ## Letzter Test-Status
 

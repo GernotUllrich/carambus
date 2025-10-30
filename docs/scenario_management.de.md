@@ -77,11 +77,15 @@ config.yml → prepare_development → prepare_deploy → deploy
    - **🔄 Automatisches Wiederherstellen (bei Backup vorhanden)**: Stellt lokale Daten nach DB-Update wieder her
    - **Verification**: Überprüft korrekte Wiederherstellung (19 Regionen)
 4. **Server-Konfiguration**:
-   - **File Transfers**: Upload aller Konfigurationsdateien zu `/var/www/scenario/shared/config/`
+   - **File Transfers**: Upload aller Konfigurationsdateien zu `/var/www/scenario/shared/config/` (respektiert `.lock` Dateien)
    - **Directory Setup**: Erstellt Deployment-Verzeichnisse mit korrekten Berechtigungen
    - **Service Preparation**: Bereitet systemd und Nginx vor
+   
+   **Hinweis**: Konfigurationsdateien mit einer `.lock` Datei werden beim Upload übersprungen. Details siehe [CONFIG_LOCK_FILES.md](CONFIG_LOCK_FILES.md).
 
 **Perfekt für**: Vollständige Deployment-Vorbereitung, Blank-Server-Setup, **Saisonbeginn mit vielen DB-Änderungen**
+
+**💡 Config Lock Files**: Konfigurationsdateien können auf dem Server durch das Erstellen einer `.lock` Datei vor Überschreibung geschützt werden. Beispiel: `/var/www/[basename]/shared/config/carambus.yml.lock` verhindert, dass `carambus.yml` während des Deployments aktualisiert wird. Dies ist nützlich, um server-spezifische Einstellungen zu bewahren. Details siehe [CONFIG_LOCK_FILES.md](CONFIG_LOCK_FILES.md).
 
 ### 3. `scenario:deploy[scenario_name]`
 **Zweck**: Reine Capistrano-Deployment mit automatischem Service-Management
