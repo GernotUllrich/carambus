@@ -465,6 +465,16 @@ namespace :scenario do
       return false
     end
 
+    # Check if lock file exists in target directory
+    # Note: This checks the scenario config directory, not the Rails root
+    lock_file = File.join(env_dir, 'carambus.yml.lock')
+    if File.exist?(lock_file)
+      puts "   ⚠️  SKIPPED: #{File.join(env_dir, 'carambus.yml')} (lock file exists)"
+      puts "   Lock file: #{lock_file}"
+      puts "   To regenerate, remove the lock file first"
+      return true  # Return true to not fail the task
+    end
+
     template = ERB.new(File.read(template_file))
     @scenario = scenario_config['scenario']
     @config = env_config
@@ -1452,9 +1462,15 @@ ENV
         puts "   ✅ database.yml copied to Rails root"
       end
 
-      # Copy carambus.yml
-      if File.exist?(File.join(env_dir, 'carambus.yml'))
-        FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+      # Copy carambus.yml (check for lock file first)
+      carambus_target = File.join(rails_root, 'config', 'carambus.yml')
+      carambus_lock = File.join(rails_root, 'config', 'carambus.yml.lock')
+      
+      if File.exist?(carambus_lock)
+        puts "   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)"
+        puts "   Remove #{carambus_lock} to allow regeneration"
+      elsif File.exist?(File.join(env_dir, 'carambus.yml'))
+        FileUtils.cp(File.join(env_dir, 'carambus.yml'), carambus_target)
         puts "   ✅ carambus.yml copied to Rails root"
       end
 
@@ -2107,9 +2123,14 @@ ENV
           puts "   ✅ Updated database.yml"
         end
 
-        # Copy carambus.yml
-        if File.exist?(File.join(env_dir, 'carambus.yml'))
-          FileUtils.cp(File.join(env_dir, 'carambus.yml'), File.join(rails_root, 'config', 'carambus.yml'))
+        # Copy carambus.yml (check for lock file first)
+        carambus_target = File.join(rails_root, 'config', 'carambus.yml')
+        carambus_lock = File.join(rails_root, 'config', 'carambus.yml.lock')
+        
+        if File.exist?(carambus_lock)
+          puts "   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)"
+        elsif File.exist?(File.join(env_dir, 'carambus.yml'))
+          FileUtils.cp(File.join(env_dir, 'carambus.yml'), carambus_target)
           puts "   ✅ Updated carambus.yml"
         end
       end

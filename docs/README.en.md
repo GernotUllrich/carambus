@@ -26,6 +26,7 @@ Welcome to the Carambus API documentation. This directory contains comprehensive
 
 ### System Administration
 - **[Admin Roles](admin_roles.md)** - Administrative roles and permissions
+- **[Admin Settings Configuration](ADMIN_SETTINGS_CONFIGURATION.md)** - Configuration editor and lock file protection 🆕
 - **[Data Management](data_management.md)** - Data management procedures
 - **[Privacy](privacy.md)** - Privacy and data protection information
 
@@ -47,6 +48,9 @@ For new users, we recommend starting with:
 1. **[About](about.md)** - Understand the project
 2. **[Scoreboard Autostart Setup](scoreboard_autostart_setup.md)** - Set up the scoreboard system
 3. **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Learn about automated table management
+
+For system administrators:
+1. **[Admin Settings Configuration](ADMIN_SETTINGS_CONFIGURATION.md)** - Configure system via web interface 🆕
 
 ## 🔧 System Requirements
 

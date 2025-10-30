@@ -19,9 +19,11 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 ### Technische Dokumentation
 - **[datenbank-partitionierung-und-synchronisierung.md](datenbank-partitionierung-und-synchronisierung.md)**: Datenbank-Partitionierung
 - **[installation_overview.md](installation_overview.md)**: Installationsübersicht
+- **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)**: Admin-Einstellungen und Konfigurationseditor 🆕
 
 ### Deployment & Betrieb
 - **[installation_overview.md](installation_overview.md)**: Installationsübersicht
+- **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)**: Konfigurationsverwaltung über Web-Interface
 
 ### Rechtliches & Datenschutz
 - **[terms.md](terms.md)**: Nutzungsbedingungen
@@ -39,7 +41,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 
 ### Für Systemadministratoren
 1. Überprüfen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
-2. Lesen Sie **[installation_overview.md](installation_overview.md)** für Installationsübersicht
+2. Lesen Sie **[ADMIN_SETTINGS_CONFIGURATION.md](ADMIN_SETTINGS_CONFIGURATION.md)** für Konfigurationsverwaltung 🆕
 3. Prüfen Sie **[table_reservation_heating_control.md](table_reservation_heating_control.md)** für Tischreservierung und Heizungssteuerung
 
 ### Für Turnierorganisatoren

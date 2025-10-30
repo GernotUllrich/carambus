@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Admin Settings Configuration Editor** 🎨
+  - Web interface for editing `carambus.yml` configuration parameters
+  - JSON editor for `quick_game_presets` (supports complex nested structures)
+  - Automatic lock file creation (`carambus.yml.lock`) to protect manual changes
+  - Lock file prevents scenario deployment from overwriting customizations
+  - JSON validation with clear error messages
+  - Visual indicators for configuration lock status
+  - Supports editing: season_name, support_email, quick_game_presets, and all other config parameters
+  - Documentation: `docs/ADMIN_SETTINGS_CONFIGURATION.md`
+  - Test Plan: `testing/ADMIN_SETTINGS_TEST_PLAN.md`
+  - Implementation Summary: `docs/ADMIN_SETTINGS_IMPLEMENTATION_SUMMARY.md`
+
 - New utility script `bin/check-database-states.sh` for comprehensive database state analysis
   - Compares database states across local, production, and API server environments
   - Checks Version IDs, table_locals, and tournament_locals

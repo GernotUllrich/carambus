@@ -1,0 +1,5 @@
+---
+:created_at: '2025-10-30T19:26:00+01:00'
+:created_by: admin_settings
+:message: Configuration manually edited via admin settings. Prevents scenario deployment
+  from overwriting.

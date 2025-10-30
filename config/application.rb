@@ -20,7 +20,7 @@ module Carambus
     @config = new_config
   end
 
-  def self.save_config
+  def self.save_config(create_lock: false)
     yaml = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
 
     # Konvertiere die Werte zu Symbolen für konsistente Speicherung
@@ -28,6 +28,9 @@ module Carambus
 
     # Stelle sicher, dass der Environment-Block existiert
     yaml[Rails.env] ||= {}
+
+    # Deep convert HashWithIndifferentAccess to regular Hash to avoid Ruby serialization markers
+    config_hash = deep_stringify_hash(config_hash)
 
     # Update nur die geänderten Werte im Environment-Block
     config_hash.each do |key, value|
@@ -40,6 +43,30 @@ module Carambus
 
     # Schreibe die aktualisierte YAML-Datei
     File.write(Rails.root.join('config', 'carambus.yml'), yaml.to_yaml)
+
+    # Create lock file if requested (prevents scenario deployment from overwriting)
+    if create_lock
+      lock_file = Rails.root.join('config', 'carambus.yml.lock')
+      File.write(lock_file, {
+        created_at: Time.now.iso8601,
+        created_by: 'admin_settings',
+        message: 'Configuration manually edited via admin settings. Prevents scenario deployment from overwriting.'
+      }.to_yaml)
+    end
+  end
+
+  # Deep convert HashWithIndifferentAccess and other Rails types to plain Ruby types
+  def self.deep_stringify_hash(obj)
+    case obj
+    when Hash, ActiveSupport::HashWithIndifferentAccess
+      obj.each_with_object({}) do |(key, value), hash|
+        hash[key.to_s] = deep_stringify_hash(value)
+      end
+    when Array
+      obj.map { |item| deep_stringify_hash(item) }
+    else
+      obj
+    end
   end
 end
 
