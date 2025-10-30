@@ -34,6 +34,29 @@
 
 @import "tailwindcss/utilities";
 
+/* CRITICAL: Button overrides MUST come after Tailwind utilities to override text-primary-* classes */
+/* Force white text and darker hover for .btn-primary anchors - override ALL Tailwind utilities */
+a.btn.btn-primary,
+a.btn.btn-primary:hover,
+a.btn.btn-primary:focus,
+a.btn.btn-primary:active,
+a.btn.btn-primary:visited,
+a.btn.btn-primary:link,
+a[class*="btn-primary"]:not(:hover),
+a[class*="btn-primary"]:link,
+a[class*="btn-primary"]:visited {
+  color: rgb(255, 255, 255) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
+a[class*="btn-primary"]:hover {
+  background-color: rgb(29, 78, 216) !important; /* primary-700 - darker on hover */
+  color: rgb(255, 255, 255) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
 @import "flatpickr/dist/flatpickr.css";
 @import "tippy.js/dist/tippy.css";
 @import "tom-select/dist/css/tom-select.css";
