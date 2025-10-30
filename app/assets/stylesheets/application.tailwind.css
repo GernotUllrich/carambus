@@ -35,6 +35,22 @@
 @import "tailwindcss/utilities";
 
 /* CRITICAL: Button overrides MUST come after Tailwind utilities to override text-primary-* classes */
+/* Override a:is(.dark *) rule that sets light blue text (rgb(96 165 250)) on anchors in dark mode */
+a.btn.btn-primary:is(.dark *),
+a.btn.btn-primary:is(.dark *):hover,
+a.btn.btn-primary:is(.dark *):focus,
+a.btn.btn-primary:is(.dark *):active,
+a.btn.btn-primary:is(.dark *):visited,
+a.btn.btn-primary:is(.dark *):link,
+a[class*="btn-primary"]:is(.dark *),
+a[class*="btn-primary"]:is(.dark *):not(:hover),
+a[class*="btn-primary"]:is(.dark *):link,
+a[class*="btn-primary"]:is(.dark *):visited {
+  color: rgb(255, 255, 255) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
 /* Force white text and darker hover for .btn-primary anchors - override ALL Tailwind utilities */
 a.btn.btn-primary,
 a.btn.btn-primary:hover,
@@ -50,7 +66,8 @@ a[class*="btn-primary"]:visited {
   -webkit-text-fill-color: rgb(255, 255, 255) !important;
 }
 
-a[class*="btn-primary"]:hover {
+a[class*="btn-primary"]:hover,
+a[class*="btn-primary"]:is(.dark *):hover {
   background-color: rgb(29, 78, 216) !important; /* primary-700 - darker on hover */
   color: rgb(255, 255, 255) !important;
   --tw-text-opacity: 1 !important;
