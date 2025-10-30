@@ -208,9 +208,22 @@ a.btn.btn-primary:visited {
   color: rgb(255 255 255 / var(--tw-text-opacity, 1)) !important;
 }
 
+/* Maximum specificity for anchor buttons - must override any link color */
+a[class*="btn-primary"],
+a[class*="btn-primary"]:not(:hover),
+a[class*="btn-primary"]:link,
+a[class*="btn-primary"]:visited {
+  color: rgb(255 255 255) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255 255 255) !important;
+}
+
 .btn-primary:hover,
-.btn-primary:focus:hover {
+.btn-primary:focus:hover,
+a[class*="btn-primary"]:hover {
   --tw-bg-opacity: 1 !important;
-  background-color: rgb(29 78 216 / var(--tw-bg-opacity, 1)) !important; /* primary-700 */
+  background-color: rgb(29 78 216 / var(--tw-bg-opacity, 1)) !important; /* primary-700 - darker */
   color: rgb(255 255 255 / var(--tw-text-opacity, 1)) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255 255 255) !important;
 }

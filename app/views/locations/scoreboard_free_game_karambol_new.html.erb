@@ -190,10 +190,10 @@
     <%- table_monitor.get_options!(I18n.locale) %>
     <%- options = table_monitor.options %>
     <!--    <h1 style="text-shadow: 2px 2px #000000" class="text-2vw flex text-gray-300"><%#= @location.name %></h1>-->
-    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300" do %>
+    <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
       <input name='free_game_form' value='karambol' type='hidden'/>
       <input name='allow_follow_up' value='<%= allow_follow_up ? '1' : '0' %>' type='hidden'/>
-      <div class="flex justify-center mt-4 text-center">
+      <div class="flex justify-center mt-4 text-center sticky top-0 bg-opacity-90 z-10" style="background-image: url('<%= @location.background_image.gsub(".", "-.") %>')">
         <div id="submit" tabindex=1 class="focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 min-w-min focus:border-0 rounded-lg">
           <%= submit_tag "Start Game", class: "h-full border-4 rounded-lg btn btn-primary text-center text-2vw p-2" %>
         </div>

@@ -106,3 +106,8 @@ ol {
   width: auto !important;
   height: auto !important;
 }
+
+/* Counter input fields - center text */
+input[name$="_2_choice"] {
+  text-align: center !important;
+}
