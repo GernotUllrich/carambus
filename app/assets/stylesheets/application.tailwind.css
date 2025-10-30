@@ -35,7 +35,18 @@
 @import "tailwindcss/utilities";
 
 /* CRITICAL: Button overrides MUST come after Tailwind utilities to override text-primary-* classes */
-/* Override a:is(.dark *) rule that sets light blue text (rgb(96 165 250)) on anchors in dark mode */
+/* Override a:is(.dark *) rule that sets light blue text (rgb(96 165 250)) on anchors */
+/* Must use same specificity but with !important and come AFTER the utility rule */
+a:is(.dark *).btn.btn-primary,
+a:is(.dark *).btn.btn-primary:hover,
+a:is(.dark *).btn.btn-primary:focus,
+a:is(.dark *).btn.btn-primary:active,
+a:is(.dark *).btn.btn-primary:visited,
+a:is(.dark *).btn.btn-primary:link,
+a:is(.dark *)[class*="btn-primary"],
+a:is(.dark *)[class*="btn-primary"]:not(:hover),
+a:is(.dark *)[class*="btn-primary"]:link,
+a:is(.dark *)[class*="btn-primary"]:visited,
 a.btn.btn-primary:is(.dark *),
 a.btn.btn-primary:is(.dark *):hover,
 a.btn.btn-primary:is(.dark *):focus,
@@ -52,13 +63,23 @@ a[class*="btn-primary"]:is(.dark *):visited {
 }
 
 /* Force white text and darker hover for .btn-primary anchors - override ALL Tailwind utilities */
+/* Explicit non-hover state to override a:is(.dark *) in normal state */
+a.btn.btn-primary:not(:hover),
+a[class*="btn-primary"]:not(:hover),
+a.btn.btn-primary:link:not(:hover),
+a[class*="btn-primary"]:link:not(:hover) {
+  color: rgb(255, 255, 255) !important;
+  --tw-text-opacity: 1 !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
 a.btn.btn-primary,
 a.btn.btn-primary:hover,
 a.btn.btn-primary:focus,
 a.btn.btn-primary:active,
 a.btn.btn-primary:visited,
 a.btn.btn-primary:link,
-a[class*="btn-primary"]:not(:hover),
+a[class*="btn-primary"],
 a[class*="btn-primary"]:link,
 a[class*="btn-primary"]:visited {
   color: rgb(255, 255, 255) !important;
@@ -191,4 +212,15 @@ a[class*="btn-primary"]:is(.dark *):hover {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* FINAL OVERRIDE - Must be at the very end to override everything including a:is(.dark *) */
+/* This rule has higher specificity and comes last to ensure it wins */
+a:is(.dark *).btn.btn-primary,
+a:is(.dark *)[class*="btn-primary"],
+a.btn.btn-primary:is(.dark *),
+a[class*="btn-primary"]:is(.dark *) {
+  --tw-text-opacity: 1 !important;
+  color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
 }
