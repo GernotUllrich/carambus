@@ -27,6 +27,22 @@ a:not(.btn):focus {
   transform: none;
 }
 
+/* Explicit override: Buttons must not inherit dark mode link colors */
+/* This prevents a:is(.dark *) from applying blue text (rgb(96 165 250)) to button anchors */
+/* Set to white for .btn-primary, otherwise unset so buttons.css can handle it */
+a:is(.dark *).btn-primary,
+a.btn-primary:is(.dark *),
+a[class*="btn-primary"]:is(.dark *) {
+  color: rgb(255, 255, 255) !important;
+  --tw-text-opacity: 1 !important;
+}
+
+a:is(.dark *).btn:not(.btn-primary),
+a.btn:not(.btn-primary):is(.dark *) {
+  color: unset !important;
+  --tw-text-opacity: unset !important;
+}
+
 ul {
   @apply list-disc list-inside;
 }
