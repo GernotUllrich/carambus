@@ -442,12 +442,6 @@ class LocationsController < ApplicationController
     # controller logic
   end
 
-  def scoreboard_free_game_quick
-    authorize! :manage, TableMonitor
-    # Reuse same player preparation logic as scoreboard_free_game_karambol_new
-    # The view is ultra-simple for Pi 3 performance
-  end
-
   private
 
   # Use callbacks to share common setup or constraints between actions.

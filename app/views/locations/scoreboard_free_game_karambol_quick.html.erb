@@ -161,7 +161,7 @@
   <%# Back Link %>
   <div class="flex justify-center mt-8">
     <%= link_to "← Zurück", 
-        location_path(@location.md5, sb_state: "start", table_id: table.id, :"data-turbo" => false),
+        location_path(@location.md5, sb_state: "start", :"data-turbo" => false),
         class: "text-white text-xl underline hover:text-blue-300",
         data: { turbo: false } %>
   </div>
