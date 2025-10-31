@@ -64,7 +64,7 @@ namespace :carambus do
     google_creds_json = {
       type: "service_account",
       project_id: "carambus-test",
-      private_key_id: Rails.application.credentials.dig(:google_service, :public_key).gsub('\n', "\n"),
+      private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
       private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
       client_email: "service-test@carambus-test.iam.gserviceaccount.com",
       client_id: "110923757328591064447",
@@ -108,7 +108,7 @@ namespace :carambus do
     google_creds_json = {
       type: "service_account",
       project_id: "carambus-test",
-      private_key_id: Rails.application.credentials.dig(:google_service, :public_key).gsub('\n', "\n"),
+      private_key_id: Rails.application.credentials.dig(:google_service, :public_key),
       private_key: Rails.application.credentials.dig(:google_service, :private_key).gsub('\n', "\n"),
       client_email: "service-test@carambus-test.iam.gserviceaccount.com",
       client_id: "110923757328591064447",
