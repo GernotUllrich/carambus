@@ -12,6 +12,7 @@ class Player < ApplicationRecord
   include SourceHandler
   include RegionTaggable
   include Searchable
+  include PlayerFinder
   has_many :game_participations, dependent: :nullify
   has_many :season_participations, dependent: :destroy
   has_many :clubs, through: :season_participations
@@ -479,36 +480,46 @@ Region #{real_club.region&.shortname}, season #{season.name}!"
         end
         state_ix = 0
       elsif season_participations.count.zero?
-        players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
-        if players.count.zero?
-          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - Fatal: Player #{lastname}, #{firstname} \
-not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! \
-Not found anywhere - typo?"
-          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - fixed - \
-added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , \
-Region #{region.shortname}, season #{season.name}"
-          if allow_players_outside_ba && allow_creates
-            player_fixed = Player.new(lastname: lastname, firstname: firstname, club_id: club.id)
-            player_fixed.region_id = region.id
-            player_fixed.save
-            player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
-            sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id)
-            unless sp.present?
-              sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
-              sp.region_id = region.id
-              sp.save
-            end
-            if tournament.present?
-              seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
-              unless seeding.present?
-                seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
-                seeding.region_id = region.id
-                seeding.save
-              end
+        # Use PlayerFinder to find or create player intelligently
+        # This prevents duplicate player creation
+        player_fixed = Player.find_or_create_player(
+          firstname: firstname,
+          lastname: lastname,
+          club_id: club.id,
+          region_id: region.id,
+          season_id: season.id,
+          allow_create: (allow_players_outside_ba && allow_creates)
+        )
+        
+        if player_fixed.present?
+          logger.info "==== scrape ==== [scrape_tournaments] Player '#{firstname} #{lastname}' found/created: Player #{player_fixed.id}"
+          
+          # Ensure SeasonParticipation exists
+          sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, club.id)
+          unless sp.present?
+            sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: club.id)
+            sp.region_id = region.id
+            sp.save
+          end
+          
+          # Ensure Seeding exists
+          if tournament.present?
+            seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
+            unless seeding.present?
+              seeding = Seeding.new(player_id: player_fixed.id, tournament_id: tournament.id, position: position)
+              seeding.region_id = region.id
+              seeding.save
             end
           end
-          state_ix = 0
-        elsif players.count == 1
+        else
+          logger.warn "==== scrape ==== [scrape_tournaments] Could not find or create player '#{firstname} #{lastname}'"
+        end
+        
+        state_ix = 0
+        
+        # LEGACY CODE PATH - kept for backward compatibility but should rarely execute now
+        players = Player.where(type: nil).where(firstname: firstname, lastname: lastname)
+        if players.count == 1
           player_fixed = players.first
           if player_fixed.present?
             logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz: Player #{lastname}, #{firstname} \
@@ -610,25 +621,39 @@ region #{region.shortname} not found!! Typo?"
       fixed_club = region.clubs.new(name: club_str, shortname: club_str)
       fixed_club.region_id = region.id
       fixed_club.save
+      fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
+      
       if allow_creates
-        player_fixed = Player.new(firstname: firstname, lastname: lastname)
-        player_fixed.region_id = region.id
-        player_fixed.save
-        fixed_club.update(ba_id: 999_000_000 + fixed_club.id)
-        player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
-        sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
-        sp.region_id = region.id
-        sp.save
-        logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Club #{club_str} created \
+        # Use PlayerFinder instead of direct creation
+        player_fixed = Player.find_or_create_player(
+          firstname: firstname,
+          lastname: lastname,
+          club_id: fixed_club.id,
+          region_id: region.id,
+          season_id: season.id,
+          allow_create: true
+        )
+        
+        if player_fixed.present?
+          sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id, fixed_club.id)
+          unless sp.present?
+            sp = SeasonParticipation.new(player_id: player_fixed.id, season_id: season.id, club_id: fixed_club.id)
+            sp.region_id = region.id
+            sp.save
+          end
+          
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Club #{club_str} created \
 in region #{region.shortname}"
-        logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Player #{lastname}, \
-#{firstname} playing for Club #{club_str}"
-        if tournament.present?
-          seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
-          unless seeding.present?
-            seeding = Seeding.new(player_id: player_fixed.id, tournament: tournament, position: position)
-            seeding.region_id = region.id
-            seeding.save
+          logger.info "==== scrape ==== [scrape_tournaments] Inkonsistenz - temporary fix: Player #{lastname}, \
+#{firstname} (ID: #{player_fixed.id}) playing for Club #{club_str}"
+          
+          if tournament.present?
+            seeding = Seeding.find_by_player_id_and_tournament_id(player_fixed.id, tournament.id)
+            unless seeding.present?
+              seeding = Seeding.new(player_id: player_fixed.id, tournament: tournament, position: position)
+              seeding.region_id = region.id
+              seeding.save
+            end
           end
         end
         state_ix = 0

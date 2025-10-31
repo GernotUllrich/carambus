@@ -1152,11 +1152,22 @@ class Tournament < ApplicationRecord
           players = Player.where(type: nil).where(firstname:, lastname:)
           if players.count.zero?
             logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - Fatal: Player #{lastname}, #{firstname} not found in club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}! Not found anywhere - typo?"
-            logger.info "==== scrape ==== [scrape_tournaments] Inkonsistence - fixed - added Player Player #{lastname}, #{firstname} active to club #{club_str} [#{club.ba_id}] , Region #{region.shortname}, season #{season.name}"
-            player_fixed = Player.new(lastname:, firstname:, club_id: club.id)
-            player_fixed.region_id = region.id
-            player_fixed.save
-            player_fixed.update(ba_id: 999_000_000 + player_fixed.id)
+            
+            # Use PlayerFinder to prevent duplicates
+            player_fixed = Player.find_or_create_player(
+              firstname: firstname,
+              lastname: lastname,
+              club_id: club.id,
+              region_id: region.id,
+              season_id: season.id,
+              allow_create: true
+            )
+            
+            if player_fixed.present?
+              logger.info "==== scrape ==== [scrape_tournaments] Player #{lastname}, #{firstname} (ID: #{player_fixed.id}) found/created for club #{club_str} [#{club.ba_id}]"
+            else
+              logger.error "==== scrape ==== [scrape_tournaments] Failed to find/create player #{lastname}, #{firstname}"
+            end
             sp = SeasonParticipation.find_by_player_id_and_season_id_and_club_id(player_fixed.id, season.id,
                                                                                  club.id)
             unless sp.present?

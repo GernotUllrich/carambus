@@ -732,18 +732,28 @@ class League < ApplicationRecord
                     player = Player.find_by_fl_name(fl_name)
                   end
                   if player.blank?
-                    Rails.logger.info "==== scrape ==== Player #{fl_name} with dbu_nr #{player_dbu_nr}, league cc_id: #{cc_id}, #{name} not in dbu?! created temprarily"
-                    player = Player.new
-                    player.firstname = fl_name.split(/\s+/)[0]
-                    player.lastname = fl_name.split(/\s+/)[1..].join(" ")
-                    player.dbu_nr = player_dbu_nr
-                    if player.new_record?
-                      player.source_url ||= team_url
-                    end
-                    if player.changed?
-                      player.region_id = region_id
+                    Rails.logger.info "==== scrape ==== Player #{fl_name} with dbu_nr #{player_dbu_nr}, league cc_id: #{cc_id}, #{name} not in dbu?! Looking up or creating..."
+                    
+                    # Use PlayerFinder to prevent duplicates
+                    firstname = fl_name.split(/\s+/)[0]
+                    lastname = fl_name.split(/\s+/)[1..].join(" ")
+                    player = Player.find_or_create_player(
+                      firstname: firstname,
+                      lastname: lastname,
+                      dbu_nr: player_dbu_nr,
+                      club_id: club&.id,
+                      region_id: region_id,
+                      season_id: season_id,
+                      allow_create: true
+                    )
+                    
+                    if player.present?
+                      Rails.logger.info "==== scrape ==== Player #{fl_name} (ID: #{player.id}) found/created with dbu_nr #{player_dbu_nr}"
+                      player.source_url ||= team_url if player.source_url.blank?
                       player.global_context = global_context
-                      player.save
+                      player.save if player.changed?
+                    else
+                      Rails.logger.error "==== scrape ==== Failed to find/create player #{fl_name} with dbu_nr #{player_dbu_nr}"
                     end
                     sp_args = {
                       season_id: season_id,
