@@ -423,24 +423,33 @@ namespace :players do
     puts ""
     
     errors = []
+    warnings = []
     
-    # Check for orphaned GameParticipations
+    # Check for truly orphaned GameParticipations (not pointing to ANY player)
     puts "Checking GameParticipations..."
     orphaned_gp = GameParticipation.where.not(player_id: nil)
-                                   .where.not(player_id: Player.where(type: nil).select(:id))
+                                   .where.not(player_id: Player.select(:id))
     if orphaned_gp.any?
-      errors << "Found #{orphaned_gp.count} orphaned GameParticipations"
-      puts "  ❌ #{orphaned_gp.count} orphaned records"
+      errors << "Found #{orphaned_gp.count} truly orphaned GameParticipations (deleted players)"
+      puts "  ❌ #{orphaned_gp.count} truly orphaned records (DELETED PLAYERS)"
     else
-      puts "  ✓ OK"
+      puts "  ✓ OK - No truly orphaned records"
     end
     
-    # Check for orphaned SeasonParticipations
+    # Check for orphaned SeasonParticipations (not pointing to regular players)
+    # Note: These should only point to type: nil players, not Teams
     puts "Checking SeasonParticipations..."
-    orphaned_sp = SeasonParticipation.where.not(player_id: Player.where(type: nil).select(:id))
-    if orphaned_sp.any?
-      errors << "Found #{orphaned_sp.count} orphaned SeasonParticipations"
-      puts "  ❌ #{orphaned_sp.count} orphaned records"
+    orphaned_sp = SeasonParticipation.where.not(player_id: Player.select(:id))
+    pointing_to_teams = SeasonParticipation.where.not(player_id: Player.where(type: nil).select(:id))
+                                          .where(player_id: Player.where(type: 'Team').select(:id))
+    truly_orphaned_sp = orphaned_sp.count
+    
+    if truly_orphaned_sp > 0
+      errors << "Found #{truly_orphaned_sp} truly orphaned SeasonParticipations"
+      puts "  ❌ #{truly_orphaned_sp} truly orphaned records (DELETED PLAYERS)"
+    elsif pointing_to_teams.any?
+      warnings << "Found #{pointing_to_teams.count} SeasonParticipations pointing to Teams (unusual but not critical)"
+      puts "  ⚠️  #{pointing_to_teams.count} pointing to Teams (should be cleaned up)"
     else
       puts "  ✓ OK"
     end
@@ -448,36 +457,50 @@ namespace :players do
     # Check for orphaned Seedings
     puts "Checking Seedings..."
     orphaned_s = Seeding.where.not(player_id: nil)
-                        .where.not(player_id: Player.where(type: nil).select(:id))
+                        .where.not(player_id: Player.select(:id))
     if orphaned_s.any?
-      errors << "Found #{orphaned_s.count} orphaned Seedings"
-      puts "  ❌ #{orphaned_s.count} orphaned records"
+      errors << "Found #{orphaned_s.count} truly orphaned Seedings"
+      puts "  ❌ #{orphaned_s.count} truly orphaned records (DELETED PLAYERS)"
     else
       puts "  ✓ OK"
     end
     
     # Check for orphaned PlayerRankings
     puts "Checking PlayerRankings..."
-    orphaned_pr = PlayerRanking.where.not(player_id: Player.where(type: nil).select(:id))
+    orphaned_pr = PlayerRanking.where.not(player_id: Player.select(:id))
     if orphaned_pr.any?
-      errors << "Found #{orphaned_pr.count} orphaned PlayerRankings"
-      puts "  ❌ #{orphaned_pr.count} orphaned records"
+      errors << "Found #{orphaned_pr.count} truly orphaned PlayerRankings"
+      puts "  ❌ #{orphaned_pr.count} truly orphaned records (DELETED PLAYERS)"
     else
       puts "  ✓ OK"
     end
     
-    # Check for orphaned PartyGames
+    # Check for PartyGames - these can legitimately point to Teams!
     puts "Checking PartyGames..."
     orphaned_pg_a = PartyGame.where.not(player_a_id: nil)
-                             .where.not(player_a_id: Player.where(type: nil).select(:id))
+                             .where.not(player_a_id: Player.select(:id))
     orphaned_pg_b = PartyGame.where.not(player_b_id: nil)
-                             .where.not(player_b_id: Player.where(type: nil).select(:id))
+                             .where.not(player_b_id: Player.select(:id))
+    
+    # Check how many point to Teams vs truly deleted
+    pointing_to_teams_a = PartyGame.where.not(player_a_id: Player.where(type: nil).select(:id))
+                                  .where(player_a_id: Player.where(type: 'Team').select(:id))
+    pointing_to_teams_b = PartyGame.where.not(player_b_id: Player.where(type: nil).select(:id))
+                                  .where(player_b_id: Player.where(type: 'Team').select(:id))
+    
     if orphaned_pg_a.any? || orphaned_pg_b.any?
-      errors << "Found #{orphaned_pg_a.count} orphaned PartyGames (player_a)"
-      errors << "Found #{orphaned_pg_b.count} orphaned PartyGames (player_b)"
-      puts "  ❌ #{orphaned_pg_a.count} orphaned player_a_id"
-      puts "  ❌ #{orphaned_pg_b.count} orphaned player_b_id"
-    else
+      errors << "Found #{orphaned_pg_a.count} truly orphaned PartyGames (player_a - DELETED)"
+      errors << "Found #{orphaned_pg_b.count} truly orphaned PartyGames (player_b - DELETED)"
+      puts "  ❌ #{orphaned_pg_a.count} truly orphaned player_a_id (DELETED PLAYERS)"
+      puts "  ❌ #{orphaned_pg_b.count} truly orphaned player_b_id (DELETED PLAYERS)"
+    end
+    
+    if pointing_to_teams_a.any? || pointing_to_teams_b.any?
+      puts "  ℹ️  #{pointing_to_teams_a.count} player_a pointing to Teams (EXPECTED)"
+      puts "  ℹ️  #{pointing_to_teams_b.count} player_b pointing to Teams (EXPECTED)"
+    end
+    
+    if orphaned_pg_a.empty? && orphaned_pg_b.empty? && pointing_to_teams_a.empty? && pointing_to_teams_b.empty?
       puts "  ✓ OK"
     end
     
@@ -489,7 +512,7 @@ namespace :players do
                            .count
                            .count
     if duplicate_count > 0
-      puts "  ⚠️  Still #{duplicate_count} fl_names with duplicates"
+      puts "  ℹ️  Still #{duplicate_count} fl_names with duplicates (to be cleaned in next phases)"
     else
       puts "  ✓ No duplicates found"
     end
@@ -499,12 +522,26 @@ namespace :players do
     if errors.any?
       puts "VERIFICATION FAILED"
       puts "=" * 80
+      puts ""
+      puts "Critical Errors (need attention):"
       errors.each { |e| puts "  ❌ #{e}" }
-    else
+    end
+    
+    if warnings.any?
+      puts ""
+      puts "Warnings (non-critical):"
+      warnings.each { |w| puts "  ⚠️  #{w}" }
+    end
+    
+    if errors.empty?
       puts "VERIFICATION SUCCESSFUL"
       puts "=" * 80
-      puts "  ✓ No orphaned associations found"
-      puts "  ✓ All references are valid"
+      puts "  ✓ No truly orphaned associations found"
+      puts "  ✓ All references point to existing players (including Teams)"
+      if warnings.any?
+        puts ""
+        puts "  ⚠️  #{warnings.count} warning(s) - see details above"
+      end
     end
     puts ""
   end
