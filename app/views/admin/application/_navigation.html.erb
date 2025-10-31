@@ -17,4 +17,12 @@ as defined by the routes in the `admin/` namespace
       class: "navigation__link navigation__link--#{nav_link_state(resource)}"
     ) if accessible_action?(model_from_resource(resource), :index) %>
   <% end %>
+  
+  <%# Custom non-Administrate resources %>
+  <%= link_to(
+    "Player Duplicates",
+    admin_player_duplicates_path,
+    class: "navigation__link navigation__link--#{controller_name == 'player_duplicates' ? 'active' : 'inactive'}",
+    style: "background-color: #f97316; color: white;"
+  ) %>
 </nav>
