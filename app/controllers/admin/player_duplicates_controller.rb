@@ -4,7 +4,7 @@ module Admin
   class PlayerDuplicatesController < ApplicationController
     before_action :authenticate_user!
     before_action :load_duplicates, only: [:index]
-    before_action :load_duplicate_group, only: [:show, :merge, :keep_separate]
+    before_action :load_duplicate_group, only: [:show]
 
     def index
       @total_count = @duplicate_groups.count
@@ -22,33 +22,36 @@ module Admin
 
     def merge
       master_id = params[:master_id].to_i
-      other_ids = params[:other_ids].split(',').map(&:to_i)
+      other_ids = params[:other_ids].to_s.split(',').map(&:to_i)
+      page = params[:page].to_i
       
       master = Player.find_by(id: master_id, type: nil)
-      others = Player.where(id: other_ids, type: nil).to_a
       
       if master.nil?
-        flash[:error] = "Master player not found"
-        redirect_to admin_player_duplicates_path(page: params[:page]) and return
+        flash[:error] = "Master player not found (ID: #{master_id})"
+        redirect_to admin_player_duplicates_path(page: page) and return
       end
       
+      # Remove master_id from others list
+      other_ids = other_ids - [master_id]
+      others = Player.where(id: other_ids, type: nil).to_a
+      
       if others.empty?
-        flash[:error] = "No players to merge"
-        redirect_to admin_player_duplicates_path(page: params[:page]) and return
+        flash[:error] = "No other players to merge (other_ids: #{params[:other_ids]})"
+        redirect_to admin_player_duplicates_path(page: page) and return
       end
       
       begin
         Player.merge_players(master, others)
-        flash[:success] = "Successfully merged #{others.count} player(s) into #{master.fullname} (ID: #{master.id})"
-        Rails.logger.info "==== MANUAL MERGE ==== User merged #{others.map(&:id).join(', ')} into #{master.id} (#{master.fullname})"
+        flash[:success] = "Successfully merged #{others.count} player(s) (IDs: #{others.map(&:id).join(', ')}) into #{master.fullname} (ID: #{master.id})"
+        Rails.logger.info "==== MANUAL MERGE ==== User #{current_user&.email} merged #{others.map(&:id).join(', ')} into #{master.id} (#{master.fullname})"
       rescue StandardError => e
         flash[:error] = "Error merging players: #{e.message}"
         Rails.logger.error "==== MANUAL MERGE ERROR ==== #{e.message}\n#{e.backtrace.join("\n")}"
       end
       
       # Go to next duplicate group
-      next_page = params[:page].to_i
-      redirect_to admin_player_duplicates_path(page: next_page)
+      redirect_to admin_player_duplicates_path(page: page)
     end
 
     def keep_separate
