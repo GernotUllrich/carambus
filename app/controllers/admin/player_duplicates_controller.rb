@@ -57,18 +57,21 @@ module Admin
     def keep_separate
       fl_name = params[:fl_name]
       player_ids = params[:player_ids].split(',').map(&:to_i)
+      page = params[:page].to_i
       
-      Rails.logger.info "==== MANUAL REVIEW ==== User decided to keep separate: #{fl_name} (IDs: #{player_ids.join(', ')})"
-      flash[:info] = "Marked '#{fl_name}' as separate players (IDs: #{player_ids.join(', ')})"
+      # Mark all these players as reviewed duplicates (intentionally separate)
+      Player.where(id: player_ids, type: nil).update_all(reviewed_duplicate: true)
+      
+      Rails.logger.info "==== MANUAL REVIEW ==== User #{current_user&.email} decided to keep separate: #{fl_name} (IDs: #{player_ids.join(', ')})"
+      flash[:info] = "Marked '#{fl_name}' as separate players (IDs: #{player_ids.join(', ')}). These will be hidden from future reviews."
       
       # Go to next duplicate group
-      next_page = params[:page].to_i
-      redirect_to admin_player_duplicates_path(page: next_page)
+      redirect_to admin_player_duplicates_path(page: page)
     end
 
     def stats
       # Show overall statistics
-      @duplicates = Player.where(type: nil)
+      @duplicates = Player.where(type: nil, reviewed_duplicate: false)
                           .group(:fl_name)
                           .having('count(*) > 1')
                           .count
@@ -77,6 +80,9 @@ module Admin
       @total_duplicate_records = @duplicates.values.sum
       @total_players = Player.where(type: nil).count
       
+      # Reviewed duplicates (kept separate)
+      @reviewed_duplicates = Player.where(type: nil, reviewed_duplicate: true).count
+      
       # Pattern analysis
       @pattern_stats = analyze_patterns(@duplicates.keys.first(100))
     end
@@ -84,14 +90,14 @@ module Admin
     private
 
     def load_duplicates
-      # Get all duplicate fl_names
-      duplicates_hash = Player.where(type: nil)
+      # Get all duplicate fl_names, excluding those already reviewed
+      duplicates_hash = Player.where(type: nil, reviewed_duplicate: false)
                               .group(:fl_name)
                               .having('count(*) > 1')
                               .count
       
       @duplicate_groups = duplicates_hash.keys.map do |fl_name|
-        players = Player.where(type: nil, fl_name: fl_name).order(:id).to_a
+        players = Player.where(type: nil, fl_name: fl_name, reviewed_duplicate: false).order(:id).to_a
         {
           fl_name: fl_name,
           players: players

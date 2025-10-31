@@ -9,25 +9,33 @@
 
 <section class="main-content__body">
   <!-- Overall Stats -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
     <div class="bg-white border rounded-lg p-6">
       <h3 class="text-sm text-gray-600 mb-2">Total Players</h3>
       <p class="text-3xl font-bold"><%= number_with_delimiter(@total_players) %></p>
     </div>
     
     <div class="bg-white border rounded-lg p-6">
-      <h3 class="text-sm text-gray-600 mb-2">Duplicate Names</h3>
+      <h3 class="text-sm text-gray-600 mb-2">Unreviewed Duplicates</h3>
       <p class="text-3xl font-bold text-orange-600"><%= number_with_delimiter(@total_duplicate_fl_names) %></p>
       <p class="text-xs text-gray-500 mt-1">
-        <%= ((@total_duplicate_fl_names.to_f / @total_players) * 100).round(1) %>% of players
+        Need review
       </p>
     </div>
     
     <div class="bg-white border rounded-lg p-6">
-      <h3 class="text-sm text-gray-600 mb-2">Total Duplicate Records</h3>
+      <h3 class="text-sm text-gray-600 mb-2">Duplicate Records</h3>
       <p class="text-3xl font-bold text-red-600"><%= number_with_delimiter(@total_duplicate_records) %></p>
       <p class="text-xs text-gray-500 mt-1">
         <%= ((@total_duplicate_records.to_f / @total_players) * 100).round(1) %>% of players
+      </p>
+    </div>
+    
+    <div class="bg-white border rounded-lg p-6">
+      <h3 class="text-sm text-gray-600 mb-2">Reviewed (Kept Separate)</h3>
+      <p class="text-3xl font-bold text-green-600"><%= number_with_delimiter(@reviewed_duplicates) %></p>
+      <p class="text-xs text-gray-500 mt-1">
+        Intentionally separate
       </p>
     </div>
   </div>
