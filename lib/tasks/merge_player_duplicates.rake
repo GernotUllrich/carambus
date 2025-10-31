@@ -545,5 +545,168 @@ namespace :players do
     end
     puts ""
   end
+  
+  desc "Phase 5: Merge remaining safe cases (same cc_id, ba_id=dbu_nr, new vs old)"
+  task merge_safe_remaining: :environment do
+    puts "=" * 80
+    puts "PHASE 5: MERGE REMAINING SAFE CASES"
+    puts "=" * 80
+    puts ""
+    
+    # Load analysis
+    analysis_file = Rails.root.join('tmp', 'player_duplicates_analysis.json')
+    unless File.exist?(analysis_file)
+      puts "ERROR: Analysis file not found!"
+      puts "Please run: rake players:analyze_duplicates first"
+      exit 1
+    end
+    
+    analysis = JSON.parse(File.read(analysis_file))
+    problematic_groups = analysis['problematic_groups']
+    
+    puts "Found #{problematic_groups.count} remaining problematic groups"
+    puts ""
+    puts "Safe merge patterns:"
+    puts "  A. Same cc_id (both players have same cc_id)"
+    puts "  B. ba_id matches other's dbu_nr (definitive match)"
+    puts "  C. One has dbu_nr+cc_id+clubs, other only ba_id+no clubs (likely same person)"
+    puts ""
+    
+    # Safety check
+    if Rails.env.production?
+      puts "PRODUCTION MODE DETECTED!"
+      print "Type 'YES' to continue: "
+      response = STDIN.gets.chomp
+      unless response == 'YES'
+        puts "Aborted."
+        exit 0
+      end
+    end
+    
+    merged_count = 0
+    error_count = 0
+    skipped_count = 0
+    
+    log_file = Rails.root.join('log', "player_merge_safe_remaining_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log")
+    logger = Logger.new(log_file)
+    
+    puts "Starting merge process..."
+    puts "Log file: #{log_file}"
+    puts ""
+    
+    problematic_groups.each_with_index do |group, idx|
+      fl_name = group['fl_name']
+      all_player_ids = group['all_players'].map { |p| p['id'] }
+      
+      begin
+        # Reload from database
+        players = Player.where(id: all_player_ids, type: nil).to_a
+        
+        if players.count != 2
+          # Only handle pairs for now
+          skipped_count += 1
+          next
+        end
+        
+        p1, p2 = players.sort_by(&:id)
+        master = nil
+        other = nil
+        pattern = nil
+        
+        # Pattern A: Same cc_id (both have it)
+        if p1.cc_id.present? && p2.cc_id.present? && p1.cc_id == p2.cc_id
+          # Select one with dbu_nr as master
+          if p1.dbu_nr.present? && p2.dbu_nr.blank?
+            master = p1
+            other = p2
+            pattern = "Same cc_id (#{p1.cc_id}) - selected one with dbu_nr"
+          elsif p2.dbu_nr.present? && p1.dbu_nr.blank?
+            master = p2
+            other = p1
+            pattern = "Same cc_id (#{p1.cc_id}) - selected one with dbu_nr"
+          elsif p1.dbu_nr.present? && p2.dbu_nr.present?
+            # Both have dbu_nr - this is unusual, skip
+            skipped_count += 1
+            logger.warn \"SKIPPED: #{fl_name} - Both have same cc_id AND dbu_nr (need manual review)\"
+            next
+          end
+        end
+        
+        # Pattern B: ba_id matches other's dbu_nr
+        if master.nil?
+          if p1.ba_id.present? && p2.dbu_nr.present? && p1.ba_id == p2.dbu_nr
+            master = p2  # One with dbu_nr is newer
+            other = p1
+            pattern = "ba_id=dbu_nr match (#{p1.ba_id})"
+          elsif p2.ba_id.present? && p1.dbu_nr.present? && p2.ba_id == p1.dbu_nr
+            master = p1
+            other = p2
+            pattern = "ba_id=dbu_nr match (#{p2.ba_id})"
+          end
+        end
+        
+        # Pattern C: One has dbu_nr+cc_id (and maybe clubs), other only ba_id (no clubs)
+        if master.nil?
+          p1_clubs = p1.season_participations.any?
+          p2_clubs = p2.season_participations.any?
+          
+          if p1.dbu_nr.present? && p1.cc_id.present? && p2.ba_id.present? && p2.dbu_nr.blank? && p2.cc_id.blank? && !p2_clubs
+            master = p1
+            other = p2
+            pattern = \"New (dbu_nr+cc_id#{p1_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)\"
+          elsif p2.dbu_nr.present? && p2.cc_id.present? && p1.ba_id.present? && p1.dbu_nr.blank? && p1.cc_id.blank? && !p1_clubs
+            master = p2
+            other = p1
+            pattern = \"New (dbu_nr+cc_id#{p2_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)\"
+          end
+        end
+        
+        # If no pattern matched, skip
+        if master.nil?
+          skipped_count += 1
+          next
+        end
+        
+        # Log
+        logger.info \"=\" * 80
+        logger.info \"MERGING: #{fl_name}\"
+        logger.info \"  Pattern: #{pattern}\"
+        logger.info \"  Master: ID=#{master.id}, BA_ID=#{master.ba_id}, DBU_NR=#{master.dbu_nr}, CC_ID=#{master.cc_id}\"
+        logger.info \"    Clubs: #{master.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}\"
+        logger.info \"  Other: ID=#{other.id}, BA_ID=#{other.ba_id}, DBU_NR=#{other.dbu_nr}, CC_ID=#{other.cc_id}\"
+        logger.info \"    Clubs: #{other.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}\"
+        
+        # Merge
+        Player.merge_players(master, [other])
+        
+        logger.info \"  ✓ MERGED successfully\"
+        logger.info \"\"
+        
+        merged_count += 1
+        
+        if (idx + 1) % 10 == 0
+          puts \"Processed #{idx + 1}/#{problematic_groups.count} groups (#{merged_count} merged, \" \\
+               \"#{skipped_count} skipped, #{error_count} errors)\"
+        end
+        
+      rescue StandardError => e
+        logger.error \"ERROR merging #{fl_name}: #{e.message}\"
+        logger.error e.backtrace.join(\"\\n\")
+        error_count += 1
+      end
+    end
+    
+    puts ""
+    puts "=" * 80
+    puts "MERGE COMPLETE"
+    puts "=" * 80
+    puts "  Successfully merged: #{merged_count}"
+    puts "  Skipped: #{skipped_count}"
+    puts "  Errors: #{error_count}"
+    puts ""
+    puts "Log file: #{log_file}"
+    puts ""
+    puts "Tip: Run 'rake players:analyze_duplicates' to see updated duplicate count"
+  end
 end
 
