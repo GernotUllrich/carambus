@@ -142,29 +142,35 @@
       <% if players.count == 2 %>
         <!-- Two players - simple choice -->
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+          <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), 
+              method: :post, 
+              data: { turbo: false } do %>
             <%= hidden_field_tag :master_id, players.first.id %>
             <%= hidden_field_tag :other_ids, players[1..-1].map(&:id).join(',') %>
             <%= button_tag type: 'submit', 
                 class: 'w-full btn btn-primary',
-                data: { confirm: "Merge Player #{players[1..-1].map(&:id).join(', ')} into Player #{players.first.id} (#{players.first.fullname})?" } do %>
+                onclick: "return confirm('Merge Player #{players[1..-1].map(&:id).join(', ')} into Player #{players.first.id} (#{players.first.fullname})?')" do %>
               ← Keep Player <%= players.first.id %> (Master)
             <% end %>
           <% end %>
 
-          <%= form_tag merge_admin_player_duplicate_path(id: players.last.id, page: @current_page), method: :post do %>
+          <%= form_tag merge_admin_player_duplicate_path(id: players.last.id, page: @current_page), 
+              method: :post,
+              data: { turbo: false } do %>
             <%= hidden_field_tag :master_id, players.last.id %>
             <%= hidden_field_tag :other_ids, players[0..-2].map(&:id).join(',') %>
             <%= button_tag type: 'submit', 
                 class: 'w-full btn btn-primary',
-                data: { confirm: "Merge Player #{players[0..-2].map(&:id).join(', ')} into Player #{players.last.id} (#{players.last.fullname})?" } do %>
+                onclick: "return confirm('Merge Player #{players[0..-2].map(&:id).join(', ')} into Player #{players.last.id} (#{players.last.fullname})?')" do %>
               Keep Player <%= players.last.id %> (Master) →
             <% end %>
           <% end %>
         </div>
       <% else %>
         <!-- Multiple players - select master -->
-        <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+        <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), 
+            method: :post,
+            data: { turbo: false } do %>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-2">Select Master Player:</label>
             <select name="master_id" class="field-unit__input mb-2" required>
@@ -182,7 +188,7 @@
           </div>
           <%= button_tag type: 'submit', 
               class: 'btn btn-primary',
-              data: { confirm: "Merge other players into selected master?" } do %>
+              onclick: "return confirm('Merge other players into selected master?')" do %>
             Merge into Selected Master
           <% end %>
         <% end %>
@@ -190,12 +196,14 @@
 
       <!-- Keep Separate Button -->
       <div class="mt-4 pt-4 border-t">
-        <%= form_tag keep_separate_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+        <%= form_tag keep_separate_admin_player_duplicate_path(id: players.first.id, page: @current_page), 
+            method: :post,
+            data: { turbo: false } do %>
           <%= hidden_field_tag :fl_name, fl_name %>
           <%= hidden_field_tag :player_ids, players.map(&:id).join(',') %>
           <%= button_tag type: 'submit', 
               class: 'btn btn-secondary w-full',
-              data: { confirm: "Mark these as separate players? This will skip them." } do %>
+              onclick: "return confirm('Mark these as separate players? This will skip them.')" do %>
             Keep as Separate Players (Different People)
           <% end %>
         <% end %>
