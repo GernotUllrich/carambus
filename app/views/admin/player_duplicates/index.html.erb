@@ -1,0 +1,289 @@
+<% content_for(:title) do %>
+  Player Duplicates Review
+<% end %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">Player Duplicates Review</h1>
+  <div class="flex items-center gap-4">
+    <%= link_to "Statistics", stats_admin_player_duplicates_path, class: "btn btn-secondary" %>
+    <span class="text-sm text-gray-600">
+      <%= @current_page %> of <%= @total_count %> duplicate groups
+    </span>
+  </div>
+</header>
+
+<% if @duplicate_group.nil? %>
+  <section class="main-content__body">
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+      <h2 class="font-bold">🎉 No duplicates found!</h2>
+      <p>All player duplicates have been resolved.</p>
+    </div>
+  </section>
+<% else %>
+  <% players = @duplicate_group[:players] %>
+  <% fl_name = @duplicate_group[:fl_name] %>
+  
+  <section class="main-content__body">
+    <!-- Navigation -->
+    <div class="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded">
+      <div>
+        <%= link_to "← Previous", admin_player_duplicates_path(page: @current_page - 1), 
+            class: "btn btn-secondary #{@has_prev ? '' : 'opacity-50 pointer-events-none'}" %>
+      </div>
+      <div class="text-center">
+        <h2 class="text-xl font-bold"><%= fl_name %></h2>
+        <p class="text-sm text-gray-600"><%= players.count %> players found</p>
+      </div>
+      <div>
+        <%= link_to "Next →", admin_player_duplicates_path(page: @current_page + 1), 
+            class: "btn btn-secondary #{@has_next ? '' : 'opacity-50 pointer-events-none'}" %>
+      </div>
+    </div>
+
+    <!-- Player Comparison -->
+    <div class="grid gap-6 mb-6" style="grid-template-columns: repeat(<%= players.count %>, 1fr);">
+      <% players.each_with_index do |player, idx| %>
+        <div class="border rounded-lg p-4 <%= idx == 0 ? 'border-blue-500 border-2' : 'border-gray-300' %>" 
+             id="player-<%= player.id %>">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="font-bold text-lg">
+              Player <%= idx + 1 %>
+              <% if idx == 0 %>
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">Suggested Master</span>
+              <% end %>
+            </h3>
+            <span class="text-xs text-gray-500">ID: <%= player.id %></span>
+          </div>
+
+          <!-- IDs Section -->
+          <div class="mb-4">
+            <h4 class="font-semibold text-sm mb-2 text-gray-700">Identifiers</h4>
+            <div class="space-y-1 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">BA ID:</span>
+                <span class="font-mono <%= player.ba_id.present? ? 'text-green-700' : 'text-gray-400' %>">
+                  <%= player.ba_id || 'N/A' %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">DBU Nr:</span>
+                <span class="font-mono <%= player.dbu_nr.present? && player.dbu_nr > 0 ? 'text-green-700' : 'text-gray-400' %>">
+                  <%= player.dbu_nr.present? && player.dbu_nr > 0 ? player.dbu_nr : 'N/A' %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">CC ID:</span>
+                <span class="font-mono <%= player.cc_id.present? ? 'text-green-700' : 'text-gray-400' %>">
+                  <%= player.cc_id || 'N/A' %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clubs Section -->
+          <div class="mb-4">
+            <h4 class="font-semibold text-sm mb-2 text-gray-700">Clubs</h4>
+            <% clubs = player.season_participations.joins(:club).distinct.pluck('clubs.shortname') %>
+            <% if clubs.any? %>
+              <ul class="text-sm space-y-1">
+                <% clubs.each do |club| %>
+                  <li class="text-green-700">✓ <%= club %></li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="text-sm text-gray-400 italic">No clubs</p>
+            <% end %>
+          </div>
+
+          <!-- Associations Section -->
+          <div class="mb-4">
+            <h4 class="font-semibold text-sm mb-2 text-gray-700">Associations</h4>
+            <div class="text-sm space-y-1">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Game Participations:</span>
+                <span class="<%= player.game_participations.count > 0 ? 'text-green-700 font-semibold' : 'text-gray-400' %>">
+                  <%= player.game_participations.count %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Season Participations:</span>
+                <span class="<%= player.season_participations.count > 0 ? 'text-green-700 font-semibold' : 'text-gray-400' %>">
+                  <%= player.season_participations.count %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Seedings:</span>
+                <span class="<%= player.seedings.count > 0 ? 'text-green-700 font-semibold' : 'text-gray-400' %>">
+                  <%= player.seedings.count %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Party Games:</span>
+                <span class="<%= (player.party_a_games.count + player.party_b_games.count) > 0 ? 'text-green-700 font-semibold' : 'text-gray-400' %>">
+                  <%= player.party_a_games.count + player.party_b_games.count %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="text-xs text-gray-500 border-t pt-2">
+            <div>Created: <%= player.created_at.strftime('%Y-%m-%d') %></div>
+            <div>Updated: <%= player.updated_at.strftime('%Y-%m-%d') %></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="bg-white border rounded-lg p-6 mb-6">
+      <h3 class="font-bold text-lg mb-4">Action</h3>
+      
+      <% if players.count == 2 %>
+        <!-- Two players - simple choice -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+            <%= hidden_field_tag :master_id, players.first.id %>
+            <%= hidden_field_tag :other_ids, players[1..-1].map(&:id).join(',') %>
+            <%= button_tag type: 'submit', 
+                class: 'w-full btn btn-primary',
+                data: { confirm: "Merge Player #{players[1..-1].map(&:id).join(', ')} into Player #{players.first.id} (#{players.first.fullname})?" } do %>
+              ← Keep Player <%= players.first.id %> (Master)
+            <% end %>
+          <% end %>
+
+          <%= form_tag merge_admin_player_duplicate_path(id: players.last.id, page: @current_page), method: :post do %>
+            <%= hidden_field_tag :master_id, players.last.id %>
+            <%= hidden_field_tag :other_ids, players[0..-2].map(&:id).join(',') %>
+            <%= button_tag type: 'submit', 
+                class: 'w-full btn btn-primary',
+                data: { confirm: "Merge Player #{players[0..-2].map(&:id).join(', ')} into Player #{players.last.id} (#{players.last.fullname})?" } do %>
+              Keep Player <%= players.last.id %> (Master) →
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <!-- Multiple players - select master -->
+        <%= form_tag merge_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Select Master Player:</label>
+            <select name="master_id" class="field-unit__input mb-2" required>
+              <% players.each do |player| %>
+                <option value="<%= player.id %>">
+                  Player <%= player.id %> - 
+                  <%= "BA:#{player.ba_id} " if player.ba_id.present? %>
+                  <%= "DBU:#{player.dbu_nr} " if player.dbu_nr.present? && player.dbu_nr > 0 %>
+                  <%= "CC:#{player.cc_id} " if player.cc_id.present? %>
+                  - <%= player.season_participations.count %> SP, <%= player.game_participations.count %> GP
+                </option>
+              <% end %>
+            </select>
+            <%= hidden_field_tag :other_ids, players.map(&:id).join(',') %>
+          </div>
+          <%= button_tag type: 'submit', 
+              class: 'btn btn-primary',
+              data: { confirm: "Merge other players into selected master?" } do %>
+            Merge into Selected Master
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Keep Separate Button -->
+      <div class="mt-4 pt-4 border-t">
+        <%= form_tag keep_separate_admin_player_duplicate_path(id: players.first.id, page: @current_page), method: :post do %>
+          <%= hidden_field_tag :fl_name, fl_name %>
+          <%= hidden_field_tag :player_ids, players.map(&:id).join(',') %>
+          <%= button_tag type: 'submit', 
+              class: 'btn btn-secondary w-full',
+              data: { confirm: "Mark these as separate players? This will skip them." } do %>
+            Keep as Separate Players (Different People)
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Auto-Detect Recommendation -->
+      <% 
+        # Detect pattern for recommendation
+        recommendation = nil
+        if players.count == 2
+          p1, p2 = players
+          
+          if p1.cc_id.present? && p2.cc_id.present? && p1.cc_id == p2.cc_id
+            recommendation = "✅ SAME CC_ID - Definitively same person! Merge recommended."
+            recommended_master = p1.dbu_nr.present? ? p1 : p2
+          elsif (p1.ba_id.present? && p2.dbu_nr.present? && p1.ba_id == p2.dbu_nr)
+            recommendation = "✅ BA_ID = DBU_NR - Definitively same person! Merge recommended."
+            recommended_master = p2
+          elsif (p2.ba_id.present? && p1.dbu_nr.present? && p2.ba_id == p1.dbu_nr)
+            recommendation = "✅ BA_ID = DBU_NR - Definitively same person! Merge recommended."
+            recommended_master = p1
+          elsif p1.dbu_nr.present? && p1.cc_id.present? && p2.ba_id.present? && p2.dbu_nr.blank? && p2.cc_id.blank? && p2.season_participations.empty?
+            recommendation = "✅ NEW vs OLD - Likely same person (one has dbu_nr+cc_id, other only ba_id with no clubs). Merge recommended."
+            recommended_master = p1
+          elsif p2.dbu_nr.present? && p2.cc_id.present? && p1.ba_id.present? && p1.dbu_nr.blank? && p1.cc_id.blank? && p1.season_participations.empty?
+            recommendation = "✅ NEW vs OLD - Likely same person (one has dbu_nr+cc_id, other only ba_id with no clubs). Merge recommended."
+            recommended_master = p2
+          elsif p1.ba_id.present? && p2.ba_id.present? && p1.dbu_nr.blank? && p2.dbu_nr.blank? && p1.season_participations.empty? && p2.season_participations.empty?
+            recommendation = "⚠️ BOTH ONLY BA_ID, NO CLUBS - Likely different people with same name. Keep separate recommended."
+          elsif p1.ba_id.present? && p2.ba_id.present? && p1.dbu_nr.blank? && p2.dbu_nr.blank?
+            if p1.season_participations.any? && p2.season_participations.empty?
+              recommendation = "⚠️ ONE HAS CLUBS - Could be same person. Merge to Player #{p1.id} recommended."
+              recommended_master = p1
+            elsif p2.season_participations.any? && p1.season_participations.empty?
+              recommendation = "⚠️ ONE HAS CLUBS - Could be same person. Merge to Player #{p2.id} recommended."
+              recommended_master = p2
+            else
+              recommendation = "⚠️ UNCLEAR - Manual decision needed."
+            end
+          else
+            recommendation = "⚠️ COMPLEX CASE - Manual review recommended."
+          end
+        end
+      %>
+      
+      <% if recommendation %>
+        <div class="mt-4 p-4 <%= recommendation.start_with?('✅') ? 'bg-green-50 border-green-300' : 'bg-yellow-50 border-yellow-300' %> border rounded">
+          <h4 class="font-semibold mb-2">Recommendation:</h4>
+          <p class="text-sm"><%= recommendation %></p>
+          <% if defined?(recommended_master) && recommended_master %>
+            <p class="text-xs text-gray-600 mt-2">Suggested Master: Player <%= recommended_master.id %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
+      <h3 class="font-semibold mb-2">Overall Progress</h3>
+      <div class="text-sm">
+        <div class="flex justify-between">
+          <span>Reviewed:</span>
+          <span class="font-semibold"><%= @current_page - 1 %> of <%= @total_count %></span>
+        </div>
+        <div class="flex justify-between">
+          <span>Remaining:</span>
+          <span class="font-semibold"><%= @total_count - @current_page + 1 %></span>
+        </div>
+        <div class="flex justify-between">
+          <span>Progress:</span>
+          <span class="font-semibold"><%= (((@current_page - 1).to_f / @total_count) * 100).round(1) %>%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div class="mt-6 p-3 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
+      <strong>Tip:</strong> Use browser back/forward buttons to navigate between duplicates
+    </div>
+  </section>
+<% end %>
+
+<style>
+  /* Make sure grid works nicely on smaller screens */
+  @media (max-width: 768px) {
+    .grid[style*="grid-template-columns"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+

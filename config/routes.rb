@@ -363,6 +363,16 @@ Rails.application.routes.draw do
         patch :update
       end
     end
+    
+    resources :player_duplicates, only: [:index, :show] do
+      collection do
+        get :stats
+      end
+      member do
+        post :merge
+        post :keep_separate
+      end
+    end
     resources :pages do
       member do
         post :publish
