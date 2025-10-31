@@ -627,7 +627,7 @@ namespace :players do
           elsif p1.dbu_nr.present? && p2.dbu_nr.present?
             # Both have dbu_nr - this is unusual, skip
             skipped_count += 1
-            logger.warn \"SKIPPED: #{fl_name} - Both have same cc_id AND dbu_nr (need manual review)\"
+            logger.warn "SKIPPED: #{fl_name} - Both have same cc_id AND dbu_nr (need manual review)"
             next
           end
         end
@@ -653,11 +653,11 @@ namespace :players do
           if p1.dbu_nr.present? && p1.cc_id.present? && p2.ba_id.present? && p2.dbu_nr.blank? && p2.cc_id.blank? && !p2_clubs
             master = p1
             other = p2
-            pattern = \"New (dbu_nr+cc_id#{p1_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)\"
+            pattern = "New (dbu_nr+cc_id#{p1_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)"
           elsif p2.dbu_nr.present? && p2.cc_id.present? && p1.ba_id.present? && p1.dbu_nr.blank? && p1.cc_id.blank? && !p1_clubs
             master = p2
             other = p1
-            pattern = \"New (dbu_nr+cc_id#{p2_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)\"
+            pattern = "New (dbu_nr+cc_id#{p2_clubs ? '+clubs' : ''}) vs Old (only ba_id, no clubs)"
           end
         end
         
@@ -668,30 +668,30 @@ namespace :players do
         end
         
         # Log
-        logger.info \"=\" * 80
-        logger.info \"MERGING: #{fl_name}\"
-        logger.info \"  Pattern: #{pattern}\"
-        logger.info \"  Master: ID=#{master.id}, BA_ID=#{master.ba_id}, DBU_NR=#{master.dbu_nr}, CC_ID=#{master.cc_id}\"
-        logger.info \"    Clubs: #{master.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}\"
-        logger.info \"  Other: ID=#{other.id}, BA_ID=#{other.ba_id}, DBU_NR=#{other.dbu_nr}, CC_ID=#{other.cc_id}\"
-        logger.info \"    Clubs: #{other.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}\"
+        logger.info "=" * 80
+        logger.info "MERGING: #{fl_name}"
+        logger.info "  Pattern: #{pattern}"
+        logger.info "  Master: ID=#{master.id}, BA_ID=#{master.ba_id}, DBU_NR=#{master.dbu_nr}, CC_ID=#{master.cc_id}"
+        logger.info "    Clubs: #{master.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}"
+        logger.info "  Other: ID=#{other.id}, BA_ID=#{other.ba_id}, DBU_NR=#{other.dbu_nr}, CC_ID=#{other.cc_id}"
+        logger.info "    Clubs: #{other.season_participations.joins(:club).pluck('clubs.shortname').uniq.join(', ')}"
         
         # Merge
         Player.merge_players(master, [other])
         
-        logger.info \"  ✓ MERGED successfully\"
-        logger.info \"\"
+        logger.info "  ✓ MERGED successfully"
+        logger.info ""
         
         merged_count += 1
         
         if (idx + 1) % 10 == 0
-          puts \"Processed #{idx + 1}/#{problematic_groups.count} groups (#{merged_count} merged, \" \\
-               \"#{skipped_count} skipped, #{error_count} errors)\"
+          puts "Processed #{idx + 1}/#{problematic_groups.count} groups (#{merged_count} merged, " \
+               "#{skipped_count} skipped, #{error_count} errors)"
         end
         
       rescue StandardError => e
-        logger.error \"ERROR merging #{fl_name}: #{e.message}\"
-        logger.error e.backtrace.join(\"\\n\")
+        logger.error "ERROR merging #{fl_name}: #{e.message}"
+        logger.error e.backtrace.join("\n")
         error_count += 1
       end
     end
