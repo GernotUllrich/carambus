@@ -60,8 +60,6 @@ group :development, :test do
   # Lint code for consistent style
   gem "standard", require: false
 
-  gem "stackprof", require: true
-
   #gem "letter_opener_web", "~> 2.0"
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
@@ -110,6 +108,8 @@ group :development do
   gem "rack-mini-profiler", require: false
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console", ">= 4.1.0"
+
+  gem "stackprof", require: true
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler", ">= 2.3.3"
