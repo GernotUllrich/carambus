@@ -261,6 +261,7 @@ Rails.application.routes.draw do
       post :reload_leagues_with_details
       get :migration_cc
       post :set_base_parameters
+      post :scrape_upcoming_tournaments
     end
   end
   resources :countries

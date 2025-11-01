@@ -4,7 +4,8 @@ class RegionsController < ApplicationController
   before_action :admin_only_check, except: %i[show index]
   before_action :set_region,
                 only: %i[show edit update destroy reload_from_cc migration_cc set_base_parameters reload_from_cc
-                         reload_from_cc_with_details reload_tournaments reload_leagues reload_leagues_with_details]
+                         reload_from_cc_with_details reload_tournaments reload_leagues reload_leagues_with_details
+                         scrape_upcoming_tournaments]
 
   def set_base_parameters
     cookies[:session_id] = params["PHPSESSID"]
@@ -125,6 +126,21 @@ class RegionsController < ApplicationController
   end
 
   def migration_cc; end
+
+  # POST /regions/:id/scrape_upcoming_tournaments
+  def scrape_upcoming_tournaments
+    days_ahead = params[:days_ahead]&.to_i || 30
+    
+    result = @region.scrape_upcoming_tournaments(days_ahead: days_ahead)
+    
+    if result[:success]
+      redirect_to region_path(@region),
+                  notice: "✅ Anstehende Turniere aktualisiert: #{result[:count_scraped]} gescraped, #{result[:count_new]} neu"
+    else
+      redirect_to region_path(@region),
+                  alert: "❌ Fehler beim Scraping: #{result[:error]}"
+    end
+  end
 
   private
 

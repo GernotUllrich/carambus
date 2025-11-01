@@ -880,6 +880,117 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     player_rankings.joins(:discipline).exists?
   end
 
+  # Scraped nur anstehende Turniere (nächste N Tage)
+  # Schneller als vollständiger Region-Scrape
+  def scrape_upcoming_tournaments(days_ahead: 30, opts: {})
+    url = public_cc_url_base
+    return { success: false, error: "Keine ClubCloud URL konfiguriert" } unless url.present?
+    
+    Rails.logger.info "===== scrape_upcoming ===== Scraping upcoming tournaments for #{shortname}"
+    
+    # Aktuelle und nächste Saison
+    current_season = Season.current_season
+    seasons = [current_season, current_season.next].compact
+    
+    count_scraped = 0
+    count_new = 0
+    
+    seasons.each do |season|
+      einzel_url = url + "sb_einzelergebnisse.php?p=#{cc_id}--#{season.name}-----1-1-100000-"
+      Rails.logger.info "===== scrape_upcoming ===== Reading #{einzel_url}"
+      
+      begin
+        uri = URI(einzel_url)
+        einzel_html = Net::HTTP.get(uri)
+        einzel_doc = Nokogiri::HTML(einzel_html)
+        
+        # Parse Turniere-Tabelle
+        einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+          begin
+            # Datum parsen
+            date_str = tr.css("td")[1]&.text
+            next unless date_str.present?
+            
+            date = DateTime.parse(date_str) rescue next
+            
+            # Nur anstehende Turniere (nächste X Tage)
+            next unless date.between?(Date.today, Date.today + days_ahead.days)
+            
+            # Tournament-Link extrahieren
+            tournament_link = tr.css("a")[0]&.attributes&.[]("href")&.value
+            next unless tournament_link.present?
+            
+            params_arr = tournament_link.split("p=")[1]&.split("-")
+            next unless params_arr
+            
+            tournament_cc_id = params_arr[3].to_i
+            name = tr.css("a")[0].text.strip
+            
+            Rails.logger.info "===== scrape_upcoming ===== Found: #{name} (#{date.to_date})"
+            
+            # Prüfe ob schon vorhanden
+            tournament = Tournament.where(season: season, organizer: self, title: name).first
+            is_new = tournament.nil?
+            
+            # Scrape Tournament-Details
+            tournament_url = url + tournament_link
+            Rails.logger.info "===== scrape_upcoming ===== Scraping #{tournament_url}"
+            
+            uri = URI(tournament_url)
+            tournament_html = Net::HTTP.get(uri)
+            tournament_doc = Nokogiri::HTML(tournament_html)
+            
+            # TournamentCc anlegen/aktualisieren
+            tc = TournamentCc.where(cc_id: tournament_cc_id, context: region_cc.context).first_or_create(
+              name: name
+            )
+            
+            # Tournament anlegen falls nicht vorhanden
+            unless tournament
+              tournament = Tournament.create!(
+                season: season,
+                organizer: self,
+                title: name,
+                region_id: id,
+                date: date
+              )
+              count_new += 1
+            end
+            
+            tc.update(tournament: tournament)
+            
+            # Scrape Tournament-Details
+            tournament.scrape_single_tournament_public(opts.merge(tournament_doc: tournament_doc))
+            
+            count_scraped += 1
+            
+          rescue StandardError => e
+            Rails.logger.error "===== scrape_upcoming ===== Error: #{e.message}"
+            Rails.logger.debug e.backtrace.join("\n")
+          end
+        end
+      rescue StandardError => e
+        Rails.logger.error "===== scrape_upcoming ===== Season #{season.name} Error: #{e.message}"
+      end
+    end
+    
+    Rails.logger.info "===== scrape_upcoming ===== Finished: #{count_scraped} scraped, #{count_new} new"
+    
+    {
+      success: true,
+      count_scraped: count_scraped,
+      count_new: count_new
+    }
+  rescue StandardError => e
+    Rails.logger.error "===== scrape_upcoming ===== Fatal Error: #{e.message}"
+    Rails.logger.debug e.backtrace.join("\n")
+    
+    {
+      success: false,
+      error: e.message
+    }
+  end
+
   private
 
   def normalize_tournament_url(url)
