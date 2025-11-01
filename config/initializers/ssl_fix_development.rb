@@ -4,6 +4,10 @@
 
 if Rails.env.development?
   require 'net/http'
+  require 'openssl'
+  
+  # Global OpenSSL context configuration
+  OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_NONE
   
   module Net
     class HTTP
@@ -14,6 +18,22 @@ if Rails.env.development?
         self.original_use_ssl = flag
         if flag
           self.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+      end
+      
+      # Also patch the class methods that create HTTP objects internally
+      class << self
+        alias_method :original_get, :get
+        
+        def get(uri_or_host, path = nil, port = nil)
+          if uri_or_host.is_a?(URI::Generic)
+            uri = uri_or_host
+            start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https', :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
+              return http.request_get(uri.request_uri)
+            end.body
+          else
+            original_get(uri_or_host, path, port)
+          end
         end
       end
     end
