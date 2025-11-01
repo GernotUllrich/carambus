@@ -1,8 +1,66 @@
-<%# Vereinfachtes Wizard-UI %>
-<div class="wizard-progress">
-  <% @steps.each_with_index do |step, index| %>
-    <div class="step <%= 'active' if index == current_step %>">
-      <%= t("wizard.steps.#{step}") %>
+<%#
+  Partial für einzelne Wizard-Schritte
+  
+  Parameter:
+  - number: Schrittnummer (1-6)
+  - title: Titel des Schritts
+  - status: :completed, :active, :pending
+  - action: Hash mit :text, :path, :method, :confirm, :class
+  - info: Zusätzliche Info (optional)
+  - warning: Boolean - zeigt Warnung (optional)
+  - danger: Boolean - markiert als gefährliche Aktion (optional)
+  - help: Hilfetext (optional)
+%>
+
+<div class="wizard-step <%= step_class(status) %> <%= 'wizard-step-danger' if danger %>">
+  <div class="wizard-step-header">
+    <div class="wizard-step-icon">
+      <%= step_icon(status) %>
     </div>
-  <% end %>
-</div> 
+    <div class="wizard-step-content">
+      <div class="wizard-step-number-title">
+        <span class="step-number"><%= number %>.</span>
+        <h4 class="step-title"><%= title %></h4>
+      </div>
+
+      <% if info.present? %>
+        <div class="step-info">
+          <%= info %>
+        </div>
+      <% end %>
+
+      <% if warning %>
+        <div class="step-warning">
+          <span class="warning-icon">⚠️</span>
+          Dieser Schritt ist noch offen
+        </div>
+      <% end %>
+
+      <% if help.present? %>
+        <div class="step-help">
+          <details>
+            <summary>💡 Was macht dieser Schritt?</summary>
+            <p><%= help %></p>
+          </details>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="wizard-step-actions">
+    <% if action && status == :active %>
+      <%= button_to action[:text], action[:path],
+          method: action[:method] || :get,
+          class: "btn btn-primary #{action[:class]} #{status == :active ? 'btn-pulse' : ''}",
+          data: { confirm: action[:confirm] } %>
+    <% elsif action && status == :completed %>
+      <%= button_to action[:text], action[:path],
+          method: action[:method] || :get,
+          class: "btn btn-secondary btn-sm #{action[:class]}" %>
+    <% elsif status == :pending %>
+      <span class="disabled-text">
+        Erst verfügbar nach vorherigem Schritt
+      </span>
+    <% end %>
+  </div>
+</div>

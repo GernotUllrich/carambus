@@ -2,49 +2,21 @@
                 "data-controller": "tournament",
                 id: "tournament_#{@tournament.id}",
                 class: "container mx-auto my-2 px-2" do %>
-  <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
-  <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
-  <div class="container mx-auto my-8">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex flex-wrap  rounded shadow p-8 pb-4">
-        <hr>
-        <div class="flex flex-wrap">
-          <div class="flex flex-wrap align-items-start pb-4">
-            <%= button_to I18n.t("tournaments.show.define_participants"), define_participants_tournament_path(@tournament), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
-          </div>
-          <div class="flex flex-wrap align-items-start pb-4">
-            <%= button_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_tournament_path(@tournament), method: :post, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" if @tournament.organizer.is_a? Region %>
-          </div>
-          <div class="flex flex-wrap align-items-start pb-4">
-            <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
-            <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
-            <%= button_to I18n.t("tournaments.show.order_by_ranking_or_handicap"), order_by_ranking_or_handicap_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
-          </div>
-          <div class="flex flex-wrap align-items-start pb-4">
-            <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
-            <%- disabled = !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
-            <%= button_to I18n.t("tournaments.show.finish_seeding"), finish_seeding_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
-          </div>
-          <div class="flex flex-wrap align-items-start pb-4">
-            <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
-            <%- disabled = !%w{accreditation_finished tournament_seeding_finished}.include?(@tournament.state) %>
-            <%= button_to I18n.t("tournaments.show.finalize_tournament_modus"), finalize_modus_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
-          </div>
-          <div class="flex flex-wrap align-items-start pb-4">
-            <span class="strong flex" style="padding-top: 7px;">==&gt;</span>
-            <%- disabled = %w{new_tournament accreditation_finished tournament_seeding_finished finals_finished results_published closed}.include?(@tournament.state) %>
-            <%= button_to I18n.t("tournaments.show.mangage_tournament_group_phase"), tournament_monitor_tournament_path(@tournament), method: :get, class: "btn btn-flat btn-primary #{"opacity-25" if disabled}", style: "float: left; margin-right: 10px;", disabled: disabled %>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Tournament Details (collapsed in card) -->
+  <div class="tournament-details-card">
+    <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
-  <hr class="mt-4 mb-6">
-  <div class="container mx-auto my-8 px-4">
-    <div class="mx-auto">
-      <h2><%= I18n.t("tournaments.show.registrations") %></h2>
-      <div class="flex flex-wrap space-y-5  rounded shadow p-8">
-        <table class="flex-1">
+
+  <!-- New Wizard UI -->
+  <%= render 'wizard_steps', tournament: @tournament %>
+
+  <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
+  
+  <!-- Seedings Table -->
+  <div class="seedings-table-container">
+    <h2><%= I18n.t("tournaments.show.registrations") %></h2>
+    <div class="flex flex-wrap space-y-5">
+      <table class="flex-1">
           <thead>
           <tr>
             <th><%= I18n.t("tournaments.show.position") %></th>
@@ -84,9 +56,10 @@
       </div>
     </div>
   </div>
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-2xl mx-auto">
-      <h2 class="mt-4 mb-6"><%= I18n.t("tournaments.show.rankings") %></h2>
+  
+  <!-- Rankings Section -->
+  <div class="seedings-table-container">
+    <h2><%= I18n.t("tournaments.show.rankings") %></h2>
       <div class="flex-1 flex-wrap space-y-5  rounded shadow p-8">
         <%- lists = @tournament.seedings.where(seeding_scope).joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
         <%- lists.each do |list| %>
@@ -123,12 +96,12 @@
           </div>
         <%- end %>
       </div>
-    </div>
   </div>
+  
+  <!-- Games Section -->
   <%- game_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="mt-4 mb-6"><%= I18n.t("tournaments.show.games") %></h2>
+  <div class="seedings-table-container">
+    <h2><%= I18n.t("tournaments.show.games") %></h2>
       <div class="flex flex-wrap space-y-5  rounded shadow p-8">
         <%- if @tournament.games.where(game_scope).present? %>
           <table class="flex-1">
@@ -158,13 +131,16 @@
           </table>
         <%- end %>
       </div>
-    </div>
   </div>
-  <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
-  <%- if !@tournament.tournament_started %>
-    <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
-  <%- end %>
-  <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
-    <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
-  <% end %>
+  
+  <!-- Admin Actions -->
+  <div class="admin-actions-container" style="margin-top: 2rem;">
+    <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
+    <%- if !@tournament.tournament_started %>
+      <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
+    <%- end %>
+    <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
+      <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
+    <% end %>
+  </div>
 <% end %>

@@ -1,0 +1,196 @@
+<!-- Tournament Wizard Steps UI -->
+
+<!-- Wizard Header mit Progress -->
+<div class="wizard-header">
+  <h2 class="wizard-title">
+    <span class="tournament-icon">🎯</span>
+    Turnier-Setup: <%= tournament.title %>
+  </h2>
+  <div class="wizard-progress">
+    <div class="progress-text">
+      Status: <%= wizard_status_text(tournament) %>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" style="width: <%= wizard_progress_percent(tournament) %>%"></div>
+    </div>
+    <div class="progress-steps">
+      Schritt <%= wizard_current_step(tournament) %> von 6
+    </div>
+  </div>
+</div>
+
+<!-- Wizard Steps -->
+<div class="wizard-steps">
+
+  <!-- Schritt 1: Setzliste aktualisieren -->
+  <%= render 'wizard_step',
+      number: 1,
+      title: I18n.t("tournaments.show.define_participants", default: "Setzliste aktualisieren"),
+      status: wizard_step_status(tournament, 1),
+      action: {
+        text: wizard_step_status(tournament, 1) == :completed ? 'Erneut bearbeiten' : 'Spieler bearbeiten',
+        path: define_participants_tournament_path(tournament),
+        method: :get
+      },
+      info: seedings_info_text(tournament),
+      help: "Laden Sie Spieler von der ClubCloud oder fügen Sie manuell Spieler hinzu/entfernen." %>
+
+  <!-- Schritt 2: Mit ClubCloud synchronisieren -->
+  <% if tournament.organizer.is_a?(Region) %>
+    <%= render 'wizard_step',
+        number: 2,
+        title: I18n.t("tournaments.show.reload_from_club_cloud", default: "Mit ClubCloud synchronisieren"),
+        status: wizard_step_status(tournament, 2),
+        action: {
+          text: 'Jetzt synchronisieren',
+          path: reload_from_cc_tournament_path(tournament),
+          method: :post
+        },
+        info: sync_info_text(tournament),
+        help: "Aktualisiert Turnierdaten und Meldeliste von der ClubCloud. Sollte kurz vor dem Turnier nochmal durchgeführt werden." %>
+  <% end %>
+
+  <!-- Schritt 3: Nach Rangliste sortieren -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 3 : 2,
+      title: I18n.t("tournaments.show.order_by_ranking_or_handicap", default: "Nach Rangliste sortieren"),
+      status: wizard_step_status(tournament, 3),
+      action: {
+        text: 'Jetzt sortieren',
+        path: order_by_ranking_or_handicap_tournament_path(tournament),
+        method: :post,
+        class: wizard_step_status(tournament, 3) != :active ? 'opacity-25' : ''
+      },
+      warning: wizard_step_status(tournament, 3) == :active,
+      help: "Sortiert die Spieler automatisch nach ihrer aktuellen Rangliste. Die Reihenfolge kann danach noch manuell angepasst werden." %>
+
+  <!-- Schritt 4: Rangliste abschließen (DANGER!) -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 4 : 3,
+      title: I18n.t("tournaments.show.finish_seeding", default: "Rangliste abschließen"),
+      status: wizard_step_status(tournament, 4),
+      action: {
+        text: 'Rangliste finalisieren',
+        path: finish_seeding_tournament_path(tournament),
+        method: :post,
+        confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nSind Sie sicher, dass die Setzliste vollständig und korrekt ist?",
+        class: wizard_step_status(tournament, 4) != :active ? 'opacity-25' : ''
+      },
+      danger: true,
+      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die Setzliste wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet." %>
+
+  <!-- Schritt 5: Turniermodus wählen -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 5 : 4,
+      title: I18n.t("tournaments.show.finalize_tournament_modus", default: "Turniermodus wählen"),
+      status: wizard_step_status(tournament, 5),
+      action: {
+        text: 'Modus auswählen',
+        path: finalize_modus_tournament_path(tournament),
+        method: :get,
+        class: wizard_step_status(tournament, 5) != :active ? 'opacity-25' : ''
+      },
+      info: mode_info_text(tournament),
+      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. Der Modus bestimmt Gruppenaufteilung und K.O.-Runden." %>
+
+  <!-- Schritt 6: Turnier starten -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 6 : 5,
+      title: I18n.t("tournaments.show.mangage_tournament_group_phase", default: "Turnier starten & verwalten"),
+      status: wizard_step_status(tournament, 6),
+      action: {
+        text: tournament.tournament_started? ? 'Turnier-Monitor öffnen' : 'Turnier starten',
+        path: tournament_monitor_tournament_path(tournament),
+        method: :get,
+        class: "#{wizard_step_status(tournament, 6) != :active ? 'opacity-25' : ''} #{tournament.tournament_started? ? 'btn-success' : ''}"
+      },
+      warning: wizard_step_status(tournament, 6) == :active && !tournament.tournament_started?,
+      help: "Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen." %>
+
+</div>
+
+<!-- Troubleshooting Sektion (optional, bei Problemen) -->
+<% if wizard_step_status(tournament, 2) == :active && tournament.organizer.is_a?(Region) %>
+  <div class="troubleshooting-container">
+    <details class="troubleshooting-details">
+      <summary class="troubleshooting-summary">
+        💡 Hilfe & häufige Probleme
+      </summary>
+      <div class="troubleshooting-content">
+        <h4>Häufige Situationen:</h4>
+        <ul class="troubleshooting-list">
+          <li>
+            <strong>Location kurzfristig geändert?</strong>
+            <p>Gehen Sie zu <%= link_to 'Turnier bearbeiten', edit_tournament_path(tournament), class: 'text-blue-600 hover:underline' %> und wählen Sie die richtige Location aus.</p>
+          </li>
+          <li>
+            <strong>Spieler kurzfristig hinzugekommen?</strong>
+            <p>In Schritt 1 können Sie auch nach der Synchronisation noch Spieler manuell hinzufügen.</p>
+          </li>
+          <li>
+            <strong>Spieler hat abgesagt?</strong>
+            <p>Markieren Sie den Spieler in der Setzliste als "No Show" (Checkbox rechts).</p>
+          </li>
+          <li>
+            <strong>Teilnehmerzahl hat sich geändert?</strong>
+            <p>Nach Anpassung der Teilnehmerliste wird automatisch ein passender Turniermodus vorgeschlagen.</p>
+          </li>
+        </ul>
+      </div>
+    </details>
+  </div>
+<% end %>
+
+<style>
+.troubleshooting-container {
+  background-color: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.troubleshooting-summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #92400e;
+  user-select: none;
+}
+
+.troubleshooting-summary:hover {
+  color: #78350f;
+}
+
+.troubleshooting-content {
+  margin-top: 1rem;
+  padding-left: 1.5rem;
+}
+
+.troubleshooting-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 0.75rem;
+}
+
+.troubleshooting-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.troubleshooting-list li {
+  margin-bottom: 1rem;
+}
+
+.troubleshooting-list strong {
+  color: #92400e;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.troubleshooting-list p {
+  color: #78350f;
+  font-size: 0.875rem;
+}
+</style>
+

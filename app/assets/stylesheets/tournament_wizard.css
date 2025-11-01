@@ -1,0 +1,256 @@
+/* Tournament Wizard UI Styles */
+
+/* Header */
+.wizard-header {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tournament-icon {
+  font-size: 1.75rem;
+}
+
+/* Progress Bar */
+.wizard-progress {
+  margin-top: 1rem;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  height: 0.75rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: white;
+  height: 100%;
+  transition: width 0.5s ease-out;
+  border-radius: 9999px;
+}
+
+.progress-steps {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.5rem;
+}
+
+/* Wizard Steps Container */
+.wizard-steps {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Individual Step */
+.wizard-step {
+  background-color: white;
+  border: 2px solid;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.wizard-step:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-step-completed {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.wizard-step-active {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.wizard-step-pending {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+  opacity: 0.7;
+}
+
+.wizard-step-danger {
+  border-color: #ef4444;
+}
+
+/* Step Header */
+.wizard-step-header {
+  display: flex;
+  gap: 1rem;
+}
+
+.wizard-step-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.wizard-step-content {
+  flex: 1;
+}
+
+.wizard-step-number-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-number {
+  color: #6b7280;
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+.step-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.step-info {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-top: 0.5rem;
+}
+
+.step-warning {
+  font-size: 0.875rem;
+  color: #ea580c;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.warning-icon {
+  font-size: 1rem;
+}
+
+.step-help {
+  margin-top: 0.75rem;
+}
+
+.step-help details {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.step-help summary {
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.step-help summary:hover {
+  color: #1e40af;
+  text-decoration: underline;
+}
+
+.step-help p {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+  color: #4b5563;
+}
+
+/* Step Actions */
+.wizard-step-actions {
+  margin-top: 1rem;
+  margin-left: 3rem;
+}
+
+.disabled-text {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Button Animation for Active Step */
+.btn-pulse {
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+/* Tournament Details Card */
+.tournament-details-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Seedings Table Container */
+.seedings-table-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.seedings-table-container h2,
+.seedings-table-container h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .wizard-header {
+    padding: 1rem;
+  }
+
+  .wizard-title {
+    font-size: 1.25rem;
+  }
+
+  .wizard-step {
+    padding: 1rem;
+  }
+
+  .wizard-step-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .wizard-step-actions {
+    margin-left: 0;
+  }
+}
+
