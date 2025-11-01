@@ -7,9 +7,10 @@
           <div class="flex flex-1 flex-col">
             <h5>Gruppe <%= n %></h5>
             <% (1..(tournament_plan.players.to_f / tournament_plan.ngroups).ceil).each do |row_no| %>
-              <% if groups["group#{n}"][row_no - 1].present? %>
+              <% player_id = groups["group#{n}"][row_no - 1] %>
+              <% if player_id.present? %>
                 <div class="">
-                  <%= groups["group#{n}"][row_no - 1].andand.fullname %>
+                  <%= Player.find(player_id).fullname %>
                 </div>
               <%- end %>
             <% end %>
