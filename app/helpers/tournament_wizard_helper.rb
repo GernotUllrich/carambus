@@ -5,9 +5,16 @@ module TournamentWizardHelper
   def wizard_current_step(tournament)
     case tournament.state
     when "new_tournament"
-      # Hat noch keine lokalen Seedings -> Schritt 1 (Meldeliste laden)
+      # Schritt 1: Meldeliste laden (ClubCloud-Seedings vorhanden?)
+      has_clubcloud_seedings = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").exists?
+      return 1 unless has_clubcloud_seedings
+      
+      # Schritt 2: Setzliste übernehmen (Lokale Seedings vorhanden?)
       has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").exists?
-      has_local_seedings ? 2 : 1
+      return 2 unless has_local_seedings
+      
+      # Schritt 3: Teilnehmerliste bearbeiten
+      3
     when "accreditation_finished"
       4 # Teilnehmerliste finalisieren
     when "tournament_seeding_finished"
