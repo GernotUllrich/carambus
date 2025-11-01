@@ -74,9 +74,33 @@ module TournamentWizardHelper
   # Sync Info Text
   def sync_info_text(tournament)
     if tournament.sync_date
-      "Zuletzt: #{time_ago_in_words(tournament.sync_date)} her"
+      if sync_needed?(tournament)
+        "⚠️ Zuletzt: #{time_ago_in_words(tournament.sync_date)} her (vor Meldeschluss)"
+      else
+        "✓ Zuletzt: #{time_ago_in_words(tournament.sync_date)} her"
+      end
     else
       "Noch nicht synchronisiert"
+    end
+  end
+  
+  # Prüft ob Synchronisierung notwendig ist
+  def sync_needed?(tournament)
+    return false unless tournament.accredation_end.present?
+    return false unless tournament.sync_date.present?
+    
+    # Sync ist nötig, wenn letzte Sync VOR dem Meldeschluss war
+    tournament.sync_date < tournament.accredation_end
+  end
+  
+  # Sync-Status für Badge
+  def sync_status_badge(tournament)
+    if !tournament.sync_date
+      { text: "Empfohlen", class: "badge-warning" }
+    elsif sync_needed?(tournament)
+      { text: "Empfohlen", class: "badge-warning" }
+    else
+      { text: "Optional", class: "badge-info" }
     end
   end
 

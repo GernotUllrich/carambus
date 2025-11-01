@@ -39,19 +39,69 @@
 
   <!-- Schritt 2: Mit ClubCloud synchronisieren -->
   <% if tournament.organizer.is_a?(Region) %>
-    <%= render 'wizard_step',
-        number: 2,
-        title: I18n.t("tournaments.show.reload_from_club_cloud", default: "Mit ClubCloud synchronisieren"),
-        status: wizard_step_status(tournament, 2),
-        action: {
-          text: 'Jetzt synchronisieren',
-          path: reload_from_cc_tournament_path(tournament),
-          method: :post
-        },
-        info: sync_info_text(tournament),
-        warning: false,
-        danger: false,
-        help: "Aktualisiert Turnierdaten und Meldeliste von der ClubCloud. Sollte kurz vor dem Turnier nochmal durchgeführt werden." %>
+    <div class="wizard-step <%= step_class(wizard_step_status(tournament, 2)) %> wizard-step-optional">
+      <div class="wizard-step-header">
+        <div class="wizard-step-icon">
+          <%= step_icon(wizard_step_status(tournament, 2)) %>
+        </div>
+        <div class="wizard-step-content">
+          <div class="wizard-step-number-title">
+            <span class="step-number">2.</span>
+            <h4 class="step-title"><%= I18n.t("tournaments.show.reload_from_club_cloud", default: "Mit ClubCloud synchronisieren") %></h4>
+            <% badge = sync_status_badge(tournament) %>
+            <span class="status-badge <%= badge[:class] %>"><%= badge[:text] %></span>
+          </div>
+
+          <div class="step-info">
+            <%= sync_info_text(tournament) %>
+          </div>
+
+          <% if tournament.accredation_end %>
+            <div class="step-info" style="margin-top: 0.5rem;">
+              📅 Meldeschluss: <%= l(tournament.accredation_end, format: :short) %>
+            </div>
+          <% end %>
+
+          <% if tournament.source_url.present? %>
+            <div class="step-info" style="margin-top: 0.5rem;">
+              <%= link_to '🔗 In ClubCloud öffnen', tournament.source_url, 
+                  target: '_blank', 
+                  class: 'text-blue-600 hover:underline',
+                  rel: 'noopener' %>
+              <span class="text-gray-500 text-xs ml-2">(zum Vergleich der Meldeliste)</span>
+            </div>
+          <% end %>
+
+          <div class="step-help">
+            <details>
+              <summary>💡 Wann ist Synchronisierung notwendig?</summary>
+              <p>
+                <strong>Notwendig:</strong> Wenn die letzte Synchronisierung VOR dem Meldeschluss war.
+                Nach dem Meldeschluss können sich noch Teilnehmer ummelden.<br><br>
+                
+                <strong>Optional:</strong> Wenn bereits nach dem Meldeschluss synchronisiert wurde.
+                Sie können mit der offiziellen Meldeliste aus der Email des Landessportwartes vergleichen.<br><br>
+                
+                <strong>Tipp:</strong> Öffnen Sie die ClubCloud (Link oben) und vergleichen Sie die Meldeliste
+                visuell mit der unten angezeigten Setzliste.
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step-actions">
+        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
+            method: :post,
+            class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
+        <% if tournament.source_url.present? %>
+          <%= link_to '🔗 ClubCloud öffnen', tournament.source_url,
+              target: '_blank',
+              class: 'btn btn-secondary btn-sm ml-2',
+              rel: 'noopener' %>
+        <% end %>
+      </div>
+    </div>
   <% end %>
 
   <!-- Schritt 3: Nach Rangliste sortieren -->
