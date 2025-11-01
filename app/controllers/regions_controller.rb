@@ -131,8 +131,8 @@ class RegionsController < ApplicationController
   def reload_upcoming_tournaments
     days_ahead = params[:days_ahead]&.to_i || 30
     Version.update_from_carambus_api(scrape_upcoming_tournaments: @region.id, days_ahead: days_ahead)
-    redirect_back fallback_location: tournament_path(params[:tournament_id]),
-                  notice: "✅ Anstehende Turniere vom API Server aktualisiert (nächste #{days_ahead} Tage)"
+    redirect_to region_path(@region),
+                notice: "✅ Anstehende Turniere vom API Server aktualisiert (nächste #{days_ahead} Tage)"
   end
 
   private
