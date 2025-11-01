@@ -880,29 +880,55 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
     player_rankings.joins(:discipline).exists?
   end
 
-  # Lädt anstehende Turniere vom API Server
-  # Schneller als reload_tournaments (nur nächste X Tage)
-  def update_upcoming_tournaments_from_api(days_ahead: 30)
-    Rails.logger.info "===== update_upcoming ===== Requesting upcoming tournaments from API for #{shortname}"
+  # Scraped nur anstehende Turniere (nächste N Tage)
+  # NUR auf API Server (nicht auf local_server)
+  def scrape_upcoming_tournaments(days_ahead: 30)
+    return { success: false, error: "Nur auf API Server verfügbar" } if local_server?
+    return { success: false, error: "Keine ClubCloud URL" } unless public_cc_url_base.present?
+    
+    Rails.logger.info "===== scrape_upcoming ===== #{shortname}: next #{days_ahead} days"
+    
+    url = public_cc_url_base
+    current_season = Season.current_season
+    count = 0
+    
+    einzel_url = url + "sb_einzelergebnisse.php?p=#{cc_id}--#{current_season.name}-----1-1-100000-"
+    Rails.logger.info "===== scrape_upcoming ===== Reading #{einzel_url}"
     
     begin
-      # Anfrage an API Server mit neuem Parameter
-      result = Version.update_from_carambus_api(
-        reload_upcoming_tournaments: id,
-        days_ahead: days_ahead
-      )
+      uri = URI(einzel_url)
+      einzel_html = Net::HTTP.get(uri)
+      einzel_doc = Nokogiri::HTML(einzel_html)
       
-      {
-        success: true,
-        message: "Anstehende Turniere vom API Server aktualisiert"
-      }
+      einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+        begin
+          date_str = tr.css("td")[1]&.text
+          next unless date_str.present?
+          
+          date = DateTime.parse(date_str) rescue next
+          next unless date.between?(Date.today, Date.today + days_ahead.days)
+          
+          tournament_link = tr.css("a")[0]&.attributes&.[]("href")&.value
+          next unless tournament_link.present?
+          
+          params = tournament_link.split("p=")[1]&.split("-")
+          tournament_cc_id = params[3].to_i
+          name = tr.css("a")[0].text.strip
+          
+          Rails.logger.info "===== scrape_upcoming ===== #{name} (#{date.to_date})"
+          
+          # Nutze bestehende Methode mit Filter auf spezifisches Turnier
+          scrape_tournaments_check(current_season, tournament_cc_id: tournament_cc_id)
+          count += 1
+        rescue StandardError => e
+          Rails.logger.error "===== scrape_upcoming ===== Error: #{e.message}"
+        end
+      end
+      
+      { success: true, count: count }
     rescue StandardError => e
-      Rails.logger.error "===== update_upcoming ===== Error: #{e.message}"
-      
-      {
-        success: false,
-        error: e.message
-      }
+      Rails.logger.error "===== scrape_upcoming ===== Fatal: #{e.message}"
+      { success: false, error: e.message }
     end
   end
 

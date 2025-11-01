@@ -167,11 +167,13 @@ class Version < PaperTrail::Version
     region_id ||= opts[:reload_leagues]
     region_id ||= opts[:reload_leagues_with_details]
     region_id ||= opts[:update_region_from_cc]
+    region_id ||= opts[:scrape_upcoming_tournaments]
     league_id = opts[:update_league_from_cc]
     club_id = opts[:update_club_from_cc]
     force = opts[:force]
     player_details = opts[:player_details]
     league_details = opts[:league_details]
+    days_ahead = opts[:days_ahead]
     # access_token, token_type = Setting.get_carambus_api_token
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
@@ -186,6 +188,8 @@ class Version < PaperTrail::Version
     }#{
       "&update_region_from_cc=#{region_id}" if opts[:update_region_from_cc].present?
     }#{
+      "&scrape_upcoming_tournaments=#{region_id}" if opts[:scrape_upcoming_tournaments].present?
+    }#{
       "&update_club_from_cc=#{club_id}" if club_id.present?
     }#{
       "&update_league_from_cc=#{league_id}" if league_id.present?
@@ -197,6 +201,8 @@ class Version < PaperTrail::Version
       "&region_id=#{opts[:region_id]}" if opts[:region_id].present?
     }#{
       "&league_details=#{league_details}" if league_details
+    }#{
+      "&days_ahead=#{days_ahead}" if days_ahead
     }&season_id=#{Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)

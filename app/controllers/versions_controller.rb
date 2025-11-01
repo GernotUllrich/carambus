@@ -74,6 +74,10 @@ class VersionsController < ApplicationController
     elsif (region_id = params[:update_region_from_cc]).present?
       @region = Region.find(region_id)
       @region.scrape_clubs(player_details: player_details)
+    elsif (region_id = params[:scrape_upcoming_tournaments]).present?
+      @region = Region.find(region_id)
+      days_ahead = params[:days_ahead]&.to_i || 30
+      @region.scrape_upcoming_tournaments(days_ahead: days_ahead)
     elsif (region_id = params[:reload_tournaments]).present?
       @region = Region.find(region_id)
       @region.scrape_single_tournament_public(Season[params[:season_id]])

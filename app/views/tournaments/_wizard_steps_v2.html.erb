@@ -91,16 +91,32 @@
           <summary class="cursor-pointer text-sm font-semibold text-yellow-800">
             ⚠️ Turnier nicht gefunden? Hier klicken für Hilfe
           </summary>
-          <div class="mt-3 text-sm text-yellow-900 space-y-2">
-            <p>Falls Ihr Turnier kurzfristig auf der ClubCloud hinzugefügt wurde:</p>
-            <%= button_to '🔄 Alle Turniere vom API Server aktualisieren', 
-                reload_tournaments_region_path(tournament.organizer),
-                method: :post,
-                class: 'btn btn-sm btn-warning mt-2',
-                data: { disable_with: 'Wird geladen... (kann 1-2 Minuten dauern)' } %>
-            <p class="text-xs text-yellow-700 mt-1">
-              Lädt alle Turniere der Region vom Carambus API Server
-            </p>
+          <div class="mt-3 text-sm text-yellow-900 space-y-3">
+            <div>
+              <p class="font-semibold mb-1">Empfohlen: Nur anstehende Turniere aktualisieren</p>
+              <%= button_to '🔄 Anstehende Turniere laden (nächste 30 Tage)', 
+                  reload_upcoming_tournaments_region_path(tournament.organizer),
+                  method: :post,
+                  class: 'btn btn-sm btn-warning',
+                  data: { disable_with: 'API scraped...' },
+                  params: { days_ahead: 30, tournament_id: tournament.id } %>
+              <p class="text-xs text-yellow-700 mt-1">
+                ⏱️ Schnell (10-30 Sekunden) - Nur Turniere der nächsten 30 Tage
+              </p>
+            </div>
+            
+            <div class="border-t border-yellow-300 pt-2">
+              <p class="font-semibold mb-1">Alternative: Alle Turniere aktualisieren</p>
+              <%= button_to '🔄 Alle Turniere vom API Server laden', 
+                  reload_tournaments_region_path(tournament.organizer),
+                  method: :post,
+                  class: 'btn btn-sm btn-outline-warning',
+                  data: { disable_with: 'API scraped alle... (1-2 Minuten)' },
+                  params: { tournament_id: tournament.id } %>
+              <p class="text-xs text-yellow-700 mt-1">
+                ⏱️ Langsamer - Alle Turniere der Region
+              </p>
+            </div>
           </div>
         </details>
       </div>
