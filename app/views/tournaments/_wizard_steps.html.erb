@@ -33,6 +33,8 @@
         method: :get
       },
       info: seedings_info_text(tournament),
+      warning: false,
+      danger: false,
       help: "Laden Sie Spieler von der ClubCloud oder fügen Sie manuell Spieler hinzu/entfernen." %>
 
   <!-- Schritt 2: Mit ClubCloud synchronisieren -->
@@ -47,6 +49,8 @@
           method: :post
         },
         info: sync_info_text(tournament),
+        warning: false,
+        danger: false,
         help: "Aktualisiert Turnierdaten und Meldeliste von der ClubCloud. Sollte kurz vor dem Turnier nochmal durchgeführt werden." %>
   <% end %>
 
@@ -61,7 +65,9 @@
         method: :post,
         class: wizard_step_status(tournament, 3) != :active ? 'opacity-25' : ''
       },
+      info: nil,
       warning: wizard_step_status(tournament, 3) == :active,
+      danger: false,
       help: "Sortiert die Spieler automatisch nach ihrer aktuellen Rangliste. Die Reihenfolge kann danach noch manuell angepasst werden." %>
 
   <!-- Schritt 4: Rangliste abschließen (DANGER!) -->
@@ -76,6 +82,8 @@
         confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nSind Sie sicher, dass die Setzliste vollständig und korrekt ist?",
         class: wizard_step_status(tournament, 4) != :active ? 'opacity-25' : ''
       },
+      info: nil,
+      warning: false,
       danger: true,
       help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die Setzliste wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet." %>
 
@@ -91,6 +99,8 @@
         class: wizard_step_status(tournament, 5) != :active ? 'opacity-25' : ''
       },
       info: mode_info_text(tournament),
+      warning: false,
+      danger: false,
       help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. Der Modus bestimmt Gruppenaufteilung und K.O.-Runden." %>
 
   <!-- Schritt 6: Turnier starten -->
@@ -104,7 +114,9 @@
         method: :get,
         class: "#{wizard_step_status(tournament, 6) != :active ? 'opacity-25' : ''} #{tournament.tournament_started? ? 'btn-success' : ''}"
       },
+      info: nil,
       warning: wizard_step_status(tournament, 6) == :active && !tournament.tournament_started?,
+      danger: false,
       help: "Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen." %>
 
 </div>

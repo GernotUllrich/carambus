@@ -11,6 +11,14 @@
   - danger: Boolean - markiert als gefährliche Aktion (optional)
   - help: Hilfetext (optional)
 %>
+<%
+  # Set defaults for optional parameters using local_assigns
+  info = local_assigns.fetch(:info, nil)
+  warning = local_assigns.fetch(:warning, false)
+  danger = local_assigns.fetch(:danger, false)
+  help = local_assigns.fetch(:help, nil)
+  action = local_assigns.fetch(:action, nil)
+%>
 
 <div class="wizard-step <%= step_class(status) %> <%= 'wizard-step-danger' if danger %>">
   <div class="wizard-step-header">
