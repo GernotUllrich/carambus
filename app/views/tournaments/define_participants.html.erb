@@ -44,12 +44,13 @@
           </thead>
           <tbody>
           <%= custom_link_to "zurück", @tournament %>
-          <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
-          <%- club_players = players.sort_by { |player| player.fl_name }.to_a %>
+          <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
+          <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
+          <%- club_players = players.uniq.sort_by { |player| player.fl_name }.to_a %>
           <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a %>
           <%# TODO - seedings on club tournaments not finalized !!%>
           <%- (club_players + guest_players).each do |player| %>
-            <%- seeding = @tournament.seedings.where(player_id: player.id).first %>
+            <%- seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first %>
             <tr>
               <td><%= player.fullname %></td>
               <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
