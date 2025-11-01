@@ -7,8 +7,8 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI -->
-  <%= render 'wizard_steps', tournament: @tournament %>
+  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) -->
+  <%= render 'wizard_steps_v2', tournament: @tournament %>
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
   

@@ -5,9 +5,11 @@ module TournamentWizardHelper
   def wizard_current_step(tournament)
     case tournament.state
     when "new_tournament"
-      1 # Setzliste aktualisieren
+      # Hat noch keine lokalen Seedings -> Schritt 1 (Meldeliste laden)
+      has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").exists?
+      has_local_seedings ? 2 : 1
     when "accreditation_finished"
-      3 # Rangliste abschließen (Sortierung bereits erfolgt)
+      4 # Teilnehmerliste finalisieren
     when "tournament_seeding_finished"
       5 # Turniermodus wählen
     when "tournament_mode_defined"

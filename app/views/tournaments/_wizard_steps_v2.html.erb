@@ -1,0 +1,194 @@
+<!-- Tournament Wizard Steps UI - Version 2 mit neuer Reihenfolge -->
+
+<!-- Wizard Header mit Progress -->
+<div class="wizard-header">
+  <h2 class="wizard-title">
+    <span class="tournament-icon">🎯</span>
+    Turnier-Setup: <%= tournament.title %>
+  </h2>
+  <div class="wizard-progress">
+    <div class="progress-text">
+      Status: <%= wizard_status_text(tournament) %>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" style="width: <%= wizard_progress_percent(tournament) %>%"></div>
+    </div>
+    <div class="progress-steps">
+      Schritt <%= wizard_current_step(tournament) %> von 6
+    </div>
+  </div>
+</div>
+
+<!-- Wizard Steps -->
+<div class="wizard-steps">
+
+  <!-- Schritt 1: Meldeliste von ClubCloud laden -->
+  <% if tournament.organizer.is_a?(Region) %>
+    <div class="wizard-step <%= step_class(wizard_step_status(tournament, 1)) %> wizard-step-optional">
+      <div class="wizard-step-header">
+        <div class="wizard-step-icon">
+          <%= step_icon(wizard_step_status(tournament, 1)) %>
+        </div>
+        <div class="wizard-step-content">
+          <div class="wizard-step-number-title">
+            <span class="step-number">1.</span>
+            <h4 class="step-title">Meldeliste von ClubCloud laden</h4>
+            <% if wizard_step_status(tournament, 1) == :completed %>
+              <span class="status-badge badge-success">Geladen</span>
+            <% elsif sync_needed?(tournament) %>
+              <span class="status-badge badge-warning">Empfohlen</span>
+            <% else %>
+              <span class="status-badge badge-info">Optional</span>
+            <% end %>
+          </div>
+
+          <div class="step-info">
+            Lädt die <strong>Meldeliste</strong> (wer hat sich gemeldet) von der ClubCloud
+          </div>
+
+          <div class="step-info" style="margin-top: 0.5rem;">
+            <%= sync_info_text(tournament) %>
+          </div>
+
+          <% if tournament.accredation_end %>
+            <div class="step-info" style="margin-top: 0.5rem;">
+              📅 Meldeschluss: <%= l(tournament.accredation_end, format: :short) %>
+            </div>
+          <% end %>
+
+          <div class="step-help">
+            <details>
+              <summary>💡 Was ist die Meldeliste?</summary>
+              <p>
+                Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier 
+                <em>angemeldet</em> haben. Diese Liste kommt von der ClubCloud und wird täglich 
+                bis zum Meldeschluss aktualisiert.<br><br>
+                
+                <strong>Nicht verwechseln mit:</strong><br>
+                • <strong>Setzliste</strong> = Reihenfolge nach Ranking (kommt in Schritt 2)<br>
+                • <strong>Teilnehmerliste</strong> = Wer tatsächlich da ist (Schritt 3)
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step-actions">
+        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
+            method: :post,
+            class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
+        <% if tournament.source_url.present? %>
+          <%= link_to '🔗 ClubCloud öffnen', tournament.source_url,
+              target: '_blank',
+              class: 'btn btn-secondary btn-sm ml-2',
+              rel: 'noopener' %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Schritt 2: Setzliste aus Einladung übernehmen (NEU!) -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 2 : 1,
+      title: "Setzliste aus Einladung übernehmen",
+      status: wizard_step_status(tournament, 2),
+      action: {
+        text: tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
+        path: compare_seedings_tournament_path(tournament),
+        method: :get
+      },
+      info: tournament.data['invitation_filename'].present? ? 
+            "✓ Einladung hochgeladen: #{tournament.data['invitation_filename']}" : 
+            "Laden Sie die PDF-Einladung oder Screenshot hoch",
+      warning: wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present?,
+      danger: false,
+      help: "Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. 
+             Carambus extrahiert automatisch die <strong>Setzliste</strong> (Reihenfolge nach Ranking). 
+             Unterstützt PDF oder Screenshot (PNG/JPG)." %>
+
+  <!-- Schritt 3: Teilnehmerliste bearbeiten (vor Ort!) -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 3 : 2,
+      title: "Teilnehmerliste bearbeiten (am Turniertag)",
+      status: wizard_step_status(tournament, 3),
+      action: {
+        text: 'Teilnehmer prüfen',
+        path: define_participants_tournament_path(tournament),
+        method: :get
+      },
+      info: seedings_info_text(tournament),
+      warning: wizard_step_status(tournament, 3) == :active,
+      danger: false,
+      help: "Passen Sie die <strong>Teilnehmerliste</strong> an (wer ist tatsächlich da?):<br>
+             • No-Shows markieren (Spieler nicht erschienen)<br>
+             • Kurzfristige Nachmeldungen hinzufügen<br>
+             • Reihenfolge manuell anpassen falls nötig" %>
+
+  <!-- Schritt 4: Teilnehmerliste finalisieren -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 4 : 3,
+      title: "Teilnehmerliste finalisieren",
+      status: wizard_step_status(tournament, 4),
+      action: {
+        text: 'Teilnehmerliste abschließen',
+        path: finish_seeding_tournament_path(tournament),
+        method: :post,
+        confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nIst die Teilnehmerliste vollständig und korrekt?",
+        class: wizard_step_status(tournament, 4) != :active ? 'opacity-25' : ''
+      },
+      info: nil,
+      warning: false,
+      danger: true,
+      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong> 
+             wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet." %>
+
+  <!-- Schritt 5: Turniermodus wählen -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 5 : 4,
+      title: I18n.t("tournaments.show.finalize_tournament_modus", default: "Turniermodus wählen"),
+      status: wizard_step_status(tournament, 5),
+      action: {
+        text: 'Modus auswählen',
+        path: finalize_modus_tournament_path(tournament),
+        method: :get,
+        class: wizard_step_status(tournament, 5) != :active ? 'opacity-25' : ''
+      },
+      info: mode_info_text(tournament),
+      warning: false,
+      danger: false,
+      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. 
+             Der Modus bestimmt Gruppenaufteilung und K.O.-Runden." %>
+
+  <!-- Schritt 6: Turnier starten -->
+  <%= render 'wizard_step',
+      number: tournament.organizer.is_a?(Region) ? 6 : 5,
+      title: I18n.t("tournaments.show.mangage_tournament_group_phase", default: "Turnier starten & verwalten"),
+      status: wizard_step_status(tournament, 6),
+      action: {
+        text: tournament.tournament_started? ? 'Turnier-Monitor öffnen' : 'Turnier starten',
+        path: tournament_monitor_tournament_path(tournament),
+        method: :get,
+        class: "#{wizard_step_status(tournament, 6) != :active ? 'opacity-25' : ''} #{tournament.tournament_started? ? 'btn-success' : ''}"
+      },
+      info: nil,
+      warning: wizard_step_status(tournament, 6) == :active && !tournament.tournament_started?,
+      danger: false,
+      help: "Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen." %>
+
+</div>
+
+<!-- Hilfe-Box -->
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+  <h4 class="font-semibold text-blue-900 mb-2">📖 Begriffserklärung</h4>
+  <dl class="text-sm text-blue-800 space-y-2">
+    <dt class="font-semibold">Meldeliste:</dt>
+    <dd class="ml-4">Wer hat sich für das Turnier <em>angemeldet</em> (aus ClubCloud)</dd>
+    
+    <dt class="font-semibold">Setzliste:</dt>
+    <dd class="ml-4">Offizielle <em>Reihenfolge</em> nach Ranking (aus Einladung vom Landessportwart)</dd>
+    
+    <dt class="font-semibold">Teilnehmerliste:</dt>
+    <dd class="ml-4">Wer ist <em>tatsächlich da</em> am Turniertag (= Setzliste ± Änderungen)</dd>
+  </dl>
+</div>
+

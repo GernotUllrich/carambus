@@ -1,0 +1,152 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-6xl mx-auto">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold">
+        Setzliste übernehmen: <%= @tournament.title %>
+      </h1>
+      <%= link_to '← Zurück', tournament_path(@tournament), class: 'btn btn-secondary' %>
+    </div>
+
+    <!-- Erklärung -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold text-blue-900 mb-2">💡 So funktioniert's:</h3>
+      <ol class="list-decimal list-inside text-blue-800 space-y-1">
+        <li>Laden Sie die <strong>offizielle Einladung</strong> (PDF oder Screenshot) hoch</li>
+        <li>Carambus extrahiert automatisch die <strong>Setzliste</strong></li>
+        <li>Sie prüfen und bestätigen die erkannten Spieler</li>
+        <li>Die Reihenfolge wird übernommen</li>
+      </ol>
+    </div>
+
+    <!-- Upload-Bereich -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">📧 Offizielle Einladung hochladen</h2>
+      
+      <% if @tournament.data['invitation_filename'].present? %>
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-green-800">
+                ✅ Einladung vorhanden: <strong><%= @tournament.data['invitation_filename'] %></strong>
+              </p>
+            </div>
+            <div>
+              <%= link_to 'Erneut parsen', parse_invitation_tournament_path(@tournament), 
+                  class: 'btn btn-primary btn-sm' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%= form_with url: upload_invitation_tournament_path(@tournament), method: :post, 
+          multipart: true, local: true, class: 'space-y-4' do |f| %>
+        
+        <div class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition">
+          <div class="mb-4">
+            <span class="text-6xl">📄</span>
+          </div>
+          
+          <%= f.file_field :invitation_file, 
+              accept: 'application/pdf,image/png,image/jpeg',
+              class: 'hidden',
+              id: 'invitation-upload',
+              onchange: 'updateFileName(this)' %>
+          
+          <label for="invitation-upload" class="cursor-pointer">
+            <span class="btn btn-primary">
+              Datei auswählen
+            </span>
+          </label>
+          
+          <p class="text-gray-600 mt-2" id="selected-file-name">
+            PDF oder Screenshot (PNG, JPG)
+          </p>
+          
+          <p class="text-sm text-gray-500 mt-4">
+            Unterstützte Formate: PDF, PNG, JPEG<br>
+            Die Setzliste wird automatisch extrahiert!
+          </p>
+        </div>
+
+        <div class="flex justify-end">
+          <%= f.submit 'Hochladen & automatisch parsen', 
+              class: 'btn btn-primary btn-lg',
+              data: { disable_with: 'Wird verarbeitet...' } %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Alternative: ClubCloud-Reihenfolge -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">📊 Alternative: ClubCloud-Reihenfolge verwenden</h2>
+      
+      <div class="flex items-start gap-4">
+        <div class="flex-1">
+          <p class="text-gray-700 mb-4">
+            Falls keine Einladung vorliegt, können Sie die aktuelle Reihenfolge
+            aus der ClubCloud übernehmen.
+          </p>
+          
+          <% if @tournament.source_url.present? %>
+            <%= link_to '🔗 ClubCloud öffnen (zum Vergleich)', @tournament.source_url,
+                target: '_blank',
+                class: 'btn btn-secondary mb-4',
+                rel: 'noopener' %>
+          <% end %>
+          
+          <% if @clubcloud_seedings.any? %>
+            <div class="bg-gray-50 p-4 rounded">
+              <h4 class="font-semibold mb-2">ClubCloud-Meldeliste:</h4>
+              <ol class="list-decimal list-inside">
+                <% @clubcloud_seedings.each do |seeding| %>
+                  <li><%= seeding.player.fullname %></li>
+                <% end %>
+              </ol>
+            </div>
+            
+            <%= form_with url: apply_seeding_order_tournament_path(@tournament), method: :post do |f| %>
+              <%= hidden_field_tag 'seeding_order[]', @clubcloud_seedings.map(&:player_id) %>
+              <%= f.submit 'Diese Reihenfolge übernehmen', 
+                  class: 'btn btn-outline-primary mt-4',
+                  data: { confirm: 'ClubCloud-Reihenfolge als Setzliste übernehmen?' } %>
+            <% end %>
+          <% else %>
+            <p class="text-gray-500 italic">Keine ClubCloud-Daten verfügbar</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manuelle Sortierung -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">✏️ Alternative: Manuell sortieren</h2>
+      
+      <p class="text-gray-700 mb-4">
+        Oder sortieren Sie die Liste automatisch nach aktueller Rangliste:
+      </p>
+      
+      <%= button_to 'Nach Rangliste sortieren', 
+          order_by_ranking_or_handicap_tournament_path(@tournament),
+          method: :post,
+          class: 'btn btn-outline-primary',
+          disabled: !%w{new_tournament accreditation_finished}.include?(@tournament.state) %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function updateFileName(input) {
+  const fileName = input.files[0]?.name || 'PDF oder Screenshot (PNG, JPG)';
+  document.getElementById('selected-file-name').textContent = fileName;
+}
+</script>
+
+<style>
+.upload-area:hover {
+  background-color: #f8fafc;
+}
+</style>
+

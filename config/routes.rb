@@ -210,6 +210,10 @@ Rails.application.routes.draw do
       get :placement
       get :new_team
       post :add_team
+      get :compare_seedings
+      post :upload_invitation
+      get :parse_invitation
+      post :apply_seeding_order
     end
   end
   resources :users

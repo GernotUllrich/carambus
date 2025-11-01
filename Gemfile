@@ -150,3 +150,9 @@ gem 'rouge', '~> 3.26'
 
 # OpenAI API integration for AI-powered search
 gem 'ruby-openai', '~> 7.3'
+
+# PDF text extraction for tournament invitation parsing
+gem 'pdf-reader', '~> 2.12'
+
+# OCR for screenshot/image text extraction (requires tesseract-ocr system package)
+gem 'rtesseract', '~> 3.1'

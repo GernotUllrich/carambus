@@ -2,7 +2,8 @@ class TournamentsController < ApplicationController
   include FiltersHelper
   before_action :set_tournament,
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
-                         finalize_modus select_modus tournament_monitor reset start define_participants add_team placement]
+                         finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
+                         upload_invitation parse_invitation apply_seeding_order compare_seedings]
 
   # GET /tournaments
   def index
@@ -316,6 +317,92 @@ class TournamentsController < ApplicationController
       redirect_to define_participants_tournament_path(@tournament)
     rescue StandardError => e
       Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
+    end
+  end
+
+  # GET /tournaments/:id/compare_seedings
+  def compare_seedings
+    @local_seedings = @tournament.seedings
+                                 .where("seedings.id >= #{Seeding::MIN_ID}")
+                                 .order(:position)
+    @clubcloud_seedings = @tournament.seedings
+                                     .where("seedings.id < #{Seeding::MIN_ID}")
+                                     .order(:position)
+  end
+
+  # POST /tournaments/:id/upload_invitation
+  def upload_invitation
+    if params[:invitation_file].present?
+      uploaded_file = params[:invitation_file]
+      
+      # Speichere temporär
+      file_path = Rails.root.join('tmp', "invitation_#{@tournament.id}#{File.extname(uploaded_file.original_filename)}")
+      File.open(file_path, 'wb') do |file|
+        file.write(uploaded_file.read)
+      end
+      
+      # Speichere Pfad im Tournament
+      @tournament.update(data: @tournament.data.merge({
+        'invitation_file_path' => file_path.to_s,
+        'invitation_filename' => uploaded_file.original_filename
+      }))
+      
+      # Automatisch parsen
+      redirect_to parse_invitation_tournament_path(@tournament)
+    else
+      flash[:alert] = "Bitte wählen Sie eine Datei aus"
+      redirect_to compare_seedings_tournament_path(@tournament)
+    end
+  end
+
+  # GET /tournaments/:id/parse_invitation
+  def parse_invitation
+    file_path = @tournament.data['invitation_file_path']
+    
+    if file_path.blank? || !File.exist?(file_path)
+      flash[:alert] = "Keine Einladung hochgeladen"
+      redirect_to compare_seedings_tournament_path(@tournament) and return
+    end
+    
+    # Extrahiere Setzliste
+    @extraction_result = SeedingListExtractor.extract_from_file(file_path)
+    
+    if @extraction_result[:success]
+      # Matched mit Datenbank
+      @match_result = SeedingListExtractor.match_with_database(
+        @extraction_result[:players],
+        @tournament
+      )
+    end
+    
+    # Zeige Ergebnis
+    render :parse_invitation
+  end
+
+  # POST /tournaments/:id/apply_seeding_order
+  def apply_seeding_order
+    seeding_order = params[:seeding_order] # Array von Player IDs in Reihenfolge
+    
+    if seeding_order.present?
+      # Erstelle oder aktualisiere lokale Seedings in der neuen Reihenfolge
+      Seeding.transaction do
+        # Lösche alte lokale Seedings
+        @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+        
+        # Erstelle neue in der richtigen Reihenfolge
+        seeding_order.each_with_index do |player_id, index|
+          @tournament.seedings.create!(
+            player_id: player_id,
+            position: index + 1
+          )
+        end
+      end
+      
+      redirect_to tournament_path(@tournament),
+                  notice: "Setzliste übernommen (#{seeding_order.count} Spieler)"
+    else
+      redirect_to compare_seedings_tournament_path(@tournament),
+                  alert: "Keine Reihenfolge ausgewählt"
     end
   end
 
