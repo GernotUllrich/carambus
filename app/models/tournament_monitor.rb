@@ -171,7 +171,9 @@ class TournamentMonitor < ApplicationRecord
     group_ix = 1
     direction_right = true
     players.each do |player|
-      groups["group#{group_ix}"] << player
+      # Store player ID instead of player object to avoid JSON serialization issues
+      player_id = player.is_a?(Integer) ? player : player.id
+      groups["group#{group_ix}"] << player_id
       if direction_right
         group_ix += 1
         if group_ix > ngroups
@@ -253,7 +255,8 @@ class TournamentMonitor < ApplicationRecord
     groups = TournamentMonitor.distribute_to_group(
       tournament.seedings.where(seeding_scope).order(:position).map(&:player), tournament.tournament_plan.ngroups
     )
-    groups["group#{group_no}"][seeding_index - 1].id
+    # distribute_to_group now returns player IDs directly, not player objects
+    groups["group#{group_no}"][seeding_index - 1]
   end
 
   def random_from_group_ranks(match, ordered_ranking_nos, rule_str)

@@ -338,12 +338,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     Tournament.logger.info "+++007 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
                   end
                   r_no = current_round
-                  seqno1_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |a|
-                    a["id"] == winner1
+                  # groups data now contains player IDs directly, not player hashes
+                  seqno1_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |player_id|
+                    player_id == winner1
                   end + 1
                   looser2 = winner_arr[3].player_id
-                  seqno2_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |a|
-                    a["id"] == looser2
+                  seqno2_a = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |player_id|
+                    player_id == looser2
                   end + 1
                   gname_a = "group#{group_no}:#{[seqno1_a, seqno2_a].sort.map(&:to_s).join("-")}"
                   game_a = tournament.games
@@ -366,12 +367,13 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     Tournament.logger.info "+++010 k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
                   end
                   r_no = current_round
-                  seqno1_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |a|
-                    a["id"] == winner2
+                  # groups data now contains player IDs directly, not player hashes
+                  seqno1_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |player_id|
+                    player_id == winner2
                   end + 1
                   looser1 = winner_arr[2].player_id
-                  seqno2_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |a|
-                    a["id"] == looser1
+                  seqno2_b = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |player_id|
+                    player_id == looser1
                   end + 1
                   gname_b = "group#{group_no}:#{[seqno1_b, seqno2_b].sort.map(&:to_s).join("-")}"
                   game_b = tournament
@@ -410,8 +412,9 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
                     Tournament.logger.info "+++012B k,v = [#{k} => #{executor_params[k].inspect}] t_no = #{t_no}"
                   end
                   r_no = current_round
-                  seqno = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |a|
-                    a["id"] == winner1
+                  # groups data now contains player IDs directly, not player hashes
+                  seqno = tournament.tournament_monitor.data["groups"]["group#{group_no}"].index do |player_id|
+                    player_id == winner1
                   end + 1
                   game = tournament.games
                                    .where.not(games: { id: @placements_done })
