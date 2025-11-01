@@ -29,8 +29,8 @@ if Rails.env.development?
           if uri_or_host.is_a?(URI::Generic)
             uri = uri_or_host
             start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https', :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
-              return http.request_get(uri.request_uri)
-            end.body
+              return http.request_get(uri.request_uri).body
+            end
           else
             original_get(uri_or_host, path, port)
           end
