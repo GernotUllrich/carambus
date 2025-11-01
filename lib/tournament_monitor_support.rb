@@ -88,9 +88,10 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
         }
       }
     }
-    GameParticipation.joins(:game).joins("left outer join tournaments on tournaments.id = games.tournament_id").where(
-      "games.id >= ?", Seeding::MIN_ID
-    ).where.not(games: { tournament_id: nil}).each do |gp|
+    # IMPORTANT: Filter by current tournament to avoid mixing results from other tournaments
+    GameParticipation.joins(:game).where(
+      "games.id >= ? AND games.tournament_id = ?", Seeding::MIN_ID, tournament.id
+    ).each do |gp|
       game = gp.game
       results = gp.data["results"]
       if results.present?
