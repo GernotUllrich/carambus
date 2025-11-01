@@ -159,8 +159,9 @@ module TournamentMonitorState
             Tournament.logger.info "NEW GAME group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
             game = tournament.games.create(gname: "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}",
                                            group_no: group_no)
-            game.game_participations.create(player: @groups["group#{group_no}"][i1 - 1], role: "playera")
-            game.game_participations.create(player: @groups["group#{group_no}"][i2 - 1], role: "playerb")
+            # @groups now contains player IDs, not player objects
+            game.game_participations.create(player_id: @groups["group#{group_no}"][i1 - 1], role: "playera")
+            game.game_participations.create(player_id: @groups["group#{group_no}"][i2 - 1], role: "playerb")
           end
         end
       end
