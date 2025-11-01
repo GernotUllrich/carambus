@@ -883,7 +883,7 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
   # Scraped nur anstehende Turniere (nächste N Tage)
   # NUR auf API Server (nicht auf local_server)
   def scrape_upcoming_tournaments(days_ahead: 30)
-    return { success: false, error: "Nur auf API Server verfügbar" } if local_server?
+    return { success: false, error: "Nur auf API Server verfügbar" } if ApplicationRecord.local_server?
     return { success: false, error: "Keine ClubCloud URL" } unless public_cc_url_base.present?
     
     Rails.logger.info "===== scrape_upcoming ===== #{shortname}: next #{days_ahead} days"
