@@ -92,15 +92,14 @@
             ⚠️ Turnier nicht gefunden? Hier klicken für Hilfe
           </summary>
           <div class="mt-3 text-sm text-yellow-900 space-y-2">
-            <p>Falls Ihr Turnier kurzfristig hinzugefügt wurde:</p>
-            <%= button_to '🔄 Anstehende Turniere aktualisieren', 
-                scrape_upcoming_tournaments_region_path(tournament.organizer),
+            <p>Falls Ihr Turnier kurzfristig auf der ClubCloud hinzugefügt wurde:</p>
+            <%= button_to '🔄 Alle Turniere vom API Server aktualisieren', 
+                reload_tournaments_region_path(tournament.organizer),
                 method: :post,
                 class: 'btn btn-sm btn-warning mt-2',
-                data: { disable_with: 'Wird geladen...' },
-                params: { days_ahead: 30 } %>
+                data: { disable_with: 'Wird geladen... (kann 1-2 Minuten dauern)' } %>
             <p class="text-xs text-yellow-700 mt-1">
-              Lädt nur Turniere der nächsten 30 Tage (schneller als kompletter Region-Scrape)
+              Lädt alle Turniere der Region vom Carambus API Server
             </p>
           </div>
         </details>
