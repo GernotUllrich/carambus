@@ -47,7 +47,138 @@ namespace :tournament_plans do
     test_grouping_algorithm(plan)
   end
   
+  desc "Validate executor_params consistency across all tournament plans"
+  task validate_executor_params: :environment do
+    puts "=" * 80
+    puts "EXECUTOR_PARAMS CONSISTENCY VALIDATION"
+    puts "Prüft alle TournamentPlans auf Tisch-Mehrfachverwendung in Runden"
+    puts "=" * 80
+    puts ""
+    
+    all_plans = TournamentPlan.all.order(:players, :name)
+    total_errors = 0
+    plans_with_errors = []
+    plans_without_params = []
+    plans_ok = []
+    
+    puts "Prüfe #{all_plans.count} TournamentPlan(s)..."
+    puts ""
+    
+    all_plans.each do |plan|
+      unless plan.executor_params.present?
+        plans_without_params << plan
+        next
+      end
+      
+      errors = validate_executor_params_for_plan(plan)
+      if errors.any?
+        total_errors += errors.length
+        plans_with_errors << plan
+      else
+        plans_ok << plan
+      end
+    end
+    
+    if plans_with_errors.any?
+      puts ""
+      puts "❌ FEHLER GEFUNDEN (#{plans_with_errors.length} Plan(s)):"
+    end
+    
+    if plans_ok.any?
+      puts ""
+      puts "✅ OK (#{plans_ok.length} Plan(s)):"
+      plans_ok.each do |plan|
+        puts "   #{plan.name}"
+      end
+    end
+    
+    if plans_without_params.any?
+      puts ""
+      puts "⚠️  OHNE EXECUTOR_PARAMS (#{plans_without_params.length} Plan(s)):"
+      plans_without_params.each do |plan|
+        puts "   #{plan.name}"
+      end
+    end
+    
+    puts ""
+    puts "=" * 80
+    puts "VALIDIERUNG ABGESCHLOSSEN"
+    puts "=" * 80
+    puts ""
+    
+    if total_errors == 0
+      puts "✅ Alle TournamentPlans sind konsistent!"
+      puts "   Keine Tisch-Mehrfachverwendung gefunden."
+    else
+      puts "❌ #{total_errors} Inkonsistenz(en) gefunden in #{plans_with_errors.length} Plan(s):"
+      plans_with_errors.each do |plan|
+        puts "   - #{plan.name} (#{plan.players} Spieler)"
+      end
+      puts ""
+      puts "💡 Diese Plans müssen korrigiert werden, bevor Turniere gestartet werden können."
+    end
+    puts ""
+  end
+  
   private
+  
+  def validate_executor_params_for_plan(plan)
+    errors = []
+    
+    unless plan.executor_params.present?
+      return errors # Keine executor_params = kein Problem
+    end
+    
+    begin
+      executor_params = JSON.parse(plan.executor_params)
+    rescue JSON::ParserError => e
+      puts "  ❌ #{plan.name}: JSON Parse Error: #{e.message}"
+      return ["JSON Parse Error: #{e.message}"]
+    end
+    
+    # Sammle alle Tisch-Zuweisungen pro Runde
+    table_usage = {} # { "r1" => { "t1" => ["g1", "g2"], ... }, ... }
+    
+    executor_params.each_key do |k|
+      next unless (m = k.match(/g(\d+)/))
+      group_no = m[1].to_i
+      sequence = executor_params[k]["sq"]
+      next unless sequence.present? && sequence.is_a?(Hash)
+      
+      sequence.each do |round_key, round_data|
+        next unless round_key.is_a?(String) && round_key.match?(/^r\d+/)
+        next unless round_data.is_a?(Hash)
+        
+        table_usage[round_key] ||= {}
+        round_data.each do |tno_str, game_pair|
+          next unless tno_str.is_a?(String) && tno_str.match?(/^t\d+/)
+          table_usage[round_key][tno_str] ||= []
+          table_usage[round_key][tno_str] << "g#{group_no}"
+        end
+      end
+    end
+    
+    # Prüfe auf mehrfache Verwendung
+    table_usage.each do |round_key, tables|
+      tables.each do |tno_str, groups|
+        if groups.length > 1
+          error_msg = "#{round_key}: #{tno_str} wird mehrfach verwendet (Gruppen: #{groups.join(', ')})"
+          errors << error_msg
+        end
+      end
+    end
+    
+    if errors.any?
+      puts ""
+      puts "  ❌ #{plan.name} (#{plan.players} Spieler, #{plan.ngroups} Gruppen)"
+      puts "     " + "─" * 76
+      errors.each do |error|
+        puts "     • #{error}"
+      end
+    end
+    
+    errors
+  end
   
   def analyze_plan(plan)
     puts ""
