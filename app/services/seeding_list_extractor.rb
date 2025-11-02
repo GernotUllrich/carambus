@@ -181,11 +181,22 @@ class SeedingListExtractor
       end
       
       # Format 2: "T21     Turnier wird im Modus 3 Gruppen à 3, 4 und 4 Spieler"
+      # Verwende \s+ für beliebige Whitespaces (Leerzeichen, Tabs, etc.)
       if (match = line.match(/(T\d+)\s+Turnier\s+wird\s+im\s+Modus\s+(.+)/i))
         plan_name = match[1].upcase
         plan_details = match[2].strip.split(/[,\.]/)[0]  # Bis zum ersten Komma/Punkt
         plan_info = "#{plan_name} - #{plan_details}"
         Rails.logger.info "===== extract_plan_info ===== Found (Format 2): #{plan_info}"
+        return plan_info if plan_info.present?
+      end
+      
+      # Format 3: Direkt "T21" am Zeilenanfang mit Beschreibung
+      if (match = line.match(/^\s*(T\d+)\s+(.+Gruppen.+)/i))
+        plan_name = match[1].upcase
+        # Extrahiere nur bis zum ersten Komma
+        plan_details = match[2].strip.split(',')[0]
+        plan_info = "#{plan_name} - #{plan_details}"
+        Rails.logger.info "===== extract_plan_info ===== Found (Format 3): #{plan_info}"
         return plan_info if plan_info.present?
       end
     end
@@ -205,7 +216,7 @@ class SeedingListExtractor
     lines = text.split("\n")
     in_group_section = false
     group_data = {}
-    group_names = []  # Für Namen-basiertes Format
+    group_names = {}  # Hash statt Array! Für Namen-basiertes Format
     
     lines.each do |line|
       # Start der Gruppenbildung
