@@ -65,20 +65,24 @@
         </table>
       <%- end %>
       
-      <!-- Abschluss-Button für Wizard-Flow -->
+      <!-- Info-Box und Navigation -->
       <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900">✓ Teilnehmerliste bearbeitet?</h4>
+            <h4 class="font-semibold text-blue-900">💡 Info</h4>
             <p class="text-sm text-blue-800">
-              Änderungen werden automatisch gespeichert (per Stimulus Reflex).<br>
+              Änderungen werden <strong>automatisch gespeichert</strong> (per Stimulus Reflex).<br>
+              Sie können jederzeit hierher zurückkehren um weitere Änderungen vorzunehmen.<br>
               <% if @tournament.handicap_tournier %>
-                <strong>Vorgabeturniere:</strong> Vorgaben (Punktziel) sind jetzt gesetzt.
+                <strong>Vorgabeturniere:</strong> Vorgaben (Punktziel) werden sofort gespeichert.
               <% end %>
             </p>
+            <p class="text-sm text-blue-700 mt-2 font-semibold">
+              → Um die Teilnehmerliste abzuschließen, gehen Sie zu <strong>Schritt 4</strong> im Wizard!
+            </p>
           </div>
-          <%= link_to '→ Weiter zu Schritt 4', tournament_path(@tournament), 
-              class: 'btn btn-primary' %>
+          <%= link_to '← Zurück zum Wizard', tournament_path(@tournament), 
+              class: 'btn btn-secondary' %>
         </div>
       </div>
     </div>
