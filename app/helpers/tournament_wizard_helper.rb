@@ -34,7 +34,11 @@ module TournamentWizardHelper
   def wizard_step_status(tournament, step_number)
     current = wizard_current_step(tournament)
 
-    if step_number < current
+    # Spezialfall: Schritt 3 und 4 sind parallel aktiv
+    # Schritt 3 = Bearbeiten, Schritt 4 = Finalisieren
+    if current == 3 && step_number == 4
+      :active  # Finalisieren-Button ist verfügbar während Schritt 3 aktiv ist
+    elsif step_number < current
       :completed
     elsif step_number == current
       :active
