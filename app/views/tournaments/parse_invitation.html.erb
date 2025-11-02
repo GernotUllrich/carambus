@@ -14,12 +14,49 @@
       <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
         <h3 class="font-semibold text-green-900 mb-2">
           ✅ <%= @extraction_result[:count] %> Spieler automatisch erkannt!
+          <% if @extraction_result[:group_assignment].present? %>
+            <span class="ml-2 text-sm">+ Gruppenbildung extrahiert 🎯</span>
+          <% end %>
         </h3>
         <p class="text-green-800">
           Die Setzliste wurde aus der Einladung extrahiert.
+          <% if @extraction_result[:group_assignment].present? %>
+            <br><strong>Bonus:</strong> Die Gruppenzuordnung wurde ebenfalls erkannt und wird automatisch verwendet.
+          <% end %>
           Bitte prüfen Sie die erkannten Spieler und bestätigen Sie die Übernahme.
         </p>
       </div>
+      
+      <!-- Gruppenbildung Preview (wenn extrahiert) -->
+      <% if @extraction_result[:group_assignment].present? %>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 class="font-semibold text-blue-900 mb-3">
+            🎯 Extrahierte Gruppenbildung
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <% @extraction_result[:group_assignment].each do |group_no, player_positions| %>
+              <div class="bg-white p-3 rounded border">
+                <h4 class="font-bold text-blue-900 mb-2">Gruppe <%= group_no %></h4>
+                <ol class="list-decimal list-inside text-sm">
+                  <% player_positions.each do |pos| %>
+                    <% matched = @match_result[:matched].find { |m| m[:position] == pos } %>
+                    <li class="text-blue-800">
+                      <% if matched %>
+                        <%= matched[:player].fullname %>
+                      <% else %>
+                        Spieler <%= pos %>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ol>
+              </div>
+            <% end %>
+          </div>
+          <p class="text-sm text-blue-700 mt-3">
+            💡 Diese Zuordnung wird in Schritt 5 (Turniermodus) verwendet und überschreibt den Standard-Algorithmus.
+          </p>
+        </div>
+      <% end %>
 
       <!-- Matched Players -->
       <div class="bg-white rounded-lg shadow p-6 mb-6">

@@ -123,9 +123,20 @@ class TournamentsController < ApplicationController
                                                                       discipline_id: @tournament.discipline_id
                                                                     }).first
       if @proposed_discipline_tournament_plan.present?
-        @groups = TournamentMonitor.distribute_to_group(
-          @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups
-        )
+        # Option B: Verwende extrahierte Gruppenbildung wenn vorhanden
+        if @tournament.data['extracted_group_assignment'].present?
+          @groups = convert_position_groups_to_player_groups(
+            @tournament.data['extracted_group_assignment'],
+            @tournament
+          )
+          @groups_source = :extracted  # Markiere dass aus Einladung
+        else
+          # Option A: Standard NBV-Algorithmus
+          @groups = TournamentMonitor.distribute_to_group(
+            @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups
+          )
+          @groups_source = :algorithm  # Markiere dass berechnet
+        end
       end
       @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                       .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
@@ -381,6 +392,16 @@ class TournamentsController < ApplicationController
         @extraction_result[:players],
         @tournament
       )
+      
+      # Speichere Gruppenbildung wenn gefunden (Option B)
+      if @extraction_result[:group_assignment].present?
+        @tournament.unprotected = true
+        @tournament.data = @tournament.data.merge({
+          'extracted_group_assignment' => @extraction_result[:group_assignment]
+        })
+        @tournament.save!
+        @tournament.unprotected = false
+      end
     end
     
     # Zeige Ergebnis
@@ -465,6 +486,26 @@ class TournamentsController < ApplicationController
   end
 
   private
+
+  # Konvertiert Positions-basierte Gruppenbildung zu Player-IDs
+  # Input: { 1 => [1, 5, 9], 2 => [2, 6, 10], ... } (Positionen)
+  # Output: { "group1" => [player_id1, player_id5, ...], ... }
+  def convert_position_groups_to_player_groups(position_groups, tournament)
+    seedings = tournament.seedings
+                         .where.not(state: "no_show")
+                         .where("seedings.id >= #{Seeding::MIN_ID}")
+                         .order(:position)
+                         .to_a
+    
+    player_groups = {}
+    position_groups.each do |group_no, positions|
+      player_groups["group#{group_no}"] = positions.map do |pos|
+        seedings[pos - 1]&.player_id  # Position 1 = Index 0
+      end.compact
+    end
+    
+    player_groups
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_tournament

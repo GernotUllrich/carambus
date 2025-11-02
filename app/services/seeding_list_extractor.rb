@@ -152,12 +152,69 @@ class SeedingListExtractor
     # Sortiere nach Position (wichtig wenn zweispaltig durcheinander kam)
     players.sort_by! { |p| p[:position] }
     
+    # Versuche auch Gruppenbildung zu extrahieren
+    group_assignment = extract_group_assignment(text, players.count)
+    
     {
       success: players.any?,
       players: players,
       count: players.count,
+      group_assignment: group_assignment,
       raw_text: text
     }
+  end
+  
+  # Extrahiert Gruppenbildung aus der Einladung
+  def self.extract_group_assignment(text, player_count)
+    # Suche nach "Gruppenbildung" Sektion
+    lines = text.split("\n")
+    in_group_section = false
+    group_data = {}
+    
+    lines.each do |line|
+      # Start der Gruppenbildung
+      if line =~ /Gruppenbildung/i
+        in_group_section = true
+        next
+      end
+      
+      # Ende der Sektion
+      if in_group_section && line =~ /Spielrunde|Tisch\s+\d/i
+        break
+      end
+      
+      # Parse Gruppen-Header: "Gruppe 1 | Gruppe 2 | Gruppe 3 | Gruppe 4"
+      if in_group_section && line =~ /Gruppe\s+\d/i
+        # Extrahiere Gruppennummern
+        group_numbers = line.scan(/Gruppe\s+(\d+)/i).flatten.map(&:to_i)
+        group_numbers.each { |gn| group_data[gn] = [] }
+        next
+      end
+      
+      # Parse Spieler-Zeilen in Gruppen
+      # Format: "Spieler 1 | Spieler 5 | Spieler 9 | Spieler 13"
+      if in_group_section && line =~ /Spieler\s+\d/
+        player_numbers = line.scan(/Spieler\s+(\d+)/i).flatten.map(&:to_i)
+        
+        # Ordne Spieler den Gruppen zu (spaltenweise)
+        player_numbers.each_with_index do |pn, col_index|
+          group_no = col_index + 1
+          group_data[group_no] << pn if group_data[group_no]
+        end
+      end
+    end
+    
+    # Nur zurückgeben wenn plausibel
+    if group_data.any? && group_data.values.flatten.sort == (1..player_count).to_a.sort
+      Rails.logger.info "===== extract_groups ===== Gruppenbildung gefunden: #{group_data.inspect}"
+      group_data
+    else
+      Rails.logger.info "===== extract_groups ===== Keine valide Gruppenbildung gefunden"
+      nil
+    end
+  rescue => e
+    Rails.logger.error "===== extract_groups ===== Error: #{e.message}"
+    nil
   end
   
   # Matched Spieler aus der Datenbank mit der extrahierten Liste
