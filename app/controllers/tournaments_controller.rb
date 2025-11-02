@@ -3,7 +3,7 @@ class TournamentsController < ApplicationController
   before_action :set_tournament,
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
-                         upload_invitation parse_invitation apply_seeding_order compare_seedings]
+                         upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu]
 
   # GET /tournaments
   def index
@@ -385,6 +385,47 @@ class TournamentsController < ApplicationController
     
     # Zeige Ergebnis
     render :parse_invitation
+  end
+
+  # POST /tournaments/:id/add_player_by_dbu
+  def add_player_by_dbu
+    dbu_nr = params[:dbu_nr]
+    
+    if dbu_nr.blank?
+      redirect_to define_participants_tournament_path(@tournament),
+                  alert: "Bitte DBU-Nummer eingeben" and return
+    end
+    
+    # Suche Spieler anhand DBU-Nummer
+    player = Player.find_by(dbu_nr: dbu_nr)
+    
+    unless player
+      redirect_to define_participants_tournament_path(@tournament),
+                  alert: "❌ Kein Spieler mit DBU-Nummer #{dbu_nr} gefunden" and return
+    end
+    
+    # Prüfe ob Spieler bereits in der Teilnehmerliste ist
+    seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+    
+    existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
+    
+    if existing_seeding
+      redirect_to define_participants_tournament_path(@tournament),
+                  notice: "ℹ️ #{player.fullname} ist bereits in der Liste (Position #{existing_seeding.position})" and return
+    end
+    
+    # Füge Spieler ans Ende der Setzliste hinzu
+    max_position = @tournament.seedings.where(seeding_scope).maximum(:position) || 0
+    
+    @tournament.seedings.create!(
+      player_id: player.id,
+      position: max_position + 1
+    )
+    
+    redirect_to define_participants_tournament_path(@tournament),
+                notice: "✅ #{player.fullname} (DBU #{dbu_nr}) als Nachmelder hinzugefügt (Position #{max_position + 1})"
   end
 
   # POST /tournaments/:id/apply_seeding_order
