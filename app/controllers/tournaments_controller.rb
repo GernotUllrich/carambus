@@ -112,7 +112,8 @@ class TournamentsController < ApplicationController
         @tournament.reset_tmt_monitor! if @tournament.tournament_monitor.present?
         
         # Hole Updates vom API Server (inkl. ClubCloud-Seedings)
-        Version.update_from_carambus_api(update_tournament_from_cc: @tournament.id)
+        # WICHTIG: reload_games: false damit API Server die Seedings nicht löscht!
+        Version.update_from_carambus_api(update_tournament_from_cc: @tournament.id, reload_games: false)
       end
     else
       # API Server: Scrape von ClubCloud

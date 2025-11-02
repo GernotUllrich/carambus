@@ -66,7 +66,9 @@ class VersionsController < ApplicationController
     league_details = params[:league_details].presence
     if (tournament_id = params[:update_tournament_from_cc]).present?
       @tournament = Tournament.find(tournament_id)
-      @tournament.scrape_single_tournament_public(reload_game_results: true)
+      # Use reload_game_results parameter from request, default to false (setup mode)
+      reload_games = params[:reload_games] == 'true'
+      @tournament.scrape_single_tournament_public(reload_game_results: reload_games)
     elsif (club_id = params[:update_club_from_cc]).present?
       @club = Club.find(club_id)
       @region = @club&.region

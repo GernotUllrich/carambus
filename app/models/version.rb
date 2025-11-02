@@ -174,11 +174,14 @@ class Version < PaperTrail::Version
     player_details = opts[:player_details]
     league_details = opts[:league_details]
     days_ahead = opts[:days_ahead]
+    reload_games = opts[:reload_games]
     # access_token, token_type = Setting.get_carambus_api_token
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
     }#{
       "&update_tournament_from_cc=#{tournament_id}" if tournament_id.present?
+    }#{
+      "&reload_games=true" if reload_games
     }#{
       "&reload_tournaments=#{region_id}" if opts[:reload_tournaments].present?
     }#{
