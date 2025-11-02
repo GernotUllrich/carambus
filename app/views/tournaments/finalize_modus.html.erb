@@ -32,10 +32,22 @@
           <!-- Info: Gruppenbildung-Quelle -->
           <% if @groups_source == :extracted %>
             <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded">
-              <p class="text-green-900 text-sm">
-                <strong>🎯 Gruppenbildung aus Einladung übernommen</strong><br>
-                Die Zuordnung wurde automatisch aus der hochgeladenen Einladung extrahiert.
-              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-green-900 text-sm">
+                    <strong>🎯 Gruppenbildung aus Einladung übernommen</strong><br>
+                    Die Zuordnung wurde automatisch aus der hochgeladenen Einladung extrahiert.
+                  </p>
+                </div>
+                <div class="flex gap-2">
+                  <%= button_to '🔄 Neu berechnen', 
+                      recalculate_groups_tournament_path(@tournament),
+                      method: :post,
+                      class: 'btn btn-sm btn-secondary',
+                      data: { confirm: 'Extrahierte Gruppenbildung verwerfen und neu berechnen?' },
+                      title: 'Verwirft Einladungs-Zuordnung und berechnet mit NBV-Algorithmus' %>
+                </div>
+              </div>
             </div>
           <% elsif @groups_source == :algorithm %>
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">

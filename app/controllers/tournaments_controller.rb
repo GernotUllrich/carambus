@@ -3,7 +3,8 @@ class TournamentsController < ApplicationController
   before_action :set_tournament,
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
-                         upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu]
+                         upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
+                         recalculate_groups]
 
   # GET /tournaments
   def index
@@ -406,6 +407,18 @@ class TournamentsController < ApplicationController
     
     # Zeige Ergebnis
     render :parse_invitation
+  end
+
+  # POST /tournaments/:id/recalculate_groups
+  # Option C: Verwirft extrahierte Gruppenbildung und berechnet neu
+  def recalculate_groups
+    @tournament.unprotected = true
+    @tournament.data = @tournament.data.except('extracted_group_assignment')
+    @tournament.save!
+    @tournament.unprotected = false
+    
+    redirect_to finalize_modus_tournament_path(@tournament),
+                notice: "✅ Gruppenbildung neu berechnet (NBV-Algorithmus)"
   end
 
   # POST /tournaments/:id/add_player_by_dbu

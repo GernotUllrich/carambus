@@ -215,6 +215,7 @@ Rails.application.routes.draw do
       get :parse_invitation
       post :apply_seeding_order
       post :add_player_by_dbu
+      post :recalculate_groups
     end
   end
   resources :users
