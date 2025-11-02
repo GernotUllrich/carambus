@@ -38,7 +38,18 @@
             <p class="text-red-700 text-xs">
               State: <%= @tournament_monitor.state %><br>
               TournamentPlan: <%= @tournament_monitor.tournament.tournament_plan&.name || "nicht gesetzt" %><br>
-              Seedings: <%= @tournament_monitor.tournament.seedings.count %>
+              <% 
+                has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+                seeding_scope = has_local_seedings ? 
+                                "seedings.id >= #{Seeding::MIN_ID}" : 
+                                "seedings.id < #{Seeding::MIN_ID}"
+                used_seedings_count = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).count
+                total_seedings_count = @tournament_monitor.tournament.seedings.count
+              %>
+              Seedings: <%= used_seedings_count %> (von <%= total_seedings_count %> gesamt)<br>
+              <% if used_seedings_count != 11 %>
+                <strong class="text-red-900">⚠️ FEHLER: Erwartet 11 Seedings, gefunden <%= used_seedings_count %></strong>
+              <% end %>
             </p>
             <%= button_to "Turnier zurücksetzen", reset_tournament_path(@tournament_monitor.tournament), method: :post, class: "btn btn-warning mt-2", data: { confirm: "Möchten Sie das Turnier wirklich zurücksetzen? Alle Spiele werden gelöscht." } %>
           </div>

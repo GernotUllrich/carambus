@@ -131,16 +131,25 @@ module TournamentMonitorState
       
       # Intelligentes seeding_scope: Lokale Seedings bevorzugen, sonst ClubCloud
       has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      seeding_scope = has_local_seedings ? 
-                      "seedings.id >= #{Seeding::MIN_ID}" : 
-                      "seedings.id < #{Seeding::MIN_ID}"
+      
+      # Debug: Logging der verwendeten Seedings
+      if has_local_seedings
+        seedings_query = tournament.seedings.where.not(state: "no_show").where("seedings.id >= ?", Seeding::MIN_ID).order(:position)
+      else
+        seedings_query = tournament.seedings.where.not(state: "no_show").where("seedings.id < ?", Seeding::MIN_ID).order(:position)
+      end
+      
+      seedings_count = seedings_query.count
+      Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings: #{seedings_count} (has_local: #{has_local_seedings})"
+      Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings IDs: #{seedings_query.pluck(:id).join(', ')}"
+      
+      if seedings_count == 0
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: Keine Seedings gefunden!"
+        return { "ERROR" => "Keine Seedings gefunden (has_local: #{has_local_seedings})" }
+      end
       
       @groups = TournamentMonitor.distribute_to_group(
-        tournament.seedings
-                  .where.not(state: "no_show")
-                  .where(seeding_scope)
-                  .order(:position)
-                  .map(&:player), 
+        seedings_query.map(&:player), 
         @tournament_plan.andand.ngroups.to_i,
         @tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
       )
