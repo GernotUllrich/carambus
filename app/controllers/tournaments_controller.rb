@@ -137,13 +137,13 @@ class TournamentsController < ApplicationController
       # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
       # Ansonsten ClubCloud-Seedings zählen (verhindert Duplikat-Zählung)
       has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      seeding_scope = has_local_seedings ? 
+      @seeding_scope = has_local_seedings ? 
                         "seedings.id >= #{Seeding::MIN_ID}" : 
                         "seedings.id < #{Seeding::MIN_ID}"
       
       @participant_count = @tournament.seedings
                                       .where.not(state: "no_show")
-                                      .where(seeding_scope)
+                                      .where(@seeding_scope)
                                       .count
       
       # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
@@ -169,7 +169,7 @@ class TournamentsController < ApplicationController
       if @proposed_discipline_tournament_plan.present?
         # Berechne IMMER die NBV-Standard-Gruppenbildung
         @nbv_groups = TournamentMonitor.distribute_to_group(
-          @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+          @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
           @proposed_discipline_tournament_plan.ngroups
         )
         
@@ -214,7 +214,7 @@ class TournamentsController < ApplicationController
       @alternatives_other_disciplines |= [@default_plan]
       @alternatives_other_disciplines |= [@ko_plan]
       @groups = TournamentMonitor.distribute_to_group(
-        @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+        @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
         @default_plan.ngroups
       )
     end
@@ -568,9 +568,15 @@ class TournamentsController < ApplicationController
   # Input: { 1 => [1, 5, 9], 2 => [2, 6, 10], ... } (Positionen)
   # Output: { "group1" => [player_id1, player_id5, ...], ... }
   def convert_position_groups_to_player_groups(position_groups, tournament)
+    # Verwende @seeding_scope wenn verfügbar, sonst intelligente Erkennung
+    scope = @seeding_scope || begin
+      has_local = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+      has_local ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}"
+    end
+    
     seedings = tournament.seedings
                          .where.not(state: "no_show")
-                         .where("seedings.id >= #{Seeding::MIN_ID}")
+                         .where(scope)
                          .order(:position)
                          .to_a
     

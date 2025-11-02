@@ -183,7 +183,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), alternative.ngroups) %>
+              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), alternative.ngroups) %>
               <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
             </div>
           </div>
