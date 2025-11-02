@@ -261,11 +261,30 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     save!
     table_ids = Array(tournament.data["table_ids"].andand.map(&:to_i))
     if table_ids.present?
-      (1..[tournament.tournament_plan.andand.tables.to_i, table_ids.count].min).each do |t_no|
-        table = Table.find(table_ids[t_no - 1])
+      max_tables = [tournament.tournament_plan.andand.tables.to_i, table_ids.count].min
+      Tournament.logger.info "[tmon-initialize_table_monitors] table_ids: #{table_ids.inspect}, max_tables: #{max_tables}"
+      (1..max_tables).each do |t_no|
+        table_id = table_ids[t_no - 1]
+        unless table_id.present?
+          Tournament.logger.warn "[tmon-initialize_table_monitors] WARNING: table_id für Tisch #{t_no} fehlt (table_ids[#{t_no - 1}] = nil)"
+          next
+        end
+        
+        table = Table.find_by(id: table_id)
+        unless table.present?
+          Tournament.logger.error "[tmon-initialize_table_monitors] ERROR: Table[#{table_id}] nicht gefunden für Tisch #{t_no}"
+          next
+        end
+        
         table_monitor = table.table_monitor
-        table_monitor.reset_table_monitor if table_monitor.andand.game.present?
+        unless table_monitor.present?
+          Tournament.logger.error "[tmon-initialize_table_monitors] ERROR: TableMonitor für Table[#{table_id}] nicht gefunden für Tisch #{t_no}"
+          next
+        end
+        
+        table_monitor.reset_table_monitor if table_monitor.game.present?
         table_monitor.update(tournament_monitor: self)
+        Tournament.logger.info "[tmon-initialize_table_monitors] Tisch #{t_no} (Table[#{table_id}]) zugewiesen"
       end
       reload
     else
