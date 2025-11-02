@@ -158,4 +158,37 @@ or (tournament_plans.rulesystem ilike :search)",
     groups = TournamentMonitor.distribute_to_group((1..nplayers).to_a, ngroups)
     (1..ngroups).to_a.map { |gix| groups["group#{gix}"].length }
   end
+  
+  # Extrahiert Gruppengrößen aus executor_params
+  # Returns: [3, 4, 4] für T21 oder nil wenn nicht verfügbar
+  def group_sizes
+    return nil unless executor_params.present?
+    
+    begin
+      params = JSON.parse(executor_params)
+      sizes = []
+      
+      # Suche nach g1, g2, g3, ... mit "pl" (player count)
+      (1..ngroups).each do |gn|
+        group_key = "g#{gn}"
+        if params[group_key].is_a?(Hash) && params[group_key]['pl'].present?
+          sizes << params[group_key]['pl'].to_i
+        else
+          # Wenn eine Gruppe keine Größe hat: nil zurückgeben (Fallback zum alten Algorithmus)
+          return nil
+        end
+      end
+      
+      # Validiere dass Summe stimmt
+      if sizes.sum == players
+        sizes
+      else
+        Rails.logger.warn "TournamentPlan[#{id}].group_sizes: Summe (#{sizes.sum}) != players (#{players})"
+        nil
+      end
+    rescue JSON::ParserError => e
+      Rails.logger.error "TournamentPlan[#{id}].group_sizes: JSON parse error: #{e.message}"
+      nil
+    end
+  end
 end

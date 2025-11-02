@@ -167,10 +167,11 @@ class TournamentsController < ApplicationController
                                                                       }).first
       end
       if @proposed_discipline_tournament_plan.present?
-        # Berechne IMMER die NBV-Standard-Gruppenbildung
+        # Berechne IMMER die NBV-Standard-Gruppenbildung (MIT Gruppengrößen aus executor_params!)
         @nbv_groups = TournamentMonitor.distribute_to_group(
           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
-          @proposed_discipline_tournament_plan.ngroups
+          @proposed_discipline_tournament_plan.ngroups,
+          @proposed_discipline_tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
         )
         
         # Wenn extrahierte Gruppenbildung vorhanden: vergleiche

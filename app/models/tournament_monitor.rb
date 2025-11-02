@@ -163,10 +163,15 @@ class TournamentMonitor < ApplicationRecord
     tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(seqno: nil).map(&:seqno).max.to_i + 1
   end
 
-  def self.distribute_to_group(players, ngroups)
+  def self.distribute_to_group(players, ngroups, group_sizes = nil)
     groups = {}
     (1..ngroups).each do |group_no|
       groups["group#{group_no}"] = []
+    end
+    
+    # Wenn group_sizes gegeben: Verwende size-aware Algorithmus
+    if group_sizes.present? && group_sizes.is_a?(Array)
+      return distribute_with_sizes(players, ngroups, group_sizes)
     end
     
     # NBV-konformer Algorithmus (abhängig von Gruppenzahl)
@@ -208,6 +213,50 @@ class TournamentMonitor < ApplicationRecord
   rescue StandardError => e
     Tournament.logger.info "distribute_to_group(#{players}, #{ngroups}) #{e} #{e.backtrace&.join("\n")}"
     {}
+  end
+  
+  # Verteilt Spieler auf Gruppen mit spezifischen Gruppengrößen
+  # Verwendet Round-Robin aber stoppt wenn Gruppe voll ist
+  def self.distribute_with_sizes(players, ngroups, group_sizes)
+    groups = {}
+    group_fill_count = {}
+    
+    (1..ngroups).each do |group_no|
+      groups["group#{group_no}"] = []
+      group_fill_count[group_no] = 0
+    end
+    
+    players.each_with_index do |player, index|
+      player_id = player.is_a?(Integer) ? player : player.id
+      
+      # Round-Robin Start-Gruppe
+      target_group = (index % ngroups) + 1
+      
+      # Prüfe ob Gruppe schon voll
+      max_size = group_sizes[target_group - 1] || 0
+      if group_fill_count[target_group] >= max_size
+        # Finde nächste verfügbare Gruppe
+        target_group = find_next_available_group(ngroups, group_sizes, group_fill_count)
+      end
+      
+      if target_group
+        groups["group#{target_group}"] << player_id
+        group_fill_count[target_group] += 1
+      else
+        Tournament.logger.warn "distribute_with_sizes: Konnte Spieler #{index + 1} nicht zuordnen!"
+      end
+    end
+    
+    groups
+  end
+  
+  # Findet die nächste Gruppe die noch nicht voll ist
+  def self.find_next_available_group(ngroups, group_sizes, group_fill_count)
+    (1..ngroups).each do |gn|
+      max_size = group_sizes[gn - 1] || 0
+      return gn if group_fill_count[gn] < max_size
+    end
+    nil  # Alle Gruppen voll
   end
 
   private
@@ -269,7 +318,9 @@ class TournamentMonitor < ApplicationRecord
                       "seedings.id< #{Seeding::MIN_ID}"
                     end
     groups = TournamentMonitor.distribute_to_group(
-      tournament.seedings.where(seeding_scope).order(:position).map(&:player), tournament.tournament_plan.ngroups
+      tournament.seedings.where(seeding_scope).order(:position).map(&:player), 
+      tournament.tournament_plan.ngroups,
+      tournament.tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
     )
     # distribute_to_group now returns player IDs directly, not player objects
     groups["group#{group_no}"][seeding_index - 1]
