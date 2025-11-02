@@ -1,218 +1,337 @@
----
----
-title: Individual Tournament Management
-summary: Individual tournament management provides a bridge between tournament planning in ClubCloud, Carambus Scoreboards, and the ClubCloud results service. This document describes the processes in detail.
-version:
-published_at: !ruby/object:ActiveSupport::TimeWithZone
-  utc: 2025-03-05 14:49:55.360649000 Z
-  zone: !ruby/object:ActiveSupport::TimeZone
-    name: Europe/Berlin
-  time: 2025-03-05 15:49:55.360649000 Z
-tags: []
-metadata: {}
-position: 1
-id: 3
----
+# Individual Tournament Management - Wizard System
 
-# Tournament Management
+## Overview
 
-## Account
-For Carambus tournament management, an account with admin rights on the Carambus location server is required.
-This can be set up by the club chairman or [Carambus developer](mailto:gernot.ullrich@gmx.de).
-The URL is derivable from the scoreboard URLs, e.g., in Wedel http://192.168.2.143:3131.
+The new **Wizard System** for tournament management guides you step-by-step through the entire tournament preparation process. Each step is clearly structured and provides context-sensitive help, making it easy for tournament directors to use the system safely, even without technical expertise.
 
-## Synchronization with ClubCloud
+## Access
 
-Tournaments can best be found via `Regional Associations -> Search -> View`.
+A Carambus tournament management account with **admin rights** on the Carambus Location Server is required. This can be set up by the club chairman or [Carambus developer](mailto:gernot.ullrich@gmx.de).
 
-There, the currently known tournaments of the running season are listed. The tournament can be selected via the title.
-If a tournament is not yet listed, this can have several reasons:
+The URL can be derived from the scoreboard URLs, e.g., in Wedel: `http://192.168.2.143:3131`
 
-* The tournament is not yet entered in ClubCloud
-* The central Carambus API server does not yet know the tournament
-* The tournament has not yet been transferred to the local location server
+## The Wizard Workflow
 
-### The tournament is not yet entered in ClubCloud
-It is the task of the state sports supervisor to enter the tournaments with participant lists in ClubCloud.
+The new wizard system consists of **6 main steps** that visually guide you through the entire process:
 
-### The central Carambus API server does not yet know the tournament
-The API server is currently maintained by the Carambus developer (mailto: gernot.ullrich@gmx.de).
-Tournament data from Carambus-using regions are automatically updated daily at 20:00 from the associated regional ClubCloud server.
+### Step 1: Load Registration List from ClubCloud
 
-Local servers always request updates from ClubCloud via the central API server (api.carambus.de).
-This server retrieves data from the various ClubCloud instances. With the specific updates, all updates that have been made on the API server in the meantime are also always transmitted.
+**Goal:** Fetch the participant list from the API server.
 
-### The tournament has not yet been transferred to the local location server
+**What happens here?**
+- The system synchronizes the registration list from ClubCloud
+- Players are automatically recognized and assigned
+- New players are added to the database
 
-A locally non-existent tournament that exists on the API server is automatically loaded with every update request to the API server, because with every request to the API server, the entire database is synchronized.
-Such an explicit request can be, for example, updating club data:
-`Clubs -> Search -> View -> "Data synchronization with ClubCloud with all details"`
+**When is this step needed?**
+- When the tournament is loaded for the first time
+- When the registration list has changed after the registration deadline
+- When new players have been registered late
 
-### Updating Regional Association, Club, Player, Tournament, Seeding Lists
-When explicitly retrieving data, the requested data is compared with the Billiards Area on the API server.
+**Quick Load:**
+- ⚡ **"Load Upcoming Tournaments"** button: Loads only tournaments for the next 30 days (faster than full synchronization)
+- Available on the regional association page: `Regional Associations → [Your Association] → "⚡ Quick Update"`
 
-The following explicit data requests are implemented:
+**Manual Synchronization:**
+- `Tournament → "Synchronize Now"`: Full synchronization of all data
+- `Tournament → "📊 Load Results from ClubCloud"`: Only for archiving after tournament end (deletes local data!)
 
-* `Club -> Data synchronization with ClubCloud`
-* `Club -> Data synchronization with ClubCloud with all details`
-* `Regional Association -> Data synchronization with ClubCloud incl. Clubs`
-* `Regional Association -> Data synchronization with ClubCloud incl. Clubs and Players`
-* `Tournament -> Data synchronization with ClubCloud`
+### Step 2: Import Seeding List from Invitation
 
-## Tournament Management
-A tournament is generally managed in the following phases:
+**Goal:** Import the official seeding list from the invitation sent by the tournament director.
 
-* Synchronization with ClubCloud
-* Verification of relevant data
-* Sorting of the seeding list according to rankings
-* Selection of tournament mode
-* Local adjustment of tournament parameters
-* Check of local scoreboards
-* Start of the tournament
-* Synchronization of match results with game protocols
-* Email with game results (csv) to the tournament director
-* Upload of game results (csv) to ClubCloud
-* Final synchronization with ClubCloud for last check.
+**What happens here?**
+- You upload a PDF file or screenshot of the invitation
+- The system automatically extracts:
+  - Player names and positions
+  - **Handicap points** for handicap tournaments
+  - **Group assignments** (if present in the invitation)
+  - **Tournament mode** (e.g., "T21 - Tournament will be played in mode...")
 
-### Synchronization with ClubCloud
-As described above, the tournament can first be loaded, for example, by synchronizing club data
+**How does it work?**
+1. Click **"Upload Invitation"**
+2. Select a PDF file or screenshot (PNG/JPG) of the invitation
+3. The system automatically analyzes the document
+4. Review the **Extracted Seeding List**:
+   - ✅ Players correctly recognized?
+   - ✅ Positions correct?
+   - ✅ Handicaps present (for handicap tournaments)?
+5. Correct manually if needed:
+   - Player incorrectly recognized → Click **"Change Player"**
+   - Position incorrect → Correct in the list
+   - Handicap missing → Enter manually
+6. Click **"Import Seeding List"**
 
-If a tournament is already locally known, an update can be requested again at any time:
-`Region -> Tournament -> Data synchronization with ClubCloud`
+**Supported Formats:**
+- ✅ PDF files (with text)
+- ✅ Screenshots (PNG, JPG)
+- ✅ Single and two-column tables
+- ✅ Tables with handicap column ("Pkt")
 
-### Verification of relevant data
+**What is extracted?**
+- Player names (first and last name)
+- Positions in the seeding list
+- Handicaps (for handicap tournaments)
+- Group assignments (if present)
+- Tournament mode suggestion (e.g., "T21")
 
-For the course of a tournament, the following data are important:
+### Step 3: Edit Participant List
 
-* Organizer (Regional Association or Club)
-* Discipline (for table assignments)
-* Date
-* Season
-* Venue (for table assignments)
+**Goal:** Create and adjust the final participant list.
 
-This data is usually automatically pulled from ClubCloud. A special case is the venue.
-Unfortunately, regarding the venue in ClubCloud, free text input is possible.
-However, for table assignment in Carambus, the selection of a formally defined venue with table configuration is necessary (table capture, table type)
-Furthermore, it must be specified whether it is a handicap tournament.
+**What happens here?**
+- You see the current participant list
+- You can:
+  - Mark **No-Shows** (player doesn't appear)
+  - **Correct handicaps** (for handicap tournaments)
+  - **Adjust positions** (if necessary)
+  - **Add late registrations** (with DBU number)
 
-### Sorting of the seeding list according to rankings
+**Add Late Registration:**
+1. Scroll to the **"➕ Late Registration?"** section
+2. Enter the player's **DBU number**
+3. Click **"Add Player"**
+4. The player is automatically added to the list (at the end)
 
-The seeding list is automatically sorted according to the current rankings of the players.
-The ranking system used is the one from the Billiards Area.
-If a player does not have a ranking, he is placed at the end of the list.
+**⚠️ Important:**
+- Players **without DBU number** cannot be added as late registrations
+- Reason: Only players with DBU number can be entered in ClubCloud
+- Solution: Player must apply for DBU number, or register as guest (contact tournament director)
 
-### Selection of tournament mode
+**Auto-Save:**
+- All changes (checkboxes, handicaps) are **saved immediately**
+- You can return here at any time
 
-Carambus supports various tournament modes:
+**Continue to Next Step:**
+- After completion: Click **"← Back to Wizard"**
+- Then continue to **Step 4: Finalize Participant List**
 
-* **Single Elimination**: Players are eliminated after one loss
-* **Double Elimination**: Players are eliminated after two losses
-* **Round Robin**: All players play against each other
-* **Swiss System**: Players with similar scores play against each other
+### Step 4: Finalize Participant List
 
-The tournament mode is automatically determined from ClubCloud, but can be changed locally if necessary.
+**Goal:** Complete the participant list and prepare it for group assignment.
 
-### Local adjustment of tournament parameters
+**What happens here?**
+- The participant list is finalized
+- No-shows are removed from the list
+- The list is locked for group assignment
 
-After loading from ClubCloud, the following parameters can be adjusted locally:
+**⚠️ Important:**
+- This step is **irreversible**
+- After finalization, players can no longer be added or removed
+- Positions can no longer be changed
 
-* **Table assignments**: Which tables are used for which matches
-* **Match times**: When matches start and how long they last
-* **Break times**: How long breaks between matches last
-* **Scoring system**: How points are awarded
+### Step 5: Select Tournament Mode
 
-### Check of local scoreboards
+**Goal:** Select the appropriate tournament mode and review group assignments.
 
-Before starting the tournament, it must be ensured that:
+**What happens here?**
+- The system automatically suggests a tournament mode:
+  - Based on the number of participants
+  - Based on the discipline
+  - Based on the **extracted tournament mode from the invitation**
 
-* All scoreboards are operational
-* Table assignments are correctly configured
-* Players can log in to their assigned tables
-* The tournament mode is correctly set
+**Suggestions from Invitation:**
+- If an invitation was uploaded, the **extracted tournament mode** is preferred
+- Example: "T21 - Tournament will be played in mode..."
+- This suggestion comes directly from the tournament director
 
-### Start of the tournament
+**Group Assignment:**
+- The system shows the **calculated group assignment** according to NBV standard
+- If an invitation was uploaded, the **extracted group assignment** is also shown
 
-Once all checks are complete, the tournament can be started:
+**Three Possible Scenarios:**
 
-1. **Activate tournament mode** on all scoreboards
-2. **Assign players** to their starting positions
-3. **Start first round** of matches
-4. **Monitor progress** and handle any issues
+1. **✅ Group Assignment from Invitation Matches Algorithm**
+   - Green banner: "✅ Group Assignment from Invitation Imported"
+   - The assignment is identical to the NBV standard algorithm
+   - **Recommendation:** Use invitation (prescribed by tournament director)
 
-### Synchronization of match results with game protocols
+2. **⚠️ Group Assignment from Invitation Differs from Algorithm**
+   - Red banner: "⚠️ WARNING: Deviation from NBV Standard Detected!"
+   - Comparison is shown: Invitation vs. calculated
+   - **Recommendation:** Use invitation (prescribed by tournament director)
+   - **Alternative:** Use algorithm (if you are sure the algorithm is correct)
 
-After each match, the results are automatically:
+3. **🤖 No Invitation Available**
+   - Blue banner: "🤖 Group Assignment Automatically Calculated (NBV-Compliant)"
+   - Standard algorithm is used
 
-* **Recorded** on the scoreboard
-* **Transmitted** to the local server
-* **Stored** in the local database
-* **Compared** with the game protocols from ClubCloud
+**Select Tournament Mode:**
+1. Review the **suggested option** (highlighted in green)
+2. Review **alternatives** (if available):
+   - Same discipline with different player counts
+   - Other disciplines with same player count
+3. Click **"Continue with [Mode Name]"**
 
-### Email with game results (csv) to the tournament director
+**Manual Adjustment:**
+- ⚠️ **"🔄 Recalculate"**: Discards extracted group assignment and recalculates
+- ⚠️ **"✏️ Manual Adjustment"**: (In development) Drag-and-drop for group assignment
 
-At the end of each round, an email is automatically sent to the tournament director containing:
+### Step 6: Start Tournament
 
-* **Match results** in CSV format
-* **Current standings** of all players
-* **Next round** schedule
-* **Any issues** that need attention
+**Goal:** Initialize the tournament and activate scoreboards.
 
-### Upload of game results (csv) to ClubCloud
+**What happens here?**
+- You configure tournament parameters:
+  - **Assign tables** (mapping internal table name to external name)
+  - **Ball goal** (possibly already predefined for tournament)
+  - **Innings limit** (possibly already predefined for tournament)
+  - **Timeout** in seconds (0 or empty if no timeouts)
+  - **Timeouts** (maximum number of timeout extensions)
+  - **Checkbox:** "Tournament manager checks results before acceptance"
+  - **Warm-up time** (standard and shortened when switching tables)
 
-After the tournament is complete, all results are:
+**Tournament Parameters:**
+- Many parameters can be taken from the **invitation**
+- Example: "The target score is 80 points in 20 innings"
+- This information is automatically extracted (if available)
 
-* **Compiled** into a comprehensive CSV file
-* **Uploaded** to ClubCloud via the API server
-* **Verified** for accuracy and completeness
-* **Archived** for future reference
+**Start Tournament:**
+1. Review all parameters and adjust if needed
+2. Click **"Start Tournament"**
+3. The system:
+   - Initializes the Tournament Monitor
+   - Creates all games according to tournament mode
+   - Assigns tables
+   - Starts scoreboards
 
-### Final synchronization with ClubCloud
-
-The final step ensures that:
-
-* **All results** are correctly stored in ClubCloud
-* **Rankings** are updated based on tournament performance
-* **Statistics** are updated for future tournaments
-* **Data consistency** is maintained across all systems
+**After Start:**
+- New game pairings appear automatically on scoreboards
+- The **Tournament Monitor** shows the current status
+- Players can start games and enter results
 
 ## Troubleshooting
 
-### Tournament not loading from ClubCloud
-- Check internet connection to ClubCloud
-- Verify API server is accessible
-- Check if tournament exists in ClubCloud
-- Verify user permissions
+### Problem: "No Seedings Found"
 
-### Scoreboard issues
-- Check table assignments
-- Verify player logins
-- Check tournament mode settings
-- Restart scoreboards if necessary
+**Cause:** The registration list has not been synchronized yet.
 
-### Result synchronization problems
-- Check local database connectivity
-- Verify API server communication
-- Check CSV file format
-- Verify email delivery
+**Solution:**
+1. Go to **Step 1**
+2. Click **"Synchronize Now"**
+3. Wait for synchronization
+4. Check if seedings are present
 
-## Best Practices
+### Problem: "Player Not Recognized" (when uploading invitation)
 
-### Before starting a tournament
-1. **Complete all data synchronization** with ClubCloud
-2. **Verify all scoreboards** are operational
-3. **Test player logins** on all tables
-4. **Confirm table assignments** are correct
-5. **Review tournament parameters** and adjust if needed
+**Cause:** The name in the document was not correctly recognized.
 
-### During the tournament
-1. **Monitor all matches** for any issues
-2. **Handle player requests** promptly
-3. **Keep backup of results** in case of technical issues
-4. **Communicate with tournament director** regularly
+**Solution:**
+1. Find the player in the **Extracted Seeding List**
+2. Click **"Change Player"**
+3. Search for the correct player
+4. Select the correct one
 
-### After the tournament
-1. **Verify all results** are recorded correctly
-2. **Complete result upload** to ClubCloud
-3. **Archive tournament data** for future reference
-4. **Update local statistics** and rankings
-5. **Prepare summary report** for organizers 
+### Problem: "Group Assignment Incorrect"
+
+**Cause:** The extraction from the invitation was incorrect, or the algorithm doesn't match.
+
+**Solution:**
+1. Review the **Extracted Group Assignment** vs. **Calculated**
+2. If invitation available: Click **"✅ Use Invitation"** (prescribed by tournament director)
+3. If no invitation: Click **"🔄 Recalculate"**
+4. If still incorrect: Call **Step 3** again and adjust positions
+
+### Problem: "Late Registration Cannot Be Added"
+
+**Cause:** Player has no DBU number.
+
+**Solution:**
+1. Player must apply for DBU number, or
+2. Tournament director registers player as guest (contact tournament director)
+
+### Problem: "Tournament Cannot Be Started"
+
+**Cause:** TournamentPlan doesn't match the number of players.
+
+**Solution:**
+1. Check the **error message** in Tournament Monitor
+2. Go back to **Step 5**
+3. Select the **correct TournamentPlan**:
+   - Example: 11 players → T21 (not T22!)
+   - Check the number of players in Step 3
+
+### Problem: "Seedings Deleted After Synchronization"
+
+**Cause:** Old "destroy" version records on the API server.
+
+**Solution:**
+1. Run on API server: `rake tournament:check_seeding_versions[TOURNAMENT_ID]`
+2. If destroy version records found: `rake tournament:cleanup_seeding_versions[TOURNAMENT_ID]`
+3. Synchronize again
+
+## After the Tournament
+
+### Export Results
+
+After the tournament ends, you automatically receive an **email** with a CSV file containing the results in the format required for uploading to ClubCloud.
+
+The file is also saved locally: `{carambus}/tmp/result-{ba_id}.csv`
+
+### Upload Results to ClubCloud
+
+The tournament director can upload the CSV file directly to ClubCloud.
+
+### Final Synchronization
+
+As a final step, a **synchronization with ClubCloud** can be performed:
+- `Tournament → "📊 Load Results from ClubCloud"` (only for archiving!)
+
+The downloaded data forms the basis for later calculated rankings.
+
+## Important Differences: Registration List vs. Seeding List vs. Participant List
+
+**Registration List:**
+- All players who registered for the tournament
+- Comes from ClubCloud
+- Updated daily
+
+**Seeding List:**
+- The **order** according to current ranking
+- Best players first
+- Comes from the **invitation** from the tournament director
+- Imported in **Step 2**
+
+**Participant List:**
+- The players who **actually appear at the tournament**
+- Can have more or fewer players than the registration list
+- No-shows are removed
+- Late registrations are added
+- Created in **Step 3** and finalized in **Step 4**
+
+## Technical Details
+
+### Automatic Extraction
+
+The system uses **OCR (Optical Character Recognition)** and **PDF text extraction** to extract information from invitations:
+
+- **PDF:** Text is extracted directly
+- **Screenshots:** Tesseract OCR recognizes text
+- **Tables:** Single and two-column layouts are recognized
+- **Handicaps:** Extracted from "Pkt" columns
+- **Group Assignment:** Extracted from "Group Assignment" tables
+
+### NBV-Compliant Group Assignment
+
+The system uses **official NBV algorithms** for group assignment:
+
+- **2 Groups:** Zig-Zag/Serpentine pattern
+- **3+ Groups:** Round-Robin pattern
+- **Unequal Group Sizes:** Special algorithm (e.g., T21: 3+4+4)
+
+Group sizes are extracted from the TournamentPlan's `executor_params`.
+
+### Synchronization
+
+- **Setup Phase:** Seedings are not deleted (only local seedings are reset)
+- **Archiving Phase:** All seedings are deleted and reloaded (for result import)
+
+The `reload_games` parameter controls whether seedings are deleted:
+- `false` (default): Setup phase (seedings remain)
+- `true`: Archiving phase (seedings are deleted)
+
+## Support
+
+For problems or questions:
+- **Email:** [gernot.ullrich@gmx.de](mailto:gernot.ullrich@gmx.de)
+- **Documentation:** This page and the inline help in the wizard

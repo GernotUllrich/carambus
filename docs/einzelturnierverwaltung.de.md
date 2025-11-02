@@ -1,139 +1,337 @@
-# Turnierverwaltung
+# Einzelturnierverwaltung - Wizard-System
 
-## Account
-Für das Carambus Turniermanagement ist ein Account mit Admin-Rechten auf dem Carambus Location Server erforderlich.
-Dieser kann vom Club-Vorsitzenden oder [Carambus-Entwickler](mailto:gernot.ullrich@gmx.de) eingerichtet werden.
-URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel http://192.168.2.143:3131 .
+## Übersicht
 
-## Abgleich mit der ClubCloud
+Das neue **Wizard-System** für die Turnierverwaltung führt Sie Schritt für Schritt durch den gesamten Prozess der Turnier-Vorbereitung. Jeder Schritt ist klar strukturiert und bietet kontextbezogene Hilfe, damit auch weniger technisch versierte Turnierleiter das System sicher bedienen können.
 
-Die Turniere findet man am besten über die `Regionaverbände -> Suchen -> Ansehen`.
+## Zugang
 
-Dort sind die aktuell bekannten Turniere der laufenden Saison gelistet. Das Turnier kann über den Titel  ausgewählt werden.
-Sollte ein Turnier noch nicht gelistet sein, so kann das mehrere Gründe haben:
+Für das Carambus Turniermanagement ist ein Account mit **Admin-Rechten** auf dem Carambus Location Server erforderlich. Dieser kann vom Club-Vorsitzenden oder [Carambus-Entwickler](mailto:gernot.ullrich@gmx.de) eingerichtet werden.
 
-* Das Turnier ist noch nicht in der ClubCloud eingetragen
-* Der zentrale Carambus API Server kennt das Turnier noch nicht.
-* Das Turnier ist noch nicht auf den lokalen Location Server übertragen.
+Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel: `http://192.168.2.143:3131`
 
+## Der Wizard-Workflow
 
-### Das Turnier ist noch nicht in der ClubCloud eingetragen
-Aufgabe des Landessportwartes ist es, die Turniere mit den Teilnehmerlisten in der ClubCloud einzupflegen.
+Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch den gesamten Prozess führen:
 
-### Der zentrale Carambus API Server kennt das Turnier noch nicht.
-Der Api Server wird derzeit vom Carambus-Entwickler (mailto: gernot.ullrich@gmx.de) betreut.  
-Turnierdaten der Carambus nutzenden Regionen werden automatisiert täglich um 20:00 aus dem zugehörigen regionalen ClubCloud Server aktualisiert.
+### Schritt 1: Meldeliste von ClubCloud laden
 
-Lokale Server fordern Updates aus der ClubCloud immer über den zentralen API Server (api.carambus.de) an.
-Dieser greift die Daten von den verschiedenen ClubCloud Instanzen ab.  Mit den spezifischen Updates werden immer auch alle Updates übertragen, die zwischenzeitlich auf dem API Server gemacht wurden.
+**Ziel:** Die Teilnehmerliste vom API Server holen.
 
-### Das Turnier ist noch nicht auf den lokalen Location Server übertragen
+**Was passiert hier?**
+- Das System synchronisiert die Meldeliste aus der ClubCloud
+- Spieler werden automatisch erkannt und zugeordnet
+- Neue Spieler werden zur Datenbank hinzugefügt
 
-Ein lokal nicht vorhandenes Turnier, welches aber auf dem API Server existiert, wird automatisch bei jeder Update-Anfrage an den API Server geladen, denn bei jeder Anfrage an den API Server wird der gesammte Datenbestand synchronisiert.
-So eine explizite Anfrage kann z.B. das Aktualisieren der Club-Daten sein:
-`Clubs -> Suchen -> Ansehen -> "Datenabgleich mit der ClubCloud mit allen Details"`
+**Wann wird dieser Schritt benötigt?**
+- Wenn das Turnier erstmalig geladen wird
+- Wenn sich die Meldeliste nach dem Meldeschluss geändert hat
+- Wenn neue Spieler nachgemeldet wurden
 
-### Aktualisieren von Regionalverband, Club, Spieler, Turnier, Setzlisten
-Beim expliziten Abholen von Daten werden auf dem API Server die angeforderten Daten mit der Billars Area abggeglichen.
+**Schnell-Laden:**
+- ⚡ **"Anstehende Turniere laden"** Button: Lädt nur Turniere der nächsten 30 Tage (schneller als vollständige Synchronisation)
+- Verfügbar auf der Regionalverband-Seite: `Regionalverbände → [Ihr Verband] → "⚡ Schnell-Aktualisierung"`
 
-Folgenden explizte Datenanfragen sind implementiert:
+**Manuelle Synchronisation:**
+- `Turnier → "Jetzt synchronisieren"`: Vollständige Synchronisation aller Daten
+- `Turnier → "📊 Ergebnisse von ClubCloud laden"`: Nur für Archivierung nach Turnierende (löscht lokale Daten!)
 
-* `Club -> Datenabgleich mit der ClubCloud`
-* `Club -> Datenabgleich mit der ClubCloud mit allen Details`
-* `Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs`
-* `Regionalverband -> Datenabgleich mit der ClubCloud inkl. Clubs und Spieler`
-* `Turnier -> Datenabgleich mit der ClubCloud`
+### Schritt 2: Setzliste aus Einladung übernehmen
 
-## TurnierVerwaltung
-Ein Turnier wird generell in folgenden Phasen verwaltet:
+**Ziel:** Die offizielle Setzliste aus der Einladung des Landessportwartes übernehmen.
 
-* Abgleich mit der ClubCloud
-* Überprüfung der relevanten Daten
-* Sortierung der Setzliste gemäss Rankings
-* Auswahl des Turniermodus
-* Lokale Anpassung der Turnierparameter
-* Check der lokalen Scoreboards
-* Start des Turniers
-* Abgleich der Partieergebnisse mit den Spielprotokollen
-* eMail mit den Spielergebnissen (csv) an den Turnierleiter
-* Upload der Spielergebnisse (csv) in die ClubCloud
-* Abgleich mit der ClubCloud zum letzten Check.
+**Was passiert hier?**
+- Sie laden eine PDF-Datei oder ein Screenshot der Einladung hoch
+- Das System extrahiert automatisch:
+  - Spielernamen und Positionen
+  - **Vorgaben (Handicap-Punkte)** für Vorgabeturniere
+  - **Gruppenbildung** (wenn in der Einladung vorhanden)
+  - **Turniermodus** (z.B. "T21 - Turnier wird im Modus...")
 
-### Abgleich mit der ClubCloud
-Wie oben beschrieben kann das Turnier erstmalig geladen werden z.B. durch Abgleich der Clubdaten
+**Wie funktioniert es?**
+1. Klicken Sie auf **"Einladung hochladen"**
+2. Wählen Sie eine PDF-Datei oder ein Screenshot (PNG/JPG) der Einladung
+3. Das System analysiert das Dokument automatisch
+4. Prüfen Sie die **Extrahierte Setzliste**:
+   - ✅ Spieler korrekt erkannt?
+   - ✅ Positionen richtig?
+   - ✅ Vorgaben vorhanden (bei Vorgabeturnieren)?
+5. Korrigieren Sie ggf. manuell:
+   - Spieler falsch erkannt → **"Spieler ändern"** klicken
+   - Position falsch → In der Liste korrigieren
+   - Vorgabe fehlt → Manuell eintragen
+6. **"Setzliste übernehmen"** klicken
 
-Wenn ein Turnier bereits lokal bekannt ist, kann jederzeit eine Aktualisierung erneut angefordert werden:
-`Region -> Turnier -> Datenabgleich mit der ClubCloud`
+**Unterstützte Formate:**
+- ✅ PDF-Dateien (mit Text)
+- ✅ Screenshots (PNG, JPG)
+- ✅ Ein- und zweispaltige Tabellen
+- ✅ Tabellen mit Vorgaben-Spalte ("Pkt")
 
-### Überprüfung der relevanten Daten
+**Was wird extrahiert?**
+- Spielernamen (Vor- und Nachname)
+- Positionen in der Setzliste
+- Vorgaben (bei Vorgabeturnieren)
+- Gruppenbildung (wenn vorhanden)
+- Turniermodus-Vorschlag (z.B. "T21")
 
-Für den Ablauf eines Turnieres sind folgende Daten wichtig:
+### Schritt 3: Teilnehmerliste bearbeiten
 
-* Veranstalter (Regionalverband oder Club)
-* Disziplin (für die Tischzuordnungen)
-* Datum
-* Saison
-* Spielort (für die Tischzuordnungen)
+**Ziel:** Die finale Teilnehmerliste erstellen und anpassen.
 
-Diese Daten werden in der Regel automatisiert von der ClubCloud gezogen. Ein Sonderfall ist der Spielort.
-Leider ist bezgl. des Spielortes auf der ClubCloud eine freie Texteingaben möglich.
-Für die Tischzuordnung ist in Carambus jedoch die Auswahl eines formal definierten Spielortes mit Konfigurierung der Tische notwendig (Tischnahme, Tischart)
-Weiterhin ist anzugeben, ob es sich um ein Vorgabetournier handelt.
+**Was passiert hier?**
+- Sie sehen die aktuelle Teilnehmerliste
+- Sie können:
+  - **No-Shows** markieren (Spieler erscheint nicht)
+  - **Vorgaben korrigieren** (bei Vorgabeturnieren)
+  - **Positionen anpassen** (falls nötig)
+  - **Nachmelder hinzufügen** (mit DBU-Nummer)
 
-Diese Daten müssen über
-`Turnier -> Edit -> Turnier aktualisieren`
-ergänzt werden
+**Nachmelder hinzufügen:**
+1. Scrollen Sie zum Abschnitt **"➕ Kurzfristiger Nachmelder?"**
+2. Geben Sie die **DBU-Nummer** des Spielers ein
+3. Klicken Sie auf **"Spieler hinzufügen"**
+4. Der Spieler wird automatisch zur Liste hinzugefügt (am Ende)
 
-###Sortierung der Setzliste gemäss Rankings
+**⚠️ Wichtig:**
+- Spieler **ohne DBU-Nummer** können nicht nachgemeldet werden
+- Grund: In der ClubCloud können nur Spieler mit DBU-Nummer eingetragen werden
+- Lösung: Spieler muss DBU-Nummer beantragen, oder als Gast eintragen lassen
 
-Mit dem BA-Abgleich wird die Teilnehmerliste (Setzliste) übertragen.
+**Automatisches Speichern:**
+- Alle Änderungen (Checkboxen, Vorgaben) werden **sofort gespeichert**
+- Sie können jederzeit hierher zurückkehren
 
-Für Vorgabeturniere können die Handicaps eingetragen werden:
-`Tournament -> Setzliste aktualisieren`
-Diese Liste kann jetzt lokal entsprechend der Spielerrankings sortiert werden:
-`Tournament -> Ordne nach Rangliste bzw. Handicap`
+**Weiter zum nächsten Schritt:**
+- Nach Abschluss: **"← Zurück zum Wizard"** klicken
+- Dann weiter zu **Schritt 4: Teilnehmerliste finalisieren**
 
-Die Reihenfolge kann jetzt noch geändert werden durch Tausch von Plätzen mit den Pfeilen oben/unten.
+### Schritt 4: Teilnehmerliste finalisieren
 
-Die Reihenfolge wird dann endgültig abgeschlossen mit
-`Turnier -> Abschluss der Rangliste (nicht umkehrbar)`
+**Ziel:** Die Teilnehmerliste abschließen und für die Gruppenbildung vorbereiten.
 
-### Auswahl des Turniermodus
-Jetzt in die Turniermodusauswahl springen:
-`Turnier -> Turniermodus festlegen`
+**Was passiert hier?**
+- Die Teilnehmerliste wird finalisiert
+- No-Shows werden aus der Liste entfernt
+- Die Liste wird für die Gruppenbildung gesperrt
 
-In der Regel stehen mehrere Möglichkeiten zur Verfügung.  Der Tournierleiter kann einen Modus auswählen - in der Regel schon vom Landessportwart vorgegeben bei Turnieren der Regionalverbände.
+**⚠️ Wichtig:**
+- Dieser Schritt ist **nicht umkehrbar**
+- Nach der Finalisierung können keine Spieler mehr hinzugefügt oder entfernt werden
+- Positionen können nicht mehr geändert werden
 
-Auswahl duch Klick z.B. `Weiter mit T07`
+### Schritt 5: Turniermodus festlegen
 
-### Lokale Anpassung der Turnierparameter
+**Ziel:** Den passenden Turniermodus auswählen und die Gruppenbildung überprüfen.
 
-Folgende Parameter können nun noch angepasst werden:
+**Was passiert hier?**
+- Das System schlägt automatisch einen Turniermodus vor:
+  - Basierend auf der Teilnehmeranzahl
+  - Basierend auf der Disziplin
+  - Basierend auf dem **extrahierte Turniermodus aus der Einladung**
 
-* Zuordnung der Tische (Mapping interner Tischname zu extern Namen)
-* Ballziel (ggf. bereits für Turnier vorgegeben)
-* Aufnahmebegrenzung (ggf. bereits für Turnier vorgegeben)
-* Timeout in sec (0 oder keine eingabe, wenn keine Timeouts)
-* Timeouts (n Timeoutverlängerungen maximal)
-* Checkbox "Tournament manager checks results before acceptance"
-* Einspielzeit
-* verkürzte Einspielzeit (bei Wechsel an einen bereits bespielten Tisch)
+**Vorschläge aus Einladung:**
+- Wenn eine Einladung hochgeladen wurde, wird der **extrahierte Turniermodus** bevorzugt angezeigt
+- Beispiel: "T21 - Turnier wird im Modus..."
+- Diese Vorgabe kommt direkt vom Landessportwart
 
+**Gruppenbildung:**
+- Das System zeigt die **berechnete Gruppenbildung** nach NBV-Standard
+- Wenn eine Einladung hochgeladen wurde, wird auch die **extrahierte Gruppenbildung** angezeigt
 
-Zur Checkbox:  Normalerweise können die Spieler des Spielstatus fortschreiben z.B. nach `Partie beendet - OK?`.
-Wenn ein Check von Turniermanager erforderlich ist, wird dieses unterbunden und der Turnierleiter kann nach Abgleich mit dem Spielprotokoll den Tisch freigeben.
+**Drei mögliche Szenarien:**
 
-Die neuen Spielpaarungen erscheinen jeweils automatisch auf den Scoreboards.
-Erst ganz am Ende:
+1. **✅ Gruppenbildung aus Einladung stimmt mit Algorithmus überein**
+   - Grüne Banner: "✅ Gruppenbildung aus Einladung übernommen"
+   - Die Zuordnung ist identisch mit dem NBV-Standard-Algorithmus
+   - **Empfehlung:** Einladung verwenden (vom Landessportwart vorgegeben)
 
-###eMail mit den Spielergebnissen (csv) an den Turnierleiter
+2. **⚠️ Gruppenbildung aus Einladung weicht vom Algorithmus ab**
+   - Rotes Banner: "⚠️ WARNUNG: Abweichung vom NBV-Standard erkannt!"
+   - Vergleich wird angezeigt: Einladung vs. berechnet
+   - **Empfehlung:** Einladung verwenden (vom Landessportwart vorgegeben)
+   - **Alternative:** Algorithmus verwenden (falls Sie sicher sind, dass der Algorithmus korrekt ist)
 
-Nach Abschluss des Turniers erhält der Turnierleiter automatisch per eMail eine CSV-Datei mit den Ergebnissen in dem Format, welches für den Upload in die ClubCloud notwendig ist.
-Diese Datei wird auch auf dem lokalen Server gespeichert ({carambus}/tmp/result-{ba_id}.csv)
+3. **🤖 Keine Einladung vorhanden**
+   - Blaues Banner: "🤖 Gruppenbildung automatisch berechnet (NBV-konform)"
+   - Standard-Algorithmus wird verwendet
 
-###Upload der Spielergebnisse (csv) in die ClubCloud
-Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen (er weiss wie das geht ;-)
+**Turniermodus auswählen:**
+1. Prüfen Sie die **vorgeschlagene Option** (grün hervorgehoben)
+2. Prüfen Sie **Alternativen** (falls verfügbar):
+   - Gleiche Disziplin mit anderen Spieleranzahlen
+   - Andere Disziplinen mit gleicher Spieleranzahl
+3. **"Weiter mit [Modusname]"** klicken
 
-### Abgleich mit der ClubCloud zum letzten Check
-Als letzten Schritt kann nocheinmal ein Abgleich mit der ClubCloud erfolgen.
+**Manuelle Anpassung:**
+- ⚠️ **"🔄 Neu berechnen"**: Verwirft die extrahierte Gruppenbildung und berechnet neu
+- ⚠️ **"✏️ Manuell anpassen"**: (In Entwicklung) Drag-and-Drop für Gruppenzuordnung
+
+### Schritt 6: Turnier starten
+
+**Ziel:** Das Turnier initialisieren und die Scoreboards aktivieren.
+
+**Was passiert hier?**
+- Sie konfigurieren die Turnierparameter:
+  - **Tische zuordnen** (Mapping interner Tischname zu extern Namen)
+  - **Ballziel** (ggf. bereits für Turnier vorgegeben)
+  - **Aufnahmebegrenzung** (ggf. bereits für Turnier vorgegeben)
+  - **Timeout** in Sekunden (0 oder leer, wenn keine Timeouts)
+  - **Timeouts** (maximale Anzahl von Timeout-Verlängerungen)
+  - **Checkbox:** "Tournament manager checks results before acceptance"
+  - **Einspielzeit** (Standard und verkürzt bei Wechsel)
+
+**Turnierparameter:**
+- Viele Parameter können aus der **Einladung** übernommen werden
+- Beispiel: "Das Ausspielziel beträgt 80 Punkte in 20 Aufnahmen"
+- Diese Informationen werden automatisch extrahiert (falls verfügbar)
+
+**Turnier starten:**
+1. Alle Parameter prüfen und ggf. anpassen
+2. **"Turnier starten"** klicken
+3. Das System:
+   - Initialisiert den Tournament Monitor
+   - Erstellt alle Spiele gemäß Turniermodus
+   - Ordnet Tische zu
+   - Startet die Scoreboards
+
+**Nach dem Start:**
+- Neue Spielpaarungen erscheinen automatisch auf den Scoreboards
+- Der **Tournament Monitor** zeigt den aktuellen Stand
+- Spieler können Spiele starten und Ergebnisse eingeben
+
+## Troubleshooting
+
+### Problem: "Keine Seedings gefunden"
+
+**Ursache:** Die Meldeliste wurde noch nicht synchronisiert.
+
+**Lösung:**
+1. Gehen Sie zu **Schritt 1**
+2. Klicken Sie auf **"Jetzt synchronisieren"**
+3. Warten Sie auf die Synchronisation
+4. Prüfen Sie, ob Seedings vorhanden sind
+
+### Problem: "Spieler wird nicht erkannt" (bei Einladung-Upload)
+
+**Ursache:** Der Name im Dokument wurde nicht korrekt erkannt.
+
+**Lösung:**
+1. In der **Extrahierte Setzliste** finden Sie den Spieler
+2. Klicken Sie auf **"Spieler ändern"**
+3. Suchen Sie nach dem korrekten Spieler
+4. Wählen Sie den richtigen aus
+
+### Problem: "Gruppenbildung stimmt nicht"
+
+**Ursache:** Die Extraktion aus der Einladung war nicht korrekt, oder der Algorithmus passt nicht.
+
+**Lösung:**
+1. Prüfen Sie die **Extrahierte Gruppenbildung** vs. **Berechnet**
+2. Wenn Einladung vorhanden: **"✅ Einladung verwenden"** klicken (vom Landessportwart vorgegeben)
+3. Wenn keine Einladung: **"🔄 Neu berechnen"** klicken
+4. Falls weiterhin falsch: **Schritt 3** erneut aufrufen und Positionen anpassen
+
+### Problem: "Nachmelder kann nicht hinzugefügt werden"
+
+**Ursache:** Spieler hat keine DBU-Nummer.
+
+**Lösung:**
+1. Spieler muss DBU-Nummer beantragen, oder
+2. Turnierleiter trägt Spieler als Gast ein (kontaktieren Sie den Landessportwart)
+
+### Problem: "Turnier kann nicht gestartet werden"
+
+**Ursache:** TournamentPlan passt nicht zur Spieleranzahl.
+
+**Lösung:**
+1. Prüfen Sie die **Fehlermeldung** im Tournament Monitor
+2. Gehen Sie zurück zu **Schritt 5**
+3. Wählen Sie den **richtigen TournamentPlan** aus:
+   - Beispiel: 11 Spieler → T21 (nicht T22!)
+   - Prüfen Sie die Spieleranzahl in Schritt 3
+
+### Problem: "Seedings werden nach Synchronisation gelöscht"
+
+**Ursache:** Alte "destroy" Version Records auf dem API Server.
+
+**Lösung:**
+1. Auf API Server ausführen: `rake tournament:check_seeding_versions[TOURNAMENT_ID]`
+2. Falls destroy-Version Records gefunden: `rake tournament:cleanup_seeding_versions[TOURNAMENT_ID]`
+3. Erneut synchronisieren
+
+## Nach dem Turnier
+
+### Ergebnisse exportieren
+
+Nach Abschluss des Turniers erhalten Sie automatisch per **eMail** eine CSV-Datei mit den Ergebnissen im Format für den Upload in die ClubCloud.
+
+Die Datei wird auch lokal gespeichert: `{carambus}/tmp/result-{ba_id}.csv`
+
+### Ergebnisse in ClubCloud hochladen
+
+Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen.
+
+### Finaler Abgleich
+
+Als letzten Schritt kann nochmal ein **Abgleich mit der ClubCloud** erfolgen:
+- `Turnier → "📊 Ergebnisse von ClubCloud laden"` (nur für Archivierung!)
+
 Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.
+
+## Wichtige Unterschiede: Meldeliste vs. Setzliste vs. Teilnehmerliste
+
+**Meldeliste:**
+- Alle Spieler, die sich für das Turnier angemeldet haben
+- Kommt aus der ClubCloud
+- Wird täglich aktualisiert
+
+**Setzliste:**
+- Die **Reihenfolge** nach aktuellem Ranking
+- Beste Spieler zuerst
+- Kommt aus der **Einladung** vom Landessportwart
+- Wird in **Schritt 2** übernommen
+
+**Teilnehmerliste:**
+- Die Spieler, die **tatsächlich zum Turnier erscheinen**
+- Kann mehr oder weniger Spieler haben als die Meldeliste
+- No-Shows werden entfernt
+- Nachmelder werden hinzugefügt
+- Wird in **Schritt 3** erstellt und in **Schritt 4** finalisiert
+
+## Technische Details
+
+### Automatische Extraktion
+
+Das System verwendet **OCR (Optical Character Recognition)** und **PDF-Text-Extraktion**, um Informationen aus Einladungen zu extrahieren:
+
+- **PDF:** Text wird direkt extrahiert
+- **Screenshots:** Tesseract OCR erkennt Text
+- **Tabellen:** Ein- und zweispaltige Layouts werden erkannt
+- **Vorgaben:** Werden aus "Pkt"-Spalten extrahiert
+- **Gruppenbildung:** Wird aus "Gruppenbildung"-Tabellen extrahiert
+
+### NBV-konforme Gruppenbildung
+
+Das System verwendet **offizielle NBV-Algorithmen** für die Gruppenbildung:
+
+- **2 Gruppen:** Zig-Zag/Serpentine-Pattern
+- **3+ Gruppen:** Round-Robin-Pattern
+- **Ungleiche Gruppengrößen:** Spezial-Algorithmus (z.B. T21: 3+4+4)
+
+Die Gruppengrößen werden aus den `executor_params` des TournamentPlans extrahiert.
+
+### Synchronisation
+
+- **Setup-Phase:** Seedings werden nicht gelöscht (nur lokale Seedings werden zurückgesetzt)
+- **Archivierungs-Phase:** Alle Seedings werden gelöscht und neu geladen (für Ergebnis-Übernahme)
+
+Der Parameter `reload_games` steuert, ob Seedings gelöscht werden:
+- `false` (Standard): Setup-Phase (Seedings bleiben erhalten)
+- `true`: Archivierungs-Phase (Seedings werden gelöscht)
+
+## Support
+
+Bei Problemen oder Fragen:
+- **E-Mail:** [gernot.ullrich@gmx.de](mailto:gernot.ullrich@gmx.de)
+- **Dokumentation:** Diese Seite und die Inline-Hilfen im Wizard
