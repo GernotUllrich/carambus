@@ -192,6 +192,48 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
+      
+      # Validiere executor_params: Prüfe ob Tische mehrfach in derselben Runde verwendet werden
+      table_usage = {} # { "r1" => { "t1" => ["g1", "g2"], ... }, ... }
+      executor_params.each_key do |k|
+        next unless (m = k.match(/g(\d+)/))
+        group_no = m[1].to_i
+        sequence = executor_params[k]["sq"]
+        next unless sequence.present? && sequence.is_a?(Hash)
+        
+        sequence.each do |round_key, round_data|
+          next unless round_key.is_a?(String) && round_key.match?(/^r\d+/)
+          next unless round_data.is_a?(Hash)
+          
+          table_usage[round_key] ||= {}
+          round_data.each do |tno_str, game_pair|
+            next unless tno_str.is_a?(String) && tno_str.match?(/^t\d+/)
+            table_usage[round_key][tno_str] ||= []
+            table_usage[round_key][tno_str] << "g#{group_no}"
+          end
+        end
+      end
+      
+      # Prüfe auf mehrfache Verwendung
+      validation_errors = []
+      table_usage.each do |round_key, tables|
+        tables.each do |tno_str, groups|
+          if groups.length > 1
+            validation_errors << "#{round_key}: #{tno_str} wird mehrfach verwendet (Gruppen: #{groups.join(', ')})"
+          end
+        end
+      end
+      
+      if validation_errors.any?
+        error_msg = "executor_params Inkonsistenz: Tische werden mehrfach in derselben Runde verwendet:\n" + validation_errors.join("\n")
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
+      end
+      
+      Tournament.logger.info "[tmon-reset_tournament_monitor] executor_params Validierung erfolgreich: Keine Tisch-Konflikte gefunden"
+      
       groups_must_be_played = false
       executor_params.each_key do |k|
         next unless (m = k.match(/g(\d+)/))
