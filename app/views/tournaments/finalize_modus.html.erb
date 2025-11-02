@@ -51,10 +51,34 @@
             </div>
           <% elsif @groups_source == :algorithm %>
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-              <p class="text-blue-900 text-sm">
-                <strong>🤖 Gruppenbildung automatisch berechnet (NBV-konform)</strong><br>
-                Die Zuordnung wurde nach NBV-Standard-Algorithmus berechnet.
-              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-blue-900 text-sm">
+                    <strong>🤖 Gruppenbildung automatisch berechnet (NBV-konform)</strong><br>
+                    Die Zuordnung wurde nach NBV-Standard-Algorithmus berechnet.
+                  </p>
+                </div>
+                <div>
+                  <details class="inline-block">
+                    <summary class="btn btn-sm btn-outline-secondary cursor-pointer">
+                      ✏️ Manuell anpassen
+                    </summary>
+                    <div class="absolute z-10 mt-2 p-4 bg-white border border-gray-300 rounded shadow-lg" style="min-width: 300px;">
+                      <p class="text-sm text-gray-700 mb-3">
+                        <strong>"Auch der Landessportwart irrt manchmal" 😊</strong><br>
+                        Sie können die Gruppenzuordnung manuell korrigieren.
+                      </p>
+                      <p class="text-xs text-gray-600 mb-3">
+                        <strong>Hinweis:</strong> Diese Funktion ist in Entwicklung.<br>
+                        Aktuell: Verwenden Sie '🔄 Neu berechnen' oder passen Sie die Setzliste in Schritt 3 an.
+                      </p>
+                      <button onclick="this.closest('details').open=false" class="btn btn-sm btn-secondary w-full">
+                        Schließen
+                      </button>
+                    </div>
+                  </details>
+                </div>
+              </div>
             </div>
           <% end %>
 
