@@ -169,21 +169,39 @@ class TournamentMonitor < ApplicationRecord
       groups["group#{group_no}"] = []
     end
     
-    # NBV-konformer Round-Robin Algorithmus
-    # Spieler 1-N werden in Runden über die Gruppen verteilt
-    # Beispiel 14 Spieler, 4 Gruppen:
-    #   Runde 1: 1→G1, 2→G2, 3→G3, 4→G4
-    #   Runde 2: 5→G1, 6→G2, 7→G3, 8→G4
-    #   Runde 3: 9→G1, 10→G2, 11→G3, 12→G4
-    #   Runde 4: 13→G1, 14→G2 (unvollständig)
+    # NBV-konformer Algorithmus (abhängig von Gruppenzahl)
+    # 2 Gruppen: Zig-Zag/Serpentinen (1→G1, 2→G2, 3→G2, 4→G1, 5→G1, ...)
+    # 4+ Gruppen: Round-Robin (1→G1, 2→G2, 3→G3, 4→G4, 5→G1, ...)
     
-    players.each_with_index do |player, index|
-      # Store player ID instead of player object to avoid JSON serialization issues
-      player_id = player.is_a?(Integer) ? player : player.id
-      
-      # Round-Robin: Spieler-Index modulo ngroups bestimmt die Gruppe
-      group_no = (index % ngroups) + 1
-      groups["group#{group_no}"] << player_id
+    if ngroups == 2
+      # Zig-Zag für 2 Gruppen (NBV T07, T10, etc.)
+      group_ix = 1
+      direction_right = true
+      players.each do |player|
+        player_id = player.is_a?(Integer) ? player : player.id
+        groups["group#{group_ix}"] << player_id
+        
+        if direction_right
+          group_ix += 1
+          if group_ix > ngroups
+            direction_right = false
+            group_ix = ngroups
+          end
+        else
+          group_ix -= 1
+          if group_ix <= 0
+            direction_right = true
+            group_ix = 1
+          end
+        end
+      end
+    else
+      # Round-Robin für 3+ Gruppen (NBV T14, T27, T28, etc.)
+      players.each_with_index do |player, index|
+        player_id = player.is_a?(Integer) ? player : player.id
+        group_no = (index % ngroups) + 1
+        groups["group#{group_no}"] << player_id
+      end
     end
     
     groups
