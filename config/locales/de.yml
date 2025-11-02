@@ -1016,7 +1016,9 @@ de:
       continue_with: Weiter mit
       final_modus_selection: Abschliessende Auswahl des Austragungsmodus
       proposed_modus: 'Vorgeschlagener Modus:'
-      teilnehmer: Auswahl des Modus für %{count} Teilnehmer
+      proposed_from_invitation: 'Empfohlen aus Einladung:'
+      proposed_automatic: 'Automatisch ermittelt:'
+      teilnehmer: '%{count} Teilnehmer'
     form:
       discipline: Disziplin
       player_class: Spielerklasse

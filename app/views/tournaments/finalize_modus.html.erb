@@ -39,7 +39,13 @@
     <div class="container mx-auto my-8 px-4">
       <div class="max-w-3xl mx-auto">
         <div class="col-sm-9" style="margin-bottom: 10px; margin-left: 10px">
-          <h4><%= I18n.t("tournaments.finalize_modus.proposed_modus") %></h4>
+          <h4>
+            <% if @tournament.data['extracted_plan_info'].present? %>
+              <%= I18n.t("tournaments.finalize_modus.proposed_from_invitation") %>
+            <% else %>
+              <%= I18n.t("tournaments.finalize_modus.proposed_automatic") %>
+            <% end %>
+          </h4>
           
           <!-- Info: Gruppenbildung-Quelle -->
           <% if @groups_source == :extracted %>

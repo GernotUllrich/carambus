@@ -146,12 +146,26 @@ class TournamentsController < ApplicationController
                                       .where(seeding_scope)
                                       .count
       
-      @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
-                                                             .where(discipline_tournament_plans: {
-                                                                      players: @participant_count,
-                                                                      player_class: @tournament.player_class,
-                                                                      discipline_id: @tournament.discipline_id
-                                                                    }).first
+      # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
+      @proposed_discipline_tournament_plan = nil
+      if @tournament.data['extracted_plan_info'].present?
+        # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+        if (match = @tournament.data['extracted_plan_info'].match(/^(T\d+)/i))
+          plan_name = match[1].upcase
+          @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
+          Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
+        end
+      end
+      
+      # Fallback: Suche nach Spielerzahl + Disziplin
+      unless @proposed_discipline_tournament_plan.present?
+        @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
+                                                               .where(discipline_tournament_plans: {
+                                                                        players: @participant_count,
+                                                                        player_class: @tournament.player_class,
+                                                                        discipline_id: @tournament.discipline_id
+                                                                      }).first
+      end
       if @proposed_discipline_tournament_plan.present?
         # Option B: Verwende extrahierte Gruppenbildung wenn vorhanden
         if @tournament.data['extracted_group_assignment'].present?
