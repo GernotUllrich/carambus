@@ -158,10 +158,12 @@
       info: seedings_info_text(tournament),
       warning: wizard_step_status(tournament, 3) == :active,
       danger: false,
-      help: "Passen Sie die <strong>Teilnehmerliste</strong> an (wer ist tatsächlich da?):<br>
-             • No-Shows markieren (Spieler nicht erschienen)<br>
-             • Kurzfristige Nachmeldungen hinzufügen<br>
-             • Reihenfolge manuell anpassen falls nötig" %>
+      help: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>
+             • ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>
+             #{tournament.handicap_tournier ? '• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>' : ''}
+             • ✏️ Änderungen werden sofort gespeichert<br>
+             • ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br>
+             <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!" %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',

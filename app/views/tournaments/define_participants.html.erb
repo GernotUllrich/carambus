@@ -31,19 +31,31 @@
         </table>
         <%= custom_link_to "Neues Team", new_team_tournament_path %>
       <%- else %>
-        <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
-          - <%= @tournament.organizer.shortname %>
-          - Teilnehmerliste</h1>
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
+            - <%= @tournament.organizer.shortname %>
+            - Teilnehmerliste</h1>
+          <%= custom_link_to "zurück", @tournament %>
+        </div>
+        
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded">
+          <h4 class="font-semibold text-green-900 mb-2">📝 Teilnehmerliste bearbeiten</h4>
+          <ul class="list-disc list-inside text-green-800 text-sm space-y-1">
+            <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
+            <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
+            <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
+          </ul>
+        </div>
+        
         <table>
           <thead>
           <tr>
             <th>Name</th>
             <th>Teilnehmer</th>
-            <th>Punktziel</th>
+            <th><% if @tournament.handicap_tournier %>Vorgabe (Pkt)<% else %>Punktziel<% end %></th>
           </tr>
           </thead>
           <tbody>
-          <%= custom_link_to "zurück", @tournament %>
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
           <%- club_players = players.uniq.sort_by { |player| player.fl_name }.to_a %>
@@ -63,22 +75,66 @@
           <% end %>
           </tbody>
         </table>
+        
+        <!-- Spieler hinzufügen (kurzfristige Nachmeldung) -->
+        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+          <h4 class="font-semibold text-yellow-900 mb-2">➕ Kurzfristiger Nachmelder?</h4>
+          <p class="text-sm text-yellow-800 mb-3">
+            Wenn ein Spieler nicht in der Liste ist, können Sie ihn manuell hinzufügen:
+          </p>
+          <div class="flex gap-2 items-center">
+            <input type="text" 
+                   id="player-search" 
+                   placeholder="Spielername suchen..."
+                   class="form-control flex-1"
+                   data-controller="player-search"
+                   data-action="input->player-search#search">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="showPlayerAddHelp()">
+              💡 Hilfe
+            </button>
+          </div>
+          <div id="player-search-results" class="mt-2 hidden">
+            <!-- Ajax results will appear here -->
+          </div>
+          <div id="player-add-help" class="mt-3 text-sm text-yellow-700 hidden">
+            <strong>So geht's:</strong>
+            <ol class="list-decimal list-inside mt-1">
+              <li>Name eingeben → Spieler wird gesucht</li>
+              <li>Spieler auswählen → Wird zur Liste hinzugefügt</li>
+              <li>Checkbox aktivieren → Als Teilnehmer markieren</li>
+              <li><% if @tournament.handicap_tournier %>Vorgabe eintragen<% else %>Punktziel setzen (falls benötigt)<% end %></li>
+            </ol>
+            <p class="mt-2 italic">
+              Hinweis: Kurzfristige Nachmelder werden automatisch <strong>ans Ende der Setzliste</strong> angehängt.
+            </p>
+          </div>
+        </div>
+        
+        <script>
+        function showPlayerAddHelp() {
+          const help = document.getElementById('player-add-help');
+          help.classList.toggle('hidden');
+        }
+        
+        // TODO: Implement player search with Stimulus
+        // For now, show info that feature is in development
+        document.getElementById('player-search')?.addEventListener('focus', function() {
+          alert('Spieler-Suche: In Entwicklung\n\nAktuell: Nur Spieler aus der Meldeliste können aktiviert/deaktiviert werden.\n\nFür neue Spieler: Bitte zunächst in Schritt 1 die Meldeliste aktualisieren.');
+        });
+        </script>
       <%- end %>
       
       <!-- Info-Box und Navigation -->
       <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900">💡 Info</h4>
+            <h4 class="font-semibold text-blue-900">💡 Wichtig</h4>
             <p class="text-sm text-blue-800">
-              Änderungen werden <strong>automatisch gespeichert</strong> (per Stimulus Reflex).<br>
-              Sie können jederzeit hierher zurückkehren um weitere Änderungen vorzunehmen.<br>
-              <% if @tournament.handicap_tournier %>
-                <strong>Vorgabeturniere:</strong> Vorgaben (Punktziel) werden sofort gespeichert.
-              <% end %>
+              ✓ Alle Änderungen (Checkboxen, Vorgaben) werden <strong>sofort gespeichert</strong><br>
+              ✓ Sie können jederzeit hierher zurückkehren um weitere Anpassungen vorzunehmen
             </p>
-            <p class="text-sm text-blue-700 mt-2 font-semibold">
-              → Um die Teilnehmerliste abzuschließen, gehen Sie zu <strong>Schritt 4</strong> im Wizard!
+            <p class="text-sm text-blue-900 mt-3 font-semibold bg-blue-100 p-2 rounded">
+              ⏭️ Wenn Sie fertig sind: Gehen Sie zurück zum Wizard und klicken Sie <strong>Schritt 4: Teilnehmerliste finalisieren</strong>
             </p>
           </div>
           <%= link_to '← Zurück zum Wizard', tournament_path(@tournament), 
