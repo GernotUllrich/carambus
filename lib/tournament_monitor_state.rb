@@ -184,6 +184,7 @@ module TournamentMonitorState
       
       begin
         executor_params = JSON.parse(@tournament_plan.executor_params)
+        Tournament.logger.info "[tmon-reset_tournament_monitor] executor_params: #{executor_params.inspect}"
       rescue JSON::ParserError => e
         error_msg = "Failed to parse executor_params: #{e.message}"
         Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
@@ -208,20 +209,78 @@ module TournamentMonitorState
         end
 
         repeats = executor_params[k]["rp"].presence || 1
-        (1..repeats).each do |rp|
-          next unless /^eae/.match?(executor_params[k]["rs"])
+        rule_system = executor_params[k]["rs"]
+        Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: repeats=#{repeats}, rule_system=#{rule_system.inspect}, players=#{actual_count}"
+        
+        # rule_system könnte ein String oder Array sein
+        rule_system_str = rule_system.is_a?(Array) ? rule_system.first : rule_system.to_s
+        
+        unless rule_system_str.present? && /^eae/.match?(rule_system_str)
+          Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: Gruppe #{group_no} hat rule_system '#{rule_system.inspect}' (#{rule_system_str}), das nicht mit /^eae/ übereinstimmt. Spiele werden übersprungen."
+          next
+        end
 
+        (1..repeats).each do |rp|
           (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each do |a|
             i1, i2 = a
-            Tournament.logger.info "NEW GAME group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
-            game = tournament.games.create(gname: "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}",
-                                           group_no: group_no)
-            # @groups now contains player IDs, not player objects
-            game.game_participations.create(player_id: @groups["group#{group_no}"][i1 - 1], role: "playera")
-            game.game_participations.create(player_id: @groups["group#{group_no}"][i2 - 1], role: "playerb")
+            player1_id = @groups["group#{group_no}"][i1 - 1]
+            player2_id = @groups["group#{group_no}"][i2 - 1]
+            
+            unless player1_id.present? && player2_id.present?
+              error_msg = "ERROR: Gruppe #{group_no}, Spiel #{i1}-#{i2}: Spieler-ID fehlt (player1: #{player1_id}, player2: #{player2_id})"
+              Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+              deep_merge_data!("error" => error_msg)
+              save!
+              return { "ERROR" => error_msg }
+            end
+            
+            begin
+              gname = "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
+              Tournament.logger.info "[tmon-reset_tournament_monitor] NEW GAME #{gname} (player1_id: #{player1_id}, player2_id: #{player2_id})"
+              game = tournament.games.create(gname: gname, group_no: group_no)
+              
+              unless game.persisted?
+                error_msg = "ERROR: Spiel konnte nicht erstellt werden: #{game.errors.full_messages.join(', ')}"
+                Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+                deep_merge_data!("error" => error_msg)
+                save!
+                return { "ERROR" => error_msg }
+              end
+              
+              # @groups now contains player IDs, not player objects
+              gp1 = game.game_participations.create(player_id: player1_id, role: "playera")
+              gp2 = game.game_participations.create(player_id: player2_id, role: "playerb")
+              
+              unless gp1.persisted? && gp2.persisted?
+                error_msg = "ERROR: GameParticipations konnten nicht erstellt werden: gp1.errors=#{gp1.errors.full_messages.join(', ')}, gp2.errors=#{gp2.errors.full_messages.join(', ')}"
+                Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+                deep_merge_data!("error" => error_msg)
+                save!
+                return { "ERROR" => error_msg }
+              end
+            rescue StandardError => e
+              error_msg = "ERROR beim Erstellen des Spiels group#{group_no}:#{i1}-#{i2}: #{e.message}"
+              Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+              Tournament.logger.error "[tmon-reset_tournament_monitor] Backtrace: #{e.backtrace&.join("\n")}"
+              deep_merge_data!("error" => error_msg)
+              save!
+              return { "ERROR" => error_msg }
+            end
           end
         end
       end
+      
+      games_count = tournament.games.where("games.id >= #{Game::MIN_ID}").count
+      Tournament.logger.info "[tmon-reset_tournament_monitor] Spiele erstellt: #{games_count}"
+      
+      if groups_must_be_played && games_count == 0
+        error_msg = "ERROR: Keine Spiele erstellt, obwohl groups_must_be_played=true ist. Möglicherweise stimmt das rule_system (rs) in executor_params nicht mit /^eae/ überein."
+        Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
+      end
+      
       # noinspection RubyResolve
       start_playing_finals! unless groups_must_be_played
       populate_tables unless tournament.manual_assignment
