@@ -170,12 +170,14 @@ class Tournament < ApplicationRecord
 
   def self.search_joins
     # Organizer ist polymorphisch (Region), daher custom JOIN
+    # LEFT JOIN für optionale Assoziationen (discipline, tournament_cc, location)
+    # damit Turniere ohne diese Daten trotzdem gefunden werden
     [
       'INNER JOIN "regions" ON ("regions"."id" = "tournaments"."organizer_id" AND "tournaments"."organizer_type" = \'Region\')',
-      :season,
-      :discipline,
-      :tournament_cc,
-      :location
+      'INNER JOIN "seasons" ON "seasons"."id" = "tournaments"."season_id"',
+      'LEFT JOIN "disciplines" ON "disciplines"."id" = "tournaments"."discipline_id"',
+      'LEFT JOIN "tournament_ccs" ON "tournament_ccs"."tournament_id" = "tournaments"."id"',
+      'LEFT JOIN "locations" ON "locations"."id" = "tournaments"."location_id"'
     ]
   end
 
