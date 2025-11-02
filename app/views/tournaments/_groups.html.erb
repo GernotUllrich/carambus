@@ -1,22 +1,32 @@
 <div class="px-3 lg:px-0">
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-4xl mx-auto">
-      <div class="flex flex-col sm:flex-row space-x-20 p-4  dark:">
-        <h4 class="flex flex-1"><%= I18n.t("tournaments.groups.groups") %></h4>
-        <% (1..tournament_plan.ngroups).each do |n| %>
-          <div class="flex flex-1 flex-col">
-            <h5>Gruppe <%= n %></h5>
-            <% (1..(tournament_plan.players.to_f / tournament_plan.ngroups).ceil).each do |row_no| %>
-              <% player_id = groups["group#{n}"][row_no - 1] %>
-              <% if player_id.present? %>
-                <div class="">
-                  <%= Player.find(player_id).fullname %>
-                </div>
-              <%- end %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
+      <% if groups.present? %>
+        <div class="flex flex-col sm:flex-row space-x-20 p-4  dark:">
+          <h4 class="flex flex-1"><%= I18n.t("tournaments.groups.groups") %></h4>
+          <% (1..tournament_plan.ngroups).each do |n| %>
+            <div class="flex flex-1 flex-col">
+              <h5>Gruppe <%= n %></h5>
+              <% group_key = "group#{n}" %>
+              <% if groups[group_key].present? %>
+                <% groups[group_key].each do |player_id| %>
+                  <% if player_id.present? %>
+                    <div class="">
+                      <%= Player.find(player_id).fullname %>
+                    </div>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <div class="text-gray-400 italic">Keine Spieler</div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="p-4 text-gray-500 italic">
+          Keine Gruppenbildung verfügbar
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
