@@ -253,18 +253,12 @@
     </div>
 
     <div class="wizard-step-actions">
-      <% if tournament.tournament_started %>
+      <% if tournament.tournament_started && tournament.tournament_monitor.present? %>
         <!-- Prominenter Button wenn Turnier läuft -->
         <%= link_to '🎮 Tournament Monitor öffnen', 
-            tournament_monitor_tournament_path(tournament),
+            tournament_monitor_path(tournament.tournament_monitor),
             class: 'btn btn-success btn-lg',
             style: 'font-weight: bold;' %>
-        
-        <% if tournament.tournament_monitor.present? %>
-          <%= link_to '📊 Tournament Monitor Details', 
-              tournament_monitor_path(tournament.tournament_monitor),
-              class: 'btn btn-primary btn-sm ml-2' %>
-        <% end %>
       <% elsif wizard_step_status(tournament, 6) == :active %>
         <!-- Button zum Starten wenn noch nicht gestartet -->
         <%= link_to 'Turnier starten', 
