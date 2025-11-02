@@ -917,11 +917,37 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
           
           Rails.logger.info "===== scrape_upcoming ===== #{name} (#{date.to_date})"
           
-          # Nutze bestehende Methode mit Filter auf spezifisches Turnier
-          scrape_tournaments_check(current_season, tournament_cc_id: tournament_cc_id)
+          # Scrape dieses spezifische Turnier (inkl. Erstellung wenn neu)
+          tournament_url = url + tournament_link
+          uri = URI(tournament_url)
+          tournament_html = Net::HTTP.get(uri)
+          tournament_doc = Nokogiri::HTML(tournament_html)
+          
+          # Erstelle/Update TournamentCc
+          tc = TournamentCc.where(cc_id: tournament_cc_id, context: region_cc.context).first_or_create(name: name)
+          
+          # Erstelle/Update Tournament
+          tournament = Tournament.where(season: current_season, organizer: self, title: name).first
+          unless tournament.present?
+            tournament = Tournament.create!(
+              season: current_season,
+              organizer: self,
+              title: name,
+              date: date
+            )
+            Rails.logger.info "===== scrape_upcoming ===== Created new tournament: #{name}"
+          end
+          
+          # Verknüpfe TournamentCc mit Tournament
+          tc.update(tournament: tournament) if tc.tournament_id != tournament.id
+          
+          # Scrape Details des Turniers
+          tournament.scrape_single_tournament_public(tournament_doc: tournament_doc)
+          
           count += 1
         rescue StandardError => e
           Rails.logger.error "===== scrape_upcoming ===== Error: #{e.message}"
+          Rails.logger.debug e.backtrace.join("\n")
         end
       end
       
