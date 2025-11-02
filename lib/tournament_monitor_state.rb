@@ -144,14 +144,20 @@ module TournamentMonitorState
       Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings IDs: #{seedings_query.pluck(:id).join(', ')}"
       
       if seedings_count == 0
-        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: Keine Seedings gefunden!"
-        return { "ERROR" => "Keine Seedings gefunden (has_local: #{has_local_seedings})" }
+        error_msg = "Keine Seedings gefunden (has_local: #{has_local_seedings})"
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
       end
       
       # Validiere dass TournamentPlan zur Spieleranzahl passt
       if @tournament_plan.players != seedings_count
-        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: TournamentPlan #{@tournament_plan.name} erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden!"
-        return { "ERROR" => "TournamentPlan #{@tournament_plan.name} passt nicht: erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden. Bitte wählen Sie den richtigen TournamentPlan (z.B. T21 für 11 Spieler)." }
+        error_msg = "TournamentPlan #{@tournament_plan.name} passt nicht: erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden. Bitte wählen Sie den richtigen TournamentPlan (z.B. T21 für 11 Spieler)."
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
       end
       
       @groups = TournamentMonitor.distribute_to_group(
@@ -169,15 +175,21 @@ module TournamentMonitorState
       
       # Prüfe ob executor_params vorhanden ist
       unless @tournament_plan.executor_params.present?
-        Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: executor_params is empty for TournamentPlan[#{@tournament_plan.id}]"
-        return { "ERROR" => "executor_params is empty for TournamentPlan #{@tournament_plan.name}" }
+        error_msg = "executor_params is empty for TournamentPlan #{@tournament_plan.name}"
+        Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
       end
       
       begin
         executor_params = JSON.parse(@tournament_plan.executor_params)
       rescue JSON::ParserError => e
-        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR parsing executor_params: #{e.message}"
-        return { "ERROR" => "Failed to parse executor_params: #{e.message}" }
+        error_msg = "Failed to parse executor_params: #{e.message}"
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
+        deep_merge_data!("error" => error_msg)
+        save!
+        return { "ERROR" => error_msg }
       end
       groups_must_be_played = false
       executor_params.each_key do |k|
@@ -188,8 +200,11 @@ module TournamentMonitorState
         expected_count = executor_params[k]["pl"].to_i
         actual_count = @groups["group#{group_no}"].count
         if actual_count != expected_count
-          Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: Group #{group_no} Count Mismatch: #{actual_count} vs. #{expected_count} (executor_params)"
-          return { "ERROR" => "Group Count Mismatch: Gruppe #{group_no} hat #{actual_count} Spieler, aber executor_params erwartet #{expected_count}. TournamentPlan #{@tournament_plan.name} passt möglicherweise nicht zur Spieleranzahl (#{seedings_count})." }
+          error_msg = "Group Count Mismatch: Gruppe #{group_no} hat #{actual_count} Spieler, aber executor_params erwartet #{expected_count}. TournamentPlan #{@tournament_plan.name} passt möglicherweise nicht zur Spieleranzahl (#{seedings_count})."
+          Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
+          deep_merge_data!("error" => error_msg)
+          save!
+          return { "ERROR" => error_msg }
         end
 
         repeats = executor_params[k]["rp"].presence || 1
@@ -218,11 +233,19 @@ module TournamentMonitorState
       Tournament.logger.info "...[tmon-reset_tournament_monitor] tournament.state:\
  #{tournament.state} tournament_monitor.state: #{state}"
     else
-      Tournament.logger.info "...[tmon-reset_tournament_monitor] ERROR MISSING TOURNAMENT_PLAN"
-      return { "ERROR" => "...[tmon-reset_tournament_monitor] ERROR MISSING TOURNAMENT_PLAN" }
+      error_msg = "[tmon-reset_tournament_monitor] ERROR MISSING TOURNAMENT_PLAN"
+      Tournament.logger.info "...#{error_msg}"
+      deep_merge_data!("error" => error_msg)
+      save!
+      return { "ERROR" => error_msg }
     end
     true
   rescue StandardError => e
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
+    error_msg = "ERROR: #{e.message}"
+    Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
+    Tournament.logger.error "[tmon-reset_tournament_monitor] Backtrace: #{e.backtrace&.join("\n")}"
+    deep_merge_data!("error" => error_msg)
+    save!
+    return { "ERROR" => error_msg }
   end
 end

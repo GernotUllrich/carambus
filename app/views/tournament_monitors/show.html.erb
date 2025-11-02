@@ -32,9 +32,6 @@
         <% else %>
           <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
             <h4 class="text-red-900 font-semibold mb-2">⚠️ Fehler beim Initialisieren des Turniers</h4>
-            <p class="text-red-800 text-sm mb-3">
-              Der TournamentMonitor konnte nicht richtig initialisiert werden.
-            </p>
             <% 
               has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
               seeding_scope = has_local_seedings ? 
@@ -44,7 +41,14 @@
               total_seedings_count = @tournament_monitor.tournament.seedings.count
               plan = @tournament_monitor.tournament.tournament_plan
               plan_mismatch = plan && plan.players != used_seedings_count
+              error_msg = @tournament_monitor.data&.dig("error")
             %>
+            <% if error_msg.present? %>
+              <div class="bg-red-100 border-2 border-red-300 rounded p-3 mb-3">
+                <h5 class="text-red-900 font-bold mb-2">❌ Fehlermeldung:</h5>
+                <p class="text-red-900 text-sm whitespace-pre-wrap"><%= error_msg %></p>
+              </div>
+            <% end %>
             <% if plan_mismatch %>
               <div class="bg-red-100 border-2 border-red-300 rounded p-3 mb-3">
                 <h5 class="text-red-900 font-bold mb-2">❌ TournamentPlan passt nicht!</h5>
