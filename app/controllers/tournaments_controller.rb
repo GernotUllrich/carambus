@@ -99,10 +99,15 @@ class TournamentsController < ApplicationController
 
   def reload_from_cc
     if local_server?
-      @tournament.reset_tournament
+      # Nur lokale Seedings zurücksetzen (nicht ClubCloud-Seedings löschen!)
+      @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+      @tournament.reset_tmt_monitor! if @tournament.tournament_monitor.present?
+      
+      # Hole Updates vom API Server (inkl. ClubCloud-Seedings)
       Version.update_from_carambus_api(update_tournament_from_cc: @tournament.id)
     else
-      @tournament.scrape_single_tournament_public(reload_game_results: true)
+      # API Server: Scrape von ClubCloud (OHNE reload_game_results!)
+      @tournament.scrape_single_tournament_public
     end
     redirect_back_or_to(tournament_path(@tournament))
   end
