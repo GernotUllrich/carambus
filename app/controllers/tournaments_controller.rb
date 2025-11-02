@@ -214,10 +214,7 @@ class TournamentsController < ApplicationController
       @ko_plan = TournamentPlan.ko_plan(@participant_count)
       @alternatives_other_disciplines |= [@default_plan]
       @alternatives_other_disciplines |= [@ko_plan]
-      @groups = TournamentMonitor.distribute_to_group(
-        @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
-        @default_plan.ngroups
-      )
+      # REMOVED: @groups wird bereits oben korrekt gesetzt (Zeile 189, 194 oder 200)
     end
   end
 
