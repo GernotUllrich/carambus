@@ -128,11 +128,21 @@ module TournamentMonitorState
     @tournament_plan ||= tournament.tournament_plan
     if @tournament_plan.present?
       initialize_table_monitors unless tournament.manual_assignment
+      
+      # Intelligentes seeding_scope: Lokale Seedings bevorzugen, sonst ClubCloud
+      has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+      seeding_scope = has_local_seedings ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+      
       @groups = TournamentMonitor.distribute_to_group(
         tournament.seedings
                   .where.not(state: "no_show")
-                  .where("seedings.id >= #{Seeding::MIN_ID}")
-                  .map(&:player), @tournament_plan.andand.ngroups.to_i
+                  .where(seeding_scope)
+                  .order(:position)
+                  .map(&:player), 
+        @tournament_plan.andand.ngroups.to_i,
+        @tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
       )
       @placements = {}
       current_round!(1)
