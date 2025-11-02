@@ -168,26 +168,24 @@ class TournamentMonitor < ApplicationRecord
     (1..ngroups).each do |group_no|
       groups["group#{group_no}"] = []
     end
-    group_ix = 1
-    direction_right = true
-    players.each do |player|
+    
+    # NBV-konformer Round-Robin Algorithmus
+    # Spieler 1-N werden in Runden über die Gruppen verteilt
+    # Beispiel 14 Spieler, 4 Gruppen:
+    #   Runde 1: 1→G1, 2→G2, 3→G3, 4→G4
+    #   Runde 2: 5→G1, 6→G2, 7→G3, 8→G4
+    #   Runde 3: 9→G1, 10→G2, 11→G3, 12→G4
+    #   Runde 4: 13→G1, 14→G2 (unvollständig)
+    
+    players.each_with_index do |player, index|
       # Store player ID instead of player object to avoid JSON serialization issues
       player_id = player.is_a?(Integer) ? player : player.id
-      groups["group#{group_ix}"] << player_id
-      if direction_right
-        group_ix += 1
-        if group_ix > ngroups
-          direction_right = false
-          group_ix = ngroups
-        end
-      else
-        group_ix -= 1
-        if group_ix <= 0
-          direction_right = true
-          group_ix = 1
-        end
-      end
+      
+      # Round-Robin: Spieler-Index modulo ngroups bestimmt die Gruppe
+      group_no = (index % ngroups) + 1
+      groups["group#{group_no}"] << player_id
     end
+    
     groups
   rescue StandardError => e
     Tournament.logger.info "distribute_to_group(#{players}, #{ngroups}) #{e} #{e.backtrace&.join("\n")}"
