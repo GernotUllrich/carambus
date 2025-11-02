@@ -119,8 +119,9 @@ module RegionTaggable
     return unless PaperTrail.request.enabled?
 
     # Update the most recent version for this record
-    if versions.any?
-      latest_version = versions.last
+    record_versions = self.versions rescue []
+    if record_versions.any?
+      latest_version = record_versions.last
       if latest_version && previous_changes.present?
          latest_item = latest_version.item
         region_id = latest_item.region_id if latest_item.respond_to?(:region_id)
