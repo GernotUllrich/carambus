@@ -509,13 +509,13 @@ class Tournament < ApplicationRecord
       end
     end
     # Meldeliste
+    # Nur beim Archivieren (reload_game_results: true) alte Seedings aufräumen
+    # Beim Setup (reload_game_results: false) bestehende Seedings NICHT löschen!
     if opts[:reload_game_results]
       reload.seedings.destroy_all
-    else
-      reload.seedings.where.not(player: player_list.values.map { |v| v[0] }).each(&:destroy)
-      # reload.seedings.where.not(player: player_list.values.map { |v| v[0] }).destroy_all
-      reload.seedings.where(player: nil).destroy_all
     end
+    # Seedings ohne Player-Zuordnung immer aufräumen
+    reload.seedings.where(player: nil).destroy_all
     # Teilnehmerliste
     # player_list = {}
     tournament_doc.css("aside .stanne table.silver table").each do |table|
