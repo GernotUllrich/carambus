@@ -167,20 +167,37 @@ class TournamentsController < ApplicationController
                                                                       }).first
       end
       if @proposed_discipline_tournament_plan.present?
-        # Option B: Verwende extrahierte Gruppenbildung wenn vorhanden
+        # Berechne IMMER die NBV-Standard-Gruppenbildung
+        @nbv_groups = TournamentMonitor.distribute_to_group(
+          @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+          @proposed_discipline_tournament_plan.ngroups
+        )
+        
+        # Wenn extrahierte Gruppenbildung vorhanden: vergleiche
         if @tournament.data['extracted_group_assignment'].present?
-          @groups = convert_position_groups_to_player_groups(
+          @extracted_groups = convert_position_groups_to_player_groups(
             @tournament.data['extracted_group_assignment'],
             @tournament
           )
-          @groups_source = :extracted  # Markiere dass aus Einladung
+          
+          # Vergleiche die beiden Gruppenbildungen
+          @groups_match = groups_identical?(@extracted_groups, @nbv_groups)
+          
+          if @groups_match
+            # Identisch: Verwende extrahierte (aber eigentlich egal)
+            @groups = @extracted_groups
+            @groups_source = :extracted_matches_nbv
+            Rails.logger.info "===== finalize_modus ===== Extrahierte Gruppenbildung ist identisch mit NBV-Algorithmus ✓"
+          else
+            # Abweichung: Verwende extrahierte, aber zeige Warnung
+            @groups = @extracted_groups
+            @groups_source = :extracted_differs_from_nbv
+            Rails.logger.warn "===== finalize_modus ===== ⚠️  Extrahierte Gruppenbildung weicht von NBV-Algorithmus ab!"
+          end
         else
-          # Option A: Standard NBV-Algorithmus
-          @groups = TournamentMonitor.distribute_to_group(
-            @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
-            @proposed_discipline_tournament_plan.ngroups
-          )
-          @groups_source = :algorithm  # Markiere dass berechnet
+          # Keine Extraktion: Verwende NBV
+          @groups = @nbv_groups
+          @groups_source = :algorithm
         end
       end
       @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
@@ -565,6 +582,18 @@ class TournamentsController < ApplicationController
     end
     
     player_groups
+  end
+  
+  # Vergleicht zwei Gruppenbildungen (als Hash mit Player-IDs)
+  # Returns true wenn identisch, false wenn unterschiedlich
+  def groups_identical?(groups_a, groups_b)
+    return false if groups_a.nil? || groups_b.nil?
+    return false if groups_a.keys.sort != groups_b.keys.sort
+    
+    groups_a.keys.all? do |group_key|
+      # Vergleiche als Sets (Reihenfolge egal innerhalb der Gruppe)
+      groups_a[group_key].sort == groups_b[group_key].sort
+    end
   end
 
   # Use callbacks to share common setup or constraints between actions.
