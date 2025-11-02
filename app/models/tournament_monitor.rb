@@ -235,8 +235,8 @@ class TournamentMonitor < ApplicationRecord
       # Prüfe ob Gruppe schon voll
       max_size = group_sizes[target_group - 1] || 0
       if group_fill_count[target_group] >= max_size
-        # Finde nächste verfügbare Gruppe
-        target_group = find_next_available_group(ngroups, group_sizes, group_fill_count)
+        # Finde nächste verfügbare Gruppe (IN ROUND-ROBIN REIHENFOLGE!)
+        target_group = find_next_available_group_round_robin(target_group, ngroups, group_sizes, group_fill_count)
       end
       
       if target_group
@@ -250,9 +250,12 @@ class TournamentMonitor < ApplicationRecord
     groups
   end
   
-  # Findet die nächste Gruppe die noch nicht voll ist
-  def self.find_next_available_group(ngroups, group_sizes, group_fill_count)
-    (1..ngroups).each do |gn|
+  # Findet die nächste Gruppe die noch nicht voll ist (Round-Robin Reihenfolge)
+  # Startet bei start_group und geht zirkulär weiter
+  def self.find_next_available_group_round_robin(start_group, ngroups, group_sizes, group_fill_count)
+    # Versuche alle Gruppen ab start_group (zirkulär)
+    ngroups.times do |offset|
+      gn = ((start_group - 1 + offset) % ngroups) + 1
       max_size = group_sizes[gn - 1] || 0
       return gn if group_fill_count[gn] < max_size
     end
