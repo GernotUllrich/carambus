@@ -74,10 +74,33 @@ class SeedingListExtractor
       end
       
       # Parse Spieler-Zeilen
-      # Format: "1. Smrcka, Martin" oder "1 Smrcka Martin"
       if in_seeding_section
-        # Match Nummer + Name
-        if (match = line.match(/^\s*(\d+)[\.\s]+([A-ZÄÖÜ][a-zäöüß]+)\s*,?\s+([A-ZÄÖÜ][a-zäöüß\-\.]+)/))
+        # WICHTIG: Zweispaltige Tabellen!
+        # Format: "1. Lastname Firstname        7. Lastname Firstname"
+        # oder:   "1 Lastname Firstname         7 Lastname Firstname"
+        
+        # Versuche zwei Spieler pro Zeile zu finden (zweispaltig)
+        # Pattern: Nummer + Name, dann optional mehr Text, dann wieder Nummer + Name
+        two_column_pattern = /(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)(?:\s{2,}|\t+)(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/
+        
+        if (match = line.match(two_column_pattern))
+          # Linke Spalte
+          players << {
+            position: match[1].to_i,
+            lastname: match[2].strip,
+            firstname: match[3].strip,
+            full_name: "#{match[2].strip}, #{match[3].strip}"
+          }
+          
+          # Rechte Spalte
+          players << {
+            position: match[4].to_i,
+            lastname: match[5].strip,
+            firstname: match[6].strip,
+            full_name: "#{match[5].strip}, #{match[6].strip}"
+          }
+        # Einspaltig (Fallback)
+        elsif (match = line.match(/^\s*(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/))
           position = match[1].to_i
           lastname = match[2].strip
           firstname = match[3].strip
@@ -88,21 +111,12 @@ class SeedingListExtractor
             firstname: firstname,
             full_name: "#{lastname}, #{firstname}"
           }
-        elsif (match = line.match(/^\s*(\d+)[\.\s]+([A-ZÄÖÜ][a-zäöüß\-\.]+)\s+([A-ZÄÖÜ][a-zäöüß]+)/))
-          # Alternative Format: "1 Martin Smrcka"
-          position = match[1].to_i
-          firstname = match[2].strip
-          lastname = match[3].strip
-          
-          players << {
-            position: position,
-            lastname: lastname,
-            firstname: firstname,
-            full_name: "#{lastname}, #{firstname}"
-          }
         end
       end
     end
+    
+    # Sortiere nach Position (wichtig wenn zweispaltig durcheinander kam)
+    players.sort_by! { |p| p[:position] }
     
     {
       success: players.any?,
