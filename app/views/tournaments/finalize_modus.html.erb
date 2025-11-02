@@ -69,42 +69,46 @@
             </div>
           <% elsif @groups_source == :extracted_differs_from_nbv %>
             <div class="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded">
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <p class="text-red-900 font-semibold mb-2">
-                    ⚠️  WARNUNG: Abweichung vom NBV-Standard erkannt!
-                  </p>
-                  <p class="text-red-800 text-sm mb-3">
-                    Die Gruppenbildung in der Einladung <strong>unterscheidet sich</strong> vom NBV-Standard-Algorithmus.<br>
-                    Dies kann zu Problemen bei der Spielerstellung führen, da die TournamentPlan executor_params den Standard-Algorithmus erwarten.
-                  </p>
-                  
-                  <!-- Vergleich: Extrahiert vs. NBV -->
-                  <details class="bg-white p-3 rounded border border-red-200">
-                    <summary class="cursor-pointer font-semibold text-red-900">
-                      🔍 Vergleich anzeigen
-                    </summary>
-                    <div class="mt-3 grid grid-cols-2 gap-4">
-                      <div>
-                        <h5 class="font-bold text-red-900 mb-2">📄 Aus Einladung extrahiert:</h5>
-                        <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @extracted_groups} %>
-                      </div>
-                      <div>
-                        <h5 class="font-bold text-blue-900 mb-2">🤖 NBV-Standard-Berechnung:</h5>
-                        <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @nbv_groups} %>
-                      </div>
-                    </div>
-                  </details>
-                </div>
-                <div class="flex gap-2 ml-4">
-                  <%= button_to '🔄 NBV-Standard verwenden',
-                      recalculate_groups_tournament_path(@tournament),
-                      method: :post,
-                      class: 'btn btn-sm btn-warning',
-                      data: { confirm: 'Wirklich zur NBV-Standard-Berechnung wechseln?\n\nDie Einladungs-Zuordnung wird verworfen.' },
-                      title: 'Verwirft Einladungs-Zuordnung und verwendet NBV-Algorithmus' %>
-                </div>
+              <p class="text-red-900 font-semibold mb-2">
+                ⚠️  WARNUNG: Abweichung vom NBV-Standard erkannt!
+              </p>
+              <p class="text-red-800 text-sm mb-3 max-w-4xl">
+                Die Gruppenbildung in der Einladung <strong>unterscheidet sich</strong> vom berechneten Algorithmus.<br>
+                <strong>Grund:</strong> Der NBV-Algorithmus für <%= @proposed_discipline_tournament_plan.name %> ist möglicherweise noch nicht korrekt implementiert.
+              </p>
+              
+              <div class="flex gap-2 mb-3">
+                <%= button_to '✅ Einladung verwenden (empfohlen)',
+                    select_modus_tournament_path(@tournament, tournament_plan_id: @proposed_discipline_tournament_plan.id),
+                    method: :post,
+                    class: 'btn btn-sm btn-success',
+                    data: { confirm: 'Gruppenbildung aus Einladung verwenden?\n\nDiese ist vom Landessportwart vorgegeben.' },
+                    title: 'Verwendet die offizielle Gruppenbildung aus der Einladung' %>
+                
+                <%= button_to '🔄 Algorithmus verwenden (Risiko)',
+                    recalculate_groups_tournament_path(@tournament),
+                    method: :post,
+                    class: 'btn btn-sm btn-outline-warning',
+                    data: { confirm: 'ACHTUNG: Der Algorithmus könnte falsch sein!\n\nBesser die Einladung verwenden.' },
+                    title: 'Verwendet berechneten Algorithmus (könnte von NBV-Vorgaben abweichen)' %>
               </div>
+              
+              <!-- Vergleich: Extrahiert vs. Berechnet -->
+              <details class="bg-white p-3 rounded border border-red-200">
+                <summary class="cursor-pointer font-semibold text-red-900">
+                  🔍 Vergleich anzeigen
+                </summary>
+                <div class="mt-3 grid grid-cols-2 gap-4">
+                  <div>
+                    <h5 class="font-bold text-green-900 mb-2">📄 Aus Einladung (NBV-Vorgabe):</h5>
+                    <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @extracted_groups} %>
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-orange-900 mb-2">🤖 Berechnet (vermutlich falsch):</h5>
+                    <%= render partial: "groups", locals: {tournament_plan: @proposed_discipline_tournament_plan, groups: @nbv_groups} %>
+                  </div>
+                </div>
+              </details>
             </div>
           <% elsif @groups_source == :algorithm %>
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
