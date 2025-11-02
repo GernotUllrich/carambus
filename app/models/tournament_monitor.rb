@@ -216,7 +216,7 @@ class TournamentMonitor < ApplicationRecord
   end
   
   # Verteilt Spieler auf Gruppen mit spezifischen Gruppengrößen
-  # Verwendet Round-Robin aber stoppt wenn Gruppe voll ist
+  # NBV-Algorithmus: Round-Robin, dann größere Gruppen von hinten auffüllen
   def self.distribute_with_sizes(players, ngroups, group_sizes)
     groups = {}
     group_fill_count = {}
@@ -226,40 +226,43 @@ class TournamentMonitor < ApplicationRecord
       group_fill_count[group_no] = 0
     end
     
-    players.each_with_index do |player, index|
+    # Phase 1: Standard Round-Robin bis alle Gruppen mindestens min_size erreichen
+    min_size = group_sizes.min
+    players_for_phase1 = min_size * ngroups
+    
+    players[0...players_for_phase1].each_with_index do |player, index|
+      player_id = player.is_a?(Integer) ? player : player.id
+      group_no = (index % ngroups) + 1
+      groups["group#{group_no}"] << player_id
+      group_fill_count[group_no] += 1
+    end
+    
+    # Phase 2: Restliche Spieler gehen in größere Gruppen (von hinten nach vorne!)
+    remaining_players = players[players_for_phase1..-1] || []
+    
+    # Finde Gruppen die noch Platz haben (sortiert nach Gruppe, absteigend!)
+    groups_with_space = (1..ngroups).to_a.reverse.select do |gn|
+      max_size = group_sizes[gn - 1]
+      group_fill_count[gn] < max_size
+    end
+    
+    remaining_players.each_with_index do |player, index|
       player_id = player.is_a?(Integer) ? player : player.id
       
-      # Round-Robin Start-Gruppe
-      target_group = (index % ngroups) + 1
-      
-      # Prüfe ob Gruppe schon voll
-      max_size = group_sizes[target_group - 1] || 0
-      if group_fill_count[target_group] >= max_size
-        # Finde nächste verfügbare Gruppe (IN ROUND-ROBIN REIHENFOLGE!)
-        target_group = find_next_available_group_round_robin(target_group, ngroups, group_sizes, group_fill_count)
-      end
-      
-      if target_group
+      if groups_with_space.any?
+        target_group = groups_with_space.shift  # Nimm erste verfügbare (von hinten!)
         groups["group#{target_group}"] << player_id
         group_fill_count[target_group] += 1
+        
+        # Wenn Gruppe jetzt voll: entferne sie aus der Liste
+        max_size = group_sizes[target_group - 1]
+        groups_with_space << target_group if group_fill_count[target_group] < max_size
       else
-        Tournament.logger.warn "distribute_with_sizes: Konnte Spieler #{index + 1} nicht zuordnen!"
+        Tournament.logger.warn "distribute_with_sizes: Konnte Spieler #{players_for_phase1 + index + 1} nicht zuordnen!"
       end
     end
     
     groups
-  end
-  
-  # Findet die nächste Gruppe die noch nicht voll ist (Round-Robin Reihenfolge)
-  # Startet bei start_group und geht zirkulär weiter
-  def self.find_next_available_group_round_robin(start_group, ngroups, group_sizes, group_fill_count)
-    # Versuche alle Gruppen ab start_group (zirkulär)
-    ngroups.times do |offset|
-      gn = ((start_group - 1 + offset) % ngroups) + 1
-      max_size = group_sizes[gn - 1] || 0
-      return gn if group_fill_count[gn] < max_size
-    end
-    nil  # Alle Gruppen voll
   end
 
   private
