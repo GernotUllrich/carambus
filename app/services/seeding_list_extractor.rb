@@ -191,10 +191,10 @@ class SeedingListExtractor
       end
       
       # Format 3: Direkt "T21" am Zeilenanfang mit Beschreibung
-      if (match = line.match(/^\s*(T\d+)\s+(.+Gruppen.+)/i))
+      if (match = line.match(/^\s*(T\d+)\s+(.+Gruppen[^,]+(?:,\s*\d+)?)/i))
         plan_name = match[1].upcase
-        # Extrahiere nur bis zum ersten Komma
-        plan_details = match[2].strip.split(',')[0]
+        # Extrahiere Gruppenbeschreibung (inkl. Zahlen nach Kommas)
+        plan_details = match[2].strip
         plan_info = "#{plan_name} - #{plan_details}"
         Rails.logger.info "===== extract_plan_info ===== Found (Format 3): #{plan_info}"
         return plan_info if plan_info.present?
@@ -256,7 +256,9 @@ class SeedingListExtractor
           
           names.each_with_index do |name, col_index|
             group_no = col_index + 1
-            group_names[group_no] << name if group_names[group_no]
+            # Bereinige Namen: Entferne führende Trennstriche (z.B. "-----------Rosenbach" -> "Rosenbach")
+            clean_name = name.gsub(/^[\-]+/, '').strip
+            group_names[group_no] << clean_name if group_names[group_no] && clean_name.present?
           end
         end
       end
@@ -269,8 +271,17 @@ class SeedingListExtractor
         next unless names.present?
         
         names.each do |name|
-          # Suche Spieler in extracted_players (nur Nachname)
-          player = extracted_players.find { |p| p[:lastname].upcase == name.upcase }
+          # Suche Spieler in extracted_players
+          # Tolerant matching: "Schmid-W" matched "Schmid" oder "Schmid, Werner"
+          # Entferne Bindestriche und vergleiche nur den Hauptteil
+          name_base = name.split(/[\-\/]/).first.strip.upcase
+          
+          player = extracted_players.find do |p|
+            p[:lastname].upcase == name.upcase ||           # Exakter Match
+            p[:lastname].upcase == name_base ||             # Match ohne Suffix (Schmid-W -> Schmid)
+            p[:lastname].upcase.start_with?(name_base)      # Prefix-Match
+          end
+          
           if player
             group_data[group_no] << player[:position]
           else
