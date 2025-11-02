@@ -918,7 +918,10 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
           Rails.logger.info "===== scrape_upcoming ===== #{name} (#{date.to_date})"
           
           # Scrape dieses spezifische Turnier (inkl. Erstellung wenn neu)
-          tournament_url = url + tournament_link
+          # Convert list link to detail page link
+          detail_link = tournament_link.gsub("sb_einzelergebnisse.php", "sb_meisterschaft.php")
+          tournament_url = url + detail_link
+          Rails.logger.info "===== scrape_upcoming ===== Fetching details from #{tournament_url}"
           uri = URI(tournament_url)
           tournament_html = Net::HTTP.get(uri)
           tournament_doc = Nokogiri::HTML(tournament_html)
