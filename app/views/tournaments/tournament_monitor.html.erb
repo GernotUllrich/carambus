@@ -112,7 +112,11 @@
       <%- end %>
     </div>
     <div class=" rounded shadow p-8">
-      <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.ngroups) %>
+      <% if @tournament.tournament_monitor.present? && @tournament.tournament_monitor.data['groups'].present? %>
+        <% @groups = @tournament.tournament_monitor.data['groups'] %>
+      <% else %>
+        <% @groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where(seeding_scope).order(:position).map(&:player), @tournament.tournament_plan.ngroups, @tournament.tournament_plan.group_sizes) %>
+      <% end %>
       <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
     </div>
   </div>
