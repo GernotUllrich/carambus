@@ -54,6 +54,9 @@ class SeedingListExtractor
   def self.parse_seeding_list(text)
     players = []
     
+    # Extrahiere Turniermodus-Info (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+    plan_info = extract_tournament_plan_info(text)
+    
     # Suche nach Setzliste-Sektion
     # Pattern: "Setzliste" gefolgt von nummerierten Spielern
     
@@ -160,8 +163,32 @@ class SeedingListExtractor
       players: players,
       count: players.count,
       group_assignment: group_assignment,
+      plan_info: plan_info,
       raw_text: text
     }
+  end
+  
+  # Extrahiert Turniermodus-Info (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+  def self.extract_tournament_plan_info(text)
+    lines = text.split("\n")
+    
+    lines.each do |line|
+      # Suche nach "Turniermodus:" gefolgt von Plan-Info
+      # Beispiel: "Turniermodus: T21 - 3 Gruppen à 3, 4 und 4 Spieler"
+      if (match = line.match(/Turniermodus:\s*(.+)/i))
+        plan_info = match[1].strip
+        # Bereinige Zeilenumbrüche
+        plan_info = plan_info.gsub(/\s+/, ' ')
+        Rails.logger.info "===== extract_plan_info ===== Found: #{plan_info}"
+        return plan_info if plan_info.present?
+      end
+    end
+    
+    Rails.logger.info "===== extract_plan_info ===== Keine Turniermodus-Info gefunden"
+    nil
+  rescue => e
+    Rails.logger.error "===== extract_plan_info ===== Error: #{e.message}"
+    nil
   end
   
   # Extrahiert Gruppenbildung aus der Einladung

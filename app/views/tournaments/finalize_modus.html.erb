@@ -18,7 +18,19 @@
 <div flex flex-wrap>
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-3xl mx-auto">
-      <h3><%= I18n.t("tournaments.finalize_modus.teilnehmer", count: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count) %></h3>
+      <h3><%= I18n.t("tournaments.finalize_modus.teilnehmer", count: @participant_count) %></h3>
+      
+      <% if @tournament.data['extracted_plan_info'].present? %>
+        <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+          <h4 class="font-semibold text-green-900 mb-2">📄 Vorgaben aus Einladung:</h4>
+          <p class="text-green-900">
+            <strong><%= @tournament.data['extracted_plan_info'] %></strong>
+          </p>
+          <p class="text-xs text-green-700 mt-2">
+            Diese Informationen wurden automatisch aus der hochgeladenen Einladung extrahiert.
+          </p>
+        </div>
+      <% end %>
     </div>
   </div>
   <hr/>

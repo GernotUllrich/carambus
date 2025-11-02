@@ -133,9 +133,22 @@ class TournamentsController < ApplicationController
       @tournament.reload
     else
       @tournament.seedings.where(player_id: nil).destroy_all
+      
+      # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
+      # Ansonsten ClubCloud-Seedings zählen (verhindert Duplikat-Zählung)
+      has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+      seeding_scope = has_local_seedings ? 
+                        "seedings.id >= #{Seeding::MIN_ID}" : 
+                        "seedings.id < #{Seeding::MIN_ID}"
+      
+      @participant_count = @tournament.seedings
+                                      .where.not(state: "no_show")
+                                      .where(seeding_scope)
+                                      .count
+      
       @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                              .where(discipline_tournament_plans: {
-                                                                      players: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count,
+                                                                      players: @participant_count,
                                                                       player_class: @tournament.player_class,
                                                                       discipline_id: @tournament.discipline_id
                                                                     }).first
@@ -150,7 +163,8 @@ class TournamentsController < ApplicationController
         else
           # Option A: Standard NBV-Algorithmus
           @groups = TournamentMonitor.distribute_to_group(
-            @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @proposed_discipline_tournament_plan.ngroups
+            @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+            @proposed_discipline_tournament_plan.ngroups
           )
           @groups_source = :algorithm  # Markiere dass berechnet
         end
@@ -158,18 +172,19 @@ class TournamentsController < ApplicationController
       @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                       .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
                                                       .where(discipline_tournament_plans: {
-                                                               players: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count,
+                                                               players: @participant_count,
                                                                discipline_id: @tournament.discipline_id
                                                              }).uniq
       @alternatives_other_disciplines = ::TournamentPlan
                                         .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) })
-                                        .where(players: @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").all.count).uniq.to_a
-      @default_plan = TournamentPlan.default_plan(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count)
-      @ko_plan = TournamentPlan.ko_plan(@tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").count)
+                                        .where(players: @participant_count).uniq.to_a
+      @default_plan = TournamentPlan.default_plan(@participant_count)
+      @ko_plan = TournamentPlan.ko_plan(@participant_count)
       @alternatives_other_disciplines |= [@default_plan]
       @alternatives_other_disciplines |= [@ko_plan]
       @groups = TournamentMonitor.distribute_to_group(
-        @tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @default_plan.ngroups
+        @tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+        @default_plan.ngroups
       )
     end
   end
@@ -410,12 +425,14 @@ class TournamentsController < ApplicationController
         @tournament
       )
       
-      # Speichere Gruppenbildung wenn gefunden (Option B)
-      if @extraction_result[:group_assignment].present?
+      # Speichere extrahierte Daten
+      data_updates = {}
+      data_updates['extracted_group_assignment'] = @extraction_result[:group_assignment] if @extraction_result[:group_assignment].present?
+      data_updates['extracted_plan_info'] = @extraction_result[:plan_info] if @extraction_result[:plan_info].present?
+      
+      if data_updates.any?
         @tournament.unprotected = true
-        @tournament.data = @tournament.data.merge({
-          'extracted_group_assignment' => @extraction_result[:group_assignment]
-        })
+        @tournament.data = @tournament.data.merge(data_updates)
         @tournament.save!
         @tournament.unprotected = false
       end
