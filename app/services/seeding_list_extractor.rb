@@ -217,6 +217,7 @@ class SeedingListExtractor
     in_group_section = false
     group_data = {}
     group_names = {}  # Hash statt Array! Für Namen-basiertes Format
+    column_positions = []  # Spalten-Positionen aus Header-Zeile
     
     lines.each do |line|
       # Start der Gruppenbildung
@@ -231,9 +232,18 @@ class SeedingListExtractor
       end
       
       # Parse Gruppen-Header: "Gruppe 1    Gruppe 2     Gruppe 3"
+      # WICHTIG: Extrahiere auch die Spalten-Positionen!
       if in_group_section && line =~ /Gruppe\s+\d/i
         group_numbers = line.scan(/Gruppe\s+(\d+)/i).flatten.map(&:to_i)
         group_numbers.each { |gn| group_data[gn] = []; group_names[gn] = [] }
+        
+        # Extrahiere Spalten-Positionen (wo beginnt "Gruppe 1", "Gruppe 2", etc.)
+        column_positions = []
+        group_numbers.each do |gn|
+          match_pos = line.index(/Gruppe\s+#{gn}/i)
+          column_positions << match_pos if match_pos
+        end
+        Rails.logger.info "===== extract_groups ===== Column positions: #{column_positions.inspect}"
         next
       end
       
@@ -246,19 +256,38 @@ class SeedingListExtractor
             group_no = col_index + 1
             group_data[group_no] << pn if group_data[group_no]
           end
-        # Format 2: Spielernamen in Spalten (z.B. "Kämmer      Benkert       Petry")
+        # Format 2: Spielernamen in Spalten (positions-basiert!)
         elsif line =~ /[A-ZÄÖÜ]/  # Enthält Großbuchstaben (Nachnamen)
-          # Skip Linien mit "---" oder zu wenig Inhalt
+          # Skip Linien mit nur Trennstrichen
           next if line.gsub(/[\s\-]/, '').length < 3
           
-          # Extrahiere Namen (aufgeteilt durch viele Leerzeichen)
-          names = line.split(/\s{2,}/).map(&:strip).reject(&:blank?).reject { |n| n =~ /^[\-]+$/ }
-          
-          names.each_with_index do |name, col_index|
-            group_no = col_index + 1
-            # Bereinige Namen: Entferne führende Trennstriche (z.B. "-----------Rosenbach" -> "Rosenbach")
-            clean_name = name.gsub(/^[\-]+/, '').strip
-            group_names[group_no] << clean_name if group_names[group_no] && clean_name.present?
+          # Wenn wir Spalten-Positionen haben: positions-basiertes Splitting
+          if column_positions.any?
+            group_numbers = group_data.keys.sort
+            group_numbers.each_with_index do |group_no, idx|
+              start_pos = column_positions[idx]
+              end_pos = column_positions[idx + 1] || line.length
+              
+              # Extrahiere Text aus dieser Spalte
+              column_text = line[start_pos...end_pos].to_s.strip
+              
+              # Bereinige: Entferne führende Trennstriche
+              clean_name = column_text.gsub(/^[\-]+/, '').strip
+              
+              # Füge hinzu wenn nicht leer
+              if clean_name.present? && clean_name !~ /^[\-]+$/
+                group_names[group_no] << clean_name
+              end
+            end
+          else
+            # Fallback: Whitespace-basiertes Splitting (alte Logik)
+            names = line.split(/\s{2,}/).map(&:strip).reject(&:blank?).reject { |n| n =~ /^[\-]+$/ }
+            
+            names.each_with_index do |name, col_index|
+              group_no = col_index + 1
+              clean_name = name.gsub(/^[\-]+/, '').strip
+              group_names[group_no] << clean_name if group_names[group_no] && clean_name.present?
+            end
           end
         end
       end
