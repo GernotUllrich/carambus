@@ -7,7 +7,12 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments
   def index
-    results = SearchService.call(Tournament.search_hash(params))
+    # Default sort by date descending if no sort specified
+    search_params = params.dup
+    search_params[:sort] ||= 'Date'
+    search_params[:direction] ||= 'desc'
+    
+    results = SearchService.call(Tournament.search_hash(search_params))
     @pagy, @tournaments = pagy(results.includes(:discipline, :season, :location, :tournament_cc).preload(:organizer))
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @tournaments.any? in the view will use the loaded records to check existence instead of making an extra DB call.
@@ -341,11 +346,14 @@ class TournamentsController < ApplicationController
         file.write(uploaded_file.read)
       end
       
-      # Speichere Pfad im Tournament
-      @tournament.update(data: @tournament.data.merge({
+      # Speichere Pfad im Tournament (mit unprotected für global records)
+      @tournament.unprotected = true
+      @tournament.data = @tournament.data.merge({
         'invitation_file_path' => file_path.to_s,
         'invitation_filename' => uploaded_file.original_filename
-      }))
+      })
+      @tournament.save!
+      @tournament.unprotected = false
       
       # Automatisch parsen
       redirect_to parse_invitation_tournament_path(@tournament)
