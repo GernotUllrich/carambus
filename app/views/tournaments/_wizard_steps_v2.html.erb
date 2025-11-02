@@ -221,12 +221,12 @@
         <div class="wizard-step-number-title">
           <span class="step-number"><%= tournament.organizer.is_a?(Region) ? 6 : 5 %>.</span>
           <h4 class="step-title">Verwaltung der Turnierspiele</h4>
-          <% if tournament.tournament_started? %>
+          <% if tournament.tournament_started %>
             <span class="status-badge badge-success">Läuft</span>
           <% end %>
         </div>
 
-        <% if wizard_step_status(tournament, 6) == :active && !tournament.tournament_started? %>
+        <% if wizard_step_status(tournament, 6) == :active && !tournament.tournament_started %>
           <div class="step-warning">
             <span class="warning-icon">⚠️</span>
             Turnier noch nicht gestartet
@@ -237,7 +237,7 @@
           <details>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p>
-              <% if tournament.tournament_started? %>
+              <% if tournament.tournament_started %>
                 Das Turnier läuft bereits. Verwenden Sie den <strong>Tournament Monitor</strong> um:
                 <br>• Spiele zu starten und zu verwalten
                 <br>• Tische zuzuordnen
@@ -253,7 +253,7 @@
     </div>
 
     <div class="wizard-step-actions">
-      <% if tournament.tournament_started? %>
+      <% if tournament.tournament_started %>
         <!-- Prominenter Button wenn Turnier läuft -->
         <%= link_to '🎮 Tournament Monitor öffnen', 
             tournament_monitor_tournament_path(tournament),
