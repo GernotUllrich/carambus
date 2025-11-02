@@ -64,6 +64,23 @@
           </tbody>
         </table>
       <%- end %>
+      
+      <!-- Abschluss-Button für Wizard-Flow -->
+      <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="font-semibold text-blue-900">✓ Teilnehmerliste bearbeitet?</h4>
+            <p class="text-sm text-blue-800">
+              Änderungen werden automatisch gespeichert (per Stimulus Reflex).<br>
+              <% if @tournament.handicap_tournier %>
+                <strong>Vorgabeturniere:</strong> Vorgaben (Punktziel) sind jetzt gesetzt.
+              <% end %>
+            </p>
+          </div>
+          <%= link_to '→ Weiter zu Schritt 4', tournament_path(@tournament), 
+              class: 'btn btn-primary' %>
+        </div>
+      </div>
     </div>
   </div>
 </div>

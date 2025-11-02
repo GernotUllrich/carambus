@@ -558,7 +558,15 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       # tournament known but no cc entry yet?
       tournament = Tournament.where(season:, organizer: self, title: name).first
       unless tournament.present?
-        tournament = Tournament.create(season:, organizer: self, title: name, region_id: self.id)
+        # Erkenne Vorgabeturniere am Titel
+        is_handicap = name =~ /Vorgabe/i
+        tournament = Tournament.create(
+          season:, 
+          organizer: self, 
+          title: name, 
+          region_id: self.id,
+          handicap_tournier: is_handicap
+        )
       end
       TournamentCc.where(tournament_id: tournament.id).where.not(id: tc.id).destroy_all
       tc.update(tournament:)
@@ -932,13 +940,17 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
           # Erstelle/Update Tournament
           tournament = Tournament.where(season: current_season, organizer: self, title: name).first
           unless tournament.present?
+            # Erkenne Vorgabeturniere am Titel
+            is_handicap = name =~ /Vorgabe/i
+            
             tournament = Tournament.create!(
               season: current_season,
               organizer: self,
               title: name,
-              date: date
+              date: date,
+              handicap_tournier: is_handicap
             )
-            Rails.logger.info "===== scrape_upcoming ===== Created new tournament: #{name}"
+            Rails.logger.info "===== scrape_upcoming ===== Created new tournament: #{name}#{is_handicap ? ' (Vorgabeturnier)' : ''}"
           end
           
           # Verknüpfe TournamentCc mit Tournament

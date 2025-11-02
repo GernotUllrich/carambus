@@ -139,8 +139,11 @@
       warning: wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present?,
       danger: false,
       help: "Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. 
-             Carambus extrahiert automatisch die <strong>Setzliste</strong> (Reihenfolge nach Ranking). 
-             Unterstützt PDF oder Screenshot (PNG/JPG)." %>
+             Carambus extrahiert automatisch:<br>
+             • <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>
+             • <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>
+             Unterstützt PDF oder Screenshot (PNG/JPG).<br>
+             Zweispaltige Tabellen werden automatisch erkannt." %>
 
   <!-- Schritt 3: Teilnehmerliste bearbeiten (vor Ort!) -->
   <%= render 'wizard_step',
