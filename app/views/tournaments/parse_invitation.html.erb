@@ -34,6 +34,7 @@
                 <th class="p-3 text-left">Position</th>
                 <th class="p-3 text-left">Erkannter Name</th>
                 <th class="p-3 text-left">Zugeordneter Spieler</th>
+                <th class="p-3 text-left">Vorgabe (Pkt)</th>
                 <th class="p-3 text-left">Status</th>
               </tr>
             </thead>
@@ -45,6 +46,14 @@
                   <td class="p-3">
                     <%= match[:player].fullname %>
                     <%= hidden_field_tag 'seeding_order[]', match[:player].id %>
+                    <%= hidden_field_tag "balls_goal[#{match[:player].id}]", match[:balls_goal] if match[:balls_goal].present? %>
+                  </td>
+                  <td class="p-3">
+                    <% if match[:balls_goal].present? %>
+                      <span class="font-semibold text-blue-600"><%= match[:balls_goal] %> Pkt</span>
+                    <% else %>
+                      <span class="text-gray-400">–</span>
+                    <% end %>
                   </td>
                   <td class="p-3">
                     <% if match[:confidence] == :high %>

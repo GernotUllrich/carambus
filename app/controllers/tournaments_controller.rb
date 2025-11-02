@@ -390,6 +390,7 @@ class TournamentsController < ApplicationController
   # POST /tournaments/:id/apply_seeding_order
   def apply_seeding_order
     seeding_order = params[:seeding_order] # Array von Player IDs in Reihenfolge
+    balls_goal_hash = params[:balls_goal] || {} # Hash mit player_id => balls_goal
     
     if seeding_order.present?
       # Erstelle oder aktualisiere lokale Seedings in der neuen Reihenfolge
@@ -397,17 +398,25 @@ class TournamentsController < ApplicationController
         # Lösche alte lokale Seedings
         @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
         
-        # Erstelle neue in der richtigen Reihenfolge
+        # Erstelle neue in der richtigen Reihenfolge (inkl. Vorgaben)
         seeding_order.each_with_index do |player_id, index|
           @tournament.seedings.create!(
             player_id: player_id,
-            position: index + 1
+            position: index + 1,
+            balls_goal: balls_goal_hash[player_id.to_s]&.to_i
           )
         end
       end
       
-      redirect_to tournament_path(@tournament),
-                  notice: "Setzliste übernommen (#{seeding_order.count} Spieler)"
+      # Info-Message: Mit/ohne Vorgaben
+      has_handicaps = balls_goal_hash.values.any?(&:present?)
+      notice_text = if has_handicaps
+                      "✅ Setzliste mit Vorgaben übernommen (#{seeding_order.count} Spieler)"
+                    else
+                      "✅ Setzliste übernommen (#{seeding_order.count} Spieler)"
+                    end
+      
+      redirect_to tournament_path(@tournament), notice: notice_text
     else
       redirect_to compare_seedings_tournament_path(@tournament),
                   alert: "Keine Reihenfolge ausgewählt"

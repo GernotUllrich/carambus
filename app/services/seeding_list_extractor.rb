@@ -76,14 +76,39 @@ class SeedingListExtractor
       # Parse Spieler-Zeilen
       if in_seeding_section
         # WICHTIG: Zweispaltige Tabellen!
-        # Format: "1. Lastname Firstname        7. Lastname Firstname"
-        # oder:   "1 Lastname Firstname         7 Lastname Firstname"
+        # Format: "1. Lastname Firstname 54 Pkt       7. Lastname Firstname 25 Pkt"
+        # oder:   "1 Lastname Firstname              7 Lastname Firstname"
         
-        # Versuche zwei Spieler pro Zeile zu finden (zweispaltig)
-        # Pattern: Nummer + Name, dann optional mehr Text, dann wieder Nummer + Name
+        # Pattern mit Vorgaben (Pkt): Nummer + Name + Punkte + (optional) zweite Spalte
+        two_column_with_points = /(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt(?:\s{2,}|\t+)(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt/i
+        
+        # Pattern ohne Vorgaben: Nummer + Name + zweite Spalte
         two_column_pattern = /(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)(?:\s{2,}|\t+)(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/
         
-        if (match = line.match(two_column_pattern))
+        # Pattern einspaltig mit Vorgabe
+        single_with_points = /^\s*(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s*Pkt/i
+        
+        if (match = line.match(two_column_with_points))
+          # Zweispaltig MIT Vorgaben
+          # Linke Spalte
+          players << {
+            position: match[1].to_i,
+            lastname: match[2].strip,
+            firstname: match[3].strip,
+            full_name: "#{match[2].strip}, #{match[3].strip}",
+            balls_goal: match[4].to_i
+          }
+          
+          # Rechte Spalte
+          players << {
+            position: match[5].to_i,
+            lastname: match[6].strip,
+            firstname: match[7].strip,
+            full_name: "#{match[6].strip}, #{match[7].strip}",
+            balls_goal: match[8].to_i
+          }
+        elsif (match = line.match(two_column_pattern))
+          # Zweispaltig OHNE Vorgaben
           # Linke Spalte
           players << {
             position: match[1].to_i,
@@ -99,7 +124,16 @@ class SeedingListExtractor
             firstname: match[6].strip,
             full_name: "#{match[5].strip}, #{match[6].strip}"
           }
-        # Einspaltig (Fallback)
+        elsif (match = line.match(single_with_points))
+          # Einspaltig MIT Vorgabe
+          players << {
+            position: match[1].to_i,
+            lastname: match[2].strip,
+            firstname: match[3].strip,
+            full_name: "#{match[2].strip}, #{match[3].strip}",
+            balls_goal: match[4].to_i
+          }
+        # Einspaltig OHNE Vorgabe (Fallback)
         elsif (match = line.match(/^\s*(\d+)[\.\s]+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/))
           position = match[1].to_i
           lastname = match[2].strip
@@ -144,6 +178,7 @@ class SeedingListExtractor
           position: ep[:position],
           player: player,
           extracted_name: ep[:full_name],
+          balls_goal: ep[:balls_goal],  # Vorgabe mitgeben
           confidence: :high
         }
       else
@@ -155,6 +190,7 @@ class SeedingListExtractor
             position: ep[:position],
             player: player,
             extracted_name: ep[:full_name],
+            balls_goal: ep[:balls_goal],  # Vorgabe mitgeben
             confidence: :medium,
             suggestion: true
           }
