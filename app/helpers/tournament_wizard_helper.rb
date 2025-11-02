@@ -119,7 +119,7 @@ module TournamentWizardHelper
 
   # Spieleranzahl-Info
   def seedings_info_text(tournament)
-    active_count = tournament.seedings.where.not(state: "no_show").count
+    active_count = participant_count(tournament)
     "#{active_count} Spieler"
   end
 
@@ -127,10 +127,29 @@ module TournamentWizardHelper
   def mode_info_text(tournament)
     if tournament.tournament_plan
       "Gewählt: #{tournament.tournament_plan.name}"
+    elsif tournament.data['extracted_plan_info'].present?
+      # Zeige extrahierte Plan-Info aus Einladung (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+      count = participant_count(tournament)
+      info = tournament.data['extracted_plan_info']
+      "#{count} Teilnehmer → #{info}"
     else
-      count = tournament.seedings.where.not(state: "no_show").count
-      "#{count} Spieler → Empfohlen: T#{count.to_s.rjust(2, '0')}"
+      count = participant_count(tournament)
+      "#{count} Spieler"
     end
+  end
+  
+  # Intelligente Spielerzahl: Zählt entweder lokale ODER ClubCloud Seedings
+  # Verhindert Doppelzählung bei parallelen Seeding-Sets
+  def participant_count(tournament)
+    has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+    seeding_scope = has_local_seedings ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+    
+    tournament.seedings
+              .where.not(state: "no_show")
+              .where(seeding_scope)
+              .count
   end
 
   # Prüft ob Schritt aktivierbar ist
