@@ -33,25 +33,43 @@
           <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
             <h4 class="text-red-900 font-semibold mb-2">⚠️ Fehler beim Initialisieren des Turniers</h4>
             <p class="text-red-800 text-sm mb-3">
-              Der TournamentMonitor konnte nicht richtig initialisiert werden. Bitte prüfen Sie die Logs für Details.
+              Der TournamentMonitor konnte nicht richtig initialisiert werden.
             </p>
+            <% 
+              has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+              seeding_scope = has_local_seedings ? 
+                              "seedings.id >= #{Seeding::MIN_ID}" : 
+                              "seedings.id < #{Seeding::MIN_ID}"
+              used_seedings_count = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).count
+              total_seedings_count = @tournament_monitor.tournament.seedings.count
+              plan = @tournament_monitor.tournament.tournament_plan
+              plan_mismatch = plan && plan.players != used_seedings_count
+            %>
+            <% if plan_mismatch %>
+              <div class="bg-red-100 border-2 border-red-300 rounded p-3 mb-3">
+                <h5 class="text-red-900 font-bold mb-2">❌ TournamentPlan passt nicht!</h5>
+                <p class="text-red-900 text-sm">
+                  <strong>TournamentPlan:</strong> <%= plan.name %><br>
+                  <strong>Erwartet:</strong> <%= plan.players %> Spieler<br>
+                  <strong>Gefunden:</strong> <%= used_seedings_count %> Spieler<br>
+                </p>
+                <p class="text-red-800 text-xs mt-2">
+                  💡 <strong>Lösung:</strong> Gehen Sie zurück zum Turnier und wählen Sie den richtigen TournamentPlan (z.B. T21 für 11 Spieler).
+                </p>
+              </div>
+            <% end %>
             <p class="text-red-700 text-xs">
               State: <%= @tournament_monitor.state %><br>
-              TournamentPlan: <%= @tournament_monitor.tournament.tournament_plan&.name || "nicht gesetzt" %><br>
-              <% 
-                has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-                seeding_scope = has_local_seedings ? 
-                                "seedings.id >= #{Seeding::MIN_ID}" : 
-                                "seedings.id < #{Seeding::MIN_ID}"
-                used_seedings_count = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).count
-                total_seedings_count = @tournament_monitor.tournament.seedings.count
-              %>
+              TournamentPlan: <%= plan&.name || "nicht gesetzt" %><br>
               Seedings: <%= used_seedings_count %> (von <%= total_seedings_count %> gesamt)<br>
-              <% if used_seedings_count != 11 %>
-                <strong class="text-red-900">⚠️ FEHLER: Erwartet 11 Seedings, gefunden <%= used_seedings_count %></strong>
+              <% if plan %>
+                TournamentPlan erwartet: <%= plan.players %> Spieler<br>
               <% end %>
             </p>
-            <%= button_to "Turnier zurücksetzen", reset_tournament_path(@tournament_monitor.tournament), method: :post, class: "btn btn-warning mt-2", data: { confirm: "Möchten Sie das Turnier wirklich zurücksetzen? Alle Spiele werden gelöscht." } %>
+            <div class="mt-3 flex gap-2">
+              <%= link_to "← Zurück zum Turnier", tournament_path(@tournament_monitor.tournament), class: "btn btn-secondary" %>
+              <%= button_to "Turnier zurücksetzen", reset_tournament_path(@tournament_monitor.tournament), method: :post, class: "btn btn-warning", data: { confirm: "Möchten Sie das Turnier wirklich zurücksetzen? Alle Spiele werden gelöscht." } %>
+            </div>
           </div>
         <% end %>
       <% else %>

@@ -148,11 +148,20 @@ module TournamentMonitorState
         return { "ERROR" => "Keine Seedings gefunden (has_local: #{has_local_seedings})" }
       end
       
+      # Validiere dass TournamentPlan zur Spieleranzahl passt
+      if @tournament_plan.players != seedings_count
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: TournamentPlan #{@tournament_plan.name} erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden!"
+        return { "ERROR" => "TournamentPlan #{@tournament_plan.name} passt nicht: erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden. Bitte wählen Sie den richtigen TournamentPlan (z.B. T21 für 11 Spieler)." }
+      end
+      
       @groups = TournamentMonitor.distribute_to_group(
         seedings_query.map(&:player), 
         @tournament_plan.andand.ngroups.to_i,
         @tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
       )
+      
+      Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppen berechnet: #{@groups.keys.map { |k| "#{k}: #{@groups[k].count}" }.join(', ')}"
+      
       @placements = {}
       current_round!(1)
       deep_merge_data!("groups" => @groups, "placements" => @placements)
@@ -161,7 +170,7 @@ module TournamentMonitorState
       # Prüfe ob executor_params vorhanden ist
       unless @tournament_plan.executor_params.present?
         Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: executor_params is empty for TournamentPlan[#{@tournament_plan.id}]"
-        return { "ERROR" => "executor_params is empty" }
+        return { "ERROR" => "executor_params is empty for TournamentPlan #{@tournament_plan.name}" }
       end
       
       begin
@@ -176,9 +185,11 @@ module TournamentMonitorState
 
         groups_must_be_played = true
         group_no = m[1].to_i
-        if @groups["group#{group_no}"].count != executor_params[k]["pl"].to_i
-          return { "ERROR" => "Group Count Mismatch: group#{group_no},\
- #{@groups["group#{group_no}"].count} vs. #{executor_params[k]["pl"].to_i} from executor_params" }
+        expected_count = executor_params[k]["pl"].to_i
+        actual_count = @groups["group#{group_no}"].count
+        if actual_count != expected_count
+          Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: Group #{group_no} Count Mismatch: #{actual_count} vs. #{expected_count} (executor_params)"
+          return { "ERROR" => "Group Count Mismatch: Gruppe #{group_no} hat #{actual_count} Spieler, aber executor_params erwartet #{expected_count}. TournamentPlan #{@tournament_plan.name} passt möglicherweise nicht zur Spieleranzahl (#{seedings_count})." }
         end
 
         repeats = executor_params[k]["rp"].presence || 1
