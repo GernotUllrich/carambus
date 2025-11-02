@@ -77,6 +77,17 @@
         <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
             method: :post,
             class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
+        
+        <!-- Ergebnisse laden (nach Turnier-Ende) -->
+        <% if %w[tournament_started playing_groups playing_finals finals_finished results_published].include?(tournament.state) %>
+          <%= button_to '📊 Ergebnisse von ClubCloud laden', 
+              reload_from_cc_tournament_path(tournament, reload_games: true),
+              method: :post,
+              class: 'btn btn-warning btn-sm ml-2',
+              data: { confirm: "⚠️ ACHTUNG: Lädt Spiele und Ergebnisse von ClubCloud.\n\nLokale Änderungen gehen verloren!\n\nNur verwenden wenn Turnier abgeschlossen und Ergebnisse hochgeladen wurden." },
+              title: 'Für Archivierung nach Turnier-Ende' %>
+        <% end %>
+        
         <% if tournament.source_url.present? %>
           <%= link_to '🔗 ClubCloud öffnen', tournament.source_url,
               target: '_blank',
