@@ -210,7 +210,8 @@ module TournamentMonitorState
 
         repeats = executor_params[k]["rp"].presence || 1
         rule_system = executor_params[k]["rs"]
-        Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: repeats=#{repeats}, rule_system=#{rule_system.inspect}, players=#{actual_count}"
+        sequence = executor_params[k]["sq"] # Reihenfolge der Spiele
+        Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: repeats=#{repeats}, rule_system=#{rule_system.inspect}, players=#{actual_count}, sequence=#{sequence.inspect}"
         
         # rule_system könnte ein String oder Array sein
         rule_system_str = rule_system.is_a?(Array) ? rule_system.first : rule_system.to_s
@@ -220,9 +221,47 @@ module TournamentMonitorState
           next
         end
 
-        (1..repeats).each do |rp|
+        # Wenn sq vorhanden ist: Verwende die definierte Reihenfolge
+        # Sonst: Erstelle alle Permutationen
+        games_to_create = []
+        if sequence.present?
+          if sequence.is_a?(Hash)
+            # Extrahiere alle Spiel-Paare aus sq (z.B. "1-2", "1-3", etc.)
+            sequence.each do |round_key, round_data|
+              next unless round_key.is_a?(String) && round_key.match?(/^r\d+/)
+              next unless round_data.is_a?(Hash)
+              round_data.each do |tno_str, game_pair|
+                if game_pair.is_a?(String) && /(\d+)-(\d+)/.match?(game_pair)
+                  games_to_create << game_pair
+                end
+              end
+            end
+          elsif sequence.is_a?(Array)
+            # Falls sq ein Array ist (seltener Fall)
+            sequence.each do |game_pair|
+              if game_pair.is_a?(String) && /(\d+)-(\d+)/.match?(game_pair)
+                games_to_create << game_pair
+              end
+            end
+          end
+          games_to_create.uniq!
+          Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: Verwendet sq-Sequenz: #{games_to_create.inspect}"
+        end
+        
+        # Wenn keine Sequenz vorhanden: Erstelle alle Permutationen
+        if games_to_create.empty?
           (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each do |a|
-            i1, i2 = a
+            games_to_create << "#{a[0]}-#{a[1]}"
+          end
+          Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: Keine sq-Sequenz, erstelle alle Permutationen: #{games_to_create.inspect}"
+        end
+
+        (1..repeats).each do |rp|
+          games_to_create.each do |game_pair|
+            match = game_pair.match(/(\d+)-(\d+)/)
+            next unless match
+            i1 = match[1].to_i
+            i2 = match[2].to_i
             player1_id = @groups["group#{group_no}"][i1 - 1]
             player2_id = @groups["group#{group_no}"][i2 - 1]
             
