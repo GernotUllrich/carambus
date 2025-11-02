@@ -81,7 +81,8 @@ namespace :tournament_plans do
     
     fixed_count = 0
     plan_names.each do |plan_name|
-      plan = TournamentPlan.find_by(name: plan_name.strip)
+      plan_name = plan_name.strip
+      plan = TournamentPlan.find_by(name: plan_name)
       unless plan
         puts "❌ Plan '#{plan_name}' nicht gefunden!"
         next
@@ -92,8 +93,14 @@ namespace :tournament_plans do
         next
       end
       
-      if fix_executor_params_for_plan(plan)
-        fixed_count += 1
+      begin
+        if fix_executor_params_for_plan(plan)
+          fixed_count += 1
+        end
+      rescue StandardError => e
+        puts "❌ Fehler beim Korrigieren von '#{plan_name}': #{e.message}"
+        puts "   #{e.backtrace.first}"
+        next
       end
     end
     
