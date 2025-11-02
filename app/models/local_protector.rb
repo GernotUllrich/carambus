@@ -26,7 +26,10 @@ module LocalProtector
     #   Carambus.config.carambus_api_url.present?
     # end
     def disallow_saving_global_records
-      raise ActiveRecord::Rollback if id < 50_000_000 && ApplicationRecord.local_server? && !unprotected
+      if id < 50_000_000 && ApplicationRecord.local_server? && !unprotected
+        Rails.logger.warn("LocalProtector: Blocking save of global #{self.class.name}[#{id}], unprotected=#{unprotected.inspect}")
+        raise ActiveRecord::Rollback
+      end
 
       true
     end
