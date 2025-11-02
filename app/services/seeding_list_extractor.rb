@@ -155,8 +155,8 @@ class SeedingListExtractor
     # Sortiere nach Position (wichtig wenn zweispaltig durcheinander kam)
     players.sort_by! { |p| p[:position] }
     
-    # Versuche auch Gruppenbildung zu extrahieren
-    group_assignment = extract_group_assignment(text, players.count)
+    # Versuche auch Gruppenbildung zu extrahieren (übergebe players für Namen-Matching)
+    group_assignment = extract_group_assignment(text, players.count, players)
     
     {
       success: players.any?,
@@ -173,13 +173,19 @@ class SeedingListExtractor
     lines = text.split("\n")
     
     lines.each do |line|
-      # Suche nach "Turniermodus:" gefolgt von Plan-Info
-      # Beispiel: "Turniermodus: T21 - 3 Gruppen à 3, 4 und 4 Spieler"
+      # Format 1: "Turniermodus: T21 - 3 Gruppen à 3, 4 und 4 Spieler"
       if (match = line.match(/Turniermodus:\s*(.+)/i))
-        plan_info = match[1].strip
-        # Bereinige Zeilenumbrüche
-        plan_info = plan_info.gsub(/\s+/, ' ')
-        Rails.logger.info "===== extract_plan_info ===== Found: #{plan_info}"
+        plan_info = match[1].strip.gsub(/\s+/, ' ')
+        Rails.logger.info "===== extract_plan_info ===== Found (Format 1): #{plan_info}"
+        return plan_info if plan_info.present?
+      end
+      
+      # Format 2: "T21     Turnier wird im Modus 3 Gruppen à 3, 4 und 4 Spieler"
+      if (match = line.match(/(T\d+)\s+Turnier\s+wird\s+im\s+Modus\s+(.+)/i))
+        plan_name = match[1].upcase
+        plan_details = match[2].strip.split(/[,\.]/)[0]  # Bis zum ersten Komma/Punkt
+        plan_info = "#{plan_name} - #{plan_details}"
+        Rails.logger.info "===== extract_plan_info ===== Found (Format 2): #{plan_info}"
         return plan_info if plan_info.present?
       end
     end
@@ -192,11 +198,14 @@ class SeedingListExtractor
   end
   
   # Extrahiert Gruppenbildung aus der Einladung
-  def self.extract_group_assignment(text, player_count)
-    # Suche nach "Gruppenbildung" Sektion
+  # Unterstützt zwei Formate:
+  # 1. "Spieler 1 | Spieler 5 | Spieler 9" (Position-basiert)
+  # 2. "Kämmer | Benkert | Petry" (Namen-basiert, benötigt extracted_players)
+  def self.extract_group_assignment(text, player_count, extracted_players = [])
     lines = text.split("\n")
     in_group_section = false
     group_data = {}
+    group_names = []  # Für Namen-basiertes Format
     
     lines.each do |line|
       # Start der Gruppenbildung
@@ -206,27 +215,56 @@ class SeedingListExtractor
       end
       
       # Ende der Sektion
-      if in_group_section && line =~ /Spielrunde|Tisch\s+\d/i
+      if in_group_section && line =~ /Spielrunde|Tisch\s+\d|Spielpaarung/i
         break
       end
       
-      # Parse Gruppen-Header: "Gruppe 1 | Gruppe 2 | Gruppe 3 | Gruppe 4"
+      # Parse Gruppen-Header: "Gruppe 1    Gruppe 2     Gruppe 3"
       if in_group_section && line =~ /Gruppe\s+\d/i
-        # Extrahiere Gruppennummern
         group_numbers = line.scan(/Gruppe\s+(\d+)/i).flatten.map(&:to_i)
-        group_numbers.each { |gn| group_data[gn] = [] }
+        group_numbers.each { |gn| group_data[gn] = []; group_names[gn] = [] }
         next
       end
       
-      # Parse Spieler-Zeilen in Gruppen
-      # Format: "Spieler 1 | Spieler 5 | Spieler 9 | Spieler 13"
-      if in_group_section && line =~ /Spieler\s+\d/
-        player_numbers = line.scan(/Spieler\s+(\d+)/i).flatten.map(&:to_i)
+      # Parse Spieler-Zeilen
+      if in_group_section && group_data.any?
+        # Format 1: "Spieler 1 | Spieler 5 | Spieler 9"
+        if line =~ /Spieler\s+\d/
+          player_numbers = line.scan(/Spieler\s+(\d+)/i).flatten.map(&:to_i)
+          player_numbers.each_with_index do |pn, col_index|
+            group_no = col_index + 1
+            group_data[group_no] << pn if group_data[group_no]
+          end
+        # Format 2: Spielernamen in Spalten (z.B. "Kämmer      Benkert       Petry")
+        elsif line =~ /[A-ZÄÖÜ]/  # Enthält Großbuchstaben (Nachnamen)
+          # Skip Linien mit "---" oder zu wenig Inhalt
+          next if line.gsub(/[\s\-]/, '').length < 3
+          
+          # Extrahiere Namen (aufgeteilt durch viele Leerzeichen)
+          names = line.split(/\s{2,}/).map(&:strip).reject(&:blank?).reject { |n| n =~ /^[\-]+$/ }
+          
+          names.each_with_index do |name, col_index|
+            group_no = col_index + 1
+            group_names[group_no] << name if group_names[group_no]
+          end
+        end
+      end
+    end
+    
+    # Wenn Namen-Format: Konvertiere Namen zu Positionen
+    if group_names.any?(&:present?) && extracted_players.present?
+      Rails.logger.info "===== extract_groups ===== Namen-basiertes Format erkannt"
+      group_names.each do |group_no, names|
+        next unless names.present?
         
-        # Ordne Spieler den Gruppen zu (spaltenweise)
-        player_numbers.each_with_index do |pn, col_index|
-          group_no = col_index + 1
-          group_data[group_no] << pn if group_data[group_no]
+        names.each do |name|
+          # Suche Spieler in extracted_players (nur Nachname)
+          player = extracted_players.find { |p| p[:lastname].upcase == name.upcase }
+          if player
+            group_data[group_no] << player[:position]
+          else
+            Rails.logger.warn "===== extract_groups ===== Spieler '#{name}' nicht in Setzliste gefunden"
+          end
         end
       end
     end
@@ -236,11 +274,11 @@ class SeedingListExtractor
       Rails.logger.info "===== extract_groups ===== Gruppenbildung gefunden: #{group_data.inspect}"
       group_data
     else
-      Rails.logger.info "===== extract_groups ===== Keine valide Gruppenbildung gefunden"
+      Rails.logger.info "===== extract_groups ===== Keine valide Gruppenbildung gefunden (erwartet: #{(1..player_count).to_a}, gefunden: #{group_data.values.flatten.sort})"
       nil
     end
   rescue => e
-    Rails.logger.error "===== extract_groups ===== Error: #{e.message}"
+    Rails.logger.error "===== extract_groups ===== Error: #{e.message}\n#{e.backtrace&.join("\n")}"
     nil
   end
   
