@@ -148,7 +148,19 @@ module TournamentMonitorState
       current_round!(1)
       deep_merge_data!("groups" => @groups, "placements" => @placements)
       save!
-      executor_params = JSON.parse(@tournament_plan.executor_params)
+      
+      # Prüfe ob executor_params vorhanden ist
+      unless @tournament_plan.executor_params.present?
+        Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: executor_params is empty for TournamentPlan[#{@tournament_plan.id}]"
+        return { "ERROR" => "executor_params is empty" }
+      end
+      
+      begin
+        executor_params = JSON.parse(@tournament_plan.executor_params)
+      rescue JSON::ParserError => e
+        Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR parsing executor_params: #{e.message}"
+        return { "ERROR" => "Failed to parse executor_params: #{e.message}" }
+      end
       groups_must_be_played = false
       executor_params.each_key do |k|
         next unless (m = k.match(/g(\d+)/))

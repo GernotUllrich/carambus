@@ -6,28 +6,43 @@
     <div class="mx-auto">
 
       <%- if @tournament_monitor.andand.tournament.andand.tournament_plan.present? %>
-        <div class="flex space-x-10 p-4  dark:">
-          <div class="flex-1 flex-col">
-            <h4><%= I18n.t("tournament_monitors.show.tournament_phase", :default => "Tournament:") %></h4>
-            <%= @tournament_monitor.state.gsub("_", " ") %>
-          </div>
-          <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |tabmon| %>
-          <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |tabmon| %>
+        <% if @tournament_monitor.data.present? %>
+          <div class="flex space-x-10 p-4  dark:">
             <div class="flex-1 flex-col">
-              <h4><%= "#{tabmon.display_name}" %>:</h4>
-              <%= tabmon.state.gsub("_", " ") %><br/>
-              <% if tabmon.game.present? %>
-                <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
-<!--                <br/>-->
-                <%- player_a = tabmon.game.game_participations.where(role: "playera").first.andand.player %>
-                <%- player_b = tabmon.game.game_participations.where(role: "playerb").first.andand.player %>
-                <strong class="flex 1 mt-4 text-black dark:text-white"><%= player_a.andand.fullname %></strong>
-                <strong class="flex 1 mb-4 text-yellow-400"><%= player_b.andand.fullname %></strong>
-                <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
-              <% end %>
+              <h4><%= I18n.t("tournament_monitors.show.tournament_phase", :default => "Tournament:") %></h4>
+              <%= @tournament_monitor.state.gsub("_", " ") %>
             </div>
-          <% end %>
-        </div>
+            <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |tabmon| %>
+            <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |tabmon| %>
+              <div class="flex-1 flex-col">
+                <h4><%= "#{tabmon.display_name}" %>:</h4>
+                <%= tabmon.state.gsub("_", " ") %><br/>
+                <% if tabmon.game.present? %>
+                  <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
+<!--                <br/>-->
+                  <%- player_a = tabmon.game.game_participations.where(role: "playera").first.andand.player %>
+                  <%- player_b = tabmon.game.game_participations.where(role: "playerb").first.andand.player %>
+                  <strong class="flex 1 mt-4 text-black dark:text-white"><%= player_a.andand.fullname %></strong>
+                  <strong class="flex 1 mb-4 text-yellow-400"><%= player_b.andand.fullname %></strong>
+                  <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+            <h4 class="text-red-900 font-semibold mb-2">⚠️ Fehler beim Initialisieren des Turniers</h4>
+            <p class="text-red-800 text-sm mb-3">
+              Der TournamentMonitor konnte nicht richtig initialisiert werden. Bitte prüfen Sie die Logs für Details.
+            </p>
+            <p class="text-red-700 text-xs">
+              State: <%= @tournament_monitor.state %><br>
+              TournamentPlan: <%= @tournament_monitor.tournament.tournament_plan&.name || "nicht gesetzt" %><br>
+              Seedings: <%= @tournament_monitor.tournament.seedings.count %>
+            </p>
+            <%= button_to "Turnier zurücksetzen", reset_tournament_path(@tournament_monitor.tournament), method: :post, class: "btn btn-warning mt-2", data: { confirm: "Möchten Sie das Turnier wirklich zurücksetzen? Alle Spiele werden gelöscht." } %>
+          </div>
+        <% end %>
       <% else %>
         <%= button_to I18n.t("tournament_monitors.show.start_tournament", :default => "Start Tournament"), start_tournament_path(@tournament_monitor.tournament), class: "btn btn-flat btn-primary" %>
       <% end %>
@@ -35,7 +50,21 @@
   </div>
 </div>
 <%- if @tournament_monitor.tournament.tournament_plan.present? && @tournament_monitor.data.present? %>
-  <% @groups = TournamentMonitor.distribute_to_group(@tournament_monitor.tournament.seedings.where.not(state: "no_show").where("seedings.id >= #{Seeding::MIN_ID}").order(:position).map(&:player), @tournament_monitor.tournament.tournament_plan.ngroups) %>
+  <% if @tournament_monitor.data['groups'].present? %>
+    <% @groups = @tournament_monitor.data['groups'] %>
+  <% else %>
+    <% 
+      has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+      seeding_scope = has_local_seedings ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+    %>
+    <% @groups = TournamentMonitor.distribute_to_group(
+      @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+      @tournament_monitor.tournament.tournament_plan.ngroups,
+      @tournament_monitor.tournament.tournament_plan.group_sizes
+    ) %>
+  <% end %>
   <div class="px-3 lg:px-0">
     <div class="container mx-auto my-8 px-4">
       <div class="max-w-3xl mx-auto">
