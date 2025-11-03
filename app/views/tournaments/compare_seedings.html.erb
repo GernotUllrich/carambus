@@ -155,7 +155,25 @@ function updateFileName(input) {
 // WICHTIG: Event-Handler MÜSSEN sofort registriert werden (vor DOMContentLoaded)
 // Sonst öffnet Safari/Comet die Datei direkt statt Drag & Drop zu verwenden
 (function() {
+  // Speichere Upload-Bereich Referenz für spätere Prüfung
+  let uploadAreaRef = null;
+  
+  // Setze Upload-Bereich Referenz sobald DOM bereit ist
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      uploadAreaRef = document.getElementById('upload-area');
+    });
+  } else {
+    uploadAreaRef = document.getElementById('upload-area');
+  }
+  
   function preventDefaults(e) {
+    // Prüfe ob Event über Upload-Bereich ist
+    // Wenn ja, NICHT verhindern (dann kümmert sich der Upload-Handler darum)
+    if (uploadAreaRef && uploadAreaRef.contains(e.target)) {
+      return;
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     return false;
@@ -163,11 +181,14 @@ function updateFileName(input) {
 
   // Verhindere Standard-Verhalten GLOBAL und sehr früh
   // Dies verhindert dass Browser PDFs öffnet wenn sie gezogen werden
+  // ABER: Nur außerhalb des Upload-Bereichs
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     // Capture-Phase (true) = Handler wird früh ausgeführt
     document.addEventListener(eventName, preventDefaults, true);
     window.addEventListener(eventName, preventDefaults, true);
-    document.body.addEventListener(eventName, preventDefaults, true);
+    if (document.body) {
+      document.body.addEventListener(eventName, preventDefaults, true);
+    }
   });
 })();
 
