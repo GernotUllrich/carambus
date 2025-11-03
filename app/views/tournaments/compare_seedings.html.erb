@@ -152,24 +152,7 @@ function updateFileName(input) {
   document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
 
-// WICHTIG: Event-Handler müssen SOFRORT registriert werden (nicht erst nach DOMContentLoaded)
-// Sonst öffnet der Browser PDFs beim Ziehen aus E-Mail-Clients
-(function() {
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }
-
-  // Verhindere Standard-Verhalten auf der gesamten Seite GLOBAL
-  // Muss VOR DOMContentLoaded passieren damit es früh genug ist
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    document.addEventListener(eventName, preventDefaults, true); // useCapture = true
-    window.addEventListener(eventName, preventDefaults, true);
-  });
-})();
-
-// Drag & Drop Funktionalität für Upload-Bereich
+// Drag & Drop Funktionalität
 document.addEventListener('DOMContentLoaded', function() {
   const uploadArea = document.getElementById('upload-area');
   const dragOverlay = document.getElementById('drag-overlay');
@@ -184,6 +167,22 @@ document.addEventListener('DOMContentLoaded', function() {
     return false;
   }
 
+  // Verhindere Standard-Verhalten auf der gesamten Seite
+  // ABER: Lassen wir Drop-Events auf dem Upload-Bereich durchlaufen
+  document.addEventListener('dragover', function(e) {
+    // Nur verhindern wenn NICHT über Upload-Bereich
+    if (!uploadArea.contains(e.target)) {
+      preventDefaults(e);
+    }
+  }, false);
+
+  document.addEventListener('drop', function(e) {
+    // Nur verhindern wenn NICHT über Upload-Bereich
+    if (!uploadArea.contains(e.target)) {
+      preventDefaults(e);
+    }
+  }, false);
+
   // Highlight beim Drag über Upload-Bereich
   uploadArea.addEventListener('dragenter', function(e) {
     preventDefaults(e);
@@ -194,8 +193,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   uploadArea.addEventListener('dragover', function(e) {
     preventDefaults(e);
-    // Setze dropEffect explizit auf 'copy' (verhindert 'move' oder 'link')
-    e.dataTransfer.dropEffect = 'copy';
+    // Setze dropEffect explizit auf 'copy' (verhindert 'link' oder 'move')
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
     dragOverlay.classList.remove('hidden');
     uploadArea.classList.add('border-blue-500');
     uploadArea.classList.add('bg-blue-50');
@@ -220,11 +221,17 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadArea.classList.remove('bg-blue-50');
     
     const dt = e.dataTransfer;
+    if (!dt) {
+      console.error('DataTransfer nicht verfügbar');
+      return;
+    }
+
     const files = dt.files;
 
-    // Prüfe ob Dateien vorhanden sind (nicht Links)
+    // Prüfe ob Dateien vorhanden sind
     if (files && files.length > 0) {
       const file = files[0];
+      console.log('Datei gefunden:', file.name, file.type, file.size);
       
       // Prüfe Dateityp
       const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
@@ -243,26 +250,46 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       // Setze Datei ins Input-Feld
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
+      try {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        console.log('Datei ins Input-Feld gesetzt:', fileInput.files.length);
 
-      // Update Anzeige
-      updateFileName(fileInput);
+        // Update Anzeige
+        updateFileName(fileInput);
+        
+        // Optional: Automatisch hochladen (auskommentiert für manuelle Kontrolle)
+        // form.submit();
+      } catch (error) {
+        console.error('Fehler beim Setzen der Datei:', error);
+        alert('Fehler beim Verarbeiten der Datei. Bitte versuchen Sie es erneut.');
+      }
     } else {
       // Fallback: Prüfe DataTransfer.items API
       const items = dt.items;
       if (items && items.length > 0) {
-        const item = items[0];
-        if (item.kind === 'file') {
-          const file = item.getAsFile();
-          if (file) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            updateFileName(fileInput);
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.kind === 'file') {
+            const file = item.getAsFile();
+            if (file) {
+              console.log('Datei über items API gefunden:', file.name);
+              try {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                updateFileName(fileInput);
+                break;
+              } catch (error) {
+                console.error('Fehler beim Setzen der Datei (items API):', error);
+              }
+            }
           }
         }
+      } else {
+        console.warn('Keine Dateien im DataTransfer gefunden');
+        alert('Bitte ziehen Sie eine Datei direkt (nicht einen Link) in den Upload-Bereich.');
       }
     }
   }, false);
