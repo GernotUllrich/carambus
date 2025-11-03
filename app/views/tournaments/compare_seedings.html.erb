@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dragOverlay.classList.remove('hidden');
     uploadArea.classList.add('border-blue-500');
     uploadArea.classList.add('bg-blue-50');
-  }, false);
+  }, true); // Capture-Phase für frühe Ausführung
 
   uploadArea.addEventListener('dragover', function(e) {
     preventDefaults(e);
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dragOverlay.classList.remove('hidden');
     uploadArea.classList.add('border-blue-500');
     uploadArea.classList.add('bg-blue-50');
-  }, false);
+  }, true); // Capture-Phase für frühe Ausführung
 
   uploadArea.addEventListener('dragleave', function(e) {
     preventDefaults(e);
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
       uploadArea.classList.remove('border-blue-500');
       uploadArea.classList.remove('bg-blue-50');
     }
-  }, false);
+  }, true); // Capture-Phase für frühe Ausführung
 
   // Datei-Drop verarbeiten
   uploadArea.addEventListener('drop', function(e) {
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Fehler beim Verarbeiten der Datei. Bitte nutzen Sie die Dateiauswahl.');
       }
     }
-  }, false);
+  }, true); // Capture-Phase für frühe Ausführung
 });
 </script>
 
