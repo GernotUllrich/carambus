@@ -216,6 +216,7 @@ Rails.application.routes.draw do
       post :apply_seeding_order
       post :add_player_by_dbu
       post :recalculate_groups
+      post :test_tournament_status_update
     end
   end
   resources :users

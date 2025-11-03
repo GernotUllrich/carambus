@@ -178,6 +178,13 @@ class TableMonitorReflex < ApplicationReflex
   def key_a
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked key_a from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
       return if @table_monitor.locked_scoreboard
@@ -245,6 +252,13 @@ class TableMonitorReflex < ApplicationReflex
   def key_b
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked key_b from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
       return if @table_monitor.locked_scoreboard
@@ -417,6 +431,13 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked add_#{n} from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
@@ -436,6 +457,12 @@ class TableMonitorReflex < ApplicationReflex
   def validate_accumulated_changes(accumulated_data = nil)
     Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked validate_accumulated_changes from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
     
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     return unless @table_monitor.playing?
@@ -595,6 +622,13 @@ class TableMonitorReflex < ApplicationReflex
   def next_step
     Rails.logger.info "+++++++++++++++++>>> next_step <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked next_step from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
@@ -743,6 +777,40 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   private
+
+  # Prüft ob eine IP-Adresse lokal ist (localhost oder private IP-Bereiche)
+  def local_ip?(ip)
+    return true if ip.blank? || ip == '::1' || ip == '127.0.0.1' || ip == 'localhost'
+    
+    # Private IP-Bereiche:
+    # 10.0.0.0/8 (10.0.0.0 - 10.255.255.255)
+    # 172.16.0.0/12 (172.16.0.0 - 172.31.255.255)
+    # 192.168.0.0/16 (192.168.0.0 - 192.168.255.255)
+    parts = ip.split('.').map(&:to_i)
+    return false unless parts.length == 4
+    
+    case parts[0]
+    when 10
+      true
+    when 172
+      parts[1] >= 16 && parts[1] <= 31
+    when 192
+      parts[1] == 168
+    else
+      false
+    end
+  end
+
+  # Prüft ob der Request von remote kommt (nicht lokal)
+  def remote_request?
+    ip = begin
+      request.remote_ip
+    rescue
+      connection.request&.remote_ip rescue nil
+    end
+    return false if ip.blank?
+    !local_ip?(ip)
+  end
 
   def warmup_state_change(player)
     if DEBUG

@@ -4,7 +4,7 @@ class TournamentsController < ApplicationController
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
-                         recalculate_groups]
+                         recalculate_groups test_tournament_status_update]
 
   # GET /tournaments
   def index
@@ -40,6 +40,12 @@ class TournamentsController < ApplicationController
     else
       flash[:alert] = "Cannot reset running or finished tournament"
     end
+    redirect_to tournament_path(@tournament)
+  end
+
+  def test_tournament_status_update
+    TournamentStatusUpdateJob.perform_now(@tournament)
+    flash[:notice] = "Test-Update wurde gesendet - prüfen Sie die Browser-Console und Rails-Logs"
     redirect_to tournament_path(@tournament)
   end
 

@@ -37,7 +37,8 @@ class LocationsController < ApplicationController
     Rails.logger.info "params[:sb_state] = #{params[:sb_state]}"
     Rails.logger.info "Current.user = #{Current.user&.email}"
     Rails.logger.info "User.scoreboard = #{User.scoreboard&.email}"
-    return unless Current.user == User.scoreboard || params[:table_id].present? || params[:sb_state] == "tables"
+    # Erlaube Scoreboard-Zugriff wenn: Scoreboard-User angemeldet ODER table_id vorhanden ODER sb_state vorhanden
+    return unless Current.user == User.scoreboard || params[:table_id].present? || params[:sb_state].present?
 
     table = game = table_monitor = player_b = player_a = nil
     session[:sb_state] ||= "welcome"
@@ -249,12 +250,15 @@ class LocationsController < ApplicationController
   def scoreboard
     session[:location_id] = @location.id
     sb_state = params[:sb_state] || "welcome"
-    if current_user.present?
-      sign_out(current_user)
+    
+    # Auto-Login zum Scoreboard-User nur wenn kein User angemeldet ist
+    # Wenn ein User bereits angemeldet ist, bleibt current_user erhalten
+    unless current_user.present?
+      @user = User.scoreboard
+      bypass_sign_in @user, scope: :user
+      Current.user = @user
     end
-    @user = User.scoreboard
-    bypass_sign_in @user, scope: :user
-    Current.user = @user
+    
     scoreboard_current = scoreboard_location_url(@location.md5, sb_state: "welcome")
     scoreboard_url = if File.exist?("#{Rails.root}/config/scoreboard_url")
                        File.read("#{Rails.root}/config/scoreboard_url").to_s.strip

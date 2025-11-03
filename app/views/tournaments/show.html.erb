@@ -3,8 +3,7 @@
                 "data-tournament-id": @tournament.id,
                 id: "tournament_#{@tournament.id}",
                 class: "container mx-auto my-2 px-2" do %>
-  <!-- Tournament Channel Subscription -->
-  <%= turbo_stream_from "tournament-stream-#{@tournament.id}" %>
+  <!-- Tournament Channel Subscription wird über JavaScript gehandhabt (tournament_channel.js) -->
   
   <!-- Tournament Details (collapsed in card) -->
   <div class="tournament-details-card">

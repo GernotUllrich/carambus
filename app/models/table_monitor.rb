@@ -81,6 +81,40 @@ class TableMonitor < ApplicationRecord
     end
     TableMonitorJob.perform_later(self, "")
     # broadcast_replace_to self
+    
+    # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
+    if tournament_monitor.is_a?(TournamentMonitor) && 
+       tournament_monitor.tournament.present? &&
+       tournament_monitor.tournament.tournament_started &&
+       previous_changes.key?("data")
+      # Prüfe ob sich relevante Spiel-Daten geändert haben
+      old_data = previous_changes["data"][0] rescue {}
+      new_data = previous_changes["data"][1] rescue {}
+      
+      # Prüfe ob result oder innings_redo_list sich geändert haben
+      data_changed = false
+      %w[playera playerb].each do |role|
+        old_result = old_data.dig(role, "result").to_i rescue 0
+        new_result = new_data.dig(role, "result").to_i rescue 0
+        old_inning = Array(old_data.dig(role, "innings_redo_list")).last.to_i rescue 0
+        new_inning = Array(new_data.dig(role, "innings_redo_list")).last.to_i rescue 0
+        
+        if old_result != new_result || old_inning != new_inning
+          data_changed = true
+          Rails.logger.info "TournamentStatusUpdate: Data changed for #{role} - result: #{old_result}->#{new_result}, inning: #{old_inning}->#{new_inning}"
+          break
+        end
+      end
+      
+      if data_changed
+        tournament = tournament_monitor.tournament
+        Rails.logger.info "TournamentStatusUpdate: Triggering update for tournament #{tournament.id}"
+        # Throttle: Bündele Updates mit einer Verzögerung (2 Sekunden)
+        # Reduziert Server-Last bei Remote-Zugriffen
+        # Mehrere schnelle Updates werden zu einem zusammengefasst
+        TournamentStatusUpdateJob.set(wait: 2.seconds).perform_later(tournament)
+      end
+    end
   }
 
   def deep_diff(hash_a, hash_b)

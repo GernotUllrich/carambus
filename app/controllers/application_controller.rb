@@ -93,6 +93,36 @@ class ApplicationController < ActionController::Base
     Current.user.andand.email == "scoreboard@carambus.de" && params[:club_id].present? && params[:season_id].present?
   end
 
+  # Prüft ob eine IP-Adresse lokal ist (localhost oder private IP-Bereiche)
+  def local_ip?(ip)
+    return true if ip.blank? || ip == '::1' || ip == '127.0.0.1' || ip == 'localhost'
+    
+    # Private IP-Bereiche:
+    # 10.0.0.0/8 (10.0.0.0 - 10.255.255.255)
+    # 172.16.0.0/12 (172.16.0.0 - 172.31.255.255)
+    # 192.168.0.0/16 (192.168.0.0 - 192.168.255.255)
+    parts = ip.split('.').map(&:to_i)
+    return false unless parts.length == 4
+    
+    case parts[0]
+    when 10
+      true
+    when 172
+      parts[1] >= 16 && parts[1] <= 31
+    when 192
+      parts[1] == 168
+    else
+      false
+    end
+  end
+
+  # Prüft ob der Request von remote kommt (nicht lokal)
+  def remote_request?
+    ip = request.remote_ip rescue nil
+    return false if ip.blank?
+    !local_ip?(ip)
+  end
+
   def after_sign_in_path_for(resource)
     if resource.admin?
       admin_root_path

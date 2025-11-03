@@ -38,13 +38,93 @@
         <% if tournament.data.present? && tournament_director?(current_user) %>
           <div class="w-3/12 mb-4 m-w-full pr-8">
             <h5><%= t('activerecord.attributes.tournament.data') %></h5>
-            <details class="cursor-pointer">
-              <summary class="btn btn-sm btn-secondary cursor-pointer">Turnierdaten anzeigen</summary>
-              <div class="mt-2 bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">
-                <pre><%= JSON.pretty_generate(tournament.data) %></pre>
-              </div>
-            </details>
+            <button type="button" 
+                    onclick="document.getElementById('tournament-data-modal-<%= tournament.id %>').classList.remove('hidden')"
+                    class="btn btn-sm btn-secondary cursor-pointer">
+              Turnierdaten anzeigen
+            </button>
           </div>
+          
+          <!-- Modal Popup für Turnier-Daten -->
+          <div id="tournament-data-modal-<%= tournament.id %>" 
+               class="hidden fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <!-- Hintergrund Overlay -->
+              <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+              
+              <!-- Modal Content - Volle Breite über alle 4 Spalten -->
+              <div class="inline-block w-full max-w-7xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                  <h3 class="text-2xl font-bold text-gray-900">
+                    📊 Turnier-Daten: <%= tournament.title %>
+                  </h3>
+                  <button type="button"
+                          class="text-gray-400 hover:text-gray-600 transition-colors close-modal-btn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- Content -->
+                <div class="mt-4 overflow-auto max-h-[70vh]">
+                  <pre class="p-4 bg-gray-50 rounded-lg text-sm font-mono whitespace-pre-wrap break-words"><%= JSON.pretty_generate(tournament.data) %></pre>
+                </div>
+                
+                <!-- Footer -->
+                <div class="flex justify-end mt-6 pt-4 border-t border-gray-200">
+                  <button type="button"
+                          class="btn btn-primary close-modal-btn">
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- JavaScript für ESC-Taste Unterstützung -->
+          <script>
+            (function() {
+              const modalId = 'tournament-data-modal-<%= tournament.id %>';
+              const modal = document.getElementById(modalId);
+              if (!modal) return;
+              
+              // ESC-Taste Handler
+              function handleEscape(event) {
+                if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                  modal.classList.add('hidden');
+                  document.removeEventListener('keydown', handleEscape);
+                }
+              }
+              
+              // Beim Öffnen: ESC-Listener hinzufügen (wenn Modal noch nicht geöffnet war)
+              const openButton = document.querySelector('[onclick*="tournament-data-modal-<%= tournament.id %>"]');
+              if (openButton) {
+                openButton.addEventListener('click', function() {
+                  setTimeout(function() {
+                    document.addEventListener('keydown', handleEscape);
+                  }, 100);
+                });
+              }
+              
+              // Schließen-Funktion
+              function closeModal() {
+                modal.classList.add('hidden');
+                document.removeEventListener('keydown', handleEscape);
+              }
+              
+              // Alle Schließen-Buttons verbinden
+              modal.addEventListener('click', function(event) {
+                if (event.target.classList.contains('close-modal-btn') || 
+                    event.target.closest('.close-modal-btn') ||
+                    event.target.classList.contains('bg-gray-500') ||
+                    event.target === modal) {
+                  closeModal();
+                }
+              });
+            })();
+          </script>
         <% end %>
         <% if tournament.ba_state.present? %>
           <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.ba_state') %></h5><%= tournament.ba_state %></div>

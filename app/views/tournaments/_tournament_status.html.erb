@@ -47,23 +47,53 @@
       <div class="mb-4" id="tournament-current-games-<%= tournament.id %>">
         <h3 class="text-lg font-semibold text-blue-800 mb-2">Aktuelle Spiele</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <% TableMonitor.includes(:table, :game => :game_participations).where(tournament_monitor: tournament_monitor).where.not(game: nil).order("tables.name asc").limit(6).each do |tm| %>
-            <% if tm.game.present? %>
-              <% player_a = tm.game.game_participations.where(role: "playera").first&.player %>
-              <% player_b = tm.game.game_participations.where(role: "playerb").first&.player %>
-              <div class="bg-white rounded-lg p-3 border border-blue-300">
-                <div class="text-sm text-blue-600 font-semibold mb-1">
-                  <%= tm.display_name %> - <%= tm.game.display_gname %>
+          <% 
+            # Lade TableMonitors mit ihren Games und Players
+            table_monitors = TableMonitor.includes(:table, :game => :game_participations)
+                                         .where(tournament_monitor_id: tournament_monitor.id)
+                                         .where.not(game_id: nil)
+                                         .order("tables.name asc")
+                                         .limit(6)
+                                         .to_a  # Force load to ensure data is fresh
+          %>
+          <% if table_monitors.any? %>
+            <% table_monitors.each do |tm| %>
+              <% tm.reload if tm.data.blank? %>  <!-- Reload if data is missing -->
+              <% if tm.game.present? && tm.data.present? %>
+                <% player_a = tm.game.game_participations.where(role: "playera").first&.player %>
+                <% player_b = tm.game.game_participations.where(role: "playerb").first&.player %>
+                <% 
+                  # Berechne aktuellen Stand: result + aktueller Inning-Stand
+                  result_a = tm.data["playera"]&.dig("result").to_i || 0
+                  result_b = tm.data["playerb"]&.dig("result").to_i || 0
+                  current_inning_a = Array(tm.data["playera"]&.dig("innings_redo_list")).last.to_i || 0
+                  current_inning_b = Array(tm.data["playerb"]&.dig("innings_redo_list")).last.to_i || 0
+                  
+                  # Wenn Spiel läuft, zeige result + aktueller Inning-Stand
+                  if tm.playing?
+                    total_a = result_a + current_inning_a
+                    total_b = result_b + current_inning_b
+                  else
+                    total_a = result_a
+                    total_b = result_b
+                  end
+                %>
+                <div class="bg-white rounded-lg p-3 border border-blue-300">
+                  <div class="text-sm text-blue-600 font-semibold mb-1">
+                    <%= tm.display_name %> - <%= tm.game.display_gname %>
+                  </div>
+                  <div class="text-sm">
+                    <div><strong><%= player_a&.fullname %></strong>: <%= total_a %><% if tm.playing? && current_inning_a > 0 %> (+<%= current_inning_a %>)<% end %></div>
+                    <div><strong><%= player_b&.fullname %></strong>: <%= total_b %><% if tm.playing? && current_inning_b > 0 %> (+<%= current_inning_b %>)<% end %></div>
+                  </div>
+                  <% if tm.playing? %>
+                    <div class="text-xs text-green-600 mt-1">▶️ Läuft</div>
+                  <% end %>
                 </div>
-                <div class="text-sm">
-                  <div><strong><%= player_a&.fullname %></strong>: <%= tm.data["playera"]&.dig("result") || 0 %></div>
-                  <div><strong><%= player_b&.fullname %></strong>: <%= tm.data["playerb"]&.dig("result") || 0 %></div>
-                </div>
-                <% if tm.playing? %>
-                  <div class="text-xs text-green-600 mt-1">▶️ Läuft</div>
-                <% end %>
-              </div>
+              <% end %>
             <% end %>
+          <% else %>
+            <div class="col-span-full text-gray-500 text-sm">Keine aktiven Spiele</div>
           <% end %>
         </div>
       </div>
@@ -76,6 +106,17 @@
             tournament_monitor_path(tournament_monitor),
             class: 'btn btn-primary btn-lg',
             style: 'font-weight: bold;' %>
+        <!-- Test-Button für Realtime Updates (nur wenn Route verfügbar) -->
+        <% begin %>
+          <%= button_to '🔄 Test Update', 
+              test_tournament_status_update_path(tournament),
+              method: :post,
+              class: 'btn btn-secondary btn-sm',
+              remote: true,
+              form: { data: { turbo: false } } %>
+        <% rescue NoMethodError, ActionController::UrlGenerationError %>
+          <!-- Route nicht verfügbar (z.B. nach Deployment, Server muss neu gestartet werden) -->
+        <% end %>
       <% end %>
       
       <% if tournament.location.present? %>
