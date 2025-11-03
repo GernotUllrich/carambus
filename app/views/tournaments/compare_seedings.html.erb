@@ -152,7 +152,7 @@ function updateFileName(input) {
   document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
 
-// Drag & Drop Funktionalität
+// Drag & Drop Funktionalität mit Browser-Kompatibilität
 document.addEventListener('DOMContentLoaded', function() {
   const uploadArea = document.getElementById('upload-area');
   const dragOverlay = document.getElementById('drag-overlay');
@@ -195,7 +195,12 @@ document.addEventListener('DOMContentLoaded', function() {
     preventDefaults(e);
     // Setze dropEffect explizit auf 'copy' (verhindert 'link' oder 'move')
     if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'copy';
+      try {
+        e.dataTransfer.dropEffect = 'copy';
+      } catch (err) {
+        // Manche Browser unterstützen dropEffect nicht
+        console.log('dropEffect nicht unterstützt:', err);
+      }
     }
     dragOverlay.classList.remove('hidden');
     uploadArea.classList.add('border-blue-500');
@@ -212,6 +217,78 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
 
+  // Hilfsfunktion zum Setzen der Datei ins Input-Feld
+  function setFileToInput(file) {
+    if (!file) {
+      console.error('Keine Datei zum Setzen');
+      return false;
+    }
+
+    // Methode 1: DataTransfer API (moderne Browser)
+    try {
+      if (typeof DataTransfer !== 'undefined') {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        console.log('Datei über DataTransfer API gesetzt:', file.name);
+        return true;
+      }
+    } catch (error) {
+      console.log('DataTransfer API fehlgeschlagen:', error);
+    }
+
+    // Methode 2: FileList direkt setzen (für ältere Browser)
+    try {
+      // Erstelle eine FileList-ähnliche Struktur
+      const fileList = {
+        0: file,
+        length: 1,
+        item: function(index) { return index === 0 ? file : null; },
+        namedItem: function(name) { return null; }
+      };
+      
+      // Versuche files direkt zu setzen
+      Object.defineProperty(fileInput, 'files', {
+        value: fileList,
+        writable: false,
+        configurable: true
+      });
+      
+      // Oder nutze die native FileList wenn verfügbar
+      if (fileInput.files && fileInput.files.length > 0) {
+        console.log('Datei über FileList gesetzt (Fallback):', file.name);
+        return true;
+      }
+    } catch (error) {
+      console.log('FileList Fallback fehlgeschlagen:', error);
+    }
+
+    // Methode 3: Trigger change event manuell (letzter Versuch)
+    try {
+      // Erstelle ein neues File-Input Element
+      const newInput = document.createElement('input');
+      newInput.type = 'file';
+      newInput.files = (function() {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        return dt.files;
+      })();
+      
+      // Kopiere files zum originalen Input
+      fileInput.files = newInput.files;
+      console.log('Datei über temporäres Input gesetzt:', file.name);
+      
+      // Trigger change event
+      const event = new Event('change', { bubbles: true });
+      fileInput.dispatchEvent(event);
+      
+      return true;
+    } catch (error) {
+      console.error('Alle Methoden fehlgeschlagen:', error);
+      return false;
+    }
+  }
+
   // Datei-Drop verarbeiten
   uploadArea.addEventListener('drop', function(e) {
     preventDefaults(e);
@@ -223,74 +300,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const dt = e.dataTransfer;
     if (!dt) {
       console.error('DataTransfer nicht verfügbar');
+      alert('Browser unterstützt Drag & Drop nicht richtig. Bitte nutzen Sie die Dateiauswahl.');
       return;
     }
 
+    let file = null;
+    let filesFound = false;
+
+    // Versuch 1: dt.files (Standard)
     const files = dt.files;
-
-    // Prüfe ob Dateien vorhanden sind
     if (files && files.length > 0) {
-      const file = files[0];
-      console.log('Datei gefunden:', file.name, file.type, file.size);
-      
-      // Prüfe Dateityp
-      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-      const fileType = file.type || '';
-      const fileName = file.name.toLowerCase();
-      
-      const isValidType = validTypes.includes(fileType) || 
-                          fileName.endsWith('.pdf') || 
-                          fileName.endsWith('.png') || 
-                          fileName.endsWith('.jpg') || 
-                          fileName.endsWith('.jpeg');
+      file = files[0];
+      filesFound = true;
+      console.log('Datei über dt.files gefunden:', file.name, file.type, file.size);
+    }
 
-      if (!isValidType) {
-        alert('Bitte nur PDF, PNG oder JPEG Dateien hochladen!');
-        return;
-      }
-
-      // Setze Datei ins Input-Feld
-      try {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-        console.log('Datei ins Input-Feld gesetzt:', fileInput.files.length);
-
-        // Update Anzeige
-        updateFileName(fileInput);
-        
-        // Optional: Automatisch hochladen (auskommentiert für manuelle Kontrolle)
-        // form.submit();
-      } catch (error) {
-        console.error('Fehler beim Setzen der Datei:', error);
-        alert('Fehler beim Verarbeiten der Datei. Bitte versuchen Sie es erneut.');
-      }
-    } else {
-      // Fallback: Prüfe DataTransfer.items API
+    // Versuch 2: dt.items API (Fallback für ältere Browser)
+    if (!filesFound) {
       const items = dt.items;
       if (items && items.length > 0) {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           if (item.kind === 'file') {
-            const file = item.getAsFile();
-            if (file) {
-              console.log('Datei über items API gefunden:', file.name);
-              try {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                updateFileName(fileInput);
+            try {
+              file = item.getAsFile();
+              if (file) {
+                filesFound = true;
+                console.log('Datei über dt.items gefunden:', file.name);
                 break;
-              } catch (error) {
-                console.error('Fehler beim Setzen der Datei (items API):', error);
               }
+            } catch (error) {
+              console.log('getAsFile() fehlgeschlagen:', error);
             }
           }
         }
-      } else {
-        console.warn('Keine Dateien im DataTransfer gefunden');
-        alert('Bitte ziehen Sie eine Datei direkt (nicht einen Link) in den Upload-Bereich.');
       }
+    }
+
+    if (!file || !filesFound) {
+      console.warn('Keine Dateien im DataTransfer gefunden');
+      alert('Keine Datei erkannt. Bitte ziehen Sie eine Datei direkt (nicht einen Link) in den Upload-Bereich.');
+      return;
+    }
+
+    // Prüfe Dateityp
+    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+    const fileType = file.type || '';
+    const fileName = file.name.toLowerCase();
+    
+    const isValidType = validTypes.includes(fileType) || 
+                        fileName.endsWith('.pdf') || 
+                        fileName.endsWith('.png') || 
+                        fileName.endsWith('.jpg') || 
+                        fileName.endsWith('.jpeg');
+
+    if (!isValidType) {
+      alert('Bitte nur PDF, PNG oder JPEG Dateien hochladen!');
+      return;
+    }
+
+    // Setze Datei ins Input-Feld
+    const success = setFileToInput(file);
+    
+    if (success) {
+      // Update Anzeige
+      updateFileName(fileInput);
+    } else {
+      alert('Fehler beim Verarbeiten der Datei. Bitte versuchen Sie es erneut oder nutzen Sie die Dateiauswahl.');
     }
   }, false);
 });
