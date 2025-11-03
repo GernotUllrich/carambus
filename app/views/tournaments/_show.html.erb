@@ -35,8 +35,16 @@
           <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.end_date') %></h5><%= tournament.end_date %></div>
         <% end %>
         <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.shortname') %></h5><%= tournament.shortname %></div>
-        <% if tournament.data.present? %>
-          <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.data') %></h5><%= tournament.data %></div>
+        <% if tournament.data.present? && tournament_director?(current_user) %>
+          <div class="w-3/12 mb-4 m-w-full pr-8">
+            <h5><%= t('activerecord.attributes.tournament.data') %></h5>
+            <details class="cursor-pointer">
+              <summary class="btn btn-sm btn-secondary cursor-pointer">Turnierdaten anzeigen</summary>
+              <div class="mt-2 bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">
+                <pre><%= JSON.pretty_generate(tournament.data) %></pre>
+              </div>
+            </details>
+          </div>
         <% end %>
         <% if tournament.ba_state.present? %>
           <div class="w-3/12 mb-4 m-w-full pr-8"><h5><%= t('activerecord.attributes.tournament.ba_state') %></h5><%= tournament.ba_state %></div>

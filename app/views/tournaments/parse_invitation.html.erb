@@ -77,13 +77,23 @@
             </thead>
             <tbody>
               <% @match_result[:matched].each do |match| %>
+                <% player = match[:player] %>
+                <% club = @tournament.season.season_participations.where("season_participations.player_id = ?", player.id).first&.club %>
                 <tr class="border-b">
                   <td class="p-3 font-bold"><%= match[:position] %></td>
                   <td class="p-3"><%= match[:extracted_name] %></td>
                   <td class="p-3">
-                    <%= match[:player].fullname %>
-                    <%= hidden_field_tag 'seeding_order[]', match[:player].id %>
-                    <%= hidden_field_tag "balls_goal[#{match[:player].id}]", match[:balls_goal] if match[:balls_goal].present? %>
+                    <div class="flex items-center gap-2">
+                      <% if club&.logo.present? %>
+                        <%= image_tag club.logo, class: "h-6 w-auto object-contain", alt: club.shortname %>
+                      <% end %>
+                      <span><%= player.fullname %></span>
+                      <% if player.dbu_nr.present? && player.dbu_nr > 0 %>
+                        <span class="text-xs text-gray-500">(DBU: <%= player.dbu_nr %>)</span>
+                      <% end %>
+                    </div>
+                    <%= hidden_field_tag 'seeding_order[]', player.id %>
+                    <%= hidden_field_tag "balls_goal[#{player.id}]", match[:balls_goal] if match[:balls_goal].present? %>
                   </td>
                   <td class="p-3">
                     <% if match[:balls_goal].present? %>

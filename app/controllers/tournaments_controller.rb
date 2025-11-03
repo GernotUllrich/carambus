@@ -286,7 +286,7 @@ class TournamentsController < ApplicationController
         @tournament.save
         @tournament.reload
         @tournament.tournament_monitor.update(current_admin: current_user,
-                                              timeout: (params[:timeout].presence || @tournament.timeout).to_i,
+                                              timeout: (params[:timeout].presence || 0).to_i,
                                               timeouts: (params[:timeouts].presence || @tournament.timeouts).to_i,
                                               sets_to_play: (params[:sets_to_play].presence || @tournament.sets_to_play).to_i,
                                               sets_to_win: (params[:sets_to_win].presence || @tournament.sets_to_win).to_i,
@@ -458,6 +458,12 @@ class TournamentsController < ApplicationController
       data_updates = {}
       data_updates['extracted_group_assignment'] = @extraction_result[:group_assignment] if @extraction_result[:group_assignment].present?
       data_updates['extracted_plan_info'] = @extraction_result[:plan_info] if @extraction_result[:plan_info].present?
+      
+      # Speichere extrahierte Turnier-Parameter
+      if @extraction_result[:extracted_params].present?
+        data_updates['extracted_balls_goal'] = @extraction_result[:extracted_params][:balls_goal] if @extraction_result[:extracted_params][:balls_goal].present?
+        data_updates['extracted_innings_goal'] = @extraction_result[:extracted_params][:innings_goal] if @extraction_result[:extracted_params][:innings_goal].present?
+      end
       
       if data_updates.any?
         @tournament.unprotected = true

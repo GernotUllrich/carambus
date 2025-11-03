@@ -55,13 +55,13 @@
           <div class="space-y-3 rounded shadow p-8">
             <h4 class="mb-4">Turnier Parameter</h4>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.show.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal, class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.show.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal || @tournament.data['extracted_balls_goal'], class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal, class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm"><%= label_tag t('tournaments.show.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal || @tournament.data['extracted_innings_goal'], class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm"><%= label_tag "Timeout (Sek.)" %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm"><%= label_tag "Timeout (Sek.)" %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout || 0, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm"><%= label_tag "Timeouts" %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>

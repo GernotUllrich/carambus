@@ -57,6 +57,9 @@ class SeedingListExtractor
     # Extrahiere Turniermodus-Info (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
     plan_info = extract_tournament_plan_info(text)
     
+    # Extrahiere Turnier-Parameter (Bälle Ziel, Aufnahme-Begrenzung)
+    extracted_params = extract_tournament_parameters(text)
+    
     # Suche nach Setzliste-Sektion
     # Pattern: "Setzliste" gefolgt von nummerierten Spielern
     
@@ -164,8 +167,34 @@ class SeedingListExtractor
       count: players.count,
       group_assignment: group_assignment,
       plan_info: plan_info,
+      extracted_params: extracted_params,
       raw_text: text
     }
+  end
+  
+  # Extrahiert Turnier-Parameter wie Bälle Ziel und Aufnahme-Begrenzung
+  def self.extract_tournament_parameters(text)
+    params = {}
+    lines = text.split("\n")
+    
+    lines.each do |line|
+      # Bälle Ziel: "100 Bälle" oder "100 Pkt" oder "Ballziel: 100"
+      if (match = line.match(/(?:Ballziel|Bälle|Pkt)[:\s]+(\d+)/i))
+        params[:balls_goal] = match[1].to_i
+      end
+      
+      # Aufnahme-Begrenzung: "Aufnahme-Begrenzung: 25" oder "max. 25 Aufnahmen"
+      if (match = line.match(/(?:Aufnahme-Begrenzung|Aufnahmen|max\.?\s*\d+)[:\s]+(\d+)/i))
+        params[:innings_goal] = match[1].to_i
+      end
+      
+      # Alternative Pattern: "25 Aufnahmen"
+      if (match = line.match(/(\d+)\s+Aufnahmen/i)) && !params[:innings_goal]
+        params[:innings_goal] = match[1].to_i
+      end
+    end
+    
+    params
   end
   
   # Extrahiert Turniermodus-Info (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")

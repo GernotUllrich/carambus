@@ -3,6 +3,18 @@
   <div class="container mx-auto my-8 px-4">
     <h2 class="text-center"><%= t("tournaments.tournament_monitor") %></h2>
     <h3 class="text-center"><%= custom_link_to @tournament_monitor.tournament.title, tournament_path(@tournament_monitor.tournament) %></h3>
+    
+    <!-- Links zu Scoreboards (read-only) -->
+    <% if @tournament_monitor.tournament.location.present? %>
+      <div class="text-center mb-4">
+        <%= link_to "📺 Scoreboards anzeigen (read-only)", 
+            scoreboard_location_path(@tournament_monitor.tournament.location.md5, sb_state: "tournament_scores"),
+            data: { turbo: false },
+            class: "btn btn-secondary btn-sm",
+            target: "_blank" %>
+      </div>
+    <% end %>
+    
     <div class="mx-auto">
 
       <%- if @tournament_monitor.andand.tournament.andand.tournament_plan.present? %>
