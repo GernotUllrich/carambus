@@ -41,9 +41,17 @@
       <% end %>
 
       <%= form_with url: upload_invitation_tournament_path(@tournament), method: :post, 
-          multipart: true, local: true, class: 'space-y-4' do |f| %>
+          multipart: true, local: true, class: 'space-y-4', id: 'invitation-upload-form' do |f| %>
         
-        <div class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition">
+        <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition relative">
+          <!-- Drag Overlay -->
+          <div id="drag-overlay" class="absolute inset-0 bg-blue-100 bg-opacity-90 border-4 border-blue-500 border-dashed rounded-lg flex items-center justify-center hidden z-10">
+            <div class="text-center">
+              <span class="text-6xl mb-4 block">📥</span>
+              <p class="text-xl font-bold text-blue-900">Datei hier ablegen</p>
+            </div>
+          </div>
+          
           <div class="mb-4">
             <span class="text-6xl">📄</span>
           </div>
@@ -61,7 +69,8 @@
           </label>
           
           <p class="text-gray-600 mt-2" id="selected-file-name">
-            PDF oder Screenshot (PNG, JPG)
+            PDF oder Screenshot (PNG, JPG)<br>
+            <span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>
           </p>
           
           <p class="text-sm text-gray-500 mt-4">
@@ -140,13 +149,95 @@
 <script>
 function updateFileName(input) {
   const fileName = input.files[0]?.name || 'PDF oder Screenshot (PNG, JPG)';
-  document.getElementById('selected-file-name').textContent = fileName;
+  document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
+
+// Drag & Drop Funktionalität
+document.addEventListener('DOMContentLoaded', function() {
+  const uploadArea = document.getElementById('upload-area');
+  const dragOverlay = document.getElementById('drag-overlay');
+  const fileInput = document.getElementById('invitation-upload');
+  const form = document.getElementById('invitation-upload-form');
+
+  if (!uploadArea || !fileInput) return;
+
+  // Verhindere Standard-Drag-Verhalten
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Highlight beim Drag
+  ['dragenter', 'dragover'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+      dragOverlay.classList.remove('hidden');
+      uploadArea.classList.add('border-blue-500');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+      dragOverlay.classList.add('hidden');
+      uploadArea.classList.remove('border-blue-500');
+    }, false);
+  });
+
+  // Datei-Drop verarbeiten
+  uploadArea.addEventListener('drop', function(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+      const file = files[0];
+      
+      // Prüfe Dateityp
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+      const fileType = file.type || '';
+      const fileName = file.name.toLowerCase();
+      
+      const isValidType = validTypes.includes(fileType) || 
+                          fileName.endsWith('.pdf') || 
+                          fileName.endsWith('.png') || 
+                          fileName.endsWith('.jpg') || 
+                          fileName.endsWith('.jpeg');
+
+      if (!isValidType) {
+        alert('Bitte nur PDF, PNG oder JPEG Dateien hochladen!');
+        return;
+      }
+
+      // Setze Datei ins Input-Feld
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+
+      // Update Anzeige
+      updateFileName(fileInput);
+
+      // Optional: Automatisch hochladen
+      // form.submit();
+    }
+  }, false);
+});
 </script>
 
 <style>
 .upload-area:hover {
   background-color: #f8fafc;
+}
+
+#upload-area.drag-over {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+#drag-overlay {
+  pointer-events: none;
 }
 </style>
 
