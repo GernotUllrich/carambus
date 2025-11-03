@@ -161,38 +161,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!uploadArea || !fileInput) return;
 
-  // Verhindere Standard-Drag-Verhalten
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, preventDefaults, false);
-    document.body.addEventListener(eventName, preventDefaults, false);
-  });
-
+  // WICHTIG: Verhindere Standard-Drag-Verhalten GLOBAL (auch für E-Mail-Clients)
+  // Das verhindert dass der Browser PDFs öffnet wenn sie gezogen werden
   function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
+    return false;
   }
 
-  // Highlight beim Drag
-  ['dragenter', 'dragover'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => {
-      dragOverlay.classList.remove('hidden');
-      uploadArea.classList.add('border-blue-500');
-    }, false);
+  // Verhindere Standard-Verhalten auf der gesamten Seite
+  // Dies ist wichtig damit PDFs aus E-Mail-Clients nicht geöffnet werden
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.addEventListener(eventName, preventDefaults, true); // useCapture = true für frühe Phase
+    window.addEventListener(eventName, preventDefaults, true);
   });
 
-  ['dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => {
+  // Highlight beim Drag über Upload-Bereich
+  uploadArea.addEventListener('dragenter', function(e) {
+    preventDefaults(e);
+    dragOverlay.classList.remove('hidden');
+    uploadArea.classList.add('border-blue-500');
+    uploadArea.classList.add('bg-blue-50');
+  }, false);
+
+  uploadArea.addEventListener('dragover', function(e) {
+    preventDefaults(e);
+    // Setze dropEffect explizit
+    e.dataTransfer.dropEffect = 'copy';
+    dragOverlay.classList.remove('hidden');
+    uploadArea.classList.add('border-blue-500');
+    uploadArea.classList.add('bg-blue-50');
+  }, false);
+
+  uploadArea.addEventListener('dragleave', function(e) {
+    preventDefaults(e);
+    // Nur verstecken wenn wirklich außerhalb des Upload-Bereichs
+    if (!uploadArea.contains(e.relatedTarget)) {
       dragOverlay.classList.add('hidden');
       uploadArea.classList.remove('border-blue-500');
-    }, false);
-  });
+      uploadArea.classList.remove('bg-blue-50');
+    }
+  }, false);
 
   // Datei-Drop verarbeiten
   uploadArea.addEventListener('drop', function(e) {
+    preventDefaults(e);
+    
+    dragOverlay.classList.add('hidden');
+    uploadArea.classList.remove('border-blue-500');
+    uploadArea.classList.remove('bg-blue-50');
+    
     const dt = e.dataTransfer;
     const files = dt.files;
 
-    if (files.length > 0) {
+    // Prüfe ob Dateien vorhanden sind (nicht Links)
+    if (files && files.length > 0) {
       const file = files[0];
       
       // Prüfe Dateityp
@@ -218,9 +241,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Update Anzeige
       updateFileName(fileInput);
-
-      // Optional: Automatisch hochladen
-      // form.submit();
+    } else {
+      // Fallback: Prüfe ob es ein Link ist (sollte nicht passieren, aber sicherheitshalber)
+      const items = dt.items;
+      if (items && items.length > 0) {
+        const item = items[0];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            updateFileName(fileInput);
+          }
+        }
+      }
     }
   }, false);
 });
