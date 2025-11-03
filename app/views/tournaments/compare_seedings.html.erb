@@ -152,6 +152,25 @@ function updateFileName(input) {
   document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
 
+// WICHTIG: Event-Handler MÜSSEN sofort registriert werden (vor DOMContentLoaded)
+// Sonst öffnet Safari/Comet die Datei direkt statt Drag & Drop zu verwenden
+(function() {
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+
+  // Verhindere Standard-Verhalten GLOBAL und sehr früh
+  // Dies verhindert dass Browser PDFs öffnet wenn sie gezogen werden
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    // Capture-Phase (true) = Handler wird früh ausgeführt
+    document.addEventListener(eventName, preventDefaults, true);
+    window.addEventListener(eventName, preventDefaults, true);
+    document.body.addEventListener(eventName, preventDefaults, true);
+  });
+})();
+
 // Drag & Drop Funktionalität
 document.addEventListener('DOMContentLoaded', function() {
   const uploadArea = document.getElementById('upload-area');
@@ -166,22 +185,6 @@ document.addEventListener('DOMContentLoaded', function() {
     e.stopPropagation();
     return false;
   }
-
-  // Verhindere Standard-Verhalten auf der gesamten Seite
-  // ABER: Lassen wir Drop-Events auf dem Upload-Bereich durchlaufen
-  document.addEventListener('dragover', function(e) {
-    // Nur verhindern wenn NICHT über Upload-Bereich
-    if (!uploadArea.contains(e.target)) {
-      preventDefaults(e);
-    }
-  }, false);
-
-  document.addEventListener('drop', function(e) {
-    // Nur verhindern wenn NICHT über Upload-Bereich
-    if (!uploadArea.contains(e.target)) {
-      preventDefaults(e);
-    }
-  }, false);
 
   // Highlight beim Drag über Upload-Bereich
   uploadArea.addEventListener('dragenter', function(e) {
