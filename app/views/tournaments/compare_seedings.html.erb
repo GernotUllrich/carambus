@@ -152,7 +152,24 @@ function updateFileName(input) {
   document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
 
-// Drag & Drop Funktionalität
+// WICHTIG: Event-Handler müssen SOFRORT registriert werden (nicht erst nach DOMContentLoaded)
+// Sonst öffnet der Browser PDFs beim Ziehen aus E-Mail-Clients
+(function() {
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+
+  // Verhindere Standard-Verhalten auf der gesamten Seite GLOBAL
+  // Muss VOR DOMContentLoaded passieren damit es früh genug ist
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.addEventListener(eventName, preventDefaults, true); // useCapture = true
+    window.addEventListener(eventName, preventDefaults, true);
+  });
+})();
+
+// Drag & Drop Funktionalität für Upload-Bereich
 document.addEventListener('DOMContentLoaded', function() {
   const uploadArea = document.getElementById('upload-area');
   const dragOverlay = document.getElementById('drag-overlay');
@@ -161,20 +178,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!uploadArea || !fileInput) return;
 
-  // WICHTIG: Verhindere Standard-Drag-Verhalten GLOBAL (auch für E-Mail-Clients)
-  // Das verhindert dass der Browser PDFs öffnet wenn sie gezogen werden
   function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
     return false;
   }
-
-  // Verhindere Standard-Verhalten auf der gesamten Seite
-  // Dies ist wichtig damit PDFs aus E-Mail-Clients nicht geöffnet werden
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    document.addEventListener(eventName, preventDefaults, true); // useCapture = true für frühe Phase
-    window.addEventListener(eventName, preventDefaults, true);
-  });
 
   // Highlight beim Drag über Upload-Bereich
   uploadArea.addEventListener('dragenter', function(e) {
@@ -186,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   uploadArea.addEventListener('dragover', function(e) {
     preventDefaults(e);
-    // Setze dropEffect explizit
+    // Setze dropEffect explizit auf 'copy' (verhindert 'move' oder 'link')
     e.dataTransfer.dropEffect = 'copy';
     dragOverlay.classList.remove('hidden');
     uploadArea.classList.add('border-blue-500');
@@ -242,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update Anzeige
       updateFileName(fileInput);
     } else {
-      // Fallback: Prüfe ob es ein Link ist (sollte nicht passieren, aber sicherheitshalber)
+      // Fallback: Prüfe DataTransfer.items API
       const items = dt.items;
       if (items && items.length > 0) {
         const item = items[0];
