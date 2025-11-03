@@ -40,13 +40,6 @@
         </div>
       <% end %>
 
-      <!-- Safari-Hinweis -->
-      <div id="safari-hint" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded hidden">
-        <p class="text-yellow-800 text-sm">
-          <strong>💡 Hinweis für Safari:</strong> Falls Drag & Drop aus E-Mail nicht funktioniert, speichern Sie die Datei bitte zuerst auf Ihrem Computer und laden Sie sie dann über "Datei auswählen" hoch.
-        </p>
-      </div>
-
       <%= form_with url: upload_invitation_tournament_path(@tournament), method: :post, 
           multipart: true, local: true, class: 'space-y-4', id: 'invitation-upload-form' do |f| %>
         
@@ -162,9 +155,6 @@ function updateFileName(input) {
 // WICHTIG: Event-Handler MÜSSEN sofort registriert werden (vor DOMContentLoaded)
 // Sonst öffnet Safari/Comet die Datei direkt statt Drag & Drop zu verwenden
 (function() {
-  // Safari-Erkennung
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  
   function preventDefaults(e) {
     // Prüfe ob Event über Upload-Bereich ist (dynamisch, falls DOM noch nicht bereit)
     const uploadArea = document.getElementById('upload-area');
@@ -189,28 +179,7 @@ function updateFileName(input) {
     if (document.body) {
       document.body.addEventListener(eventName, preventDefaults, true);
     }
-    
-    // Safari-spezifisch: Auch auf document.documentElement
-    if (isSafari && document.documentElement) {
-      document.documentElement.addEventListener(eventName, preventDefaults, true);
-    }
   });
-  
-  // Safari-spezifisch: Zusätzliche Maßnahmen
-  if (isSafari) {
-    // Verhindere auch kontextabhängige Navigation
-    window.addEventListener('beforeunload', function(e) {
-      // Nichts tun, nur Handler registrieren
-    }, true);
-    
-    // Verhindere link-Navigation bei Drop
-    document.addEventListener('drop', function(e) {
-      if (e.target && e.target.tagName === 'A') {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }, true);
-  }
 })();
 
 // Drag & Drop Funktionalität
@@ -221,15 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('invitation-upload-form');
 
   if (!uploadArea || !fileInput) return;
-
-  // Safari-Erkennung und Hinweis anzeigen
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  if (isSafari) {
-    const safariHint = document.getElementById('safari-hint');
-    if (safariHint) {
-      safariHint.classList.remove('hidden');
-    }
-  }
 
   function preventDefaults(e) {
     e.preventDefault();
