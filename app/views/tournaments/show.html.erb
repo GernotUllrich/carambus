@@ -1,14 +1,26 @@
 <%= content_tag "div",
                 "data-controller": "tournament",
+                "data-tournament-id": @tournament.id,
                 id: "tournament_#{@tournament.id}",
                 class: "container mx-auto my-2 px-2" do %>
+  <!-- Tournament Channel Subscription -->
+  <%= turbo_stream_from "tournament-stream-#{@tournament.id}" %>
+  
   <!-- Tournament Details (collapsed in card) -->
   <div class="tournament-details-card">
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) -->
-  <%= render 'wizard_steps_v2', tournament: @tournament %>
+  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter -->
+  <% if tournament_director?(current_user) %>
+    <%= render 'wizard_steps_v2', tournament: @tournament %>
+  <% end %>
+
+  <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->
+  <%= render 'tournament_status', tournament: @tournament %>
+
+  <!-- Admin-Bereich: Geparste Einladung & Setzliste - Nur für Spielleiter -->
+  <%= render 'admin_tournament_info', tournament: @tournament %>
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
   

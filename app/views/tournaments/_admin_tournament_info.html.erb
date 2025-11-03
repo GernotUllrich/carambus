@@ -1,0 +1,113 @@
+<%# Admin-Bereich: Geparste Einladung & Setzliste - Nur für Spielleiter %>
+<% if tournament_director?(current_user) %>
+  <div class="admin-tournament-info-container bg-gray-50 border border-gray-300 rounded-lg p-6 mb-6">
+    <h2 class="text-2xl font-bold mb-4 text-gray-900">
+      🔧 Spielleiter-Informationen
+    </h2>
+
+    <div class="space-y-4">
+      <!-- Geparste Einladung -->
+      <% if @tournament.data['invitation_filename'].present? %>
+        <div class="bg-white rounded-lg p-4 border border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">📄 Geparste Einladung</h3>
+          <p class="text-sm text-gray-600 mb-2">
+            Datei: <strong><%= @tournament.data['invitation_filename'] %></strong>
+          </p>
+          
+          <% if @tournament.data['extracted_plan_info'].present? %>
+            <div class="text-sm text-gray-700 mb-2">
+              <strong>Extrahierter Turniermodus:</strong> <%= @tournament.data['extracted_plan_info'] %>
+            </div>
+          <% end %>
+
+          <% if @tournament.data['extracted_group_assignment'].present? %>
+            <details class="mt-2">
+              <summary class="cursor-pointer text-sm font-semibold text-gray-700">
+                Extrahierte Gruppenbildung anzeigen
+              </summary>
+              <div class="mt-2 text-xs text-gray-600">
+                <% @tournament.data['extracted_group_assignment'].each do |group_key, player_positions| %>
+                  <div class="mb-2">
+                    <strong><%= group_key.humanize %>:</strong>
+                    <%= player_positions.map { |pos| 
+                      seeding = @tournament.seedings.find_by(position: pos)
+                      seeding&.player&.fullname || "Position #{pos}"
+                    }.join(", ") %>
+                  </div>
+                <% end %>
+              </div>
+            </details>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+          <p class="text-sm text-yellow-800">
+            ⚠️ Keine Einladung hochgeladen
+          </p>
+        </div>
+      <% end %>
+
+      <!-- Setzliste -->
+      <div class="bg-white rounded-lg p-4 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">📋 Setzliste</h3>
+        <% seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
+                          "seedings.id >= #{Seeding::MIN_ID}" : 
+                          "seedings.id < #{Seeding::MIN_ID}" %>
+        
+        <div class="max-h-64 overflow-y-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="px-2 py-1 text-left">Pos.</th>
+                <th class="px-2 py-1 text-left">Spieler</th>
+                <% if @tournament.handicap_tournier? %>
+                  <th class="px-2 py-1 text-center">Vorgabe</th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% @tournament.seedings.where(seeding_scope).where.not(state: "no_show").order(:position).limit(20).each do |seeding| %>
+                <tr class="border-b border-gray-200">
+                  <td class="px-2 py-1"><%= seeding.position %></td>
+                  <td class="px-2 py-1"><%= seeding.player.fullname %></td>
+                  <% if @tournament.handicap_tournier? %>
+                    <td class="px-2 py-1 text-center"><%= seeding.balls_goal || "-" %></td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          <% total_count = @tournament.seedings.where(seeding_scope).where.not(state: "no_show").count %>
+          <% if total_count > 20 %>
+            <p class="text-xs text-gray-500 mt-2">
+              ... und <%= total_count - 20 %> weitere Spieler
+            </p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-white rounded-lg p-4 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">🔗 Schnellzugriff</h3>
+        <div class="flex flex-wrap gap-2">
+          <% if @tournament.tournament_monitor.present? %>
+            <%= link_to '🎮 Tournament Monitor', 
+                tournament_monitor_path(@tournament.tournament_monitor),
+                class: 'btn btn-primary btn-sm' %>
+          <% end %>
+          
+          <% if @tournament.data['invitation_filename'].present? %>
+            <%= link_to '📄 Einladung prüfen', 
+                compare_seedings_tournament_path(@tournament),
+                class: 'btn btn-secondary btn-sm' %>
+          <% end %>
+          
+          <%= link_to '✏️ Teilnehmer bearbeiten', 
+              define_participants_tournament_path(@tournament),
+              class: 'btn btn-secondary btn-sm' %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+

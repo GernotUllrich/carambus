@@ -49,6 +49,9 @@ class TournamentMonitor < ApplicationRecord
 
   before_save :log_state_change
   before_save :set_paper_trail_whodunnit
+  
+  # Broadcast Status-Update wenn State sich ändert
+  after_update_commit :broadcast_status_update, if: :saved_change_to_state?
 
   DEBUG = Rails.env != "production"
 
@@ -426,5 +429,12 @@ class TournamentMonitor < ApplicationRecord
 
   def before_all_events
     Tournament.logger.info "[tournament_monitor] #{aasm.current_event.inspect}"
+  end
+
+  # Broadcast Status-Update für Tournament View
+  def broadcast_status_update
+    return unless tournament.present?
+    
+    TournamentStatusUpdateJob.perform_later(tournament)
   end
 end

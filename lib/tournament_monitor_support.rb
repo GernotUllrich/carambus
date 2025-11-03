@@ -191,6 +191,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
             start_playing_groups!
           end
           TournamentMonitorUpdateResultsJob.perform_later(self)
+          # Broadcast Status-Update für Tournament View
+          TournamentStatusUpdateJob.perform_later(tournament)
         end
       rescue StandardError => e
         Rails.logger.info "StandardError #{e}, #{e.backtrace&.join("\n")}"

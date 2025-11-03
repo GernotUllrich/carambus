@@ -1,5 +1,6 @@
 class TournamentMonitorsController < ApplicationController
   before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players]
+  before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players]
 
   def switch_players
     @game = Game[params[:game_id]]
@@ -105,5 +106,13 @@ class TournamentMonitorsController < ApplicationController
   def tournament_monitor_params
     params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :timeouts, :timeout,
                                                :balls_goal)
+  end
+
+  # Sicherstellen dass nur Spielleiter (club_admin) Zugriff haben
+  def ensure_tournament_director
+    unless current_user&.club_admin? || current_user&.system_admin?
+      flash[:alert] = "Zugriff verweigert: Nur Spielleiter können auf den Tournament Monitor zugreifen."
+      redirect_to root_path
+    end
   end
 end

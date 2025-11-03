@@ -1,0 +1,100 @@
+<%# Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen %>
+<% if tournament_active_or_finished?(@tournament) && @tournament.tournament_monitor.present? %>
+  <div id="tournament-status-container-<%= @tournament.id %>" class="tournament-status-container bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+    <h2 class="text-2xl font-bold mb-4 text-blue-900">
+      📊 Turnier-Status: <%= @tournament.title %>
+    </h2>
+
+    <% tournament_monitor = @tournament.tournament_monitor %>
+    
+    <!-- Turnier-Phase -->
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold text-blue-800 mb-2">Aktuelle Phase</h3>
+      <div class="flex items-center gap-4">
+        <span class="px-4 py-2 bg-blue-200 rounded-lg font-medium" id="tournament-phase-<%= @tournament.id %>">
+          <%= tournament_monitor.state.gsub("_", " ").humanize %>
+        </span>
+        <% current_round = tournament_current_round(@tournament) %>
+        <% if current_round %>
+          <span class="text-blue-700" id="tournament-round-<%= @tournament.id %>">
+            Runde <%= current_round %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Spiele-Fortschritt -->
+    <% games_progress = tournament_games_progress(@tournament) %>
+    <% if games_progress[:total] > 0 %>
+      <div class="mb-4">
+        <h3 class="text-lg font-semibold text-blue-800 mb-2">Spiele-Fortschritt</h3>
+        <div class="flex items-center gap-4">
+          <div class="flex-1 bg-gray-200 rounded-full h-6">
+            <div class="bg-blue-600 h-6 rounded-full" 
+                 id="tournament-progress-bar-<%= @tournament.id %>"
+                 style="width: <%= (games_progress[:finished].to_f / games_progress[:total] * 100).round %>%"></div>
+          </div>
+          <span class="text-blue-700 font-medium" id="tournament-progress-text-<%= @tournament.id %>">
+            <%= games_progress[:finished] %> / <%= games_progress[:total] %> Spiele
+          </span>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Aktuelle Spiele (vereinfacht) -->
+    <% if tournament_monitor.state.in?(%w[playing_groups playing_finals]) %>
+      <div class="mb-4" id="tournament-current-games-<%= @tournament.id %>">
+        <h3 class="text-lg font-semibold text-blue-800 mb-2">Aktuelle Spiele</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% TableMonitor.includes(:table, :game => :game_participations).where(tournament_monitor: tournament_monitor).where.not(game: nil).order("tables.name asc").limit(6).each do |tm| %>
+            <% if tm.game.present? %>
+              <% player_a = tm.game.game_participations.where(role: "playera").first&.player %>
+              <% player_b = tm.game.game_participations.where(role: "playerb").first&.player %>
+              <div class="bg-white rounded-lg p-3 border border-blue-300">
+                <div class="text-sm text-blue-600 font-semibold mb-1">
+                  <%= tm.display_name %> - <%= tm.game.display_gname %>
+                </div>
+                <div class="text-sm">
+                  <div><strong><%= player_a&.fullname %></strong>: <%= tm.data["playera"]&.dig("result") || 0 %></div>
+                  <div><strong><%= player_b&.fullname %></strong>: <%= tm.data["playerb"]&.dig("result") || 0 %></div>
+                </div>
+                <% if tm.playing? %>
+                  <div class="text-xs text-green-600 mt-1">▶️ Läuft</div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Link zum Tournament Monitor (nur für Spielleiter) -->
+    <% if tournament_director?(current_user) %>
+      <div class="mt-4 pt-4 border-t border-blue-300">
+        <%= link_to '🎮 Tournament Monitor öffnen', 
+            tournament_monitor_path(tournament_monitor),
+            class: 'btn btn-primary btn-lg',
+            style: 'font-weight: bold;' %>
+      </div>
+    <% end %>
+
+    <!-- Gruppen (falls vorhanden) -->
+    <% groups = tournament_groups_for_status(@tournament) %>
+    <% if groups.present? && @tournament.tournament_plan.present? %>
+      <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-groups-<%= @tournament.id %>">
+        <h3 class="text-lg font-semibold text-blue-800 mb-3">Gruppen</h3>
+        <%= render partial: "tournaments/groups", 
+            locals: { tournament_plan: @tournament.tournament_plan, groups: groups } %>
+      </div>
+    <% end %>
+
+    <!-- Platzierungen (falls vorhanden) -->
+    <% if tournament_monitor.data['rankings'].present? %>
+      <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-rankings-<%= @tournament.id %>">
+        <h3 class="text-lg font-semibold text-blue-800 mb-3">Aktuelle Platzierungen</h3>
+        <%= render partial: "tournament_monitors/rankings", 
+            locals: { tournament_monitor: tournament_monitor, totals: true } %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
