@@ -155,25 +155,15 @@ function updateFileName(input) {
 // WICHTIG: Event-Handler MÜSSEN sofort registriert werden (vor DOMContentLoaded)
 // Sonst öffnet Safari/Comet die Datei direkt statt Drag & Drop zu verwenden
 (function() {
-  // Speichere Upload-Bereich Referenz für spätere Prüfung
-  let uploadAreaRef = null;
-  
-  // Setze Upload-Bereich Referenz sobald DOM bereit ist
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      uploadAreaRef = document.getElementById('upload-area');
-    });
-  } else {
-    uploadAreaRef = document.getElementById('upload-area');
-  }
-  
   function preventDefaults(e) {
-    // Prüfe ob Event über Upload-Bereich ist
-    // Wenn ja, NICHT verhindern (dann kümmert sich der Upload-Handler darum)
-    if (uploadAreaRef && uploadAreaRef.contains(e.target)) {
+    // Prüfe ob Event über Upload-Bereich ist (dynamisch, falls DOM noch nicht bereit)
+    const uploadArea = document.getElementById('upload-area');
+    if (uploadArea && uploadArea.contains(e.target)) {
+      // Event ist über Upload-Bereich - NICHT verhindern
       return;
     }
     
+    // Event ist außerhalb Upload-Bereich - verhindern Standard-Verhalten
     e.preventDefault();
     e.stopPropagation();
     return false;
