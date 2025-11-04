@@ -14,6 +14,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 - **[tournament.md](tournament.md)**: Turnierverwaltungs-Workflows
 - **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)**: Einzelturnierverwaltung
 - **[league.md](league.md)**: Ligaspieltage
+- **[scoreboard_benutzerhandbuch.md](scoreboard_benutzerhandbuch.md)**: Vollständiges Scoreboard-Benutzerhandbuch 🆕
 - **[ai_search.md](ai_search.md)**: KI-gestützte Suche mit natürlicher Sprache
 
 ### Technische Dokumentation
@@ -48,6 +49,7 @@ Willkommen bei der Carambus-Dokumentation! Dieses Verzeichnis enthält umfassend
 1. Lesen Sie **[tournament.md](tournament.md)** für Turnier-Workflows
 2. Überprüfen Sie **[einzelturnierverwaltung.md](einzelturnierverwaltung.md)** für detaillierte Anleitung
 3. Prüfen Sie **[league.md](league.md)** für Ligaverwaltung
+4. Nutzen Sie **[scoreboard_benutzerhandbuch.md](scoreboard_benutzerhandbuch.md)** für die Bedienung des Scoreboards 🆕
 
 ### Für API-Benutzer
 1. Beginnen Sie mit **[API.md](API.md)** für vollständige API-Dokumentation
