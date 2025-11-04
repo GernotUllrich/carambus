@@ -146,6 +146,74 @@
             locals: { tournament_monitor: tournament_monitor, totals: true } %>
       </div>
     <% end %>
+
+    <!-- Setzliste (read-only) -->
+    <% 
+      seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+    %>
+    <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-seedings-<%= tournament.id %>">
+      <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 Setzliste</h3>
+      <div class="max-h-96 overflow-y-auto">
+        <table class="w-full text-sm bg-white rounded-lg">
+          <thead class="bg-blue-100 sticky top-0">
+            <tr>
+              <th class="px-3 py-2 text-left">Pos.</th>
+              <th class="px-3 py-2 text-left">Spieler</th>
+              <th class="px-3 py-2 text-left">Club</th>
+              <% if tournament.handicap_tournier? %>
+                <th class="px-3 py-2 text-center">Vorgabe (Ballziel)</th>
+              <% else %>
+                <th class="px-3 py-2 text-center">Ranking</th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% tournament.seedings.where(seeding_scope).where.not(state: "no_show").includes(:player => :player_rankings).joins(:player).order("seedings.position").each do |seeding| %>
+              <% club = tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first&.club %>
+              <tr class="border-b border-blue-100">
+                <td class="px-3 py-2"><%= seeding.position %></td>
+                <td class="px-3 py-2"><%= seeding.player.fullname %></td>
+                <td class="px-3 py-2"><%= club&.shortname || "-" %></td>
+                <td class="px-3 py-2 text-center">
+                  <% if tournament.handicap_tournier? %>
+                    <%= seeding.balls_goal %>
+                  <% else %>
+                    <% 
+                      # Verwende effective_gd Logic für Rankings
+                      player_rankings = seeding.player.player_rankings.where(discipline_id: tournament.discipline_id)
+                      ranking = nil
+                      [0, -1, -2].each do |offset|
+                        season = Season.find_by(ba_id: Season.current_season.ba_id + offset)
+                        next unless season
+                        pr = player_rankings.find_by(season_id: season.id)
+                        if pr&.effective_gd.to_i > 0
+                          ranking = pr
+                          break
+                        end
+                      end
+                    %>
+                    <%= ranking&.rank || "-" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Link zur Ranking-Tabelle -->
+      <% if tournament.organizer.is_a?(Region) && tournament.discipline.present? %>
+        <div class="mt-3 text-sm text-blue-700">
+          💡 Alle Rankings: 
+          <%= link_to "#{tournament.organizer.shortname} Rangliste #{tournament.discipline.name}", 
+              ranking_path(tournament.organizer) + "#discipline-#{tournament.discipline_id}",
+              class: 'text-blue-600 hover:text-blue-800 underline font-semibold',
+              target: '_blank' %>
+        </div>
+      <% end %>
+    </div>
   </div>
 <% else %>
   <!-- Platzhalter-Container damit Selector immer existiert -->

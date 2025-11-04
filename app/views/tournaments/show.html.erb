@@ -16,50 +16,10 @@
   <% end %>
 
   <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->
+  <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
-  
-  <!-- Setzliste - Für alle sichtbar wenn Turnier läuft -->
-  <% if @tournament.tournament_seeding_finished? %>
-    <div class="seedings-table-container">
-      <h2>📋 Setzliste</h2>
-      <div class="flex flex-wrap space-y-5">
-        <table class="flex-1">
-          <thead>
-            <tr>
-              <th><%= I18n.t("tournaments.show.position") %></th>
-              <th><%= I18n.t("tournaments.show.name") %></th>
-              <th><%= I18n.t("tournaments.show.club") %></th>
-              <% if @tournament.handicap_tournier? %>
-                <th>Vorgabe (Ballziel)</th>
-              <% else %>
-                <th>Ranking<br><%= @tournament.discipline.andand.name %></th>
-              <% end %>
-            </tr>
-          </thead>
-          <tbody>
-            <%- @tournament.seedings.where(seeding_scope).where.not(state: "no_show").includes(:player => :player_rankings).joins(:player).order("seedings.position").each do |seeding| %>
-              <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
-              <tr>
-                <td><%= seeding.position %></td>
-                <td><%= custom_link_to("#{seeding.player.fullname}", player_path(seeding.player)) %></td>
-                <td><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
-                <td class="text-center">
-                  <% if @tournament.handicap_tournier? %>
-                    <%= seeding.balls_goal %>
-                  <% else %>
-                    <%- diff = Season.current_season.name == "2021/2022" ? 2 : 1 %>
-                    <%= seeding.player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || "-" %>
-                  <% end %>
-                </td>
-              </tr>
-            <%- end %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  <% end %>
   
   <!-- Rankings Section -->
   <div class="seedings-table-container">
