@@ -431,7 +431,7 @@ class TournamentsController < ApplicationController
                                                     .where(discipline_tournament_plans: {
                                                              players: @participant_count,
                                                              discipline_id: @tournament.discipline_id
-                                                           }).uniq.limit(3)
+                                                           }).limit(3).to_a.uniq
   end
 
   def new_team; end
