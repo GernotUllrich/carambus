@@ -2,7 +2,7 @@
 
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
-                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode game_protocol update_innings]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -207,6 +207,31 @@ class TableMonitorsController < ApplicationController
   def destroy
     @table_monitor.destroy
     redirect_to table_monitors_url, notice: "Table monitor was successfully destroyed."
+  end
+
+  # GET /@table_monitors/1/game_protocol
+  def game_protocol
+    @history = @table_monitor.innings_history
+    
+    respond_to do |format|
+      format.html { render partial: 'game_protocol_modal', locals: { history: @history, table_monitor: @table_monitor } }
+      format.json { render json: @history }
+    end
+  end
+
+  # PATCH /@table_monitors/1/update_innings
+  def update_innings
+    result = @table_monitor.update_innings_history(params[:innings])
+    
+    if result[:success]
+      respond_to do |format|
+        format.json { render json: { success: true } }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
+      end
+    end
   end
 
   private

@@ -150,6 +150,8 @@ Rails.application.routes.draw do
       get :up
       get :down
       get :toggle_dark_mode
+      get :game_protocol
+      patch :update_innings
     end
   end
   resources :settings do

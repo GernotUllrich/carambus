@@ -32,6 +32,10 @@ import AiSearchController from "./ai_search_controller"
 application.register("ai-search", AiSearchController)
 console.log("🔧 AI Search Controller manually registered")
 
+import GameProtocolController from "./game_protocol_controller"
+application.register("game-protocol", GameProtocolController)
+console.log("🔧 Game Protocol Controller manually registered")
+
 // Set the consumer on the Stimulus application object first
 application.consumer = consumer
 

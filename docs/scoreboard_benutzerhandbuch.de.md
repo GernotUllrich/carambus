@@ -23,7 +23,7 @@ Das Carambus Scoreboard ist ein vollständiges Anzeigesystem für Billardspiele,
 4. [Spielablauf](#spielablauf)
 5. [Anzeige-Modi](#anzeige-modi)
 6. [Anhang A: Training-Spiele einrichten](#anhang-a-training-spiele-einrichten)
-7. [Anhang B: Undo/Edit-Funktion](#anhang-b-undoedit-funktion)
+7. [Anhang B: Spielprotokoll](#anhang-b-spielprotokoll)
 
 ---
 
@@ -238,9 +238,7 @@ Die Eingabeelemente sind in **horizontaler Reihenfolge** angeordnet:
 - **B-Taste**: Bewegt sich nach rechts durch die Buttons
 - **Down-Taste**: Aktiviert den fokussierten Button
 
-> ℹ️ **Hinweis:** Die Undo/Edit-Funktion ist komplex und wird häufig missverstanden. Eine vollständige Erklärung mit Beispielen finden Sie in [Anhang B](#anhang-b-undoedit-funktion).
->
-> 💡 **Geplante Verbesserung:** In einer zukünftigen Version wird die Undo-Funktion durch drei intuitivere Buttons ersetzt: **[◄ Cursor zurück] [Cursor vor ►] [✓ Fertig]**
+> ℹ️ **Hinweis:** Mit dem Spielprotokoll-Button können Sie alle Aufnahmen des Spiels einsehen und bearbeiten. Eine vollständige Erklärung finden Sie in [Anhang B](#anhang-b-spielprotokoll).
 
 #### Spielerwechsel
 
@@ -642,356 +640,229 @@ A: Ja, jeder Tisch kann ein eigenes Spiel haben. Starten Sie einfach für jeden 
 | **Alle** | F11 | Fullscreen |
 | **Alle** | F12 | Exit (Kiosk) |
 
-### Undo/Edit-Funktionen (Aufnahmenliste bearbeiten)
+### Spielprotokoll (Aufnahmen bearbeiten)
 
 | Button | Funktion | Beschreibung |
 |--------|----------|--------------|
-| **Undo** | Cursor ← | Cursor eine Aufnahme zurück bewegen (Punkte bleiben unverändert) |
-| **Nächster** | Cursor → | Cursor eine Aufnahme vorwärts bewegen (bei letzter Position: Spielerwechsel) |
-| **+1, +5, +10** | Punkte + | Punkte an aktueller Cursor-Position erhöhen |
-| **-1, -5, -10** | Punkte - | Punkte an aktueller Cursor-Position reduzieren |
+| **Protokoll** | Modal öffnen | Zeigt alle Aufnahmen beider Spieler in tabellarischer Form |
+| **Bearbeiten** | Edit-Modus | Aktiviert die Bearbeitung der Aufnahmen |
+| **+/−** | Punkte ändern | Erhöht oder reduziert Punkte einer Aufnahme |
+| **✗** | Zeile löschen | Löscht eine Aufnahme (nur wenn beide Spieler 0 Punkte haben) |
+| **+** | Aufnahme einfügen | Fügt eine neue Aufnahme vor der aktuellen Zeile ein |
 
-**Wichtig:** Nach Bearbeitung mit Undo immer mit "Nächster" zur aktuellen Aufnahme zurückkehren!
+**Siehe auch:** [Anhang B: Spielprotokoll](#anhang-b-spielprotokoll) für eine detaillierte Anleitung.
 
 ---
 
-## Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)
+## Anhang B: Spielprotokoll
 
-⚠️ **Häufig missverstanden:** Die "Undo"-Taste ist **keine** einfache Rückgängig-Funktion, sondern ein mächtiges **Bearbeitungswerkzeug** für die Aufnahmenliste!
+Das **Spielprotokoll-Modal** bietet eine intuitive und übersichtliche Möglichkeit, alle Aufnahmen des Spiels einzusehen und zu bearbeiten.
 
-**Ausnahme:** Bei Pool-Billard funktioniert Undo tatsächlich als echte Rückgängig-Funktion.
+### Spielprotokoll öffnen
 
-### Wie die Aufnahmenliste funktioniert
+1. Klicken Sie auf den **[Protokoll]** Button im Scoreboard (ersetzt den alten "Undo" Button)
+2. Das Modal öffnet sich und zeigt eine vollständige Tabelle aller Aufnahmen
 
-Unter den Hauptpunkteständen beider Spieler sehen Sie die **Aufnahmenliste**:
+### Aufbau des Protokolls
+
+Das Modal zeigt eine Tabelle mit allen Aufnahmen:
 
 ```
-Spieler A                    Spieler B
-   45                           38
-┌─────────────┐            ┌─────────────┐
-│ [5][8][12][│20│]         │ [6][7][10][│15│] │  ← Aufnahmen
-└─────────────┘            └─────────────┘
-   ▲                          ▲
-   Erste                      Aktuell editierbar
-   Aufnahme                   (umrandet = Cursor)
+┌─────────────────── Spielprotokoll ─────────────────────┐
+│                                                          │
+│  Max Mustermann vs. Hans Test                          │
+│  Freie Partie klein • Ziel: 80 Punkte                  │
+│                                                          │
+│  # │  Spieler A  │      Spieler B                       │
+│    │ Punkte Total│ Punkte  Total                        │
+│ ───┼─────────────┼──────────────                        │
+│  1 │   5      5  │   6       6                          │
+│  2 │   8     13  │   7      13                          │
+│  3 │  12     25  │  10      23                          │
+│  4 │  20     45  │  15      38  ◄──                     │
+│                                                          │
+│  [Bearbeiten] [Fertig] [Drucken]                       │
+└──────────────────────────────────────────────────────────┘
 ```
 
-- **Erste Aufnahme** steht links
-- **Aktuelle Aufnahme** ist rechts und durch einen Rahmen markiert (Cursor)
-- Jede Zahl zeigt die Punkte in dieser Aufnahme
+**Elemente:**
 
-### Cursor-Navigation
+- **Aufnahmen-Nummer** (#) - links
+- **Spieler A** (blauer Hintergrund) - Punkte und laufende Summe (Total)
+- **Spieler B** (grüner Hintergrund) - Punkte und laufende Summe
+- **Pfeil** (◄──) - markiert die aktuelle Aufnahme
+- **Vertikale Trennlinie** - trennt die beiden Spieler-Bereiche klar
 
-**Mit Undo (Cursor nach links):**
+### Ansicht-Modus (Standard)
 
-1. Drücken Sie **Undo**
-2. Der Cursor springt zur **vorherigen Aufnahme** des aktuellen Spielers
-3. Die Punktzahlen bleiben **unverändert**
+Im Ansicht-Modus sehen Sie alle Aufnahmen **read-only** (nicht editierbar):
 
-**Mit Nächster/Wechsel (Cursor nach rechts):**
+**Verfügbare Aktionen:**
 
-1. Drücken Sie **Nächster**
-2. Der Cursor springt zur **nächsten Aufnahme** (abwechselnd A/B)
-3. Wenn Sie bei der letzten Aufnahme sind, wird ein Spielerwechsel ausgeführt
+| Button | Funktion |
+|--------|----------|
+| **[Bearbeiten]** | Wechselt in den Edit-Modus |
+| **[Fertig]** | Schließt das Modal und kehrt zum Spiel zurück |
+| **[Drucken]** | Öffnet Druckvorschau für das Spielprotokoll |
 
-### Punkte bearbeiten
+### Bearbeiten-Modus
 
-Wenn der Cursor auf einer Aufnahme steht:
+Klicken Sie auf **[Bearbeiten]**, um Aufnahmen zu korrigieren:
 
-1. Verwenden Sie **-1, -5, -10** um Punkte zu reduzieren
-2. Verwenden Sie **+1, +5, +10** um Punkte zu erhöhen
-3. Die Gesamtpunktzahl wird **automatisch neu berechnet**
+```
+┌─────────────────── Spielprotokoll (Bearbeiten) ────────────┐
+│                                                              │
+│  # │  Spieler A           │  Spieler B                      │
+│    │ Punkte       Total   │ Punkte       Total              │
+│ ───┼──────────────────────┼─────────────────────────────    │
+│  1 │ [−] 5  [+]      5    │ [−] 6  [+]      6       [✗]     │
+│ [+]│                                                         │
+│  2 │ [−] 8  [+]     13    │ [−] 7  [+]     13       [✗]     │
+│ [+]│                                                         │
+│  3 │ [−] 12 [+]     25    │ [−] 10 [+]     23       [✗]     │
+│                                                              │
+│  [Speichern] [Abbrechen]                                    │
+└──────────────────────────────────────────────────────────────┘
+```
 
-### Schritt-für-Schritt Beispiel 1: Fehler in vorheriger Aufnahme korrigieren
+**Elemente im Edit-Modus:**
 
-**Situation:**
-- Spieler A hat gerade 8 Punkte gemacht
-- Sie bemerken, dass in der Aufnahme davor 12 statt 10 Punkte eingetragen wurden
+| Element | Funktion | Beschreibung |
+|---------|----------|--------------|
+| **[+]** | Punkte erhöhen | Erhöht die Punkte dieser Aufnahme um 1 |
+| **[−]** | Punkte reduzieren | Reduziert die Punkte dieser Aufnahme um 1 (min. 0) |
+| **[+]** (klein) | Aufnahme einfügen | Fügt eine neue Aufnahme **vor** dieser Zeile ein |
+| **[✗]** | Zeile löschen | Löscht die Aufnahme (nur wenn **beide** Spieler 0 Punkte haben) |
+| **Total** | Laufende Summe | Wird automatisch neu berechnet |
+
+**Wichtige Regeln:**
+
+- ✅ **Negative Werte** sind **nicht** erlaubt
+- ✅ **Totals** werden automatisch aktualisiert
+- ✅ **Löschen** nur bei 0:0 möglich (Extremfall!)
+- ⚠️ **Warnung:** Beim Abbrechen gehen ungespeicherte Änderungen verloren
+
+### Schritt-für-Schritt Beispiel 1: Punkte korrigieren
+
+**Situation:**  
+Spieler A hat in Aufnahme 2 versehentlich 8 statt 6 Punkte bekommen.
 
 **Lösung:**
 
-```
-Ausgangssituation:
-Spieler A: [5][10][│8│]  (Cursor auf aktueller Aufnahme)
-Gesamtpunktzahl: 23
+1. **[Protokoll]** Button klicken
+2. **[Bearbeiten]** klicken
+3. Bei Aufnahme 2, Spieler A: **[−]** Button zweimal drücken (8 → 7 → 6)
+4. Total wird automatisch neu berechnet: 13 → 11 ✓
+5. **[Speichern]** klicken
+6. Modal schließt sich, Scoreboard zeigt korrigierte Werte
 
-Schritt 1: Undo drücken
-Spieler A: [5][│10│][8]  (Cursor auf vorheriger Aufnahme)
+### Schritt-für-Schritt Beispiel 2: Vergessener Spielerwechsel
 
-Schritt 2: Zweimal "-1" drücken
-Spieler A: [5][│8│][8]   (10 → 8)
-Gesamtpunktzahl: 21 ✓    (automatisch korrigiert)
-
-Schritt 3: "Nächster" drücken
-Spieler A: [5][8][│8│]   (Cursor zurück zur aktuellen Aufnahme)
-```
-
-**Wichtig:** Nach der Bearbeitung **MUSS** man mit "Nächster" zurück zur aktuellen Aufnahme navigieren!
-
-### Schritt-für-Schritt Beispiel 2: Mehrere Aufnahmen zurück
-
-**Situation:**
-- Spieler A: [6][8][10][│12│]
-- Sie wollen die zweite Aufnahme (8) auf 7 korrigieren
+**Situation:**  
+Nach Aufnahme 2 wurde vergessen zu wechseln. Spieler A hat direkt weiter gespielt.  
+Jetzt müssen Sie nachträglich eine leere Aufnahme für Spieler B einfügen.
 
 **Lösung:**
 
+1. **[Protokoll]** Button klicken
+2. **[Bearbeiten]** klicken
+3. Klicken Sie auf das kleine **[+]** in der Aufnahmen-Nummer-Spalte bei Zeile 3
+4. Eine neue Zeile mit 0:0 wird **vor** Zeile 3 eingefügt
+5. Alle Aufnahmen werden automatisch neu nummeriert
+6. Passen Sie ggf. weitere Punkte an
+7. **[Speichern]** klicken
+
+**Vorher:**
 ```
-Ausgangssituation:
-Spieler A: [6][8][10][│12│]  (Cursor auf Position 4)
-Gesamtpunktzahl: 36
-
-Schritt 1: Undo drücken (1x)
-Spieler A: [6][8][│10│][12]  (Cursor auf Position 3)
-
-Schritt 2: Undo drücken (2x)
-Spieler A: [6][│8│][10][12]  (Cursor auf Position 2)
-
-Schritt 3: "-1" drücken
-Spieler A: [6][│7│][10][12]  (8 → 7)
-Gesamtpunktzahl: 35 ✓
-
-Schritt 4: "Nächster" drücken (1x)
-Spieler A: [6][7][│10│][12]  (Cursor auf Position 3)
-
-Schritt 5: "Nächster" drücken (2x)
-Spieler A: [6][7][10][│12│]  (Cursor zurück auf Position 4)
+ 1 │  5    5  │  6    6
+ 2 │  8   13  │  7   13
+ 3 │ 12   25  │ 10   23  ← Falsch: Spieler A hätte nicht spielen dürfen
 ```
 
-### Schritt-für-Schritt Beispiel 3: Beide Spieler bearbeiten
+**Nachher:**
+```
+ 1 │  5    5  │  6    6
+ 2 │  8   13  │  7   13
+ 3 │  0   13  │  0   13  ← Neu eingefügt: Leerer Wechsel
+ 4 │ 12   25  │ 10   23  ← Jetzt korrekt
+```
 
-**Situation:**
-- Spieler A hat gerade gespielt: [5][│8│]
-- Spieler B soll jetzt spielen: [6][│--│]
-- Sie müssen Spieler A's erste Aufnahme von 5 auf 6 korrigieren
+### Schritt-für-Schritt Beispiel 3: Zeile löschen
+
+**Situation:**  
+Eine Aufnahme mit 0:0 wurde versehentlich eingegeben und soll entfernt werden.
 
 **Lösung:**
 
-```
-Ausgangssituation:
-Spieler A: [5][│8│]  (Cursor hier)
-Spieler B: [6][--]
+1. **[Protokoll]** öffnen
+2. **[Bearbeiten]** klicken
+3. Stellen Sie sicher, dass **beide** Werte auf 0 stehen
+4. Der **[✗]** Button ist rot und aktiv
+5. Klicken Sie auf **[✗]**
+6. Bestätigen Sie die Sicherheitsabfrage
+7. Zeile wird gelöscht, alle Aufnahmen werden neu nummeriert
+8. **[Speichern]** klicken
 
-Schritt 1: Undo drücken
-Spieler A: [│5│][8]  (Cursor auf Position 1)
+⚠️ **Wichtig:** Löschen funktioniert **nur** bei 0:0! Der Button ist sonst grau und deaktiviert.
 
-Schritt 2: "+1" drücken
-Spieler A: [│6│][8]  (5 → 6)
+### Druckfunktion
 
-Schritt 3: "Nächster" drücken (1x)
-Spieler A: [6][│8│]  (zurück zu Position 2)
+Klicken Sie auf **[Drucken]**, um das Spielprotokoll auszudrucken oder als PDF zu speichern:
 
-Schritt 4: "Nächster" drücken (2x) - führt Spielerwechsel aus
-Spieler A: [6][8]
-Spieler B: [6][│--│]  ✓ (bereit für neue Aufnahme)
-```
+**Drucklayout enthält:**
 
-### Wichtige Hinweise
+- Spieler-Namen
+- Disziplin und Zielpunktzahl
+- Vollständige Aufnahmen-Tabelle
+- Endergebnis
+- Datum und Uhrzeit
 
-**✅ DO:**
-- Cursor bewusst navigieren
-- Nach Bearbeitung **immer** zurück zur aktuellen Aufnahme
-- Änderungen visuell überprüfen (Gesamtpunktzahl)
+**Tipps:**
 
-**❌ DON'T:**
-- Cursor irgendwo "stehen lassen"
-- Ohne Navigation direkt weiterspielen
-- Blindlings "Undo" mehrfach drücken
+- Im Druckdialog: "Als PDF speichern" für Archivierung
+- Ideal für Turnier-Dokumentation
+- Kann nachträglich zur Kontrolle verwendet werden
 
-### Häufige Fehler
+### Vorteile des Spielprotokoll-Modals
 
-**Fehler 1: "Ich habe Undo gedrückt, aber nichts passiert"**
+✅ **Übersichtlich**  
+- Alle Aufnahmen auf einen Blick
+- Klare visuelle Trennung der Spieler (blau/grün)
+- Keine versteckte Navigation nötig
 
-→ Sie haben die Punkte nicht geändert! Undo **verschiebt nur den Cursor**, die Punkte bleiben gleich.
+✅ **Intuitiv**  
+- Tabellenformat ist selbsterklärend
+- Klarer Edit-Modus mit Ein/Aus
+- Buttons (+/−/✗) sind eindeutig
 
-**Lösung:** Nach Undo die Punkte mit +/- Tasten anpassen.
+✅ **Sicher**  
+- Versehentliche Änderungen ausgeschlossen (im Ansicht-Modus)
+- Warnung beim Abbrechen mit ungespeicherten Änderungen
+- Löschen nur bei 0:0 erlaubt
 
-**Fehler 2: "Nach Undo zeigt die Punktzahl falsche Werte"**
+✅ **Mächtig**  
+- Aufnahmen einfügen für vergessene Wechsel
+- Mehrere Korrekturen gleichzeitig möglich
+- Totals werden automatisch berechnet
 
-→ Der Cursor steht noch auf einer alten Aufnahme, nicht auf der aktuellen.
-
-**Lösung:** Mit "Nächster" zurück zur aktuellen Aufnahme navigieren.
-
-**Fehler 3: "Ich komme nicht mehr zurück"**
-
-→ Sie haben den Überblick verloren, wo der Cursor steht.
-
-**Lösung:** 
-1. Schauen Sie auf die Aufnahmenliste - die umrandete Zahl zeigt den Cursor
-2. Drücken Sie "Nächster" bis Sie wieder bei der letzten Aufnahme sind
-3. Im Notfall: F5 drücken (Seite neu laden)
-
-### Wann verwenden?
-
-**Typische Anwendungsfälle:**
-
-✅ **Tippfehler korrigieren**
-- Sie haben versehentlich 8 statt 6 eingegeben
-
-✅ **Nachträglich Punkte ändern**
-- Schiedsrichterentscheidung korrigiert eine frühere Aufnahme
-
-✅ **Diskussionen klären**
-- Spieler sind sich uneinig über eine frühere Aufnahme
-- Sie können zurückgehen und korrigieren
-
-**Nicht verwenden für:**
-
-❌ **Aktuelle Aufnahme ändern**
-- Verwenden Sie stattdessen einfach +/- Buttons
-
-❌ **Spieler wechseln**
-- Verwenden Sie den "Nächster" Button
+✅ **Professionell**  
+- Druckfunktion für Turniere
+- Vollständige Dokumentation des Spielverlaufs
+- PDF-Export für Archivierung
 
 ### Zusammenfassung
 
-| Taste | Funktion | Wirkung auf Cursor | Wirkung auf Punkte |
-|-------|----------|-------------------|-------------------|
-| **Undo** | Cursor zurück | ← Eine Position zurück | Keine |
-| **Nächster** | Cursor vor / Spielerwechsel | → Eine Position vor | Keine |
-| **+1, +5, +10** | Punkte hinzufügen | Keine | Erhöht Wert an Cursor-Position |
-| **-1, -5, -10** | Punkte abziehen | Keine | Reduziert Wert an Cursor-Position |
+| Aktion | Wie | Wann |
+|--------|-----|------|
+| **Ansehen** | [Protokoll] → Modal zeigt alle Aufnahmen | Jederzeit möglich |
+| **Bearbeiten** | [Bearbeiten] → +/− Buttons nutzen | Bei Fehlern korrigieren |
+| **Einfügen** | [+] Button bei Aufnahmen-Nummer | Vergessener Spielerwechsel |
+| **Löschen** | [✗] Button (nur bei 0:0) | Versehentliche leere Aufnahme |
+| **Drucken** | [Drucken] → PDF speichern | Turnier-Dokumentation |
+| **Schließen** | [Fertig] oder [Abbrechen] oder [X] | Zurück zum Spiel |
 
-**Merksatz:** 
-> Undo = Cursor bewegen, +/- = Punkte ändern, Nächster = zurück zur aktuellen Aufnahme
-
-### 💡 Vorschlag für zukünftige Verbesserung
-
-#### Lösung 1: Spielprotokoll-Modal (EMPFOHLEN)
-
-Die aktuelle Undo/Edit-Funktion ist komplex und fehleranfällig. Eine viel bessere Lösung wäre ein **Spielprotokoll-Modal**:
-
-**Konzept:**
-
-Button "Undo" wird ersetzt durch **[📋 Spielprotokoll]**
-
-Beim Klick öffnet sich ein Modal mit vollständiger Übersicht:
-
-```
-┌─────────────────── Spielprotokoll ───────────────────┐
-│                                                       │
-│  Spieler A: Max Mustermann    Spieler B: Hans Test  │
-│                                                       │
-│  Aufn. │ Punkte │ Total     Aufn. │ Punkte │ Total  │
-│  ──────┼────────┼─────     ──────┼────────┼───── │
-│    1   │   5    │   5         1   │   6    │   6    │
-│    2   │   8    │  13         2   │   7    │  13    │
-│    3   │  12    │  25         3   │  10    │  23    │
-│    4   │  20    │  45         4   │  15    │  38    │
-│                                                       │
-│  [Bearbeiten] [Fertig] [Drucken]                    │
-└───────────────────────────────────────────────────────┘
-```
-
-**Im Bearbeiten-Modus:**
-
-```
-┌─────────────────── Spielprotokoll (Bearbeiten) ──────┐
-│                                                       │
-│  Aufn. │ Punkte      │ Total     Aufn. │ Punkte │... │
-│  ──────┼─────────────┼─────     ──────┼────────┼──  │
-│    1   │  5 [↑][↓]  │   5         1   │   6 [↑][↓] │
-│    2   │  8 [↑][↓]  │  13         2   │   7 [↑][↓] │
-│    3   │ 12 [↑][↓]  │  25         3   │  10 [↑][↓] │
-│        │  [+ Aufnahme einfügen]                       │
-│                                                       │
-│  [Speichern] [Abbrechen]                             │
-└───────────────────────────────────────────────────────┘
-```
-
-**Vorteile:**
-
-✅ **Übersichtlich**
-- ALLE Aufnahmen auf einen Blick sichtbar
-- Keine versteckte Cursor-Navigation
-- Gesamtverlauf sofort erkennbar
-
-✅ **Intuitiv**
-- Tabellenformat kennt jeder
-- Klarer Edit-Modus mit Ein/Aus
-- Pfeile ↑↓ sind selbsterklärend
-
-✅ **Sicher**
-- Versehentliche Änderungen ausgeschlossen (readonly im Ansicht-Modus)
-- Klare Trennung: Ansehen vs. Bearbeiten
-- "Fertig" beendet eindeutig und kehrt zum Spiel zurück
-
-✅ **Mächtig**
-- **Zeilen einfügen** für vergessene Spielerwechsel!
-- Komplexe Korrekturen möglich
-- Mehrere Fehler gleichzeitig korrigieren
-
-✅ **Professionell**
-- **Druckfunktion** für Spielprotokoll
-- Dokumentation des Spielverlaufs
-- Archivierung für Turniere
-
-**Funktionen:**
-
-1. **Ansicht-Modus (Standard)**
-   - Readonly-Tabelle
-   - Scrollbar bei vielen Aufnahmen
-   - Aktuelle Aufnahme hervorgehoben
-   - Buttons: [Bearbeiten] [Fertig] [Drucken]
-
-2. **Bearbeiten-Modus**
-   - Alle Punkte mit [↑] [↓] Buttons
-   - Totals werden automatisch neu berechnet
-   - [+ Aufnahme einfügen] zwischen Zeilen
-   - Buttons: [Speichern] [Abbrechen]
-
-3. **Drucken**
-   - Druckoptimiertes Layout
-   - Datum, Spieler, Endergebnis
-   - Optional: PDF-Export
-
-**Anwendungsfall: Vergessener Spielerwechsel**
-
-Problem: Nach Aufnahme 3 von Spieler A wurde vergessen zu wechseln, er hat direkt Aufnahme 4 gespielt.
-
-Lösung:
-1. [📋 Spielprotokoll] öffnen
-2. [Bearbeiten] klicken
-3. Zwischen Zeile 3 und 4 von Spieler A: [+ Aufnahme einfügen]
-4. Neue Leerzeile wird eingefügt
-5. Punkte von Aufnahme 4 in die neue Zeile verschieben
-6. [Speichern]
-
-Dies wäre eine vollständige Neuentwicklung, aber **deutlich benutzerfreundlicher** als die aktuelle Lösung.
-
----
-
-#### Lösung 2: Drei separate Buttons (Alternative)
-
-Falls die Modal-Lösung zu aufwendig ist, wäre eine einfachere Verbesserung:
-
-Die aktuelle Button-Belegung ist verwirrend, weil:
-- "Undo" klingt wie "Rückgängig", ist aber "Cursor zurück"
-- "Nächster" hat zwei Bedeutungen: "Cursor vor" UND "Spielerwechsel"
-
-**Vereinfachte Lösung:**
-
-Drei separate, eindeutige Buttons:
-
-```
-[◄ Cursor zurück] [Cursor vor ►] [✓ Fertig]
-```
-
-**Vorteile:**
-- ✅ Jeder Button hat **genau eine** Funktion
-- ✅ Selbsterklärende Beschriftung
-- ✅ "✓ Fertig" macht klar: "Bearbeitung abschließen"
-- ✅ Benutzer können nicht mehr "steckenbleiben"
-
-**Nachteil gegenüber Spielprotokoll-Modal:**
-- ❌ Keine Gesamtübersicht
-- ❌ Immer noch versteckte Navigation
-- ❌ Keine Druckfunktion
-- ❌ Keine Möglichkeit Zeilen einzufügen
-
----
-
-**Empfehlung:** Lösung 1 (Spielprotokoll-Modal) ist deutlich besser und löst alle Probleme grundlegend.
+**Merksatz:**  
+> Protokoll = Übersicht • Bearbeiten = Korrigieren • Speichern nicht vergessen!
 
 ---
 

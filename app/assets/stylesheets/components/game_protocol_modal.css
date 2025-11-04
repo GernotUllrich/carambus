@@ -1,0 +1,267 @@
+/**
+ * Game Protocol Modal Styles
+ * 
+ * Custom styles for the game protocol modal that aren't covered by Tailwind.
+ * Includes dark mode and print-specific styles.
+ */
+
+/* Modal Animation */
+#game-protocol-modal:not(.hidden) {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content Animation */
+#game-protocol-modal .modal-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0.95) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Protocol Table Styling */
+.protocol-table tbody tr:hover:not(.bg-yellow-100) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark .protocol-table tbody tr:hover:not(.bg-yellow-900) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Ensure text is readable in dark mode */
+.protocol-table tbody td {
+  color: #1f2937; /* Dark gray for light mode */
+}
+
+.dark .protocol-table tbody td {
+  color: #e5e7eb; /* Light gray for dark mode */
+}
+
+.dark .protocol-table tbody .font-bold {
+  color: #f9fafb; /* Even lighter for bold text in dark mode */
+}
+
+/* Visual separation between Player A and Player B columns */
+.protocol-table td:nth-child(3) {
+  border-right: 3px solid #d1d5db; /* Light mode separator after Player A total */
+}
+
+.dark .protocol-table td:nth-child(3) {
+  border-right: 3px solid #4b5563; /* Dark mode separator after Player A total */
+}
+
+/* Current Inning Highlight */
+.protocol-table tr.bg-yellow-100 {
+  border-left: 4px solid #f59e0b;
+}
+
+.dark .protocol-table tr.bg-yellow-900 {
+  border-left: 4px solid #fbbf24;
+}
+
+/* Input Fields in Edit Mode */
+.protocol-table input[type="number"] {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.protocol-table input[type="number"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dark .protocol-table input[type="number"]:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Remove number input spinner arrows */
+.protocol-table input[type="number"]::-webkit-inner-spin-button,
+.protocol-table input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.protocol-table input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Buttons Hover Effects */
+.protocol-table button {
+  transition: all 0.15s ease;
+}
+
+.protocol-table button:active {
+  transform: scale(0.95);
+}
+
+/* Insert Row Button */
+.protocol-table button:has(+ button) {
+  margin-right: 0.25rem;
+}
+
+/* Scrollbar Styling */
+.protocol-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.protocol-table-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.protocol-table-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.protocol-table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark .protocol-table-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .protocol-table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark .protocol-table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Print Styles */
+@media print {
+  /* Hide everything except the modal */
+  body > *:not(#game-protocol-modal) {
+    display: none !important;
+  }
+  
+  /* Reset modal positioning for print */
+  #game-protocol-modal {
+    display: block !important;
+    position: static !important;
+    background: white !important;
+  }
+  
+  .modal-backdrop {
+    display: none !important;
+  }
+  
+  .modal-content {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Hide interactive elements */
+  .modal-actions,
+  .close-button,
+  .warning-banner,
+  button {
+    display: none !important;
+  }
+  
+  /* Ensure table is visible */
+  .protocol-table-container {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  
+  .protocol-table {
+    page-break-inside: avoid;
+    border-collapse: collapse;
+  }
+  
+  .protocol-table th,
+  .protocol-table td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  .protocol-table thead {
+    background: #f0f0f0 !important;
+  }
+  
+  /* Ensure current inning is visible in print */
+  .protocol-table tr.bg-yellow-100,
+  .protocol-table tr.bg-yellow-900 {
+    background: #ffffcc !important;
+    font-weight: bold !important;
+    border-left: 4px solid #000 !important;
+  }
+  
+  /* Print page setup */
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+  
+  /* Add title for print */
+  .modal-header h2 {
+    font-size: 24px !important;
+    text-align: center !important;
+    margin-bottom: 1em !important;
+    color: #000 !important;
+  }
+  
+  /* Show player info prominently */
+  .game-info {
+    background: white !important;
+    border: 1px solid #000 !important;
+    margin-bottom: 1em !important;
+    padding: 0.5em !important;
+  }
+  
+  .game-info * {
+    color: #000 !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95% !important;
+    max-height: 95vh !important;
+  }
+  
+  .protocol-table {
+    font-size: 0.875rem;
+  }
+  
+  .protocol-table th,
+  .protocol-table td {
+    padding: 0.5rem !important;
+  }
+  
+  .protocol-table input[type="number"] {
+    width: 3rem !important;
+  }
+  
+  .protocol-table button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
