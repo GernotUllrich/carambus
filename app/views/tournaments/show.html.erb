@@ -10,16 +10,13 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter -->
-  <% if tournament_director?(current_user) %>
+  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter, nur VOR Turnierbeginn -->
+  <% if tournament_director?(current_user) && !@tournament.tournament_seeding_finished? %>
     <%= render 'wizard_steps_v2', tournament: @tournament %>
   <% end %>
 
   <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->
   <%= render 'tournament_status', tournament: @tournament %>
-
-  <!-- Admin-Bereich: Geparste Einladung & Setzliste - Nur für Spielleiter -->
-  <%= render 'admin_tournament_info', tournament: @tournament %>
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
   
