@@ -21,12 +21,12 @@ class SeedingsController < ApplicationController
   def up
     @seeding.move_higher
     @seeding.reload
-    redirect_back_or_to(tournament_path(@seeding.tournament))
+    redirect_back_or_to(define_participants_tournament_path(@seeding.tournament))
   end
 
   def down
     @seeding.move_lower
-    redirect_back_or_to(tournament_path(@seeding.tournament))
+    redirect_back_or_to(define_participants_tournament_path(@seeding.tournament))
   end
 
   # GET /seedings/1

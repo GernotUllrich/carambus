@@ -141,20 +141,24 @@
               <td class="text-center">
                 <div class="flex flex-col gap-1">
                   <% if prev_seeding.present? %>
-                    <%= button_to '↑', up_seeding_path(seeding), 
-                        method: :post,
-                        class: 'btn btn-xs btn-outline-secondary',
-                        title: 'Nach oben',
-                        data: { turbo: false } %>
+                    <button class="btn btn-xs btn-outline-secondary" 
+                            title="Nach oben"
+                            data-reflex="click->TournamentReflex#move_up"
+                            data-tournament-id="<%= @tournament.id %>"
+                            data-seeding-id="<%= seeding.id %>">
+                      ↑
+                    </button>
                   <% else %>
                     <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits oben">↑</span>
                   <% end %>
                   <% if next_seeding.present? %>
-                    <%= button_to '↓', down_seeding_path(seeding), 
-                        method: :post,
-                        class: 'btn btn-xs btn-outline-secondary',
-                        title: 'Nach unten',
-                        data: { turbo: false } %>
+                    <button class="btn btn-xs btn-outline-secondary" 
+                            title="Nach unten"
+                            data-reflex="click->TournamentReflex#move_down"
+                            data-tournament-id="<%= @tournament.id %>"
+                            data-seeding-id="<%= seeding.id %>">
+                      ↓
+                    </button>
                   <% else %>
                     <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits unten">↓</span>
                   <% end %>

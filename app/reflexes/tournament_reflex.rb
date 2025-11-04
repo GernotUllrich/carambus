@@ -151,6 +151,26 @@ class TournamentReflex < ApplicationReflex
     # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
     morph :page
   end
+  
+  def move_up
+    tournament = Tournament.find(element.dataset["tournament-id"])
+    seeding = Seeding.find(element.dataset["seeding-id"])
+    seeding.move_higher
+    seeding.reload
+    
+    # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
+    morph :page
+  end
+  
+  def move_down
+    tournament = Tournament.find(element.dataset["tournament-id"])
+    seeding = Seeding.find(element.dataset["seeding-id"])
+    seeding.move_lower
+    seeding.reload
+    
+    # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
+    morph :page
+  end
 
   def change_point_goal
     morph :nothing
