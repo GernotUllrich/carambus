@@ -102,9 +102,11 @@
                 class: 'btn btn-secondary btn-sm' %>
           <% end %>
           
-          <%= link_to '✏️ Teilnehmer bearbeiten', 
-              define_participants_tournament_path(@tournament),
-              class: 'btn btn-secondary btn-sm' %>
+          <% unless @tournament.seeding_finished? %>
+            <%= link_to '✏️ Teilnehmer bearbeiten', 
+                define_participants_tournament_path(@tournament),
+                class: 'btn btn-secondary btn-sm' %>
+          <% end %>
         </div>
       </div>
     </div>
