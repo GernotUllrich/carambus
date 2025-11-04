@@ -112,9 +112,9 @@
               <td class="text-center">
                 <% if rank.present? %>
                   <%= link_to rank, 
-                      ranking_path(@tournament.discipline.player_ranking) + "#discipline-#{@tournament.discipline_id}",
+                      ranking_path(player_ranking.region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 hover:text-blue-800 underline',
-                      title: "Rang #{rank} in #{@tournament.discipline.name}",
+                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_ranking.region.shortname})",
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400">-</span>
@@ -151,9 +151,9 @@
               <td class="text-center">
                 <% if rank.present? %>
                   <%= link_to rank, 
-                      ranking_path(@tournament.discipline.player_ranking) + "#discipline-#{@tournament.discipline_id}",
+                      ranking_path(player_ranking.region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 hover:text-blue-800 underline text-sm',
-                      title: "Rang #{rank} in #{@tournament.discipline.name}",
+                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_ranking.region.shortname})",
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400 text-sm">-</span>
