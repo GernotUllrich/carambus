@@ -443,17 +443,13 @@ class TournamentsController < ApplicationController
                                                              discipline_id: @tournament.discipline_id
                                                            }).limit(3).to_a.uniq
     
-    # Weitere alternative Pläne (andere Disziplinen, OHNE Default-Pläne)
+    # Weitere alternative Pläne (andere Disziplinen, OHNE Default- und KO-Pläne)
     @alternatives_other_disciplines = ::TournamentPlan
                                       .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) })
                                       .where(players: @participant_count)
                                       .where.not("name LIKE 'Default%'")  # Keine Default-Pläne
+                                      .where.not("name LIKE 'KO%'")       # Keine KO-Pläne
                                       .to_a.uniq
-    
-    # KO-Plan hinzufügen falls nicht bereits vorhanden (aber KEIN Default-Plan)
-    @ko_plan = TournamentPlan.ko_plan(@participant_count)
-    @alternatives_other_disciplines |= [@ko_plan].compact
-    @alternatives_other_disciplines.uniq!
     
     # Entferne bereits vorhandene Pläne
     @alternatives_other_disciplines -= [@proposed_discipline_tournament_plan] + @alternatives_same_discipline
