@@ -24,7 +24,7 @@
 <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
 <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
 <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen %>
-<div class="fullscreen flex flex-col h-full  rounded shadow">
+<div class="fullscreen flex flex-col h-full  rounded shadow" data-controller="game-protocol" data-game-protocol-table-monitor-id-value="<%= table_monitor.id %>">
   <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- vw2 = fullscreen ? "2vw" : "1vw" %>
@@ -99,7 +99,7 @@
               </div>
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
-                <%- innings_str = table_monitor.render_last_innings(60, gps.andand[0].andand.role) %>
+                <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(0)&.role) %>
                 <div class="flex w-full overflow-hidden items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-nowrap">
                   <%= innings_str %>
                 </div>
@@ -107,7 +107,7 @@
             <%- end %>
           <%- end %>
         <%- else %>
-          <%= table_monitor.render_innings_list(gps.andand[0].andand.role) %>
+          <%= table_monitor.render_innings_list(gps&.dig(0)&.role) %>
         <%- end %>
       <%- end %>
     </div>
@@ -257,7 +257,7 @@
               </div>
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
-                <%- innings_str = table_monitor.render_last_innings(60, gps.andand[1].andand.role) %>
+                <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(1)&.role) %>
                 <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-nowrap">
                   <%= innings_str %>
                 </div>
@@ -265,7 +265,7 @@
             <%- end %>
           <%- end %>
         <% else %>
-          <%= table_monitor.render_innings_list(gps.andand[1].andand.role) %>
+          <%= table_monitor.render_innings_list(gps&.dig(1)&.role) %>
         <% end %>
       <% end %>
     </div>
@@ -291,9 +291,9 @@
     </div>
     <div class="controls dark:bg-black overflow-hidden hide-on-display-only h-1/6 grid grid-cols-9 gap-1">
       <%- if table_monitor.playing? %>
-        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Undo", style: "letter-spacing: -5px;", data: { controller: "tabmon", action: "click->tabmon#undo", id: table_monitor.id }, id: "undo", tabindex: 2 do %>
-          <%= render_svg "undo-red-400", styles: "responsive-svg fill-current icon-2xl inline-block" %>
-          <div class="flex text-red-400 text-<%= vw2 %>">undo</div>
+        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", style: "letter-spacing: -2px;", data: { action: "click->game-protocol#open" }, id: "game-protocol-button", tabindex: 2 do %>
+          <%= render_svg "icons/clipboard", styles: "responsive-svg fill-current icon-2xl inline-block" %>
+          <div class="flex text-blue-600 dark:text-blue-400 text-<%= vw2 %>">Protokoll</div>
         <%- end %>
         <%- if options[:player_a].andand[:discipline] == "4 Ball" %>
           <div class="flex flex-1 justify-center">
@@ -358,4 +358,7 @@
       <%- end %>
   <%- end %>
   </div>
+  
+  <%# Game Protocol Modal %>
+  <%= render partial: 'table_monitors/game_protocol_modal', locals: { table_monitor: table_monitor } %>
 </div>

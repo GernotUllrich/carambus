@@ -15,35 +15,15 @@ import "@stimulus_reflex/polyfills"
 import StimulusReflex from 'stimulus_reflex'
 import consumer from '../channels/consumer'
 
-import FilterPopupController from "./filter_popup_controller"
-application.register("filter-popup", FilterPopupController)
-
-import ClipboardController from "./clipboard_controller"
-application.register("clipboard", ClipboardController)
-
-import PagyUrlController from "./pagy_url_controller"
-application.register("pagy-url", PagyUrlController)
-
-import SidebarController from "./sidebar_controller"
-application.register("sidebar", SidebarController)
-console.log("🔧 Sidebar Controller manually registered")
-
-import AiSearchController from "./ai_search_controller"
-application.register("ai-search", AiSearchController)
-console.log("🔧 AI Search Controller manually registered")
+// Note: Most controllers are auto-registered by the eager loader above (lines 3-7)
+// Only register manually if there's a specific reason (e.g., non-standard naming)
 
 // Set the consumer on the Stimulus application object first
 application.consumer = consumer
 
-console.log("🔌 Setting up StimulusReflex with consumer:", consumer)
-console.log("🔌 Application consumer:", application.consumer)
-console.log("🔌 StimulusReflex available:", typeof StimulusReflex)
-
+// Initialize StimulusReflex
 StimulusReflex.initialize(application, { 
   controller, 
   consumer: consumer,
-  debug: true 
+  debug: false  // Set to true only for debugging
 })
-
-console.log("✅ StimulusReflex initialized")
-console.log("✅ StimulusReflex consumer:", StimulusReflex.consumer)

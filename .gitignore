@@ -122,3 +122,6 @@ docker-production-data/
 # Database dumps
 *.sql.gz
 *.sql
+
+# MkDocs build output
+/site/

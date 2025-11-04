@@ -421,6 +421,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "---------------m6[#{id}]------>>> #{"render_innings_list(#{role})"} <<<\
 ------------------------------------------"
     end
+    
+    # Return empty string if role is nil or not valid
+    return "".html_safe if role.nil? || !data.key?(role)
+    
     innings = data["playera"]["innings"].to_i
     cols = [(innings / 15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
@@ -489,6 +493,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"render_last_innings(#{last_n}, #{role})"} <<<\
 ------------------------------------------"
     end
+    
+    # Return empty string if role is nil or not valid
+    return "".html_safe if role.nil? || !data.key?(role)
+    
     player_ix = role == "playera" ? 1 : 2
     show_innings = Array(data[role].andand["innings_list"])
     show_innings_fouls = Array(data[role].andand["innings_foul_list"])
@@ -501,10 +509,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
     ret = []
     show_innings.each_with_index do |i, ix|
-      ret << ((show_innings_fouls[ix]).zero? ? i.to_s : "#{i},F#{show_innings_fouls[ix]}")
+      foul = show_innings_fouls[ix].to_i
+      ret << (foul.zero? ? "<span class=\"inline-block px-1\">#{i}</span>" : "<span class=\"inline-block px-1\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1\">#{i}</strong>" : i.to_s).to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1 inline-block mx-1\">#{i}</strong>" : "<span class=\"inline-block px-1\">#{i}</span>").to_s
     end
     if ret.length > last_n
       "#{prefix}...#{ret[-last_n..].join(", ")}".html_safe
@@ -512,9 +521,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       (prefix.to_s + ret.join(", ")).html_safe
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}" if debug
+    Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
+    Rails.logger.error "Backtrace: #{e.backtrace&.first(10)&.join("\n")}"
+    Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand['innings_list'].inspect}, innings_redo_list=#{data[role].andand['innings_redo_list'].inspect}"
     Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError unless Rails.env == "production"
+    raise StandardError, "render_last_innings failed: #{e.message}" unless Rails.env == "production"
   end
 
   def warmup_modal_should_be_open?
@@ -2157,5 +2168,124 @@ data[\"allow_overflow\"].present?")
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
+  end
+
+  # Game Protocol Modal - Get innings history for both players
+  def innings_history
+    Rails.logger.info "-----------m6[#{id}]---------->>> innings_history <<<------------------------------------------" if DEBUG
+    
+    gps = game&.game_participations&.order(:role).to_a
+    
+    {
+      player_a: {
+        name: gps[0]&.player&.fullname || "Spieler A",
+        shortname: gps[0]&.player&.shortname || "Spieler A",
+        innings: data.dig('playera', 'innings_list') || [],
+        totals: calculate_running_totals('playera'),
+        result: data.dig('playera', 'result').to_i,
+        innings_count: data.dig('playera', 'innings').to_i
+      },
+      player_b: {
+        name: gps[1]&.player&.fullname || "Spieler B",
+        shortname: gps[1]&.player&.shortname || "Spieler B",
+        innings: data.dig('playerb', 'innings_list') || [],
+        totals: calculate_running_totals('playerb'),
+        result: data.dig('playerb', 'result').to_i,
+        innings_count: data.dig('playerb', 'innings').to_i
+      },
+      current_inning: {
+        number: [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max + 1,
+        active_player: data.dig('current_inning', 'active_player')
+      },
+      discipline: data.dig('playera', 'discipline'),
+      balls_goal: data.dig('playera', 'balls_goal').to_i
+    }
+  rescue StandardError => e
+    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    {
+      player_a: { name: 'Spieler A', innings: [], totals: [], result: 0, innings_count: 0 },
+      player_b: { name: 'Spieler B', innings: [], totals: [], result: 0, innings_count: 0 },
+      current_inning: { number: 1, active_player: 'playera' },
+      discipline: '',
+      balls_goal: 0
+    }
+  end
+
+  # Update innings history from game protocol modal
+  def update_innings_history(innings_params)
+    Rails.logger.info "-----------m6[#{id}]---------->>> update_innings_history <<<------------------------------------------" if DEBUG
+    
+    return { success: false, error: 'Not in playing state' } unless playing? || set_over?
+    
+    begin
+      new_playera_innings = innings_params['playera'] || []
+      new_playerb_innings = innings_params['playerb'] || []
+      
+      # Validate: no negative values allowed
+      if new_playera_innings.any? { |v| v.to_i < 0 } || new_playerb_innings.any? { |v| v.to_i < 0 }
+        return { success: false, error: 'Negative Punktzahlen sind nicht erlaubt' }
+      end
+      
+      # Update playera
+      innings_a = new_playera_innings.map(&:to_i)
+      data['playera']['innings_list'] = innings_a[0..-2] || []  # All except last
+      data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[-1]]  # Only last inning
+      data['playera']['innings'] = innings_a.length
+      data['playera']['result'] = innings_a.sum
+      data['playera']['hs'] = innings_a.max || 0
+      data['playera']['gd'] = if data['playera']['innings'].positive?
+                                format("%.3f", data['playera']['result'].to_f / data['playera']['innings'])
+                              else
+                                0.0
+                              end
+      
+      # Adjust foul lists to match innings count (fill with zeros if needed)
+      target_length_a = [innings_a.length - 1, 0].max
+      current_fouls_a = (data['playera']['innings_foul_list'] || [])[0...target_length_a]
+      data['playera']['innings_foul_list'] = current_fouls_a + Array.new([target_length_a - current_fouls_a.length, 0].max, 0)
+      data['playera']['innings_foul_redo_list'] = [0]
+      
+      # Update playerb
+      innings_b = new_playerb_innings.map(&:to_i)
+      data['playerb']['innings_list'] = innings_b[0..-2] || []  # All except last
+      data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[-1]]  # Only last inning
+      data['playerb']['innings'] = innings_b.length
+      data['playerb']['result'] = innings_b.sum
+      data['playerb']['hs'] = innings_b.max || 0
+      data['playerb']['gd'] = if data['playerb']['innings'].positive?
+                                format("%.3f", data['playerb']['result'].to_f / data['playerb']['innings'])
+                              else
+                                0.0
+                              end
+      
+      # Adjust foul lists to match innings count (fill with zeros if needed)
+      target_length_b = [innings_b.length - 1, 0].max
+      current_fouls_b = (data['playerb']['innings_foul_list'] || [])[0...target_length_b]
+      data['playerb']['innings_foul_list'] = current_fouls_b + Array.new([target_length_b - current_fouls_b.length, 0].max, 0)
+      data['playerb']['innings_foul_redo_list'] = [0]
+      
+      # Mark data as changed and save
+      data_will_change!
+      save!
+      
+      { success: true }
+    rescue StandardError => e
+      Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+      { success: false, error: e.message }
+    end
+  end
+
+  private
+
+  # Calculate running totals for a player's innings
+  def calculate_running_totals(player_id)
+    innings = data.dig(player_id, 'innings_list') || []
+    totals = []
+    sum = 0
+    innings.each do |points|
+      sum += points.to_i
+      totals << sum
+    end
+    totals
   end
 end

@@ -9,6 +9,7 @@ Welcome to the Carambus API documentation. This directory contains comprehensive
 
 ### System Setup & Configuration
 - **[Scoreboard Autostart Setup](scoreboard_autostart_setup.md)** - Complete guide for setting up scoreboard autostart functionality
+- **[Scoreboard User Guide](scoreboard_benutzerhandbuch.en.md)** - Complete user guide for operating the scoreboard 🆕
 - **[Mode Switcher](mode_switcher.md)** - Switch between LOCAL and API modes in single folder
 - **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Automated table reservation and heating control
 
@@ -47,7 +48,8 @@ Welcome to the Carambus API documentation. This directory contains comprehensive
 For new users, we recommend starting with:
 1. **[About](about.md)** - Understand the project
 2. **[Scoreboard Autostart Setup](scoreboard_autostart_setup.md)** - Set up the scoreboard system
-3. **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Learn about automated table management
+3. **[Scoreboard User Guide](scoreboard_benutzerhandbuch.en.md)** - Learn how to use the scoreboard 🆕
+4. **[Table Reservation and Heating Control](table_reservation_heating_control.md)** - Learn about automated table management
 
 For system administrators:
 1. **[Admin Settings Configuration](ADMIN_SETTINGS_CONFIGURATION.md)** - Configure system via web interface 🆕
