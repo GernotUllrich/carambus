@@ -31,6 +31,9 @@
         </table>
         <%= custom_link_to "Neues Team", new_team_tournament_path %>
       <%- else %>
+        <%- diff = Season.current_season&.name == "2021/2022" ? 2 : 1 %>
+        <%- ranking_season = Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff) %>
+        
         <div class="flex items-center justify-between mb-4">
           <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
             - <%= @tournament.organizer.shortname %>
@@ -44,6 +47,7 @@
             <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
             <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
             <li>🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken</li>
+            <li>📊 <strong>Ranking-Spalte:</strong> Zeigt Carambus-Ranking für <%= @tournament.discipline.name %> (Saison <%= ranking_season&.name %>), klickbar zur Rangliste</li>
             <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
           </ul>
         </div>
@@ -55,6 +59,7 @@
             <th class="w-20">Neue Pos.</th>
             <th class="w-24">Reihenfolge</th>
             <th>Name</th>
+            <th class="w-20 text-center">Ranking</th>
             <th class="w-32 text-center">Teilnehmer</th>
             <th class="w-32 text-right"><% if @tournament.handicap_tournier %>Vorgabe (Pkt)<% else %>Punktziel<% end %></th>
           </tr>
@@ -68,6 +73,8 @@
             <%- player = seeding.player %>
             <%- prev_seeding = index > 0 ? active_seedings[index - 1] : nil %>
             <%- next_seeding = index < active_seedings.length - 1 ? active_seedings[index + 1] : nil %>
+            <%- player_ranking = player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: ranking_season).first %>
+            <%- rank = player_ranking&.rank %>
             <tr data-seeding-id="<%= seeding.id %>" class="<%= seeding.state == 'no_show' ? 'opacity-50' : '' %>">
               <td class="text-center font-semibold"><%= seeding.position || (index + 1) %></td>
               <td class="text-center">
@@ -103,6 +110,17 @@
               </td>
               <td><%= player.fullname %></td>
               <td class="text-center">
+                <% if rank.present? %>
+                  <%= link_to rank, 
+                      ranking_path(@tournament.discipline.player_ranking) + "#discipline-#{@tournament.discipline_id}",
+                      class: 'text-blue-600 hover:text-blue-800 underline',
+                      title: "Rang #{rank} in #{@tournament.discipline.name}",
+                      target: '_blank' %>
+                <% else %>
+                  <span class="text-gray-400">-</span>
+                <% end %>
+              </td>
+              <td class="text-center">
                 <%= check_box_tag "participate-#{player.id}", "1", seeding.present? && seeding.state != 'no_show', 
                     data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
               </td>
@@ -123,11 +141,24 @@
           <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a.reject { |p| players_with_seedings.include?(p.id) } %>
           
           <%- (club_players + guest_players).each do |player| %>
+            <%- player_ranking = player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: ranking_season).first %>
+            <%- rank = player_ranking&.rank %>
             <tr>
               <td class="text-center text-gray-400">-</td>
               <td></td>
               <td></td>
               <td class="text-gray-500"><%= player.fullname %></td>
+              <td class="text-center">
+                <% if rank.present? %>
+                  <%= link_to rank, 
+                      ranking_path(@tournament.discipline.player_ranking) + "#discipline-#{@tournament.discipline_id}",
+                      class: 'text-blue-600 hover:text-blue-800 underline text-sm',
+                      title: "Rang #{rank} in #{@tournament.discipline.name}",
+                      target: '_blank' %>
+                <% else %>
+                  <span class="text-gray-400 text-sm">-</span>
+                <% end %>
+              </td>
               <td class="text-center">
                 <%= check_box_tag "participate-#{player.id}", "1", false, 
                     data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
