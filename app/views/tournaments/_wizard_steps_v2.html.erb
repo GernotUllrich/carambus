@@ -182,14 +182,16 @@
     </div>
 
     <div class="wizard-step-actions">
-      <% if wizard_step_status(tournament, 2) == :active %>
+      <% step_2_status = wizard_step_status(tournament, 2) %>
+      <% clubcloud_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
+      
+      <% if step_2_status == :active %>
         <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present?}" %>
         
-        <%# Prüfe ob ClubCloud-Daten vorhanden sind %>
-        <% clubcloud_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
+        <%# Zeige alternativen Button wenn ClubCloud-Daten vorhanden sind %>
         <% if clubcloud_seedings_count > 0 %>
           <%= button_to "→ Mit Meldeliste weiter zu Schritt 3 (#{clubcloud_seedings_count} Spieler)", 
               use_clubcloud_as_participants_tournament_path(tournament),
@@ -199,11 +201,22 @@
               title: 'Falls keine Einladung vorliegt' %>
         <% end %>
         
-      <% elsif wizard_step_status(tournament, 2) == :completed %>
+      <% elsif step_2_status == :completed %>
         <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: 'btn btn-secondary btn-sm' %>
+        
+        <%# Zeige alternativen Button auch bei completed wenn ClubCloud-Daten vorhanden sind %>
+        <% if clubcloud_seedings_count > 0 %>
+          <%= button_to "→ Mit Meldeliste weiter zu Schritt 3 (#{clubcloud_seedings_count} Spieler)", 
+              use_clubcloud_as_participants_tournament_path(tournament),
+              method: :post,
+              class: 'btn btn-outline-secondary btn-sm ml-2',
+              data: { confirm: "Meldeliste von ClubCloud als Teilnehmerliste übernehmen und zu Schritt 3 wechseln?\n\n#{clubcloud_seedings_count} Spieler werden übernommen." },
+              title: 'Falls keine Einladung vorliegt' %>
+        <% end %>
+        
       <% else %>
         <span class="disabled-text">
           Erst verfügbar nach vorherigem Schritt
