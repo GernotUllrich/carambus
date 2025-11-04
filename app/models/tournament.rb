@@ -261,7 +261,7 @@ class Tournament < ApplicationRecord
   aasm column: "state", skip_validation_on_save: true do
     state :new_tournament, initial: true, after_enter: [:reset_tournament]
     state :accreditation_finished
-    state :tournament_seeding_finished
+    state :tournament_seeding_finished, after_enter: [:calculate_and_cache_rankings]
     state :tournament_mode_defined
     state :tournament_started_waiting_for_monitors
     state :tournament_started
@@ -788,6 +788,55 @@ class Tournament < ApplicationRecord
       # reorder_seedings
     end
     Tournament.logger.info "state:#{state}...[reset_tournament]"
+  end
+
+  # Berechnet und cached die effektiven Rankings für alle Spieler
+  # Wird beim Finalisieren der Seedings aufgerufen (tournament_seeding_finished)
+  def calculate_and_cache_rankings
+    return unless organizer.is_a?(Region) && discipline.present?
+    
+    Tournament.logger.info "[calculate_and_cache_rankings] for tournament #{id}"
+    
+    # Berechne Rankings basierend auf effective_gd (wie in define_participants)
+    current_season = Season.current_season
+    seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
+    
+    # Lade alle Rankings für die Disziplin und Region
+    all_rankings = PlayerRanking.where(
+      discipline_id: discipline_id,
+      season_id: seasons.pluck(:id),
+      region_id: organizer_id
+    ).to_a
+    
+    # Gruppiere nach Spieler
+    rankings_by_player = all_rankings.group_by(&:player_id)
+    
+    # Berechne effective_gd für jeden Spieler (neueste Saison zuerst)
+    player_effective_gd = {}
+    rankings_by_player.each do |player_id, rankings|
+      gd_values = seasons.map do |season|
+        ranking = rankings.find { |r| r.season_id == season.id }
+        ranking&.gd
+      end
+      # effective_gd = aktuellste Saison || Saison davor || Saison davor-1
+      effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
+      player_effective_gd[player_id] = effective_gd if effective_gd.present?
+    end
+    
+    # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang
+    sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
+    player_rank = {}
+    sorted_players.each_with_index do |(player_id, gd), index|
+      player_rank[player_id] = index + 1
+    end
+    
+    # Speichere in data Hash
+    data_will_change!
+    self.data ||= {}
+    self.data['player_rankings'] = player_rank
+    save!
+    
+    Tournament.logger.info "[calculate_and_cache_rankings] cached #{player_rank.size} player rankings"
   end
 
   def reorder_seedings
