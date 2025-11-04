@@ -181,14 +181,14 @@
                     <%= seeding.balls_goal %>
                   <% else %>
                     <% 
-                      # Verwende effective_gd Logic für Rankings
+                      # Verwende effective_gd Logic für Rankings (neueste Saison mit GD > 0)
                       player_rankings = seeding.player.player_rankings.where(discipline_id: tournament.discipline_id)
                       ranking = nil
                       [0, -1, -2].each do |offset|
                         season = Season.find_by(ba_id: Season.current_season.ba_id + offset)
                         next unless season
                         pr = player_rankings.find_by(season_id: season.id)
-                        if pr&.effective_gd.to_i > 0
+                        if pr && pr.gd.to_f > 0
                           ranking = pr
                           break
                         end
