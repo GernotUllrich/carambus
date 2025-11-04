@@ -686,23 +686,51 @@ class TournamentsController < ApplicationController
         end
       end
       
-      # Sortiere nach Rangliste (verwende die gleiche Logik wie order_by_ranking_or_handicap)
+      # Sortiere nach Rangliste (verwende effective_gd Logik)
       if local_server?
+        # Berechne effektive Rankings (wie in calculate_and_cache_rankings)
+        if @tournament.organizer.is_a?(Region) && @tournament.discipline.present?
+          current_season = Season.current_season
+          seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
+          
+          all_rankings = PlayerRanking.where(
+            discipline_id: @tournament.discipline_id,
+            season_id: seasons.pluck(:id),
+            region_id: @tournament.organizer_id
+          ).to_a
+          
+          rankings_by_player = all_rankings.group_by(&:player_id)
+          player_effective_gd = {}
+          
+          rankings_by_player.each do |player_id, rankings|
+            gd_values = seasons.map do |season|
+              ranking = rankings.find { |r| r.season_id == season.id }
+              ranking&.gd
+            end
+            effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
+            player_effective_gd[player_id] = effective_gd if effective_gd.present?
+          end
+          
+          sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
+          player_rank = {}
+          sorted_players.each_with_index do |(player_id, gd), index|
+            player_rank[player_id] = index + 1
+          end
+        else
+          player_rank = {}
+        end
+        
         hash = {}
         @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").each do |seeding|
           if @tournament.handicap_tournier
             # Bei Handicap-Turnieren: Nach Vorgabe sortieren (höhere Vorgabe = schwächer = höhere Position)
             hash[seeding] = -seeding.balls_goal.to_i
           else
-            # Normale Turniere: Nach Rangliste sortieren
-            diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+            # Normale Turniere: Nach effektivem Ranking sortieren
             hash[seeding] = if @tournament.team_size > 1
                               999
                             else
-                              seeding.player.player_rankings.where(
-                                discipline_id: @tournament.discipline_id,
-                                season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff)
-                              ).first&.rank.presence || 999
+                              player_rank[seeding.player_id] || 999
                             end
           end
         end
