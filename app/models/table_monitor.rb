@@ -2227,11 +2227,12 @@ data[\"allow_overflow\"].present?")
       end
       
       # Update playera
-      data['playera']['innings_redo_list'] = new_playera_innings.map(&:to_i)
-      data['playera']['innings_list'] = new_playera_innings.map(&:to_i)
-      data['playera']['innings'] = new_playera_innings.length
-      data['playera']['result'] = new_playera_innings.map(&:to_i).sum
-      data['playera']['hs'] = new_playera_innings.map(&:to_i).max || 0
+      innings_a = new_playera_innings.map(&:to_i)
+      data['playera']['innings_list'] = innings_a[0..-2] || []  # All except last
+      data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[-1]]  # Only last inning
+      data['playera']['innings'] = innings_a.length
+      data['playera']['result'] = innings_a.sum
+      data['playera']['hs'] = innings_a.max || 0
       data['playera']['gd'] = if data['playera']['innings'].positive?
                                 format("%.3f", data['playera']['result'].to_f / data['playera']['innings'])
                               else
@@ -2239,11 +2240,12 @@ data[\"allow_overflow\"].present?")
                               end
       
       # Update playerb
-      data['playerb']['innings_redo_list'] = new_playerb_innings.map(&:to_i)
-      data['playerb']['innings_list'] = new_playerb_innings.map(&:to_i)
-      data['playerb']['innings'] = new_playerb_innings.length
-      data['playerb']['result'] = new_playerb_innings.map(&:to_i).sum
-      data['playerb']['hs'] = new_playerb_innings.map(&:to_i).max || 0
+      innings_b = new_playerb_innings.map(&:to_i)
+      data['playerb']['innings_list'] = innings_b[0..-2] || []  # All except last
+      data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[-1]]  # Only last inning
+      data['playerb']['innings'] = innings_b.length
+      data['playerb']['result'] = innings_b.sum
+      data['playerb']['hs'] = innings_b.max || 0
       data['playerb']['gd'] = if data['playerb']['innings'].positive?
                                 format("%.3f", data['playerb']['result'].to_f / data['playerb']['innings'])
                               else
