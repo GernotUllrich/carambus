@@ -102,19 +102,28 @@
           <%- active_seedings = @tournament.seedings.where(seeding_scope).to_a %>
           
           <%# Sortiere und aktualisiere Positionen NUR wenn keine Einladung hochgeladen wurde %>
+          <%# UND nur wenn Positionen noch nicht gesetzt sind (erstes Mal) %>
           <%- if @tournament.data['invitation_filename'].blank? %>
-            <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
-            <%- active_seedings.sort_by! do |seeding| %>
-              <%- rank = player_rank[seeding.player_id] %>
-              <%- rank.present? ? rank : 999 %>
-            <%- end %>
+            <%# Prüfe ob Positionen bereits manuell gesetzt wurden %>
+            <%- positions_already_set = active_seedings.all? { |s| s.position.present? } %>
             
-            <%# Aktualisiere Positionen basierend auf Ranking-Sortierung %>
-            <%- active_seedings.each_with_index do |seeding, index| %>
-              <%- if seeding.position != (index + 1) %>
-                <%- seeding.update_column(:position, index + 1) %>
+            <%- if !positions_already_set %>
+              <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
+              <%- active_seedings.sort_by! do |seeding| %>
+                <%- rank = player_rank[seeding.player_id] %>
+                <%- rank.present? ? rank : 999 %>
+              <%- end %>
+              
+              <%# Setze initiale Positionen basierend auf Ranking-Sortierung %>
+              <%- active_seedings.each_with_index do |seeding, index| %>
+                <%- if seeding.position != (index + 1) %>
+                  <%- seeding.update_column(:position, index + 1) %>
+                <%- end %>
               <%- end %>
             <%- end %>
+            
+            <%# Sortiere nach Position (respektiert manuelle Änderungen) %>
+            <%- active_seedings.sort_by! { |s| s.position || 999 } %>
           <%- else %>
             <%# Mit Einladung: Sortiere nach Position aus der Einladung %>
             <%- active_seedings.sort_by! { |s| s.position || 999 } %>
