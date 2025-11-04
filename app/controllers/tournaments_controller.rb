@@ -597,9 +597,14 @@ class TournamentsController < ApplicationController
       
       redirect_to define_participants_tournament_path(@tournament),
                   notice: "✅ Meldeliste von ClubCloud als Teilnehmerliste übernommen (#{clubcloud_seedings.count} Spieler)"
+    elsif @tournament.seedings.any?
+      # Falls keine ClubCloud-Seedings, aber andere Seedings existieren
+      # Überspringe die Konvertierung und gehe direkt zu Schritt 3
+      redirect_to define_participants_tournament_path(@tournament),
+                  notice: "✅ Weiter zu Schritt 3 mit vorhandenen Seedings (#{@tournament.seedings.count} Spieler)"
     else
       redirect_to compare_seedings_tournament_path(@tournament),
-                  alert: "Keine ClubCloud-Daten verfügbar. Bitte zuerst Meldeliste laden."
+                  alert: "Keine Spieler verfügbar. Bitte zuerst Meldeliste laden (Schritt 1)."
     end
   end
 
