@@ -510,10 +510,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     ret = []
     show_innings.each_with_index do |i, ix|
       foul = show_innings_fouls[ix].to_i
-      ret << (foul.zero? ? i.to_s : "#{i},F#{foul}")
+      ret << (foul.zero? ? "<span class=\"inline-block px-1\">#{i}</span>" : "<span class=\"inline-block px-1\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1\">#{i}</strong>" : i.to_s).to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1 inline-block mx-1\">#{i}</strong>" : "<span class=\"inline-block px-1\">#{i}</span>").to_s
     end
     if ret.length > last_n
       "#{prefix}...#{ret[-last_n..].join(", ")}".html_safe
