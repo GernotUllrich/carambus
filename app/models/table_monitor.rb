@@ -509,7 +509,8 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
     ret = []
     show_innings.each_with_index do |i, ix|
-      ret << ((show_innings_fouls[ix]).zero? ? i.to_s : "#{i},F#{show_innings_fouls[ix]}")
+      foul = show_innings_fouls[ix].to_i
+      ret << (foul.zero? ? i.to_s : "#{i},F#{foul}")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
       ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1\">#{i}</strong>" : i.to_s).to_s
