@@ -2216,6 +2216,7 @@ data[\"allow_overflow\"].present?")
       end
       
       # Update playera
+      data['playera']['innings_redo_list'] = new_playera_innings.map(&:to_i)
       data['playera']['innings_list'] = new_playera_innings.map(&:to_i)
       data['playera']['innings'] = new_playera_innings.length
       data['playera']['result'] = new_playera_innings.map(&:to_i).sum
@@ -2227,6 +2228,7 @@ data[\"allow_overflow\"].present?")
                               end
       
       # Update playerb
+      data['playerb']['innings_redo_list'] = new_playerb_innings.map(&:to_i)
       data['playerb']['innings_list'] = new_playerb_innings.map(&:to_i)
       data['playerb']['innings'] = new_playerb_innings.length
       data['playerb']['result'] = new_playerb_innings.map(&:to_i).sum
