@@ -792,10 +792,12 @@ class Tournament < ApplicationRecord
 
   # Berechnet und cached die effektiven Rankings für alle Spieler
   # Wird beim Finalisieren der Seedings aufgerufen (tournament_seeding_finished)
+  # Nur für lokale Tournaments (id >= MIN_ID), nicht für ClubCloud-Records
   def calculate_and_cache_rankings
     return unless organizer.is_a?(Region) && discipline.present?
+    return unless id.present? && id >= Tournament::MIN_ID  # Nur für lokale Tournaments
     
-    Tournament.logger.info "[calculate_and_cache_rankings] for tournament #{id}"
+    Tournament.logger.info "[calculate_and_cache_rankings] for local tournament #{id}"
     
     # Berechne Rankings basierend auf effective_gd (wie in define_participants)
     current_season = Season.current_season

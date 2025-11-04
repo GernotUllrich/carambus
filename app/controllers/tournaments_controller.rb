@@ -6,6 +6,7 @@ class TournamentsController < ApplicationController
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
                          use_clubcloud_as_participants update_seeding_position
                          recalculate_groups test_tournament_status_update]
+  before_action :ensure_rankings_cached, only: %i[show]
 
   # GET /tournaments
   def index
@@ -97,6 +98,8 @@ class TournamentsController < ApplicationController
     if local_server?
       @tournament.finish_seeding!
       @tournament.reload
+      # Berechne Rankings explizit (falls after_enter callback nicht funktioniert hat)
+      @tournament.calculate_and_cache_rankings if @tournament.data['player_rankings'].blank?
     else
       flash[:alert] = t("not_allowed_on_api_server")
     end
@@ -769,6 +772,16 @@ class TournamentsController < ApplicationController
   end
 
   private
+
+  # Stellt sicher dass Rankings gecacht sind (für alte lokale Turniere)
+  def ensure_rankings_cached
+    return unless @tournament
+    return unless @tournament.id.present? && @tournament.id >= Tournament::MIN_ID  # Nur für lokale Tournaments
+    return if @tournament.data['player_rankings'].present?
+    return unless @tournament.tournament_seeding_finished? || @tournament.tournament_started
+    
+    @tournament.calculate_and_cache_rankings
+  end
 
   # Konvertiert Positions-basierte Gruppenbildung zu Player-IDs
   # Input: { 1 => [1, 5, 9], 2 => [2, 6, 10], ... } (Positionen)
