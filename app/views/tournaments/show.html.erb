@@ -23,50 +23,46 @@
 
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
   
-  <!-- Seedings Table -->
-  <div class="seedings-table-container">
-    <h2><%= I18n.t("tournaments.show.registrations") %></h2>
-    <div class="flex flex-wrap space-y-5">
-      <table class="flex-1">
+  <!-- Setzliste - Für alle sichtbar wenn Turnier läuft -->
+  <% if @tournament.tournament_seeding_finished? %>
+    <div class="seedings-table-container">
+      <h2>📋 Setzliste</h2>
+      <div class="flex flex-wrap space-y-5">
+        <table class="flex-1">
           <thead>
-          <tr>
-            <th><%= I18n.t("tournaments.show.position") %></th>
-            <th><%= I18n.t("tournaments.show.new_position") %></th>
-            <th colspan="2"><%= I18n.t("tournaments.show.reorder") %></th>
-            <th><%= I18n.t("tournaments.show.name") %></th>
-            <th><%= I18n.t("tournaments.show.club") %></th>
-            <th>Rank/Handicap (Ballziel)<br><%= @tournament.discipline.andand.name %>
-              <br>Season <%= @tournament.season.previous.andand.name %>
-            </th>
-            <th>No Show</th>
-          </tr>
+            <tr>
+              <th><%= I18n.t("tournaments.show.position") %></th>
+              <th><%= I18n.t("tournaments.show.name") %></th>
+              <th><%= I18n.t("tournaments.show.club") %></th>
+              <% if @tournament.handicap_tournier? %>
+                <th>Vorgabe (Ballziel)</th>
+              <% else %>
+                <th>Ranking<br><%= @tournament.discipline.andand.name %></th>
+              <% end %>
+            </tr>
           </thead>
           <tbody>
-          <%- @tournament.seedings.where(seeding_scope).includes(:player => :player_rankings).joins(:player).order(@tournament.tournament_seeding_finished? ? "seedings.position" : "players.lastname asc, players.firstname asc").each do |seeding| %>
-            <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
-            <tr>
-              <td><%= seeding.position %></td>
-              <td><%= number_field_tag "new_position-#{seeding.player.id}", nil, style: "width:60px", max: 99, data: { reflex: "change->TournamentReflex#change_position", id: @tournament.id } %></td>
-              <td>
-                <%= custom_link_to image_tag("up-icon.png"), up_seeding_path(seeding), method: :post %>
-              </td>
-              <td>
-                <%= custom_link_to image_tag("down-icon.png"), down_seeding_path(seeding), method: :post %>
-              </td>
-              <td><%= custom_link_to("#{seeding.player.fullname}", player_path(seeding.player)) %></td>
-              <td><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
-              <%- diff = Season.current_season.name == "2021/2022" ? 2 : 1 %>
-              <td class="text-center"><%= @tournament.handicap_tournier ? seeding.balls_goal : (seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"), season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || 999) %></td>
-              <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
-                <%= check_box_tag "participate-#{seeding.player.id}", "1", seeding.no_show?, data: { reflex: "change->TournamentReflex#change_no_show", id: @tournament.id } %>
-              <%- end %>
-            </tr>
-          <%- end %>
+            <%- @tournament.seedings.where(seeding_scope).where.not(state: "no_show").includes(:player => :player_rankings).joins(:player).order("seedings.position").each do |seeding| %>
+              <%- club = @tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first.andand.club %>
+              <tr>
+                <td><%= seeding.position %></td>
+                <td><%= custom_link_to("#{seeding.player.fullname}", player_path(seeding.player)) %></td>
+                <td><%= custom_link_to("#{club.shortname}", club_path(club)) if club.present? %></td>
+                <td class="text-center">
+                  <% if @tournament.handicap_tournier? %>
+                    <%= seeding.balls_goal %>
+                  <% else %>
+                    <%- diff = Season.current_season.name == "2021/2022" ? 2 : 1 %>
+                    <%= seeding.player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: Season.find_by_ba_id(Season.current_season.ba_id - diff)).first.andand.rank.presence || "-" %>
+                  <% end %>
+                </td>
+              </tr>
+            <%- end %>
           </tbody>
         </table>
       </div>
     </div>
-  </div>
+  <% end %>
   
   <!-- Rankings Section -->
   <div class="seedings-table-container">
