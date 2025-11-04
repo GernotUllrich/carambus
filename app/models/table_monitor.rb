@@ -2239,6 +2239,12 @@ data[\"allow_overflow\"].present?")
                                 0.0
                               end
       
+      # Adjust foul lists to match innings count (fill with zeros if needed)
+      target_length_a = [innings_a.length - 1, 0].max
+      current_fouls_a = (data['playera']['innings_foul_list'] || [])[0...target_length_a]
+      data['playera']['innings_foul_list'] = current_fouls_a + Array.new([target_length_a - current_fouls_a.length, 0].max, 0)
+      data['playera']['innings_foul_redo_list'] = [0]
+      
       # Update playerb
       innings_b = new_playerb_innings.map(&:to_i)
       data['playerb']['innings_list'] = innings_b[0..-2] || []  # All except last
@@ -2251,6 +2257,12 @@ data[\"allow_overflow\"].present?")
                               else
                                 0.0
                               end
+      
+      # Adjust foul lists to match innings count (fill with zeros if needed)
+      target_length_b = [innings_b.length - 1, 0].max
+      current_fouls_b = (data['playerb']['innings_foul_list'] || [])[0...target_length_b]
+      data['playerb']['innings_foul_list'] = current_fouls_b + Array.new([target_length_b - current_fouls_b.length, 0].max, 0)
+      data['playerb']['innings_foul_redo_list'] = [0]
       
       # Mark data as changed and save
       data_will_change!
