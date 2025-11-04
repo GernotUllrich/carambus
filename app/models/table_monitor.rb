@@ -421,6 +421,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "---------------m6[#{id}]------>>> #{"render_innings_list(#{role})"} <<<\
 ------------------------------------------"
     end
+    
+    # Return empty string if role is nil or not valid
+    return "".html_safe if role.nil? || !data.key?(role)
+    
     innings = data["playera"]["innings"].to_i
     cols = [(innings / 15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
