@@ -249,9 +249,10 @@
                     <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ NBV-konform</span>
                   <% end %>
                 </div>
-                <% if @proposed_discipline_tournament_plan.nrepeats.present? %>
+                <% rounds = @proposed_discipline_tournament_plan.rounds_count %>
+                <% if rounds.present? %>
                   <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
-                    <%= @proposed_discipline_tournament_plan.nrepeats %> Runde<%= @proposed_discipline_tournament_plan.nrepeats > 1 ? 'n' : '' %>
+                    <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                   </span>
                 <% end %>
               </div>
@@ -273,9 +274,10 @@
                           <span class="text-sm font-bold"><%= alternative.name %></span>
                           <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
                         </div>
-                        <% if alternative.nrepeats.present? %>
+                        <% rounds = alternative.rounds_count %>
+                        <% if rounds.present? %>
                           <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
-                            <%= alternative.nrepeats %> Runde<%= alternative.nrepeats > 1 ? 'n' : '' %>
+                            <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                           </span>
                         <% end %>
                       </div>
@@ -311,9 +313,10 @@
                           <span class="text-sm font-bold"><%= alternative.name %></span>
                           <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
                         </div>
-                        <% if alternative.nrepeats.present? %>
+                        <% rounds = alternative.rounds_count %>
+                        <% if rounds.present? %>
                           <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' %> px-2 py-1 rounded ml-2">
-                            <%= alternative.nrepeats %> Runde<%= alternative.nrepeats > 1 ? 'n' : '' %>
+                            <%= rounds %> Runde<%= rounds > 1 ? 'n' : '' %>
                           </span>
                         <% end %>
                       </div>

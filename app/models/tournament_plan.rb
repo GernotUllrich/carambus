@@ -191,4 +191,34 @@ or (tournament_plans.rulesystem ilike :search)",
       nil
     end
   end
+  
+  # Extrahiert die tatsächliche Rundenzahl aus executor_params
+  # Returns: Anzahl der Runden oder nil wenn nicht verfügbar
+  def rounds_count
+    return nil unless executor_params.present?
+    
+    begin
+      params = JSON.parse(executor_params)
+      
+      # Zähle Runden über alle Gruppen (r1, r2, r3, ...)
+      max_rounds = 0
+      (1..ngroups).each do |gn|
+        group_key = "g#{gn}"
+        next unless params[group_key].is_a?(Hash)
+        
+        sq = params[group_key]['sq']
+        next unless sq.is_a?(Hash)
+        
+        # Zähle die Runden-Keys (r1, r2, r3, ...)
+        round_keys = sq.keys.select { |k| k =~ /^r\d+$/ }
+        group_rounds = round_keys.map { |k| k[1..-1].to_i }.max || 0
+        max_rounds = group_rounds if group_rounds > max_rounds
+      end
+      
+      max_rounds > 0 ? max_rounds : nil
+    rescue JSON::ParserError => e
+      Rails.logger.error "TournamentPlan[#{id}].rounds_count: JSON parse error: #{e.message}"
+      nil
+    end
+  end
 end
