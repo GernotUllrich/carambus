@@ -193,9 +193,12 @@ or (tournament_plans.rulesystem ilike :search)",
   end
   
   # Extrahiert die tatsächliche Rundenzahl aus executor_params
-  # Returns: Anzahl der Runden oder nil wenn nicht verfügbar
+  # Returns: Anzahl der Runden oder nil wenn nicht verfügbar (oder bei KO-Systemen)
   def rounds_count
     return nil unless executor_params.present?
+    
+    # KO-Systeme haben komplexere Rundenberechnung - nicht anzeigen
+    return nil if name =~ /^KO/i
     
     begin
       params = JSON.parse(executor_params)
