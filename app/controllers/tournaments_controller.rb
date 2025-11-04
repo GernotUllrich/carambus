@@ -4,6 +4,7 @@ class TournamentsController < ApplicationController
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
+                         use_clubcloud_as_participants update_seeding_position
                          recalculate_groups test_tournament_status_update]
 
   # GET /tournaments
