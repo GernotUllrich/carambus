@@ -135,26 +135,82 @@
   <% end %>
 
   <!-- Schritt 2: Setzliste aus Einladung übernehmen (NEU!) -->
-  <%= render 'wizard_step',
-      number: tournament.organizer.is_a?(Region) ? 2 : 1,
-      title: "Setzliste aus Einladung übernehmen",
-      status: wizard_step_status(tournament, 2),
-      action: {
-        text: tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
-        path: compare_seedings_tournament_path(tournament),
-        method: :get
-      },
-      info: tournament.data['invitation_filename'].present? ? 
-            "✓ Einladung hochgeladen: #{tournament.data['invitation_filename']}" : 
-            "Laden Sie die PDF-Einladung oder Screenshot hoch",
-      warning: wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present?,
-      danger: false,
-      help: "Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. 
-             Carambus extrahiert automatisch:<br>
-             • <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>
-             • <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>
-             Unterstützt PDF oder Screenshot (PNG/JPG).<br>
-             Zweispaltige Tabellen werden automatisch erkannt." %>
+  <div class="wizard-step <%= step_class(wizard_step_status(tournament, 2)) %>">
+    <div class="wizard-step-header">
+      <div class="wizard-step-icon">
+        <%= step_icon(wizard_step_status(tournament, 2)) %>
+      </div>
+      <div class="wizard-step-content">
+        <div class="wizard-step-number-title">
+          <span class="step-number"><%= tournament.organizer.is_a?(Region) ? 2 : 1 %>.</span>
+          <h4 class="step-title">Setzliste aus Einladung übernehmen</h4>
+        </div>
+
+        <% if tournament.data['invitation_filename'].present? %>
+          <div class="step-info">
+            ✓ Einladung hochgeladen: <%= tournament.data['invitation_filename'] %>
+          </div>
+        <% else %>
+          <div class="step-info">
+            Laden Sie die PDF-Einladung oder Screenshot hoch
+          </div>
+        <% end %>
+
+        <% if wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present? %>
+          <div class="step-warning">
+            <span class="warning-icon">⚠️</span>
+            Dieser Schritt ist noch offen
+          </div>
+        <% end %>
+
+        <div class="step-help">
+          <details>
+            <summary>💡 Was macht dieser Schritt?</summary>
+            <p>
+              Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. 
+              Carambus extrahiert automatisch:<br>
+              • <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>
+              • <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>
+              Unterstützt PDF oder Screenshot (PNG/JPG).<br>
+              Zweispaltige Tabellen werden automatisch erkannt.<br><br>
+              <strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der 
+              Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.
+            </p>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-step-actions">
+      <% if wizard_step_status(tournament, 2) == :active %>
+        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
+            compare_seedings_tournament_path(tournament),
+            method: :get,
+            class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present?}" %>
+        
+        <%# Prüfe ob ClubCloud-Daten vorhanden sind %>
+        <% clubcloud_seedings_count = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").count %>
+        <% if clubcloud_seedings_count > 0 %>
+          <%= button_to "→ Mit Meldeliste weiter zu Schritt 3 (#{clubcloud_seedings_count} Spieler)", 
+              use_clubcloud_as_participants_tournament_path(tournament),
+              method: :post,
+              class: 'btn btn-outline-primary ml-2',
+              data: { confirm: "Meldeliste von ClubCloud als Teilnehmerliste übernehmen und zu Schritt 3 wechseln?\n\n#{clubcloud_seedings_count} Spieler werden übernommen." },
+              title: 'Falls keine Einladung vorliegt' %>
+        <% end %>
+        
+      <% elsif wizard_step_status(tournament, 2) == :completed %>
+        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
+            compare_seedings_tournament_path(tournament),
+            method: :get,
+            class: 'btn btn-secondary btn-sm' %>
+      <% else %>
+        <span class="disabled-text">
+          Erst verfügbar nach vorherigem Schritt
+        </span>
+      <% end %>
+    </div>
+  </div>
 
   <!-- Schritt 3: Teilnehmerliste bearbeiten (vor Ort!) -->
   <%= render 'wizard_step',
