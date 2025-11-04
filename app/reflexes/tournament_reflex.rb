@@ -114,7 +114,6 @@ class TournamentReflex < ApplicationReflex
   end
 
   def change_seeding
-    # morph :nothing
     tournament = Tournament.find(element.dataset["id"])
     checked = element.attributes["checked"]
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
@@ -126,15 +125,9 @@ class TournamentReflex < ApplicationReflex
       tournament.seedings.where(player_id: player.id).destroy_all
     end
     tournament.save!
-    balls_goal_html = ApplicationController.render(
-      partial: "tournaments/balls_goal",
-      locals: { tournament: tournament, player: player, seeding: seeding }
-    )
-    cable_ready["tournament-stream"].inner_html(
-      selector: "#balls-wrapper-#{player.id}",
-      html: balls_goal_html
-    )
-    cable_ready.broadcast
+    
+    # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
+    morph :page
   end
 
   def change_no_show
@@ -154,6 +147,9 @@ class TournamentReflex < ApplicationReflex
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where("id > ?", 50_000_000).where(player_id: player.id).first
     seeding&.set_list_position(element.attributes["value"].to_i)
+    
+    # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
+    morph :page
   end
 
   def change_point_goal

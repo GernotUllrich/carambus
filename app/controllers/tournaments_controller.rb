@@ -365,6 +365,73 @@ class TournamentsController < ApplicationController
   def define_participants
     @seedings = @tournament.seedings
     @league = @tournament.league
+    
+    # Berechne mögliche Turnierpläne und Gruppenzuordnungen (wie in finalize_modus)
+    @tournament.seedings.where(player_id: nil).destroy_all
+    
+    # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
+    has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+    @seeding_scope = has_local_seedings ? 
+                      "seedings.id >= #{Seeding::MIN_ID}" : 
+                      "seedings.id < #{Seeding::MIN_ID}"
+    
+    @participant_count = @tournament.seedings
+                                    .where.not(state: "no_show")
+                                    .where(@seeding_scope)
+                                    .count
+    
+    # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
+    @proposed_discipline_tournament_plan = nil
+    if @tournament.data['extracted_plan_info'].present?
+      # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+      if (match = @tournament.data['extracted_plan_info'].match(/^(T\d+)/i))
+        plan_name = match[1].upcase
+        @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
+      end
+    end
+    
+    # Fallback: Suche nach Spielerzahl + Disziplin
+    unless @proposed_discipline_tournament_plan.present?
+      @proposed_discipline_tournament_plan = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
+                                                             .where(discipline_tournament_plans: {
+                                                                      players: @participant_count,
+                                                                      player_class: @tournament.player_class,
+                                                                      discipline_id: @tournament.discipline_id
+                                                                    }).first
+    end
+    
+    if @proposed_discipline_tournament_plan.present?
+      # Berechne IMMER die NBV-Standard-Gruppenbildung
+      @nbv_groups = TournamentMonitor.distribute_to_group(
+        @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
+        @proposed_discipline_tournament_plan.ngroups,
+        @proposed_discipline_tournament_plan.group_sizes
+      )
+      
+      # Wenn extrahierte Gruppenbildung vorhanden: vergleiche
+      if @tournament.data['extracted_group_assignment'].present?
+        @extracted_groups = convert_position_groups_to_player_groups(
+          @tournament.data['extracted_group_assignment'],
+          @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position)
+        )
+        
+        @groups_match = groups_identical?(@extracted_groups, @nbv_groups)
+        @groups = @extracted_groups
+        @groups_source = @groups_match ? :extracted_matches_nbv : :extracted_differs_from_nbv
+      else
+        # Keine Extraktion: Verwende NBV
+        @groups = @nbv_groups
+        @groups_source = :algorithm
+      end
+    end
+    
+    # Alternative Pläne (maximal 3)
+    @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
+                                                    .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
+                                                    .where(discipline_tournament_plans: {
+                                                             players: @participant_count,
+                                                             discipline_id: @tournament.discipline_id
+                                                           }).uniq.limit(3)
   end
 
   def new_team; end
