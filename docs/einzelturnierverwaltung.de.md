@@ -8,7 +8,7 @@ Das neue **Wizard-System** für die Turnierverwaltung führt Sie Schritt für Sc
 
 Für das Carambus Turniermanagement ist ein Account mit **Admin-Rechten** auf dem Carambus Location Server erforderlich. Dieser kann vom Club-Vorsitzenden oder [Carambus-Entwickler](mailto:gernot.ullrich@gmx.de) eingerichtet werden.
 
-Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel: `http://192.168.2.143:3131`
+Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel: `http://192.168.2.210:3131`
 
 ## Der Wizard-Workflow
 
@@ -16,17 +16,14 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
 
 ### Schritt 1: Meldeliste von ClubCloud laden
 
-**Ziel:** Die Teilnehmerliste vom API Server holen.
+**Ziel:** Die Meldeliste vom API Server holen.
 
 **Was passiert hier?**
 - Das System synchronisiert die Meldeliste aus der ClubCloud
-- Spieler werden automatisch erkannt und zugeordnet
-- Neue Spieler werden zur Datenbank hinzugefügt
 
 **Wann wird dieser Schritt benötigt?**
 - Wenn das Turnier erstmalig geladen wird
 - Wenn sich die Meldeliste nach dem Meldeschluss geändert hat
-- Wenn neue Spieler nachgemeldet wurden
 
 **Schnell-Laden:**
 - ⚡ **"Anstehende Turniere laden"** Button: Lädt nur Turniere der nächsten 30 Tage (schneller als vollständige Synchronisation)
@@ -190,10 +187,6 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
    - Gleiche Disziplin mit anderen Spieleranzahlen
    - Andere Disziplinen mit gleicher Spieleranzahl
 3. **"Weiter mit [Modusname]"** klicken
-
-**Manuelle Anpassung:**
-- ⚠️ **"🔄 Neu berechnen"**: Verwirft die extrahierte Gruppenbildung und berechnet neu
-- ⚠️ **"✏️ Manuell anpassen"**: (In Entwicklung) Drag-and-Drop für Gruppenzuordnung
 
 ### Schritt 6: Turnier starten
 

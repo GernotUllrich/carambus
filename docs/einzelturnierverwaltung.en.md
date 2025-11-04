@@ -8,7 +8,7 @@ The new **Wizard System** for tournament management guides you step-by-step thro
 
 A Carambus tournament management account with **admin rights** on the Carambus Location Server is required. This can be set up by the club chairman or [Carambus developer](mailto:gernot.ullrich@gmx.de).
 
-The URL can be derived from the scoreboard URLs, e.g., in Wedel: `http://192.168.2.143:3131`
+The URL can be derived from the scoreboard URLs, e.g., in Wedel: `http://192.168.2.210:3131`
 
 ## The Wizard Workflow
 
@@ -16,17 +16,15 @@ The new wizard system consists of **6 main steps** that visually guide you throu
 
 ### Step 1: Load Registration List from ClubCloud
 
-**Goal:** Fetch the participant list from the API server.
+**Goal:** Fetch the registration list from the API server.
 
 **What happens here?**
 - The system synchronizes the registration list from ClubCloud
 - Players are automatically recognized and assigned
-- New players are added to the database
 
 **When is this step needed?**
 - When the tournament is loaded for the first time
 - When the registration list has changed after the registration deadline
-- When new players have been registered late
 
 **Quick Load:**
 - ⚡ **"Load Upcoming Tournaments"** button: Loads only tournaments for the next 30 days (faster than full synchronization)
@@ -51,7 +49,7 @@ The new wizard system consists of **6 main steps** that visually guide you throu
   - Players are automatically sorted by **Carambus ranking** for the discipline
   - Sorting is based on effective rankings (newest available season from the last 2-3 years)
 
-**How does it work?**
+**How is  does it work?**
 1. Click **"Upload Invitation"**
 2. Select a PDF file or screenshot (PNG/JPG) of the invitation
 3. The system automatically analyzes the document
@@ -80,7 +78,7 @@ The new wizard system consists of **6 main steps** that visually guide you throu
 
 ### Step 3: Edit Participant List
 
-**Goal:** Create and adjust the final participant list.
+**Goal:** Create and adjust the final participant list and finalize the ranking based sequence of the participants (seedings).
 
 **What happens here?**
 - You see the current participant list with the following information:
