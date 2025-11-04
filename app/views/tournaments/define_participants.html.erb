@@ -43,34 +43,101 @@
           <ul class="list-disc list-inside text-green-800 text-sm space-y-1">
             <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
             <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
+            <li>🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken</li>
             <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
           </ul>
         </div>
         
-        <table>
+        <table class="w-full">
           <thead>
           <tr>
+            <th class="w-16">Pos.</th>
+            <th class="w-20">Neue Pos.</th>
+            <th class="w-24">Reihenfolge</th>
             <th>Name</th>
-            <th>Teilnehmer</th>
-            <th><% if @tournament.handicap_tournier %>Vorgabe (Pkt)<% else %>Punktziel<% end %></th>
+            <th class="w-32 text-center">Teilnehmer</th>
+            <th class="w-32 text-right"><% if @tournament.handicap_tournier %>Vorgabe (Pkt)<% else %>Punktziel<% end %></th>
           </tr>
           </thead>
           <tbody>
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
-          <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
-          <%- club_players = players.uniq.sort_by { |player| player.fl_name }.to_a %>
-          <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a %>
-          <%# TODO - seedings on club tournaments not finalized !!%>
-          <%- (club_players + guest_players).each do |player| %>
-            <%- seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first %>
-            <tr>
+          <%- active_seedings = @tournament.seedings.where(seeding_scope).order(:position).to_a %>
+          
+          <%# Zeige zuerst aktive Seedings (mit Position) %>
+          <%- active_seedings.each_with_index do |seeding, index| %>
+            <%- player = seeding.player %>
+            <%- prev_seeding = index > 0 ? active_seedings[index - 1] : nil %>
+            <%- next_seeding = index < active_seedings.length - 1 ? active_seedings[index + 1] : nil %>
+            <tr data-seeding-id="<%= seeding.id %>" class="<%= seeding.state == 'no_show' ? 'opacity-50' : '' %>">
+              <td class="text-center font-semibold"><%= seeding.position || (index + 1) %></td>
+              <td class="text-center">
+                <%= number_field_tag "new_position-#{player.id}", nil, 
+                    placeholder: seeding.position,
+                    style: "width:60px", 
+                    min: 1,
+                    max: active_seedings.length,
+                    class: "text-center",
+                    data: { reflex: "change->TournamentReflex#change_position", id: @tournament.id } %>
+              </td>
+              <td class="text-center">
+                <div class="flex flex-col gap-1">
+                  <% if prev_seeding.present? %>
+                    <%= button_to '↑', up_seeding_path(seeding), 
+                        method: :post,
+                        class: 'btn btn-xs btn-outline-secondary',
+                        title: 'Nach oben',
+                        data: { turbo: false } %>
+                  <% else %>
+                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits oben">↑</span>
+                  <% end %>
+                  <% if next_seeding.present? %>
+                    <%= button_to '↓', down_seeding_path(seeding), 
+                        method: :post,
+                        class: 'btn btn-xs btn-outline-secondary',
+                        title: 'Nach unten',
+                        data: { turbo: false } %>
+                  <% else %>
+                    <span class="btn btn-xs btn-disabled opacity-50 cursor-not-allowed" title="Bereits unten">↓</span>
+                  <% end %>
+                </div>
+              </td>
               <td><%= player.fullname %></td>
-              <%= content_tag "td", class: "w-1/4", style: "text-align: center" do %>
-                <%= check_box_tag "participate-#{player.id}", "1", seeding.present?, data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %></td>
-              <%- end %>
-              <%= content_tag "td", id: "balls-wrapper-#{player.id}", class: "w-1/4", style: "text-align: right" do %>
-                <%= number_field_tag("balls-#{player.id}", seeding.andand.balls_goal, data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, style: "#{seeding.present? ? "" : "display: none"}") %>
-              <%- end %>
+              <td class="text-center">
+                <%= check_box_tag "participate-#{player.id}", "1", seeding.present? && seeding.state != 'no_show', 
+                    data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
+              </td>
+              <td class="text-right" id="balls-wrapper-<%= player.id %>">
+                <%= number_field_tag("balls-#{player.id}", seeding.balls_goal, 
+                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, 
+                    style: seeding.present? && seeding.state != 'no_show' ? "" : "display: none",
+                    class: "w-20 text-right") %>
+              </td>
+            </tr>
+          <% end %>
+          
+          <%# Zeige Spieler ohne Seeding (falls vorhanden) %>
+          <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
+          <%- players_with_seedings = active_seedings.map(&:player_id).to_set %>
+          <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
+          <%- club_players = players.uniq.reject { |p| players_with_seedings.include?(p.id) }.sort_by { |player| player.fl_name }.to_a %>
+          <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a.reject { |p| players_with_seedings.include?(p.id) } %>
+          
+          <%- (club_players + guest_players).each do |player| %>
+            <tr>
+              <td class="text-center text-gray-400">-</td>
+              <td></td>
+              <td></td>
+              <td class="text-gray-500"><%= player.fullname %></td>
+              <td class="text-center">
+                <%= check_box_tag "participate-#{player.id}", "1", false, 
+                    data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %>
+              </td>
+              <td class="text-right" id="balls-wrapper-<%= player.id %>">
+                <%= number_field_tag("balls-#{player.id}", nil, 
+                    data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, 
+                    style: "display: none",
+                    class: "w-20 text-right") %>
+              </td>
             </tr>
           <% end %>
           </tbody>

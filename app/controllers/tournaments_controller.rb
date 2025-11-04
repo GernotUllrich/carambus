@@ -572,6 +572,80 @@ class TournamentsController < ApplicationController
     end
   end
 
+  # POST /tournaments/:id/use_clubcloud_as_participants
+  # Konvertiert ClubCloud-Seedings zu lokalen Seedings und leitet zu Schritt 3 weiter
+  def use_clubcloud_as_participants
+    clubcloud_seedings = @tournament.seedings
+                                     .where("seedings.id < #{Seeding::MIN_ID}")
+                                     .order(:position)
+    
+    if clubcloud_seedings.any?
+      # Konvertiere ClubCloud-Seedings zu lokalen Seedings
+      Seeding.transaction do
+        # Lösche alte lokale Seedings
+        @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
+        
+        # Erstelle neue in der Reihenfolge der ClubCloud-Seedings
+        clubcloud_seedings.each_with_index do |cc_seeding, index|
+          @tournament.seedings.create!(
+            player_id: cc_seeding.player_id,
+            position: index + 1,
+            balls_goal: cc_seeding.balls_goal
+          )
+        end
+      end
+      
+      redirect_to define_participants_tournament_path(@tournament),
+                  notice: "✅ Meldeliste von ClubCloud als Teilnehmerliste übernommen (#{clubcloud_seedings.count} Spieler)"
+    else
+      redirect_to compare_seedings_tournament_path(@tournament),
+                  alert: "Keine ClubCloud-Daten verfügbar. Bitte zuerst Meldeliste laden."
+    end
+  end
+
+  # POST /tournaments/:id/update_seeding_position
+  # Aktualisiert die Position eines Seedings (für Drag & Drop oder Up/Down)
+  def update_seeding_position
+    seeding_id = params[:seeding_id]
+    new_position = params[:position].to_i
+    
+    if seeding_id.present? && new_position > 0
+      seeding = @tournament.seedings.find(seeding_id)
+      
+      # Verwende acts_as_list move_to_position wenn verfügbar
+      if seeding.respond_to?(:move_to_position)
+        seeding.move_to_position(new_position)
+      else
+        # Fallback: Manuelles Verschieben
+        old_position = seeding.position
+        if old_position != new_position
+          Seeding.transaction do
+            # Verschiebe andere Seedings
+            if old_position < new_position
+              # Nach unten verschoben
+              @tournament.seedings
+                        .where("seedings.id >= #{Seeding::MIN_ID}")
+                        .where("position > ? AND position <= ?", old_position, new_position)
+                        .update_all("position = position - 1")
+            else
+              # Nach oben verschoben
+              @tournament.seedings
+                        .where("seedings.id >= #{Seeding::MIN_ID}")
+                        .where("position >= ? AND position < ?", new_position, old_position)
+                        .update_all("position = position + 1")
+            end
+            # Setze neue Position
+            seeding.update_column(:position, new_position)
+          end
+        end
+      end
+      
+      head :ok
+    else
+      head :bad_request
+    end
+  end
+
   private
 
   # Konvertiert Positions-basierte Gruppenbildung zu Player-IDs
