@@ -778,8 +778,11 @@ class TournamentsController < ApplicationController
     return unless @tournament
     return unless @tournament.id.present? && @tournament.id >= Tournament::MIN_ID  # Nur für lokale Tournaments
     return if @tournament.data['player_rankings'].present?
-    return unless @tournament.tournament_seeding_finished? || @tournament.tournament_started
     
+    # Berechne Rankings wenn Seedings vorhanden sind (auch wenn State noch nicht korrekt)
+    return unless @tournament.seedings.any?
+    
+    Rails.logger.info "[ensure_rankings_cached] Calculating rankings for tournament #{@tournament.id}"
     @tournament.calculate_and_cache_rankings
   end
 
