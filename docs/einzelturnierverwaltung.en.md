@@ -38,15 +38,18 @@ The new wizard system consists of **6 main steps** that visually guide you throu
 
 ### Step 2: Import Seeding List from Invitation
 
-**Goal:** Import the official seeding list from the invitation sent by the tournament director.
+**Goal:** Import the official seeding list from the invitation sent by the tournament director, or proceed directly with the registration list.
 
 **What happens here?**
-- You upload a PDF file or screenshot of the invitation
+- **Option 1:** You upload a PDF file or screenshot of the invitation
 - The system automatically extracts:
   - Player names and positions
   - **Handicap points** for handicap tournaments
   - **Group assignments** (if present in the invitation)
   - **Tournament mode** (e.g., "T21 - Tournament will be played in mode...")
+- **Option 2 (Alternative):** If no invitation is available, proceed directly with the registration list to Step 3
+  - Players are automatically sorted by **Carambus ranking** for the discipline
+  - Sorting is based on effective rankings (newest available season from the last 2-3 years)
 
 **How does it work?**
 1. Click **"Upload Invitation"**
@@ -80,12 +83,37 @@ The new wizard system consists of **6 main steps** that visually guide you throu
 **Goal:** Create and adjust the final participant list.
 
 **What happens here?**
-- You see the current participant list
+- You see the current participant list with the following information:
+  - Position (seeding order)
+  - Player name and club
+  - **Carambus ranking** for the discipline (with link to ranking table)
+  - Handicap (for handicap tournaments)
 - You can:
   - Mark **No-Shows** (player doesn't appear)
   - **Correct handicaps** (for handicap tournaments)
-  - **Adjust positions** (if necessary)
+  - **Adjust positions** using ↑↓ buttons or direct input
   - **Add late registrations** (with DBU number)
+
+**New Features in Step 3:**
+
+**1. Ranking Display:**
+- Each player shows their **effective Carambus ranking** for the discipline
+- Based on the last 2-3 seasons (newest available)
+- Clickable: Link leads to the complete ranking table of the region with anchor to the discipline
+
+**2. Position Changes:**
+- **↑↓ Buttons:** Move player one position up/down
+- **Direct Input:** Enter new position directly (e.g., enter "5" and press Enter)
+- Changes are saved immediately
+- Group assignments in the tournament plan preview update automatically
+
+**3. Tournament Plan Preview:**
+- Shows **possible tournament plans** for the current number of participants
+- **Group assignments** are dynamically calculated and displayed
+- Updates automatically when the participant list changes
+- Shows number of rounds for each plan
+- **Proposed plan:** From invitation (if available) or automatically calculated
+- **Alternative plans:** Same discipline, other disciplines, "Round Robin" (for ≤6 participants)
 
 **Add Late Registration:**
 1. Scroll to the **"➕ Late Registration?"** section
@@ -200,6 +228,50 @@ The new wizard system consists of **6 main steps** that visually guide you throu
 - The **Tournament Monitor** shows the current status
 - Players can start games and enter results
 
+## During the Tournament: Tournament Status
+
+After the tournament starts, the **Wizard is hidden** and replaced by the **Tournament Status** view.
+
+**What does Tournament Status show?**
+
+**1. Tournament Overview:**
+- Current tournament phase (e.g., "Group Phase", "Final Round")
+- Progress bar (completed vs. planned games)
+- Number of finished games
+
+**2. Current Games:**
+- Shows up to 6 running games simultaneously
+- Live scores with current inning results
+- Status indicator: "▶️ Running" or "Waiting"
+- Assigned tables
+
+**3. Group Assignments:**
+- Overview of all groups
+- Players per group
+- NBV-compliant assignment
+
+**4. Seeding List:**
+- Final participant list with positions
+- **Carambus rankings** for each player
+- Club affiliation
+- For handicap tournaments: Ball goals
+- **Link to ranking table:** Leads to complete regional ranking table
+
+**5. Current Standings:**
+- Intermediate standings after group phases
+- Final placements after tournament completion
+- General average, highest series, etc.
+
+**Visible only to tournament director:**
+- **🎮 Open Tournament Monitor** button
+- Access to game management and table assignment
+- Result control and approval
+
+**For spectators:**
+- Clear view of tournament status
+- Live updates on game progress
+- No editing options
+
 ## Troubleshooting
 
 ### Problem: "No Seedings Found"
@@ -287,10 +359,11 @@ The downloaded data forms the basis for later calculated rankings.
 - Updated daily
 
 **Seeding List:**
-- The **order** according to current ranking
-- Best players first
-- Comes from the **invitation** from the tournament director
-- Imported in **Step 2**
+- The **order** according to effective ranking
+- Best players first (lowest ranking number = Position 1)
+- **Effective Ranking:** Based on the newest available season from the last 2-3 years
+- Comes from the **invitation** from the tournament director OR is automatically sorted by Carambus rankings
+- Imported or calculated in **Step 2**
 
 **Participant List:**
 - The players who **actually appear at the tournament**
