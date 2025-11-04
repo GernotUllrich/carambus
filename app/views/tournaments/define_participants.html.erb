@@ -101,20 +101,26 @@
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- active_seedings = @tournament.seedings.where(seeding_scope).to_a %>
           
-          <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
-          <%- active_seedings.sort_by! do |seeding| %>
-            <%- rank = player_rank[seeding.player_id] %>
-            <%- rank.present? ? rank : 999 %>
-          <%- end %>
-          
-          <%# Aktualisiere Positionen basierend auf Ranking-Sortierung %>
-          <%- active_seedings.each_with_index do |seeding, index| %>
-            <%- if seeding.position != (index + 1) %>
-              <%- seeding.update_column(:position, index + 1) %>
+          <%# Sortiere und aktualisiere Positionen NUR wenn keine Einladung hochgeladen wurde %>
+          <%- if @tournament.data['invitation_filename'].blank? %>
+            <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
+            <%- active_seedings.sort_by! do |seeding| %>
+              <%- rank = player_rank[seeding.player_id] %>
+              <%- rank.present? ? rank : 999 %>
             <%- end %>
+            
+            <%# Aktualisiere Positionen basierend auf Ranking-Sortierung %>
+            <%- active_seedings.each_with_index do |seeding, index| %>
+              <%- if seeding.position != (index + 1) %>
+                <%- seeding.update_column(:position, index + 1) %>
+              <%- end %>
+            <%- end %>
+          <%- else %>
+            <%# Mit Einladung: Sortiere nach Position aus der Einladung %>
+            <%- active_seedings.sort_by! { |s| s.position || 999 } %>
           <%- end %>
           
-          <%# Zeige zuerst aktive Seedings (mit Position) - jetzt nach position sortiert %>
+          <%# Zeige aktive Seedings (sortiert nach position) %>
           <%- active_seedings.each_with_index do |seeding, index| %>
             <%- player = seeding.player %>
             <%- prev_seeding = index > 0 ? active_seedings[index - 1] : nil %>
