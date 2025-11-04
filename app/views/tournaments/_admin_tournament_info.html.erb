@@ -1,5 +1,6 @@
 <%# Admin-Bereich: Geparste Einladung & Setzliste - Nur für Spielleiter %>
-<% if tournament_director?(current_user) %>
+<%# Wird ausgeblendet sobald das Turnier gestartet ist (Seeding finalisiert) %>
+<% if tournament_director?(current_user) && !@tournament.tournament_seeding_finished? %>
   <div class="admin-tournament-info-container bg-gray-50 border border-gray-300 rounded-lg p-6 mb-6">
     <h2 class="text-2xl font-bold mb-4 text-gray-900">
       🔧 Spielleiter-Informationen
@@ -102,11 +103,9 @@
                 class: 'btn btn-secondary btn-sm' %>
           <% end %>
           
-          <% unless @tournament.seeding_finished? %>
-            <%= link_to '✏️ Teilnehmer bearbeiten', 
-                define_participants_tournament_path(@tournament),
-                class: 'btn btn-secondary btn-sm' %>
-          <% end %>
+          <%= link_to '✏️ Teilnehmer bearbeiten', 
+              define_participants_tournament_path(@tournament),
+              class: 'btn btn-secondary btn-sm' %>
         </div>
       </div>
     </div>
