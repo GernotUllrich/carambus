@@ -200,19 +200,26 @@ or (tournament_plans.rulesystem ilike :search)",
     begin
       params = JSON.parse(executor_params)
       
-      # Zähle Runden über alle Gruppen (r1, r2, r3, ...)
+      # Zähle Runden über ALLE Keys (nicht nur Gruppen)
+      # Berücksichtigt: g1, g2, g3, aber auch p<9-10>, hf1, fin, etc.
       max_rounds = 0
-      (1..ngroups).each do |gn|
-        group_key = "g#{gn}"
-        next unless params[group_key].is_a?(Hash)
+      
+      params.each do |key, value|
+        # Überspringe RK (Rankings) und andere nicht relevante Keys
+        next if key == 'RK' || !value.is_a?(Hash)
         
-        sq = params[group_key]['sq']
-        next unless sq.is_a?(Hash)
-        
-        # Zähle die Runden-Keys (r1, r2, r3, ...)
-        round_keys = sq.keys.select { |k| k =~ /^r\d+$/ }
-        group_rounds = round_keys.map { |k| k[1..-1].to_i }.max || 0
-        max_rounds = group_rounds if group_rounds > max_rounds
+        # Suche nach 'sq' Hash oder direkt nach Runden-Keys
+        if value['sq'].is_a?(Hash)
+          # Gruppenphasen-Format: g1: { sq: { r1: {...}, r2: {...} } }
+          round_keys = value['sq'].keys.select { |k| k =~ /^r\d+$/ }
+          rounds = round_keys.map { |k| k[1..-1].to_i }.max || 0
+          max_rounds = rounds if rounds > max_rounds
+        else
+          # Platzierungsspiele-Format: hf1: { r5: {...} }
+          round_keys = value.keys.select { |k| k =~ /^r\d+$/ }
+          rounds = round_keys.map { |k| k[1..-1].to_i }.max || 0
+          max_rounds = rounds if rounds > max_rounds
+        end
       end
       
       max_rounds > 0 ? max_rounds : nil
