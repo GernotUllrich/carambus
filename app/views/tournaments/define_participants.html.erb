@@ -236,7 +236,7 @@
             <!-- Vorgeschlagener Plan (aus Einladung oder automatisch) -->
             <div class="mb-4 p-3 bg-white border border-blue-300 rounded">
               <div class="flex items-center justify-between mb-2">
-                <div>
+                <div class="flex-1">
                   <% if @tournament.data['extracted_plan_info'].present? %>
                     <span class="text-sm font-semibold text-green-700">📄 Aus Einladung:</span>
                   <% else %>
@@ -249,23 +249,35 @@
                     <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ NBV-konform</span>
                   <% end %>
                 </div>
+                <% if @proposed_discipline_tournament_plan.nrepeats.present? %>
+                  <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
+                    <%= @proposed_discipline_tournament_plan.nrepeats %> Runde<%= @proposed_discipline_tournament_plan.nrepeats > 1 ? 'n' : '' %>
+                  </span>
+                <% end %>
               </div>
               <p class="text-xs text-gray-600 mb-2"><%= @proposed_discipline_tournament_plan.rulesystem %></p>
               <%= render partial: "groups_compact", locals: { tournament_plan: @proposed_discipline_tournament_plan, groups: @groups } %>
             </div>
             
-            <!-- Alternative Pläne -->
+            <!-- Alternative Pläne (gleiche Disziplin) -->
             <% if @alternatives_same_discipline.any? %>
-              <details class="text-sm">
+              <details class="text-sm mb-3">
                 <summary class="cursor-pointer text-blue-800 hover:text-blue-900 font-semibold">
-                  🔄 <%= @alternatives_same_discipline.count %> Alternative Plan<%= @alternatives_same_discipline.count > 1 ? 'e' : '' %> anzeigen
+                  🔄 <%= @alternatives_same_discipline.count %> Alternative Plan<%= @alternatives_same_discipline.count > 1 ? 'e' : '' %> (<%= @tournament.discipline.name %>) anzeigen
                 </summary>
                 <div class="mt-3 space-y-2">
                   <% @alternatives_same_discipline.each do |alternative| %>
                     <div class="p-3 bg-white border border-gray-300 rounded">
                       <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-bold"><%= alternative.name %></span>
-                        <span class="text-xs text-gray-500"><%= alternative.rulesystem %></span>
+                        <div class="flex-1">
+                          <span class="text-sm font-bold"><%= alternative.name %></span>
+                          <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
+                        </div>
+                        <% if alternative.nrepeats.present? %>
+                          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
+                            <%= alternative.nrepeats %> Runde<%= alternative.nrepeats > 1 ? 'n' : '' %>
+                          </span>
+                        <% end %>
                       </div>
                       <% alternative_groups = TournamentMonitor.distribute_to_group(
                            @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
@@ -278,9 +290,53 @@
               </details>
             <% end %>
             
-            <p class="text-xs text-blue-700 mt-3">
-              💡 Die Gruppenzuordnungen ändern sich automatisch, wenn Sie die Teilnehmerliste bearbeiten.
-            </p>
+            <!-- Weitere Pläne (andere Disziplinen, Jeder-gegen-Jeden, KO) -->
+            <% if @alternatives_other_disciplines.any? %>
+              <details class="text-sm">
+                <summary class="cursor-pointer text-gray-700 hover:text-gray-900 font-semibold">
+                  ⚙️ <%= @alternatives_other_disciplines.count %> Weitere Plan<%= @alternatives_other_disciplines.count > 1 ? 'e' : '' %> anzeigen
+                  <% if @participant_count <= 6 %>
+                    <span class="ml-1 text-green-700">(inkl. "Jeder gegen Jeden")</span>
+                  <% end %>
+                </summary>
+                <div class="mt-3 space-y-2">
+                  <% @alternatives_other_disciplines.each do |alternative| %>
+                    <% is_round_robin = alternative.name =~ /jeder.*gegen.*jeden/i || alternative.name =~ /round.*robin/i || alternative.name == "Jgj#{@participant_count}" %>
+                    <div class="p-3 bg-white border <%= is_round_robin ? 'border-green-300 bg-green-50' : 'border-gray-300' %> rounded">
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex-1">
+                          <% if is_round_robin %>
+                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded mr-2">🎯 Jeder gegen Jeden</span>
+                          <% end %>
+                          <span class="text-sm font-bold"><%= alternative.name %></span>
+                          <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
+                        </div>
+                        <% if alternative.nrepeats.present? %>
+                          <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' %> px-2 py-1 rounded ml-2">
+                            <%= alternative.nrepeats %> Runde<%= alternative.nrepeats > 1 ? 'n' : '' %>
+                          </span>
+                        <% end %>
+                      </div>
+                      <% alternative_groups = TournamentMonitor.distribute_to_group(
+                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), 
+                           alternative.ngroups, 
+                           alternative.group_sizes) %>
+                      <%= render partial: "groups_compact", locals: { tournament_plan: alternative, groups: alternative_groups } %>
+                    </div>
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+            
+            <div class="text-xs text-blue-700 mt-3 space-y-1">
+              <p>💡 Die Gruppenzuordnungen ändern sich automatisch, wenn Sie die Teilnehmerliste bearbeiten.</p>
+              <% if @alternatives_other_disciplines.any? %>
+                <p class="text-gray-600">
+                  ℹ️ Alternative Pläne können ggf. mit reduziertem Ausspielziel arbeiten (z.B. 25% weniger Aufnahmen/Punkte), 
+                  um die Gesamtdauer zu verkürzen. Rundenzahl und durchschnittliche Spieldauer beachten.
+                </p>
+              <% end %>
+            </div>
           </div>
         <% elsif @participant_count > 0 %>
           <div class="mt-6 p-4 bg-gray-50 border border-gray-300 rounded">

@@ -435,13 +435,27 @@ class TournamentsController < ApplicationController
       end
     end
     
-    # Alternative Pläne (maximal 3)
+    # Alternative Pläne (gleiche Disziplin, maximal 3)
     @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
                                                     .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
                                                     .where(discipline_tournament_plans: {
                                                              players: @participant_count,
                                                              discipline_id: @tournament.discipline_id
                                                            }).limit(3).to_a.uniq
+    
+    # Weitere alternative Pläne (andere Disziplinen)
+    @alternatives_other_disciplines = ::TournamentPlan
+                                      .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) })
+                                      .where(players: @participant_count).to_a.uniq
+    
+    # Default-Plan (Jeder gegen Jeden) und KO-Plan hinzufügen falls nicht bereits vorhanden
+    @default_plan = TournamentPlan.default_plan(@participant_count)
+    @ko_plan = TournamentPlan.ko_plan(@participant_count)
+    @alternatives_other_disciplines |= [@default_plan, @ko_plan].compact
+    @alternatives_other_disciplines.uniq!
+    
+    # Entferne bereits vorhandene Pläne
+    @alternatives_other_disciplines -= [@proposed_discipline_tournament_plan] + @alternatives_same_discipline
   end
 
   def new_team; end
