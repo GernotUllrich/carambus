@@ -251,7 +251,7 @@
         method: :get
       },
       info: seedings_info_text(tournament),
-      warning: wizard_step_status(tournament, 3) == :active,
+      warning: wizard_step_status(tournament, 3) == :active ? "Dieser Schritt bleibt offen bis zur endgültigen Festschreibung in Schritt 4" : false,
       danger: false,
       help: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>
              • ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>

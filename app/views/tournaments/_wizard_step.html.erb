@@ -40,7 +40,7 @@
       <% if warning %>
         <div class="step-warning">
           <span class="warning-icon">⚠️</span>
-          Dieser Schritt ist noch offen
+          <%= warning.is_a?(String) ? warning : "Dieser Schritt ist noch offen" %>
         </div>
       <% end %>
 
