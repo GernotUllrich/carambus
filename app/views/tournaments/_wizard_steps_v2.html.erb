@@ -1,6 +1,6 @@
 <!-- Tournament Wizard Steps UI - Version 2 mit neuer Reihenfolge -->
-<%# Wizard wird nur vor Turnierbeginn angezeigt %>
-<% unless tournament.tournament_seeding_finished? || tournament.tournament_started %>
+<%# Wizard wird nur angezeigt bis das Turnier tatsächlich gestartet ist %>
+<% unless tournament.tournament_started %>
 
 <!-- Wizard Header mit Progress -->
 <div class="wizard-header">
