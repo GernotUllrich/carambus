@@ -23,16 +23,12 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log('Game Protocol Controller connected')
-    console.log('Table Monitor ID:', this.tableMonitorIdValue)
-    console.log('Has modal target:', this.hasModalTarget)
     this.editMode = false
     this.originalData = null
   }
 
   // Open the modal
   open(event) {
-    console.log('Game Protocol Modal: open() called')
     event?.preventDefault()
     this.loadProtocolData()
   }
@@ -40,25 +36,20 @@ export default class extends Controller {
   // Load protocol data from server
   async loadProtocolData() {
     try {
-      console.log('Fetching game protocol for table monitor:', this.tableMonitorIdValue)
       const response = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol.json`)
-      console.log('Response status:', response.status)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
       const data = await response.json()
-      console.log('Received data:', data)
       
       this.protocolData = data
       this.updatePlayerInfo()
       this.renderViewMode()
       this.modalTarget.classList.remove('hidden')
-      console.log('Modal opened successfully')
     } catch (error) {
       console.error('Error loading protocol data:', error)
-      console.error('Error stack:', error.stack)
       this.showError(`Fehler beim Laden des Spielprotokolls: ${error.message}`)
     }
   }
