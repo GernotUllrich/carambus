@@ -197,13 +197,18 @@
         
         <%# Zeige alternativen Button wenn Seedings vorhanden sind %>
         <% if show_alternative_button %>
-          <% seedings_count = clubcloud_seedings_count > 0 ? clubcloud_seedings_count : tournament.seedings.count %>
-          <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{seedings_count} Spieler, nach Rangliste sortiert)", 
-              use_clubcloud_as_participants_tournament_path(tournament),
-              method: :post,
-              class: 'btn btn-outline-primary ml-2',
-              data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste für #{tournament.discipline.name} sortiert." },
-              title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
+          <div class="mt-3 p-3 bg-gray-50 border border-gray-300 rounded">
+            <p class="text-sm text-gray-700 mb-2">
+              <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
+            </p>
+            <% seedings_count = clubcloud_seedings_count > 0 ? clubcloud_seedings_count : tournament.seedings.count %>
+            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{seedings_count} Spieler, nach Rangliste sortiert)", 
+                use_clubcloud_as_participants_tournament_path(tournament),
+                method: :post,
+                class: 'btn btn-outline-primary',
+                data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste für #{tournament.discipline.name} sortiert." },
+                title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
+          </div>
         <% end %>
         
       <% elsif step_2_status == :completed %>
@@ -214,12 +219,17 @@
         
         <%# Zeige alternativen Button auch bei completed wenn Seedings vorhanden sind %>
         <% if clubcloud_seedings_count > 0 %>
-          <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)", 
-              use_clubcloud_as_participants_tournament_path(tournament),
-              method: :post,
-              class: 'btn btn-outline-secondary btn-sm ml-2',
-              data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{clubcloud_seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste sortiert." },
-              title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
+          <div class="mt-2 p-2 bg-gray-50 border border-gray-300 rounded">
+            <p class="text-xs text-gray-700 mb-2">
+              <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
+            </p>
+            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)", 
+                use_clubcloud_as_participants_tournament_path(tournament),
+                method: :post,
+                class: 'btn btn-outline-secondary btn-sm',
+                data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{clubcloud_seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste sortiert." },
+                title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
+          </div>
         <% end %>
         
       <% else %>
