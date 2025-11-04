@@ -31,8 +31,41 @@
         </table>
         <%= custom_link_to "Neues Team", new_team_tournament_path %>
       <%- else %>
-        <%- diff = Season.current_season&.name == "2021/2022" ? 2 : 1 %>
-        <%- ranking_season = Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff) %>
+        <%- # Berechne Rankings basierend auf effective_gd (wie in rankings_controller.rb) %>
+        <%- current_season = Season.current_season %>
+        <%- seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse %>
+        
+        <%- # Lade alle Rankings für die Disziplin und Region %>
+        <%- if @tournament.organizer.is_a?(Region) %>
+          <%- all_rankings = PlayerRanking.joins(:player)
+                                          .where(season_id: seasons.pluck(:id), 
+                                                 discipline_id: @tournament.discipline_id,
+                                                 region_id: @tournament.organizer_id)
+                                          .to_a %>
+          <%- # Gruppiere nach Spieler %>
+          <%- rankings_by_player = all_rankings.group_by(&:player_id) %>
+          
+          <%- # Berechne effective_gd für jeden Spieler (neueste Saison zuerst) %>
+          <%- player_effective_gd = {} %>
+          <%- rankings_by_player.each do |player_id, rankings| %>
+            <%- gd_values = seasons.map do |season| %>
+              <%- ranking = rankings.find { |r| r.season_id == season.id } %>
+              <%- ranking&.gd %>
+            <%- end %>
+            <%- # effective_gd = aktuellste Saison || Saison davor || Saison davor-1 %>
+            <%- effective_gd = gd_values[2] || gd_values[1] || gd_values[0] %>
+            <%- player_effective_gd[player_id] = effective_gd if effective_gd.present? %>
+          <%- end %>
+          
+          <%- # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang %>
+          <%- sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd } %>
+          <%- player_rank = {} %>
+          <%- sorted_players.each_with_index do |(player_id, gd), index| %>
+            <%- player_rank[player_id] = index + 1 %>
+          <%- end %>
+        <%- else %>
+          <%- player_rank = {} %>
+        <%- end %>
         
         <div class="flex items-center justify-between mb-4">
           <h1 class="h3"><%= @tournament.title %> - <%= @tournament.season.name %>
@@ -47,7 +80,7 @@
             <li>✓ Haken setzen/entfernen = Spieler als Teilnehmer markieren/streichen</li>
             <li><% if @tournament.handicap_tournier %>✓ Vorgaben (Punktziel) anpassen falls nötig<% else %>✓ Änderungen werden sofort gespeichert<% end %></li>
             <li>🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken</li>
-            <li>📊 <strong>Ranking-Spalte:</strong> Zeigt Carambus-Ranking für <%= @tournament.discipline.name %> (Saison <%= ranking_season&.name %>), klickbar zur Rangliste</li>
+            <li>📊 <strong>Ranking-Spalte:</strong> Zeigt aktuelles Carambus-Ranking für <%= @tournament.discipline.name %> (letzten 2-3 Saisons), klickbar zur Rangliste</li>
             <li>➕ Kurzfristig nachmelden? Checkbox aktivieren!</li>
           </ul>
         </div>
@@ -73,8 +106,8 @@
             <%- player = seeding.player %>
             <%- prev_seeding = index > 0 ? active_seedings[index - 1] : nil %>
             <%- next_seeding = index < active_seedings.length - 1 ? active_seedings[index + 1] : nil %>
-            <%- player_ranking = player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: ranking_season).first %>
-            <%- rank = player_ranking&.rank %>
+            <%- rank = player_rank[player.id] %>
+            <%- player_region = @tournament.organizer.is_a?(Region) ? @tournament.organizer : player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: seasons.pluck(:id)).first&.region %>
             <tr data-seeding-id="<%= seeding.id %>" class="<%= seeding.state == 'no_show' ? 'opacity-50' : '' %>">
               <td class="text-center font-semibold"><%= seeding.position || (index + 1) %></td>
               <td class="text-center">
@@ -110,11 +143,11 @@
               </td>
               <td><%= player.fullname %></td>
               <td class="text-center">
-                <% if rank.present? %>
+                <% if rank.present? && player_region.present? %>
                   <%= link_to rank, 
-                      ranking_path(player_ranking.region) + "#discipline-#{@tournament.discipline_id}",
+                      ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 hover:text-blue-800 underline',
-                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_ranking.region.shortname})",
+                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400">-</span>
@@ -141,19 +174,19 @@
           <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a.reject { |p| players_with_seedings.include?(p.id) } %>
           
           <%- (club_players + guest_players).each do |player| %>
-            <%- player_ranking = player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: ranking_season).first %>
-            <%- rank = player_ranking&.rank %>
+            <%- rank = player_rank[player.id] %>
+            <%- player_region = @tournament.organizer.is_a?(Region) ? @tournament.organizer : player.player_rankings.where(discipline_id: @tournament.discipline_id, season_id: seasons.pluck(:id)).first&.region %>
             <tr>
               <td class="text-center text-gray-400">-</td>
               <td></td>
               <td></td>
               <td class="text-gray-500"><%= player.fullname %></td>
               <td class="text-center">
-                <% if rank.present? %>
+                <% if rank.present? && player_region.present? %>
                   <%= link_to rank, 
-                      ranking_path(player_ranking.region) + "#discipline-#{@tournament.discipline_id}",
+                      ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
                       class: 'text-blue-600 hover:text-blue-800 underline text-sm',
-                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_ranking.region.shortname})",
+                      title: "Rang #{rank} in #{@tournament.discipline.name} (#{player_region.shortname})",
                       target: '_blank' %>
                 <% else %>
                   <span class="text-gray-400 text-sm">-</span>
