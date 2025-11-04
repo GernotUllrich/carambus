@@ -489,6 +489,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"render_last_innings(#{last_n}, #{role})"} <<<\
 ------------------------------------------"
     end
+    
+    # Return empty string if role is nil or not valid
+    return "".html_safe if role.nil? || !data.key?(role)
+    
     player_ix = role == "playera" ? 1 : 2
     show_innings = Array(data[role].andand["innings_list"])
     show_innings_fouls = Array(data[role].andand["innings_foul_list"])
@@ -512,9 +516,11 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       (prefix.to_s + ret.join(", ")).html_safe
     end
   rescue StandardError => e
-    Rails.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}" if debug
+    Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
+    Rails.logger.error "Backtrace: #{e.backtrace&.first(10)&.join("\n")}"
+    Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand['innings_list'].inspect}, innings_redo_list=#{data[role].andand['innings_redo_list'].inspect}"
     Tournament.logger.info "ERROR: #{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError unless Rails.env == "production"
+    raise StandardError, "render_last_innings failed: #{e.message}" unless Rails.env == "production"
   end
 
   def warmup_modal_should_be_open?
