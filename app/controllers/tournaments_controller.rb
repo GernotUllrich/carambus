@@ -573,7 +573,7 @@ class TournamentsController < ApplicationController
   end
 
   # POST /tournaments/:id/use_clubcloud_as_participants
-  # Konvertiert ClubCloud-Seedings zu lokalen Seedings und leitet zu Schritt 3 weiter
+  # Konvertiert ClubCloud-Seedings zu lokalen Seedings, sortiert nach Rangliste und leitet zu Schritt 3 weiter
   def use_clubcloud_as_participants
     clubcloud_seedings = @tournament.seedings
                                      .where("seedings.id < #{Seeding::MIN_ID}")
@@ -585,18 +585,46 @@ class TournamentsController < ApplicationController
         # Lösche alte lokale Seedings
         @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
         
-        # Erstelle neue in der Reihenfolge der ClubCloud-Seedings
-        clubcloud_seedings.each_with_index do |cc_seeding, index|
+        # Erstelle neue lokale Seedings (ohne Position, wird gleich sortiert)
+        clubcloud_seedings.each do |cc_seeding|
           @tournament.seedings.create!(
             player_id: cc_seeding.player_id,
-            position: index + 1,
             balls_goal: cc_seeding.balls_goal
           )
         end
       end
       
+      # Sortiere nach Rangliste (verwende die gleiche Logik wie order_by_ranking_or_handicap)
+      if local_server?
+        hash = {}
+        @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").each do |seeding|
+          if @tournament.handicap_tournier
+            # Bei Handicap-Turnieren: Nach Vorgabe sortieren (höhere Vorgabe = schwächer = höhere Position)
+            hash[seeding] = -seeding.balls_goal.to_i
+          else
+            # Normale Turniere: Nach Rangliste sortieren
+            diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+            hash[seeding] = if @tournament.team_size > 1
+                              999
+                            else
+                              seeding.player.player_rankings.where(
+                                discipline_id: @tournament.discipline_id,
+                                season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff)
+                              ).first&.rank.presence || 999
+                            end
+          end
+        end
+        
+        # Sortiere und setze Positionen
+        sorted = hash.to_a.sort_by { |a| a[1] }
+        sorted.each_with_index do |a, ix|
+          seeding, = a
+          seeding.update(position: ix + 1)
+        end
+      end
+      
       redirect_to define_participants_tournament_path(@tournament),
-                  notice: "✅ Meldeliste von ClubCloud als Teilnehmerliste übernommen (#{clubcloud_seedings.count} Spieler)"
+                  notice: "✅ Meldeliste übernommen und nach Rangliste sortiert (#{clubcloud_seedings.count} Spieler)"
     elsif @tournament.seedings.any?
       # Falls keine ClubCloud-Seedings, aber andere Seedings existieren
       # Überspringe die Konvertierung und gehe direkt zu Schritt 3
