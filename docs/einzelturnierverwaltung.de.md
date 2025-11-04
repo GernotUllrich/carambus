@@ -38,15 +38,18 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
 
 ### Schritt 2: Setzliste aus Einladung übernehmen
 
-**Ziel:** Die offizielle Setzliste aus der Einladung des Landessportwartes übernehmen.
+**Ziel:** Die offizielle Setzliste aus der Einladung des Landessportwartes übernehmen, oder direkt mit der Meldeliste weitergehen.
 
 **Was passiert hier?**
-- Sie laden eine PDF-Datei oder ein Screenshot der Einladung hoch
+- **Option 1:** Sie laden eine PDF-Datei oder ein Screenshot der Einladung hoch
 - Das System extrahiert automatisch:
   - Spielernamen und Positionen
   - **Vorgaben (Handicap-Punkte)** für Vorgabeturniere
   - **Gruppenbildung** (wenn in der Einladung vorhanden)
   - **Turniermodus** (z.B. "T21 - Turnier wird im Modus...")
+- **Option 2 (Alternative):** Wenn keine Einladung vorliegt, können Sie direkt mit der Meldeliste zu Schritt 3 weitergehen
+  - Die Spieler werden automatisch nach dem **Carambus-Ranking** für die Disziplin sortiert
+  - Die Sortierung basiert auf den effektiven Rankings (neueste verfügbare Saison aus den letzten 2-3 Jahren)
 
 **Wie funktioniert es?**
 1. Klicken Sie auf **"Einladung hochladen"**
@@ -80,12 +83,37 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
 **Ziel:** Die finale Teilnehmerliste erstellen und anpassen.
 
 **Was passiert hier?**
-- Sie sehen die aktuelle Teilnehmerliste
+- Sie sehen die aktuelle Teilnehmerliste mit folgenden Informationen:
+  - Position (Setzliste)
+  - Spielername und Club
+  - **Carambus-Ranking** für die Disziplin (mit Link zur Rangliste)
+  - Vorgabe (bei Vorgabeturnieren)
 - Sie können:
   - **No-Shows** markieren (Spieler erscheint nicht)
   - **Vorgaben korrigieren** (bei Vorgabeturnieren)
-  - **Positionen anpassen** (falls nötig)
+  - **Positionen anpassen** mit ↑↓ Buttons oder direkter Eingabe
   - **Nachmelder hinzufügen** (mit DBU-Nummer)
+
+**Neue Features in Schritt 3:**
+
+**1. Ranking-Anzeige:**
+- Jeder Spieler zeigt sein **effektives Carambus-Ranking** für die Disziplin
+- Basierend auf den letzten 2-3 Saisons (neueste verfügbare)
+- Klickbar: Link führt zur vollständigen Rangliste der Region mit Anchor zur Disziplin
+
+**2. Positionsänderung:**
+- **↑↓ Buttons:** Spieler eine Position nach oben/unten verschieben
+- **Direkte Eingabe:** Neue Position direkt eingeben (z.B. "5" eingeben und Enter)
+- Änderungen werden sofort gespeichert
+- Die Gruppenzuordnungen in der Turnierplan-Vorschau aktualisieren sich automatisch
+
+**3. Turnierplan-Vorschau:**
+- Zeigt **mögliche Turnierpläne** für die aktuelle Teilnehmerzahl
+- **Gruppenzuordnungen** werden dynamisch berechnet und angezeigt
+- Aktualisiert sich automatisch bei Änderungen an der Teilnehmerliste
+- Zeigt Anzahl der Runden für jeden Plan
+- **Vorgeschlagener Plan:** Aus Einladung (falls vorhanden) oder automatisch berechnet
+- **Alternative Pläne:** Gleiche Disziplin, andere Disziplinen, "Jeder gegen Jeden" (bei ≤6 Teilnehmern)
 
 **Nachmelder hinzufügen:**
 1. Scrollen Sie zum Abschnitt **"➕ Kurzfristiger Nachmelder?"**
@@ -200,6 +228,50 @@ Das neue Wizard-System besteht aus **6 Hauptschritten**, die Sie visuell durch d
 - Der **Tournament Monitor** zeigt den aktuellen Stand
 - Spieler können Spiele starten und Ergebnisse eingeben
 
+## Während des Turniers: Tournament Status
+
+Nach dem Start des Turniers wird der **Wizard ausgeblendet** und durch die **Tournament Status**-Ansicht ersetzt.
+
+**Was zeigt der Tournament Status?**
+
+**1. Turnier-Übersicht:**
+- Aktuelle Turnier-Phase (z.B. "Gruppenphase", "Finalrunde")
+- Fortschrittsbalken (gespielte vs. geplante Spiele)
+- Anzahl der abgeschlossenen Spiele
+
+**2. Aktuelle Spiele:**
+- Zeigt bis zu 6 laufende Spiele gleichzeitig
+- Live-Punktestände mit aktuellen Inning-Ergebnissen
+- Status-Anzeige: "▶️ Läuft" oder "Wartet"
+- Zugeordnete Tische
+
+**3. Gruppeneinteilung:**
+- Übersicht über alle Gruppen
+- Spieler je Gruppe
+- NBV-konforme Zuordnung
+
+**4. Setzliste:**
+- Finale Teilnehmerliste mit Positionen
+- **Carambus-Rankings** für jeden Spieler
+- Club-Zugehörigkeit
+- Bei Vorgabeturnieren: Ballziele
+- **Link zur Rangliste:** Führt zur vollständigen Rangliste der Region
+
+**5. Aktuelle Platzierungen:**
+- Zwischenstände nach Gruppenphasen
+- Finale Platzierungen nach Turnierablauf
+- Generaldurchschnitt, Höchstserie, etc.
+
+**Nur für Spielleiter sichtbar:**
+- **🎮 Tournament Monitor öffnen** Button
+- Zugriff auf Spielverwaltung und Tischzuordnung
+- Ergebnis-Kontrolle und Freigabe
+
+**Für Zuschauer:**
+- Übersichtliche Ansicht des Turnierstands
+- Live-Updates bei Spielfortschritt
+- Keine Bearbeitungsmöglichkeiten
+
 ## Troubleshooting
 
 ### Problem: "Keine Seedings gefunden"
@@ -287,10 +359,11 @@ Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rank
 - Wird täglich aktualisiert
 
 **Setzliste:**
-- Die **Reihenfolge** nach aktuellem Ranking
-- Beste Spieler zuerst
-- Kommt aus der **Einladung** vom Landessportwart
-- Wird in **Schritt 2** übernommen
+- Die **Reihenfolge** nach effektivem Ranking
+- Beste Spieler zuerst (niedrigste Ranking-Nummer = Position 1)
+- **Effektives Ranking:** Basiert auf der neuesten verfügbaren Saison aus den letzten 2-3 Jahren
+- Kommt aus der **Einladung** vom Landessportwart ODER wird automatisch nach Carambus-Rankings sortiert
+- Wird in **Schritt 2** übernommen oder berechnet
 
 **Teilnehmerliste:**
 - Die Spieler, die **tatsächlich zum Turnier erscheinen**
