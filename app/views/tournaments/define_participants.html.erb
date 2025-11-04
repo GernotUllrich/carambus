@@ -101,16 +101,10 @@
           <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- active_seedings = @tournament.seedings.where(seeding_scope).to_a %>
           
-          <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst nach Position %>
+          <%# Sortiere Seedings nach berechnetem Ranking (falls vorhanden), sonst 999 %>
           <%- active_seedings.sort_by! do |seeding| %>
             <%- rank = player_rank[seeding.player_id] %>
-            <%- if rank.present? %>
-              <%- rank %>
-            <%- elsif seeding.position.present? %>
-              <%- 1000 + seeding.position.to_i %>
-            <%- else %>
-              <%- 9999 %>
-            <%- end %>
+            <%- rank.present? ? rank : 999 %>
           <%- end %>
           
           <%# Zeige zuerst aktive Seedings (mit Position) %>
