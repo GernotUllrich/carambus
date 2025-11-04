@@ -152,6 +152,39 @@
       seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
                       "seedings.id >= #{Seeding::MIN_ID}" : 
                       "seedings.id < #{Seeding::MIN_ID}"
+      
+      # Berechne Rankings basierend auf effective_gd (wie in define_participants)
+      current_season = Season.current_season
+      seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
+      player_rank = {}
+      
+      if tournament.organizer.is_a?(Region)
+        # Lade alle Rankings für die Disziplin und Region
+        all_rankings = PlayerRanking.where(discipline_id: tournament.discipline_id,
+                                           season_id: seasons.pluck(:id),
+                                           region_id: tournament.organizer_id).to_a
+        
+        # Gruppiere nach Spieler
+        rankings_by_player = all_rankings.group_by(&:player_id)
+        
+        # Berechne effective_gd für jeden Spieler (neueste Saison zuerst)
+        player_effective_gd = {}
+        rankings_by_player.each do |player_id, rankings|
+          gd_values = seasons.map do |season|
+            ranking = rankings.find { |r| r.season_id == season.id }
+            ranking&.gd
+          end
+          # effective_gd = aktuellste Saison || Saison davor || Saison davor-1
+          effective_gd = gd_values[2] || gd_values[1] || gd_values[0]
+          player_effective_gd[player_id] = effective_gd if effective_gd.present?
+        end
+        
+        # Sortiere Spieler nach effective_gd (absteigend) und ermittle Rang
+        sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
+        sorted_players.each_with_index do |(player_id, gd), index|
+          player_rank[player_id] = index + 1
+        end
+      end
     %>
     <div class="mt-6 pt-4 border-t border-blue-300" id="tournament-seedings-<%= tournament.id %>">
       <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 Setzliste</h3>
@@ -180,21 +213,8 @@
                   <% if tournament.handicap_tournier? %>
                     <%= seeding.balls_goal %>
                   <% else %>
-                    <% 
-                      # Verwende effective_gd Logic für Rankings (neueste Saison mit GD > 0)
-                      player_rankings = seeding.player.player_rankings.where(discipline_id: tournament.discipline_id)
-                      ranking = nil
-                      [0, -1, -2].each do |offset|
-                        season = Season.find_by(ba_id: Season.current_season.ba_id + offset)
-                        next unless season
-                        pr = player_rankings.find_by(season_id: season.id)
-                        if pr && pr.gd.to_f > 0
-                          ranking = pr
-                          break
-                        end
-                      end
-                    %>
-                    <%= ranking&.rank || "-" %>
+                    <% rank = player_rank[seeding.player_id] %>
+                    <%= rank || "-" %>
                   <% end %>
                 </td>
               </tr>
