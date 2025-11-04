@@ -1,4 +1,6 @@
 <!-- Tournament Wizard Steps UI - Version 2 mit neuer Reihenfolge -->
+<%# Wizard wird nur vor Turnierbeginn angezeigt %>
+<% unless tournament.tournament_seeding_finished? %>
 
 <!-- Wizard Header mit Progress -->
 <div class="wizard-header">
@@ -379,4 +381,6 @@
     <dd class="ml-4">Wer ist <em>tatsächlich da</em> am Turniertag (= Setzliste ± Änderungen)</dd>
   </dl>
 </div>
+
+<% end %>
 
