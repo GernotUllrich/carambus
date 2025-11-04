@@ -107,7 +107,14 @@
             <%- rank.present? ? rank : 999 %>
           <%- end %>
           
-          <%# Zeige zuerst aktive Seedings (mit Position) %>
+          <%# Aktualisiere Positionen basierend auf Ranking-Sortierung %>
+          <%- active_seedings.each_with_index do |seeding, index| %>
+            <%- if seeding.position != (index + 1) %>
+              <%- seeding.update_column(:position, index + 1) %>
+            <%- end %>
+          <%- end %>
+          
+          <%# Zeige zuerst aktive Seedings (mit Position) - jetzt nach position sortiert %>
           <%- active_seedings.each_with_index do |seeding, index| %>
             <%- player = seeding.player %>
             <%- prev_seeding = index > 0 ? active_seedings[index - 1] : nil %>
