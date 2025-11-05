@@ -65,7 +65,13 @@ class TableMonitor < ApplicationRecord
 
   delegate :name, to: :table, allow_nil: true
 
+  # Flag to skip callbacks during batch operations (e.g. start_game)
+  attr_accessor :skip_update_callbacks
+
   after_update_commit lambda {
+    # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
+    return if skip_update_callbacks
+    
     #broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element])
     get_options!(I18n.locale)
@@ -1859,6 +1865,11 @@ data[\"allow_overflow\"].present?")
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"start_game(#{options.inspect})"} <<<------------------------------------------"
     end
+    
+    # Disable callbacks during start_game to prevent redundant background jobs
+    # (start_game does 3 saves which would trigger 6 background jobs otherwise)
+    self.skip_update_callbacks = true
+    
     # Unlink any existing game from this table monitor (preserve game history)
     if game.present?
       existing_game_id = game.id
@@ -1947,11 +1958,18 @@ data[\"allow_overflow\"].present?")
     deep_merge_data!(result)
     self.copy_from = nil
     save!
+    
+    # Re-enable callbacks and manually enqueue jobs ONCE at the end
+    self.skip_update_callbacks = false
+    TableMonitorJob.perform_later(self, "table_scores")
+    TableMonitorJob.perform_later(self, "")
+    
     finish_warmup! if options["discipline_a"] =~ /shootout/i && may_finish_warmup?
     true
   rescue StandardError => e
     msg = "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Rails.logger.info msg if DEBUG
+    self.skip_update_callbacks = false  # Ensure callbacks are re-enabled on error
     raise StandardError unless Rails.env == "production"
   end
 
