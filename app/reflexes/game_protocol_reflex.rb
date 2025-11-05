@@ -64,7 +64,7 @@ class GameProtocolReflex < ApplicationReflex
   private
   
   def load_table_monitor
-    table_monitor_id = element.dataset['tableMonitorId']
+    table_monitor_id = element.dataset['table-monitor-id']
     Rails.logger.info "🔍 Loading TableMonitor ##{table_monitor_id}" if TableMonitor::DEBUG
     @table_monitor = TableMonitor.find(table_monitor_id)
   rescue ActiveRecord::RecordNotFound => e
