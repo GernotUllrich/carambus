@@ -2182,19 +2182,20 @@ data[\"allow_overflow\"].present?")
     innings_list_b = data.dig('playerb', 'innings_list') || []
     innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
     
-    # Get active player and current inning number
+    # Get active player
     active_player = data.dig('current_inning', 'active_player')
     
-    # Number of rows = current inning number shown in center of scoreboard
-    # This is the single source of truth for how many innings are displayed
-    num_rows = data.dig('current_inning', 'number').to_i
+    # Number of rows = max innings counter from scoreboard
+    # These counters represent which inning each player is currently in
+    innings_counter_a = data.dig('playera', 'innings').to_i
+    innings_counter_b = data.dig('playerb', 'innings').to_i
+    num_rows = [innings_counter_a, innings_counter_b].max
     num_rows = [num_rows, 1].max  # At least 1
     
     # DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: current_inning.number=#{data.dig('current_inning', 'number')}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_counter_a=#{innings_counter_a}, innings_counter_b=#{innings_counter_b}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
     Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}" if DEBUG
     Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_redo_a=#{innings_redo_a.inspect}, innings_redo_b=#{innings_redo_b.inspect}" if DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: playera.innings=#{data.dig('playera', 'innings')}, playerb.innings=#{data.dig('playerb', 'innings')}" if DEBUG
     
     # Build arrays with EXACTLY num_rows
     innings_a = []
