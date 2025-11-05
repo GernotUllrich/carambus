@@ -2422,7 +2422,136 @@ data[\"allow_overflow\"].present?")
     end
   end
 
+  # Protocol editing methods for GameProtocolReflex
+  
+  # Increment points for a specific inning and player
+  def increment_inning_points(inning_index, player)
+    return unless playing? || set_over?
+    
+    # Get current innings history
+    history = innings_history
+    player_data = history["player_#{player}".to_sym]
+    innings_array = player_data[:innings]
+    
+    # Increment the value
+    current_value = innings_array[inning_index] || 0
+    innings_array[inning_index] = current_value + 1
+    
+    # Update the data structure
+    update_player_innings_data(player, innings_array)
+  end
+  
+  # Decrement points for a specific inning and player
+  def decrement_inning_points(inning_index, player)
+    return unless playing? || set_over?
+    
+    # Get current innings history
+    history = innings_history
+    player_data = history["player_#{player}".to_sym]
+    innings_array = player_data[:innings]
+    
+    # Decrement the value (min 0)
+    current_value = innings_array[inning_index] || 0
+    innings_array[inning_index] = [current_value - 1, 0].max
+    
+    # Update the data structure
+    update_player_innings_data(player, innings_array)
+  end
+  
+  # Delete an inning (only if both players have 0 points)
+  def delete_inning(inning_index)
+    return { success: false, error: 'Not in playing state' } unless playing? || set_over?
+    
+    # Get current innings history
+    history = innings_history
+    innings_a = history[:player_a][:innings]
+    innings_b = history[:player_b][:innings]
+    
+    # Check if both players have 0 points in this inning
+    value_a = innings_a[inning_index] || 0
+    value_b = innings_b[inning_index] || 0
+    
+    if value_a != 0 || value_b != 0
+      return { success: false, error: 'Nur Zeilen mit 0:0 können gelöscht werden' }
+    end
+    
+    # Remove the inning from both arrays
+    innings_a.delete_at(inning_index)
+    innings_b.delete_at(inning_index)
+    
+    # Update both players
+    update_player_innings_data('playera', innings_a)
+    update_player_innings_data('playerb', innings_b)
+    
+    # Decrement innings counter for both players
+    data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
+    data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    
+    data_will_change!
+    save!
+    
+    { success: true }
+  rescue StandardError => e
+    Rails.logger.error "ERROR deleting inning: #{e.message}"
+    { success: false, error: e.message }
+  end
+  
+  # Insert an empty inning before the specified index
+  def insert_inning(before_index)
+    return unless playing? || set_over?
+    
+    # Get current innings history
+    history = innings_history
+    innings_a = history[:player_a][:innings]
+    innings_b = history[:player_b][:innings]
+    
+    # Insert 0 at the specified position
+    innings_a.insert(before_index, 0)
+    innings_b.insert(before_index, 0)
+    
+    # Update both players
+    update_player_innings_data('playera', innings_a)
+    update_player_innings_data('playerb', innings_b)
+    
+    # Increment innings counter for both players
+    data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
+    data['playerb']['innings'] = (data['playerb']['innings'].to_i + 1)
+    
+    data_will_change!
+    save!
+  end
+
   private
+  
+  # Update innings data for a player from a complete innings array
+  def update_player_innings_data(player, innings_array)
+    current_innings = data[player]['innings'].to_i
+    
+    # Split into innings_list (completed) and innings_redo_list (current)
+    if current_innings > 0 && innings_array.length >= current_innings
+      data[player]['innings_list'] = innings_array[0...(current_innings - 1)]
+      data[player]['innings_redo_list'] = [innings_array[current_innings - 1] || 0]
+    else
+      data[player]['innings_list'] = []
+      data[player]['innings_redo_list'] = [innings_array.first || 0]
+    end
+    
+    # Update result (total score)
+    data[player]['result'] = innings_array.compact.sum
+    
+    # Update HS (high score)
+    data[player]['hs'] = innings_array.compact.max || 0
+    
+    # Update GD (average)
+    data[player]['gd'] = if current_innings > 0
+                            format("%.3f", data[player]['result'].to_f / current_innings)
+                          else
+                            0.0
+                          end
+    
+    data_will_change!
+    save!
+  end
 
   # Calculate running totals for a player's innings
   def calculate_running_totals(player_id)
