@@ -444,13 +444,13 @@ export default class extends Controller {
       const isLastInning = (i === maxInnings - 1)
       const isCurrentInning = (i + 1) === data.current_inning.number
       
-      // Last inning is the current (unfinished) one - show in red
+      // Last inning is the current (unfinished) one - show in red with yellow background
       const rowClass = isLastInning 
-        ? 'border-b border-gray-200 dark:border-gray-700' 
+        ? 'border-b border-gray-200 dark:border-gray-700 bg-yellow-50 dark:bg-yellow-900 bg-opacity-30' 
         : 'border-b border-gray-200 dark:border-gray-700'
       
-      const inningAClass = isLastInning ? 'text-red-400 dark:text-red-400 font-bold' : ''
-      const inningBClass = isLastInning ? 'text-red-400 dark:text-red-400 font-bold' : ''
+      const inningAClass = isLastInning ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      const inningBClass = isLastInning ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
       const arrow = isCurrentInning ? ' <span class="text-red-500">◄──</span>' : ''
       
       html += `
@@ -492,13 +492,13 @@ export default class extends Controller {
         ? "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" 
         : "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
       
-      // Mark the last inning as current (unfinished) with red text
+      // Mark the last inning as current (unfinished) with red text and yellow background
       const isLastInning = (i === maxInnings - 1)
       const inputClassA = isLastInning 
-        ? "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-red-400 dark:text-red-400 font-bold"
+        ? "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg"
         : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
       const inputClassB = isLastInning 
-        ? "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-red-400 dark:text-red-400 font-bold"
+        ? "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg"
         : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
       
       html += `
