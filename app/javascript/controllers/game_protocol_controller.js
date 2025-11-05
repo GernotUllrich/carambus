@@ -11,7 +11,6 @@ export default class extends Controller {
     "modal",
     "tbody",
     "editButton",
-    "saveButton",
     "cancelButton",
     "viewActions",
     "editActions",

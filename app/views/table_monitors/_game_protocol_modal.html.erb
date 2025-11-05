@@ -24,7 +24,7 @@
          data-game-protocol-target="warningBanner">
       <div class="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
         <span class="text-xl">⚠️</span>
-        <span class="font-semibold">Bearbeitungsmodus – Änderungen werden erst nach [Speichern] übernommen</span>
+        <span class="font-semibold">Bearbeitungsmodus – Änderungen werden sofort auf dem Server gespeichert</span>
       </div>
     </div>
     
@@ -94,15 +94,10 @@
       
       <!-- Edit Mode Actions (hidden by default) -->
       <div data-game-protocol-target="editActions" class="hidden flex gap-3">
-        <button class="btn btn-success px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-                data-action="click->game-protocol#save"
-                data-game-protocol-target="saveButton">
-          💾 Speichern
-        </button>
         <button class="btn btn-danger px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
                 data-action="click->game-protocol#cancelEdit"
                 data-game-protocol-target="cancelButton">
-          Abbrechen
+          Schließen
         </button>
       </div>
       
