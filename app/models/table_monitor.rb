@@ -2283,28 +2283,28 @@ data[\"allow_overflow\"].present?")
         return { success: false, error: 'Negative Punktzahlen sind nicht erlaubt' }
       end
       
-      # Update playera
+      # Read both arrays first
       innings_a = new_playera_innings.map(&:to_i)
-      current_innings_a = data.dig('playera', 'innings').to_i
+      innings_b = new_playerb_innings.map(&:to_i)
       
       # Current number of rows shown in modal is max(innings_a, innings_b)
       current_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
       
-      # Only change innings if the number of rows changed (INSERT/DELETE)
-      # Frontend now always sends all rows (including empty as 0)
-      if innings_a.length > current_rows
-        # Rows were added
-        data['playera']['innings'] = innings_a.length
-        current_innings_a = innings_a.length
-      elsif innings_a.length < current_rows && innings_a.length > 0
-        # Rows were deleted
-        data['playera']['innings'] = innings_a.length
-        current_innings_a = innings_a.length
-      end
-      # Otherwise, keep innings as is (only values changed)
+      # Determine new innings number based on max of both arrays
+      new_rows = [innings_a.length, innings_b.length].max
       
-      # Distribute values based on current innings counter
-      # innings is 1-based: if innings=2, then innings_list gets first value, redo_list gets second
+      # Only change innings if the number of rows changed (INSERT/DELETE)
+      if new_rows != current_rows
+        # Structure changed - update both players to the same innings number
+        data['playera']['innings'] = new_rows
+        data['playerb']['innings'] = new_rows
+      end
+      
+      # Now distribute values using the (possibly updated) innings numbers
+      current_innings_a = data['playera']['innings']
+      current_innings_b = data['playerb']['innings']
+      
+      # Distribute values for Player A
       if innings_a.length >= current_innings_a && current_innings_a > 0
         # Split at current innings position
         data['playera']['innings_list'] = innings_a[0...(current_innings_a - 1)]
@@ -2317,7 +2317,6 @@ data[\"allow_overflow\"].present?")
         # current_innings_a is 0 or invalid
         data['playera']['innings_list'] = []
         data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[0]]
-        data['playera']['innings'] = [innings_a.length, 1].max
       end
       
       data['playera']['result'] = innings_a.sum
@@ -2334,26 +2333,7 @@ data[\"allow_overflow\"].present?")
       data['playera']['innings_foul_list'] = current_fouls_a + Array.new([target_length_a - current_fouls_a.length, 0].max, 0)
       data['playera']['innings_foul_redo_list'] = [0]
       
-      # Update playerb
-      innings_b = new_playerb_innings.map(&:to_i)
-      current_innings_b = data.dig('playerb', 'innings').to_i
-      
-      # Use the same current_rows as for player A
-      # (already calculated above)
-      
-      # Only change innings if the number of rows changed (INSERT/DELETE)
-      if innings_b.length > current_rows
-        # Rows were added
-        data['playerb']['innings'] = innings_b.length
-        current_innings_b = innings_b.length
-      elsif innings_b.length < current_rows && innings_b.length > 0
-        # Rows were deleted
-        data['playerb']['innings'] = innings_b.length
-        current_innings_b = innings_b.length
-      end
-      # Otherwise, keep innings as is (only values changed)
-      
-      # Distribute values based on current innings counter
+      # Distribute values for Player B
       if innings_b.length >= current_innings_b && current_innings_b > 0
         data['playerb']['innings_list'] = innings_b[0...(current_innings_b - 1)]
         data['playerb']['innings_redo_list'] = [innings_b[current_innings_b - 1] || 0]
@@ -2363,7 +2343,6 @@ data[\"allow_overflow\"].present?")
       else
         data['playerb']['innings_list'] = []
         data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[0]]
-        data['playerb']['innings'] = [innings_b.length, 1].max
       end
       
       data['playerb']['result'] = innings_b.sum
