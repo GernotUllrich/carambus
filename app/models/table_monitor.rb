@@ -2182,12 +2182,12 @@ data[\"allow_overflow\"].present?")
     innings_list_b = data.dig('playerb', 'innings_list') || []
     innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
     
-    # Get active player
+    # Get active player and current inning number
     active_player = data.dig('current_inning', 'active_player')
     
-    # SIMPLE RULE: Number of rows = max(playera.innings, playerb.innings) from scoreboard
-    # This is always the current inning number
-    num_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
+    # Number of rows = current inning number shown in center of scoreboard
+    # This is the single source of truth for how many innings are displayed
+    num_rows = data.dig('current_inning', 'number').to_i
     num_rows = [num_rows, 1].max  # At least 1
     
     # Build arrays with EXACTLY num_rows
