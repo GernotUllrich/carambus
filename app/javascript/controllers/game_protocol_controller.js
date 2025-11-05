@@ -441,19 +441,24 @@ export default class extends Controller {
       const inningB = data.player_b.innings[i] || '–'
       const totalB = data.player_b.totals[i] || '–'
       
+      const isLastInning = (i === maxInnings - 1)
       const isCurrentInning = (i + 1) === data.current_inning.number
-      const rowClass = isCurrentInning 
-        ? 'bg-yellow-100 dark:bg-yellow-900 font-bold border-b border-gray-200 dark:border-gray-700' 
+      
+      // Last inning is the current (unfinished) one - show in red
+      const rowClass = isLastInning 
+        ? 'border-b border-gray-200 dark:border-gray-700' 
         : 'border-b border-gray-200 dark:border-gray-700'
       
+      const inningAClass = isLastInning ? 'text-red-400 dark:text-red-400 font-bold' : ''
+      const inningBClass = isLastInning ? 'text-red-400 dark:text-red-400 font-bold' : ''
       const arrow = isCurrentInning ? ' <span class="text-red-500">◄──</span>' : ''
       
       html += `
         <tr class="${rowClass}" data-inning-row>
           <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800 font-semibold" data-inning-number>${i + 1}</td>
-          <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">${inningA}</td>
+          <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 ${inningAClass}">${inningA}</td>
           <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">${totalA}</td>
-          <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">${inningB}</td>
+          <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20 ${inningBClass}">${inningB}</td>
           <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20">${totalB}${arrow}</td>
           <td class="py-2 px-2 text-center"></td>
         </tr>
@@ -487,6 +492,15 @@ export default class extends Controller {
         ? "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" 
         : "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
       
+      // Mark the last inning as current (unfinished) with red text
+      const isLastInning = (i === maxInnings - 1)
+      const inputClassA = isLastInning 
+        ? "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-red-400 dark:text-red-400 font-bold"
+        : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
+      const inputClassB = isLastInning 
+        ? "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-red-400 dark:text-red-400 font-bold"
+        : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
+      
       html += `
         <tr class="border-b border-gray-200 dark:border-gray-700" data-inning-row>
           <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800" data-inning-number>
@@ -508,7 +522,7 @@ export default class extends Controller {
                      min="0"
                      data-player="playera"
                      data-action="input->game-protocol#handleInputChange"
-                     class="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100">
+                     class="${inputClassA}">
               <button data-action="click->game-protocol#incrementPoints" 
                       class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
             </div>
@@ -523,7 +537,7 @@ export default class extends Controller {
                      min="0"
                      data-player="playerb"
                      data-action="input->game-protocol#handleInputChange"
-                     class="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100">
+                     class="${inputClassB}">
               <button data-action="click->game-protocol#incrementPoints" 
                       class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
             </div>
