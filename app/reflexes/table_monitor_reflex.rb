@@ -669,12 +669,16 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "🔥 WARM_UP_FINISHED REFLEX CALLED - ALWAYS LOG"
     Rails.logger.info "🔥 ELEMENT DATA: #{element&.dataset&.inspect}"
     Rails.logger.info "🔥 URL: #{url}"
-    morph :nothing
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_warmup!
     @table_monitor.save!
+    
+    # Morph the updated view IMMEDIATELY after state change
+    # This ensures the shootout modal is shown before background jobs render the page
+    morph "#full_screen_table_monitor_#{@table_monitor.id}", render(partial: "table_monitors/show", locals: { table_monitor: @table_monitor, full_screen: true })
   end
 
   def test_reflex
