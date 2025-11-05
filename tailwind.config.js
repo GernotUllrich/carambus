@@ -35,7 +35,17 @@ module.exports = {
         "code-600": "#3c455b",
       },
       fontFamily: {
-        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        // Use system fonts for instant loading (0ms) instead of external Inter font (40+ seconds)
+        sans: [
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
       },
     },
   },
