@@ -2449,7 +2449,9 @@ data[\"allow_overflow\"].present?")
     
     # Get current innings history
     history = innings_history
-    player_data = history["player_#{player}".to_sym]
+    # Convert "playera" -> "player_a", "playerb" -> "player_b"
+    player_key = player.sub('player', 'player_').to_sym
+    player_data = history[player_key]
     innings_array = player_data[:innings]
     
     # Increment the value
@@ -2466,7 +2468,9 @@ data[\"allow_overflow\"].present?")
     
     # Get current innings history
     history = innings_history
-    player_data = history["player_#{player}".to_sym]
+    # Convert "playera" -> "player_a", "playerb" -> "player_b"
+    player_key = player.sub('player', 'player_').to_sym
+    player_data = history[player_key]
     innings_array = player_data[:innings]
     
     # Decrement the value (min 0)
