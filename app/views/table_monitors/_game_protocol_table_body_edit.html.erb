@@ -1,0 +1,127 @@
+<%# Game Protocol Table Body - Edit Mode with Reflex actions %>
+<%# This partial is morphed by GameProtocolReflex after each change %>
+
+<% 
+  # Extract data from history
+  player_a = history[:player_a]
+  player_b = history[:player_b]
+  current_inning = history[:current_inning]
+  active_player = current_inning[:active_player]
+  
+  max_innings = [player_a[:innings].length, player_b[:innings].length].max
+  table_monitor_id = table_monitor.id
+%>
+
+<% max_innings.times do |i| %>
+  <% 
+    is_last_inning = (i == max_innings - 1)
+    
+    inning_a = player_a[:innings][i]
+    total_a = player_a[:totals][i]
+    inning_b = player_b[:innings][i]
+    total_b = player_b[:totals][i]
+    
+    # Check if player has data for this inning (not nil)
+    show_inning_a = !inning_a.nil?
+    show_inning_b = !inning_b.nil?
+    
+    # Active player highlighting (only last row)
+    is_player_a_active = is_last_inning && active_player == 'playera'
+    is_player_b_active = is_last_inning && active_player == 'playerb'
+    
+    # CSS classes for inputs
+    input_class_a = is_player_a_active ? 
+      "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg" :
+      "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
+    
+    input_class_b = is_player_b_active ?
+      "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg" :
+      "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
+    
+    total_a_class = is_player_a_active ? 'text-red-600 dark:text-red-400 text-lg' : ''
+    total_b_class = is_player_b_active ? 'text-red-600 dark:text-red-400 text-lg' : ''
+    
+    # Can delete if both are 0 or empty
+    can_delete = (!show_inning_a || inning_a == 0) && (!show_inning_b || inning_b == 0)
+    delete_button_class = can_delete ?
+      "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" :
+      "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
+  %>
+  
+  <tr class="border-b border-gray-200 dark:border-gray-700" data-inning-row data-inning="<%= i %>">
+    <!-- Inning Number with Insert Button -->
+    <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800">
+      <div class="flex flex-col gap-1">
+        <span class="font-semibold"><%= i + 1 %></span>
+        <button data-reflex="click->GameProtocolReflex#insert_inning"
+                data-before="<%= i %>"
+                data-table-monitor-id="<%= table_monitor_id %>"
+                title="Aufnahme davor einfügen"
+                class="text-xs px-1 py-0.5 bg-green-500 hover:bg-green-600 text-white rounded">
+          +
+        </button>
+      </div>
+    </td>
+    
+    <!-- Player A Points with +/- buttons -->
+    <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">
+      <% if show_inning_a %>
+        <div class="flex items-center justify-center gap-1">
+          <button data-reflex="click->GameProtocolReflex#decrement_points"
+                  data-inning="<%= i %>"
+                  data-player="playera"
+                  data-table-monitor-id="<%= table_monitor_id %>"
+                  class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
+          <span class="<%= input_class_a %> w-16 px-2 py-1 text-center"><%= inning_a %></span>
+          <button data-reflex="click->GameProtocolReflex#increment_points"
+                  data-inning="<%= i %>"
+                  data-player="playera"
+                  data-table-monitor-id="<%= table_monitor_id %>"
+                  class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
+        </div>
+      <% end %>
+    </td>
+    
+    <!-- Player A Total -->
+    <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 <%= total_a_class %>">
+      <%= show_inning_a ? total_a : '' %>
+    </td>
+    
+    <!-- Player B Points with +/- buttons -->
+    <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
+      <% if show_inning_b %>
+        <div class="flex items-center justify-center gap-1">
+          <button data-reflex="click->GameProtocolReflex#decrement_points"
+                  data-inning="<%= i %>"
+                  data-player="playerb"
+                  data-table-monitor-id="<%= table_monitor_id %>"
+                  class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">−</button>
+          <span class="<%= input_class_b %> w-16 px-2 py-1 text-center"><%= inning_b %></span>
+          <button data-reflex="click->GameProtocolReflex#increment_points"
+                  data-inning="<%= i %>"
+                  data-player="playerb"
+                  data-table-monitor-id="<%= table_monitor_id %>"
+                  class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
+        </div>
+      <% end %>
+    </td>
+    
+    <!-- Player B Total -->
+    <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 <%= total_b_class %>">
+      <%= show_inning_b ? total_b : '' %>
+    </td>
+    
+    <!-- Delete Button -->
+    <td class="py-2 px-2 text-center">
+      <button data-reflex="click->GameProtocolReflex#delete_inning"
+              data-inning="<%= i %>"
+              data-table-monitor-id="<%= table_monitor_id %>"
+              <%= 'disabled' unless can_delete %>
+              title="Zeile löschen"
+              class="<%= delete_button_class %> text-lg">
+        ✗
+      </button>
+    </td>
+  </tr>
+<% end %>
+

@@ -66,8 +66,9 @@
             <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400"></th>
           </tr>
         </thead>
-        <tbody data-game-protocol-target="tbody" class="text-gray-900 dark:text-gray-100">
-          <!-- Rows will be dynamically inserted here by Stimulus controller -->
+        <tbody data-game-protocol-target="tbody" class="text-gray-900 dark:text-gray-100" id="protocol-tbody">
+          <!-- Rows are server-rendered and morphed by GameProtocolReflex -->
+          <!-- Initial render will be done by Stimulus controller, then Reflex takes over -->
         </tbody>
       </table>
     </div>

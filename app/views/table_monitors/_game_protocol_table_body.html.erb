@@ -1,0 +1,87 @@
+<%# Game Protocol Table Body - Server-rendered tbody with innings data %>
+<%# This partial is morphed by GameProtocolReflex after each change %>
+
+<% 
+  # Extract data from history
+  player_a = history[:player_a]
+  player_b = history[:player_b]
+  current_inning = history[:current_inning]
+  active_player = current_inning[:active_player]
+  
+  max_innings = [player_a[:innings].length, player_b[:innings].length].max
+%>
+
+<% if max_innings == 0 %>
+  <!-- Empty game -->
+  <tr>
+    <td colspan="6" class="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
+      Noch keine Aufnahmen vorhanden. Das Spiel hat noch nicht begonnen.
+    </td>
+  </tr>
+<% else %>
+  <% max_innings.times do |i| %>
+    <% 
+      is_last_inning = (i == max_innings - 1)
+      
+      inning_a = player_a[:innings][i]
+      total_a = player_a[:totals][i]
+      inning_b = player_b[:innings][i]
+      total_b = player_b[:totals][i]
+      
+      # Check if player has data for this inning (not nil)
+      has_inning_a = !inning_a.nil?
+      has_inning_b = !inning_b.nil?
+      
+      # Active player highlighting (only last row)
+      is_player_a_active = is_last_inning && active_player == 'playera'
+      is_player_b_active = is_last_inning && active_player == 'playerb'
+      
+      # CSS classes for active player
+      inning_a_class = is_player_a_active ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      inning_b_class = is_player_b_active ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      total_a_class = is_player_a_active ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      total_b_class = is_player_b_active ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      
+      cell_class_a = is_player_a_active ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' : 'py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20'
+      cell_class_b = is_player_b_active ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' : 'py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20'
+      
+      # Arrow for active player B
+      arrow = is_player_b_active ? ' <span class="text-red-500">◄──</span>'.html_safe : ''
+    %>
+    
+    <tr class="border-b border-gray-200 dark:border-gray-700" data-inning-row data-inning="<%= i %>">
+      <!-- Inning Number -->
+      <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800 font-semibold">
+        <%= i + 1 %>
+      </td>
+      
+      <!-- Player A Points -->
+      <td class="<%= cell_class_a %> <%= inning_a_class %>" 
+          data-player="playera" 
+          data-inning="<%= i %>">
+        <%= has_inning_a ? inning_a : '' %>
+      </td>
+      
+      <!-- Player A Total -->
+      <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 <%= total_a_class %>">
+        <%= has_inning_a ? total_a : '' %>
+      </td>
+      
+      <!-- Player B Points -->
+      <td class="<%= cell_class_b %> <%= inning_b_class %>"
+          data-player="playerb"
+          data-inning="<%= i %>">
+        <%= has_inning_b ? inning_b : '' %>
+      </td>
+      
+      <!-- Player B Total with arrow -->
+      <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 <%= total_b_class %>">
+        <%= has_inning_b ? total_b : '' %><%= arrow %>
+      </td>
+      
+      <!-- Actions column (empty in view mode) -->
+      <td class="py-2 px-2 text-center"></td>
+    </tr>
+  <% end %>
+<% end %>
+
