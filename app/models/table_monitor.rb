@@ -2290,8 +2290,44 @@ data[\"allow_overflow\"].present?")
       # Current number of rows shown in modal is max(innings_a, innings_b)
       current_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
       
-      # Determine new innings number based on max of both arrays
-      new_rows = [innings_a.length, innings_b.length].max
+      # Determine the actual number of played innings for each player
+      # by looking at the existing data structure (not the sent arrays)
+      # The sent arrays include empty cells as 0, which we need to interpret correctly
+      
+      # Get the actual current structure from the data
+      current_list_a = data.dig('playera', 'innings_list') || []
+      current_redo_a = data.dig('playera', 'innings_redo_list') || [0]
+      current_list_b = data.dig('playerb', 'innings_list') || []
+      current_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
+      active_player = data.dig('current_inning', 'active_player')
+      
+      # Calculate how many rows each player ACTUALLY has (list + redo if not empty or active)
+      actual_rows_a = current_list_a.length + (current_redo_a[0] != 0 || active_player == 'playera' ? 1 : 0)
+      actual_rows_b = current_list_b.length + (current_redo_b[0] != 0 || active_player == 'playerb' ? 1 : 0)
+      
+      # The new rows should be based on how many non-zero values we have in the sent data
+      # BUT: keep at least actual_rows to not accidentally delete
+      new_rows_a = innings_a.length
+      new_rows_b = innings_b.length
+      
+      # Don't count trailing zeros UNLESS it's the active player's current inning
+      if new_rows_a > actual_rows_a
+        # More rows sent - check if last is just trailing zero
+        while innings_a.last == 0 && new_rows_a > actual_rows_a
+          innings_a.pop
+          new_rows_a -= 1
+        end
+      end
+      
+      if new_rows_b > actual_rows_b
+        while innings_b.last == 0 && new_rows_b > actual_rows_b
+          innings_b.pop
+          new_rows_b -= 1
+        end
+      end
+      
+      # Determine new innings number
+      new_rows = [new_rows_a, new_rows_b].max
       
       # Only change innings if the number of rows changed (INSERT/DELETE)
       if new_rows != current_rows
