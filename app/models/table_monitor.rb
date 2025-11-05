@@ -2186,6 +2186,9 @@ data[\"allow_overflow\"].present?")
     current_inning_number = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
     current_inning_number = [current_inning_number, 1].max  # At least 1
     
+    # Get active player
+    active_player = data.dig('current_inning', 'active_player')
+    
     # Build arrays with EXACTLY current_inning_number rows
     innings_a = []
     innings_b = []
@@ -2195,11 +2198,11 @@ data[\"allow_overflow\"].present?")
       if i < innings_list_a.length
         # Completed inning from list
         innings_a << innings_list_a[i]
-      elsif i == innings_list_a.length
-        # Current inning from redo_list
+      elsif i == innings_list_a.length && (active_player == 'playera' || innings_list_b.length > i)
+        # Current inning from redo_list - only if player A is active OR player B has completed this inning
         innings_a << (innings_redo_a[0] || 0)
       else
-        # Future inning - leave empty (0 will be filtered in frontend)
+        # Future inning or not yet player A's turn - leave empty (0 will be filtered in frontend)
         innings_a << 0
       end
       
@@ -2207,11 +2210,11 @@ data[\"allow_overflow\"].present?")
       if i < innings_list_b.length
         # Completed inning from list
         innings_b << innings_list_b[i]
-      elsif i == innings_list_b.length
-        # Current inning from redo_list
+      elsif i == innings_list_b.length && (active_player == 'playerb' || innings_list_a.length > i)
+        # Current inning from redo_list - only if player B is active OR player A has completed this inning
         innings_b << (innings_redo_b[0] || 0)
       else
-        # Future inning - leave empty (0 will be filtered in frontend)
+        # Future inning or not yet player B's turn - leave empty (0 will be filtered in frontend)
         innings_b << 0
       end
     end
