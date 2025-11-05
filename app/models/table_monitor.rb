@@ -2251,7 +2251,7 @@ data[\"allow_overflow\"].present?")
         innings_count: data.dig('playerb', 'innings').to_i
       },
       current_inning: {
-        number: current_inning_number,
+        number: num_rows,  # Current inning = number of rows
         active_player: data.dig('current_inning', 'active_player')
       },
       discipline: data.dig('playera', 'discipline'),
