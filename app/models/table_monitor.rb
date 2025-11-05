@@ -2185,9 +2185,10 @@ data[\"allow_overflow\"].present?")
     # Get active player
     active_player = data.dig('current_inning', 'active_player')
     
-    # SIMPLE RULE: Number of rows = max completed innings + 1 (for current inning)
-    # This ensures we always show the correct number of rows
-    num_rows = [innings_list_a.length, innings_list_b.length].max + 1
+    # SIMPLE RULE: Number of rows = max(playera.innings, playerb.innings) from scoreboard
+    # This is always the current inning number
+    num_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
+    num_rows = [num_rows, 1].max  # At least 1
     
     # Build arrays with EXACTLY num_rows
     innings_a = []

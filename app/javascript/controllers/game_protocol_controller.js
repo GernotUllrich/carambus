@@ -471,15 +471,11 @@ export default class extends Controller {
   // Render view mode (readonly)
   renderViewMode() {
     const data = this.protocolData
-    console.log('🔍 Protocol Data:', data)
-    console.log('🔍 Player A innings:', data.player_a?.innings)
-    console.log('🔍 Player B innings:', data.player_b?.innings)
     
     // Safety check for undefined data
     const inningsA = data.player_a?.innings || []
     const inningsB = data.player_b?.innings || []
     const maxInnings = Math.max(inningsA.length, inningsB.length)
-    console.log('🔍 maxInnings:', maxInnings)
     
     let html = ''
     
