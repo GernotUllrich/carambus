@@ -2,7 +2,7 @@
 
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
-                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode game_protocol update_innings]
+                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode game_protocol game_protocol_tbody game_protocol_tbody_edit update_innings]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
