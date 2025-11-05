@@ -151,6 +151,8 @@ Rails.application.routes.draw do
       get :down
       get :toggle_dark_mode
       get :game_protocol
+      get :game_protocol_tbody
+      get :game_protocol_tbody_edit
       patch :update_innings
     end
   end

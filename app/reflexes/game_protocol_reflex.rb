@@ -72,9 +72,9 @@ class GameProtocolReflex < ApplicationReflex
     # Get updated innings history
     history = @table_monitor.innings_history
     
-    # Morph the entire modal content to update everything
-    morph "#game-protocol-modal-content", render(
-      partial: 'table_monitors/game_protocol_modal_content',
+    # Morph only the tbody (edit mode partial since we're editing)
+    morph "#protocol-tbody", render(
+      partial: 'table_monitors/game_protocol_table_body_edit',
       locals: { 
         history: history,
         table_monitor: @table_monitor

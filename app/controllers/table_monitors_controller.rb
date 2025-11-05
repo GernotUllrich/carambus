@@ -218,6 +218,18 @@ class TableMonitorsController < ApplicationController
       format.json { render json: @history }
     end
   end
+  
+  # GET /@table_monitors/1/game_protocol_tbody
+  def game_protocol_tbody
+    @history = @table_monitor.innings_history
+    render partial: 'game_protocol_table_body', locals: { history: @history, table_monitor: @table_monitor }
+  end
+  
+  # GET /@table_monitors/1/game_protocol_tbody_edit
+  def game_protocol_tbody_edit
+    @history = @table_monitor.innings_history
+    render partial: 'game_protocol_table_body_edit', locals: { history: @history, table_monitor: @table_monitor }
+  end
 
   # PATCH /@table_monitors/1/update_innings
   def update_innings

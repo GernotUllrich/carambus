@@ -87,20 +87,31 @@ export default class extends Controller {
     this.loadProtocolData()
   }
 
-  // Load protocol data from server
+  // Load protocol data from server and render tbody
   async loadProtocolData() {
     try {
-      const response = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol.json`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      // Fetch JSON data for player info
+      const jsonResponse = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol.json`)
+      if (!jsonResponse.ok) {
+        throw new Error(`HTTP error! status: ${jsonResponse.status}`)
       }
-      
-      const data = await response.json()
-      
+      const data = await jsonResponse.json()
       this.protocolData = data
       this.updatePlayerInfo()
-      this.renderViewMode()
+      
+      // Fetch HTML partial for tbody (view mode)
+      const htmlResponse = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol_tbody`)
+      if (!htmlResponse.ok) {
+        throw new Error(`HTTP error! status: ${htmlResponse.status}`)
+      }
+      const html = await htmlResponse.text()
+      this.tbodyTarget.innerHTML = html
+      
+      // Show modal and ensure view mode actions are visible
+      this.editMode = false
+      if (this.hasViewActionsTarget) this.viewActionsTarget.classList.remove('hidden')
+      if (this.hasEditActionsTarget) this.editActionsTarget.classList.add('hidden')
+      if (this.hasWarningBannerTarget) this.warningBannerTarget.classList.add('hidden')
       this.modalTarget.classList.remove('hidden')
     } catch (error) {
       console.error('Error loading protocol data:', error)
@@ -140,12 +151,27 @@ export default class extends Controller {
   }
 
   // Switch to edit mode
-  edit(event) {
+  async edit(event) {
     event?.preventDefault()
     
-    this.editMode = true
-    this.originalData = JSON.parse(JSON.stringify(this.getCurrentData()))
-    this.renderEditMode()
+    try {
+      // Fetch HTML partial for tbody (edit mode)
+      const htmlResponse = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol_tbody_edit`)
+      if (!htmlResponse.ok) {
+        throw new Error(`HTTP error! status: ${htmlResponse.status}`)
+      }
+      const html = await htmlResponse.text()
+      this.tbodyTarget.innerHTML = html
+      
+      // Switch to edit mode UI
+      this.editMode = true
+      if (this.hasViewActionsTarget) this.viewActionsTarget.classList.add('hidden')
+      if (this.hasEditActionsTarget) this.editActionsTarget.classList.remove('hidden')
+      if (this.hasWarningBannerTarget) this.warningBannerTarget.classList.remove('hidden')
+    } catch (error) {
+      console.error('Error switching to edit mode:', error)
+      this.showError(`Fehler beim Wechseln in den Bearbeitungsmodus: ${error.message}`)
+    }
   }
 
   // Save changes
@@ -187,17 +213,29 @@ export default class extends Controller {
   }
 
   // Cancel edit mode
-  cancelEdit(event) {
+  async cancelEdit(event) {
     event?.preventDefault()
     
-    // Ask for confirmation if changes might be lost
-    if (this.editMode && !confirm('Ungespeicherte Änderungen verwerfen?')) {
-      return
+    // In Reflex mode, just reload the view mode tbody
+    // (no unsaved changes since every action saves immediately)
+    try {
+      // Fetch HTML partial for tbody (view mode)
+      const htmlResponse = await fetch(`/table_monitors/${this.tableMonitorIdValue}/game_protocol_tbody`)
+      if (!htmlResponse.ok) {
+        throw new Error(`HTTP error! status: ${htmlResponse.status}`)
+      }
+      const html = await htmlResponse.text()
+      this.tbodyTarget.innerHTML = html
+      
+      // Switch back to view mode UI
+      this.editMode = false
+      if (this.hasViewActionsTarget) this.viewActionsTarget.classList.remove('hidden')
+      if (this.hasEditActionsTarget) this.editActionsTarget.classList.add('hidden')
+      if (this.hasWarningBannerTarget) this.warningBannerTarget.classList.add('hidden')
+    } catch (error) {
+      console.error('Error canceling edit mode:', error)
+      this.showError(`Fehler beim Verlassen des Bearbeitungsmodus: ${error.message}`)
     }
-    
-    this.editMode = false
-    this.restoreOriginalData()
-    this.renderViewMode()
   }
 
   // Increment points for a specific inning
