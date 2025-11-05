@@ -504,23 +504,25 @@ export default class extends Controller {
       const inningBValue = data.player_b.innings[i]
       const totalBValue = data.player_b.totals[i]
       
-      // Check if player has played this inning (value is defined)
-      // Backend sends 0 for "future" innings, undefined would mean data error
-      const hasInningA = inningAValue !== undefined && inningAValue !== 0
-      const hasInningB = inningBValue !== undefined && inningBValue !== 0
-      
       // Determine if this is the active player's current inning
-      // Active means: last row AND correct player AND has a value (even if 0)
       const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
       const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
       
+      // Determine if player has played this inning
+      // A player has played if:
+      // 1. They are the active player in this row, OR
+      // 2. They have a non-zero value, OR
+      // 3. It's NOT the last row (meaning it's a completed inning, even if 0)
+      const hasInningA = isPlayerAActive || inningAValue > 0 || (!isLastInning && inningAValue !== undefined)
+      const hasInningB = isPlayerBActive || inningBValue > 0 || (!isLastInning && inningBValue !== undefined)
+      
       // Show values:
-      // - Active player: always show value (even 0) 
-      // - Inactive/future: show empty if 0
-      const inningA = (isPlayerAActive || hasInningA) ? inningAValue : ''
-      const totalA = (isPlayerAActive || hasInningA) ? totalAValue : ''
-      const inningB = (isPlayerBActive || hasInningB) ? inningBValue : ''
-      const totalB = (isPlayerBActive || hasInningB) ? totalBValue : ''
+      // - Has played: show value (even 0)
+      // - Not played: show empty
+      const inningA = hasInningA ? inningAValue : ''
+      const totalA = hasInningA ? totalAValue : ''
+      const inningB = hasInningB ? inningBValue : ''
+      const totalB = hasInningB ? totalBValue : ''
       
       const rowClass = 'border-b border-gray-200 dark:border-gray-700'
       
@@ -580,17 +582,14 @@ export default class extends Controller {
       const inningBValue = data.player_b.innings[i]
       const totalBValue = data.player_b.totals[i]
       
-      // Check if player has played this inning (value is defined and not 0, or is active player)
-      const hasInningA = inningAValue !== undefined && inningAValue !== 0
-      const hasInningB = inningBValue !== undefined && inningBValue !== 0
-      
       // Determine if this is the active player's current inning
       const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
       const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
       
-      // Show values in edit mode: active player or has value
-      const showInningA = isPlayerAActive || hasInningA
-      const showInningB = isPlayerBActive || hasInningB
+      // Show values in edit mode if player has played this inning
+      // Same logic as view mode: active player, non-zero value, or completed row
+      const showInningA = isPlayerAActive || inningAValue > 0 || (!isLastInning && inningAValue !== undefined)
+      const showInningB = isPlayerBActive || inningBValue > 0 || (!isLastInning && inningBValue !== undefined)
       
       const inningA = showInningA ? (inningAValue !== undefined ? inningAValue : 0) : ''
       const totalA = showInningA ? (totalAValue !== undefined ? totalAValue : 0) : ''
