@@ -1,29 +1,27 @@
 import { application } from "./application"
 
+// Import StimulusReflex BEFORE controllers to ensure reflexes work immediately
+import "@stimulus_reflex/polyfills"
+import StimulusReflex from 'stimulus_reflex'
+import consumer from '../channels/consumer'
+import controller from '../controllers/application_controller'
+
+// Set the consumer on the Stimulus application object first
+application.consumer = consumer
+
+// Initialize StimulusReflex BEFORE registering controllers
+StimulusReflex.initialize(application, { 
+  controller, 
+  consumer: consumer,
+  debug: false  // Set to true only for debugging
+})
+
+// Now import and register controllers AFTER StimulusReflex is ready
 import controllers from "./**/*_controller.js"
 
 controllers.forEach((controller) => {
   application.register(controller.name, controller.module.default)
 })
 
-import controller from '../controllers/application_controller'
-
 import { Dropdown } from "tailwindcss-stimulus-components"
 application.register('dropdown', Dropdown)
-
-import "@stimulus_reflex/polyfills"
-import StimulusReflex from 'stimulus_reflex'
-import consumer from '../channels/consumer'
-
-// Note: Most controllers are auto-registered by the eager loader above (lines 3-7)
-// Only register manually if there's a specific reason (e.g., non-standard naming)
-
-// Set the consumer on the Stimulus application object first
-application.consumer = consumer
-
-// Initialize StimulusReflex
-StimulusReflex.initialize(application, { 
-  controller, 
-  consumer: consumer,
-  debug: false  // Set to true only for debugging
-})

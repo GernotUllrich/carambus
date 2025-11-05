@@ -21,7 +21,6 @@ export default class extends ApplicationController {
 
   connect () {
     super.connect()
-    console.log("🎯 TableMonitor controller connected!")
     // Initialize client state for optimistic updates
     this.clientState = {
       scores: {},
@@ -34,20 +33,6 @@ export default class extends ApplicationController {
       },
       validationTimer: null
     }
-    console.log("TableMonitor client state initialized:", this.clientState)
-
-    // Add click listener to debug button clicks
-    console.log("🔧 Setting up click listener on element:", this.element)
-    this.element.addEventListener('click', (event) => {
-      console.log("🔍 Button clicked:", event.target)
-      console.log("🔍 Button data-reflex:", event.target.getAttribute('data-reflex'))
-      console.log("🔍 Button data attributes:", event.target.dataset)
-      console.log("🔍 Button data-id:", event.target.dataset.id)
-      console.log("🔍 StimulusReflex available:", typeof StimulusReflex)
-      console.log("🔍 Event target matches element:", event.target === this.element)
-    })
-
-    // Document click handler removed - was causing interference with Stimulus actions
   }
 
   /* Reflex specific lifecycle methods.
