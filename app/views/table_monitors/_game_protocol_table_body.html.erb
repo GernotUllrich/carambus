@@ -44,9 +44,6 @@
       
       cell_class_a = is_player_a_active ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' : 'py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20'
       cell_class_b = is_player_b_active ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' : 'py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20'
-      
-      # Arrow for active player B
-      arrow = is_player_b_active ? ' <span class="text-red-500">◄──</span>'.html_safe : ''
     %>
     
     <tr class="border-b border-gray-200 dark:border-gray-700" data-inning-row data-inning="<%= i %>">
@@ -74,9 +71,9 @@
         <%= has_inning_b ? inning_b : '' %>
       </td>
       
-      <!-- Player B Total with arrow -->
+      <!-- Player B Total -->
       <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 <%= total_b_class %>">
-        <%= has_inning_b ? total_b : '' %><%= arrow %>
+        <%= has_inning_b ? total_b : '' %>
       </td>
       
       <!-- Actions column (empty in view mode) -->
