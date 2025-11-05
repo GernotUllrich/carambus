@@ -8,8 +8,8 @@ class GameProtocolReflex < ApplicationReflex
   
   # Increment points for a specific inning and player
   def increment_points
-    inning_index = element.dataset[:inning].to_i
-    player = element.dataset[:player] # 'playera' or 'playerb'
+    inning_index = element.dataset['inning'].to_i
+    player = element.dataset['player'] # 'playera' or 'playerb'
     
     Rails.logger.info "🎯 GameProtocolReflex#increment_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
@@ -21,8 +21,8 @@ class GameProtocolReflex < ApplicationReflex
   
   # Decrement points for a specific inning and player
   def decrement_points
-    inning_index = element.dataset[:inning].to_i
-    player = element.dataset[:player] # 'playera' or 'playerb'
+    inning_index = element.dataset['inning'].to_i
+    player = element.dataset['player'] # 'playera' or 'playerb'
     
     Rails.logger.info "🎯 GameProtocolReflex#decrement_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
@@ -34,7 +34,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Delete an inning (only if both players have 0 points)
   def delete_inning
-    inning_index = element.dataset[:inning].to_i
+    inning_index = element.dataset['inning'].to_i
     
     Rails.logger.info "🎯 GameProtocolReflex#delete_inning: inning=#{inning_index}" if TableMonitor::DEBUG
     
@@ -51,7 +51,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Insert an empty inning before the specified index
   def insert_inning
-    before_index = element.dataset[:before].to_i
+    before_index = element.dataset['before'].to_i
     
     Rails.logger.info "🎯 GameProtocolReflex#insert_inning: before=#{before_index}" if TableMonitor::DEBUG
     
@@ -64,8 +64,12 @@ class GameProtocolReflex < ApplicationReflex
   private
   
   def load_table_monitor
-    table_monitor_id = element.dataset[:tableMonitorId]
+    table_monitor_id = element.dataset['tableMonitorId']
+    Rails.logger.info "🔍 Loading TableMonitor ##{table_monitor_id}" if TableMonitor::DEBUG
     @table_monitor = TableMonitor.find(table_monitor_id)
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "❌ TableMonitor not found: #{table_monitor_id}"
+    raise e
   end
   
   def morph_protocol_table
