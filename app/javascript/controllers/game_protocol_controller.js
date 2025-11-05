@@ -439,8 +439,9 @@ export default class extends Controller {
       const inputA = row.querySelector('input[data-player="playera"]')
       const inputB = row.querySelector('input[data-player="playerb"]')
       
-      if (inputA) playera.push(parseInt(inputA.value) || 0)
-      if (inputB) playerb.push(parseInt(inputB.value) || 0)
+      // Always add value - even if input doesn't exist (0 for empty cells)
+      playera.push(inputA ? (parseInt(inputA.value) || 0) : 0)
+      playerb.push(inputB ? (parseInt(inputB.value) || 0) : 0)
     })
     
     return { playera, playerb }
@@ -573,25 +574,34 @@ export default class extends Controller {
     for (let i = 0; i < maxInnings; i++) {
       const isLastInning = (i === maxInnings - 1)
       
-      // Get values (always show values in edit mode, even if 0)
-      const inningA = data.player_a.innings[i] !== undefined ? data.player_a.innings[i] : 0
-      const totalA = data.player_a.totals[i] !== undefined ? data.player_a.totals[i] : 0
-      const inningB = data.player_b.innings[i] !== undefined ? data.player_b.innings[i] : 0
-      const totalB = data.player_b.totals[i] !== undefined ? data.player_b.totals[i] : 0
+      // Get values from data
+      const inningAValue = data.player_a.innings[i]
+      const totalAValue = data.player_a.totals[i]
+      const inningBValue = data.player_b.innings[i]
+      const totalBValue = data.player_b.totals[i]
       
-      // Check if player has played (not 0) - but still show input field
-      const hasInningA = inningA !== 0
-      const hasInningB = inningB !== 0
+      // Check if player has played this inning (value is defined and not 0, or is active player)
+      const hasInningA = inningAValue !== undefined && inningAValue !== 0
+      const hasInningB = inningBValue !== undefined && inningBValue !== 0
       
-      // Check if both innings are 0 (only then allow delete)
-      const canDelete = (inningA === 0 && inningB === 0)
+      // Determine if this is the active player's current inning
+      const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
+      const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
+      
+      // Show values in edit mode: active player or has value
+      const showInningA = isPlayerAActive || hasInningA
+      const showInningB = isPlayerBActive || hasInningB
+      
+      const inningA = showInningA ? (inningAValue !== undefined ? inningAValue : 0) : ''
+      const totalA = showInningA ? (totalAValue !== undefined ? totalAValue : 0) : ''
+      const inningB = showInningB ? (inningBValue !== undefined ? inningBValue : 0) : ''
+      const totalB = showInningB ? (totalBValue !== undefined ? totalBValue : 0) : ''
+      
+      // Check if both innings are 0 or empty (only then allow delete)
+      const canDelete = (!showInningA || inningA === 0) && (!showInningB || inningB === 0)
       const deleteButtonClass = canDelete 
         ? "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" 
         : "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
-      
-      // Mark the last inning as current (unfinished) - but only for the active player
-      const isPlayerAActive = (isLastInning && activePlayer === 'playera' && data.player_a.innings[i] !== undefined)
-      const isPlayerBActive = (isLastInning && activePlayer === 'playerb' && data.player_b.innings[i] !== undefined)
       
       const inputClassA = isPlayerAActive 
         ? "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg"
@@ -613,6 +623,7 @@ export default class extends Controller {
             </div>
           </td>
           <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">
+            ${showInningA ? `
             <div class="flex items-center justify-center gap-1">
               <button data-action="click->game-protocol#decrementPoints" 
                       class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
@@ -625,9 +636,11 @@ export default class extends Controller {
               <button data-action="click->game-protocol#incrementPoints" 
                       class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
             </div>
+            ` : ''}
           </td>
           <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 ${isPlayerAActive ? 'text-red-600 dark:text-red-400 text-lg' : ''}" data-total="playera">${totalA}</td>
           <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
+            ${showInningB ? `
             <div class="flex items-center justify-center gap-1">
               <button data-action="click->game-protocol#decrementPoints" 
                       class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">−</button>
@@ -640,6 +653,7 @@ export default class extends Controller {
               <button data-action="click->game-protocol#incrementPoints" 
                       class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
             </div>
+            ` : ''}
           </td>
           <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 ${isPlayerBActive ? 'text-red-600 dark:text-red-400 text-lg' : ''}" data-total="playerb">${totalB}</td>
           <td class="py-2 px-2 text-center">

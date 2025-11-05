@@ -2287,16 +2287,19 @@ data[\"allow_overflow\"].present?")
       innings_a = new_playera_innings.map(&:to_i)
       current_innings_a = data.dig('playera', 'innings').to_i
       
-      # Determine if structure changed (rows added/deleted)
-      expected_rows_a = [data['playera']['innings_list'].length + 1, 0].max
-      if innings_a.length > expected_rows_a
-        # Rows were added - increase innings counter
+      # Current number of rows shown in modal is max(innings_a, innings_b)
+      current_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
+      
+      # Only change innings if the number of rows changed (INSERT/DELETE)
+      # Frontend now always sends all rows (including empty as 0)
+      if innings_a.length > current_rows
+        # Rows were added
+        data['playera']['innings'] = innings_a.length
         current_innings_a = innings_a.length
-        data['playera']['innings'] = current_innings_a
-      elsif innings_a.length < expected_rows_a && innings_a.length < current_innings_a
-        # Rows were deleted - decrease innings counter
-        current_innings_a = [innings_a.length, 1].max
-        data['playera']['innings'] = current_innings_a
+      elsif innings_a.length < current_rows && innings_a.length > 0
+        # Rows were deleted
+        data['playera']['innings'] = innings_a.length
+        current_innings_a = innings_a.length
       end
       # Otherwise, keep innings as is (only values changed)
       
@@ -2335,16 +2338,18 @@ data[\"allow_overflow\"].present?")
       innings_b = new_playerb_innings.map(&:to_i)
       current_innings_b = data.dig('playerb', 'innings').to_i
       
-      # Determine if structure changed (rows added/deleted)
-      expected_rows_b = [data['playerb']['innings_list'].length + 1, 0].max
-      if innings_b.length > expected_rows_b
-        # Rows were added - increase innings counter
+      # Use the same current_rows as for player A
+      # (already calculated above)
+      
+      # Only change innings if the number of rows changed (INSERT/DELETE)
+      if innings_b.length > current_rows
+        # Rows were added
+        data['playerb']['innings'] = innings_b.length
         current_innings_b = innings_b.length
-        data['playerb']['innings'] = current_innings_b
-      elsif innings_b.length < expected_rows_b && innings_b.length < current_innings_b
-        # Rows were deleted - decrease innings counter
-        current_innings_b = [innings_b.length, 1].max
-        data['playerb']['innings'] = current_innings_b
+      elsif innings_b.length < current_rows && innings_b.length > 0
+        # Rows were deleted
+        data['playerb']['innings'] = innings_b.length
+        current_innings_b = innings_b.length
       end
       # Otherwise, keep innings as is (only values changed)
       
