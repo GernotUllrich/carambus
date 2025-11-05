@@ -2176,33 +2176,33 @@ data[\"allow_overflow\"].present?")
     
     gps = game&.game_participations&.order(:role).to_a
     
-    # Build complete innings arrays based on scoreboard display
+    # Get completed and current innings
     innings_list_a = data.dig('playera', 'innings_list') || []
     innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
     innings_list_b = data.dig('playerb', 'innings_list') || []
     innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
     
-    # Determine current inning number from scoreboard (max of both players' innings)
-    current_inning_number = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
-    current_inning_number = [current_inning_number, 1].max  # At least 1
-    
     # Get active player
     active_player = data.dig('current_inning', 'active_player')
     
-    # Build arrays with EXACTLY current_inning_number rows
+    # SIMPLE RULE: Number of rows = max completed innings + 1 (for current inning)
+    # This ensures we always show the correct number of rows
+    num_rows = [innings_list_a.length, innings_list_b.length].max + 1
+    
+    # Build arrays with EXACTLY num_rows
     innings_a = []
     innings_b = []
     
-    (0...current_inning_number).each do |i|
+    (0...num_rows).each do |i|
       # For Player A at row i
       if i < innings_list_a.length
         # Completed inning from list
         innings_a << innings_list_a[i]
-      elsif i == innings_list_a.length && (active_player == 'playera' || innings_list_b.length > i)
-        # Current inning from redo_list - only if player A is active OR player B has completed this inning
+      elsif i == innings_list_a.length
+        # Current inning from redo_list (might be 0)
         innings_a << (innings_redo_a[0] || 0)
       else
-        # Future inning or not yet player A's turn - leave empty (0 will be filtered in frontend)
+        # Future inning - empty
         innings_a << 0
       end
       
@@ -2210,11 +2210,11 @@ data[\"allow_overflow\"].present?")
       if i < innings_list_b.length
         # Completed inning from list
         innings_b << innings_list_b[i]
-      elsif i == innings_list_b.length && (active_player == 'playerb' || innings_list_a.length > i)
-        # Current inning from redo_list - only if player B is active OR player A has completed this inning
+      elsif i == innings_list_b.length
+        # Current inning from redo_list (might be 0)
         innings_b << (innings_redo_b[0] || 0)
       else
-        # Future inning or not yet player B's turn - leave empty (0 will be filtered in frontend)
+        # Future inning - empty
         innings_b << 0
       end
     end
