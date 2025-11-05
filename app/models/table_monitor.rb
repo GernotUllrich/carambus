@@ -2185,15 +2185,14 @@ data[\"allow_overflow\"].present?")
     # Get active player
     active_player = data.dig('current_inning', 'active_player')
     
-    # Number of rows = max innings counter from scoreboard
-    # These counters represent which inning each player is currently in
-    innings_counter_a = data.dig('playera', 'innings').to_i
-    innings_counter_b = data.dig('playerb', 'innings').to_i
-    num_rows = [innings_counter_a, innings_counter_b].max
+    # Number of rows = completed innings + 1 for current inning
+    # innings_list contains completed innings, so we add 1 for the current/active inning
+    completed_innings = [innings_list_a.length, innings_list_b.length].max
+    num_rows = completed_innings + 1
     num_rows = [num_rows, 1].max  # At least 1
     
     # DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_counter_a=#{innings_counter_a}, innings_counter_b=#{innings_counter_b}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: completed_innings=#{completed_innings}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
     Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}" if DEBUG
     Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_redo_a=#{innings_redo_a.inspect}, innings_redo_b=#{innings_redo_b.inspect}" if DEBUG
     
