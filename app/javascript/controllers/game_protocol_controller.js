@@ -471,7 +471,15 @@ export default class extends Controller {
   // Render view mode (readonly)
   renderViewMode() {
     const data = this.protocolData
-    const maxInnings = Math.max(data.player_a.innings.length, data.player_b.innings.length)
+    console.log('🔍 Protocol Data:', data)
+    console.log('🔍 Player A innings:', data.player_a?.innings)
+    console.log('🔍 Player B innings:', data.player_b?.innings)
+    
+    // Safety check for undefined data
+    const inningsA = data.player_a?.innings || []
+    const inningsB = data.player_b?.innings || []
+    const maxInnings = Math.max(inningsA.length, inningsB.length)
+    console.log('🔍 maxInnings:', maxInnings)
     
     let html = ''
     
@@ -495,15 +503,19 @@ export default class extends Controller {
     
     const activePlayer = data.current_inning?.active_player || 'playera'
     
+    // Get totals arrays with safety checks
+    const totalsA = data.player_a?.totals || []
+    const totalsB = data.player_b?.totals || []
+    
     for (let i = 0; i < maxInnings; i++) {
       // SIMPLE RULE: Last row is always the current/active inning
       const isLastInning = (i === maxInnings - 1)
       
-      // Get values from data
-      const inningAValue = data.player_a.innings[i]
-      const totalAValue = data.player_a.totals[i]
-      const inningBValue = data.player_b.innings[i]
-      const totalBValue = data.player_b.totals[i]
+      // Get values from data with safety checks
+      const inningAValue = inningsA[i]
+      const totalAValue = totalsA[i]
+      const inningBValue = inningsB[i]
+      const totalBValue = totalsB[i]
       
       // Active player in last inning gets red highlighting
       const isPlayerAActive = isLastInning && activePlayer === 'playera'
@@ -568,7 +580,14 @@ export default class extends Controller {
   // Render edit mode (with input fields)
   renderEditMode() {
     const data = this.protocolData
-    const maxInnings = Math.max(data.player_a.innings.length, data.player_b.innings.length)
+    
+    // Safety checks for undefined data
+    const inningsA = data.player_a?.innings || []
+    const inningsB = data.player_b?.innings || []
+    const totalsA = data.player_a?.totals || []
+    const totalsB = data.player_b?.totals || []
+    
+    const maxInnings = Math.max(inningsA.length, inningsB.length)
     const activePlayer = data.current_inning?.active_player || 'playera'
     
     let html = ''
@@ -577,11 +596,11 @@ export default class extends Controller {
       // SIMPLE RULE: Last row is always the current/active inning
       const isLastInning = (i === maxInnings - 1)
       
-      // Get values from data
-      const inningAValue = data.player_a.innings[i]
-      const totalAValue = data.player_a.totals[i]
-      const inningBValue = data.player_b.innings[i]
-      const totalBValue = data.player_b.totals[i]
+      // Get values from data with safety checks
+      const inningAValue = inningsA[i]
+      const totalAValue = totalsA[i]
+      const inningBValue = inningsB[i]
+      const totalBValue = totalsB[i]
       
       // Active player in last inning gets red highlighting
       const isPlayerAActive = isLastInning && activePlayer === 'playera'
