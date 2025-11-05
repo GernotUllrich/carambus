@@ -2251,7 +2251,7 @@ data[\"allow_overflow\"].present?")
         innings_count: data.dig('playerb', 'innings').to_i
       },
       current_inning: {
-        number: [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max + 1,
+        number: current_inning_number,
         active_player: data.dig('current_inning', 'active_player')
       },
       discipline: data.dig('playera', 'discipline'),

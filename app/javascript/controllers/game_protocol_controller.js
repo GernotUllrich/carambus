@@ -494,9 +494,11 @@ export default class extends Controller {
     }
     
     const activePlayer = data.current_inning?.active_player || 'playera'
+    const currentInningNumber = data.current_inning?.number || 1
     
     for (let i = 0; i < maxInnings; i++) {
-      const isLastInning = (i === maxInnings - 1)
+      const inningNumber = i + 1  // 1-based inning number
+      const isCurrentInning = (inningNumber === currentInningNumber)
       
       // Get values from data
       const inningAValue = data.player_a.innings[i]
@@ -505,16 +507,16 @@ export default class extends Controller {
       const totalBValue = data.player_b.totals[i]
       
       // Determine if this is the active player's current inning
-      const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
-      const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
+      const isPlayerAActive = isCurrentInning && activePlayer === 'playera' && inningAValue !== undefined
+      const isPlayerBActive = isCurrentInning && activePlayer === 'playerb' && inningBValue !== undefined
       
       // Determine if player has played this inning
       // A player has played if:
       // 1. They are the active player in this row, OR
       // 2. They have a non-zero value, OR
-      // 3. It's NOT the last row (meaning it's a completed inning, even if 0)
-      const hasInningA = isPlayerAActive || inningAValue > 0 || (!isLastInning && inningAValue !== undefined)
-      const hasInningB = isPlayerBActive || inningBValue > 0 || (!isLastInning && inningBValue !== undefined)
+      // 3. It's NOT the current inning (meaning it's a completed inning, even if 0)
+      const hasInningA = isPlayerAActive || inningAValue > 0 || (!isCurrentInning && inningAValue !== undefined)
+      const hasInningB = isPlayerBActive || inningBValue > 0 || (!isCurrentInning && inningBValue !== undefined)
       
       // Show values:
       // - Has played: show value (even 0)
@@ -570,11 +572,13 @@ export default class extends Controller {
     const data = this.protocolData
     const maxInnings = Math.max(data.player_a.innings.length, data.player_b.innings.length)
     const activePlayer = data.current_inning?.active_player || 'playera'
+    const currentInningNumber = data.current_inning?.number || 1
     
     let html = ''
     
     for (let i = 0; i < maxInnings; i++) {
-      const isLastInning = (i === maxInnings - 1)
+      const inningNumber = i + 1  // 1-based inning number
+      const isCurrentInning = (inningNumber === currentInningNumber)
       
       // Get values from data
       const inningAValue = data.player_a.innings[i]
@@ -583,13 +587,13 @@ export default class extends Controller {
       const totalBValue = data.player_b.totals[i]
       
       // Determine if this is the active player's current inning
-      const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
-      const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
+      const isPlayerAActive = isCurrentInning && activePlayer === 'playera' && inningAValue !== undefined
+      const isPlayerBActive = isCurrentInning && activePlayer === 'playerb' && inningBValue !== undefined
       
       // Show values in edit mode if player has played this inning
       // Same logic as view mode: active player, non-zero value, or completed row
-      const showInningA = isPlayerAActive || inningAValue > 0 || (!isLastInning && inningAValue !== undefined)
-      const showInningB = isPlayerBActive || inningBValue > 0 || (!isLastInning && inningBValue !== undefined)
+      const showInningA = isPlayerAActive || inningAValue > 0 || (!isCurrentInning && inningAValue !== undefined)
+      const showInningB = isPlayerBActive || inningBValue > 0 || (!isCurrentInning && inningBValue !== undefined)
       
       const inningA = showInningA ? (inningAValue !== undefined ? inningAValue : 0) : ''
       const totalA = showInningA ? (totalAValue !== undefined ? totalAValue : 0) : ''
