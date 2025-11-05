@@ -2199,39 +2199,48 @@ data[\"allow_overflow\"].present?")
       if i < innings_list_a.length
         # Completed inning from list
         innings_a << innings_list_a[i]
-      elsif i == innings_list_a.length
-        # Current inning from redo_list (might be 0)
+      elsif i == innings_list_a.length && (active_player == 'playera' || data.dig('playera', 'innings').to_i > innings_list_a.length)
+        # Current inning from redo_list - only if A is active OR A's innings counter is ahead
         innings_a << (innings_redo_a[0] || 0)
       else
-        # Future inning - empty
-        innings_a << 0
+        # Not yet started or other player is active - empty/nil
+        innings_a << nil
       end
       
       # For Player B at row i
       if i < innings_list_b.length
         # Completed inning from list
         innings_b << innings_list_b[i]
-      elsif i == innings_list_b.length
-        # Current inning from redo_list (might be 0)
+      elsif i == innings_list_b.length && (active_player == 'playerb' || data.dig('playerb', 'innings').to_i > innings_list_b.length)
+        # Current inning from redo_list - only if B is active OR B's innings counter is ahead
         innings_b << (innings_redo_b[0] || 0)
       else
-        # Future inning - empty
-        innings_b << 0
+        # Not yet started or other player is active - empty/nil
+        innings_b << nil
       end
     end
     
     # Calculate running totals from the complete innings arrays
+    # Skip nil values (player hasn't played that inning yet)
     totals_a = []
     totals_b = []
     sum_a = 0
     sum_b = 0
     innings_a.each_with_index do |points, i|
-      sum_a += points.to_i
-      totals_a << sum_a
+      if points.nil?
+        totals_a << nil
+      else
+        sum_a += points.to_i
+        totals_a << sum_a
+      end
     end
     innings_b.each_with_index do |points, i|
-      sum_b += points.to_i
-      totals_b << sum_b
+      if points.nil?
+        totals_b << nil
+      else
+        sum_b += points.to_i
+        totals_b << sum_b
+      end
     end
     
     {

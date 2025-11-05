@@ -517,12 +517,9 @@ export default class extends Controller {
       const isPlayerAActive = isLastInning && activePlayer === 'playera'
       const isPlayerBActive = isLastInning && activePlayer === 'playerb'
       
-      // Show value if:
-      // 1. Active player in last inning, OR
-      // 2. Non-zero value, OR
-      // 3. NOT last inning (= completed inning, show even 0)
-      const hasInningA = isPlayerAActive || inningAValue > 0 || !isLastInning
-      const hasInningB = isPlayerBActive || inningBValue > 0 || !isLastInning
+      // Show value if it's not null/undefined (null means player hasn't started this inning yet)
+      const hasInningA = inningAValue !== null && inningAValue !== undefined
+      const hasInningB = inningBValue !== null && inningBValue !== undefined
       
       // Show values:
       // - Has played: show value (even 0)
@@ -602,12 +599,9 @@ export default class extends Controller {
       const isPlayerAActive = isLastInning && activePlayer === 'playera'
       const isPlayerBActive = isLastInning && activePlayer === 'playerb'
       
-      // Show value if:
-      // 1. Active player in last inning, OR
-      // 2. Non-zero value, OR
-      // 3. NOT last inning (= completed inning, show even 0)
-      const showInningA = isPlayerAActive || inningAValue > 0 || !isLastInning
-      const showInningB = isPlayerBActive || inningBValue > 0 || !isLastInning
+      // Show value if it's not null/undefined (null means player hasn't started this inning yet)
+      const showInningA = inningAValue !== null && inningAValue !== undefined
+      const showInningB = inningBValue !== null && inningBValue !== undefined
       
       const inningA = showInningA ? (inningAValue !== undefined ? inningAValue : 0) : ''
       const totalA = showInningA ? (totalAValue !== undefined ? totalAValue : 0) : ''
