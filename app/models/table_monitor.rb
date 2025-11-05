@@ -2190,6 +2190,12 @@ data[\"allow_overflow\"].present?")
     num_rows = data.dig('current_inning', 'number').to_i
     num_rows = [num_rows, 1].max  # At least 1
     
+    # DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: current_inning.number=#{data.dig('current_inning', 'number')}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}" if DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_redo_a=#{innings_redo_a.inspect}, innings_redo_b=#{innings_redo_b.inspect}" if DEBUG
+    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: playera.innings=#{data.dig('playera', 'innings')}, playerb.innings=#{data.dig('playerb', 'innings')}" if DEBUG
+    
     # Build arrays with EXACTLY num_rows
     innings_a = []
     innings_b = []

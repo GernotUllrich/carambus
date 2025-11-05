@@ -35,9 +35,7 @@ export default class extends Controller {
     const hasPending = this.checkPendingUpdates()
     
     if (hasPending) {
-      // Show a brief message and wait for updates to complete
-      console.log('⏳ Waiting for updates to complete...')
-      // Set up a listener to open when updates complete
+      // Wait for updates to complete
       this.waitForUpdatesAndOpen()
     } else {
       // No pending updates, open immediately
@@ -77,7 +75,6 @@ export default class extends Controller {
     
     while (Date.now() - startTime < maxWaitTime) {
       if (!this.checkPendingUpdates()) {
-        console.log('✅ Updates complete, opening protocol modal')
         this.loadProtocolData()
         return
       }
