@@ -2525,20 +2525,21 @@ data[\"allow_overflow\"].present?")
     
     # Get current innings history
     history = innings_history
-    innings_a = history[:player_a][:innings]
-    innings_b = history[:player_b][:innings]
+    innings_a = history[:player_a][:innings].dup  # dup to avoid modifying original
+    innings_b = history[:player_b][:innings].dup
     
     # Insert 0 at the specified position
     innings_a.insert(before_index, 0)
     innings_b.insert(before_index, 0)
     
-    # Update both players
-    update_player_innings_data('playera', innings_a)
-    update_player_innings_data('playerb', innings_b)
-    
-    # Increment innings counter for both players
+    # Increment innings counter for both players FIRST
+    # (before update_player_innings_data which reads this value)
     data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
     data['playerb']['innings'] = (data['playerb']['innings'].to_i + 1)
+    
+    # Update both players with new arrays
+    update_player_innings_data('playera', innings_a)
+    update_player_innings_data('playerb', innings_b)
     
     data_will_change!
     save!

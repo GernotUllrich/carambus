@@ -80,7 +80,8 @@ class GameProtocolReflex < ApplicationReflex
     morph :nothing
     
     # Use CableReady to update only the tbody
-    cable_ready["game-protocol-stream"].morph(
+    # Use stream_name which is automatically set by StimulusReflex to the user's channel
+    cable_ready[StimulusReflex::Channel.broadcasting_for(self)].morph(
       selector: "#protocol-tbody",
       html: render(
         partial: 'table_monitors/game_protocol_table_body_edit',
