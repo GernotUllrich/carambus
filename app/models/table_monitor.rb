@@ -1959,10 +1959,10 @@ data[\"allow_overflow\"].present?")
     self.copy_from = nil
     save!
     
-    # Re-enable callbacks and manually enqueue jobs ONCE at the end
+    # Re-enable callbacks and manually enqueue table_scores job
+    # (full_screen_update is NOT needed because controller does redirect_to @table_monitor)
     self.skip_update_callbacks = false
     TableMonitorJob.perform_later(self, "table_scores")
-    TableMonitorJob.perform_later(self, "")
     
     finish_warmup! if options["discipline_a"] =~ /shootout/i && may_finish_warmup?
     true
