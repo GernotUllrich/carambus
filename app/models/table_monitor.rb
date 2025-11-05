@@ -2186,8 +2186,9 @@ data[\"allow_overflow\"].present?")
     active_player = data.dig('current_inning', 'active_player')
     
     # Number of rows = completed innings + 1 for current inning
-    # innings_list contains completed innings, so we add 1 for the current/active inning
-    completed_innings = [innings_list_a.length, innings_list_b.length].max
+    # An inning is only complete when BOTH players have played
+    # So we use MIN, not MAX of the list lengths
+    completed_innings = [innings_list_a.length, innings_list_b.length].min
     num_rows = completed_innings + 1
     num_rows = [num_rows, 1].max  # At least 1
     
