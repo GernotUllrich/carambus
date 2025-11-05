@@ -76,11 +76,11 @@ class GameProtocolReflex < ApplicationReflex
     # Get updated innings history
     history = @table_monitor.innings_history
     
-    # Prevent default page morph
+    # Prevent page morph
     morph :nothing
     
-    # Use CableReady to morph only the tbody (edit mode partial since we're editing)
-    cable_ready[stream_name].morph(
+    # Use CableReady to update only the tbody
+    cable_ready["game-protocol-stream"].morph(
       selector: "#protocol-tbody",
       html: render(
         partial: 'table_monitors/game_protocol_table_body_edit',
@@ -90,8 +90,6 @@ class GameProtocolReflex < ApplicationReflex
         }
       )
     )
-    
-    # Broadcast the CableReady operations
     cable_ready.broadcast
   end
 end
