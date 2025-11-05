@@ -2176,20 +2176,74 @@ data[\"allow_overflow\"].present?")
     
     gps = game&.game_participations&.order(:role).to_a
     
+    # Build complete innings arrays based on scoreboard display
+    innings_list_a = data.dig('playera', 'innings_list') || []
+    innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
+    innings_list_b = data.dig('playerb', 'innings_list') || []
+    innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
+    
+    # Determine current inning number from scoreboard (max of both players' innings)
+    current_inning_number = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
+    current_inning_number = [current_inning_number, 1].max  # At least 1
+    
+    # Build arrays with EXACTLY current_inning_number rows
+    innings_a = []
+    innings_b = []
+    
+    (0...current_inning_number).each do |i|
+      # For Player A at row i
+      if i < innings_list_a.length
+        # Completed inning from list
+        innings_a << innings_list_a[i]
+      elsif i == innings_list_a.length
+        # Current inning from redo_list
+        innings_a << (innings_redo_a[0] || 0)
+      else
+        # Future inning - leave empty (0 will be filtered in frontend)
+        innings_a << 0
+      end
+      
+      # For Player B at row i
+      if i < innings_list_b.length
+        # Completed inning from list
+        innings_b << innings_list_b[i]
+      elsif i == innings_list_b.length
+        # Current inning from redo_list
+        innings_b << (innings_redo_b[0] || 0)
+      else
+        # Future inning - leave empty (0 will be filtered in frontend)
+        innings_b << 0
+      end
+    end
+    
+    # Calculate running totals from the complete innings arrays
+    totals_a = []
+    totals_b = []
+    sum_a = 0
+    sum_b = 0
+    innings_a.each_with_index do |points, i|
+      sum_a += points.to_i
+      totals_a << sum_a
+    end
+    innings_b.each_with_index do |points, i|
+      sum_b += points.to_i
+      totals_b << sum_b
+    end
+    
     {
       player_a: {
         name: gps[0]&.player&.fullname || "Spieler A",
         shortname: gps[0]&.player&.shortname || "Spieler A",
-        innings: data.dig('playera', 'innings_list') || [],
-        totals: calculate_running_totals('playera'),
+        innings: innings_a,
+        totals: totals_a,
         result: data.dig('playera', 'result').to_i,
         innings_count: data.dig('playera', 'innings').to_i
       },
       player_b: {
         name: gps[1]&.player&.fullname || "Spieler B",
         shortname: gps[1]&.player&.shortname || "Spieler B",
-        innings: data.dig('playerb', 'innings_list') || [],
-        totals: calculate_running_totals('playerb'),
+        innings: innings_b,
+        totals: totals_b,
         result: data.dig('playerb', 'result').to_i,
         innings_count: data.dig('playerb', 'innings').to_i
       },
@@ -2228,38 +2282,92 @@ data[\"allow_overflow\"].present?")
       
       # Update playera
       innings_a = new_playera_innings.map(&:to_i)
-      data['playera']['innings_list'] = innings_a[0..-2] || []  # All except last
-      data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[-1]]  # Only last inning
-      data['playera']['innings'] = innings_a.length
+      current_innings_a = data.dig('playera', 'innings').to_i
+      
+      # Determine if structure changed (rows added/deleted)
+      expected_rows_a = [data['playera']['innings_list'].length + 1, 0].max
+      if innings_a.length > expected_rows_a
+        # Rows were added - increase innings counter
+        current_innings_a = innings_a.length
+        data['playera']['innings'] = current_innings_a
+      elsif innings_a.length < expected_rows_a && innings_a.length < current_innings_a
+        # Rows were deleted - decrease innings counter
+        current_innings_a = [innings_a.length, 1].max
+        data['playera']['innings'] = current_innings_a
+      end
+      # Otherwise, keep innings as is (only values changed)
+      
+      # Distribute values based on current innings counter
+      # innings is 1-based: if innings=2, then innings_list gets first value, redo_list gets second
+      if innings_a.length >= current_innings_a && current_innings_a > 0
+        # Split at current innings position
+        data['playera']['innings_list'] = innings_a[0...(current_innings_a - 1)]
+        data['playera']['innings_redo_list'] = [innings_a[current_innings_a - 1] || 0]
+      elsif innings_a.length < current_innings_a
+        # Not enough values - fill what we can
+        data['playera']['innings_list'] = innings_a[0...(current_innings_a - 1)] || []
+        data['playera']['innings_redo_list'] = [innings_a[current_innings_a - 1] || 0]
+      else
+        # current_innings_a is 0 or invalid
+        data['playera']['innings_list'] = []
+        data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[0]]
+        data['playera']['innings'] = [innings_a.length, 1].max
+      end
+      
       data['playera']['result'] = innings_a.sum
       data['playera']['hs'] = innings_a.max || 0
-      data['playera']['gd'] = if data['playera']['innings'].positive?
-                                format("%.3f", data['playera']['result'].to_f / data['playera']['innings'])
+      data['playera']['gd'] = if current_innings_a > 0
+                                format("%.3f", data['playera']['result'].to_f / current_innings_a)
                               else
                                 0.0
                               end
       
-      # Adjust foul lists to match innings count (fill with zeros if needed)
-      target_length_a = [innings_a.length - 1, 0].max
+      # Adjust foul lists to match structure
+      target_length_a = [data['playera']['innings_list'].length, 0].max
       current_fouls_a = (data['playera']['innings_foul_list'] || [])[0...target_length_a]
       data['playera']['innings_foul_list'] = current_fouls_a + Array.new([target_length_a - current_fouls_a.length, 0].max, 0)
       data['playera']['innings_foul_redo_list'] = [0]
       
       # Update playerb
       innings_b = new_playerb_innings.map(&:to_i)
-      data['playerb']['innings_list'] = innings_b[0..-2] || []  # All except last
-      data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[-1]]  # Only last inning
-      data['playerb']['innings'] = innings_b.length
+      current_innings_b = data.dig('playerb', 'innings').to_i
+      
+      # Determine if structure changed (rows added/deleted)
+      expected_rows_b = [data['playerb']['innings_list'].length + 1, 0].max
+      if innings_b.length > expected_rows_b
+        # Rows were added - increase innings counter
+        current_innings_b = innings_b.length
+        data['playerb']['innings'] = current_innings_b
+      elsif innings_b.length < expected_rows_b && innings_b.length < current_innings_b
+        # Rows were deleted - decrease innings counter
+        current_innings_b = [innings_b.length, 1].max
+        data['playerb']['innings'] = current_innings_b
+      end
+      # Otherwise, keep innings as is (only values changed)
+      
+      # Distribute values based on current innings counter
+      if innings_b.length >= current_innings_b && current_innings_b > 0
+        data['playerb']['innings_list'] = innings_b[0...(current_innings_b - 1)]
+        data['playerb']['innings_redo_list'] = [innings_b[current_innings_b - 1] || 0]
+      elsif innings_b.length < current_innings_b
+        data['playerb']['innings_list'] = innings_b[0...(current_innings_b - 1)] || []
+        data['playerb']['innings_redo_list'] = [innings_b[current_innings_b - 1] || 0]
+      else
+        data['playerb']['innings_list'] = []
+        data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[0]]
+        data['playerb']['innings'] = [innings_b.length, 1].max
+      end
+      
       data['playerb']['result'] = innings_b.sum
       data['playerb']['hs'] = innings_b.max || 0
-      data['playerb']['gd'] = if data['playerb']['innings'].positive?
-                                format("%.3f", data['playerb']['result'].to_f / data['playerb']['innings'])
+      data['playerb']['gd'] = if current_innings_b > 0
+                                format("%.3f", data['playerb']['result'].to_f / current_innings_b)
                               else
                                 0.0
                               end
       
-      # Adjust foul lists to match innings count (fill with zeros if needed)
-      target_length_b = [innings_b.length - 1, 0].max
+      # Adjust foul lists to match structure
+      target_length_b = [data['playerb']['innings_list'].length, 0].max
       current_fouls_b = (data['playerb']['innings_foul_list'] || [])[0...target_length_b]
       data['playerb']['innings_foul_list'] = current_fouls_b + Array.new([target_length_b - current_fouls_b.length, 0].max, 0)
       data['playerb']['innings_foul_redo_list'] = [0]

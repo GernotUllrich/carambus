@@ -30,6 +30,63 @@ export default class extends Controller {
   // Open the modal
   open(event) {
     event?.preventDefault()
+    
+    // Check if there are pending updates
+    const hasPending = this.checkPendingUpdates()
+    
+    if (hasPending) {
+      // Show a brief message and wait for updates to complete
+      console.log('⏳ Waiting for updates to complete...')
+      // Set up a listener to open when updates complete
+      this.waitForUpdatesAndOpen()
+    } else {
+      // No pending updates, open immediately
+      this.loadProtocolData()
+    }
+  }
+  
+  // Check if there are pending updates
+  checkPendingUpdates() {
+    // Check for pending-update class in DOM
+    const hasPendingUpdates = document.querySelectorAll('.pending-update').length > 0
+    
+    // Also check parent controller
+    const parentController = this.element.closest('[data-controller*="table-monitor"]')
+    let hasParentPending = false
+    if (parentController) {
+      const stimulusController = this.application.getControllerForElementAndIdentifier(
+        parentController, 
+        'table-monitor'
+      ) || this.application.getControllerForElementAndIdentifier(
+        parentController, 
+        'tabmon'
+      )
+      if (stimulusController?.clientState?.pendingUpdates) {
+        hasParentPending = stimulusController.clientState.pendingUpdates.size > 0
+      }
+    }
+    
+    return hasPendingUpdates || hasParentPending
+  }
+  
+  // Wait for updates to complete and then open
+  async waitForUpdatesAndOpen() {
+    const maxWaitTime = 2000 // Maximum 2 seconds
+    const checkInterval = 50 // Check every 50ms
+    const startTime = Date.now()
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      if (!this.checkPendingUpdates()) {
+        console.log('✅ Updates complete, opening protocol modal')
+        this.loadProtocolData()
+        return
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, checkInterval))
+    }
+    
+    // Timeout reached
+    console.warn('⚠️ Timeout waiting for updates, opening protocol modal anyway')
     this.loadProtocolData()
   }
 
@@ -435,31 +492,63 @@ export default class extends Controller {
       return
     }
     
+    const activePlayer = data.current_inning?.active_player || 'playera'
+    
     for (let i = 0; i < maxInnings; i++) {
-      const inningA = data.player_a.innings[i] || '–'
-      const totalA = data.player_a.totals[i] || '–'
-      const inningB = data.player_b.innings[i] || '–'
-      const totalB = data.player_b.totals[i] || '–'
-      
       const isLastInning = (i === maxInnings - 1)
-      const isCurrentInning = (i + 1) === data.current_inning.number
       
-      // Last inning is the current (unfinished) one - show in red with yellow background
-      const rowClass = isLastInning 
-        ? 'border-b border-gray-200 dark:border-gray-700 bg-yellow-50 dark:bg-yellow-900 bg-opacity-30' 
-        : 'border-b border-gray-200 dark:border-gray-700'
+      // Get values from data
+      const inningAValue = data.player_a.innings[i]
+      const totalAValue = data.player_a.totals[i]
+      const inningBValue = data.player_b.innings[i]
+      const totalBValue = data.player_b.totals[i]
       
-      const inningAClass = isLastInning ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
-      const inningBClass = isLastInning ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
-      const arrow = isCurrentInning ? ' <span class="text-red-500">◄──</span>' : ''
+      // Check if player has played this inning (value is defined)
+      // Backend sends 0 for "future" innings, undefined would mean data error
+      const hasInningA = inningAValue !== undefined && inningAValue !== 0
+      const hasInningB = inningBValue !== undefined && inningBValue !== 0
+      
+      // Determine if this is the active player's current inning
+      // Active means: last row AND correct player AND has a value (even if 0)
+      const isPlayerAActive = isLastInning && activePlayer === 'playera' && inningAValue !== undefined
+      const isPlayerBActive = isLastInning && activePlayer === 'playerb' && inningBValue !== undefined
+      
+      // Show values:
+      // - Active player: always show value (even 0) 
+      // - Inactive/future: show empty if 0
+      const inningA = (isPlayerAActive || hasInningA) ? inningAValue : ''
+      const totalA = (isPlayerAActive || hasInningA) ? totalAValue : ''
+      const inningB = (isPlayerBActive || hasInningB) ? inningBValue : ''
+      const totalB = (isPlayerBActive || hasInningB) ? totalBValue : ''
+      
+      const rowClass = 'border-b border-gray-200 dark:border-gray-700'
+      
+      // Styling for innings - red if active
+      const inningAClass = isPlayerAActive ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      const inningBClass = isPlayerBActive ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      
+      // Styling for totals - also red if active
+      const totalAClass = isPlayerAActive ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      const totalBClass = isPlayerBActive ? 'text-red-600 dark:text-red-400 font-bold text-lg' : ''
+      
+      // Apply yellow background only to the active player's cell
+      const cellClassA = isPlayerAActive 
+        ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' 
+        : 'py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20'
+      const cellClassB = isPlayerBActive 
+        ? 'py-2 px-4 text-center bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-30' 
+        : 'py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20'
+      
+      // Arrow only for the active player with a value
+      const arrow = isPlayerBActive ? ' <span class="text-red-500">◄──</span>' : ''
       
       html += `
         <tr class="${rowClass}" data-inning-row>
           <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800 font-semibold" data-inning-number>${i + 1}</td>
-          <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 ${inningAClass}">${inningA}</td>
-          <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20">${totalA}</td>
-          <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20 ${inningBClass}">${inningB}</td>
-          <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20">${totalB}${arrow}</td>
+          <td class="${cellClassA} ${inningAClass}">${inningA}</td>
+          <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 ${totalAClass}">${totalA}</td>
+          <td class="${cellClassB} ${inningBClass}">${inningB}</td>
+          <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 ${totalBClass}">${totalB}${arrow}</td>
           <td class="py-2 px-2 text-center"></td>
         </tr>
       `
@@ -477,14 +566,22 @@ export default class extends Controller {
   renderEditMode() {
     const data = this.protocolData
     const maxInnings = Math.max(data.player_a.innings.length, data.player_b.innings.length)
+    const activePlayer = data.current_inning?.active_player || 'playera'
     
     let html = ''
     
     for (let i = 0; i < maxInnings; i++) {
-      const inningA = data.player_a.innings[i] || 0
-      const totalA = data.player_a.totals[i] || 0
-      const inningB = data.player_b.innings[i] || 0
-      const totalB = data.player_b.totals[i] || 0
+      const isLastInning = (i === maxInnings - 1)
+      
+      // Get values (always show values in edit mode, even if 0)
+      const inningA = data.player_a.innings[i] !== undefined ? data.player_a.innings[i] : 0
+      const totalA = data.player_a.totals[i] !== undefined ? data.player_a.totals[i] : 0
+      const inningB = data.player_b.innings[i] !== undefined ? data.player_b.innings[i] : 0
+      const totalB = data.player_b.totals[i] !== undefined ? data.player_b.totals[i] : 0
+      
+      // Check if player has played (not 0) - but still show input field
+      const hasInningA = inningA !== 0
+      const hasInningB = inningB !== 0
       
       // Check if both innings are 0 (only then allow delete)
       const canDelete = (inningA === 0 && inningB === 0)
@@ -492,12 +589,14 @@ export default class extends Controller {
         ? "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" 
         : "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
       
-      // Mark the last inning as current (unfinished) with red text and yellow background
-      const isLastInning = (i === maxInnings - 1)
-      const inputClassA = isLastInning 
+      // Mark the last inning as current (unfinished) - but only for the active player
+      const isPlayerAActive = (isLastInning && activePlayer === 'playera' && data.player_a.innings[i] !== undefined)
+      const isPlayerBActive = (isLastInning && activePlayer === 'playerb' && data.player_b.innings[i] !== undefined)
+      
+      const inputClassA = isPlayerAActive 
         ? "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg"
         : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
-      const inputClassB = isLastInning 
+      const inputClassB = isPlayerBActive 
         ? "w-16 px-2 py-1 text-center border-2 border-red-500 rounded bg-yellow-50 dark:bg-yellow-900 text-red-600 dark:text-red-400 font-bold text-lg"
         : "w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 dark:text-gray-100"
       
@@ -527,7 +626,7 @@ export default class extends Controller {
                       class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
             </div>
           </td>
-          <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20" data-total="playera">${totalA}</td>
+          <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 ${isPlayerAActive ? 'text-red-600 dark:text-red-400 text-lg' : ''}" data-total="playera">${totalA}</td>
           <td class="py-2 px-4 text-center bg-green-50 dark:bg-green-900 dark:bg-opacity-20">
             <div class="flex items-center justify-center gap-1">
               <button data-action="click->game-protocol#decrementPoints" 
@@ -542,7 +641,7 @@ export default class extends Controller {
                       class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
             </div>
           </td>
-          <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20" data-total="playerb">${totalB}</td>
+          <td class="py-2 px-4 text-center font-bold bg-green-50 dark:bg-green-900 dark:bg-opacity-20 ${isPlayerBActive ? 'text-red-600 dark:text-red-400 text-lg' : ''}" data-total="playerb">${totalB}</td>
           <td class="py-2 px-2 text-center">
             <button data-action="click->game-protocol#deleteInning" 
                     ${canDelete ? '' : 'disabled'}
