@@ -2530,23 +2530,49 @@ data[\"allow_overflow\"].present?")
   def insert_inning(before_index)
     return unless playing? || set_over?
     
-    # Get current innings history
-    history = innings_history
-    innings_a = history[:player_a][:innings].dup  # dup to avoid modifying original
-    innings_b = history[:player_b][:innings].dup
+    # Get current lists
+    innings_list_a = data.dig('playera', 'innings_list') || []
+    innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
+    innings_list_b = data.dig('playerb', 'innings_list') || []
+    innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
+    
+    # Combine list + redo to get full current arrays
+    full_a = innings_list_a + innings_redo_a
+    full_b = innings_list_b + innings_redo_b
     
     # Insert 0 at the specified position
-    innings_a.insert(before_index, 0)
-    innings_b.insert(before_index, 0)
+    full_a.insert(before_index, 0)
+    full_b.insert(before_index, 0)
     
-    # Increment innings counter for both players FIRST
-    # (before update_player_innings_data which reads this value)
+    # Increment innings counter for both players
     data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
     data['playerb']['innings'] = (data['playerb']['innings'].to_i + 1)
     
-    # Update both players with new arrays
-    update_player_innings_data('playera', innings_a)
-    update_player_innings_data('playerb', innings_b)
+    # Split back into list and redo
+    # The last element is always redo, everything before is list
+    if full_a.length > 1
+      data['playera']['innings_list'] = full_a[0...-1]
+      data['playera']['innings_redo_list'] = [full_a.last]
+    else
+      data['playera']['innings_list'] = []
+      data['playera']['innings_redo_list'] = [full_a.first || 0]
+    end
+    
+    if full_b.length > 1
+      data['playerb']['innings_list'] = full_b[0...-1]
+      data['playerb']['innings_redo_list'] = [full_b.last]
+    else
+      data['playerb']['innings_list'] = []
+      data['playerb']['innings_redo_list'] = [full_b.first || 0]
+    end
+    
+    # Update totals
+    data['playera']['result'] = full_a.compact.sum
+    data['playerb']['result'] = full_b.compact.sum
+    data['playera']['hs'] = full_a.compact.max || 0
+    data['playerb']['hs'] = full_b.compact.max || 0
+    data['playera']['gd'] = format("%.3f", data['playera']['result'].to_f / data['playera']['innings'].to_i) if data['playera']['innings'].to_i > 0
+    data['playerb']['gd'] = format("%.3f", data['playerb']['result'].to_f / data['playerb']['innings'].to_i) if data['playerb']['innings'].to_i > 0
     
     data_will_change!
     save!

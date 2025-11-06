@@ -10,33 +10,45 @@ class GameProtocolReflex < ApplicationReflex
   # Open protocol modal in view mode
   def open_protocol
     Rails.logger.info "🎯 GameProtocolReflex#open_protocol" if TableMonitor::DEBUG
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - modal will be rendered by _show.html.erb
+    # No background jobs - reflex handles the full page morph
   end
   
   # Close protocol modal
   def close_protocol
     Rails.logger.info "🎯 GameProtocolReflex#close_protocol" if TableMonitor::DEBUG
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - modal will not be rendered
+    # No background jobs - reflex handles the full page morph
   end
   
   # Switch to edit mode
   def switch_to_edit_mode
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_edit_mode" if TableMonitor::DEBUG
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - modal will render with edit partial
+    # No background jobs - reflex handles the full page morph
   end
   
-  # Switch back to view mode
+  # Switch back to view mode (not used - we close directly now)
   def switch_to_view_mode
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_view_mode" if TableMonitor::DEBUG
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - modal will render with view partial
+    # No background jobs - reflex handles the full page morph
   end
   
   # Increment points for a specific inning and player
@@ -46,8 +58,11 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#increment_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.increment_inning_points(inning_index, player)
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - entire modal re-renders with updated data
+    # No background jobs - reflex handles the full page morph
   end
   
   # Decrement points for a specific inning and player
@@ -57,8 +72,11 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#decrement_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.decrement_inning_points(inning_index, player)
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - entire modal re-renders with updated data
+    # No background jobs - reflex handles the full page morph
   end
   
   # Delete an inning (only if both players have 0 points)
@@ -67,8 +85,11 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#delete_inning: inning=#{inning_index}" if TableMonitor::DEBUG
     
+    @table_monitor.skip_update_callbacks = true
     result = @table_monitor.delete_inning(inning_index)
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - entire modal re-renders (error handling TODO)
+    # No background jobs - reflex handles the full page morph
   end
   
   # Insert an empty inning before the specified index
@@ -77,8 +98,11 @@ class GameProtocolReflex < ApplicationReflex
     
     Rails.logger.info "🎯 GameProtocolReflex#insert_inning: before=#{before_index}" if TableMonitor::DEBUG
     
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.insert_inning(before_index)
+    @table_monitor.skip_update_callbacks = false
     # Full page morph - entire modal re-renders with new row
+    # No background jobs - reflex handles the full page morph
   end
   
   private
