@@ -2454,8 +2454,9 @@ data[\"allow_overflow\"].present?")
   def increment_inning_points(inning_index, player)
     return unless playing? || set_over?
     
-    innings_list = data[player]['innings_list'] || []
-    innings_redo_list = data[player]['innings_redo_list'] || [0]
+    innings_list = Array(data[player]['innings_list'])
+    innings_redo_list = Array(data[player]['innings_redo_list'])
+    innings_redo_list = [0] if innings_redo_list.empty?
     
     Rails.logger.warn "🔍 INCREMENT: inning_index=#{inning_index}, innings_list.length=#{innings_list.length}"
     
@@ -2485,8 +2486,9 @@ data[\"allow_overflow\"].present?")
   def decrement_inning_points(inning_index, player)
     return unless playing? || set_over?
     
-    innings_list = data[player]['innings_list'] || []
-    innings_redo_list = data[player]['innings_redo_list'] || [0]
+    innings_list = Array(data[player]['innings_list'])
+    innings_redo_list = Array(data[player]['innings_redo_list'])
+    innings_redo_list = [0] if innings_redo_list.empty?
     
     # Determine if we're editing a completed inning or the current inning
     if inning_index < innings_list.length
@@ -2554,10 +2556,14 @@ data[\"allow_overflow\"].present?")
     Rails.logger.warn "=" * 80
     
     # Get current lists for both players
-    innings_list_a = data.dig('playera', 'innings_list') || []
-    innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
-    innings_list_b = data.dig('playerb', 'innings_list') || []
-    innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
+    innings_list_a = Array(data.dig('playera', 'innings_list'))
+    innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
+    innings_redo_a = [0] if innings_redo_a.empty?
+    
+    innings_list_b = Array(data.dig('playerb', 'innings_list'))
+    innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
+    innings_redo_b = [0] if innings_redo_b.empty?
+    
     innings_counter_a = data.dig('playera', 'innings').to_i
     innings_counter_b = data.dig('playerb', 'innings').to_i
     
@@ -2633,8 +2639,9 @@ data[\"allow_overflow\"].present?")
   # Does NOT modify the innings structure, only the calculated stats
   # Optional: pass save_now=false to defer saving (useful when updating multiple players)
   def recalculate_player_stats(player, save_now: true)
-    innings_list = data[player]['innings_list'] || []
-    innings_redo_list = data[player]['innings_redo_list'] || [0]
+    innings_list = Array(data[player]['innings_list'])
+    innings_redo_list = Array(data[player]['innings_redo_list'])
+    innings_redo_list = [0] if innings_redo_list.empty?
     current_innings = data[player]['innings'].to_i
     
     # Calculate result (only completed innings)
