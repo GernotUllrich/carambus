@@ -210,41 +210,8 @@ class TableMonitorsController < ApplicationController
   end
 
   # GET /@table_monitors/1/game_protocol
-  def game_protocol
-    @history = @table_monitor.innings_history
-    
-    respond_to do |format|
-      format.html { render partial: 'game_protocol_modal', locals: { history: @history, table_monitor: @table_monitor } }
-      format.json { render json: @history }
-    end
-  end
-  
-  # GET /@table_monitors/1/game_protocol_tbody
-  def game_protocol_tbody
-    @history = @table_monitor.innings_history
-    render partial: 'game_protocol_table_body', locals: { history: @history, table_monitor: @table_monitor }
-  end
-  
-  # GET /@table_monitors/1/game_protocol_tbody_edit
-  def game_protocol_tbody_edit
-    @history = @table_monitor.innings_history
-    render partial: 'game_protocol_table_body_edit', locals: { history: @history, table_monitor: @table_monitor }
-  end
-
-  # PATCH /@table_monitors/1/update_innings
-  def update_innings
-    result = @table_monitor.update_innings_history(params[:innings])
-    
-    if result[:success]
-      respond_to do |format|
-        format.json { render json: { success: true } }
-      end
-    else
-      respond_to do |format|
-        format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
-      end
-    end
-  end
+  # All game protocol functionality now handled by GameProtocolReflex
+  # Old JSON/HTML endpoints removed - modal is server-side rendered via panel_state
 
   private
 
