@@ -516,15 +516,17 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     ret = []
     show_innings.each_with_index do |i, ix|
       foul = show_innings_fouls[ix].to_i
-      ret << (foul.zero? ? "<span class=\"inline-block px-1\">#{i}</span>" : "<span class=\"inline-block px-1\">#{i},F#{foul}</span>")
+      ret << (foul.zero? ? "<span class=\"inline-block px-2\">#{i}</span>" : "<span class=\"inline-block px-2\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1 inline-block mx-1\">#{i}</strong>" : "<span class=\"inline-block px-1\">#{i}</span>").to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1 inline-block mx-2\">#{i}</strong>" : "<span class=\"inline-block px-2\">#{i}</span>").to_s
     end
+    # Use span with padding around separator for better spacing
+    separator = "<span class=\"inline-block px-1\">,</span>"
     if ret.length > last_n
-      "#{prefix}...#{ret[-last_n..].join(", ")}".html_safe
+      "#{prefix}...#{ret[-last_n..].join(separator)}".html_safe
     else
-      (prefix.to_s + ret.join(", ")).html_safe
+      (prefix.to_s + ret.join(separator)).html_safe
     end
   rescue StandardError => e
     Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
