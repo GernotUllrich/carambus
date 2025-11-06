@@ -516,10 +516,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     ret = []
     show_innings.each_with_index do |i, ix|
       foul = show_innings_fouls[ix].to_i
-      ret << (foul.zero? ? "<span class=\"inline-block min-w-[2.5em] text-center mx-1\">#{i}</span>" : "<span class=\"inline-block min-w-[2.5em] text-center mx-1\">#{i},F#{foul}</span>")
+      ret << (foul.zero? ? "<span class=\"inline-block text-center px-2 mx-1\">#{i}</span>" : "<span class=\"inline-block text-center px-2 mx-1\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 px-2 py-1 inline-block mx-2 min-w-[2.5em] text-center\">#{i}</strong>" : "<span class=\"inline-block min-w-[2.5em] text-center mx-1\">#{i}</span>").to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 px-3 py-1 inline-block mx-2 text-center\">#{i}</strong>" : "<span class=\"inline-block text-center px-2 mx-1\">#{i}</span>").to_s
     end
     # Separator with space
     separator = " , "
