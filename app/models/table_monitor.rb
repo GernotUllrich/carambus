@@ -2509,41 +2509,63 @@ data[\"allow_overflow\"].present?")
     recalculate_player_stats(player)
   end
   
-  # Delete an inning (only if both players have 0 points)
+  # Delete an inning (only if both players have 0 points AND not the current inning)
   def delete_inning(inning_index)
     return { success: false, error: 'Not in playing state' } unless playing? || set_over?
     
-    # Get current innings history
-    history = innings_history
-    innings_a = history[:player_a][:innings]
-    innings_b = history[:player_b][:innings]
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Trying to delete inning at index #{inning_index}"
+    
+    # Get current lists for both players
+    innings_list_a = Array(data.dig('playera', 'innings_list'))
+    innings_list_b = Array(data.dig('playerb', 'innings_list'))
+    
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{innings_list_a.length}, innings_list_b.length=#{innings_list_b.length}"
+    
+    # Check if trying to delete the CURRENT inning (last row = innings_redo_list)
+    max_list_length = [innings_list_a.length, innings_list_b.length].max
+    if inning_index >= max_list_length
+      Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Cannot delete current inning (index=#{inning_index} >= list_length=#{max_list_length})"
+      return { success: false, error: 'Die laufende Aufnahme kann nicht gelöscht werden' }
+    end
     
     # Check if both players have 0 points in this inning
-    value_a = innings_a[inning_index] || 0
-    value_b = innings_b[inning_index] || 0
+    value_a = innings_list_a[inning_index] || 0
+    value_b = innings_list_b[inning_index] || 0
+    
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Values at index #{inning_index}: A=#{value_a}, B=#{value_b}"
     
     if value_a != 0 || value_b != 0
+      Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Values not 0:0"
       return { success: false, error: 'Nur Zeilen mit 0:0 können gelöscht werden' }
     end
     
-    # Remove the inning from both arrays
-    innings_a.delete_at(inning_index)
-    innings_b.delete_at(inning_index)
+    # Remove the inning from both innings_lists
+    innings_list_a.delete_at(inning_index)
+    innings_list_b.delete_at(inning_index)
     
-    # Update both players
-    update_player_innings_data('playera', innings_a)
-    update_player_innings_data('playerb', innings_b)
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ After delete: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}"
     
-    # Decrement innings counter for both players
+    # Update the data
+    data['playera']['innings_list'] = innings_list_a
+    data['playerb']['innings_list'] = innings_list_b
+    
+    # Decrement innings counter for both players (min 1)
     data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
     data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ New innings counters: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
+    
+    # Recalculate stats for both players
+    recalculate_player_stats('playera', save_now: false)
+    recalculate_player_stats('playerb', save_now: false)
     
     data_will_change!
     save!
     
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ SUCCESS"
     { success: true }
   rescue StandardError => e
-    Rails.logger.error "ERROR deleting inning: #{e.message}"
+    Rails.logger.error "🗑️ DELETE_DEBUG 🗑️ ERROR: #{e.message}"
     { success: false, error: e.message }
   end
   

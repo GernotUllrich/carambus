@@ -40,8 +40,8 @@
     total_a_class = is_player_a_active ? 'text-red-600 dark:text-red-400 text-lg' : ''
     total_b_class = is_player_b_active ? 'text-red-600 dark:text-red-400 text-lg' : ''
     
-    # Can delete if both are 0 or empty
-    can_delete = (!show_inning_a || inning_a == 0) && (!show_inning_b || inning_b == 0)
+    # Can delete if: both are 0 or empty AND it's NOT the current inning (last row)
+    can_delete = (!show_inning_a || inning_a == 0) && (!show_inning_b || inning_b == 0) && !is_last_inning
     delete_button_class = can_delete ?
       "px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-bold" :
       "px-2 py-1 bg-gray-400 cursor-not-allowed text-white rounded text-sm opacity-50 font-bold"
