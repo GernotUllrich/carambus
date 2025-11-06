@@ -2606,17 +2606,19 @@ data[\"allow_overflow\"].present?")
     
     Rails.logger.warn "🔍 UPDATE_PLAYER: Split into list=#{data[player]['innings_list'].inspect}, redo=#{data[player]['innings_redo_list'].inspect}"
     
-    # Update result (total score)
-    data[player]['result'] = innings_array.compact.sum
+    # Update result (total score) - ONLY from completed innings (innings_list), NOT including current inning (innings_redo_list)
+    # The scoreboard adds innings_redo_list separately, so we must not include it here
+    data[player]['result'] = data[player]['innings_list'].compact.sum
     
-    Rails.logger.warn "🔍 UPDATE_PLAYER: Setting result=#{data[player]['result']} (from sum of #{innings_array.compact.inspect})"
+    Rails.logger.warn "🔍 UPDATE_PLAYER: Setting result=#{data[player]['result']} (from innings_list=#{data[player]['innings_list'].compact.inspect}, NOT including redo=#{data[player]['innings_redo_list'].inspect})"
     
     # Update HS (high score)
     data[player]['hs'] = innings_array.compact.max || 0
     
-    # Update GD (average)
+    # Update GD (average) - use TOTAL points (including current inning) divided by innings counter
+    total_points = innings_array.compact.sum
     data[player]['gd'] = if current_innings > 0
-                            format("%.3f", data[player]['result'].to_f / current_innings)
+                            format("%.3f", total_points.to_f / current_innings)
                           else
                             0.0
                           end
