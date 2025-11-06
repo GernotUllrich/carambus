@@ -9,6 +9,11 @@
   active_player = current_inning[:active_player]
   
   max_innings = [player_a[:innings].length, player_b[:innings].length].max
+  
+  # DEBUG: Log array contents
+  Rails.logger.warn "🔍 EDIT MODE DEBUG: player_a innings length=#{player_a[:innings].length}, content=#{player_a[:innings].inspect}"
+  Rails.logger.warn "🔍 EDIT MODE DEBUG: player_b innings length=#{player_b[:innings].length}, content=#{player_b[:innings].inspect}"
+  Rails.logger.warn "🔍 EDIT MODE DEBUG: max_innings=#{max_innings}, active_player=#{active_player}"
 %>
 
 <% max_innings.times do |i| %>
