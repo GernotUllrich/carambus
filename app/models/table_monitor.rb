@@ -2545,23 +2545,30 @@ data[\"allow_overflow\"].present?")
     { success: false, error: e.message }
   end
   
-  # Insert an empty inning before the specified index
+  # Insert an empty inning before the specified index for BOTH players
   def insert_inning(before_index)
     return unless playing? || set_over?
     
-    # Get current lists
+    Rails.logger.warn "🔍 INSERT: before_index=#{before_index}"
+    
+    # Get current lists for both players
     innings_list_a = data.dig('playera', 'innings_list') || []
     innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
     innings_list_b = data.dig('playerb', 'innings_list') || []
     innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
     
+    Rails.logger.warn "🔍 INSERT: Before - list_a=#{innings_list_a.inspect}, redo_a=#{innings_redo_a.inspect}"
+    Rails.logger.warn "🔍 INSERT: Before - list_b=#{innings_list_b.inspect}, redo_b=#{innings_redo_b.inspect}"
+    
     # Combine list + redo to get full current arrays
     full_a = innings_list_a + innings_redo_a
     full_b = innings_list_b + innings_redo_b
     
-    # Insert 0 at the specified position
+    # Insert 0 at the specified position for BOTH players
     full_a.insert(before_index, 0)
     full_b.insert(before_index, 0)
+    
+    Rails.logger.warn "🔍 INSERT: After insert - full_a=#{full_a.inspect}, full_b=#{full_b.inspect}"
     
     # Increment innings counter for both players
     data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
@@ -2585,14 +2592,14 @@ data[\"allow_overflow\"].present?")
       data['playerb']['innings_redo_list'] = [full_b.first || 0]
     end
     
-    # Update totals
-    data['playera']['result'] = full_a.compact.sum
-    data['playerb']['result'] = full_b.compact.sum
-    data['playera']['hs'] = full_a.compact.max || 0
-    data['playerb']['hs'] = full_b.compact.max || 0
-    data['playera']['gd'] = format("%.3f", data['playera']['result'].to_f / data['playera']['innings'].to_i) if data['playera']['innings'].to_i > 0
-    data['playerb']['gd'] = format("%.3f", data['playerb']['result'].to_f / data['playerb']['innings'].to_i) if data['playerb']['innings'].to_i > 0
+    Rails.logger.warn "🔍 INSERT: After split - list_a=#{data['playera']['innings_list'].inspect}, redo_a=#{data['playera']['innings_redo_list'].inspect}"
+    Rails.logger.warn "🔍 INSERT: After split - list_b=#{data['playerb']['innings_list'].inspect}, redo_b=#{data['playerb']['innings_redo_list'].inspect}"
     
+    # Recalculate stats for both players (defer save until both are done)
+    recalculate_player_stats('playera', save_now: false)
+    recalculate_player_stats('playerb', save_now: false)
+    
+    # Save once after both players are updated
     data_will_change!
     save!
   end
@@ -2601,7 +2608,8 @@ data[\"allow_overflow\"].present?")
   
   # Recalculate player stats (result, hs, gd) based on current innings_list and innings_redo_list
   # Does NOT modify the innings structure, only the calculated stats
-  def recalculate_player_stats(player)
+  # Optional: pass save_now=false to defer saving (useful when updating multiple players)
+  def recalculate_player_stats(player, save_now: true)
     innings_list = data[player]['innings_list'] || []
     innings_redo_list = data[player]['innings_redo_list'] || [0]
     current_innings = data[player]['innings'].to_i
@@ -2623,8 +2631,10 @@ data[\"allow_overflow\"].present?")
     
     Rails.logger.warn "🔍 RECALC: player=#{player}, result=#{data[player]['result']}, hs=#{data[player]['hs']}, gd=#{data[player]['gd']}"
     
-    data_will_change!
-    save!
+    if save_now
+      data_will_change!
+      save!
+    end
   end
   
   # Update innings data for a player from a complete innings array
