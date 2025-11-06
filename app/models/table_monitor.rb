@@ -524,7 +524,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |inning_value, ix|
       if ix.zero?
-        ret << "<strong class=\"border-4 border-solid border-gray-400 p-1 text-[1.2em]\">#{inning_value}</strong>"
+        ret << "<strong class=\"border-4 border-solid border-gray-400 p-2 text-[2em]\">#{inning_value}</strong>"
       else
         ret << "<span class=\"text-[0.7em]\">#{inning_value}</span>"
       end
