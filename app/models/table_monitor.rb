@@ -516,13 +516,13 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     ret = []
     show_innings.each_with_index do |i, ix|
       foul = show_innings_fouls[ix].to_i
-      ret << (foul.zero? ? "<span class=\"inline-block text-center px-2 mx-1\">#{i}</span>" : "<span class=\"inline-block text-center px-2 mx-1\">#{i},F#{foul}</span>")
+      ret << (foul.zero? ? "<span class=\"inline-block px-3\">#{i}</span>" : "<span class=\"inline-block px-3\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 px-3 py-1 inline-block mx-2 text-center\">#{i}</strong>" : "<span class=\"inline-block text-center px-2 mx-1\">#{i}</span>").to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 px-4 py-1 inline-block mx-1\">#{i}</strong>" : "<span class=\"inline-block px-3\">#{i}</span>").to_s
     end
-    # Separator with space
-    separator = " , "
+    # Simple comma separator
+    separator = ", "
     if ret.length > last_n
       "#{prefix}...#{ret[-last_n..].join(separator)}".html_safe
     else
