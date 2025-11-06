@@ -2,9 +2,42 @@
 
 class GameProtocolReflex < ApplicationReflex
   # Game Protocol Modal Reflexes
-  # All manipulations of innings data happen here on the server
+  # Server-side modal management - modal state tracked by panel_state
+  # Similar pattern to warmup/shootout/numbers modals
   
   before_reflex :load_table_monitor
+  
+  # Open protocol modal in view mode
+  def open_protocol
+    Rails.logger.info "🎯 GameProtocolReflex#open_protocol" if TableMonitor::DEBUG
+    @table_monitor.panel_state = "protocol"
+    @table_monitor.save!
+    # Full page morph - modal will be rendered by _show.html.erb
+  end
+  
+  # Close protocol modal
+  def close_protocol
+    Rails.logger.info "🎯 GameProtocolReflex#close_protocol" if TableMonitor::DEBUG
+    @table_monitor.panel_state = "pointer_mode"
+    @table_monitor.save!
+    # Full page morph - modal will not be rendered
+  end
+  
+  # Switch to edit mode
+  def switch_to_edit_mode
+    Rails.logger.info "🎯 GameProtocolReflex#switch_to_edit_mode" if TableMonitor::DEBUG
+    @table_monitor.panel_state = "protocol_edit"
+    @table_monitor.save!
+    # Full page morph - modal will render with edit partial
+  end
+  
+  # Switch back to view mode
+  def switch_to_view_mode
+    Rails.logger.info "🎯 GameProtocolReflex#switch_to_view_mode" if TableMonitor::DEBUG
+    @table_monitor.panel_state = "protocol"
+    @table_monitor.save!
+    # Full page morph - modal will render with view partial
+  end
   
   # Increment points for a specific inning and player
   def increment_points
@@ -14,9 +47,7 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.info "🎯 GameProtocolReflex#increment_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
     @table_monitor.increment_inning_points(inning_index, player)
-    
-    # Morph the protocol table
-    morph_protocol_table
+    # Full page morph - entire modal re-renders with updated data
   end
   
   # Decrement points for a specific inning and player
@@ -27,9 +58,7 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.info "🎯 GameProtocolReflex#decrement_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
     
     @table_monitor.decrement_inning_points(inning_index, player)
-    
-    # Morph the protocol table
-    morph_protocol_table
+    # Full page morph - entire modal re-renders with updated data
   end
   
   # Delete an inning (only if both players have 0 points)
@@ -39,14 +68,7 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.info "🎯 GameProtocolReflex#delete_inning: inning=#{inning_index}" if TableMonitor::DEBUG
     
     result = @table_monitor.delete_inning(inning_index)
-    
-    if result[:success]
-      # Morph the protocol table
-      morph_protocol_table
-    else
-      # Show error message
-      morph "#protocol-error-message", render(partial: 'table_monitors/protocol_error', locals: { error: result[:error] })
-    end
+    # Full page morph - entire modal re-renders (error handling TODO)
   end
   
   # Insert an empty inning before the specified index
@@ -56,42 +78,19 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.info "🎯 GameProtocolReflex#insert_inning: before=#{before_index}" if TableMonitor::DEBUG
     
     @table_monitor.insert_inning(before_index)
-    
-    # Morph the protocol table
-    morph_protocol_table
+    # Full page morph - entire modal re-renders with new row
   end
   
   private
   
   def load_table_monitor
-    table_monitor_id = element.dataset['table-monitor-id']
+    # Read from data-id attribute (standard for all reflexes)
+    table_monitor_id = element.dataset['id']
     Rails.logger.info "🔍 Loading TableMonitor ##{table_monitor_id}" if TableMonitor::DEBUG
     @table_monitor = TableMonitor.find(table_monitor_id)
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "❌ TableMonitor not found: #{table_monitor_id}"
     raise e
-  end
-  
-  def morph_protocol_table
-    # Get updated innings history
-    history = @table_monitor.innings_history
-    
-    # Prevent page morph
-    morph :nothing
-    
-    # Use CableReady to update only the tbody
-    # Use stream_name which is automatically set by StimulusReflex to the user's channel
-    cable_ready[StimulusReflex::Channel.broadcasting_for(self)].morph(
-      selector: "#protocol-tbody",
-      html: render(
-        partial: 'table_monitors/game_protocol_table_body_edit',
-        locals: { 
-          history: history,
-          table_monitor: @table_monitor
-        }
-      )
-    )
-    cable_ready.broadcast
   end
 end
 

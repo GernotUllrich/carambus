@@ -24,7 +24,7 @@
 <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
 <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
 <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen %>
-<div class="fullscreen flex flex-col h-full  rounded shadow" data-controller="game-protocol" data-game-protocol-table-monitor-id-value="<%= table_monitor.id %>">
+<div class="fullscreen flex flex-col h-full  rounded shadow">
   <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- vw2 = fullscreen ? "2vw" : "1vw" %>
@@ -291,7 +291,7 @@
     </div>
     <div class="controls dark:bg-black overflow-hidden hide-on-display-only h-1/6 grid grid-cols-9 gap-1">
       <%- if table_monitor.playing? %>
-        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", data: { action: "click->game-protocol#open" }, id: "game-protocol-button", tabindex: 2 do %>
+        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
           <%= render_svg "icons/clipboard", styles: "fill-current icon-2xl inline-block" %>
         <%- end %>
         <%- if options[:player_a].andand[:discipline] == "4 Ball" %>
@@ -357,7 +357,4 @@
       <%- end %>
   <%- end %>
   </div>
-
-  <%# Game Protocol Modal %>
-  <%= render partial: 'table_monitors/game_protocol_modal', locals: { table_monitor: table_monitor } %>
 </div>

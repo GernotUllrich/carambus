@@ -561,6 +561,13 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
   end
+  
+  def protocol_modal_should_be_open?
+    panel_state == "protocol"
+  rescue StandardError => e
+    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    false
+  end
 
   def get_progress_bar_status(n_bars)
     # debug = DEBUG

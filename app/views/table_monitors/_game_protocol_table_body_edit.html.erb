@@ -9,7 +9,6 @@
   active_player = current_inning[:active_player]
   
   max_innings = [player_a[:innings].length, player_b[:innings].length].max
-  table_monitor_id = table_monitor.id
 %>
 
 <% max_innings.times do |i| %>
@@ -55,7 +54,7 @@
         <span class="font-semibold"><%= i + 1 %></span>
         <button data-reflex="click->GameProtocolReflex#insert_inning"
                 data-before="<%= i %>"
-                data-table-monitor-id="<%= table_monitor_id %>"
+                data-id="<%= table_monitor.id %>"
                 title="Aufnahme davor einfügen"
                 class="text-xs px-1 py-0.5 bg-green-500 hover:bg-green-600 text-white rounded">
           +
@@ -70,13 +69,13 @@
           <button data-reflex="click->GameProtocolReflex#decrement_points"
                   data-inning="<%= i %>"
                   data-player="playera"
-                  data-table-monitor-id="<%= table_monitor_id %>"
+                  data-id="<%= table_monitor.id %>"
                   class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
           <span class="<%= input_class_a %> w-16 px-2 py-1 text-center"><%= inning_a %></span>
           <button data-reflex="click->GameProtocolReflex#increment_points"
                   data-inning="<%= i %>"
                   data-player="playera"
-                  data-table-monitor-id="<%= table_monitor_id %>"
+                  data-id="<%= table_monitor.id %>"
                   class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
         </div>
       <% end %>
@@ -94,13 +93,13 @@
           <button data-reflex="click->GameProtocolReflex#decrement_points"
                   data-inning="<%= i %>"
                   data-player="playerb"
-                  data-table-monitor-id="<%= table_monitor_id %>"
+                  data-id="<%= table_monitor.id %>"
                   class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">−</button>
           <span class="<%= input_class_b %> w-16 px-2 py-1 text-center"><%= inning_b %></span>
           <button data-reflex="click->GameProtocolReflex#increment_points"
                   data-inning="<%= i %>"
                   data-player="playerb"
-                  data-table-monitor-id="<%= table_monitor_id %>"
+                  data-id="<%= table_monitor.id %>"
                   class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">+</button>
         </div>
       <% end %>
@@ -115,7 +114,7 @@
     <td class="py-2 px-2 text-center">
       <button data-reflex="click->GameProtocolReflex#delete_inning"
               data-inning="<%= i %>"
-              data-table-monitor-id="<%= table_monitor_id %>"
+              data-id="<%= table_monitor.id %>"
               <%= 'disabled' unless can_delete %>
               title="Zeile löschen"
               class="<%= delete_button_class %> text-lg">
