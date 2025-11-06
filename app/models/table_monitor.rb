@@ -2459,14 +2459,23 @@ data[\"allow_overflow\"].present?")
     # Convert "playera" -> "player_a", "playerb" -> "player_b"
     player_key = player.sub('player', 'player_').to_sym
     player_data = history[player_key]
-    innings_array = player_data[:innings]
+    innings_array = player_data[:innings].dup  # DUP to avoid modifying the original
+    
+    # DEBUG: Log before increment
+    Rails.logger.warn "🔍 INCREMENT: Before - innings_array=#{innings_array.inspect}, result=#{data[player]['result']}"
     
     # Increment the value
     current_value = innings_array[inning_index] || 0
     innings_array[inning_index] = current_value + 1
     
+    # DEBUG: Log after increment
+    Rails.logger.warn "🔍 INCREMENT: After - innings_array=#{innings_array.inspect}, expected_result=#{innings_array.compact.sum}"
+    
     # Update the data structure
     update_player_innings_data(player, innings_array)
+    
+    # DEBUG: Log final result
+    Rails.logger.warn "🔍 INCREMENT: Final - result=#{data[player]['result']}"
   end
   
   # Decrement points for a specific inning and player
@@ -2584,6 +2593,8 @@ data[\"allow_overflow\"].present?")
   def update_player_innings_data(player, innings_array)
     current_innings = data[player]['innings'].to_i
     
+    Rails.logger.warn "🔍 UPDATE_PLAYER: player=#{player}, current_innings=#{current_innings}, innings_array=#{innings_array.inspect}"
+    
     # Split into innings_list (completed) and innings_redo_list (current)
     if current_innings > 0 && innings_array.length >= current_innings
       data[player]['innings_list'] = innings_array[0...(current_innings - 1)]
@@ -2593,8 +2604,12 @@ data[\"allow_overflow\"].present?")
       data[player]['innings_redo_list'] = [innings_array.first || 0]
     end
     
+    Rails.logger.warn "🔍 UPDATE_PLAYER: Split into list=#{data[player]['innings_list'].inspect}, redo=#{data[player]['innings_redo_list'].inspect}"
+    
     # Update result (total score)
     data[player]['result'] = innings_array.compact.sum
+    
+    Rails.logger.warn "🔍 UPDATE_PLAYER: Setting result=#{data[player]['result']} (from sum of #{innings_array.compact.inspect})"
     
     # Update HS (high score)
     data[player]['hs'] = innings_array.compact.max || 0
