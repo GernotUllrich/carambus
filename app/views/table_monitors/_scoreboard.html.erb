@@ -66,7 +66,7 @@
                 <%- end %>
               </div>
             </div>
-            <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %> tracking-wider">
+            <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %> tracking-wide">
               <div class="flex-1 mb-1 goal" data-player="<%= left_player_id %>">
                 <%= t('goal') %>: <%= s = left_player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
               </div>
@@ -100,7 +100,7 @@
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
                 <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(0)&.role) %>
-                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap tracking-wider">
+                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap tracking-wide">
                   <%= innings_str %>
                 </div>
               </div>
@@ -205,7 +205,7 @@
       <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_b", id: table_monitor.id, discipline: right_player[:discipline] }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
-            <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %> tracking-wider">
+            <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %> tracking-wide">
               <div class="flex-1 mb-1 goal" data-player="<%= right_player_id %>">
                 <%= t('goal') %>: <%= s = right_player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
               </div>
@@ -258,7 +258,7 @@
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
                 <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(1)&.role) %>
-                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap tracking-wider">
+                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap tracking-wide">
                   <%= innings_str %>
                 </div>
               </div>
