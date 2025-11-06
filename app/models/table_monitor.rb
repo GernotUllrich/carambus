@@ -516,13 +516,13 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     ret = []
     show_innings.each_with_index do |i, ix|
       foul = show_innings_fouls[ix].to_i
-      ret << (foul.zero? ? "<span class=\"inline-block px-3 whitespace-nowrap\">#{i}</span>" : "<span class=\"inline-block px-3 whitespace-nowrap\">#{i},F#{foul}</span>")
+      ret << (foul.zero? ? "<span class=\"inline-block min-w-[2em] text-center px-1\">#{i}</span>" : "<span class=\"inline-block min-w-[2em] text-center px-1\">#{i},F#{foul}</span>")
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |i, ix|
-      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-2 inline-block mx-2 whitespace-nowrap\">#{i}</strong>" : "<span class=\"inline-block px-3 whitespace-nowrap\">#{i}</span>").to_s
+      ret << (ix.zero? ? "<strong class=\"border-4 border-solid border-gray-400 p-1 inline-block mx-1 min-w-[2em] text-center\">#{i}</strong>" : "<span class=\"inline-block min-w-[2em] text-center px-1\">#{i}</span>").to_s
     end
-    # Use span with padding around separator for better spacing
-    separator = "<span class=\"inline-block px-1 whitespace-nowrap\">,</span>"
+    # Use span with spacing for separator
+    separator = " , "
     if ret.length > last_n
       "#{prefix}...#{ret[-last_n..].join(separator)}".html_safe
     else
