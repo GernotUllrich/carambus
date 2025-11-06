@@ -18,6 +18,7 @@
 
 <% max_innings.times do |i| %>
   <% 
+    Rails.logger.warn "🔍 RENDERING ROW #{i+1} of #{max_innings}"
     is_last_inning = (i == max_innings - 1)
     
     inning_a = player_a[:innings][i]
