@@ -524,15 +524,23 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     end
     Array(data[role].andand["innings_redo_list"]).reverse.each_with_index do |inning_value, ix|
       if ix.zero?
-        ret << "<strong class=\"border-4 border-solid border-gray-400 p-1\">#{inning_value}</strong>"
+        ret << "<strong class=\"border-4 border-solid border-gray-400 p-1 text-[1.2em]\">#{inning_value}</strong>"
       else
-        ret << inning_value.to_s
+        ret << "<span class=\"text-[0.7em]\">#{inning_value}</span>"
+      end
+    end
+    # Wrap all regular innings in smaller spans
+    ret = ret.map.with_index do |item, idx|
+      if idx < show_innings.length && !item.include?('<')
+        "<span class=\"text-[0.7em]\">#{item}</span>"
+      else
+        item
       end
     end
     if ret.length > last_n
-      "#{prefix}...#{ret[-last_n..].join(" , ")}".html_safe
+      "#{prefix}...#{ret[-last_n..].join(", ")}".html_safe
     else
-      (prefix.to_s + ret.join(" , ")).html_safe
+      (prefix.to_s + ret.join(", ")).html_safe
     end
   rescue StandardError => e
     Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
