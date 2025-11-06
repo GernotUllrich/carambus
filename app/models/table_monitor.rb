@@ -2197,18 +2197,30 @@ data[\"allow_overflow\"].present?")
 
   # Game Protocol Modal - Get innings history for both players
   def innings_history
-    Rails.logger.info "-----------m6[#{id}]---------->>> innings_history <<<------------------------------------------" if DEBUG
+    Rails.logger.warn "=" * 80
+    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 START for TableMonitor #{id}"
     
     gps = game&.game_participations&.order(:role).to_a
     
-    # Get completed and current innings
-    innings_list_a = data.dig('playera', 'innings_list') || []
-    innings_redo_a = data.dig('playera', 'innings_redo_list') || [0]
-    innings_list_b = data.dig('playerb', 'innings_list') || []
-    innings_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
+    # Get completed and current innings (FIX: Handle empty arrays correctly!)
+    innings_list_a = Array(data.dig('playera', 'innings_list'))
+    innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
+    innings_redo_a = [0] if innings_redo_a.empty?
+    
+    innings_list_b = Array(data.dig('playerb', 'innings_list'))
+    innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
+    innings_redo_b = [0] if innings_redo_b.empty?
+    
+    innings_counter_a = data.dig('playera', 'innings').to_i
+    innings_counter_b = data.dig('playerb', 'innings').to_i
     
     # Get active player
     active_player = data.dig('current_inning', 'active_player')
+    
+    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 INPUT DATA:"
+    Rails.logger.warn "  Player A: counter=#{innings_counter_a}, list=#{innings_list_a.inspect}, redo=#{innings_redo_a.inspect}"
+    Rails.logger.warn "  Player B: counter=#{innings_counter_b}, list=#{innings_list_b.inspect}, redo=#{innings_redo_b.inspect}"
+    Rails.logger.warn "  Active player: #{active_player}"
     
     # Number of rows = completed innings + 1 for current inning
     # An inning is only complete when BOTH players have played
@@ -2217,10 +2229,9 @@ data[\"allow_overflow\"].present?")
     num_rows = completed_innings + 1
     num_rows = [num_rows, 1].max  # At least 1
     
-    # DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: completed_innings=#{completed_innings}, num_rows=#{num_rows}, active_player=#{active_player}" if DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}" if DEBUG
-    Rails.logger.info "🔍 PROTOCOL DEBUG [#{id}]: innings_redo_a=#{innings_redo_a.inspect}, innings_redo_b=#{innings_redo_b.inspect}" if DEBUG
+    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 CALCULATION:"
+    Rails.logger.warn "  completed_innings (MIN of list lengths) = #{completed_innings}"
+    Rails.logger.warn "  num_rows (completed + 1) = #{num_rows}"
     
     # Build arrays with EXACTLY num_rows
     innings_a = []
@@ -2274,6 +2285,13 @@ data[\"allow_overflow\"].present?")
         totals_b << sum_b
       end
     end
+    
+    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 RESULT:"
+    Rails.logger.warn "  Player A innings (#{innings_a.length} items): #{innings_a.inspect}"
+    Rails.logger.warn "  Player B innings (#{innings_b.length} items): #{innings_b.inspect}"
+    Rails.logger.warn "  Will display #{[innings_a.length, innings_b.length].max} rows in protocol"
+    Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 END"
+    Rails.logger.warn "=" * 80
     
     {
       player_a: {
