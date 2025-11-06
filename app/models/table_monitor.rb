@@ -2550,7 +2550,7 @@ data[\"allow_overflow\"].present?")
     return unless playing? || set_over?
     
     Rails.logger.warn "=" * 80
-    Rails.logger.warn "🔍 INSERT INNING: before_index=#{before_index}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 START - before_index=#{before_index}"
     Rails.logger.warn "=" * 80
     
     # Get current lists for both players
@@ -2561,31 +2561,31 @@ data[\"allow_overflow\"].present?")
     innings_counter_a = data.dig('playera', 'innings').to_i
     innings_counter_b = data.dig('playerb', 'innings').to_i
     
-    Rails.logger.warn "🔍 BEFORE INSERT:"
-    Rails.logger.warn "  Player A: innings_counter=#{innings_counter_a}, innings_list=#{innings_list_a.inspect}, innings_redo_list=#{innings_redo_a.inspect}"
-    Rails.logger.warn "  Player B: innings_counter=#{innings_counter_b}, innings_list=#{innings_list_b.inspect}, innings_redo_list=#{innings_redo_b.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 BEFORE INSERT:"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player A: innings_counter=#{innings_counter_a}, innings_list=#{innings_list_a.inspect}, innings_redo_list=#{innings_redo_a.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player B: innings_counter=#{innings_counter_b}, innings_list=#{innings_list_b.inspect}, innings_redo_list=#{innings_redo_b.inspect}"
     
     # Combine list + redo to get full current arrays
     full_a = innings_list_a + innings_redo_a
     full_b = innings_list_b + innings_redo_b
     
-    Rails.logger.warn "🔍 COMBINED ARRAYS (before insert):"
-    Rails.logger.warn "  full_a (#{full_a.length} items) = #{full_a.inspect}"
-    Rails.logger.warn "  full_b (#{full_b.length} items) = #{full_b.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 COMBINED ARRAYS (before insert):"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_a (#{full_a.length} items) = #{full_a.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_b (#{full_b.length} items) = #{full_b.inspect}"
     
     # Insert 0 at the specified position for BOTH players
     full_a.insert(before_index, 0)
     full_b.insert(before_index, 0)
     
-    Rails.logger.warn "🔍 AFTER INSERT AT INDEX #{before_index}:"
-    Rails.logger.warn "  full_a (#{full_a.length} items) = #{full_a.inspect}"
-    Rails.logger.warn "  full_b (#{full_b.length} items) = #{full_b.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 AFTER INSERT AT INDEX #{before_index}:"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_a (#{full_a.length} items) = #{full_a.inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_b (#{full_b.length} items) = #{full_b.inspect}"
     
     # Increment innings counter for both players
     data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
     data['playerb']['innings'] = (data['playerb']['innings'].to_i + 1)
     
-    Rails.logger.warn "🔍 INNINGS COUNTERS: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 INNINGS COUNTERS: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
     
     # Split back into list and redo
     # The last element is always redo, everything before is list
@@ -2605,9 +2605,9 @@ data[\"allow_overflow\"].present?")
       data['playerb']['innings_redo_list'] = [full_b.first || 0]
     end
     
-    Rails.logger.warn "🔍 AFTER SPLIT BACK TO LIST + REDO:"
-    Rails.logger.warn "  Player A: innings_list=#{data['playera']['innings_list'].inspect}, innings_redo_list=#{data['playera']['innings_redo_list'].inspect}"
-    Rails.logger.warn "  Player B: innings_list=#{data['playerb']['innings_list'].inspect}, innings_redo_list=#{data['playerb']['innings_redo_list'].inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 AFTER SPLIT BACK TO LIST + REDO:"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player A: innings_list=#{data['playera']['innings_list'].inspect}, innings_redo_list=#{data['playera']['innings_redo_list'].inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player B: innings_list=#{data['playerb']['innings_list'].inspect}, innings_redo_list=#{data['playerb']['innings_redo_list'].inspect}"
     
     # Recalculate stats for both players (defer save until both are done)
     recalculate_player_stats('playera', save_now: false)
@@ -2619,10 +2619,11 @@ data[\"allow_overflow\"].present?")
     
     # DEBUG: Show what innings_history will return (what the UI will display)
     history = innings_history
-    Rails.logger.warn "🔍 FINAL STATE (what UI will show):"
-    Rails.logger.warn "  Player A innings: #{history[:player_a][:innings].inspect}"
-    Rails.logger.warn "  Player B innings: #{history[:player_b][:innings].inspect}"
-    Rails.logger.warn "  Number of rows: #{[history[:player_a][:innings].length, history[:player_b][:innings].length].max}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 FINAL STATE (what UI will show):"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player A innings: #{history[:player_a][:innings].inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player B innings: #{history[:player_b][:innings].inspect}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Number of rows: #{[history[:player_a][:innings].length, history[:player_b][:innings].length].max}"
+    Rails.logger.warn "🎯 INSERT_DEBUG 🎯 END"
     Rails.logger.warn "=" * 80
   end
 
