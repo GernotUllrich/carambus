@@ -100,7 +100,7 @@
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
                 <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(0)&.role) %>
-                <div class="flex w-full overflow-hidden items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-nowrap">
+                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap">
                   <%= innings_str %>
                 </div>
               </div>
@@ -258,7 +258,7 @@
             <%- else %>
               <div class="flex h-1/6 w-full flex-row">
                 <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(1)&.role) %>
-                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-nowrap">
+                <div class="flex w-full items-end justify-end text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap">
                   <%= innings_str %>
                 </div>
               </div>
