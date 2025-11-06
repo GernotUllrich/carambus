@@ -48,18 +48,9 @@
   %>
   
   <tr class="border-b border-gray-200 dark:border-gray-700" data-inning-row data-inning="<%= i %>">
-    <!-- Inning Number with Insert Button -->
+    <!-- Inning Number -->
     <td class="py-2 px-2 text-center bg-gray-50 dark:bg-gray-800">
-      <div class="flex flex-col gap-1">
-        <span class="font-semibold"><%= i + 1 %></span>
-        <button data-reflex="click->GameProtocolReflex#insert_inning"
-                data-before="<%= i %>"
-                data-id="<%= table_monitor.id %>"
-                title="Aufnahme davor einfügen"
-                class="text-xs px-1 py-0.5 bg-green-500 hover:bg-green-600 text-white rounded">
-          +
-        </button>
-      </div>
+      <span class="font-semibold"><%= i + 1 %></span>
     </td>
     
     <!-- Player A Points with +/- buttons -->
@@ -110,16 +101,25 @@
       <%= show_inning_b ? total_b : '' %>
     </td>
     
-    <!-- Delete Button -->
+    <!-- Actions: Insert + Delete -->
     <td class="py-2 px-2 text-center">
-      <button data-reflex="click->GameProtocolReflex#delete_inning"
-              data-inning="<%= i %>"
-              data-id="<%= table_monitor.id %>"
-              <%= 'disabled' unless can_delete %>
-              title="Zeile löschen"
-              class="<%= delete_button_class %> text-lg">
-        ✗
-      </button>
+      <div class="flex items-center justify-center gap-1">
+        <button data-reflex="click->GameProtocolReflex#insert_inning"
+                data-before="<%= i %>"
+                data-id="<%= table_monitor.id %>"
+                title="Aufnahme davor einfügen"
+                class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">
+          ➕
+        </button>
+        <button data-reflex="click->GameProtocolReflex#delete_inning"
+                data-inning="<%= i %>"
+                data-id="<%= table_monitor.id %>"
+                <%= 'disabled' unless can_delete %>
+                title="Zeile löschen"
+                class="<%= delete_button_class %>">
+          🗑️
+        </button>
+      </div>
     </td>
   </tr>
 <% end %>
