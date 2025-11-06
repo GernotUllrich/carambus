@@ -71,7 +71,7 @@ class TableMonitor < ApplicationRecord
   after_update_commit lambda {
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     return if skip_update_callbacks
-    
+
     #broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element])
     get_options!(I18n.locale)
@@ -87,16 +87,16 @@ class TableMonitor < ApplicationRecord
     end
     TableMonitorJob.perform_later(self, "")
     # broadcast_replace_to self
-    
+
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
-    if tournament_monitor.is_a?(TournamentMonitor) && 
+    if tournament_monitor.is_a?(TournamentMonitor) &&
        tournament_monitor.tournament.present? &&
        tournament_monitor.tournament.tournament_started &&
        previous_changes.key?("data")
       # Prüfe ob sich relevante Spiel-Daten geändert haben
       old_data = previous_changes["data"][0] rescue {}
       new_data = previous_changes["data"][1] rescue {}
-      
+
       # Prüfe ob result oder innings_redo_list sich geändert haben
       data_changed = false
       %w[playera playerb].each do |role|
@@ -104,14 +104,14 @@ class TableMonitor < ApplicationRecord
         new_result = new_data.dig(role, "result").to_i rescue 0
         old_inning = Array(old_data.dig(role, "innings_redo_list")).last.to_i rescue 0
         new_inning = Array(new_data.dig(role, "innings_redo_list")).last.to_i rescue 0
-        
+
         if old_result != new_result || old_inning != new_inning
           data_changed = true
           Rails.logger.info "TournamentStatusUpdate: Data changed for #{role} - result: #{old_result}->#{new_result}, inning: #{old_inning}->#{new_inning}"
           break
         end
       end
-      
+
       if data_changed
         tournament = tournament_monitor.tournament
         Rails.logger.info "TournamentStatusUpdate: Triggering update for tournament #{tournament.id}"
@@ -427,10 +427,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "---------------m6[#{id}]------>>> #{"render_innings_list(#{role})"} <<<\
 ------------------------------------------"
     end
-    
+
     # Return empty string if role is nil or not valid
     return "".html_safe if role.nil? || !data.key?(role)
-    
+
     innings = data["playera"]["innings"].to_i
     cols = [(innings / 15.0).ceil, 2].max
     show_innings = Array(data[role].andand["innings_list"])
@@ -447,7 +447,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
 
     th, td {
     }
-    </style><table><thead><tr>"]
+    </style><table class=\"tracking-wide\"><thead><tr>"]
     (1..cols).each do |_icol|
       ret << "<th>Aufn</th><th>Pkt</th>#{
         "<th>Foul</th>" if data["playera"].andand["discipline"] == "14.1 endlos"}<th>∑</th>"
@@ -499,10 +499,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"render_last_innings(#{last_n}, #{role})"} <<<\
 ------------------------------------------"
     end
-    
+
     # Return empty string if role is nil or not valid
     return "".html_safe if role.nil? || !data.key?(role)
-    
+
     player_ix = role == "playera" ? 1 : 2
     show_innings = Array(data[role].andand["innings_list"])
     show_innings_fouls = Array(data[role].andand["innings_foul_list"])
@@ -577,7 +577,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
   end
-  
+
   def protocol_modal_should_be_open?
     panel_state == "protocol" || panel_state == "protocol_edit"
   rescue StandardError => e
@@ -1888,18 +1888,18 @@ data[\"allow_overflow\"].present?")
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> #{"start_game(#{options.inspect})"} <<<------------------------------------------"
     end
-    
+
     # Disable callbacks during start_game to prevent redundant background jobs
     # (start_game does 3 saves which would trigger 6 background jobs otherwise)
     self.skip_update_callbacks = true
-    
+
     # Unlink any existing game from this table monitor (preserve game history)
     if game.present?
       existing_game_id = game.id
       game.update(table_monitor: nil)
       Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
     end
-    
+
     # Create a new game for this table monitor
     @game = Game.new(table_monitor: self)
     reload
@@ -1981,12 +1981,12 @@ data[\"allow_overflow\"].present?")
     deep_merge_data!(result)
     self.copy_from = nil
     save!
-    
+
     # Re-enable callbacks and manually enqueue table_scores job
     # (full_screen_update is NOT needed because controller does redirect_to @table_monitor)
     self.skip_update_callbacks = false
     TableMonitorJob.perform_later(self, "table_scores")
-    
+
     finish_warmup! if options["discipline_a"] =~ /shootout/i && may_finish_warmup?
     true
   rescue StandardError => e
@@ -2215,44 +2215,44 @@ data[\"allow_overflow\"].present?")
   def innings_history
     Rails.logger.warn "=" * 80
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 START for TableMonitor #{id}"
-    
+
     gps = game&.game_participations&.order(:role).to_a
-    
+
     # Get completed and current innings (FIX: Handle empty arrays correctly!)
     innings_list_a = Array(data.dig('playera', 'innings_list'))
     innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
     innings_redo_a = [0] if innings_redo_a.empty?
-    
+
     innings_list_b = Array(data.dig('playerb', 'innings_list'))
     innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
     innings_redo_b = [0] if innings_redo_b.empty?
-    
+
     innings_counter_a = data.dig('playera', 'innings').to_i
     innings_counter_b = data.dig('playerb', 'innings').to_i
-    
+
     # Get active player
     active_player = data.dig('current_inning', 'active_player')
-    
+
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 INPUT DATA:"
     Rails.logger.warn "  Player A: counter=#{innings_counter_a}, list=#{innings_list_a.inspect}, redo=#{innings_redo_a.inspect}"
     Rails.logger.warn "  Player B: counter=#{innings_counter_b}, list=#{innings_list_b.inspect}, redo=#{innings_redo_b.inspect}"
     Rails.logger.warn "  Active player: #{active_player}"
-    
+
     # Number of rows = completed innings + 1 for current inning
     # An inning is only complete when BOTH players have played
     # So we use MIN, not MAX of the list lengths
     completed_innings = [innings_list_a.length, innings_list_b.length].min
     num_rows = completed_innings + 1
     num_rows = [num_rows, 1].max  # At least 1
-    
+
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 CALCULATION:"
     Rails.logger.warn "  completed_innings (MIN of list lengths) = #{completed_innings}"
     Rails.logger.warn "  num_rows (completed + 1) = #{num_rows}"
-    
+
     # Build arrays with EXACTLY num_rows
     innings_a = []
     innings_b = []
-    
+
     (0...num_rows).each do |i|
       # For Player A at row i
       if i < innings_list_a.length
@@ -2265,7 +2265,7 @@ data[\"allow_overflow\"].present?")
         # Not yet started or other player is active - empty/nil
         innings_a << nil
       end
-      
+
       # For Player B at row i
       if i < innings_list_b.length
         # Completed inning from list
@@ -2278,7 +2278,7 @@ data[\"allow_overflow\"].present?")
         innings_b << nil
       end
     end
-    
+
     # Calculate running totals from the complete innings arrays
     # Skip nil values (player hasn't played that inning yet)
     totals_a = []
@@ -2301,14 +2301,14 @@ data[\"allow_overflow\"].present?")
         totals_b << sum_b
       end
     end
-    
+
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 RESULT:"
     Rails.logger.warn "  Player A innings (#{innings_a.length} items): #{innings_a.inspect}"
     Rails.logger.warn "  Player B innings (#{innings_b.length} items): #{innings_b.inspect}"
     Rails.logger.warn "  Will display #{[innings_a.length, innings_b.length].max} rows in protocol"
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 END"
     Rails.logger.warn "=" * 80
-    
+
     {
       player_a: {
         name: gps[0]&.player&.fullname || "Spieler A",
@@ -2347,45 +2347,45 @@ data[\"allow_overflow\"].present?")
   # Update innings history from game protocol modal
   def update_innings_history(innings_params)
     Rails.logger.info "-----------m6[#{id}]---------->>> update_innings_history <<<------------------------------------------" if DEBUG
-    
+
     return { success: false, error: 'Not in playing state' } unless playing? || set_over?
-    
+
     begin
       new_playera_innings = innings_params['playera'] || []
       new_playerb_innings = innings_params['playerb'] || []
-      
+
       # Validate: no negative values allowed
       if new_playera_innings.any? { |v| v.to_i < 0 } || new_playerb_innings.any? { |v| v.to_i < 0 }
         return { success: false, error: 'Negative Punktzahlen sind nicht erlaubt' }
       end
-      
+
       # Read both arrays first
       innings_a = new_playera_innings.map(&:to_i)
       innings_b = new_playerb_innings.map(&:to_i)
-      
+
       # Current number of rows shown in modal is max(innings_a, innings_b)
       current_rows = [data.dig('playera', 'innings').to_i, data.dig('playerb', 'innings').to_i].max
-      
+
       # Determine the actual number of played innings for each player
       # by looking at the existing data structure (not the sent arrays)
       # The sent arrays include empty cells as 0, which we need to interpret correctly
-      
+
       # Get the actual current structure from the data
       current_list_a = data.dig('playera', 'innings_list') || []
       current_redo_a = data.dig('playera', 'innings_redo_list') || [0]
       current_list_b = data.dig('playerb', 'innings_list') || []
       current_redo_b = data.dig('playerb', 'innings_redo_list') || [0]
       active_player = data.dig('current_inning', 'active_player')
-      
+
       # Calculate how many rows each player ACTUALLY has (list + redo if not empty or active)
       actual_rows_a = current_list_a.length + (current_redo_a[0] != 0 || active_player == 'playera' ? 1 : 0)
       actual_rows_b = current_list_b.length + (current_redo_b[0] != 0 || active_player == 'playerb' ? 1 : 0)
-      
+
       # The new rows should be based on how many non-zero values we have in the sent data
       # BUT: keep at least actual_rows to not accidentally delete
       new_rows_a = innings_a.length
       new_rows_b = innings_b.length
-      
+
       # Don't count trailing zeros UNLESS it's the active player's current inning
       if new_rows_a > actual_rows_a
         # More rows sent - check if last is just trailing zero
@@ -2394,28 +2394,28 @@ data[\"allow_overflow\"].present?")
           new_rows_a -= 1
         end
       end
-      
+
       if new_rows_b > actual_rows_b
         while innings_b.last == 0 && new_rows_b > actual_rows_b
           innings_b.pop
           new_rows_b -= 1
         end
       end
-      
+
       # Determine new innings number
       new_rows = [new_rows_a, new_rows_b].max
-      
+
       # Only change innings if the number of rows changed (INSERT/DELETE)
       if new_rows != current_rows
         # Structure changed - update both players to the same innings number
         data['playera']['innings'] = new_rows
         data['playerb']['innings'] = new_rows
       end
-      
+
       # Now distribute values using the (possibly updated) innings numbers
       current_innings_a = data['playera']['innings']
       current_innings_b = data['playerb']['innings']
-      
+
       # Distribute values for Player A
       if innings_a.length >= current_innings_a && current_innings_a > 0
         # Split at current innings position
@@ -2430,7 +2430,7 @@ data[\"allow_overflow\"].present?")
         data['playera']['innings_list'] = []
         data['playera']['innings_redo_list'] = innings_a.empty? ? [0] : [innings_a[0]]
       end
-      
+
       data['playera']['result'] = innings_a.sum
       data['playera']['hs'] = innings_a.max || 0
       data['playera']['gd'] = if current_innings_a > 0
@@ -2438,13 +2438,13 @@ data[\"allow_overflow\"].present?")
                               else
                                 0.0
                               end
-      
+
       # Adjust foul lists to match structure
       target_length_a = [data['playera']['innings_list'].length, 0].max
       current_fouls_a = (data['playera']['innings_foul_list'] || [])[0...target_length_a]
       data['playera']['innings_foul_list'] = current_fouls_a + Array.new([target_length_a - current_fouls_a.length, 0].max, 0)
       data['playera']['innings_foul_redo_list'] = [0]
-      
+
       # Distribute values for Player B
       if innings_b.length >= current_innings_b && current_innings_b > 0
         data['playerb']['innings_list'] = innings_b[0...(current_innings_b - 1)]
@@ -2456,7 +2456,7 @@ data[\"allow_overflow\"].present?")
         data['playerb']['innings_list'] = []
         data['playerb']['innings_redo_list'] = innings_b.empty? ? [0] : [innings_b[0]]
       end
-      
+
       data['playerb']['result'] = innings_b.sum
       data['playerb']['hs'] = innings_b.max || 0
       data['playerb']['gd'] = if current_innings_b > 0
@@ -2464,17 +2464,17 @@ data[\"allow_overflow\"].present?")
                               else
                                 0.0
                               end
-      
+
       # Adjust foul lists to match structure
       target_length_b = [data['playerb']['innings_list'].length, 0].max
       current_fouls_b = (data['playerb']['innings_foul_list'] || [])[0...target_length_b]
       data['playerb']['innings_foul_list'] = current_fouls_b + Array.new([target_length_b - current_fouls_b.length, 0].max, 0)
       data['playerb']['innings_foul_redo_list'] = [0]
-      
+
       # Mark data as changed and save
       data_will_change!
       save!
-      
+
       { success: true }
     rescue StandardError => e
       Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -2483,17 +2483,17 @@ data[\"allow_overflow\"].present?")
   end
 
   # Protocol editing methods for GameProtocolReflex
-  
+
   # Increment points for a specific inning and player
   def increment_inning_points(inning_index, player)
     return unless playing? || set_over?
-    
+
     innings_list = Array(data[player]['innings_list'])
     innings_redo_list = Array(data[player]['innings_redo_list'])
     innings_redo_list = [0] if innings_redo_list.empty?
-    
+
     Rails.logger.warn "🔍 INCREMENT: inning_index=#{inning_index}, innings_list.length=#{innings_list.length}"
-    
+
     # Determine if we're editing a completed inning (in innings_list) or the current inning (in innings_redo_list)
     if inning_index < innings_list.length
       # Editing a completed inning
@@ -2507,23 +2507,23 @@ data[\"allow_overflow\"].present?")
       Rails.logger.error "🔍 INCREMENT: Invalid inning_index #{inning_index} (list length=#{innings_list.length})"
       return
     end
-    
+
     # Update the data
     data[player]['innings_list'] = innings_list
     data[player]['innings_redo_list'] = innings_redo_list
-    
+
     # Recalculate result, hs, gd
     recalculate_player_stats(player)
   end
-  
+
   # Decrement points for a specific inning and player
   def decrement_inning_points(inning_index, player)
     return unless playing? || set_over?
-    
+
     innings_list = Array(data[player]['innings_list'])
     innings_redo_list = Array(data[player]['innings_redo_list'])
     innings_redo_list = [0] if innings_redo_list.empty?
-    
+
     # Determine if we're editing a completed inning or the current inning
     if inning_index < innings_list.length
       # Editing a completed inning
@@ -2534,121 +2534,121 @@ data[\"allow_overflow\"].present?")
     else
       return
     end
-    
+
     # Update the data
     data[player]['innings_list'] = innings_list
     data[player]['innings_redo_list'] = innings_redo_list
-    
+
     # Recalculate result, hs, gd
     recalculate_player_stats(player)
   end
-  
+
   # Delete an inning (only if both players have 0 points AND not the current inning)
   def delete_inning(inning_index)
     return { success: false, error: 'Not in playing state' } unless playing? || set_over?
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Trying to delete inning at index #{inning_index}"
-    
+
     # Get current lists for both players
     innings_list_a = Array(data.dig('playera', 'innings_list'))
     innings_list_b = Array(data.dig('playerb', 'innings_list'))
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{innings_list_a.length}, innings_list_b.length=#{innings_list_b.length}"
-    
+
     # Check if trying to delete the CURRENT inning (last row = innings_redo_list)
     max_list_length = [innings_list_a.length, innings_list_b.length].max
     if inning_index >= max_list_length
       Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Cannot delete current inning (index=#{inning_index} >= list_length=#{max_list_length})"
       return { success: false, error: 'Die laufende Aufnahme kann nicht gelöscht werden' }
     end
-    
+
     # Check if both players have 0 points in this inning
     value_a = innings_list_a[inning_index] || 0
     value_b = innings_list_b[inning_index] || 0
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Values at index #{inning_index}: A=#{value_a}, B=#{value_b}"
-    
+
     if value_a != 0 || value_b != 0
       Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Values not 0:0"
       return { success: false, error: 'Nur Zeilen mit 0:0 können gelöscht werden' }
     end
-    
+
     # Remove the inning from both innings_lists
     innings_list_a.delete_at(inning_index)
     innings_list_b.delete_at(inning_index)
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ After delete: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}"
-    
+
     # Update the data
     data['playera']['innings_list'] = innings_list_a
     data['playerb']['innings_list'] = innings_list_b
-    
+
     # Decrement innings counter for both players (min 1)
     data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
     data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ New innings counters: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
-    
+
     # Recalculate stats for both players
     recalculate_player_stats('playera', save_now: false)
     recalculate_player_stats('playerb', save_now: false)
-    
+
     data_will_change!
     save!
-    
+
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ SUCCESS"
     { success: true }
   rescue StandardError => e
     Rails.logger.error "🗑️ DELETE_DEBUG 🗑️ ERROR: #{e.message}"
     { success: false, error: e.message }
   end
-  
+
   # Insert an empty inning before the specified index for BOTH players
   def insert_inning(before_index)
     return unless playing? || set_over?
-    
+
     Rails.logger.warn "=" * 80
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 START - before_index=#{before_index}"
     Rails.logger.warn "=" * 80
-    
+
     # Get current lists for both players
     innings_list_a = Array(data.dig('playera', 'innings_list'))
     innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
     innings_redo_a = [0] if innings_redo_a.empty?
-    
+
     innings_list_b = Array(data.dig('playerb', 'innings_list'))
     innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
     innings_redo_b = [0] if innings_redo_b.empty?
-    
+
     innings_counter_a = data.dig('playera', 'innings').to_i
     innings_counter_b = data.dig('playerb', 'innings').to_i
-    
+
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 BEFORE INSERT:"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player A: innings_counter=#{innings_counter_a}, innings_list=#{innings_list_a.inspect}, innings_redo_list=#{innings_redo_a.inspect}"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player B: innings_counter=#{innings_counter_b}, innings_list=#{innings_list_b.inspect}, innings_redo_list=#{innings_redo_b.inspect}"
-    
+
     # Combine list + redo to get full current arrays
     full_a = innings_list_a + innings_redo_a
     full_b = innings_list_b + innings_redo_b
-    
+
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 COMBINED ARRAYS (before insert):"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_a (#{full_a.length} items) = #{full_a.inspect}"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_b (#{full_b.length} items) = #{full_b.inspect}"
-    
+
     # Insert 0 at the specified position for BOTH players
     full_a.insert(before_index, 0)
     full_b.insert(before_index, 0)
-    
+
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 AFTER INSERT AT INDEX #{before_index}:"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_a (#{full_a.length} items) = #{full_a.inspect}"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   full_b (#{full_b.length} items) = #{full_b.inspect}"
-    
+
     # Increment innings counter for both players
     data['playera']['innings'] = (data['playera']['innings'].to_i + 1)
     data['playerb']['innings'] = (data['playerb']['innings'].to_i + 1)
-    
+
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 INNINGS COUNTERS: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
-    
+
     # Split back into list and redo
     # The last element is always redo, everything before is list
     if full_a.length > 1
@@ -2658,7 +2658,7 @@ data[\"allow_overflow\"].present?")
       data['playera']['innings_list'] = []
       data['playera']['innings_redo_list'] = [full_a.first || 0]
     end
-    
+
     if full_b.length > 1
       data['playerb']['innings_list'] = full_b[0...-1]
       data['playerb']['innings_redo_list'] = [full_b.last]
@@ -2666,19 +2666,19 @@ data[\"allow_overflow\"].present?")
       data['playerb']['innings_list'] = []
       data['playerb']['innings_redo_list'] = [full_b.first || 0]
     end
-    
+
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 AFTER SPLIT BACK TO LIST + REDO:"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player A: innings_list=#{data['playera']['innings_list'].inspect}, innings_redo_list=#{data['playera']['innings_redo_list'].inspect}"
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯   Player B: innings_list=#{data['playerb']['innings_list'].inspect}, innings_redo_list=#{data['playerb']['innings_redo_list'].inspect}"
-    
+
     # Recalculate stats for both players (defer save until both are done)
     recalculate_player_stats('playera', save_now: false)
     recalculate_player_stats('playerb', save_now: false)
-    
+
     # Save once after both players are updated
     data_will_change!
     save!
-    
+
     # DEBUG: Show what innings_history will return (what the UI will display)
     history = innings_history
     Rails.logger.warn "🎯 INSERT_DEBUG 🎯 FINAL STATE (what UI will show):"
@@ -2690,7 +2690,7 @@ data[\"allow_overflow\"].present?")
   end
 
   private
-  
+
   # Recalculate player stats (result, hs, gd) based on current innings_list and innings_redo_list
   # Does NOT modify the innings structure, only the calculated stats
   # Optional: pass save_now=false to defer saving (useful when updating multiple players)
@@ -2699,14 +2699,14 @@ data[\"allow_overflow\"].present?")
     innings_redo_list = Array(data[player]['innings_redo_list'])
     innings_redo_list = [0] if innings_redo_list.empty?
     current_innings = data[player]['innings'].to_i
-    
+
     # Calculate result (only completed innings)
     data[player]['result'] = innings_list.compact.sum
-    
+
     # Calculate HS (high score) from all innings (completed + current)
     all_innings = innings_list + innings_redo_list
     data[player]['hs'] = all_innings.compact.max || 0
-    
+
     # Calculate GD (average) from all innings
     total_points = all_innings.compact.sum
     data[player]['gd'] = if current_innings > 0
@@ -2714,21 +2714,21 @@ data[\"allow_overflow\"].present?")
                           else
                             0.0
                           end
-    
+
     Rails.logger.warn "🔍 RECALC: player=#{player}, result=#{data[player]['result']}, hs=#{data[player]['hs']}, gd=#{data[player]['gd']}"
-    
+
     if save_now
       data_will_change!
       save!
     end
   end
-  
+
   # Update innings data for a player from a complete innings array
   def update_player_innings_data(player, innings_array)
     current_innings = data[player]['innings'].to_i
-    
+
     Rails.logger.warn "🔍 UPDATE_PLAYER: player=#{player}, current_innings=#{current_innings}, innings_array=#{innings_array.inspect}"
-    
+
     # Split into innings_list (completed) and innings_redo_list (current)
     if current_innings > 0 && innings_array.length >= current_innings
       data[player]['innings_list'] = innings_array[0...(current_innings - 1)]
@@ -2737,18 +2737,18 @@ data[\"allow_overflow\"].present?")
       data[player]['innings_list'] = []
       data[player]['innings_redo_list'] = [innings_array.first || 0]
     end
-    
+
     Rails.logger.warn "🔍 UPDATE_PLAYER: Split into list=#{data[player]['innings_list'].inspect}, redo=#{data[player]['innings_redo_list'].inspect}"
-    
+
     # Update result (total score) - ONLY from completed innings (innings_list), NOT including current inning (innings_redo_list)
     # The scoreboard adds innings_redo_list separately, so we must not include it here
     data[player]['result'] = data[player]['innings_list'].compact.sum
-    
+
     Rails.logger.warn "🔍 UPDATE_PLAYER: Setting result=#{data[player]['result']} (from innings_list=#{data[player]['innings_list'].compact.inspect}, NOT including redo=#{data[player]['innings_redo_list'].inspect})"
-    
+
     # Update HS (high score)
     data[player]['hs'] = innings_array.compact.max || 0
-    
+
     # Update GD (average) - use TOTAL points (including current inning) divided by innings counter
     total_points = innings_array.compact.sum
     data[player]['gd'] = if current_innings > 0
@@ -2756,7 +2756,7 @@ data[\"allow_overflow\"].present?")
                           else
                             0.0
                           end
-    
+
     data_will_change!
     save!
   end
