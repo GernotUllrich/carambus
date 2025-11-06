@@ -563,7 +563,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
   
   def protocol_modal_should_be_open?
-    panel_state == "protocol"
+    panel_state == "protocol" || panel_state == "protocol_edit"
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     false
