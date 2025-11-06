@@ -2454,47 +2454,57 @@ data[\"allow_overflow\"].present?")
   def increment_inning_points(inning_index, player)
     return unless playing? || set_over?
     
-    # Get current innings history
-    history = innings_history
-    # Convert "playera" -> "player_a", "playerb" -> "player_b"
-    player_key = player.sub('player', 'player_').to_sym
-    player_data = history[player_key]
-    innings_array = player_data[:innings].dup  # DUP to avoid modifying the original
+    innings_list = data[player]['innings_list'] || []
+    innings_redo_list = data[player]['innings_redo_list'] || [0]
     
-    # DEBUG: Log before increment
-    Rails.logger.warn "🔍 INCREMENT: Before - innings_array=#{innings_array.inspect}, result=#{data[player]['result']}"
+    Rails.logger.warn "🔍 INCREMENT: inning_index=#{inning_index}, innings_list.length=#{innings_list.length}"
     
-    # Increment the value
-    current_value = innings_array[inning_index] || 0
-    innings_array[inning_index] = current_value + 1
+    # Determine if we're editing a completed inning (in innings_list) or the current inning (in innings_redo_list)
+    if inning_index < innings_list.length
+      # Editing a completed inning
+      Rails.logger.warn "🔍 INCREMENT: Editing completed inning at index #{inning_index}"
+      innings_list[inning_index] = (innings_list[inning_index] || 0) + 1
+    elsif inning_index == innings_list.length
+      # Editing the current inning
+      Rails.logger.warn "🔍 INCREMENT: Editing current inning (redo_list)"
+      innings_redo_list[0] = (innings_redo_list[0] || 0) + 1
+    else
+      Rails.logger.error "🔍 INCREMENT: Invalid inning_index #{inning_index} (list length=#{innings_list.length})"
+      return
+    end
     
-    # DEBUG: Log after increment
-    Rails.logger.warn "🔍 INCREMENT: After - innings_array=#{innings_array.inspect}, expected_result=#{innings_array.compact.sum}"
+    # Update the data
+    data[player]['innings_list'] = innings_list
+    data[player]['innings_redo_list'] = innings_redo_list
     
-    # Update the data structure
-    update_player_innings_data(player, innings_array)
-    
-    # DEBUG: Log final result
-    Rails.logger.warn "🔍 INCREMENT: Final - result=#{data[player]['result']}"
+    # Recalculate result, hs, gd
+    recalculate_player_stats(player)
   end
   
   # Decrement points for a specific inning and player
   def decrement_inning_points(inning_index, player)
     return unless playing? || set_over?
     
-    # Get current innings history
-    history = innings_history
-    # Convert "playera" -> "player_a", "playerb" -> "player_b"
-    player_key = player.sub('player', 'player_').to_sym
-    player_data = history[player_key]
-    innings_array = player_data[:innings]
+    innings_list = data[player]['innings_list'] || []
+    innings_redo_list = data[player]['innings_redo_list'] || [0]
     
-    # Decrement the value (min 0)
-    current_value = innings_array[inning_index] || 0
-    innings_array[inning_index] = [current_value - 1, 0].max
+    # Determine if we're editing a completed inning or the current inning
+    if inning_index < innings_list.length
+      # Editing a completed inning
+      innings_list[inning_index] = [(innings_list[inning_index] || 0) - 1, 0].max
+    elsif inning_index == innings_list.length
+      # Editing the current inning
+      innings_redo_list[0] = [(innings_redo_list[0] || 0) - 1, 0].max
+    else
+      return
+    end
     
-    # Update the data structure
-    update_player_innings_data(player, innings_array)
+    # Update the data
+    data[player]['innings_list'] = innings_list
+    data[player]['innings_redo_list'] = innings_redo_list
+    
+    # Recalculate result, hs, gd
+    recalculate_player_stats(player)
   end
   
   # Delete an inning (only if both players have 0 points)
@@ -2588,6 +2598,34 @@ data[\"allow_overflow\"].present?")
   end
 
   private
+  
+  # Recalculate player stats (result, hs, gd) based on current innings_list and innings_redo_list
+  # Does NOT modify the innings structure, only the calculated stats
+  def recalculate_player_stats(player)
+    innings_list = data[player]['innings_list'] || []
+    innings_redo_list = data[player]['innings_redo_list'] || [0]
+    current_innings = data[player]['innings'].to_i
+    
+    # Calculate result (only completed innings)
+    data[player]['result'] = innings_list.compact.sum
+    
+    # Calculate HS (high score) from all innings (completed + current)
+    all_innings = innings_list + innings_redo_list
+    data[player]['hs'] = all_innings.compact.max || 0
+    
+    # Calculate GD (average) from all innings
+    total_points = all_innings.compact.sum
+    data[player]['gd'] = if current_innings > 0
+                            format("%.3f", total_points.to_f / current_innings)
+                          else
+                            0.0
+                          end
+    
+    Rails.logger.warn "🔍 RECALC: player=#{player}, result=#{data[player]['result']}, hs=#{data[player]['hs']}, gd=#{data[player]['gd']}"
+    
+    data_will_change!
+    save!
+  end
   
   # Update innings data for a player from a complete innings array
   def update_player_innings_data(player, innings_array)
