@@ -225,10 +225,10 @@ Das Scoreboard wechselt in den **Spielmodus**.
 Die Eingabeelemente sind in **horizontaler Reihenfolge** angeordnet:
 
 ```
-[Undo] [-1] [-5] [-10] [Nächster] [+10] [+5] [+1] [Numbers]
+[Protokoll] [-1] [-5] [-10] [Nächster] [+10] [+5] [+1] [Numbers]
 ```
 
-- **Undo**: Aufnahmenliste bearbeiten (siehe [Anhang B: Undo/Edit-Funktion](#anhang-b-undoedit-funktion))
+- **Protokoll**: Spielprotokoll öffnen - alle Aufnahmen ansehen und bearbeiten (siehe [Anhang B: Spielprotokoll](#anhang-b-spielprotokoll))
 - **-1, -5, -10**: Punkte abziehen
 - **+1, +5, +10**: Punkte hinzufügen
 - **Nächster**: Spielerwechsel
