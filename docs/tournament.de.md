@@ -10,7 +10,7 @@ Carambus zielt darauf, den gesamten Spielbetrieb auf Regional- und Vereinsebene 
 
 Technisch gesehen ist Carambus eine Hierarchie von Webservices. An der Spitze steht ein Webserver, der sog. Carambus API Server, der nur dazu dient, externe Daten so zeitaktuell und effizient wie möglich vorzuhalten. Konsumenten dieser Daten sind auf Regionalebene und am Veranstaltungsort, bzw. in den Clubheimen Webserver, die den lokalen Spielbetrieb verwalten.
 
-Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Turniere, sowie die verschieden Anzeige- und Eingabegeräte (Scoreboards und Fernbedienungen) am Veranstaltungsort.
+Endgeräte dieser Webserver sind Webbrowser der Sportbeauftragten zur Planung und Abwicklung der Turniere, sowie Scoreboards mit Touch-Funktionalität am Veranstaltungsort zur Spielsteuerung durch die Spieler.
 
 Im sog. Trainingsmodus werden die Scoreboards zur Aufzeichnung der Spielergebnisse genutzt. Zum Aufsetzen der Spiele werden Spielerlisten des Clubs aus der Carambus Datenbank genutzt. Spiele werden im lokalen Webserver aufgezeichnet, sodass Auswertungen über die Performanz von Spielern möglich werden.
  
@@ -159,37 +159,40 @@ Folgende Eingaben an den Anzeigetafeln sind möglich:
 
 Der Schiedsrichter kann den Timer für die Bedenkzeit **`>`** starten, **`o`** beenden oder **`||`** anhalten
 
-### 4-Tasten-Fernbedienung
-Bei Turnieren mit Schiedsrichter wird ein besonderer Bedienmodus mit 4-Tasten-Fernbedienungen unterstützt. Diese Fernbedienungen sind solche, mit denen z.B. Powerpoint-Präsentationen ferngesteuert werden.
+## Bedienungskonzepte
 
-Die Tasten A (pageup), B (pagedown), C (b) und D (F5, ESC) haben abhängig vom Partie-Status folgende Bedeutungen:
+Carambus unterstützt zwei Hauptkategorien der Bedienung:
 
-#### Einstoßen
-* A startet den Einstoß-Timer für Spieler A
-* B startet den Einstoß-Timer für Spieler B
-* Mit D geht's weiter zur Ausstoßphase
+### 1. Management-Bedienung (Laptop/PC)
 
-#### Ausstoßen
-* A oder B wechselt den anstoßenden Spieler (Spieler A stößt mit Weiß an)
-* Mit D wird das Spiel gestartet, sobald aufgebaut wurde und der Spieler A angetreten ist
+Die Bedienung über Laptop oder PC mit ausklappbaren Menüs an der linken Seite ist die Hauptschnittstelle für:
 
-#### Spielphase
-* Wenn Spieler A am Zug ist, wird für ihn mit A ein Punkt gezählt
-* Wenn Spieler A am Zug ist, wird bei Fehlaufnahme mit B zu Spieler B gewechselt
-* Wenn Spieler B am Zug ist, wird für ihn mit B ein Punkt gezählt
-* Wenn Spieler B am Zug ist, wird bei Fehlaufnahme mit A zu Spieler B gewechselt
-* Wenn ein Spieler das Ziel erreicht hat (Aufnahmebegrenzung oder Punktziel), wird automatisch entweder zum Spieler B zum Nachstoß gewechselt oder das Spiel beendet
+* **Spielleiter beim Turniermanagement** - Planung und Durchführung von Turnieren, Verwaltung der Spielpläne, Tischzuordnungen und Turnierstatus
+* **Anwender zur Recherche** - Zugriff auf Turnier- und Ligadaten, Spielerstatistiken, Vereins- und Regionalverbandsinfos
+* **Administratoren** - Systemkonfiguration und Benutzerverwaltung
 
-Die Tasten sollten erst betätigt werden, wenn die Bälle zur Ruhe gekommen sind und der Spieler im Prinzip bereit für den nächsten Stoß ist. Mit der Taste wird gleichzeitig der Timer für die Bedenkzeit gestartet.
+Diese Menüs können bei Bedarf ein- und ausgefahren werden, um maximale Übersichtlichkeit zu gewährleisten.
 
-Die erweiterten Eingabemöglichkeiten oben können auch mit der 4-Tasten-Fernbedienung ausgelöst werden. Dazu wird aus dem einfachen Eingabemodus (das Aufnahmenfeld ist selektiert) in den Input-Modus gewechselt mit der Taste D nach unten. Im Input-Modus sind die einzelnen Eingabefelder durch Links/Rechts-Navigation mit den Tasten A und B anzusteuern. Die Funktionen werden jeweils mit der Taste D (nach unten) ausgelöst. Das jeweilige Eingabefeld bleibt danach ausgewählt, sodass die selbe Funktion einfach mehrfach angewendet werden kann. In den normalen Eingabemodus geht es zurück mit der Taste C (nach oben)
+### 2. Spieler-Bedienung (Touch-Scoreboard)
+
+Spieler steuern den Spielablauf direkt am Scoreboard mit Touch-Funktionalität:
+
+* **Spielprotokollierung** - Eingabe von Punkten und Aufnahmen durch Touch-Eingabe
+* **Spielerwechsel** - Durch Antippen der Ballzahl des anderen Spielers
+* **Timer-Steuerung** - Start, Stopp und Timeout-Verwaltung
+* **Direkter Zugriff** - Die Spieler haben durch Ausklappen des Menüs optional auch Zugriff auf Billarddaten (kein Regelfall, sondern ein Feature für Spezialisten)
+
+Die Touch-Bedienung ist intuitiv und ermöglicht eine schnelle, unkomplizierte Spielführung ohne zusätzliche Hardware.
+
+### Zukunftsprojekt: Vereinfachte Schiedsrichter-Bedienung
+
+Für zukünftige Entwicklungen ist eine stark vereinfachte Bedienung durch Schiedsrichter und Schreiber geplant, die speziell auf die Anforderungen bei offiziellen Wettkämpfen zugeschnitten sein wird.
 
 ### Timeout Behandlung
-Bei der Turnierplanung oder auch erst beim Turnierstart können die Länge der Bedenkzeit (Timeout), sowie die Zahl der möglichen Timeoutverlängerungen (Timeouts) vorgegeben werden. Mit der Fernbedienung kann im laufenden Spiel der Timeoutzähler um eins verringert werden. Die restliche Bedenkzeit wird dann noch einmal um das vorgegebene Timeout verlängert.
 
-Mit der Fernbedienung wird dazu mit der Taste D nach unten zum Timersymbol navigiert und dieses mit der Taste A (links) ausgelöst. Taste nach oben (Taste C) führt wieder zurück in den normalen Eingabemodus.
+Bei der Turnierplanung oder auch erst beim Turnierstart können die Länge der Bedenkzeit (Timeout), sowie die Zahl der möglichen Timeoutverlängerungen (Timeouts) vorgegeben werden. Am Scoreboard kann im laufenden Spiel der Timeoutzähler um eins verringert werden. Die restliche Bedenkzeit wird dann noch einmal um das vorgegebene Timeout verlängert.
 
-Die anderen Funktionen (Stop, Halt, Play) können ebenfalls mit der Fernbedienung ausgelöst werden. Dazu kann im Timer Modus zyklisch mit der Taste B (rechts) die jeweilige Funktion angesteuert werden und mit der Taste A (links) ausgelöst werden.
+Die Timer-Funktionen (Stop, Halt, Play, Timeout) sind über die Touch-Bedienung am Scoreboard zugänglich.
 
 ### Das Ende des Spiels
 wird anhand der Eingaben und der Aufnahme- bzw. Ballzahl automatisch erkannt.

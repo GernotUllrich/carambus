@@ -110,7 +110,7 @@ Der aktive Spieler wird durch einen **grünen Rahmen** (8px breit) gekennzeichne
 
 ## Tastenbelegung
 
-Das Scoreboard kann vollständig per Tastatur oder Fernbedienung gesteuert werden:
+Das Scoreboard kann vollständig per Tastatur gesteuert werden:
 
 ### Haupttasten
 
@@ -397,7 +397,7 @@ Die Menüleiste oben rechts enthält:
 **Lösung:**
 1. Klicken Sie einmal in das Scoreboard-Fenster um den Fokus zu setzen
 2. Prüfen Sie, ob die Tastatur korrekt angeschlossen ist
-3. Bei Fernbedienung: Batterien überprüfen
+3. Bei Touch-Displays: Prüfen Sie die Touch-Kalibrierung
 
 ### Anzeige ist verzerrt
 

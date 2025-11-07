@@ -109,7 +109,7 @@ The active player is indicated by a **green border** (8px wide). The waiting pla
 
 ## Key Bindings
 
-The scoreboard can be completely controlled via keyboard or remote control:
+The scoreboard can be completely controlled via keyboard:
 
 ### Main Keys
 
@@ -396,7 +396,7 @@ The menu bar at the top right contains:
 **Solution:**
 1. Click once in the scoreboard window to set focus
 2. Check if keyboard is properly connected
-3. For remote control: Check batteries
+3. For touch displays: Check touch calibration
 
 ### Display Is Distorted
 

@@ -10,7 +10,7 @@ Carambus aims to automate all game operations at the regional and club level. It
 
 Technically speaking, Carambus is a hierarchy of web services. At the top is a web server, the so-called Carambus API server, which serves only to store external data as up-to-date and efficiently as possible. Consumers of this data are web servers at the regional level and at the event location or in the clubhouses, which manage local game operations.
 
-The end devices of these web servers are web browsers used by sports officials to plan and manage tournaments, as well as various display and input devices (scoreboards and remote controls) at the event venue.
+The end devices of these web servers are web browsers used by sports officials to plan and manage tournaments, as well as scoreboards with touch functionality at the event venue for game control by the players.
 
 In training mode, the scoreboards are used to record game results. Player lists from the club's Carambus database are used to set up games. Games are recorded on the local web server, enabling player performance to be evaluated.
 
@@ -159,37 +159,40 @@ The following inputs are possible on the scoreboards:
 
 The referee can start **`>`**, end **`o`** or pause **`||`** the timer for thinking time
 
-### 4-Button Remote Control
-For tournaments with referees, a special operating mode with 4-button remote controls is supported. These remote controls are those used to remotely control PowerPoint presentations, for example.
+## Operating Concepts
 
-The buttons A (pageup), B (pagedown), C (b) and D (F5, ESC) have the following meanings depending on the game status:
+Carambus supports two main categories of operation:
 
-#### Warm-up
-* A starts the warm-up timer for player A
-* B starts the warm-up timer for player B
-* With D, continue to the break phase
+### 1. Management Operation (Laptop/PC)
 
-#### Break
-* A or B changes the breaking player (Player A breaks with White)
-* With D, the game is started as soon as it is set up and player A has appeared
+Operation via laptop or PC with collapsible menus on the left side is the main interface for:
 
-#### Game phase
-* When player A is at bat, a point is counted for him with A
-* When player A is at bat, with a missed inning, switch to player B with B
-* When player B is at bat, a point is counted for him with B
-* When player B is at bat, with a missed inning, switch to player B with A
-* When a player has reached the goal (inning limit or point target), it automatically switches to player B for the follow-up shot or ends the game
+* **Tournament Directors for Tournament Management** - Planning and execution of tournaments, management of game schedules, table assignments and tournament status
+* **Users for Research** - Access to tournament and league data, player statistics, club and regional association information
+* **Administrators** - System configuration and user management
 
-The buttons should only be pressed when the balls have come to rest and the player is basically ready for the next shot. With the button, the timer for thinking time is started simultaneously.
+These menus can be expanded and collapsed as needed to ensure maximum clarity.
 
-The extended input options above can also be triggered with the 4-button remote control. To do this, switch from simple input mode (the inning field is selected) to input mode with button D down. In input mode, the individual input fields are controlled by left/right navigation with buttons A and B. The functions are triggered with button D (down) respectively. The respective input field remains selected afterwards, so that the same function can simply be applied multiple times. Return to normal input mode with button C (up)
+### 2. Player Operation (Touch-Scoreboard)
 
-### Timeout handling
-During tournament planning or even first at tournament start, the length of thinking time (timeout) and the number of possible timeout extensions (timeouts) can be specified. With the remote control, the timeout counter can be decreased by one during the running game. The remaining thinking time is then extended once more by the specified timeout.
+Players control the game flow directly on the scoreboard with touch functionality:
 
-With the remote control, navigate to the timer symbol with button D down and trigger it with button A (left). Button up (button C) leads back to normal input mode.
+* **Game Logging** - Input of points and innings via touch input
+* **Player Change** - By tapping the ball count of the other player
+* **Timer Control** - Start, stop and timeout management
+* **Direct Access** - Players optionally have access to billiard data by expanding the menu (not the standard case, but a feature for specialists)
 
-The other functions (Stop, Halt, Play) can also be triggered with the remote control. To do this, you can cycle through the respective function with button B (right) in timer mode and trigger it with button A (left).
+Touch operation is intuitive and enables quick, uncomplicated game management without additional hardware.
+
+### Future Project: Simplified Referee Operation
+
+Future developments include a greatly simplified operation by referees and scorers, which will be specifically tailored to the requirements of official competitions.
+
+### Timeout Handling
+
+During tournament planning or even at tournament start, the length of thinking time (timeout) and the number of possible timeout extensions (timeouts) can be specified. On the scoreboard, the timeout counter can be decreased by one during the running game. The remaining thinking time is then extended once more by the specified timeout.
+
+The timer functions (Stop, Halt, Play, Timeout) are accessible via touch operation on the scoreboard.
 
 ### The end of the game
 is automatically recognized based on the inputs and the inning or ball count.
