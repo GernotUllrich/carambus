@@ -46,21 +46,21 @@
   <!-- This ensures consistent behavior during Turbo navigation -->
 
   <style>
-      /* Initial states */
+      /* Initial states - NO transitions on page load to prevent flicker */
       .nav-target {
           transform: translateX(0) !important;
-          transition: transform 0.3s ease-in-out !important;
+          /* Transition wird erst nach dem Laden aktiviert */
       }
 
       .show-button-target {
           opacity: 0;
           pointer-events: none;
-          transition: opacity 0.3s ease-in-out;
+          /* Transition wird erst nach dem Laden aktiviert */
       }
 
       .content-wrapper {
           margin-left: 16rem !important; /* ml-64 equivalent */
-          transition: margin-left 0.3s ease-in-out !important;
+          /* Transition wird erst nach dem Laden aktiviert */
       }
 
       /* Collapsed states */
@@ -75,6 +75,19 @@
 
       .sidebar-collapsed .content-wrapper {
           margin-left: 0 !important;
+      }
+
+      /* Transitions - only enabled after page load and only for non-scoreboard users */
+      html:not([data-scoreboard-url="true"]).transitions-enabled .nav-target {
+          transition: transform 0.3s ease-in-out !important;
+      }
+
+      html:not([data-scoreboard-url="true"]).transitions-enabled .show-button-target {
+          transition: opacity 0.3s ease-in-out;
+      }
+
+      html:not([data-scoreboard-url="true"]).transitions-enabled .content-wrapper {
+          transition: margin-left 0.3s ease-in-out !important;
       }
 
       @media (max-width: 768px) {

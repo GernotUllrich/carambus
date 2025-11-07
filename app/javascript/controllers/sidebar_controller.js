@@ -10,6 +10,21 @@ export default class extends Controller {
     // Apply state immediately on connect
     this.applySidebarState()
     
+    // Enable transitions AFTER the initial state is set, but ONLY for non-scoreboard users
+    // This prevents the flicker when the page loads
+    const isScoreboardUrl = document.documentElement.dataset.scoreboardUrl === 'true'
+    if (!isScoreboardUrl) {
+      // Use requestAnimationFrame to ensure the initial state is rendered first
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.documentElement.classList.add('transitions-enabled')
+          console.log('🔧 Transitions enabled for non-scoreboard user')
+        }, 50) // Small delay to ensure initial render is complete
+      })
+    } else {
+      console.log('🔧 Transitions DISABLED for scoreboard user (no flicker)')
+    }
+    
     // Set up Turbo listeners only once per controller instance
     if (!this.turboListenersSet) {
       console.log('🔧 Setting up Turbo listeners')
@@ -66,6 +81,8 @@ export default class extends Controller {
       localStorage.setItem('sidebarCollapsed', 'true')
       // ALWAYS ensure sidebar-collapsed class is present
       document.documentElement.classList.add('sidebar-collapsed')
+      // Remove transitions-enabled to prevent any animation
+      document.documentElement.classList.remove('transitions-enabled')
       return // Exit early - don't run any other logic
     }
     
@@ -78,6 +95,16 @@ export default class extends Controller {
     } else {
       console.log('🔧 Removing sidebar-collapsed class')
       document.documentElement.classList.remove('sidebar-collapsed')
+    }
+    
+    // Enable transitions for non-scoreboard users after state is set
+    if (!isScoreboardUrl) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.documentElement.classList.add('transitions-enabled')
+          console.log('🔧 Transitions re-enabled after navigation')
+        }, 50)
+      })
     }
     
     console.log('🔧 Final classes:', document.documentElement.className)
