@@ -592,7 +592,102 @@ end
 
 ---
 
-**Status**: Proposal  
+## Implementation Update (November 2025)
+
+### Architecture Change: Server-Side Rendering
+
+The initial proposal suggested client-side rendering with JavaScript. However, during implementation, we **refactored to a server-side rendering approach** using **StimulusReflex** for better maintainability and consistency.
+
+#### Key Changes
+
+**1. Removed Client-Side Complexity**
+- ❌ Deleted: `game_protocol_controller.js` (~750 lines of complex JS logic)
+- ❌ Removed: Client-side data fetching, manipulation, and rendering
+- ✅ Server is now the single source of truth
+
+**2. StimulusReflex Integration**
+- Created `GameProtocolReflex` for all protocol interactions
+- Server-rendered partials:
+  - `_game_protocol_table_body.html.erb` (view mode)
+  - `_game_protocol_table_body_edit.html.erb` (edit mode)
+- Real-time updates via ActionCable
+
+**3. State Management**
+- Modal visibility controlled by `panel_state` attribute in `TableMonitor`
+- Similar pattern to existing modals (warmup, shootout, numbers)
+- Consistent with application architecture
+
+**4. Edit Operations as Reflexes**
+- `increment_points` / `decrement_points`: Modify individual innings
+- `insert_inning` / `delete_inning`: Structure changes
+- `open_protocol` / `close_protocol`: Modal state
+- `switch_to_edit_mode` / `switch_to_view_mode`: Display mode
+
+**5. Data Integrity Methods**
+- Direct manipulation of `innings_list` (completed innings)
+- Direct manipulation of `innings_redo_list` (current inning)
+- `recalculate_player_stats`: Update result, hs, gd without structural changes
+- Bug fix: Empty array handling (`|| [0]` → explicit `if empty?` check)
+
+#### Benefits of Server-Side Approach
+
+✅ **Simpler**: No complex client-side state management  
+✅ **Consistent**: Server is always source of truth  
+✅ **Maintainable**: Less JavaScript, more Ruby  
+✅ **Reliable**: No client/server data sync issues  
+✅ **Testable**: Server-side logic easier to test  
+
+#### Performance Optimizations
+
+**Background Job Management**
+- Added `skip_update_callbacks` flag to `TableMonitor`
+- Prevents redundant job enqueues during batch operations
+- Eliminated flickering from double-rendering
+
+**Font Loading**
+- Removed external Inter font (40+ second load time)
+- Switched to system font stack (instant loading)
+- ~40 second performance improvement
+
+**StimulusReflex Initialization**
+- Fixed initialization order in `index.js`
+- Reflex now available immediately when controllers load
+- Eliminated 5-second delay at game start
+
+#### UI Improvements
+
+**Innings List Display**
+- Added `tracking-wide` (letter-spacing) for better readability of double-digit numbers
+- Small text (`text-[0.7em]`) for regular innings
+- Current inning in prominent box
+- Wrapping for long innings lists (`flex-wrap`)
+- Compact separator (`, ` instead of ` , `)
+
+**Score Display (Ziel, GD, HS)**
+- Added `tracking-wide` for better number readability
+- Applied to both player info containers
+
+#### Implementation Files
+
+**Created:**
+- `app/reflexes/game_protocol_reflex.rb`
+- `app/views/table_monitors/_game_protocol_table_body.html.erb`
+- `app/views/table_monitors/_game_protocol_table_body_edit.html.erb`
+
+**Deleted:**
+- `app/javascript/controllers/game_protocol_controller.js`
+- Controller routes: `game_protocol`, `game_protocol_tbody`, etc.
+
+**Modified:**
+- `app/models/table_monitor.rb`: Added protocol editing methods
+- `app/views/table_monitors/_game_protocol_modal.html.erb`: Now uses server-rendered partials
+- `app/views/table_monitors/_show.html.erb`: Conditional modal rendering based on `panel_state`
+- `app/views/table_monitors/_scoreboard.html.erb`: Innings display with `tracking-wide`
+
+---
+
+**Status**: ✅ **Implemented** (Server-Side Rendering with StimulusReflex)  
 **Created**: November 2025  
+**Implemented**: November 2025  
 **Author**: Based on user feedback
 
