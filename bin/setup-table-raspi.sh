@@ -208,20 +208,92 @@ else
 fi
 echo ""
 
-# Step 3: Configure Multi-WLAN
-log "📡 Step 3: Configuring Multi-WLAN"
+# Step 3: Detect network management system
+log "🌐 Step 3: Detecting Network Management System"
+log "=============================================="
+
+info "Detecting network management system..."
+NETWORK_MANAGER=$(ssh -p $SSH_PORT "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive")
+
+if [ "$NETWORK_MANAGER" = "active" ]; then
+    log "✓ NetworkManager detected - using nmcli"
+    USING_NETWORK_MANAGER=true
+else
+    log "✓ dhcpcd detected - using wpa_supplicant + dhcpcd.conf"
+    USING_NETWORK_MANAGER=false
+fi
+echo ""
+
+# Step 4: Configure Multi-WLAN
+log "📡 Step 4: Configuring Multi-WLAN"
 log "================================"
 
-# Build wpa_supplicant.conf with multiple networks
-WPA_SUPPLICANT_CONFIG="ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+if [ "$USING_NETWORK_MANAGER" = true ]; then
+    # NetworkManager configuration
+    
+    # Disable/remove old preconfigured connection
+    info "Removing old 'preconfigured' connection..."
+    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete 'preconfigured' 2>/dev/null || sudo nmcli connection down 'preconfigured' 2>/dev/null || true"
+    
+    # Configure club WLAN with static IP
+    info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP)"
+    
+    # Delete existing connection if it exists (by SSID or connection name)
+    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
+    
+    # Create club WLAN connection - variables expanded locally, SSID/password passed as literals
+    CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect yes connection.autoconnect-priority ${CLUB_WLAN_PRIORITY} 2>&1")
+    
+    if [ $? -eq 0 ]; then
+        log "✅ Club WLAN connection created"
+    else
+        error "Failed to create club WLAN connection: $CLUB_CONN_OUTPUT"
+        exit 1
+    fi
+    
+    # Configure dev WLAN with DHCP (if provided)
+    if [ -n "$DEV_WLAN_SSID" ]; then
+        info "Configuring dev WLAN: $DEV_WLAN_SSID (DHCP)"
+        
+        # Delete existing connection if it exists
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$DEV_WLAN_SSID' 2>/dev/null || true"
+        
+        # Create dev WLAN connection
+        DEV_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$DEV_WLAN_SSID' ifname wlan0 ssid '$DEV_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$DEV_WLAN_PASSWORD' ipv4.method auto connection.autoconnect yes connection.autoconnect-priority ${DEV_WLAN_PRIORITY} 2>&1")
+        
+        if [ $? -eq 0 ]; then
+            log "✅ Dev WLAN connection created"
+        else
+            warning "Failed to create dev WLAN connection: $DEV_CONN_OUTPUT"
+        fi
+    fi
+    
+    # Verify connections were created
+    info "Verifying connections..."
+    CLUB_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' 2>/dev/null && echo 'yes' || echo 'no'")
+    if [ "$CLUB_EXISTS" = "yes" ]; then
+        log "✓ Club WLAN connection verified"
+        # Show connection details
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' | grep -E '(ipv4.addresses|ipv4.gateway|802-11-wireless.ssid|connection.autoconnect-priority)'" || true
+    else
+        error "Club WLAN connection not found after creation!"
+        exit 1
+    fi
+    
+    log "✅ NetworkManager configuration complete"
+else
+    # dhcpcd/wpa_supplicant configuration (legacy)
+    
+    # Build wpa_supplicant.conf with multiple networks
+    WPA_SUPPLICANT_CONFIG="ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=DE
 "
 
-# Add dev WLAN if configured (DHCP)
-if [ -n "$DEV_WLAN_SSID" ]; then
-    info "Adding Dev WLAN: $DEV_WLAN_SSID (DHCP, priority $DEV_WLAN_PRIORITY)"
-    WPA_SUPPLICANT_CONFIG+="
+    # Add dev WLAN if configured (DHCP)
+    if [ -n "$DEV_WLAN_SSID" ]; then
+        info "Adding Dev WLAN: $DEV_WLAN_SSID (DHCP, priority $DEV_WLAN_PRIORITY)"
+        WPA_SUPPLICANT_CONFIG+="
 # Development WLAN (DHCP)
 network={
     ssid=\"$DEV_WLAN_SSID\"
@@ -230,11 +302,11 @@ network={
     priority=$DEV_WLAN_PRIORITY
 }
 "
-fi
+    fi
 
-# Add club WLAN (static IP will be configured separately)
-info "Adding Club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP, priority $CLUB_WLAN_PRIORITY)"
-WPA_SUPPLICANT_CONFIG+="
+    # Add club WLAN (static IP will be configured separately)
+    info "Adding Club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP, priority $CLUB_WLAN_PRIORITY)"
+    WPA_SUPPLICANT_CONFIG+="
 # Club WLAN (Static IP)
 network={
     ssid=\"$CLUB_WLAN_SSID\"
@@ -244,74 +316,12 @@ network={
 }
 "
 
-# Upload wpa_supplicant.conf
-echo "$WPA_SUPPLICANT_CONFIG" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/wpa_supplicant.conf" 2>/dev/null
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
-log "✅ Multi-WLAN configuration uploaded"
-echo ""
-
-# Step 4: Configure Static IP for Club WLAN
-log "🌐 Step 4: Configuring Static IP"
-log "==============================="
-
-# Detect network management system
-info "Detecting network management system..."
-NETWORK_MANAGER=$(ssh -p $SSH_PORT "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive")
-
-if [ "$NETWORK_MANAGER" = "active" ]; then
-    log "✓ NetworkManager detected - using nmcli"
-
-    # Create or modify connection for club WLAN
-    info "Configuring static IP for club WLAN: $CLUB_WLAN_SSID"
-    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "
-        # Check if connection already exists
-        if sudo nmcli connection show '$CLUB_WLAN_SSID' >/dev/null 2>&1; then
-            echo 'Modifying existing connection'
-            sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.addresses ${TABLE_IP}/24
-            sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.gateway $CLUB_GATEWAY
-            sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.dns '8.8.8.8 1.1.1.1'
-            sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.method manual
-        else
-            echo 'Creating new connection'
-            sudo nmcli connection add \
-                type wifi \
-                con-name '$CLUB_WLAN_SSID' \
-                ifname wlan0 \
-                ssid '$CLUB_WLAN_SSID' \
-                wifi-sec.key-mgmt wpa-psk \
-                wifi-sec.psk '$CLUB_WLAN_PASSWORD' \
-                ipv4.addresses ${TABLE_IP}/24 \
-                ipv4.gateway $CLUB_GATEWAY \
-                ipv4.dns '8.8.8.8 1.1.1.1' \
-                ipv4.method manual
-        fi
-
-        # Configure dev WLAN with DHCP (if provided)
-        if [ -n '$DEV_WLAN_SSID' ]; then
-            if sudo nmcli connection show '$DEV_WLAN_SSID' >/dev/null 2>&1; then
-                echo 'Dev WLAN connection exists'
-            else
-                echo 'Creating dev WLAN connection with DHCP'
-                sudo nmcli connection add \
-                    type wifi \
-                    con-name '$DEV_WLAN_SSID' \
-                    ifname wlan0 \
-                    ssid '$DEV_WLAN_SSID' \
-                    wifi-sec.key-mgmt wpa-psk \
-                    wifi-sec.psk '$DEV_WLAN_PASSWORD' \
-                    ipv4.method auto
-            fi
-        fi
-    " 2>/dev/null
-
-    log "✅ NetworkManager configuration complete"
-else
-    # dhcpcd configuration
-    log "✓ dhcpcd detected - using dhcpcd.conf"
-
-    # For dhcpcd, we use SSID-specific configuration via wpa_cli hooks
-    # Static IP is applied when connected to club SSID
+    # Upload wpa_supplicant.conf
+    echo "$WPA_SUPPLICANT_CONFIG" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/wpa_supplicant.conf" 2>/dev/null
+    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
+    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
+    
+    # Configure static IP for club WLAN via dhcpcd hook
     DHCPCD_HOOK="#!/bin/bash
 # DHCP hook for SSID-specific configuration
 
@@ -323,15 +333,15 @@ if [ \"\$interface\" = \"wlan0\" ] && [ \"\$reason\" = \"BOUND\" ]; then
         echo \"Applying static IP for club WLAN: $TABLE_IP\"
         sudo ip addr flush dev wlan0
         sudo ip addr add ${TABLE_IP}/24 dev wlan0
-        sudo ip route add default via $CLUB_GATEWAY
+        sudo ip route add default via ${CLUB_GATEWAY}
         echo \"nameserver 8.8.8.8\" | sudo tee /etc/resolv.conf > /dev/null
     fi
 fi
 "
     echo "$DHCPCD_HOOK" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/dhcp-ssid-hook" 2>/dev/null
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/dhcp-ssid-hook /etc/dhcpcd.exit-hook && sudo chmod +x /etc/dhcpcd.exit-hook" 2>/dev/null
-
-    log "✅ dhcpcd configuration complete"
+    
+    log "✅ wpa_supplicant + dhcpcd configuration complete"
 fi
 echo ""
 
