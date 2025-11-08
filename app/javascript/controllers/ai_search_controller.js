@@ -415,8 +415,11 @@ export default class extends Controller {
           } else {
             console.log('⏰ Panel open time expired')
           }
-        } else {
-          console.log('❌ No panel open flag found')
+        } else if (shouldBeOpen === 'true' || openTime) {
+          // Clean up any stale or partial flags without spamming the console
+          localStorage.removeItem('carambus_ai_panel_open')
+          localStorage.removeItem('carambus_ai_panel_open_time')
+          console.debug('🧹 Cleared stale AI search panel flag')
         }
       } catch (e) {
         console.error('Could not check panel state:', e)
