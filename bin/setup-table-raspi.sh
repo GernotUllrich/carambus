@@ -269,6 +269,171 @@ else
 fi
 echo ""
 
+# Step 2.5: Check system performance compatibility
+log "🔍 Step 2.5: Checking System Performance Compatibility"
+log "====================================================="
+
+# Detect Raspberry Pi model
+PI_MODEL=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat /proc/device-tree/model 2>/dev/null | tr -d '\0' || echo 'Unknown'" 2>/dev/null || echo "Unknown")
+
+# Detect RAM amount (in MB)
+RAM_MB=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$2}'" 2>/dev/null || echo "0")
+
+# Detect OS architecture
+OS_ARCH=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "uname -m" 2>/dev/null || echo "unknown")
+
+# Detect if it's Raspberry Pi 3
+IS_PI3=false
+if echo "$PI_MODEL" | grep -qi "Raspberry Pi 3"; then
+    IS_PI3=true
+fi
+
+# Show detected information
+info "Detected system:"
+info "  Model: $PI_MODEL"
+info "  RAM: ${RAM_MB}MB"
+info "  Architecture: $OS_ARCH"
+
+# Check current memory usage
+MEM_USED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$3}'" 2>/dev/null || echo "0")
+MEM_AVAIL=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$7}'" 2>/dev/null || echo "0")
+MEM_PERCENT=$((MEM_USED * 100 / RAM_MB))
+
+# Check swap configuration
+SWAP_SIZE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Swap:/ {print \$2}'" 2>/dev/null || echo "0")
+SWAP_USED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Swap:/ {print \$3}'" 2>/dev/null || echo "0")
+
+# Check for unnecessary services that can be disabled
+UNNECESSARY_SERVICES=""
+SERVICES_TO_CHECK="bluetooth avahi-daemon cups cups-browsed"
+
+for service in $SERVICES_TO_CHECK; do
+    if ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "systemctl is-enabled $service 2>/dev/null | grep -q enabled" 2>/dev/null; then
+        if [ -z "$UNNECESSARY_SERVICES" ]; then
+            UNNECESSARY_SERVICES="$service"
+        else
+            UNNECESSARY_SERVICES="$UNNECESSARY_SERVICES, $service"
+        fi
+    fi
+done
+
+# Check for memory-heavy packages
+HEAVY_PACKAGES=""
+PACKAGES_TO_CHECK="libreoffice wolfram-engine minecraft-pi scratch nuscratch sonic-pi"
+
+for package in $PACKAGES_TO_CHECK; do
+    if ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "dpkg -l | grep -q \"^ii.*$package\"" 2>/dev/null; then
+        if [ -z "$HEAVY_PACKAGES" ]; then
+            HEAVY_PACKAGES="$package"
+        else
+            HEAVY_PACKAGES="$HEAVY_PACKAGES, $package"
+        fi
+    fi
+done
+
+# Check if zram is installed/configured
+ZRAM_INSTALLED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "dpkg -l | grep -q zram-tools && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+
+# Show system status
+info "Current memory usage: ${MEM_USED}MB used, ${MEM_AVAIL}MB available (${MEM_PERCENT}% used)"
+if [ "$SWAP_SIZE" -gt 0 ]; then
+    info "Swap: ${SWAP_SIZE}MB total, ${SWAP_USED}MB used"
+fi
+
+# Performance recommendations - check if any issues exist
+PERFORMANCE_ISSUES=false
+
+if [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ "$MEM_PERCENT" -gt 80 ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ "$SWAP_USED" -gt 100 ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ -n "$UNNECESSARY_SERVICES" ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ -n "$HEAVY_PACKAGES" ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ "$RAM_MB" -le 1024 ] && [ "$SWAP_SIZE" -lt 1024 ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+if [ "$RAM_MB" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
+    PERFORMANCE_ISSUES=true
+fi
+
+# Show warnings and recommendations
+if [ "$PERFORMANCE_ISSUES" = true ]; then
+    warning ""
+    warning "⚠️  PERFORMANCE OPTIMIZATION RECOMMENDATIONS ⚠️"
+    warning "=============================================="
+    
+    if [ "$IS_PI3" = true ] && [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+        warning "Critical: Raspberry Pi 3 with 1GB RAM running 64-bit OS"
+        warning "This configuration will cause performance issues!"
+        warning ""
+    fi
+    
+    warning "Recommendations to improve performance:"
+    
+    # Check for performance issue: Pi 3 with 1GB RAM running 64-bit
+    if [ "$IS_PI3" = true ] && [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+        warning "  • Switch to Raspberry Pi OS (32-bit) for better memory efficiency"
+    elif [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+        warning "  • Consider using 32-bit OS for better performance"
+    fi
+    
+    # Check memory usage
+    if [ "$MEM_PERCENT" -gt 80 ]; then
+        warning "  • High memory usage (${MEM_PERCENT}%) - system may be slow"
+    fi
+    
+    # Check swap usage
+    if [ "$SWAP_USED" -gt 100 ]; then
+        warning "  • High swap usage (${SWAP_USED}MB) - SD card swapping is slow"
+    fi
+    
+    # Check for unnecessary services
+    if [ -n "$UNNECESSARY_SERVICES" ]; then
+        warning "  • Disable unnecessary services: $UNNECESSARY_SERVICES"
+        warning "    Run: sudo systemctl disable $UNNECESSARY_SERVICES"
+    fi
+    
+    # Check for heavy packages
+    if [ -n "$HEAVY_PACKAGES" ]; then
+        warning "  • Remove unused heavy packages: $HEAVY_PACKAGES"
+        warning "    Run: sudo apt remove $HEAVY_PACKAGES"
+    fi
+    
+    # Check swap size for low-RAM systems
+    if [ "$RAM_MB" -le 1024 ] && [ "$SWAP_SIZE" -lt 1024 ]; then
+        warning "  • Increase swap size to 2GB for better stability"
+        warning "    Edit /etc/dphys-swapfile and set CONF_SWAPSIZE=2048"
+    fi
+    
+    # Check for zram (compressed RAM swap - better than SD card swap)
+    if [ "$RAM_MB" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
+        warning "  • Install zram-tools for faster compressed RAM swap"
+        warning "    Run: sudo apt install zram-tools"
+    fi
+    
+    warning ""
+    warning "The setup will continue, but applying these recommendations"
+    warning "will significantly improve scoreboard performance."
+    warning ""
+fi
+
+echo ""
+
 # Step 3: Detect network management system
 log "🌐 Step 3: Detecting Network Management System"
 log "=============================================="
