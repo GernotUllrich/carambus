@@ -487,6 +487,22 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#numbers')
   }
 
+  balls_left () {
+    const ballNo = parseInt(this.element.dataset.ballNo)
+    if (Number.isNaN(ballNo)) {
+      return
+    }
+    this.stimulate('TableMonitor#balls_left', this.element)
+  }
+
+  foul_one () {
+    this.stimulate('TableMonitor#foul_one', this.element)
+  }
+
+  foul_two () {
+    this.stimulate('TableMonitor#foul_two', this.element)
+  }
+
   force_next_state () {
     this.stimulate('TableMonitor#force_next_state')
   }
