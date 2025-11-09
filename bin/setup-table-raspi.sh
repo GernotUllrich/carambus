@@ -170,13 +170,9 @@ config = YAML.load_file('$SCENARIO_CONFIG')
 puts config.dig('scenario', 'location_id')
 ")
 
-IS_SERVER=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
-config = YAML.load_file('$SCENARIO_CONFIG')
-puts config.dig('environments', 'production', 'raspberry_pi_client', 'local_server_enabled') == true ? 'yes' : 'no'
-" 2>/dev/null || echo "no")
-
-# Check if table_name is "server" or empty (server mode)
-if [ "$TABLE_NAME" = "server" ] || [ -z "$TABLE_NAME" ] || [ "$IS_SERVER" = "yes" ]; then
+# Check if table_name is "server" (explicit server mode)
+# Note: Table clients always use pi/22 for SSH, servers use config.yml SSH settings
+if [ "$TABLE_NAME" = "server" ] || [ -z "$TABLE_NAME" ]; then
     SERVER_MODE=true
     log "✓ Server mode detected - club WLAN will use DHCP"
     TABLE_IP=""  # No static IP for server
@@ -215,6 +211,10 @@ puts config.dig('environments', 'production', 'raspberry_pi_client', 'kiosk_user
     fi
 else
     SERVER_MODE=false
+    # Table clients always use pi/22 for SSH (don't read from config)
+    SSH_PORT="${SSH_PORT_ARG:-22}"
+    SSH_USER="${SSH_USER_ARG:-pi}"
+    
     # Get kiosk user from config.yml (for desktop operations, default to pi)
     KIOSK_USER="pi"
     
@@ -470,7 +470,8 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
         
         # Create club WLAN connection with DHCP
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority ${CLUB_WLAN_PRIORITY} 2>&1")
+        # CRITICAL: Use priority 0 initially to prevent NetworkManager from preferring it during setup
+        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
         CLUB_CONN_EXIT_CODE=$?
     else
         # Table client mode: Use static IP for club WLAN
@@ -480,7 +481,8 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
         
         # Create club WLAN connection with static IP
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority ${CLUB_WLAN_PRIORITY} 2>&1")
+        # CRITICAL: Use priority 0 initially to prevent NetworkManager from preferring it during setup
+        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
         CLUB_CONN_EXIT_CODE=$?
     fi
     
@@ -493,14 +495,35 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         # CRITICAL: Explicitly prevent NetworkManager from activating this connection during setup
         # This prevents IP change that would break SSH connection
         info "Preventing automatic activation of club WLAN connection..."
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' 2>/dev/null || true"
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no" 2>/dev/null
         
-        # Ensure current connection stays active
-        CURRENT_CONN=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active | head -1" 2>/dev/null || echo "")
-        if [ -n "$CURRENT_CONN" ] && [ "$CURRENT_CONN" != "$CLUB_WLAN_SSID" ]; then
-            info "Ensuring current connection '$CURRENT_CONN' stays active..."
-            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection up '$CURRENT_CONN' 2>/dev/null || true"
+        # Immediately down the connection if it got activated
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' 2>/dev/null || true"
+        
+        # Ensure autoconnect is disabled and priority stays at 0
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null
+        
+        # Verify connection is not active
+        ACTIVE_CONN=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -v '^$CLUB_WLAN_SSID$' | head -1" 2>/dev/null || echo "")
+        
+        # Ensure current connection stays active (reconnect if needed)
+        if [ -n "$ACTIVE_CONN" ]; then
+            info "Ensuring current connection '$ACTIVE_CONN' stays active..."
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection up '$ACTIVE_CONN' 2>/dev/null || true"
+        else
+            # If no active connection, try to find and activate any available connection
+            AVAILABLE_CONN=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -v '^$CLUB_WLAN_SSID$' | head -1" 2>/dev/null || echo "")
+            if [ -n "$AVAILABLE_CONN" ]; then
+                warning "No active connection found, activating '$AVAILABLE_CONN'..."
+                ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection up '$AVAILABLE_CONN' 2>/dev/null || true"
+            fi
+        fi
+        
+        # Double-check: ensure club WLAN is definitely down
+        sleep 1
+        CLUB_ACTIVE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+        if [ "$CLUB_ACTIVE" = "yes" ]; then
+            warning "Club WLAN connection was activated! Forcing it down..."
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' && sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null || true
         fi
     else
         error "Failed to create club WLAN connection: $CLUB_CONN_OUTPUT"
@@ -1016,11 +1039,12 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     sleep 2
     
     info "Enabling autoconnect for club WLAN..."
-    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect yes" 2>/dev/null
+    # Set correct priority and enable autoconnect (priority was set to 0 during setup to prevent switching)
+    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect yes connection.autoconnect-priority ${CLUB_WLAN_PRIORITY}" 2>/dev/null
     
     if [ -n "$DEV_WLAN_SSID" ]; then
         info "Enabling autoconnect for dev WLAN..."
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$DEV_WLAN_SSID' connection.autoconnect yes" 2>/dev/null
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$DEV_WLAN_SSID' connection.autoconnect yes connection.autoconnect-priority ${DEV_WLAN_PRIORITY}" 2>/dev/null
     fi
     
     # Final verification that we're still connected
