@@ -2603,7 +2603,7 @@ ENV
           'ssh_port' => 8910,
           'database_name' => "#{scenario_name}_production",
           'ssl_enabled' => false,
-          'database_username' => 'www-data',
+          'database_username' => 'www_data',
           'database_password' => 'toS6E7tARQafHCXz',
           'puma_socket_path' => '/tmp/puma.sock'
         }
