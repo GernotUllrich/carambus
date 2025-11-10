@@ -501,64 +501,10 @@ class TableMonitorReflex < ApplicationReflex
       Rails.cache.delete(cache_key)
     else
       Rails.cache.write(cache_key, filtered_changes, expires_in: 15.seconds)
-      broadcast_optimistic_dom_updates(filtered_changes)
     end
   rescue StandardError => e
     Rails.logger.error("❌ broadcast_optimistic_state ERROR: #{e}") if DEBUG
     Rails.logger.error(e.backtrace.first(5).join("\n")) if DEBUG
-  end
-
-  def broadcast_optimistic_dom_updates(changes)
-    stream = cable_ready["table-monitor-stream"]
-    operations_added = false
-
-    changes.each do |player_id, total_increment|
-      player_data = @table_monitor.data[player_id]
-      next unless player_data
-
-      base_result = player_data['result'].to_i
-      current_innings = Array(player_data['innings_redo_list']).last.to_i
-      new_total = base_result + current_innings + total_increment
-      new_innings = current_innings + total_increment
-
-      score_selector = "#full_screen_table_monitor_#{@table_monitor.id} .main-score[data-player='#{player_id}']"
-      innings_selector = "#full_screen_table_monitor_#{@table_monitor.id} .inning-score[data-player='#{player_id}']"
-
-      stream.text_content(selector: score_selector, text: new_total)
-      stream.text_content(selector: innings_selector, text: new_innings)
-      stream.add_css_class(selector: score_selector, name: 'pending-update')
-      stream.add_css_class(selector: innings_selector, name: 'pending-update')
-
-      operations_added = true
-    end
-
-    stream.broadcast if operations_added
-  end
-
-  def broadcast_final_dom_state
-    stream = cable_ready["table-monitor-stream"]
-    operations_added = false
-
-    %w[playera playerb].each do |player_id|
-      player_data = @table_monitor.data[player_id]
-      next unless player_data
-
-      base_result = player_data['result'].to_i
-      current_innings = Array(player_data['innings_redo_list']).last.to_i
-      total = base_result + current_innings
-
-      score_selector = "#full_screen_table_monitor_#{@table_monitor.id} .main-score[data-player='#{player_id}']"
-      innings_selector = "#full_screen_table_monitor_#{@table_monitor.id} .inning-score[data-player='#{player_id}']"
-
-      stream.text_content(selector: score_selector, text: total)
-      stream.text_content(selector: innings_selector, text: current_innings)
-      stream.remove_css_class(selector: score_selector, name: 'pending-update')
-      stream.remove_css_class(selector: innings_selector, name: 'pending-update')
-
-      operations_added = true
-    end
-
-    stream.broadcast if operations_added
   end
 
   # NEW: Validate accumulated changes with total sum
@@ -646,7 +592,6 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
     Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
     Rails.cache.delete(TableMonitor.optimistic_cache_key(@table_monitor.id))
-    broadcast_final_dom_state
     
   rescue StandardError => e
     Rails.logger.error("❌ Tabmon validate_accumulated_changes ERROR: #{e}")
