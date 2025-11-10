@@ -134,13 +134,7 @@ class TableMonitorJob < ApplicationJob
     selector = "#full_screen_table_monitor_#{table_monitor.id}"
     DebugLogger.log_dom_check(selector, true) # Assume exists for now
 
-    cache_key = TableMonitor.optimistic_cache_key(table_monitor.id)
-    pending_changes = Rails.cache.read(cache_key)
-
-    if pending_changes.present?
-      Rails.logger.info "⏳ TableMonitorJob skip full render for TM[#{table_monitor.id}] (optimistic cache active)" if debug
-      return
-    end
+    apply_optimistic_overlays(table_monitor)
     
     show = case table_monitor.data["free_game_form"]
            when "pool"
