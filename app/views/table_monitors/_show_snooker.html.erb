@@ -59,6 +59,13 @@
           active_player: table_monitor.data["current_inning"].andand["active_player"],
         }
       } %>
+  <%= content_tag :div, "",
+                  data: {
+                    tabmon_config: true,
+                    table_monitor_id: table_monitor.id,
+                    innings_goal: table_monitor.data["innings_goal"].to_i
+                  },
+                  class: "hidden" %>
   <%- Rails.logger.info "++++++ SHOW #{options.inspect}" if Rails.env != "production" %>
   <%- if full_screen %>
     <%- if table_monitor.warmup_modal_should_be_open? %>

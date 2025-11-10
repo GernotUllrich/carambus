@@ -31,14 +31,26 @@ export default class extends ApplicationController {
           playerb: { totalIncrement: 0, operations: [] }
         },
         pendingPlayerSwitch: null,
-        validationTimer: null
+        validationTimer: null,
+        tableMonitorId: null,
+        inningsGoal: null,
+        pendingOptimisticSync: false
       }
     }
 
     const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
     const existingPendingPlayerSwitch = window.TabmonGlobalState.pendingPlayerSwitch
     const existingValidationTimer = window.TabmonGlobalState.validationTimer
+    const existingTableMonitorId = window.TabmonGlobalState.tableMonitorId
+    const existingInningsGoal = window.TabmonGlobalState.inningsGoal
 
+    if (!existingTableMonitorId || existingInningsGoal === null) {
+      const configElement = document.querySelector('[data-tabmon-config="true"]')
+      if (configElement) {
+        window.TabmonGlobalState.tableMonitorId = configElement.dataset.tableMonitorId || existingTableMonitorId
+        window.TabmonGlobalState.inningsGoal = configElement.dataset.inningsGoal ? parseInt(configElement.dataset.inningsGoal, 10) : existingInningsGoal
+      }
+    }
 
     // Initialize client-side state for immediate feedback
     this.clientState = {
@@ -52,6 +64,9 @@ export default class extends ApplicationController {
       // NEW: Track if a player switch is pending after validation
       pendingPlayerSwitch: existingPendingPlayerSwitch
     }
+
+    this.tableMonitorId = window.TabmonGlobalState.tableMonitorId || this.element.dataset.id
+    this.inningsGoal = window.TabmonGlobalState.inningsGoal
 
   }
 
@@ -232,77 +247,132 @@ export default class extends ApplicationController {
     return null
   }
 
+  getInningsGoalValue() {
+    if (this.inningsGoal === null || typeof this.inningsGoal === 'undefined') {
+      return null
+    }
+
+    const parsedGoal = parseInt(this.inningsGoal, 10)
+    if (Number.isNaN(parsedGoal) || parsedGoal <= 0) {
+      return null
+    }
+
+    return parsedGoal
+  }
+
+  getTableMonitorId() {
+    if (this.tableMonitorId) {
+      return this.tableMonitorId
+    }
+
+    if (window.TabmonGlobalState?.tableMonitorId) {
+      return window.TabmonGlobalState.tableMonitorId
+    }
+
+    return this.element?.dataset?.id || null
+  }
+
+  scheduleOptimisticSync() {
+    if (!window.TabmonGlobalState) {
+      return
+    }
+
+    if (window.TabmonGlobalState.pendingOptimisticSync) {
+      return
+    }
+
+    window.TabmonGlobalState.pendingOptimisticSync = true
+    setTimeout(() => {
+      window.TabmonGlobalState.pendingOptimisticSync = false
+      this.sendOptimisticState()
+    }, 0)
+  }
+
+  sendOptimisticState() {
+    try {
+      const tableMonitorId = this.getTableMonitorId()
+      if (!tableMonitorId) {
+        return
+      }
+
+      const payload = this.buildOptimisticPayload()
+      if (!payload) {
+        return
+      }
+
+      this.stimulate('TableMonitor#broadcast_optimistic_state', this.element, payload)
+    } catch (error) {
+      // silent
+    }
+  }
+
+  buildOptimisticPayload() {
+    const changes = this.clientState?.accumulatedChanges || {}
+    const payload = {
+      accumulatedChanges: {},
+      timestamp: Date.now()
+    }
+
+    let hasChanges = false
+
+    Object.keys(changes).forEach(playerId => {
+      const changeData = changes[playerId]
+      if (!changeData) {
+        return
+      }
+
+      if (changeData.totalIncrement === 0) {
+        return
+      }
+
+      hasChanges = true
+      payload.accumulatedChanges[playerId] = {
+        totalIncrement: changeData.totalIncrement,
+        operationCount: changeData.operations.length,
+        operations: changeData.operations
+      }
+    })
+
+    payload.hasPendingChanges = hasChanges
+    return payload
+  }
+
   // NEW: Check if an increment would be valid (not negative score, not exceeding goal)
   isValidIncrement(playerId, points, operation) {
-
-    // Get current score from DOM
     const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
     const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
 
     if (!scoreElement || !inningsElement) {
-      return false
+      return { valid: false, reachesGoal: false }
     }
 
-    const currentScore = parseInt(scoreElement.textContent) || 0
-    const currentInnings = parseInt(inningsElement.textContent) || 0
-
-
-    // Get accumulated changes
     const accumulated = this.clientState.accumulatedChanges[playerId] || { totalIncrement: 0, operations: [] }
-    const totalAccumulated = accumulated.totalIncrement || 0
+    const currentTotal = accumulated.totalIncrement || 0
+    const delta = operation === 'subtract' ? -points : points
 
+    const originalScore = parseInt(scoreElement.dataset.originalScore || scoreElement.textContent) || 0
+    const originalInnings = parseInt(inningsElement.dataset.originalInnings || inningsElement.textContent) || 0
 
-    // Calculate what the new values would be after this increment
-    // Note: totalAccumulated does NOT include the current operation being validated
-    // We need to calculate from the ORIGINAL score, not the current displayed score
-    let originalScore = parseInt(scoreElement.dataset.originalScore) || 0
-    let originalInnings = parseInt(inningsElement.dataset.originalInnings) || 0
+    const projectedScore = originalScore + currentTotal + delta
+    const projectedInnings = originalInnings + currentTotal + delta
 
-    // If data-original-score doesn't exist yet, use current score minus accumulated changes
-    if (originalScore === 0 && totalAccumulated !== 0) {
-      originalScore = currentScore - totalAccumulated
-      originalInnings = currentInnings - totalAccumulated
-    } else if (originalScore === 0 && totalAccumulated === 0) {
-      // No accumulated changes, so current score is the original score
-      originalScore = currentScore
-      originalInnings = currentInnings
-    } else {
+    if (projectedScore < 0 || projectedInnings < 0) {
+      return { valid: false, reachesGoal: false }
     }
 
-
-    let newScore = originalScore + totalAccumulated
-    let newInnings = originalInnings + totalAccumulated
-
-    // Then add/subtract the current increment
-    if (operation === 'add') {
-      newScore += points
-      newInnings += points
-    } else if (operation === 'subtract') {
-      newScore -= points
-      newInnings -= points
+    const inningsGoal = this.getInningsGoalValue()
+    if (inningsGoal !== null && projectedInnings > inningsGoal) {
+      return { valid: false, reachesGoal: false }
     }
 
-
-    // Check if score would be negative
-    if (newScore < 0) {
-      return false
-    }
-
-    // Check if score would exceed goal
     const goal = this.getPlayerGoal(playerId)
-    if (goal !== null && newScore > goal) {
-      return false
+    if (goal !== null && projectedScore > goal) {
+      return { valid: false, reachesGoal: false }
     }
 
+    const reachesGoal = goal !== null && projectedScore === goal
 
-    // 🚀 NEW: Check if this increment reaches the goal - if so, trigger immediate validation
-    const goalValue = this.getPlayerGoal(playerId)
-    if (goalValue !== null && newScore === goalValue) {
-      // Mark this as a goal-reaching increment for immediate validation
-      return { valid: true, reachesGoal: true }
-    }
-
-    return true
+    return { valid: true, reachesGoal }
   }
 
 
@@ -615,41 +685,40 @@ export default class extends ApplicationController {
 
       // 🚀 NEW: Validate before accumulating
       const validationResult = this.isValidIncrement(playerId, points, operation)
-      if (!validationResult || validationResult === false) {
+      if (!validationResult || validationResult.valid === false) {
         return false // Block the increment
       }
 
-      // Check if this increment reaches the goal
-      const reachesGoal = validationResult && typeof validationResult === 'object' && validationResult.reachesGoal
+      const reachesGoal = Boolean(validationResult.reachesGoal)
 
       // Add to accumulated changes
       const playerChanges = this.clientState.accumulatedChanges[playerId]
-    const previousTotal = playerChanges.totalIncrement
 
-    if (operation === 'add') {
-      playerChanges.totalIncrement += points
-      playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
-    } else if (operation === 'subtract') {
-      playerChanges.totalIncrement -= points
-      playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
-    }
+      if (operation === 'add') {
+        playerChanges.totalIncrement += points
+        playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
+      } else if (operation === 'subtract') {
+        playerChanges.totalIncrement -= points
+        playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
+      }
 
+      this.scheduleOptimisticSync()
 
-    // Cancel previous validation timer
-    if (this.clientState.validationTimer) {
-      clearTimeout(this.clientState.validationTimer)
-    }
+      // Cancel previous validation timer
+      if (this.clientState.validationTimer) {
+        clearTimeout(this.clientState.validationTimer)
+      }
 
-    // 🚀 NEW: If goal is reached, validate immediately instead of using timer
-    if (reachesGoal) {
-      this.validateAccumulatedChanges()
-    } else {
-      // Set new validation timer - validate with total after VALIDATION_DELAY_MS of inactivity
-      this.clientState.validationTimer = setTimeout(() => {
+      // 🚀 NEW: If goal is reached, validate immediately instead of using timer
+      if (reachesGoal) {
         this.validateAccumulatedChanges()
-      }, VALIDATION_DELAY_MS)
+      } else {
+        // Set new validation timer - validate with total after VALIDATION_DELAY_MS of inactivity
+        this.clientState.validationTimer = setTimeout(() => {
+          this.validateAccumulatedChanges()
+        }, VALIDATION_DELAY_MS)
 
-    }
+      }
 
       return true // Successfully accumulated
     } catch (error) {

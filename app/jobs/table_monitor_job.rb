@@ -133,6 +133,8 @@ class TableMonitorJob < ApplicationJob
   def perform_full_screen_update(table_monitor, debug)
     selector = "#full_screen_table_monitor_#{table_monitor.id}"
     DebugLogger.log_dom_check(selector, true) # Assume exists for now
+
+    apply_optimistic_overlays(table_monitor)
     
     show = case table_monitor.data["free_game_form"]
            when "pool"
@@ -173,5 +175,29 @@ class TableMonitorJob < ApplicationJob
         html: html
       )
     end
+  end
+
+  def apply_optimistic_overlays(table_monitor)
+    cache_key = TableMonitor.optimistic_cache_key(table_monitor.id)
+    pending_changes = Rails.cache.read(cache_key)
+    return if pending_changes.blank?
+
+    data = table_monitor.data.deep_dup
+
+    pending_changes.each do |player_id, total_increment|
+      next unless data[player_id]
+
+      innings_list = Array(data[player_id]['innings_redo_list'])
+      innings_list = [0] if innings_list.empty?
+
+      updated_value = innings_list.last.to_i + total_increment.to_i
+      innings_list[-1] = updated_value
+      data[player_id]['innings_redo_list'] = innings_list
+      data[player_id]['optimistic_pending'] = true
+    end
+
+    table_monitor.data = data
+  rescue StandardError => e
+    Rails.logger.error "⚠️ TableMonitorJob apply_optimistic_overlays error: #{e.message}"
   end
 end
