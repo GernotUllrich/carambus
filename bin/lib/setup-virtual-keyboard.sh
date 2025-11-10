@@ -46,10 +46,17 @@ log "=============================="
 
 # Step 1: Install matchbox-keyboard
 info "Installing matchbox-keyboard..."
-if ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "sudo apt-get update -qq && sudo apt-get install -y matchbox-keyboard 2>&1 | grep -E '(upgraded|installed|already)'" 2>/dev/null; then
-    log "✅ matchbox-keyboard installed"
+INSTALL_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "sudo apt-get update -qq 2>&1 && sudo apt-get install -y matchbox-keyboard 2>&1" 2>&1 || echo "INSTALL_FAILED")
+
+if echo "$INSTALL_OUTPUT" | grep -qE "(upgraded|installed|already|Setting up|Unpacking)" 2>/dev/null; then
+    log "✅ matchbox-keyboard installed or already present"
+elif echo "$INSTALL_OUTPUT" | grep -qE "(Unable to locate|E: Package|not found|E: Unable)" 2>/dev/null; then
+    warning "matchbox-keyboard package not found in repository"
+    warning "This package may not be available for your Raspberry Pi OS version"
+    warning "You may need to install it manually or use an alternative virtual keyboard"
 else
-    warning "matchbox-keyboard installation may have failed or already installed"
+    warning "matchbox-keyboard installation status unclear"
+    warning "Verification will check if it's available"
 fi
 
 # Step 2: Create toggle script
@@ -137,12 +144,25 @@ fi
 info "Verifying keyboard installation..."
 if ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v matchbox-keyboard >/dev/null 2>&1" 2>/dev/null; then
     log "✅ matchbox-keyboard is available"
+    KEYBOARD_AVAILABLE=true
 else
-    error "matchbox-keyboard not found in PATH"
-    exit 1
+    warning "matchbox-keyboard not found in PATH"
+    warning "This may be because:"
+    warning "  - matchbox-keyboard is not available in your Raspberry Pi OS repository"
+    warning "  - Installation failed silently"
+    warning "  - The package needs to be installed manually"
+    info ""
+    info "The toggle script has been created and will work once matchbox-keyboard is installed."
+    info "To install manually, try:"
+    echo "  ssh -p $SSH_PORT $SSH_USER@$REMOTE_IP 'sudo apt-get update && sudo apt-get install matchbox-keyboard'"
+    KEYBOARD_AVAILABLE=false
 fi
 
-log "✅ Virtual keyboard setup complete"
+if [ "$KEYBOARD_AVAILABLE" = true ]; then
+    log "✅ Virtual keyboard setup complete"
+else
+    log "⚠️  Virtual keyboard setup partially complete (toggle script ready, keyboard package missing)"
+fi
 log ""
 info "Usage:"
 echo "  To toggle keyboard: ssh -p $SSH_PORT $SSH_USER@$REMOTE_IP '/usr/local/bin/toggle-keyboard.sh'"

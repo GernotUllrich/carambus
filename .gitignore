@@ -125,3 +125,6 @@ docker-production-data/
 
 # MkDocs build output
 /site/
+
+# Ignore Raspi Performance Reports
+/raspi_performance_results/

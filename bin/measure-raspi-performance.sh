@@ -196,12 +196,12 @@ run_measurement() {
             ps aux | grep -E '(chromium|chromium-browser)' | grep -v grep | head -5
             echo ''
             echo '=== Chromium Memory Usage ==='
-            CHROMIUM_PID=\$(pgrep -x chromium 2>/dev/null || pgrep -x chromium-browser 2>/dev/null)
+            CHROMIUM_PID=\$(pgrep -x chromium 2>/dev/null | head -1 || pgrep -x chromium-browser 2>/dev/null | head -1)
             if [ -n \"\$CHROMIUM_PID\" ]; then
-                ps -o pid,rss,vsz,comm -p \$CHROMIUM_PID 2>/dev/null || echo 'Cannot get Chromium memory'
+                ps -o pid,rss,vsz,comm -p \"\$CHROMIUM_PID\" 2>/dev/null || echo 'Cannot get Chromium memory'
                 echo ''
                 echo '=== Chromium Memory Details ==='
-                ps -p \$CHROMIUM_PID -o rss= | awk '{printf \"RSS: %dMB\n\", \$1/1024}'
+                ps -p \"\$CHROMIUM_PID\" -o rss= 2>/dev/null | awk '{if (\$1) printf \"RSS: %dMB\n\", \$1/1024}' || echo 'Cannot get RSS'
             fi
         else
             echo 'Chromium not running'

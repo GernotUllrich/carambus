@@ -457,11 +457,13 @@ log "================================"
 if [ "$USING_NETWORK_MANAGER" = true ]; then
     # NetworkManager configuration
     
-    # Disable/remove old preconfigured connection
-    info "Removing old 'preconfigured' connection..."
-    ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete 'preconfigured' 2>/dev/null || sudo nmcli connection down 'preconfigured' 2>/dev/null || true"
-    
     # Configure club WLAN
+    # CRITICAL: Create connection WITHOUT ifname to prevent immediate activation
+    # This is the standard approach for preparing SD cards for use on different networks
+    # The connection will be created but NOT activated until autoconnect is enabled
+    # IMPORTANT: We preserve the existing "preconfigured" connection (user's dev WLAN)
+    # so passwordless SSH access remains available
+    
     if [ "$SERVER_MODE" = true ]; then
         # Server mode: Use DHCP for club WLAN
         info "Configuring club WLAN: $CLUB_WLAN_SSID (DHCP - Server Mode)"
@@ -470,8 +472,8 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
         
         # Create club WLAN connection with DHCP
-        # CRITICAL: Use priority 0 initially to prevent NetworkManager from preferring it during setup
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
+        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
         CLUB_CONN_EXIT_CODE=$?
     else
         # Table client mode: Use static IP for club WLAN
@@ -481,49 +483,37 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
         
         # Create club WLAN connection with static IP
-        # CRITICAL: Use priority 0 initially to prevent NetworkManager from preferring it during setup
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ifname wlan0 ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
+        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
         CLUB_CONN_EXIT_CODE=$?
     fi
     
     if [ $CLUB_CONN_EXIT_CODE -eq 0 ]; then
-        log "✅ Club WLAN connection created (autoconnect disabled during setup)"
+        log "✅ Club WLAN connection created (not activated - will connect on reboot)"
         
-        # Small delay to let NetworkManager register the connection
-        sleep 1
-        
-        # CRITICAL: Explicitly prevent NetworkManager from activating this connection during setup
-        # This prevents IP change that would break SSH connection
-        info "Preventing automatic activation of club WLAN connection..."
-        
-        # Immediately down the connection if it got activated
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' 2>/dev/null || true"
-        
-        # Ensure autoconnect is disabled and priority stays at 0
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null
-        
-        # Verify connection is not active
-        ACTIVE_CONN=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -v '^$CLUB_WLAN_SSID$' | head -1" 2>/dev/null || echo "")
-        
-        # Ensure current connection stays active (reconnect if needed)
-        if [ -n "$ACTIVE_CONN" ]; then
-            info "Ensuring current connection '$ACTIVE_CONN' stays active..."
-            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection up '$ACTIVE_CONN' 2>/dev/null || true"
-        else
-            # If no active connection, try to find and activate any available connection
-            AVAILABLE_CONN=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -v '^$CLUB_WLAN_SSID$' | head -1" 2>/dev/null || echo "")
-            if [ -n "$AVAILABLE_CONN" ]; then
-                warning "No active connection found, activating '$AVAILABLE_CONN'..."
-                ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection up '$AVAILABLE_CONN' 2>/dev/null || true"
-            fi
-        fi
-        
-        # Double-check: ensure club WLAN is definitely down
-        sleep 1
+        # Verify connection was created but not activated
         CLUB_ACTIVE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
         if [ "$CLUB_ACTIVE" = "yes" ]; then
-            warning "Club WLAN connection was activated! Forcing it down..."
+            warning "Club WLAN connection was activated unexpectedly - bringing it down..."
             ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' && sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null || true
+        fi
+        
+        # Preserve the existing "preconfigured" connection (user's dev WLAN from Raspberry Pi Imager)
+        # This ensures passwordless SSH access remains available
+        info "Preserving existing development WLAN connection..."
+        PRECONFIGURED_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -q '^preconfigured$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+        if [ "$PRECONFIGURED_EXISTS" = "yes" ]; then
+            # If dev WLAN is configured, we can optionally rename/update preconfigured to match
+            # But we keep it regardless to preserve SSH access
+            if [ -n "$DEV_WLAN_SSID" ]; then
+                PRECONFIGURED_SSID=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f 802-11-wireless.ssid connection show 'preconfigured' 2>/dev/null | cut -d: -f2" 2>/dev/null || echo "")
+                if [ "$PRECONFIGURED_SSID" != "$DEV_WLAN_SSID" ]; then
+                    info "Existing 'preconfigured' connection uses different SSID - keeping both connections"
+                fi
+            fi
+            log "✓ Preserved 'preconfigured' connection (dev WLAN remains available)"
+        else
+            info "No 'preconfigured' connection found (may have been removed previously)"
         fi
     else
         error "Failed to create club WLAN connection: $CLUB_CONN_OUTPUT"
@@ -538,7 +528,8 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$DEV_WLAN_SSID' 2>/dev/null || true"
         
         # Create dev WLAN connection with autoconnect=no initially
-        DEV_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$DEV_WLAN_SSID' ifname wlan0 ssid '$DEV_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$DEV_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority ${DEV_WLAN_PRIORITY} 2>&1")
+        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
+        DEV_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$DEV_WLAN_SSID' ssid '$DEV_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$DEV_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority ${DEV_WLAN_PRIORITY} 2>&1")
         
         if [ $? -eq 0 ]; then
             log "✅ Dev WLAN connection created (autoconnect disabled during setup)"
@@ -1039,8 +1030,22 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     sleep 2
     
     info "Enabling autoconnect for club WLAN..."
-    # Set correct priority and enable autoconnect (priority was set to 0 during setup to prevent switching)
+    # Enable autoconnect with correct priority (connection was created with autoconnect=no)
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect yes connection.autoconnect-priority ${CLUB_WLAN_PRIORITY}" 2>/dev/null
+    
+    # Ensure "preconfigured" connection (dev WLAN) has lower priority than club WLAN
+    # This way club WLAN is preferred when available, but dev WLAN still works
+    PRECONFIGURED_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -q '^preconfigured$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+    if [ "$PRECONFIGURED_EXISTS" = "yes" ]; then
+        info "Setting priority for 'preconfigured' connection (dev WLAN) to lower than club WLAN..."
+        # Set priority to 1 less than club WLAN priority, but at least 1
+        PRECONFIGURED_PRIORITY=$((CLUB_WLAN_PRIORITY - 1))
+        if [ $PRECONFIGURED_PRIORITY -lt 1 ]; then
+            PRECONFIGURED_PRIORITY=1
+        fi
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify 'preconfigured' connection.autoconnect yes connection.autoconnect-priority ${PRECONFIGURED_PRIORITY}" 2>/dev/null
+        log "✓ 'preconfigured' connection will autoconnect with priority ${PRECONFIGURED_PRIORITY} (club WLAN priority: ${CLUB_WLAN_PRIORITY})"
+    fi
     
     if [ -n "$DEV_WLAN_SSID" ]; then
         info "Enabling autoconnect for dev WLAN..."
