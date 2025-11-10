@@ -41,10 +41,6 @@ class TableMonitor < ApplicationRecord
 
   cattr_accessor :allow_change_tables
 
-  def self.optimistic_cache_key(id)
-    "table_monitor:optimistic_state:#{id}"
-  end
-
   # the following exist to avoid db access from partials
   cattr_accessor :options
   cattr_accessor :gps

@@ -453,60 +453,6 @@ class TableMonitorReflex < ApplicationReflex
     raise e
   end
 
-  # Broadcast optimistic state for local client while pending validation
-  def broadcast_optimistic_state(accumulated_data = nil)
-    morph :nothing
-    return unless element
-
-    table_monitor_id = element.andand.dataset[:id]
-    return if table_monitor_id.blank?
-
-    @table_monitor = TableMonitor.find(table_monitor_id)
-    return unless @table_monitor.playing?
-
-    accumulated_data ||= params[:accumulatedChanges] || {}
-    player_changes_data = accumulated_data['accumulated_changes'] || accumulated_data['accumulatedChanges'] || {}
-
-    pending_changes = {}
-
-    player_changes_data.each do |player_id, change_data|
-      next unless change_data.is_a?(Hash)
-
-      total_increment = (change_data['totalIncrement'] || change_data['total_increment'] || 0).to_i
-      next if total_increment.zero?
-
-      pending_changes[player_id] = total_increment
-    end
-
-    cache_key = TableMonitor.optimistic_cache_key(@table_monitor.id)
-
-    if pending_changes.empty?
-      Rails.cache.delete(cache_key)
-      return
-    end
-
-    innings_goal = @table_monitor.data['innings_goal'].to_i
-
-    filtered_changes = pending_changes.select do |player_id, total_increment|
-      player_data = @table_monitor.data[player_id]
-      next false unless player_data
-
-      current_innings = Array(player_data['innings_redo_list']).last.to_i
-      projected_innings = current_innings + total_increment
-
-      projected_innings >= 0 && (innings_goal <= 0 || projected_innings <= innings_goal)
-    end
-
-    if filtered_changes.empty?
-      Rails.cache.delete(cache_key)
-    else
-      Rails.cache.write(cache_key, filtered_changes, expires_in: 15.seconds)
-    end
-  rescue StandardError => e
-    Rails.logger.error("❌ broadcast_optimistic_state ERROR: #{e}") if DEBUG
-    Rails.logger.error(e.backtrace.first(5).join("\n")) if DEBUG
-  end
-
   # NEW: Validate accumulated changes with total sum
   def validate_accumulated_changes(accumulated_data = nil)
     Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
@@ -591,7 +537,6 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "   playerb result: #{@table_monitor.data['playerb']['result']}"
     Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
     Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
-    Rails.cache.delete(TableMonitor.optimistic_cache_key(@table_monitor.id))
     
   rescue StandardError => e
     Rails.logger.error("❌ Tabmon validate_accumulated_changes ERROR: #{e}")
