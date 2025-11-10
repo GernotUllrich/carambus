@@ -242,6 +242,13 @@ const VALIDATION_DELAY_MS = 3000
 const GOAL_REGEX = /(?:Goal|Ziel):\s*(\d+|no limit)/i
 ```
 
+### Optimistic Broadcast Pipeline (Stand: 2025-11-10)
+
+- **Gezielte CableReady-Updates**: `TableMonitorReflex#broadcast_optimistic_state` aktualisiert ausschließlich die relevanten Score- und Inning-Spans. Damit bleiben schnelle Klickfolgen (< 50 ms) auch auf dem Raspberry Pi flüssig.
+- **Persistente Pending-Indikatoren**: Die Klasse `pending-update` wird erst nach erfolgreicher Servervalidierung entfernt – gelbe Markierungen signalisieren offene Änderungen.
+- **Job-Optimierung**: `TableMonitorJob#perform_full_screen_update` überspringt das Rendern kompletter Partials, solange optimistische Zwischenergebnisse im Cache liegen. Nach Abschluss der Validierung wird der Cache geleert und der nächste Job liefert wieder ein vollständiges Layout.
+- **Mehrere Containers**: Sowohl Vollbild- (`#full_screen_table_monitor_*`) als auch Standardcontainer (`#table_monitor_*`) erhalten die minimalen Updates, damit alle Views synchron bleiben.
+
 ### Template Updates
 
 ```erb
@@ -324,6 +331,7 @@ The scoreboard optimization successfully addresses all the original issues:
 - ✅ **Immediate Feedback**: Users see score changes instantly
 - ✅ **Correct Player Switching**: Key A/B logic now works as expected
 - ✅ **Goal Detection**: Immediate validation when goals are reached
+- ✅ **Minimal Broadcasts**: Optimistic Updates vermeiden vollständige Re-Renders; vollständige Layouts werden erst nach abgeschlossener Validierung erneut gesendet.
 
 The implementation uses a sophisticated accumulation and validation system that provides the best user experience while maintaining data integrity. The client-side validation duplicates critical server logic to prevent invalid operations, while the global state management ensures no data is lost during controller reconnections.
 
