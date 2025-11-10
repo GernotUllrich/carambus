@@ -521,15 +521,13 @@ class TableMonitorReflex < ApplicationReflex
       new_total = base_result + current_innings + total_increment
       new_innings = current_innings + total_increment
 
-      scoreboard_containers.each do |container_selector|
-        score_selector = "#{container_selector} .main-score[data-player='#{player_id}']"
-        innings_selector = "#{container_selector} .inning-score[data-player='#{player_id}']"
+      score_selector = "#full_screen_table_monitor_#{@table_monitor.id} .main-score[data-player='#{player_id}']"
+      innings_selector = "#full_screen_table_monitor_#{@table_monitor.id} .inning-score[data-player='#{player_id}']"
 
-        stream.text_content(selector: score_selector, text: new_total)
-        stream.text_content(selector: innings_selector, text: new_innings)
-        stream.add_css_class(selector: score_selector, name: 'pending-update')
-        stream.add_css_class(selector: innings_selector, name: 'pending-update')
-      end
+      stream.text_content(selector: score_selector, text: new_total)
+      stream.text_content(selector: innings_selector, text: new_innings)
+      stream.add_css_class(selector: score_selector, name: 'pending-update')
+      stream.add_css_class(selector: innings_selector, name: 'pending-update')
 
       operations_added = true
     end
@@ -549,27 +547,18 @@ class TableMonitorReflex < ApplicationReflex
       current_innings = Array(player_data['innings_redo_list']).last.to_i
       total = base_result + current_innings
 
-      scoreboard_containers.each do |container_selector|
-        score_selector = "#{container_selector} .main-score[data-player='#{player_id}']"
-        innings_selector = "#{container_selector} .inning-score[data-player='#{player_id}']"
+      score_selector = "#full_screen_table_monitor_#{@table_monitor.id} .main-score[data-player='#{player_id}']"
+      innings_selector = "#full_screen_table_monitor_#{@table_monitor.id} .inning-score[data-player='#{player_id}']"
 
-        stream.text_content(selector: score_selector, text: total)
-        stream.text_content(selector: innings_selector, text: current_innings)
-        stream.remove_css_class(selector: score_selector, name: 'pending-update')
-        stream.remove_css_class(selector: innings_selector, name: 'pending-update')
-      end
+      stream.text_content(selector: score_selector, text: total)
+      stream.text_content(selector: innings_selector, text: current_innings)
+      stream.remove_css_class(selector: score_selector, name: 'pending-update')
+      stream.remove_css_class(selector: innings_selector, name: 'pending-update')
 
       operations_added = true
     end
 
     stream.broadcast if operations_added
-  end
-
-  def scoreboard_containers
-    [
-      "#full_screen_table_monitor_#{@table_monitor.id}",
-      "#table_monitor_#{@table_monitor.id}"
-    ].uniq
   end
 
   # NEW: Validate accumulated changes with total sum

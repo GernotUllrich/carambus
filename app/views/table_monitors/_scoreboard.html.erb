@@ -58,10 +58,7 @@
           <div class="flex h-1/6">
             <div class="flex-1 text-left font-bold text-red-400">
               <div class="text-<%= vw8 %> p-4">
-                <%= content_tag :span,
-                                (left_player_active ? table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1] : ""),
-                                class: ["inning-score", (table_monitor.data[left_player_id].andand["optimistic_pending"] ? "pending-update" : nil)].compact.join(" "),
-                                data: { player: left_player_id } %>
+                <span class="inning-score" data-player="<%= left_player_id %>"><%= left_player_active ? table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
               </div>
               <div class="text-<%= vw2 %>">
                 <%- to_play = left_player[:balls_goal].to_i - (left_player[:result].to_i + Array(table_monitor.data[left_player_id].andand["innings_redo_list"])[-1].to_i) %>
@@ -92,10 +89,7 @@
             </div>
           </div>
           <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", style: "letter-spacing: -5px;", data: { player: left_player_id, score: left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i } do %>
-            <%= content_tag :span,
-                            (left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i),
-                            class: ["main-score", (table_monitor.data[left_player_id].andand["optimistic_pending"] ? "pending-update" : nil)].compact.join(" "),
-                            data: { player: left_player_id } %>
+            <span class="main-score" data-player="<%= left_player_id %>"><%= left_player[:result].to_i + table_monitor.data[left_player_id].andand["innings_redo_list"].andand[-1].to_i %></span>
           <%- end %>
           <%- if fullscreen %>
             <%- if showing_timer_a.blank? %>
@@ -234,10 +228,7 @@
             </div>
             <div class="flex-1 text-right font-bold text-red-400">
               <div class="text-<%= vw8 %> p-4">
-                <%= content_tag :span,
-                                (right_player_active ? table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1] : ""),
-                                class: ["inning-score", (table_monitor.data[right_player_id].andand["optimistic_pending"] ? "pending-update" : nil)].compact.join(" "),
-                                data: { player: right_player_id } %>
+                <span class="inning-score" data-player="<%= right_player_id %>"><%= right_player_active ? table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
               </div>
               <div class="text-<%= vw2 %>">
                 <%- to_play = right_player[:balls_goal].to_i > 0 ? right_player[:balls_goal].to_i - (right_player[:result].to_i + Array(table_monitor.data[right_player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
@@ -255,10 +246,7 @@
             <%- if options['free_game_form'] == 'pool' && left_player["discipline"] != "14.1 endlos" %>
               <%= options["current_sets_b"] %>
             <%- else %>
-              <%= content_tag :span,
-                              (right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i),
-                              class: ["main-score", (table_monitor.data[right_player_id].andand["optimistic_pending"] ? "pending-update" : nil)].compact.join(" "),
-                              data: { player: right_player_id } %>
+              <span class="main-score" data-player="<%= right_player_id %>"><%= right_player[:result].to_i + table_monitor.data[right_player_id].andand["innings_redo_list"].andand[-1].to_i %></span>
             <%- end %>
           <%- end %>
           <%- if fullscreen %>
