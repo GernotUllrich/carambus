@@ -33,7 +33,6 @@ export default class extends ApplicationController {
         pendingPlayerSwitch: null,
         validationTimer: null,
         tableMonitorId: null,
-        inningsGoal: null,
         pendingOptimisticSync: false
       }
     }
@@ -42,13 +41,11 @@ export default class extends ApplicationController {
     const existingPendingPlayerSwitch = window.TabmonGlobalState.pendingPlayerSwitch
     const existingValidationTimer = window.TabmonGlobalState.validationTimer
     const existingTableMonitorId = window.TabmonGlobalState.tableMonitorId
-    const existingInningsGoal = window.TabmonGlobalState.inningsGoal
 
-    if (!existingTableMonitorId || existingInningsGoal === null) {
+    if (!existingTableMonitorId) {
       const configElement = document.querySelector('[data-tabmon-config="true"]')
       if (configElement) {
         window.TabmonGlobalState.tableMonitorId = configElement.dataset.tableMonitorId || existingTableMonitorId
-        window.TabmonGlobalState.inningsGoal = configElement.dataset.inningsGoal ? parseInt(configElement.dataset.inningsGoal, 10) : existingInningsGoal
       }
     }
 
@@ -66,7 +63,6 @@ export default class extends ApplicationController {
     }
 
     this.tableMonitorId = window.TabmonGlobalState.tableMonitorId || this.element.dataset.id
-    this.inningsGoal = window.TabmonGlobalState.inningsGoal
 
   }
 
@@ -247,19 +243,6 @@ export default class extends ApplicationController {
     return null
   }
 
-  getInningsGoalValue() {
-    if (this.inningsGoal === null || typeof this.inningsGoal === 'undefined') {
-      return null
-    }
-
-    const parsedGoal = parseInt(this.inningsGoal, 10)
-    if (Number.isNaN(parsedGoal) || parsedGoal <= 0) {
-      return null
-    }
-
-    return parsedGoal
-  }
-
   getTableMonitorId() {
     if (this.tableMonitorId) {
       return this.tableMonitorId
@@ -360,13 +343,8 @@ export default class extends ApplicationController {
       return { valid: false, reachesGoal: false }
     }
 
-    const inningsGoal = this.getInningsGoalValue()
-    if (inningsGoal !== null && projectedInnings > inningsGoal) {
-      return { valid: false, reachesGoal: false }
-    }
-
     const goal = this.getPlayerGoal(playerId)
-    if (goal !== null && projectedScore > goal) {
+    if (goal !== null && (projectedScore > goal || projectedInnings > goal)) {
       return { valid: false, reachesGoal: false }
     }
 
@@ -599,8 +577,12 @@ export default class extends ApplicationController {
 
   reflexSuccess (element, reflex, noop, id) {
 
-    // Remove pending indicators on successful server validation
-    this.removeAllPendingIndicators()
+    const isOptimisticBroadcast = reflex.includes('broadcast_optimistic_state')
+
+    // Remove pending indicators only for non-optimistic broadcasts
+    if (!isOptimisticBroadcast) {
+      this.removeAllPendingIndicators()
+    }
 
     // Clear pending updates for this reflex
     const tableMonitorId = element.dataset.id
