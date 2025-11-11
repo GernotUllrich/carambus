@@ -15,7 +15,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_modal
+    send_modal_update(render_protocol_modal)
   end
   
   # Close protocol modal
@@ -26,7 +26,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_modal
+    send_modal_update("")
     TableMonitorJob.perform_later(@table_monitor, "")
   end
   
@@ -38,7 +38,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_modal
+    send_modal_update(render_protocol_modal)
   end
   
   # Switch back to view mode (not used - we close directly now)
@@ -49,7 +49,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_modal
+    send_modal_update(render_protocol_modal)
   end
   
   # Increment points for a specific inning and player
@@ -63,7 +63,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.increment_inning_points(inning_index, player)
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_table
+    send_table_update(render_protocol_table_body)
   end
   
   # Decrement points for a specific inning and player
@@ -77,7 +77,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.decrement_inning_points(inning_index, player)
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_table
+    send_table_update(render_protocol_table_body)
   end
   
   # Delete an inning (only if both players have 0 points)
@@ -90,7 +90,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     result = @table_monitor.delete_inning(inning_index)
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_table if result[:success]
+    send_table_update(render_protocol_table_body) if result[:success]
   end
   
   # Insert an empty inning before the specified index
@@ -103,7 +103,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.insert_inning(before_index)
     @table_monitor.skip_update_callbacks = false
-    refresh_protocol_table
+    send_table_update(render_protocol_table_body)
   end
   
   private
@@ -118,47 +118,48 @@ class GameProtocolReflex < ApplicationReflex
     raise e
   end
 
-  def refresh_protocol_modal
-    html = ""
+  def render_protocol_modal
+    return "" unless @table_monitor.protocol_modal_should_be_open?
 
-    if @table_monitor.protocol_modal_should_be_open?
-      html = ApplicationController.render(
-        partial: "table_monitors/game_protocol_modal",
-        locals: {
-          table_monitor: @table_monitor,
-          full_screen: true,
-          modal_hidden: false
-        },
-        layout: "layouts/application"
-      )
-    end
-
-    cable_ready["table-monitor-stream"].inner_html(
-      selector: "#protocol-modal-container-#{@table_monitor.id}",
-      html: html
+    ApplicationController.render(
+      partial: "table_monitors/game_protocol_modal",
+      locals: {
+        table_monitor: @table_monitor,
+        full_screen: true,
+        modal_hidden: false
+      }
     )
-    cable_ready.broadcast
   end
 
-  def refresh_protocol_table
-    return unless @table_monitor.protocol_modal_should_be_open?
+  def render_protocol_table_body
+    return "" unless @table_monitor.protocol_modal_should_be_open?
 
     history = @table_monitor.innings_history
     partial = @table_monitor.panel_state == "protocol_edit" ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
 
-    html = ApplicationController.render(
+    ApplicationController.render(
       partial: partial,
       locals: {
         history: history,
         table_monitor: @table_monitor
       }
     )
+  end
 
-    cable_ready["table-monitor-stream"].inner_html(
+  def send_modal_update(html)
+    CableReady::Channels.instance["table-monitor-stream"].inner_html(
+      selector: "#protocol-modal-container-#{@table_monitor.id}",
+      html: html
+    ).broadcast
+  end
+
+  def send_table_update(html)
+    return if html.blank?
+
+    CableReady::Channels.instance["table-monitor-stream"].inner_html(
       selector: "#protocol-tbody-#{@table_monitor.id}",
       html: html
-    )
-    cable_ready.broadcast
+    ).broadcast
   end
 end
 
