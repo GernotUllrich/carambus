@@ -9,6 +9,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Open protocol modal in view mode
   def open_protocol
+    morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#open_protocol" if TableMonitor::DEBUG
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol"
@@ -20,6 +21,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Close protocol modal
   def close_protocol
+    morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#close_protocol" if TableMonitor::DEBUG
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "pointer_mode"
@@ -31,6 +33,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Switch to edit mode
   def switch_to_edit_mode
+    morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_edit_mode" if TableMonitor::DEBUG
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol_edit"
@@ -42,6 +45,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Switch back to view mode (not used - we close directly now)
   def switch_to_view_mode
+    morph :nothing
     Rails.logger.info "🎯 GameProtocolReflex#switch_to_view_mode" if TableMonitor::DEBUG
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "protocol"
@@ -53,6 +57,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Increment points for a specific inning and player
   def increment_points
+    morph :nothing
     inning_index = element.dataset['inning'].to_i
     player = element.dataset['player'] # 'playera' or 'playerb'
     
@@ -67,6 +72,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Decrement points for a specific inning and player
   def decrement_points
+    morph :nothing
     inning_index = element.dataset['inning'].to_i
     player = element.dataset['player'] # 'playera' or 'playerb'
     
@@ -81,6 +87,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Delete an inning (only if both players have 0 points)
   def delete_inning
+    morph :nothing
     inning_index = element.dataset['inning'].to_i
     
     Rails.logger.info "🎯 GameProtocolReflex#delete_inning: inning=#{inning_index}" if TableMonitor::DEBUG
@@ -94,6 +101,7 @@ class GameProtocolReflex < ApplicationReflex
   
   # Insert an empty inning before the specified index
   def insert_inning
+    morph :nothing
     before_index = element.dataset['before'].to_i
     
     Rails.logger.info "🎯 GameProtocolReflex#insert_inning: before=#{before_index}" if TableMonitor::DEBUG
