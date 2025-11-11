@@ -42,6 +42,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
     TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_modal
+    TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will render with edit partial
     # No background jobs - reflex handles the full page morph
   end
@@ -54,6 +56,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_modal
     TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will render with view partial
     # No background jobs - reflex handles the full page morph
@@ -70,6 +74,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.increment_inning_points(inning_index, player)
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_table
     # Full page morph - entire modal re-renders with updated data
     # No background jobs - reflex handles the full page morph
   end
@@ -85,6 +91,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.decrement_inning_points(inning_index, player)
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_table
     # Full page morph - entire modal re-renders with updated data
     # No background jobs - reflex handles the full page morph
   end
@@ -99,6 +107,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     result = @table_monitor.delete_inning(inning_index)
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_table if result[:success]
     # Full page morph - entire modal re-renders (error handling TODO)
     # No background jobs - reflex handles the full page morph
   end
@@ -113,6 +123,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     @table_monitor.insert_inning(before_index)
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
+    refresh_protocol_table
     # Full page morph - entire modal re-renders with new row
     # No background jobs - reflex handles the full page morph
   end
@@ -127,6 +139,42 @@ class GameProtocolReflex < ApplicationReflex
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "❌ TableMonitor not found: #{table_monitor_id}"
     raise e
+  end
+
+  def refresh_protocol_modal
+    html = ApplicationController.render(
+      partial: "table_monitors/game_protocol_modal",
+      locals: {
+        table_monitor: @table_monitor,
+        full_screen: true,
+        modal_hidden: !@table_monitor.protocol_modal_should_be_open?
+      }
+    )
+
+    cable_ready["table-monitor-stream"].inner_html(
+      selector: "#game-protocol-modal",
+      html: html
+    )
+    cable_ready.broadcast
+  end
+
+  def refresh_protocol_table
+    history = @table_monitor.innings_history
+    partial = @table_monitor.panel_state == "protocol_edit" ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
+
+    html = ApplicationController.render(
+      partial: partial,
+      locals: {
+        history: history,
+        table_monitor: @table_monitor
+      }
+    )
+
+    cable_ready["table-monitor-stream"].inner_html(
+      selector: "#protocol-tbody",
+      html: html
+    )
+    cable_ready.broadcast
   end
 end
 
