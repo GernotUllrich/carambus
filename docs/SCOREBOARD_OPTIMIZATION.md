@@ -4,6 +4,16 @@
 
 This document describes the optimization implemented for the Carambus scoreboard to provide immediate feedback for score increments and player changes, while maintaining data integrity through client-side validation and batched server synchronization.
 
+## 2025-11-11 – Protocol Modal Rendering & Isolation
+
+- **Gezielte CableReady-Updates**: Die Game-Protocol-Reflexe liefern jetzt nur noch die betroffenen DOM-Bereiche (`#protocol-modal-container<ID>` und `#protocol-tbody<ID>`) anstatt den kompletten Scoreboard-Screen zu ersetzen. Dadurch entfällt jedes Flackern – auch auf schwacher Pi-Hardware.
+- **Per-Tab ActionCable-Verbindung**: `ApplicationCable::Connection` weist jeder Verbindung ein eigenes `connection_token` zu. StimulusReflex-Antworten landen damit ausschließlich in dem Fenster, das die Aktion ausgelöst hat; andere TableMonitors bleiben unberührt.
+- **Gezielte Synchronisation**: Nur beim Schließen des Protokolls wird weiterhin ein vollständiger `TableMonitorJob` ausgelöst, damit der Scoreboard-Screen den finalen Stand übernimmt. Alle anderen Aktionen bleiben auf Teil-Updates beschränkt.
+- **Kompatibel mit Mehrfensterbetrieb**: Zwei Browserfenster, die denselben TableMonitor anzeigen, erhalten weiterhin identische Modal-Updates, bleiben aber sauber isoliert von anderen Tischen.
+- **Dokumentierte Endpunkte**:
+  - `app/channels/application_cable/connection.rb` – Generiert das neue `connection_token`.
+  - `app/reflexes/game_protocol_reflex.rb` – Rendert Modal/Table-Body und verteilt die CableReady-Updates.
+
 ## Problem Statement
 
 The original scoreboard implementation had several issues:
