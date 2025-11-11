@@ -38,16 +38,18 @@
                  layout: "layouts/application"
       %>
     <%- end %>
-    <%- if table_monitor.protocol_modal_should_be_open? %>
-      <%= render partial: "table_monitors/game_protocol_modal",
-                 locals: {
-                   table_monitor: table_monitor,
-                   full_screen: full_screen,
-                   modal_hidden: !table_monitor.protocol_modal_should_be_open?
-                 },
-                 layout: "layouts/application"
-      %>
-    <%- end %>
+    <div id="protocol-modal-container-<%= table_monitor.id %>">
+      <%- if table_monitor.protocol_modal_should_be_open? %>
+        <%= render partial: "table_monitors/game_protocol_modal",
+                   locals: {
+                     table_monitor: table_monitor,
+                     full_screen: full_screen,
+                     modal_hidden: !table_monitor.protocol_modal_should_be_open?
+                   },
+                   layout: "layouts/application"
+        %>
+      <%- end %>
+    </div>
   <%- end %>
   <%= content_tag "div", id: "panel_state", panel_state: table_monitor.panel_state, style: "display: none" do %>
     <%= table_monitor.panel_state %>
