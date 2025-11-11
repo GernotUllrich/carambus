@@ -1,7 +1,7 @@
 import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
-const VALIDATION_DELAY_MS = 3000
+const VALIDATION_DELAY_MS = 1000
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
@@ -11,6 +11,8 @@ export default class extends ApplicationController {
   connect () {
     super.connect()
     this.initializeClientState()
+    this.tableMonitorId = this.resolveTableMonitorId()
+    this.syncValidationLockState()
   }
 
   disconnect() {
@@ -31,8 +33,12 @@ export default class extends ApplicationController {
           playerb: { totalIncrement: 0, operations: [] }
         },
         pendingPlayerSwitch: null,
-        validationTimer: null
+        validationTimer: null,
+        validationLocks: {}
       }
+    }
+    if (!window.TabmonGlobalState.validationLocks) {
+      window.TabmonGlobalState.validationLocks = {}
     }
 
     const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
@@ -52,7 +58,112 @@ export default class extends ApplicationController {
       // NEW: Track if a player switch is pending after validation
       pendingPlayerSwitch: existingPendingPlayerSwitch
     }
+  resolveTableMonitorId() {
+    if (this.element?.dataset?.id) {
+      return this.element.dataset.id
+    }
 
+    const rootElement = this.findRootElement()
+    if (rootElement?.dataset?.tableMonitorId) {
+      return rootElement.dataset.tableMonitorId
+    }
+
+    const parentWithId = this.element?.closest('[data-id]')
+    if (parentWithId?.dataset?.id) {
+      return parentWithId.dataset.id
+    }
+
+    return null
+  }
+
+  findRootElement() {
+    if (this.element) {
+      const root = this.element.closest('[data-tabmon-root]')
+      if (root) {
+        return root
+      }
+    }
+    if (this.tableMonitorId) {
+      return document.querySelector(`[data-tabmon-root][data-table-monitor-id="${this.tableMonitorId}"]`)
+    }
+    return null
+  }
+
+  syncValidationLockState() {
+    const id = this.tableMonitorId
+    if (!id) {
+      return
+    }
+    const isLocked = Boolean(window.TabmonGlobalState?.validationLocks?.[id])
+    this.applyValidationOverlay(isLocked, id)
+  }
+
+  isValidationLocked() {
+    const id = this.tableMonitorId || this.resolveTableMonitorId()
+    if (!id || !window.TabmonGlobalState) {
+      return false
+    }
+    return Boolean(window.TabmonGlobalState.validationLocks?.[id])
+  }
+
+  setValidationLock(isLocked) {
+    const id = this.tableMonitorId || this.resolveTableMonitorId()
+    if (!id) {
+      return
+    }
+
+    if (!window.TabmonGlobalState) {
+      window.TabmonGlobalState = { validationLocks: {} }
+    } else if (!window.TabmonGlobalState.validationLocks) {
+      window.TabmonGlobalState.validationLocks = {}
+    }
+
+    window.TabmonGlobalState.validationLocks[id] = isLocked
+    this.applyValidationOverlay(isLocked, id)
+  }
+
+  applyValidationOverlay(isLocked, targetId = null) {
+    const id = targetId || this.tableMonitorId
+    if (!id) {
+      return
+    }
+    const rootElements = document.querySelectorAll(`[data-tabmon-root][data-table-monitor-id="${id}"]`)
+    rootElements.forEach(root => {
+      if (isLocked) {
+        root.classList.add('tabmon-validating')
+        root.setAttribute('aria-busy', 'true')
+      } else {
+        root.classList.remove('tabmon-validating')
+        root.removeAttribute('aria-busy')
+      }
+    })
+  }
+
+  blockIfValidationLocked() {
+    if (!this.isValidationLocked()) {
+      return false
+    }
+    this.flashValidationOverlay()
+    return true
+  }
+
+  flashValidationOverlay() {
+    const id = this.tableMonitorId || this.resolveTableMonitorId()
+    if (!id) {
+      return
+    }
+    const rootElements = document.querySelectorAll(`[data-tabmon-root][data-table-monitor-id="${id}"]`)
+    rootElements.forEach(root => {
+      root.classList.add('tabmon-validating-pulse')
+      setTimeout(() => root.classList.remove('tabmon-validating-pulse'), 200)
+    })
+  }
+
+  stimulateGuarded(reflex, ...args) {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
+    this.stimulate(reflex, ...args)
   }
 
   // Optimistic score update - immediate visual feedback using accumulated totals
@@ -335,6 +446,10 @@ export default class extends ApplicationController {
 
   key_a () {
 
+    if (this.blockIfValidationLocked()) {
+      return
+    }
+
     // Get the player ID for the left side
     const leftPlayer = document.querySelector('#left')
     const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
@@ -363,6 +478,10 @@ export default class extends ApplicationController {
 
   key_b () {
 
+    if (this.blockIfValidationLocked()) {
+      return
+    }
+
     // Get the player ID for the right side
     const rightPlayer = document.querySelector('#right')
     const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
@@ -390,13 +509,16 @@ export default class extends ApplicationController {
     }
   }
   key_c () {
-    this.stimulate('TableMonitor#key_c')
+    this.stimulateGuarded('TableMonitor#key_c')
   }
   key_d () {
-    this.stimulate('TableMonitor#key_d')
+    this.stimulateGuarded('TableMonitor#key_d')
   }
 
   add_n () {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
 
@@ -414,6 +536,9 @@ export default class extends ApplicationController {
   }
 
   minus_n () {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
 
@@ -431,6 +556,9 @@ export default class extends ApplicationController {
   }
 
   undo () {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
     const tableMonitorId = this.element.dataset.id
 
     // 🚀 IMMEDIATE OPTIMISTIC UNDO
@@ -444,6 +572,9 @@ export default class extends ApplicationController {
   }
 
   next_step () {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
     const tableMonitorId = this.element.dataset.id
 
     // 🚀 CRITICAL: Validate any pending accumulated changes BEFORE switching players
@@ -484,10 +615,13 @@ export default class extends ApplicationController {
   }
 
   numbers () {
-    this.stimulate('TableMonitor#numbers')
+    this.stimulateGuarded('TableMonitor#numbers')
   }
 
   balls_left () {
+    if (this.blockIfValidationLocked()) {
+      return
+    }
     const ballNo = parseInt(this.element.dataset.ballNo)
     if (Number.isNaN(ballNo)) {
       return
@@ -496,31 +630,31 @@ export default class extends ApplicationController {
   }
 
   foul_one () {
-    this.stimulate('TableMonitor#foul_one', this.element)
+    this.stimulateGuarded('TableMonitor#foul_one', this.element)
   }
 
   foul_two () {
-    this.stimulate('TableMonitor#foul_two', this.element)
+    this.stimulateGuarded('TableMonitor#foul_two', this.element)
   }
 
   force_next_state () {
-    this.stimulate('TableMonitor#force_next_state')
+    this.stimulateGuarded('TableMonitor#force_next_state')
   }
 
   stop () {
-    this.stimulate('TableMonitor#stop')
+    this.stimulateGuarded('TableMonitor#stop')
   }
 
   timeout () {
-    this.stimulate('TableMonitor#timeout')
+    this.stimulateGuarded('TableMonitor#timeout')
   }
 
   pause () {
-    this.stimulate('TableMonitor#pause')
+    this.stimulateGuarded('TableMonitor#pause')
   }
 
   play () {
-    this.stimulate('TableMonitor#play')
+    this.stimulateGuarded('TableMonitor#play')
   }
 
   // Lifecycle methods for debugging and error handling
@@ -556,6 +690,7 @@ export default class extends ApplicationController {
 
       this.resetOriginalScores()
       this.clearAccumulatedChanges()
+      this.setValidationLock(false)
 
 
       // 🚀 NEW: Check if there's a pending player switch after validation
@@ -575,6 +710,10 @@ export default class extends ApplicationController {
 
     // Rollback optimistic changes on server error
     this.rollbackOptimisticChanges(reflex)
+
+    if (reflex.includes('validate_accumulated_changes')) {
+      this.setValidationLock(false)
+    }
 
     // Show error message to user
     this.showErrorMessage(`Server error: ${error}`)
@@ -612,6 +751,9 @@ export default class extends ApplicationController {
   // NEW: Accumulate changes and validate with total sum
   accumulateAndValidateChange(playerId, points, operation = 'add') {
     try {
+      if (this.blockIfValidationLocked()) {
+        return false
+      }
 
       // 🚀 NEW: Validate before accumulating
       const validationResult = this.isValidIncrement(playerId, points, operation)
@@ -676,6 +818,8 @@ export default class extends ApplicationController {
       return
     }
 
+    this.setValidationLock(true)
+
     // Create a single validation call with all accumulated changes
     const validationData = {
       accumulatedChanges: {},
@@ -701,6 +845,7 @@ export default class extends ApplicationController {
     // 🚀 CRITICAL: Don't clear accumulated changes here - wait for server response
     // The changes will be cleared in reflexSuccess after server confirms they were processed
     } catch (error) {
+      this.setValidationLock(false)
       // Clear accumulated changes to prevent stuck state
       this.clearAccumulatedChanges()
     }

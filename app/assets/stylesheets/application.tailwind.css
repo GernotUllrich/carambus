@@ -196,6 +196,52 @@ a[class*="btn-primary"]:is(.dark *):hover {
   }
 }
 
+.tabmon-validating {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.75;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.tabmon-validating::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.tabmon-validating::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 4px solid rgba(209, 213, 219, 0.8);
+  border-top-color: #fbbf24;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+  pointer-events: none;
+  z-index: 21;
+}
+
+.tabmon-validating-pulse {
+  animation: tabmonValidationPulse 0.2s ease-in-out;
+}
+
+@keyframes tabmonValidationPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
 /* Immediate feedback for button presses */
 .scoreboard-button:active {
   transform: scale(0.95);
