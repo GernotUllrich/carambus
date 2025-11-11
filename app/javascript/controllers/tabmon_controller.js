@@ -2,6 +2,7 @@ import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
 const VALIDATION_DELAY_MS = 1000
+const VALIDATION_LOCK_FAILSAFE_MS = 5000
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
@@ -34,11 +35,15 @@ export default class extends ApplicationController {
         },
         pendingPlayerSwitch: null,
         validationTimer: null,
-        validationLocks: {}
+        validationLocks: {},
+        validationLockTimeouts: {}
       }
     }
     if (!window.TabmonGlobalState.validationLocks) {
       window.TabmonGlobalState.validationLocks = {}
+    }
+    if (!window.TabmonGlobalState.validationLockTimeouts) {
+      window.TabmonGlobalState.validationLockTimeouts = {}
     }
 
     const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
@@ -57,7 +62,9 @@ export default class extends ApplicationController {
       validationTimer: existingValidationTimer,
       // NEW: Track if a player switch is pending after validation
       pendingPlayerSwitch: existingPendingPlayerSwitch
-    }
+    };
+  }
+
   resolveTableMonitorId() {
     if (this.element?.dataset?.id) {
       return this.element.dataset.id
@@ -113,13 +120,69 @@ export default class extends ApplicationController {
     }
 
     if (!window.TabmonGlobalState) {
-      window.TabmonGlobalState = { validationLocks: {} }
+      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {} }
     } else if (!window.TabmonGlobalState.validationLocks) {
       window.TabmonGlobalState.validationLocks = {}
     }
+    if (!window.TabmonGlobalState.validationLockTimeouts) {
+      window.TabmonGlobalState.validationLockTimeouts = {}
+    }
 
-    window.TabmonGlobalState.validationLocks[id] = isLocked
+    if (isLocked) {
+      window.TabmonGlobalState.validationLocks[id] = true
+
+      // Clear existing failsafe for this table
+      const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
+      if (existingTimeout) {
+        clearTimeout(existingTimeout)
+      }
+
+      // Register new failsafe timeout
+      window.TabmonGlobalState.validationLockTimeouts[id] = setTimeout(() => {
+        if (window.TabmonGlobalState?.validationLocks?.[id]) {
+          console.warn(`Tabmon validation lock auto-release triggered for table ${id}`)
+          this.forceReleaseValidationLock(id)
+        }
+      }, VALIDATION_LOCK_FAILSAFE_MS)
+    } else {
+      window.TabmonGlobalState.validationLocks[id] = false
+
+      const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
+      if (existingTimeout) {
+        clearTimeout(existingTimeout)
+        delete window.TabmonGlobalState.validationLockTimeouts[id]
+      }
+    }
+
     this.applyValidationOverlay(isLocked, id)
+  }
+
+  forceReleaseValidationLock(targetId = null) {
+    const id = targetId || this.tableMonitorId || this.resolveTableMonitorId()
+    if (!id) {
+      return
+    }
+
+    if (!window.TabmonGlobalState) {
+      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {} }
+    }
+
+    if (!window.TabmonGlobalState.validationLocks) {
+      window.TabmonGlobalState.validationLocks = {}
+    }
+
+    if (!window.TabmonGlobalState.validationLockTimeouts) {
+      window.TabmonGlobalState.validationLockTimeouts = {}
+    }
+
+    const timeoutHandle = window.TabmonGlobalState.validationLockTimeouts[id]
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle)
+      delete window.TabmonGlobalState.validationLockTimeouts[id]
+    }
+
+    window.TabmonGlobalState.validationLocks[id] = false
+    this.applyValidationOverlay(false, id)
   }
 
   applyValidationOverlay(isLocked, targetId = null) {

@@ -217,7 +217,34 @@ class TableMonitorsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_table_monitor
-    @table_monitor = TableMonitor.where(id: params[:id]).first
+    @table_monitor = TableMonitor.find_by(id: params[:id])
+
+    next_path = -> do
+      fallback_location = Location.order(:id).first
+      if fallback_location
+        location_url(fallback_location,
+                     sb_state: 'welcome',
+                     host: request.server_name,
+                     port: request.server_port)
+      else
+        locations_path
+      end
+    end
+
+    unless @table_monitor
+      Rails.logger.warn("TableMonitor #{params[:id]} not found; redirecting to welcome screen")
+      redirect_to next_path.call,
+                  alert: I18n.t('table_monitors.not_found_reassign',
+                                default: 'Der ausgewählte TableMonitor ist nicht verfügbar. Bitte wählen Sie einen Tisch neu aus.') and return
+    end
+
+    if @table_monitor.table.blank?
+      Rails.logger.info("TableMonitor #{@table_monitor.id} is currently not assigned to a table; sending user to welcome screen")
+      redirect_to next_path.call,
+                  alert: I18n.t('table_monitors.rebind_required',
+                                default: 'Dieser TableMonitor ist keinem Tisch zugeordnet. Bitte wählen Sie einen Tisch im Location-Menü aus.') and return
+    end
+
     @table_monitor.get_options!(I18n.locale)
 
     @display_only = if params[:display_only] == "false"

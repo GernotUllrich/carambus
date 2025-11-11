@@ -464,8 +464,23 @@ class TableMonitorReflex < ApplicationReflex
       return
     end
     
-    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    return unless @table_monitor.playing?
+    table_monitor_id = element.andand.dataset[:id]
+    unless table_monitor_id
+      Rails.logger.error "❌ Tabmon validate_accumulated_changes aborted: Missing table monitor id in dataset"
+      return
+    end
+
+    @table_monitor = TableMonitor.find_by(id: table_monitor_id)
+
+    unless @table_monitor
+      Rails.logger.warn "❌ Tabmon validate_accumulated_changes: TableMonitor #{table_monitor_id} not found"
+      return
+    end
+
+    unless @table_monitor.playing?
+      Rails.logger.info "ℹ️ Tabmon validate_accumulated_changes skipped: TableMonitor #{table_monitor_id} is not playing"
+      return
+    end
     
     # Get accumulated changes from params or method argument
     accumulated_data ||= params[:accumulatedChanges] || {}
