@@ -15,6 +15,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will be rendered by _show.html.erb
     # No background jobs - reflex handles the full page morph
   end
@@ -27,6 +28,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will not be rendered
     # No background jobs - reflex handles the full page morph
   end
@@ -39,6 +41,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol_edit"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will render with edit partial
     # No background jobs - reflex handles the full page morph
   end
@@ -51,6 +54,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.panel_state = "protocol"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    TableMonitorJob.perform_later(@table_monitor, "")
     # Full page morph - modal will render with view partial
     # No background jobs - reflex handles the full page morph
   end
