@@ -128,3 +128,5 @@ docker-production-data/
 
 # Ignore Raspi Performance Reports
 /raspi_performance_results/
+
+*.log
