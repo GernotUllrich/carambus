@@ -157,6 +157,18 @@ config = YAML.load_file('$SCENARIO_CONFIG')
 puts config.dig('environments', 'production', 'network', 'club_wlan', 'gateway') || '192.168.2.1'
 ")
 
+CLUB_DNS=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
+config = YAML.load_file('$SCENARIO_CONFIG')
+puts config.dig('environments', 'production', 'network', 'club_wlan', 'dns') || '8.8.8.8'
+")
+
+CLUB_SUBNET=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
+config = YAML.load_file('$SCENARIO_CONFIG')
+subnet = config.dig('environments', 'production', 'network', 'club_wlan', 'subnet') || '24'
+# Extract just the number if format is like '172.2.24/24'
+puts subnet.to_s.split('/').last
+")
+
 if [ -n "$CLUB_WLAN_SSID" ]; then
     log "✓ Club WLAN loaded from config.yml: $CLUB_WLAN_SSID"
 else
@@ -174,8 +186,20 @@ puts config.dig('scenario', 'location_id')
 # Note: Table clients always use pi/22 for SSH, servers use config.yml SSH settings
 if [ "$TABLE_NAME" = "server" ] || [ -z "$TABLE_NAME" ]; then
     SERVER_MODE=true
-    log "✓ Server mode detected - club WLAN will use DHCP"
-    TABLE_IP=""  # No static IP for server
+    
+    # Check if server has a static IP configured in config.yml
+    SERVER_STATIC_IP=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
+config = YAML.load_file('$SCENARIO_CONFIG')
+puts config.dig('environments', 'production', 'network', 'club_wlan', 'static_ip') || ''
+" 2>/dev/null || echo "")
+    
+    if [ -n "$SERVER_STATIC_IP" ]; then
+        TABLE_IP="$SERVER_STATIC_IP"
+        log "✓ Server mode detected - using static IP from config.yml: $TABLE_IP"
+    else
+        TABLE_IP=""
+        log "✓ Server mode detected - club WLAN will use DHCP"
+    fi
     
     # Get SSH port from config.yml for server mode (if not explicitly provided)
     if [ -z "$SSH_PORT_ARG" ]; then
@@ -464,8 +488,24 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     # IMPORTANT: We preserve the existing "preconfigured" connection (user's dev WLAN)
     # so passwordless SSH access remains available
     
-    if [ "$SERVER_MODE" = true ]; then
-        # Server mode: Use DHCP for club WLAN
+    # Determine IP configuration based on mode and config
+    if [ -n "$TABLE_IP" ]; then
+        # Static IP mode (either table client or server with static_ip configured)
+        if [ "$SERVER_MODE" = true ]; then
+            info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP - Server Mode)"
+        else
+            info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP - Table Client)"
+        fi
+        
+        # Delete existing connection if it exists
+        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
+        
+        # Create club WLAN connection with static IP
+        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
+        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/${CLUB_SUBNET} ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '${CLUB_DNS} 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+        CLUB_CONN_EXIT_CODE=$?
+    else
+        # DHCP mode (server without static_ip)
         info "Configuring club WLAN: $CLUB_WLAN_SSID (DHCP - Server Mode)"
         
         # Delete existing connection if it exists
@@ -474,17 +514,6 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         # Create club WLAN connection with DHCP
         # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
         CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
-        CLUB_CONN_EXIT_CODE=$?
-    else
-        # Table client mode: Use static IP for club WLAN
-        info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP)"
-        
-        # Delete existing connection if it exists (by SSID or connection name)
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
-        
-        # Create club WLAN connection with static IP
-        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/24 ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '8.8.8.8 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
         CLUB_CONN_EXIT_CODE=$?
     fi
     
@@ -556,10 +585,12 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     if [ "$CLUB_EXISTS" = "yes" ]; then
         log "✓ Club WLAN connection verified"
         # Show connection details
-        if [ "$SERVER_MODE" = true ]; then
-            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' 2>/dev/null | grep -E '(ipv4.method|802-11-wireless.ssid|connection.autoconnect|connection.autoconnect-priority)'" || true
+        if [ -n "$TABLE_IP" ]; then
+            # Static IP - show addresses
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' 2>/dev/null | grep -E '(ipv4.method|ipv4.addresses|ipv4.gateway|ipv4.dns|802-11-wireless.ssid|connection.autoconnect|connection.autoconnect-priority)'" || true
         else
-            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' 2>/dev/null | grep -E '(ipv4.addresses|ipv4.gateway|802-11-wireless.ssid|connection.autoconnect|connection.autoconnect-priority)'" || true
+            # DHCP - no addresses to show
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection show '$CLUB_WLAN_SSID' 2>/dev/null | grep -E '(ipv4.method|802-11-wireless.ssid|connection.autoconnect|connection.autoconnect-priority)'" || true
         fi
     else
         error "Club WLAN connection not found after creation!"
@@ -658,8 +689,8 @@ log "📦 Step 5: Installing Scoreboard Client"
 log "======================================"
 
 info "Installing required packages..."
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo apt-get update -qq && sudo apt-get install -y chromium wmctrl xdotool 2>&1 | grep -E '(upgraded|installed)'" 2>/dev/null || true
-log "✅ Packages installed"
+ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo apt-get update -qq && sudo apt-get install -y chromium wmctrl xdotool wvkbd 2>&1 | grep -E '(upgraded|installed)'" 2>/dev/null || true
+log "✅ Packages installed (including wvkbd virtual keyboard)"
 echo ""
 
 # Step 6: Setup virtual keyboard
@@ -695,9 +726,19 @@ log "✓ Location MD5: $LOCATION_MD5"
 SCOREBOARD_URL="http://$WEBSERVER_HOST:$WEBSERVER_PORT/locations/$LOCATION_MD5/scoreboard?sb_state=welcome&locale=de"
 info "Scoreboard URL: $SCOREBOARD_URL"
 
+# Determine if this is a local server (client and server on same Pi)
+if [ "$SERVER_MODE" = true ]; then
+    IS_LOCAL_SERVER="true"
+    info "Local server mode detected - will wait for Puma service"
+else
+    IS_LOCAL_SERVER="false"
+    info "Remote server mode detected - minimal wait"
+fi
+
 AUTOSTART_SCRIPT='#!/bin/bash
-# Carambus Scoreboard Autostart for Table Client
+# Carambus Scoreboard Autostart
 export DISPLAY=:0
+IS_LOCAL_SERVER="'"$IS_LOCAL_SERVER"'"
 
 # Find X authority
 for auth_file in /home/pi/.Xauthority /home/*/. Xauthority /run/user/*/gdm/Xauthority /run/user/1000/.Xauthority; do
@@ -717,11 +758,59 @@ sleep 5
 wmctrl -r "panel" -b add,hidden 2>/dev/null || true
 wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-# Short wait for remote server
-echo "Remote server mode - starting browser"
-sleep 2
-
 SCOREBOARD_URL="'"$SCOREBOARD_URL"'"
+
+# Wait for web server to be ready
+if [ "$IS_LOCAL_SERVER" = "true" ]; then
+    # Local server mode: Wait longer for Puma to start
+    echo "Local server mode - waiting for Puma service to be ready..."
+    MAX_WAIT=120  # Maximum 2 minutes
+    WAIT_INTERVAL=5
+else
+    # Remote server mode: Short wait (server should already be running)
+    echo "Remote server mode - checking server availability..."
+    MAX_WAIT=30  # Maximum 30 seconds
+    WAIT_INTERVAL=3
+fi
+
+WAITED=0
+SERVER_READY=false
+
+while [ $WAITED -lt $MAX_WAIT ]; do
+    # Try to connect to the server
+    if curl -s -f -o /dev/null --connect-timeout 2 "$SCOREBOARD_URL" 2>/dev/null; then
+        SERVER_READY=true
+        echo "✓ Server is ready after ${WAITED}s"
+        break
+    fi
+    
+    # Also check if just the port is responding (even with 502)
+    if curl -s --connect-timeout 2 "http://'"$WEBSERVER_HOST"':'"$WEBSERVER_PORT"'/" >/dev/null 2>&1; then
+        if [ "$IS_LOCAL_SERVER" = "true" ]; then
+            echo "  Port responding but Puma not ready yet (possibly 502)..."
+        else
+            echo "  Port responding but server not ready yet..."
+        fi
+    else
+        if [ "$IS_LOCAL_SERVER" = "true" ]; then
+            echo "  Waiting for Puma service to start..."
+        else
+            echo "  Server not responding yet..."
+        fi
+    fi
+    
+    sleep $WAIT_INTERVAL
+    WAITED=$((WAITED + WAIT_INTERVAL))
+done
+
+if [ "$SERVER_READY" = false ]; then
+    if [ "$IS_LOCAL_SERVER" = "true" ]; then
+        echo "⚠️  Warning: Local Puma service did not respond after ${MAX_WAIT}s - starting browser anyway"
+    else
+        echo "⚠️  Warning: Remote server did not respond after ${MAX_WAIT}s - starting browser anyway"
+    fi
+fi
+
 echo "Loading: $SCOREBOARD_URL"
 
 # Clean browser profile
@@ -751,9 +840,8 @@ $BROWSER_CMD \
   --disable-features=VizDisplayCompositor,TranslateUI \
   --disable-translate \
   --disable-dev-shm-usage \
-  --app="$SCOREBOARD_URL" \
-  # --no-sandbox \
   --disable-gpu \
+  --app="$SCOREBOARD_URL" \
   >>/tmp/chromium-kiosk.log 2>&1 &
 else
 # Start browser in fullscreen
@@ -782,6 +870,32 @@ echo "Browser started (PID: $BROWSER_PID)"
 sleep 5
 wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
 
+# Start virtual keyboard (if available)
+# Try wvkbd-mobintl first (modern, works well), fallback to florence, onboard, matchbox
+if command -v wvkbd-mobintl >/dev/null 2>&1; then
+    echo "Starting wvkbd-mobintl virtual keyboard..."
+    # Set XDG_RUNTIME_DIR if not set (required for wvkbd)
+    if [ -z "$XDG_RUNTIME_DIR" ]; then
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+    fi
+    wvkbd-mobintl &
+    echo "wvkbd-mobintl virtual keyboard started"
+elif command -v florence >/dev/null 2>&1; then
+    echo "Starting florence virtual keyboard..."
+    florence --focus &
+    echo "Florence virtual keyboard started"
+elif command -v onboard >/dev/null 2>&1; then
+    echo "Starting onboard virtual keyboard..."
+    onboard &
+    echo "Onboard virtual keyboard started"
+elif command -v matchbox-keyboard >/dev/null 2>&1; then
+    echo "Starting matchbox-keyboard (wvkbd/florence/onboard not available)..."
+    matchbox-keyboard &
+    echo "matchbox-keyboard started"
+else
+    echo "No virtual keyboard available (skipping)"
+fi
+
 # Keep running
 while true; do
   sleep 1
@@ -801,7 +915,30 @@ log "====================================="
 # Ensure KIOSK_USER is set (default to pi if not set)
 KIOSK_USER="${KIOSK_USER:-pi}"
 
-SYSTEMD_SERVICE="[Unit]
+# Determine systemd dependencies based on mode
+if [ "$SERVER_MODE" = true ]; then
+    # Server mode: Wait for local Puma service
+    PUMA_SERVICE_NAME="puma-${SCENARIO_NAME}.service"
+    SYSTEMD_SERVICE="[Unit]
+Description=Carambus Scoreboard Kiosk
+After=graphical.target network-online.target ${PUMA_SERVICE_NAME}
+Wants=network-online.target ${PUMA_SERVICE_NAME}
+
+[Service]
+Type=simple
+User=$KIOSK_USER
+Environment=\"DISPLAY=:0\"
+Environment=\"XAUTHORITY=/home/$KIOSK_USER/.Xauthority\"
+ExecStart=/usr/local/bin/autostart-scoreboard.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical.target
+"
+else
+    # Client mode: Only wait for network
+    SYSTEMD_SERVICE="[Unit]
 Description=Carambus Scoreboard Kiosk
 After=graphical.target network-online.target
 Wants=network-online.target
@@ -818,6 +955,7 @@ RestartSec=10
 [Install]
 WantedBy=graphical.target
 "
+fi
 
 echo "$SYSTEMD_SERVICE" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/scoreboard-kiosk.service" 2>/dev/null
 ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/scoreboard-kiosk.service /etc/systemd/system/scoreboard-kiosk.service" 2>/dev/null
@@ -1070,8 +1208,14 @@ log ""
 log "Configuration Summary:"
 log "  Scenario: $SCENARIO_NAME"
 if [ "$SERVER_MODE" = true ]; then
-    log "  Mode: Server (club WLAN uses DHCP)"
-    log "  Current IP: $CURRENT_IP"
+    if [ -n "$TABLE_IP" ]; then
+        log "  Mode: Server (club WLAN uses Static IP)"
+        log "  Current IP: $CURRENT_IP"
+        log "  Club Static IP: $TABLE_IP"
+    else
+        log "  Mode: Server (club WLAN uses DHCP)"
+        log "  Current IP: $CURRENT_IP"
+    fi
 else
     log "  Table: $TABLE_NAME"
     log "  Current IP: $CURRENT_IP"
@@ -1080,10 +1224,10 @@ fi
 if [ -n "$DEV_WLAN_SSID" ]; then
 log "  Dev WLAN: $DEV_WLAN_SSID (DHCP, priority $DEV_WLAN_PRIORITY)"
 fi
-if [ "$SERVER_MODE" = true ]; then
-    log "  Club WLAN: $CLUB_WLAN_SSID (DHCP, priority $CLUB_WLAN_PRIORITY)"
+if [ -n "$TABLE_IP" ]; then
+    log "  Club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP, priority $CLUB_WLAN_PRIORITY)"
 else
-    log "  Club WLAN: $CLUB_WLAN_SSID (Static IP, priority $CLUB_WLAN_PRIORITY)"
+    log "  Club WLAN: $CLUB_WLAN_SSID (DHCP, priority $CLUB_WLAN_PRIORITY)"
 fi
 log "  Server: $WEBSERVER_HOST:$WEBSERVER_PORT"
 log ""
@@ -1092,27 +1236,31 @@ warning "    After reboot, it will connect to the available WLAN automatically:"
 if [ -n "$DEV_WLAN_SSID" ]; then
     warning "    - In office: $DEV_WLAN_SSID with DHCP"
 fi
-if [ "$SERVER_MODE" = true ]; then
-    warning "    - In club: $CLUB_WLAN_SSID with DHCP"
-else
+if [ -n "$TABLE_IP" ]; then
     warning "    - In club: $CLUB_WLAN_SSID with static IP $TABLE_IP"
+else
+    warning "    - In club: $CLUB_WLAN_SSID with DHCP"
 fi
 echo ""
 info "To reboot now:"
 echo "  ssh -p $SSH_PORT $SSH_USER@$CURRENT_IP 'sudo reboot'"
 echo ""
 info "To verify after reboot:"
-if [ "$SERVER_MODE" = true ]; then
-    echo "  # Check DHCP-assigned IP on club network"
-    echo "  ssh -p $SSH_PORT $SSH_USER@<new_ip> 'sudo systemctl status scoreboard-kiosk'"
-else
+if [ -n "$TABLE_IP" ]; then
     echo "  ping $TABLE_IP"
     echo "  ssh -p $SSH_PORT $SSH_USER@$TABLE_IP 'sudo systemctl status scoreboard-kiosk'"
+else
+    echo "  # Check DHCP-assigned IP on club network"
+    echo "  ssh -p $SSH_PORT $SSH_USER@<new_ip> 'sudo systemctl status scoreboard-kiosk'"
 fi
 echo ""
 
 if [ "$SERVER_MODE" = true ]; then
-    log "✅ Multi-WLAN server configuration ready for deployment!"
+    if [ -n "$TABLE_IP" ]; then
+        log "✅ Multi-WLAN server configuration ready for deployment (with static IP)!"
+    else
+        log "✅ Multi-WLAN server configuration ready for deployment (with DHCP)!"
+    fi
 else
     log "✅ Multi-WLAN table client ready for deployment!"
 fi

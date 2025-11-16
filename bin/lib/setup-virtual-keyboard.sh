@@ -44,26 +44,27 @@ REMOTE_IP="$3"
 log "⌨️  Setting up Virtual Keyboard"
 log "=============================="
 
-# Step 1: Install matchbox-keyboard
-info "Installing matchbox-keyboard..."
-INSTALL_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "sudo apt-get update -qq 2>&1 && sudo apt-get install -y matchbox-keyboard 2>&1" 2>&1 || echo "INSTALL_FAILED")
+# Step 1: Install virtual keyboard (wvkbd preferred)
+info "Installing wvkbd virtual keyboard..."
+INSTALL_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "sudo apt-get update -qq 2>&1 && sudo apt-get install -y wvkbd 2>&1" 2>&1 || echo "INSTALL_FAILED")
 
 if echo "$INSTALL_OUTPUT" | grep -qE "(upgraded|installed|already|Setting up|Unpacking)" 2>/dev/null; then
-    log "✅ matchbox-keyboard installed or already present"
+    log "✅ wvkbd installed or already present"
 elif echo "$INSTALL_OUTPUT" | grep -qE "(Unable to locate|E: Package|not found|E: Unable)" 2>/dev/null; then
-    warning "matchbox-keyboard package not found in repository"
+    warning "wvkbd package not found in repository"
     warning "This package may not be available for your Raspberry Pi OS version"
     warning "You may need to install it manually or use an alternative virtual keyboard"
 else
-    warning "matchbox-keyboard installation status unclear"
+    warning "wvkbd installation status unclear"
     warning "Verification will check if it's available"
 fi
 
 # Step 2: Create toggle script
 info "Creating keyboard toggle script..."
 TOGGLE_SCRIPT="#!/bin/bash
-# Toggle matchbox-keyboard on/off
+# Toggle virtual keyboard on/off
 # Usage: toggle-keyboard.sh
+# Supports wvkbd-mobintl, florence, onboard, and matchbox-keyboard
 
 export DISPLAY=:0
 
@@ -77,20 +78,61 @@ done
 
 xhost +local: 2>/dev/null || true
 
-# Check if keyboard is running
-PID=\$(pidof matchbox-keyboard 2>/dev/null || echo \"\")
-
+# Try to find and toggle keyboards in order of preference
+# 1. wvkbd-mobintl (preferred)
+PID=\$(pgrep -f wvkbd-mobintl 2>/dev/null || echo \"\")
 if [ -n \"\$PID\" ]; then
-    # Keyboard is running - kill it
     kill \"\$PID\" 2>/dev/null || true
-    echo \"Virtual keyboard closed\"
+    echo \"wvkbd-mobintl virtual keyboard closed\"
     exit 0
-else
-    # Keyboard is not running - start it
-    matchbox-keyboard &
-    echo \"Virtual keyboard opened\"
+elif command -v wvkbd-mobintl >/dev/null 2>&1; then
+    # Set XDG_RUNTIME_DIR if not set (required for wvkbd)
+    if [ -z \"\$XDG_RUNTIME_DIR\" ]; then
+        export XDG_RUNTIME_DIR=\"/run/user/\$(id -u)\"
+    fi
+    wvkbd-mobintl &
+    echo \"wvkbd-mobintl virtual keyboard opened\"
     exit 0
 fi
+
+# 2. florence
+PID=\$(pidof florence 2>/dev/null || echo \"\")
+if [ -n \"\$PID\" ]; then
+    kill \"\$PID\" 2>/dev/null || true
+    echo \"Florence virtual keyboard closed\"
+    exit 0
+elif command -v florence >/dev/null 2>&1; then
+    florence --focus &
+    echo \"Florence virtual keyboard opened\"
+    exit 0
+fi
+
+# 3. onboard
+PID=\$(pidof onboard 2>/dev/null || echo \"\")
+if [ -n \"\$PID\" ]; then
+    kill \"\$PID\" 2>/dev/null || true
+    echo \"Onboard virtual keyboard closed\"
+    exit 0
+elif command -v onboard >/dev/null 2>&1; then
+    onboard &
+    echo \"Onboard virtual keyboard opened\"
+    exit 0
+fi
+
+# 4. matchbox-keyboard (fallback)
+PID=\$(pidof matchbox-keyboard 2>/dev/null || echo \"\")
+if [ -n \"\$PID\" ]; then
+    kill \"\$PID\" 2>/dev/null || true
+    echo \"matchbox-keyboard closed\"
+    exit 0
+elif command -v matchbox-keyboard >/dev/null 2>&1; then
+    matchbox-keyboard &
+    echo \"matchbox-keyboard opened\"
+    exit 0
+fi
+
+echo \"No virtual keyboard found\"
+exit 1
 "
 
 echo "$TOGGLE_SCRIPT" | ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "cat > /tmp/toggle-keyboard.sh" 2>/dev/null
@@ -142,20 +184,32 @@ fi
 
 # Step 4: Test keyboard installation
 info "Verifying keyboard installation..."
-if ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v matchbox-keyboard >/dev/null 2>&1" 2>/dev/null; then
-    log "✅ matchbox-keyboard is available"
+KEYBOARD_AVAILABLE=false
+
+# Check for wvkbd-mobintl (preferred)
+if ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v wvkbd-mobintl >/dev/null 2>&1" 2>/dev/null; then
+    log "✅ wvkbd-mobintl is available (preferred)"
+    KEYBOARD_AVAILABLE=true
+# Check for other keyboards as fallback
+elif ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v florence >/dev/null 2>&1" 2>/dev/null; then
+    log "✅ florence is available (fallback)"
+    KEYBOARD_AVAILABLE=true
+elif ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v onboard >/dev/null 2>&1" 2>/dev/null; then
+    log "✅ onboard is available (fallback)"
+    KEYBOARD_AVAILABLE=true
+elif ssh -p "$SSH_PORT" "$SSH_USER@$REMOTE_IP" "command -v matchbox-keyboard >/dev/null 2>&1" 2>/dev/null; then
+    log "✅ matchbox-keyboard is available (fallback)"
     KEYBOARD_AVAILABLE=true
 else
-    warning "matchbox-keyboard not found in PATH"
+    warning "No virtual keyboard found in PATH"
     warning "This may be because:"
-    warning "  - matchbox-keyboard is not available in your Raspberry Pi OS repository"
+    warning "  - wvkbd is not available in your Raspberry Pi OS repository"
     warning "  - Installation failed silently"
     warning "  - The package needs to be installed manually"
     info ""
-    info "The toggle script has been created and will work once matchbox-keyboard is installed."
+    info "The toggle script has been created and will work once a keyboard is installed."
     info "To install manually, try:"
-    echo "  ssh -p $SSH_PORT $SSH_USER@$REMOTE_IP 'sudo apt-get update && sudo apt-get install matchbox-keyboard'"
-    KEYBOARD_AVAILABLE=false
+    echo "  ssh -p $SSH_PORT $SSH_USER@$REMOTE_IP 'sudo apt-get update && sudo apt-get install wvkbd'"
 fi
 
 if [ "$KEYBOARD_AVAILABLE" = true ]; then
@@ -168,6 +222,6 @@ info "Usage:"
 echo "  To toggle keyboard: ssh -p $SSH_PORT $SSH_USER@$REMOTE_IP '/usr/local/bin/toggle-keyboard.sh'"
 echo "  Or run locally on Pi: toggle-keyboard.sh"
 echo ""
-info "Note: The keyboard can be toggled on/off using the toggle script."
-info "      It will not auto-start - use the toggle script when needed."
+info "Note: The toggle script will use wvkbd-mobintl if available, or fallback to florence/onboard/matchbox."
+info "      The keyboard will auto-start with the scoreboard browser."
 
