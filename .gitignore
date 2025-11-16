@@ -130,3 +130,4 @@ docker-production-data/
 /raspi_performance_results/
 
 *.log
+doc/doc-local/
