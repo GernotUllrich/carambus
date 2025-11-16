@@ -425,7 +425,7 @@ class TournamentsController < ApplicationController
       if @tournament.data['extracted_group_assignment'].present?
         @extracted_groups = convert_position_groups_to_player_groups(
           @tournament.data['extracted_group_assignment'],
-          @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position)
+          @tournament
         )
         
         @groups_match = groups_identical?(@extracted_groups, @nbv_groups)
