@@ -1,6 +1,7 @@
 class TournamentMonitorsController < ApplicationController
   before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players]
   before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players]
+  before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players]
 
   def switch_players
     @game = Game[params[:game_id]]
@@ -113,6 +114,14 @@ class TournamentMonitorsController < ApplicationController
     unless current_user&.club_admin? || current_user&.system_admin?
       flash[:alert] = "Zugriff verweigert: Nur Spielleiter können auf den Tournament Monitor zugreifen."
       redirect_to root_path
+    end
+  end
+
+  # Stellt sicher, dass Tournament Monitor nur auf lokalen Servern möglich ist
+  def ensure_local_server
+    unless local_server?
+      flash[:alert] = "⚠️ Tournament Monitor ist nur auf lokalen Servern verfügbar. Der API Server dient ausschließlich als zentrale Datenquelle."
+      redirect_to tournaments_path
     end
   end
 end

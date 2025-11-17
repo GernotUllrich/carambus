@@ -10,8 +10,8 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter -->
-  <% if tournament_director?(current_user) %>
+  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern -->
+  <% if tournament_director?(current_user) && local_server? %>
     <%= render 'wizard_steps_v2', tournament: @tournament %>
   <% end %>
 

@@ -1,8 +1,28 @@
+<% unless local_server? %>
+  <div class="container mx-auto my-4 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div class="flex items-start">
+          <span class="text-2xl mr-3">ℹ️</span>
+          <div>
+            <h3 class="font-semibold text-blue-900 mb-1">API Server - Nur-Lese-Modus</h3>
+            <p class="text-blue-800">
+              Dies ist der zentrale API Server. Turniermanagement (Erstellen, Bearbeiten, Durchführen) 
+              ist nur auf <strong>lokalen Servern</strong> möglich. Hier können Sie nur Turniere ansehen 
+              und als Datenquelle für lokale Server verwenden.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
 <%= render partial: 'shared/index_with_search', locals: {
   model_class: Tournament,
   records: @tournaments,
   title: t('tournament.index.tournaments'),
-  new_text: 'New Tournament',
-  new_path: new_tournament_path,
+  new_text: local_server? ? 'New Tournament' : nil,
+  new_path: local_server? ? new_tournament_path : nil,
   table_partial: 'tournaments_table',
 } %>

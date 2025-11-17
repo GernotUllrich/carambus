@@ -7,6 +7,12 @@ class TournamentsController < ApplicationController
                          use_clubcloud_as_participants update_seeding_position
                          recalculate_groups test_tournament_status_update]
   before_action :ensure_rankings_cached, only: %i[show]
+  before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap 
+                                                finish_seeding edit_games reload_from_cc new_team
+                                                finalize_modus select_modus reset start define_participants add_team
+                                                upload_invitation parse_invitation apply_seeding_order compare_seedings 
+                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
+                                                recalculate_groups]
 
   # GET /tournaments
   def index
@@ -867,5 +873,14 @@ class TournamentsController < ApplicationController
                                        :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up)
+  end
+
+  # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
+  # API Server dient nur zum Lesen und als Datenquelle
+  def ensure_local_server
+    unless local_server?
+      flash[:alert] = "⚠️ Turniermanagement ist nur auf lokalen Servern möglich. Der API Server dient ausschließlich als zentrale Datenquelle."
+      redirect_to tournaments_path
+    end
   end
 end
