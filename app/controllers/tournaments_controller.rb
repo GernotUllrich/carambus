@@ -657,7 +657,8 @@ class TournamentsController < ApplicationController
                       "✅ Setzliste übernommen (#{seeding_order.count} Spieler)"
                     end
       
-      redirect_to tournament_path(@tournament), notice: notice_text
+      # Leite zu Schritt 3 weiter (Teilnehmerliste bearbeiten)
+      redirect_to define_participants_tournament_path(@tournament), notice: notice_text
     else
       redirect_to compare_seedings_tournament_path(@tournament),
                   alert: "Keine Reihenfolge ausgewählt"
