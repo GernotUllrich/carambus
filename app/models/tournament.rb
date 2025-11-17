@@ -872,10 +872,10 @@ class Tournament < ApplicationRecord
   # - Seedings mit id < MIN_ID (50_000_000)
   # - data["result"] ist gefüllt
   def has_clubcloud_results?
-    seedings.where("seedings.id < ?", Seeding::MIN_ID)
-            .where("data -> 'result' IS NOT NULL")
-            .where("data -> 'result' != '{}'::jsonb")
-            .exists?
+    # Da data als text serialisiert ist (nicht jsonb), müssen wir die Ruby-Objekte laden
+    seedings.where("seedings.id < ?", Seeding::MIN_ID).any? do |seeding|
+      seeding.data.present? && seeding.data["result"].present? && seeding.data["result"].is_a?(Hash) && seeding.data["result"].any?
+    end
   end
 
   private
