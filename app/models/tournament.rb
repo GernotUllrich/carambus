@@ -867,6 +867,17 @@ class Tournament < ApplicationRecord
     title || shortname
   end
 
+  # Prüft ob dieses Turnier ClubCloud-Ergebnisse hat
+  # ClubCloud-Daten sind erkennbar an:
+  # - Seedings mit id < MIN_ID (50_000_000)
+  # - data["result"] ist gefüllt
+  def has_clubcloud_results?
+    seedings.where("seedings.id < ?", Seeding::MIN_ID)
+            .where("data -> 'result' IS NOT NULL")
+            .where("data -> 'result' != '{}'::jsonb")
+            .exists?
+  end
+
   private
 
   def parse_table_tr(region, frame1_lines, frame_points, frame_result, frames, gd, group, hb,
@@ -1455,16 +1466,5 @@ class Tournament < ApplicationRecord
 
   def before_all_events
     Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
-  end
-
-  # Prüft ob dieses Turnier ClubCloud-Ergebnisse hat
-  # ClubCloud-Daten sind erkennbar an:
-  # - Seedings mit id < MIN_ID (50_000_000)
-  # - data["result"] ist gefüllt
-  def has_clubcloud_results?
-    seedings.where("seedings.id < ?", Seeding::MIN_ID)
-            .where("data -> 'result' IS NOT NULL")
-            .where("data -> 'result' != '{}'::jsonb")
-            .exists?
   end
 end
