@@ -877,10 +877,18 @@ class TournamentsController < ApplicationController
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
   # API Server dient nur zum Lesen und als Datenquelle
+  # Auch auf lokalen Servern: Wenn ClubCloud-Ergebnisse vorliegen, ist das Turnier schreibgeschützt
   def ensure_local_server
     unless local_server?
       flash[:alert] = "⚠️ Turniermanagement ist nur auf lokalen Servern möglich. Der API Server dient ausschließlich als zentrale Datenquelle."
       redirect_to tournaments_path
+      return
+    end
+    
+    # Auch auf lokalen Servern: Prüfe ob ClubCloud-Ergebnisse vorliegen
+    if @tournament&.has_clubcloud_results?
+      flash[:alert] = "⚠️ Dieses Turnier hat bereits Ergebnisse aus der ClubCloud und ist schreibgeschützt. Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere."
+      redirect_to tournament_path(@tournament)
     end
   end
 end

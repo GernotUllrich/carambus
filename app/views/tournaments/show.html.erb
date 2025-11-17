@@ -10,8 +10,28 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern -->
-  <% if tournament_director?(current_user) && local_server? %>
+  <!-- Warnung wenn Turnier ClubCloud-Ergebnisse hat (schreibgeschützt) -->
+  <% if @tournament.has_clubcloud_results? %>
+    <div class="container mx-auto my-4 px-4">
+      <div class="max-w-6xl mx-auto">
+        <div class="bg-yellow-50 border border-yellow-400 rounded-lg p-4 mb-4">
+          <div class="flex items-start">
+            <span class="text-2xl mr-3">🔒</span>
+            <div>
+              <h3 class="font-semibold text-yellow-900 mb-1">Turnier ist schreibgeschützt</h3>
+              <p class="text-yellow-800">
+                Dieses Turnier hat bereits <strong>Ergebnisse aus der ClubCloud</strong> und kann nicht mehr bearbeitet werden. 
+                Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
+  <% if tournament_director?(current_user) && local_server? && !@tournament.has_clubcloud_results? %>
     <%= render 'wizard_steps_v2', tournament: @tournament %>
   <% end %>
 
@@ -98,13 +118,15 @@
   </div>
   
   <!-- Admin Actions -->
-  <div class="admin-actions-container" style="margin-top: 2rem;">
-    <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
-    <%- if !@tournament.tournament_started %>
-      <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
-    <%- end %>
-    <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
-      <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
-    <% end %>
-  </div>
+  <% if local_server? && !@tournament.has_clubcloud_results? %>
+    <div class="admin-actions-container" style="margin-top: 2rem;">
+      <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
+      <%- if !@tournament.tournament_started %>
+        <%= button_to I18n.t("tournaments.show.reset_tournament_monitor"), reset_tournament_path(@tournament), method: :post, class: "btn btn-flat btn-primary", data: { confirm: 'Are you sure?' }, style: "float: left; margin-right: 10px;" %>
+      <%- end %>
+      <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
+        <%= button_to I18n.t("tournaments.show.debugging_force_reset_tournament_monitor"), reset_tournament_path(@tournament, force_reset: true), method: :post, class: "btn btn-flat btn-primary", style: "float: left; margin-right: 10px;" %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>

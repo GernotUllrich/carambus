@@ -4,7 +4,7 @@
       <h1 class="h3"><%= custom_link_to t('home.index.tournaments'), tournaments_path %> &gt; <%= tournament.title %>
         - <%= tournament.organizer.shortname %> - <%= tournament.season.name %></h1>
       <h3><%= subtitle %></h3>
-      <% if local_server? %>
+      <% if local_server? && !tournament.has_clubcloud_results? %>
         <%= button_to('Edit', edit_tournament_path(tournament), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
       <% end %>
     </div>
