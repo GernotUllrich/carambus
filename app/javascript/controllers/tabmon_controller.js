@@ -576,10 +576,7 @@ export default class extends ApplicationController {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
       
-      // Optimistic update
-      this.applyOptimisticUpdate(playerId, increment)
-      
-      // Send immediately to server
+      // Send immediately to server (JSON response is fast enough!)
       this.stimulate('TableMonitor#add_score', playerId, increment)
     } else {
       // Clicking on opposite side = player switch
@@ -598,10 +595,7 @@ export default class extends ApplicationController {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
       
-      // Optimistic update
-      this.applyOptimisticUpdate(playerId, increment)
-      
-      // Send immediately to server
+      // Send immediately to server (JSON response is fast enough!)
       this.stimulate('TableMonitor#add_score', playerId, increment)
     } else {
       // Clicking on opposite side = player switch
@@ -620,10 +614,7 @@ export default class extends ApplicationController {
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
     
-    // Optional: Optimistic update for instant feedback
-    this.applyOptimisticUpdate(activePlayerId, n)
-    
-    // Send immediately to server
+    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
     this.stimulate('TableMonitor#add_score', activePlayerId, n)
   }
 
@@ -632,10 +623,7 @@ export default class extends ApplicationController {
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
     
-    // Optional: Optimistic update for instant feedback
-    this.applyOptimisticUpdate(activePlayerId, -n)
-    
-    // Send immediately to server
+    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
     this.stimulate('TableMonitor#add_score', activePlayerId, -n)
   }
 
