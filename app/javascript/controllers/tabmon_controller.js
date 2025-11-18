@@ -1,8 +1,8 @@
 import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
-const VALIDATION_DELAY_MS = 1000
-const VALIDATION_LOCK_FAILSAFE_MS = 5000
+const VALIDATION_DELAY_MS = 50 //1000
+const VALIDATION_LOCK_FAILSAFE_MS = 15000  // Increased from 5s to 15s for slow Raspberry Pi 3
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
@@ -14,6 +14,7 @@ export default class extends ApplicationController {
     this.initializeClientState()
     this.tableMonitorId = this.resolveTableMonitorId()
     this.syncValidationLockState()
+    this.checkAndResetStaleLock()  // NEW: Check for stale locks on reconnection
   }
 
   disconnect() {
@@ -36,7 +37,9 @@ export default class extends ApplicationController {
         pendingPlayerSwitch: null,
         validationTimer: null,
         validationLocks: {},
-        validationLockTimeouts: {}
+        validationLockTimeouts: {},
+        lockTimestamps: {},  // NEW: Track when locks were set
+        processedRequestIds: new Set()  // NEW: Track processed request IDs to prevent duplicates
       }
     }
     if (!window.TabmonGlobalState.validationLocks) {
@@ -44,6 +47,12 @@ export default class extends ApplicationController {
     }
     if (!window.TabmonGlobalState.validationLockTimeouts) {
       window.TabmonGlobalState.validationLockTimeouts = {}
+    }
+    if (!window.TabmonGlobalState.lockTimestamps) {
+      window.TabmonGlobalState.lockTimestamps = {}
+    }
+    if (!window.TabmonGlobalState.processedRequestIds) {
+      window.TabmonGlobalState.processedRequestIds = new Set()
     }
 
     const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
@@ -105,6 +114,39 @@ export default class extends ApplicationController {
     this.applyValidationOverlay(isLocked, id)
   }
 
+  // NEW: Check for stale locks on reconnection and reset them
+  checkAndResetStaleLock() {
+    const id = this.tableMonitorId
+    if (!id) {
+      return
+    }
+
+    const lockTimestamp = window.TabmonGlobalState?.lockTimestamps?.[id]
+    if (lockTimestamp) {
+      const lockAge = Date.now() - lockTimestamp
+      // If lock is older than 20 seconds, it's stale
+      if (lockAge > 20000) {
+        console.warn(`🔧 Detected stale validation lock (${lockAge}ms old), resetting for table ${id}`)
+        this.forceReleaseValidationLock(id)
+        this.clearAccumulatedChanges()
+      }
+    }
+  }
+
+  // NEW: Generate a unique request ID using crypto API or fallback
+  generateRequestId() {
+    if (window.crypto && window.crypto.randomUUID) {
+      return window.crypto.randomUUID()
+    } else {
+      // Fallback for older browsers (simple UUID v4)
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0
+        const v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
+    }
+  }
+
   isValidationLocked() {
     const id = this.tableMonitorId || this.resolveTableMonitorId()
     if (!id || !window.TabmonGlobalState) {
@@ -120,16 +162,20 @@ export default class extends ApplicationController {
     }
 
     if (!window.TabmonGlobalState) {
-      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {} }
+      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {}, lockTimestamps: {} }
     } else if (!window.TabmonGlobalState.validationLocks) {
       window.TabmonGlobalState.validationLocks = {}
     }
     if (!window.TabmonGlobalState.validationLockTimeouts) {
       window.TabmonGlobalState.validationLockTimeouts = {}
     }
+    if (!window.TabmonGlobalState.lockTimestamps) {
+      window.TabmonGlobalState.lockTimestamps = {}
+    }
 
     if (isLocked) {
       window.TabmonGlobalState.validationLocks[id] = true
+      window.TabmonGlobalState.lockTimestamps[id] = Date.now()  // NEW: Track when lock was set
 
       // Clear existing failsafe for this table
       const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
@@ -140,12 +186,13 @@ export default class extends ApplicationController {
       // Register new failsafe timeout
       window.TabmonGlobalState.validationLockTimeouts[id] = setTimeout(() => {
         if (window.TabmonGlobalState?.validationLocks?.[id]) {
-          console.warn(`Tabmon validation lock auto-release triggered for table ${id}`)
+          console.warn(`⚠️ Tabmon validation lock auto-release triggered for table ${id} after ${VALIDATION_LOCK_FAILSAFE_MS}ms`)
           this.forceReleaseValidationLock(id)
         }
       }, VALIDATION_LOCK_FAILSAFE_MS)
     } else {
       window.TabmonGlobalState.validationLocks[id] = false
+      delete window.TabmonGlobalState.lockTimestamps[id]  // NEW: Clear timestamp
 
       const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
       if (existingTimeout) {
@@ -368,18 +415,18 @@ export default class extends ApplicationController {
     // For Eurokegel, each pin is worth 2 points (only even numbers allowed)
     const playerSide = playerId === 'playera' ? '#left' : '#right'
     const sideElement = document.querySelector(playerSide)
-    
+
     if (!sideElement) return 1
-    
+
     // Check discipline from data attribute or text content
-    const disciplineText = sideElement.dataset.discipline || 
+    const disciplineText = sideElement.dataset.discipline ||
                           sideElement.querySelector('.discipline, [class*="discipline"]')?.textContent || ''
-    
+
     // Eurokegel uses 2-point increments (each pin = 2 points)
     if (disciplineText.toLowerCase().includes('eurokegel')) {
       return 2
     }
-    
+
     return 1
   }
 
@@ -524,7 +571,7 @@ export default class extends ApplicationController {
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-      
+
       // 🚀 NEW: Accumulate change FIRST, then update display
       const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
@@ -557,7 +604,7 @@ export default class extends ApplicationController {
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-      
+
       // 🚀 NEW: Accumulate change FIRST, then update display
       const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
@@ -881,10 +928,15 @@ export default class extends ApplicationController {
       return
     }
 
+    // NEW: Generate unique request ID for idempotency
+    const requestId = this.generateRequestId()
+    console.log(`🆔 Generated validation request ID: ${requestId}`)
+
     this.setValidationLock(true)
 
     // Create a single validation call with all accumulated changes
     const validationData = {
+      requestId: requestId,  // NEW: Add request ID
       accumulatedChanges: {},
       timestamp: Date.now()
     }

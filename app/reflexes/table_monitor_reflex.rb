@@ -488,6 +488,23 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "🔍 Tabmon accumulated_data class: #{accumulated_data.class}"
     Rails.logger.info "🔍 Tabmon accumulated_data keys: #{accumulated_data.keys if accumulated_data.respond_to?(:keys)}"
     
+    # NEW: Check for request ID and detect duplicates
+    request_id = accumulated_data['requestId'] || accumulated_data['request_id']
+    if request_id
+      cache_key = "tabmon_validation:#{table_monitor_id}:#{request_id}"
+      
+      if Rails.cache.read(cache_key)
+        Rails.logger.info "⏭️ Skipping duplicate validation request: #{request_id} for table #{table_monitor_id}"
+        return  # Already processed, ignore silently
+      end
+      
+      # Mark as processing (expire after 1 hour to prevent cache bloat)
+      Rails.cache.write(cache_key, Time.current, expires_in: 1.hour)
+      Rails.logger.info "🆔 Processing new validation request: #{request_id} for table #{table_monitor_id}"
+    else
+      Rails.logger.warn "⚠️ No request ID provided in validation data (old client version?)"
+    end
+    
     # Extract the actual player changes from the wrapper
     player_changes_data = accumulated_data['accumulated_changes'] || accumulated_data['accumulatedChanges'] || {}
     Rails.logger.info "🔍 Tabmon player_changes_data: #{player_changes_data.inspect}"

@@ -4,6 +4,42 @@
 
 This document describes the optimization implemented for the Carambus scoreboard to provide immediate feedback for score increments and player changes, while maintaining data integrity through client-side validation and batched server synchronization.
 
+## 2025-11-17 – Idempotency Fix for Raspberry Pi 3
+
+**Branch:** `feature/scoreboard-idempotency`
+
+### Problem
+On slow Raspberry Pi 3 scoreboards, duplicate scores were being recorded because:
+- Validation lock timeout (5s) was shorter than actual processing time (6-8s) on slow hardware
+- Failsafe released lock while server was still processing
+- Users could click again, sending duplicate requests
+- Server applied the same score twice
+
+### Solution: Request ID Idempotency
+- **Unique Request IDs**: Each validation batch gets a UUID (e.g., `abc-def-123`)
+- **Server-Side Deduplication**: Server checks Redis cache for duplicate request IDs
+- **Automatic Ignore**: Duplicate requests are silently ignored (idempotent!)
+- **Longer Timeout**: Increased failsafe from 5s to 15s for slow hardware
+- **Stale Lock Detection**: Automatically resets locks older than 20 seconds on reconnection
+
+### Implementation
+- `app/javascript/controllers/tabmon_controller.js`:
+  - Added `generateRequestId()` method using `crypto.randomUUID()`
+  - Increased `VALIDATION_LOCK_FAILSAFE_MS` from 5000 to 15000
+  - Added `lockTimestamps` tracking
+  - Added `checkAndResetStaleLock()` method
+- `app/reflexes/table_monitor_reflex.rb`:
+  - Check Redis cache for request ID before processing
+  - Mark request ID as processed (1-hour TTL)
+  - Skip duplicate requests silently
+
+### Testing
+- Rapid clicking: +10, +1, +1, +1 should increase score by exactly 13
+- Slow network: Duplicates should be prevented by request ID check
+- Controller reconnection: Stale locks should be automatically reset
+
+**See:** `/carambus_data/SCOREBOARD_IDEMPOTENCY_IMPLEMENTATION.md` for full details
+
 ## 2025-11-11 – Protocol Modal Rendering & Isolation
 
 - **Gezielte CableReady-Updates**: Die Game-Protocol-Reflexe liefern jetzt nur noch die betroffenen DOM-Bereiche (`#protocol-modal-container<ID>` und `#protocol-tbody<ID>`) anstatt den kompletten Scoreboard-Screen zu ersetzen. Dadurch entfällt jedes Flackern – auch auf schwacher Pi-Hardware.
