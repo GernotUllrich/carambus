@@ -184,11 +184,10 @@ class TableMonitorJob < ApplicationJob
       
       # Game state
       state: table_monitor.state,
-      state_display: table_monitor.state_display(I18n.locale).to_s,
+      state_display: table_monitor.state_display(I18n.locale).to_s
       
-      # Timer data (if applicable)
-      timer_seconds: table_monitor.timer_seconds.to_i,
-      timer_active: table_monitor.timer_finish_at.present?
+      # Note: Timer updates happen separately via TableMonitorClockJob
+      # Not included here to keep payload minimal
     }
   end
 end
