@@ -2,7 +2,7 @@ import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
 const VALIDATION_DELAY_MS = 50 //1000
-const VALIDATION_LOCK_FAILSAFE_MS = 15000  // Increased from 5s to 15s for slow Raspberry Pi 3
+const VALIDATION_LOCK_FAILSAFE_MS = 0 //15000  // Increased from 5s to 15s for slow Raspberry Pi 3
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
  * Handles all the control buttons in the scoreboard controls row.
