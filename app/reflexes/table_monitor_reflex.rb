@@ -408,7 +408,9 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
-    # morph dom_id(@table_monitor), render(@table_monitor)
+    
+    # Broadcast JSON update to all clients
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
   end
 
   def start_game
@@ -422,7 +424,9 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
-    # morph dom_id(@table_monitor), render(@table_monitor)
+    
+    # Broadcast JSON update to all clients
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
   end
 
   def home
@@ -787,6 +791,9 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
+    
+    # Broadcast JSON update to all clients
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
   end
 
   def admin_ack_result
