@@ -403,7 +403,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.switch_players
     @table_monitor.reset_timer!
     # noinspection RubyResolve
-    @table_monitor.finish_shootout!
+    # Only finish shootout if we're actually in shootout state
+    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
@@ -416,7 +417,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
-    @table_monitor.finish_shootout!
+    # Only finish shootout if we're actually in shootout state
+    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
