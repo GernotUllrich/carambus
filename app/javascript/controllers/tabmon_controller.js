@@ -1,7 +1,7 @@
 import ApplicationController from './application_controller'
 
 // Configuration: Validation delay in milliseconds
-const VALIDATION_DELAY_MS = 1000
+const VALIDATION_DELAY_MS = 50 //1000
 const VALIDATION_LOCK_FAILSAFE_MS = 15000  // Increased from 5s to 15s for slow Raspberry Pi 3
 
 /* This is the StimulusReflex controller for the TableMonitor Controls.
@@ -120,7 +120,7 @@ export default class extends ApplicationController {
     if (!id) {
       return
     }
-    
+
     const lockTimestamp = window.TabmonGlobalState?.lockTimestamps?.[id]
     if (lockTimestamp) {
       const lockAge = Date.now() - lockTimestamp
@@ -415,18 +415,18 @@ export default class extends ApplicationController {
     // For Eurokegel, each pin is worth 2 points (only even numbers allowed)
     const playerSide = playerId === 'playera' ? '#left' : '#right'
     const sideElement = document.querySelector(playerSide)
-    
+
     if (!sideElement) return 1
-    
+
     // Check discipline from data attribute or text content
-    const disciplineText = sideElement.dataset.discipline || 
+    const disciplineText = sideElement.dataset.discipline ||
                           sideElement.querySelector('.discipline, [class*="discipline"]')?.textContent || ''
-    
+
     // Eurokegel uses 2-point increments (each pin = 2 points)
     if (disciplineText.toLowerCase().includes('eurokegel')) {
       return 2
     }
-    
+
     return 1
   }
 
@@ -571,7 +571,7 @@ export default class extends ApplicationController {
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-      
+
       // 🚀 NEW: Accumulate change FIRST, then update display
       const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
@@ -604,7 +604,7 @@ export default class extends ApplicationController {
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-      
+
       // 🚀 NEW: Accumulate change FIRST, then update display
       const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
 
