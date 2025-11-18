@@ -504,9 +504,16 @@ class TableMonitorReflex < ApplicationReflex
     
     # Update the inning score
     @table_monitor.data[player_key]["innings_redo_list"][-1] = new_inning_score
+    @table_monitor.data_will_change!
     @table_monitor.save
     
     Rails.logger.info "✅ Updated #{player} inning score: #{current_inning_score} → #{new_inning_score}" if DEBUG
+    
+    # 🎯 NEW: Simple server-side check for set completion
+    if check_set_should_end(@table_monitor)
+      Rails.logger.info "🏁 Set completed - triggering end_of_set" if DEBUG
+      @table_monitor.end_of_set!
+    end
     
     # Broadcast JSON update to all clients (fast!)
     TableMonitorJob.perform_later(@table_monitor, 'full_screen')
@@ -514,6 +521,51 @@ class TableMonitorReflex < ApplicationReflex
   rescue StandardError => e
     Rails.logger.error "❌ add_score ERROR: #{e.message}"
     Rails.logger.error "Backtrace: #{e.backtrace.first(5).join("\n")}"
+  end
+  
+  # Simple server-side check: should the set end?
+  def check_set_should_end(table_monitor)
+    return false unless table_monitor.playing?
+    
+    # Get options to check goals and innings limits
+    table_monitor.get_options!(I18n.locale)
+    options = table_monitor.options
+    
+    # Calculate current total scores (result + current inning)
+    score_a = (table_monitor.data.dig('playera', 'result') || 0) + 
+              (table_monitor.data.dig('playera', 'innings_redo_list')&.last || 0)
+    score_b = (table_monitor.data.dig('playerb', 'result') || 0) + 
+              (table_monitor.data.dig('playerb', 'innings_redo_list')&.last || 0)
+    
+    # Check ball goals
+    goal_a = options.dig(:player_a, :balls_goal).to_i
+    goal_b = options.dig(:player_b, :balls_goal).to_i
+    
+    if goal_a > 0 && score_a >= goal_a
+      Rails.logger.info "🎯 Player A reached goal: #{score_a} >= #{goal_a}" if DEBUG
+      return true
+    end
+    
+    if goal_b > 0 && score_b >= goal_b
+      Rails.logger.info "🎯 Player B reached goal: #{score_b} >= #{goal_b}" if DEBUG
+      return true
+    end
+    
+    # Check innings limit
+    innings_goal = options[:innings_goal].to_i
+    if innings_goal > 0
+      innings_a = table_monitor.data.dig('playera', 'innings').to_i
+      innings_b = table_monitor.data.dig('playerb', 'innings').to_i
+      
+      # Set ends when BOTH players have completed the innings limit
+      # (current inning is still in progress until player switch)
+      if innings_a >= innings_goal && innings_b >= innings_goal
+        Rails.logger.info "📊 Innings limit reached: A=#{innings_a}, B=#{innings_b}, limit=#{innings_goal}" if DEBUG
+        return true
+      end
+    end
+    
+    false
   end
 
   # OLD: Complex async validation (to be removed after testing new approach)
