@@ -64,6 +64,7 @@ class TableMonitor < ApplicationRecord
   before_save :log_state_change
 
   delegate :name, to: :table, allow_nil: true
+  delegate :timing_validation_delay, :timing_lock_failsafe, to: :table, allow_nil: true, prefix: false
 
   # Flag to skip callbacks during batch operations (e.g. start_game)
   attr_accessor :skip_update_callbacks
@@ -2771,5 +2772,20 @@ data[\"allow_overflow\"].present?")
       totals << sum
     end
     totals
+  end
+
+  # ============================================================================
+  # Scoreboard Timing Configuration
+  # Delegated to Table model, with fallbacks when no table assigned
+  # ============================================================================
+
+  # Fallback for timing_validation_delay when no table
+  def timing_validation_delay
+    table&.timing_validation_delay || 1000
+  end
+
+  # Fallback for timing_lock_failsafe when no table
+  def timing_lock_failsafe
+    table&.timing_lock_failsafe || 15000
   end
 end

@@ -34,8 +34,10 @@ class Table < ApplicationRecord
   LOCAL_METHODS = %i[
     ip_address tpl_ip_address event_id event_summary event_start event_end event_creator heater heater_on_reason
     heater_off_reason heater_switched_on_at heater_switched_off_at manual_heater_on_at manual_heater_off_at
-    scoreboard scoreboard_on_at scoreboard_off_at
+    scoreboard scoreboard_on_at scoreboard_off_at hardware_type
   ].freeze
+
+  serialize :data, coder: JSON, type: Hash
 
   LOCAL_METHODS.each do |meth|
     define_method(meth) do
@@ -253,5 +255,49 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
       end
       tm
     end
+  end
+
+  # ============================================================================
+  # Scoreboard Timing Configuration (Hardware-Specific)
+  # ============================================================================
+
+  # Preset timing configurations for different hardware types
+  TIMING_PRESETS = {
+    'pi3' => { validation_delay_ms: 1000, validation_lock_failsafe_ms: 20000 },
+    'pi4' => { validation_delay_ms: 800, validation_lock_failsafe_ms: 12000 },
+    'desktop' => { validation_delay_ms: 500, validation_lock_failsafe_ms: 8000 }
+  }.freeze
+
+  # Get validation delay for this table (milliseconds)
+  def timing_validation_delay
+    data.dig('scoreboard_timing', 'validation_delay_ms') || 1000
+  end
+
+  # Get lock failsafe timeout for this table (milliseconds)
+  def timing_lock_failsafe
+    data.dig('scoreboard_timing', 'validation_lock_failsafe_ms') || 15000
+  end
+
+  # Set timing from preset (pi3, pi4, or desktop)
+  def set_timing_preset(preset_name)
+    preset = TIMING_PRESETS[preset_name.to_s]
+    return false unless preset
+
+    self.data ||= {}
+    self.data['scoreboard_timing'] = preset.merge('hardware_type' => preset_name.to_s)
+    self.hardware_type = preset_name.to_s  # Also set via LOCAL_METHODS delegation
+    save
+  end
+
+  # Set custom timing values
+  def set_custom_timing(delay_ms, failsafe_ms, hardware_type: 'custom')
+    self.data ||= {}
+    self.data['scoreboard_timing'] = {
+      'validation_delay_ms' => delay_ms.to_i,
+      'validation_lock_failsafe_ms' => failsafe_ms.to_i,
+      'hardware_type' => hardware_type.to_s
+    }
+    self.hardware_type = hardware_type.to_s
+    save
   end
 end
