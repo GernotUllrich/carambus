@@ -495,6 +495,11 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.data[player_key] ||= {}
     @table_monitor.data[player_key]["innings_redo_list"] ||= [0]
     
+    # Ensure innings_redo_list has at least one element (fix for empty array case)
+    if @table_monitor.data[player_key]["innings_redo_list"].empty?
+      @table_monitor.data[player_key]["innings_redo_list"] = [0]
+    end
+    
     current_inning_score = @table_monitor.data[player_key]["innings_redo_list"][-1] || 0
     new_inning_score = current_inning_score + points_int
     
