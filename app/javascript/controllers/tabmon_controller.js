@@ -15,14 +15,25 @@ export default class extends ApplicationController {
     this.tableMonitorId = this.resolveTableMonitorId()
     this.syncValidationLockState()
     this.checkAndResetStaleLock()  // NEW: Check for stale locks on reconnection
+    
+    // 🚀 NEW: Listen for JSON data updates from server (replaces HTML morphing)
+    this.handleDataUpdateBound = this.handleDataUpdate.bind(this)
+    this.element.addEventListener('scoreboard:data_update', this.handleDataUpdateBound)
+    console.log('🎮 Tabmon controller connected - listening for JSON updates')
   }
 
   disconnect() {
+    // Clean up JSON event listener
+    if (this.handleDataUpdateBound) {
+      this.element.removeEventListener('scoreboard:data_update', this.handleDataUpdateBound)
+    }
+    
     // Clean up validation timer when controller disconnects
     if (this.clientState?.validationTimer) {
       clearTimeout(this.clientState.validationTimer)
     }
     super.disconnect()
+    console.log('🎮 Tabmon controller disconnected')
   }
 
   initializeClientState() {
@@ -1059,5 +1070,105 @@ export default class extends ApplicationController {
         errorElement.parentNode.removeChild(errorElement)
       }
     }, 3000)
+  }
+
+  // ============================================================================
+  // 🚀 NEW: JSON DATA UPDATE HANDLERS (Fast, lightweight updates)
+  // ============================================================================
+
+  handleDataUpdate(event) {
+    // Handle incoming JSON data updates from server
+    // This replaces heavy HTML morphing with lightweight DOM updates
+    
+    const data = event.detail
+    
+    // Verify this update is for our table
+    if (!data || data.table_monitor_id != this.tableMonitorId) {
+      return
+    }
+    
+    console.log('📊 Received JSON update:', data)
+    
+    // Update scores using existing DOM selectors (no template changes needed!)
+    this.updatePlayerScore('playera', data.playera, data.inning_score_playera)
+    this.updatePlayerScore('playerb', data.playerb, data.inning_score_playerb)
+    
+    // Clear any optimistic updates now that server has responded
+    this.clearOptimisticMarkers()
+    
+    // Release validation lock (server has processed the update)
+    if (this.isValidationLocked()) {
+      this.setValidationLock(false)
+    }
+  }
+
+  updatePlayerScore(playerId, playerData, inningScore) {
+    // Update individual player's score display
+    // Uses existing selectors: .main-score and .inning-score with data-player attribute
+    
+    if (!playerData) return
+    
+    const root = this.findRootElement()
+    if (!root) {
+      console.warn('⚠️ Root element not found for score update')
+      return
+    }
+    
+    // Update main score (total score including current inning)
+    const mainScoreEl = root.querySelector(`.main-score[data-player="${playerId}"]`)
+    if (mainScoreEl) {
+      const newTotal = playerData.score + inningScore
+      if (mainScoreEl.textContent != newTotal) {
+        mainScoreEl.textContent = newTotal
+        this.flashElement(mainScoreEl)
+      }
+    }
+    
+    // Update inning score (current inning only, shown only for active player)
+    const inningScoreEl = root.querySelector(`.inning-score[data-player="${playerId}"]`)
+    if (inningScoreEl) {
+      if (playerData.active && inningScore > 0) {
+        if (inningScoreEl.textContent != inningScore) {
+          inningScoreEl.textContent = inningScore
+          this.flashElement(inningScoreEl)
+        }
+      } else {
+        // Clear inning score for inactive player
+        inningScoreEl.textContent = ""
+      }
+    }
+    
+    // Update goal display (if ball goal is shown)
+    const goalEl = root.querySelector(`.goal[data-player="${playerId}"]`)
+    if (goalEl && playerData.balls_goal > 0) {
+      // Goal text might include "Rest: X" or "Goal: X" - only update the number
+      const currentText = goalEl.textContent
+      const newGoalValue = playerData.balls_goal - playerData.score
+      if (currentText.includes('Rest:')) {
+        goalEl.textContent = currentText.replace(/\d+/, newGoalValue)
+      }
+    }
+  }
+
+  flashElement(element) {
+    // Add brief visual feedback to show element was updated
+    if (!element) return
+    
+    element.style.transition = 'background-color 0.2s ease'
+    element.style.backgroundColor = 'rgba(59, 130, 246, 0.2)' // Subtle blue flash
+    
+    setTimeout(() => {
+      element.style.backgroundColor = ''
+    }, 200)
+  }
+
+  clearOptimisticMarkers() {
+    // Remove optimistic update markers when server update arrives
+    const root = this.findRootElement()
+    if (!root) return
+    
+    root.querySelectorAll('.optimistic').forEach(el => {
+      el.classList.remove('optimistic')
+    })
   }
 }
