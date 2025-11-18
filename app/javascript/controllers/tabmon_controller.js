@@ -644,45 +644,8 @@ export default class extends ApplicationController {
   }
 
   next_step () {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-    const tableMonitorId = this.element.dataset.id
-
-    // 🚀 CRITICAL: Validate any pending accumulated changes BEFORE switching players
-    let hasPendingChanges = false
-    try {
-      hasPendingChanges = this.hasPendingAccumulatedChanges()
-    } catch (error) {
-      hasPendingChanges = false
-    }
-
-    if (hasPendingChanges) {
-
-      // 🚀 Set flag to trigger player switch after validation completes
-      this.clientState.pendingPlayerSwitch = tableMonitorId
-
-      this.validateAccumulatedChangesImmediately()
-
-      // 🚀 IMPORTANT: Don't proceed with switch until validation completes
-      // The switch will be handled in the reflexSuccess callback after validation
-      return // Exit early - switch will happen after validation success
-    }
-
-    // 🚀 No pending changes - proceed with immediate player switch
-    this.performPlayerSwitch(tableMonitorId)
-  }
-
-  // 🚀 NEW: Perform the actual player switch (extracted for reuse)
-  performPlayerSwitch(tableMonitorId) {
-
-    // 🚀 IMMEDIATE OPTIMISTIC PLAYER CHANGE
-    this.changePlayerOptimistically()
-
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`next_step_${tableMonitorId}`)
-
-    // 🚀 DIRECT SERVER VALIDATION - immediate call
+    // 🚀 NEW SIMPLIFIED: Just switch players, server handles everything
+    // Server will call terminate_current_inning and broadcast updated state
     this.stimulate('TableMonitor#next_step')
   }
 
