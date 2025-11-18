@@ -1,22 +1,25 @@
 import ApplicationController from './application_controller'
 
-// Configuration: Validation delay in milliseconds
-const VALIDATION_DELAY_MS = 50 //1000
-const VALIDATION_LOCK_FAILSAFE_MS = 15000  // Increased from 5s to 15s for slow Raspberry Pi 3
-
-/* This is the StimulusReflex controller for the TableMonitor Controls.
- * Handles all the control buttons in the scoreboard controls row.
- * Now includes optimistic updates for immediate user feedback.
+/* 🚀 SIMPLIFIED StimulusReflex controller for TableMonitor
+ * 
+ * NEW SIMPLE APPROACH (no delays, no locks, no accumulation):
+ * - Click button → send immediately to server via add_score reflex
+ * - Server validates and broadcasts JSON update (~50-100ms)
+ * - All clients receive JSON and update their DOM
+ * 
+ * REMOVED COMPLEXITY:
+ * - No validation delays
+ * - No click accumulation/batching  
+ * - No validation locks
+ * - No request IDs / idempotency (server handles this)
+ * - No optimistic updates (JSON is fast enough!)
  */
 export default class extends ApplicationController {
   connect () {
     super.connect()
-    this.initializeClientState()
     this.tableMonitorId = this.resolveTableMonitorId()
-    this.syncValidationLockState()
-    this.checkAndResetStaleLock()  // NEW: Check for stale locks on reconnection
     
-    // 🚀 NEW: Listen for JSON data updates from server (replaces HTML morphing)
+    // Listen for JSON data updates from server
     this.handleDataUpdateBound = this.handleDataUpdate.bind(this)
     this.element.addEventListener('scoreboard:data_update', this.handleDataUpdateBound)
     console.log('🎮 Tabmon controller connected - listening for JSON updates')
@@ -27,62 +30,8 @@ export default class extends ApplicationController {
     if (this.handleDataUpdateBound) {
       this.element.removeEventListener('scoreboard:data_update', this.handleDataUpdateBound)
     }
-    
-    // Clean up validation timer when controller disconnects
-    if (this.clientState?.validationTimer) {
-      clearTimeout(this.clientState.validationTimer)
-    }
     super.disconnect()
     console.log('🎮 Tabmon controller disconnected')
-  }
-
-  initializeClientState() {
-
-    // 🚀 CRITICAL: Use global storage for accumulated changes to persist across controller reconnections
-    if (!window.TabmonGlobalState) {
-      window.TabmonGlobalState = {
-        accumulatedChanges: {
-          playera: { totalIncrement: 0, operations: [] },
-          playerb: { totalIncrement: 0, operations: [] }
-        },
-        pendingPlayerSwitch: null,
-        validationTimer: null,
-        validationLocks: {},
-        validationLockTimeouts: {},
-        lockTimestamps: {},  // NEW: Track when locks were set
-        processedRequestIds: new Set()  // NEW: Track processed request IDs to prevent duplicates
-      }
-    }
-    if (!window.TabmonGlobalState.validationLocks) {
-      window.TabmonGlobalState.validationLocks = {}
-    }
-    if (!window.TabmonGlobalState.validationLockTimeouts) {
-      window.TabmonGlobalState.validationLockTimeouts = {}
-    }
-    if (!window.TabmonGlobalState.lockTimestamps) {
-      window.TabmonGlobalState.lockTimestamps = {}
-    }
-    if (!window.TabmonGlobalState.processedRequestIds) {
-      window.TabmonGlobalState.processedRequestIds = new Set()
-    }
-
-    const existingAccumulatedChanges = window.TabmonGlobalState.accumulatedChanges
-    const existingPendingPlayerSwitch = window.TabmonGlobalState.pendingPlayerSwitch
-    const existingValidationTimer = window.TabmonGlobalState.validationTimer
-
-
-    // Initialize client-side state for immediate feedback
-    this.clientState = {
-      scores: {},
-      currentPlayer: 'playera',
-      pendingUpdates: new Set(),
-      updateHistory: [],
-      // NEW: Reference global accumulated changes
-      accumulatedChanges: existingAccumulatedChanges,
-      validationTimer: existingValidationTimer,
-      // NEW: Track if a player switch is pending after validation
-      pendingPlayerSwitch: existingPendingPlayerSwitch
-    };
   }
 
   resolveTableMonitorId() {
@@ -100,935 +49,63 @@ export default class extends ApplicationController {
       return parentWithId.dataset.id
     }
 
+    console.warn('⚠️ Could not resolve table monitor ID')
     return null
   }
 
   findRootElement() {
-    if (this.element) {
-      const root = this.element.closest('[data-tabmon-root]')
-      if (root) {
-        return root
-      }
-    }
-    if (this.tableMonitorId) {
-      return document.querySelector(`[data-tabmon-root][data-table-monitor-id="${this.tableMonitorId}"]`)
-    }
-    return null
+    return this.element?.closest('[data-tabmon-root]') || 
+           document.querySelector('[data-tabmon-root]')
   }
 
-  syncValidationLockState() {
-    const id = this.tableMonitorId
-    if (!id) {
-      return
-    }
-    const isLocked = Boolean(window.TabmonGlobalState?.validationLocks?.[id])
-    this.applyValidationOverlay(isLocked, id)
-  }
-
-  // NEW: Check for stale locks on reconnection and reset them
-  checkAndResetStaleLock() {
-    const id = this.tableMonitorId
-    if (!id) {
-      return
-    }
-
-    const lockTimestamp = window.TabmonGlobalState?.lockTimestamps?.[id]
-    if (lockTimestamp) {
-      const lockAge = Date.now() - lockTimestamp
-      // If lock is older than 20 seconds, it's stale
-      if (lockAge > 20000) {
-        console.warn(`🔧 Detected stale validation lock (${lockAge}ms old), resetting for table ${id}`)
-        this.forceReleaseValidationLock(id)
-        this.clearAccumulatedChanges()
-      }
-    }
-  }
-
-  // NEW: Generate a unique request ID using crypto API or fallback
-  generateRequestId() {
-    if (window.crypto && window.crypto.randomUUID) {
-      return window.crypto.randomUUID()
-    } else {
-      // Fallback for older browsers (simple UUID v4)
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0
-        const v = c === 'x' ? r : (r & 0x3 | 0x8)
-        return v.toString(16)
-      })
-    }
-  }
-
-  isValidationLocked() {
-    const id = this.tableMonitorId || this.resolveTableMonitorId()
-    if (!id || !window.TabmonGlobalState) {
-      return false
-    }
-    return Boolean(window.TabmonGlobalState.validationLocks?.[id])
-  }
-
-  setValidationLock(isLocked) {
-    const id = this.tableMonitorId || this.resolveTableMonitorId()
-    if (!id) {
-      return
-    }
-
-    if (!window.TabmonGlobalState) {
-      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {}, lockTimestamps: {} }
-    } else if (!window.TabmonGlobalState.validationLocks) {
-      window.TabmonGlobalState.validationLocks = {}
-    }
-    if (!window.TabmonGlobalState.validationLockTimeouts) {
-      window.TabmonGlobalState.validationLockTimeouts = {}
-    }
-    if (!window.TabmonGlobalState.lockTimestamps) {
-      window.TabmonGlobalState.lockTimestamps = {}
-    }
-
-    if (isLocked) {
-      window.TabmonGlobalState.validationLocks[id] = true
-      window.TabmonGlobalState.lockTimestamps[id] = Date.now()  // NEW: Track when lock was set
-
-      // Clear existing failsafe for this table
-      const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
-      if (existingTimeout) {
-        clearTimeout(existingTimeout)
-      }
-
-      // Register new failsafe timeout
-      window.TabmonGlobalState.validationLockTimeouts[id] = setTimeout(() => {
-        if (window.TabmonGlobalState?.validationLocks?.[id]) {
-          console.warn(`⚠️ Tabmon validation lock auto-release triggered for table ${id} after ${VALIDATION_LOCK_FAILSAFE_MS}ms`)
-          this.forceReleaseValidationLock(id)
-        }
-      }, VALIDATION_LOCK_FAILSAFE_MS)
-    } else {
-      window.TabmonGlobalState.validationLocks[id] = false
-      delete window.TabmonGlobalState.lockTimestamps[id]  // NEW: Clear timestamp
-
-      const existingTimeout = window.TabmonGlobalState.validationLockTimeouts[id]
-      if (existingTimeout) {
-        clearTimeout(existingTimeout)
-        delete window.TabmonGlobalState.validationLockTimeouts[id]
-      }
-    }
-
-    this.applyValidationOverlay(isLocked, id)
-  }
-
-  forceReleaseValidationLock(targetId = null) {
-    const id = targetId || this.tableMonitorId || this.resolveTableMonitorId()
-    if (!id) {
-      return
-    }
-
-    if (!window.TabmonGlobalState) {
-      window.TabmonGlobalState = { validationLocks: {}, validationLockTimeouts: {} }
-    }
-
-    if (!window.TabmonGlobalState.validationLocks) {
-      window.TabmonGlobalState.validationLocks = {}
-    }
-
-    if (!window.TabmonGlobalState.validationLockTimeouts) {
-      window.TabmonGlobalState.validationLockTimeouts = {}
-    }
-
-    const timeoutHandle = window.TabmonGlobalState.validationLockTimeouts[id]
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle)
-      delete window.TabmonGlobalState.validationLockTimeouts[id]
-    }
-
-    window.TabmonGlobalState.validationLocks[id] = false
-    this.applyValidationOverlay(false, id)
-  }
-
-  applyValidationOverlay(isLocked, targetId = null) {
-    const id = targetId || this.tableMonitorId
-    if (!id) {
-      return
-    }
-    const rootElements = document.querySelectorAll(`[data-tabmon-root][data-table-monitor-id="${id}"]`)
-    rootElements.forEach(root => {
-      if (isLocked) {
-        root.classList.add('tabmon-validating')
-        root.setAttribute('aria-busy', 'true')
-      } else {
-        root.classList.remove('tabmon-validating')
-        root.removeAttribute('aria-busy')
-      }
-    })
-  }
-
-  blockIfValidationLocked() {
-    if (!this.isValidationLocked()) {
-      return false
-    }
-    this.flashValidationOverlay()
-    return true
-  }
-
-  flashValidationOverlay() {
-    const id = this.tableMonitorId || this.resolveTableMonitorId()
-    if (!id) {
-      return
-    }
-    const rootElements = document.querySelectorAll(`[data-tabmon-root][data-table-monitor-id="${id}"]`)
-    rootElements.forEach(root => {
-      root.classList.add('tabmon-validating-pulse')
-      setTimeout(() => root.classList.remove('tabmon-validating-pulse'), 200)
-    })
-  }
-
-  stimulateGuarded(reflex, ...args) {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-    this.stimulate(reflex, ...args)
-  }
-
-  // Optimistic score update - immediate visual feedback using accumulated totals
-  updateScoreOptimistically(playerId, points, operation = 'add') {
-    try {
-      // Look for the main score element with data-player attribute
-      const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
-    if (!scoreElement) {
-      return
-    }
-
-    // Also look for the innings score element
-    const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
-    if (!inningsElement) {
-      return
-    }
-
-    // Get current DOM values
-    const currentDomScore = parseInt(scoreElement.textContent) || 0
-    const currentDomInnings = parseInt(inningsElement.textContent) || 0
-
-    // Get the original (server-side) scores - these should be the baseline
-    const originalScore = parseInt(scoreElement.dataset.originalScore || scoreElement.textContent) || 0
-    const originalInnings = parseInt(inningsElement.dataset.originalInnings || inningsElement.textContent) || 0
-
-    // Calculate the accumulated total for this player
-    const playerChanges = this.clientState.accumulatedChanges[playerId]
-    const totalIncrement = playerChanges.totalIncrement
-
-    // Calculate new scores based on original + accumulated total
-    const newScore = Math.max(0, originalScore + totalIncrement)
-    const newInnings = Math.max(0, originalInnings + totalIncrement)
-
-    // Store original values if not already stored
-    if (!scoreElement.dataset.originalScore) {
-      scoreElement.dataset.originalScore = originalScore.toString()
-    }
-    if (!inningsElement.dataset.originalInnings) {
-      inningsElement.dataset.originalInnings = originalInnings.toString()
-    }
-
-
-    // Additional debugging for accumulated changes
-
-    // Store update in history for potential rollback
-    this.clientState.updateHistory.push({
-      playerId,
-      previousScore: currentDomScore,
-      previousInnings: currentDomInnings,
-      newScore,
-      newInnings,
-      operation,
-      timestamp: Date.now()
-    })
-
-    // Immediate visual update for both counters
-    scoreElement.textContent = newScore
-    scoreElement.classList.add('score-updated')
-
-    inningsElement.textContent = newInnings
-    inningsElement.classList.add('score-updated')
-
-    // Remove highlight after animation
-    setTimeout(() => {
-      scoreElement.classList.remove('score-updated')
-      inningsElement.classList.remove('score-updated')
-    }, 150)
-
-    // Store in client state
-    this.clientState.scores[playerId] = newScore
-
-    // Add pending indicator to both elements
-    this.addPendingIndicator(scoreElement)
-    this.addPendingIndicator(inningsElement)
-
-    } catch (error) {
-      // Don't rethrow to prevent breaking the UI
-    }
-  }
-
-  // Optimistic player change - immediate visual feedback
-  changePlayerOptimistically() {
-
-    // Store current state for potential rollback
-    this.clientState.updateHistory.push({
-      type: 'player_change',
-      previousPlayer: this.clientState.currentPlayer,
-      timestamp: Date.now()
-    })
-
-    // Update current player in client state
-    this.clientState.currentPlayer = this.clientState.currentPlayer === 'playera' ? 'playerb' : 'playera'
-
-    // Update display if available
-    const currentPlayerSpan = document.getElementById('current-player')
-    if (currentPlayerSpan) {
-      currentPlayerSpan.textContent = this.clientState.currentPlayer === 'playera' ? 'Player A' : 'Player B'
-    }
-
-    // Add pending indicator to center controls
-    const centerControls = document.querySelector('.bg-gray-700')
-    if (centerControls) {
-      this.addPendingIndicator(centerControls)
-    }
-
-  }
-
-  // Add visual indicator for pending updates
-  addPendingIndicator(element) {
-    if (element) {
-      element.classList.add('pending-update')
-    }
-  }
-
-  // Remove pending indicator
-  removePendingIndicator(element) {
-    if (element) {
-      element.classList.remove('pending-update')
-    }
-  }
-
-  // Get current active player by looking at the DOM
   getCurrentActivePlayer() {
-    // Look for the active player by checking which side has the green border
-    const leftPlayer = document.querySelector('#left')
-    const rightPlayer = document.querySelector('#right')
+    const root = this.findRootElement()
+    if (!root) return 'playera'
 
-    if (leftPlayer && leftPlayer.classList.contains('border-green-400')) {
-      return leftPlayer.dataset.player || 'playera'
-    } else if (rightPlayer && rightPlayer.classList.contains('border-green-400')) {
-      return rightPlayer.dataset.player || 'playerb'
-    }
-
-    // Fallback to client state
-    return this.clientState.currentPlayer || 'playera'
+    const activePlayerEl = root.querySelector('[data-player-active="true"]')
+    return activePlayerEl?.dataset?.player || 'playera'
   }
 
   getDisciplineIncrement(playerId) {
-    // For Eurokegel, each pin is worth 2 points (only even numbers allowed)
-    const playerSide = playerId === 'playera' ? '#left' : '#right'
-    const sideElement = document.querySelector(playerSide)
+    const root = this.findRootElement()
+    if (!root) return 1
 
-    if (!sideElement) return 1
-
-    // Check discipline from data attribute or text content
-    const disciplineText = sideElement.dataset.discipline ||
-                          sideElement.querySelector('.discipline, [class*="discipline"]')?.textContent || ''
-
-    // Eurokegel uses 2-point increments (each pin = 2 points)
-    if (disciplineText.toLowerCase().includes('eurokegel')) {
-      return 2
-    }
-
-    return 1
-  }
-
-  // NEW: Get the goal for a specific player
-  getPlayerGoal(playerId) {
-    const goalElement = document.querySelector(`.goal[data-player="${playerId}"]`)
-    if (!goalElement) {
-      return null
-    }
-
-    const goalText = goalElement.textContent
-
-    // Extract number from "Goal: 50" or "Goal: no limit" or "Ziel: 20"
-    const match = goalText.match(/(?:Goal|Ziel):\s*(\d+|no limit)/i)
-    if (match) {
-      if (match[1] === 'no limit') {
-        return null // null means no limit
-      } else {
-        const goal = parseInt(match[1])
-        return goal
-      }
-    }
-
-    return null
-  }
-
-  // NEW: Check if an increment would be valid (not negative score, not exceeding goal)
-  isValidIncrement(playerId, points, operation) {
-
-    // Get current score from DOM
-    const scoreElement = document.querySelector(`.main-score[data-player="${playerId}"]`)
-    const inningsElement = document.querySelector(`.inning-score[data-player="${playerId}"]`)
-
-    if (!scoreElement || !inningsElement) {
-      return false
-    }
-
-    const currentScore = parseInt(scoreElement.textContent) || 0
-    const currentInnings = parseInt(inningsElement.textContent) || 0
-
-
-    // Get accumulated changes
-    const accumulated = this.clientState.accumulatedChanges[playerId] || { totalIncrement: 0, operations: [] }
-    const totalAccumulated = accumulated.totalIncrement || 0
-
-
-    // Calculate what the new values would be after this increment
-    // Note: totalAccumulated does NOT include the current operation being validated
-    // We need to calculate from the ORIGINAL score, not the current displayed score
-    let originalScore = parseInt(scoreElement.dataset.originalScore) || 0
-    let originalInnings = parseInt(inningsElement.dataset.originalInnings) || 0
-
-    // If data-original-score doesn't exist yet, use current score minus accumulated changes
-    if (originalScore === 0 && totalAccumulated !== 0) {
-      originalScore = currentScore - totalAccumulated
-      originalInnings = currentInnings - totalAccumulated
-    } else if (originalScore === 0 && totalAccumulated === 0) {
-      // No accumulated changes, so current score is the original score
-      originalScore = currentScore
-      originalInnings = currentInnings
-    } else {
-    }
-
-
-    let newScore = originalScore + totalAccumulated
-    let newInnings = originalInnings + totalAccumulated
-
-    // Then add/subtract the current increment
-    if (operation === 'add') {
-      newScore += points
-      newInnings += points
-    } else if (operation === 'subtract') {
-      newScore -= points
-      newInnings -= points
-    }
-
-
-    // Check if score would be negative
-    if (newScore < 0) {
-      return false
-    }
-
-    // Check if score would exceed goal
-    const goal = this.getPlayerGoal(playerId)
-    if (goal !== null && newScore > goal) {
-      return false
-    }
-
-
-    // 🚀 NEW: Check if this increment reaches the goal - if so, trigger immediate validation
-    const goalValue = this.getPlayerGoal(playerId)
-    if (goalValue !== null && newScore === goalValue) {
-      // Mark this as a goal-reaching increment for immediate validation
-      return { valid: true, reachesGoal: true }
-    }
-
-    return true
-  }
-
-
-
-  // Revert last score change
-  revertLastScoreChange() {
-    const lastUpdate = this.clientState.updateHistory.pop()
-    if (lastUpdate && lastUpdate.type !== 'player_change') {
-      // Revert both main score and innings counter
-      const scoreElement = document.querySelector(`.main-score[data-player="${lastUpdate.playerId}"]`)
-      const inningsElement = document.querySelector(`.inning-score[data-player="${lastUpdate.playerId}"]`)
-
-      if (scoreElement) {
-        scoreElement.textContent = lastUpdate.previousScore
-        scoreElement.classList.add('score-updated')
-        setTimeout(() => scoreElement.classList.remove('score-updated'), 150)
-      }
-
-      if (inningsElement && lastUpdate.previousInnings !== undefined) {
-        inningsElement.textContent = lastUpdate.previousInnings
-        inningsElement.classList.add('score-updated')
-        setTimeout(() => inningsElement.classList.remove('score-updated'), 150)
-      }
-
-    }
-  }
-
-  /* Reflex methods for control buttons */
-
-
-  key_a () {
-    // 🚀 NEW SIMPLIFIED: Click on left player score
-    const leftPlayer = document.querySelector('#left')
-    const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
-    const activePlayerId = this.getCurrentActivePlayer()
-
-    // Check if we're clicking on the active player's side or opposite side
-    if (activePlayerId === playerId) {
-      // Get increment based on discipline (Eurokegel = 2, others = 1)
-      const increment = this.getDisciplineIncrement(playerId)
-      
-      // Send immediately to server (JSON response is fast enough!)
-      this.stimulate('TableMonitor#add_score', playerId, increment)
-    } else {
-      // Clicking on opposite side = player switch
-      this.next_step()
-    }
-  }
-
-  key_b () {
-    // 🚀 NEW SIMPLIFIED: Click on right player score
-    const rightPlayer = document.querySelector('#right')
-    const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
-    const activePlayerId = this.getCurrentActivePlayer()
-
-    // Check if we're clicking on the active player's side or opposite side
-    if (activePlayerId === playerId) {
-      // Get increment based on discipline (Eurokegel = 2, others = 1)
-      const increment = this.getDisciplineIncrement(playerId)
-      
-      // Send immediately to server (JSON response is fast enough!)
-      this.stimulate('TableMonitor#add_score', playerId, increment)
-    } else {
-      // Clicking on opposite side = player switch
-      this.next_step()
-    }
-  }
-  key_c () {
-    this.stimulateGuarded('TableMonitor#key_c')
-  }
-  key_d () {
-    this.stimulateGuarded('TableMonitor#key_d')
-  }
-
-  add_n () {
-    // 🚀 NEW SIMPLIFIED: Send immediately to server (no delays, no accumulation!)
-    const activePlayerId = this.getCurrentActivePlayer()
-    const n = parseInt(this.element.dataset.n) || 1
+    const playerEl = root.querySelector(`[data-player="${playerId}"]`)
+    const discipline = playerEl?.dataset?.discipline || ''
     
-    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
-    this.stimulate('TableMonitor#add_score', activePlayerId, n)
+    // Eurokegel uses increment of 2, all others use 1
+    return discipline.toLowerCase().includes('eurokegel') ? 2 : 1
   }
 
-  minus_n () {
-    // 🚀 NEW SIMPLIFIED: Send immediately to server (no delays, no accumulation!)
-    const activePlayerId = this.getCurrentActivePlayer()
-    const n = parseInt(this.element.dataset.n) || 1
-    
-    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
-    this.stimulate('TableMonitor#add_score', activePlayerId, -n)
-  }
-
-  undo () {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-    const tableMonitorId = this.element.dataset.id
-
-    // 🚀 IMMEDIATE OPTIMISTIC UNDO
-    this.revertLastScoreChange()
-
-    // Mark as pending update
-    this.clientState.pendingUpdates.add(`undo_${tableMonitorId}`)
-
-    // 🚀 DIRECT SERVER VALIDATION - immediate call
-    this.stimulate('TableMonitor#undo')
-  }
-
-  next_step () {
-    // 🚀 NEW SIMPLIFIED: Just switch players, server handles everything
-    // Server will call terminate_current_inning and broadcast updated state
-    this.stimulate('TableMonitor#next_step')
-  }
-
-  numbers () {
-    this.stimulateGuarded('TableMonitor#numbers')
-  }
-
-  balls_left () {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-    const ballNo = parseInt(this.element.dataset.ballNo)
-    if (Number.isNaN(ballNo)) {
-      return
-    }
-    this.stimulate('TableMonitor#balls_left', this.element)
-  }
-
-  foul_one () {
-    this.stimulateGuarded('TableMonitor#foul_one', this.element)
-  }
-
-  foul_two () {
-    this.stimulateGuarded('TableMonitor#foul_two', this.element)
-  }
-
-  force_next_state () {
-    this.stimulateGuarded('TableMonitor#force_next_state')
-  }
-
-  stop () {
-    this.stimulateGuarded('TableMonitor#stop')
-  }
-
-  timeout () {
-    this.stimulateGuarded('TableMonitor#timeout')
-  }
-
-  pause () {
-    this.stimulateGuarded('TableMonitor#pause')
-  }
-
-  play () {
-    this.stimulateGuarded('TableMonitor#play')
-  }
-
-  // Lifecycle methods for debugging and error handling
-  beforeReflex (element, reflex, noop, id) {
-  }
-
-  reflexSuccess (element, reflex, noop, id) {
-
-    // Remove pending indicators on successful server validation
-    this.removeAllPendingIndicators()
-
-    // Clear pending updates for this reflex
-    const tableMonitorId = element.dataset.id
-    if (reflex.includes('add_n')) {
-      this.clientState.pendingUpdates.delete(`add_n_${tableMonitorId}`)
-    } else if (reflex.includes('minus_n')) {
-      this.clientState.pendingUpdates.delete(`minus_n_${tableMonitorId}`)
-    } else if (reflex.includes('undo')) {
-      this.clientState.pendingUpdates.delete(`undo_${tableMonitorId}`)
-    } else if (reflex.includes('next_step')) {
-      this.clientState.pendingUpdates.delete(`next_step_${tableMonitorId}`)
-    } else if (reflex.includes('validate_accumulated_changes')) {
-      // NEW: Reset original scores after successful accumulated validation
-
-      // Get current DOM values before resetting
-      const scoreElements = document.querySelectorAll('.main-score[data-player]')
-      const inningsElements = document.querySelectorAll('.inning-score[data-player]')
-
-      scoreElements.forEach(element => {
-      })
-      inningsElements.forEach(element => {
-      })
-
-      this.resetOriginalScores()
-      this.clearAccumulatedChanges()
-      this.setValidationLock(false)
-
-
-      // 🚀 NEW: Check if there's a pending player switch after validation
-      if (this.clientState.pendingPlayerSwitch) {
-        const tableMonitorId = this.clientState.pendingPlayerSwitch
-
-        // Clear the pending flag
-        this.clientState.pendingPlayerSwitch = null
-
-        // Perform the player switch
-        this.performPlayerSwitch(tableMonitorId)
-      }
-    }
-  }
-
-  reflexError (element, reflex, error, id) {
-
-    // Rollback optimistic changes on server error
-    this.rollbackOptimisticChanges(reflex)
-
-    if (reflex.includes('validate_accumulated_changes')) {
-      this.setValidationLock(false)
-    }
-
-    // Show error message to user
-    this.showErrorMessage(`Server error: ${error}`)
-  }
-
-  // Rollback optimistic changes when server validation fails
-  rollbackOptimisticChanges(reflex) {
-
-    if (reflex.includes('add_n') || reflex.includes('minus_n')) {
-      // Revert last score change
-      this.revertLastScoreChange()
-    } else if (reflex.includes('next_step')) {
-      // Revert player change
-      const lastUpdate = this.clientState.updateHistory.pop()
-      if (lastUpdate && lastUpdate.type === 'player_change') {
-        this.clientState.currentPlayer = lastUpdate.previousPlayer
-        const currentPlayerSpan = document.getElementById('current-player')
-        if (currentPlayerSpan) {
-          currentPlayerSpan.textContent = this.clientState.currentPlayer === 'playera' ? 'Player A' : 'Player B'
-        }
-      }
-    }
-
-    // Remove all pending indicators
-    this.removeAllPendingIndicators()
-  }
-
-  // Remove all pending indicators
-  removeAllPendingIndicators() {
-    document.querySelectorAll('.pending-update').forEach(el => {
-      this.removePendingIndicator(el)
-    })
-  }
-
-  // NEW: Accumulate changes and validate with total sum
-  accumulateAndValidateChange(playerId, points, operation = 'add') {
-    try {
-      if (this.blockIfValidationLocked()) {
-        return false
-      }
-
-      // 🚀 NEW: Validate before accumulating
-      const validationResult = this.isValidIncrement(playerId, points, operation)
-      if (!validationResult || validationResult === false) {
-        return false // Block the increment
-      }
-
-      // Check if this increment reaches the goal
-      const reachesGoal = validationResult && typeof validationResult === 'object' && validationResult.reachesGoal
-
-      // Add to accumulated changes
-      const playerChanges = this.clientState.accumulatedChanges[playerId]
-    const previousTotal = playerChanges.totalIncrement
-
-    if (operation === 'add') {
-      playerChanges.totalIncrement += points
-      playerChanges.operations.push({ type: 'add', points, timestamp: Date.now() })
-    } else if (operation === 'subtract') {
-      playerChanges.totalIncrement -= points
-      playerChanges.operations.push({ type: 'subtract', points, timestamp: Date.now() })
-    }
-
-
-    // Cancel previous validation timer
-    if (this.clientState.validationTimer) {
-      clearTimeout(this.clientState.validationTimer)
-    }
-
-    // 🚀 NEW: If goal is reached, validate immediately instead of using timer
-    if (reachesGoal) {
-      this.validateAccumulatedChanges()
-    } else {
-      // Set new validation timer - validate with total after VALIDATION_DELAY_MS of inactivity
-      this.clientState.validationTimer = setTimeout(() => {
-        this.validateAccumulatedChanges()
-      }, VALIDATION_DELAY_MS)
-
-    }
-
-      return true // Successfully accumulated
-    } catch (error) {
-      // Don't rethrow to prevent breaking the UI
-      return false
-    }
-  }
-
-  // NEW: Validate all accumulated changes with total sum
-  validateAccumulatedChanges() {
-    try {
-
-    const changes = this.clientState.accumulatedChanges
-    let hasChanges = false
-
-    // Check if there are any accumulated changes
-    for (const playerId in changes) {
-      if (changes[playerId].totalIncrement !== 0) {
-        hasChanges = true
-      }
-    }
-
-    if (!hasChanges) {
-      return
-    }
-
-    // NEW: Generate unique request ID for idempotency
-    const requestId = this.generateRequestId()
-    console.log(`🆔 Generated validation request ID: ${requestId}`)
-
-    this.setValidationLock(true)
-
-    // Create a single validation call with all accumulated changes
-    const validationData = {
-      requestId: requestId,  // NEW: Add request ID
-      accumulatedChanges: {},
-      timestamp: Date.now()
-    }
-
-    // Prepare validation data for each player
-    for (const playerId in changes) {
-      const playerChanges = changes[playerId]
-      if (playerChanges.totalIncrement !== 0) {
-        validationData.accumulatedChanges[playerId] = {
-          totalIncrement: playerChanges.totalIncrement,
-          operationCount: playerChanges.operations.length,
-          operations: playerChanges.operations
-        }
-      }
-    }
-
-
-    // Send single validation call with accumulated changes
-    this.stimulate('TableMonitor#validate_accumulated_changes', this.element, validationData)
-
-    // 🚀 CRITICAL: Don't clear accumulated changes here - wait for server response
-    // The changes will be cleared in reflexSuccess after server confirms they were processed
-    } catch (error) {
-      this.setValidationLock(false)
-      // Clear accumulated changes to prevent stuck state
-      this.clearAccumulatedChanges()
-    }
-  }
-
-  // NEW: Check if there are any pending accumulated changes
-  hasPendingAccumulatedChanges() {
-
-    const changes = this.clientState.accumulatedChanges
-
-    for (const playerId in changes) {
-      if (changes[playerId].totalIncrement !== 0) {
-        return true
-      }
-    }
-    return false
-  }
-
-  // NEW: Validate accumulated changes immediately (bypass timer)
-  validateAccumulatedChangesImmediately() {
-
-    // Clear the validation timer since we're validating immediately
-    if (this.clientState.validationTimer) {
-      clearTimeout(this.clientState.validationTimer)
-      this.clientState.validationTimer = null
-    }
-
-    // Call the existing validation method
-    this.validateAccumulatedChanges()
-  }
-
-  // NEW: Clear accumulated changes after successful validation
-  clearAccumulatedChanges() {
-
-    // Clear both local and global accumulated changes
-    const clearedChanges = {
-      playera: { totalIncrement: 0, operations: [] },
-      playerb: { totalIncrement: 0, operations: [] }
-    }
-
-    this.clientState.accumulatedChanges = clearedChanges
-
-    // Also clear global state
-    if (window.TabmonGlobalState) {
-      window.TabmonGlobalState.accumulatedChanges = clearedChanges
-    }
-
-
-    // Reset original scores to current values for future calculations
-    this.resetOriginalScores()
-  }
-
-  // NEW: Reset original scores to current DOM values after successful server validation
-  resetOriginalScores() {
-
-    const scoreElements = document.querySelectorAll('.main-score[data-player]')
-    const inningsElements = document.querySelectorAll('.inning-score[data-player]')
-
-    scoreElements.forEach(element => {
-      const currentScore = parseInt(element.textContent) || 0
-      const previousOriginal = element.dataset.originalScore
-      element.dataset.originalScore = currentScore.toString()
-    })
-
-    inningsElements.forEach(element => {
-      const currentInnings = parseInt(element.textContent) || 0
-      const previousOriginal = element.dataset.originalInnings
-      element.dataset.originalInnings = currentInnings.toString()
-    })
-  }
-
-
-  // Show error message to user
-  showErrorMessage(message) {
-    // Simple error display - could be enhanced with toast notifications
-
-    // Add visual error indicator
-    const errorElement = document.createElement('div')
-    errorElement.className = 'error-message'
-    errorElement.textContent = message
-    errorElement.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ef4444;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 9999;
-    `
-    document.body.appendChild(errorElement)
-
-    // Remove after 3 seconds
-    setTimeout(() => {
-      if (errorElement.parentNode) {
-        errorElement.parentNode.removeChild(errorElement)
-      }
-    }, 3000)
-  }
-
-  // ============================================================================
-  // 🚀 NEW: JSON DATA UPDATE HANDLERS (Fast, lightweight updates)
-  // ============================================================================
-
+  // 🎯 SIMPLIFIED: Handle JSON updates from server
   handleDataUpdate(event) {
-    // Handle incoming JSON data updates from server
-    // This replaces heavy HTML morphing with lightweight DOM updates
-    
     const data = event.detail
-    
-    // Verify this update is for our table
-    if (!data || data.table_monitor_id != this.tableMonitorId) {
-      return
-    }
+    if (!data || data.table_monitor_id != this.tableMonitorId) return
     
     console.log('📊 Received JSON update:', data)
-    
-    // Update scores using existing DOM selectors (no template changes needed!)
+
+    // Update both players' scores
     this.updatePlayerScore('playera', data.playera, data.inning_score_playera)
     this.updatePlayerScore('playerb', data.playerb, data.inning_score_playerb)
-    
-    // Clear any optimistic updates now that server has responded
-    this.clearOptimisticMarkers()
-    
-    // Release validation lock (server has processed the update)
-    if (this.isValidationLocked()) {
-      this.setValidationLock(false)
+
+    // Update state display if present
+    if (data.state_display) {
+      const stateEl = document.querySelector('.state-display')
+      if (stateEl && stateEl.textContent != data.state_display) {
+        stateEl.textContent = data.state_display
+        this.flashElement(stateEl)
+      }
     }
   }
 
   updatePlayerScore(playerId, playerData, inningScore) {
-    // Update individual player's score display
-    // Uses existing selectors: .main-score and .inning-score with data-player attribute
-    
-    if (!playerData) return
-    
     const root = this.findRootElement()
-    if (!root) {
+    if (!root) { 
       console.warn('⚠️ Root element not found for score update')
-      return
+      return 
     }
-    
-    // Update main score (total score including current inning)
+
+    // Update main score (result + current inning)
     const mainScoreEl = root.querySelector(`.main-score[data-player="${playerId}"]`)
     if (mainScoreEl) {
       const newTotal = playerData.score + inningScore
@@ -1037,8 +114,8 @@ export default class extends ApplicationController {
         this.flashElement(mainScoreEl)
       }
     }
-    
-    // Update inning score (current inning only, shown only for active player)
+
+    // Update inning score
     const inningScoreEl = root.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (inningScoreEl) {
       if (playerData.active && inningScore > 0) {
@@ -1047,42 +124,252 @@ export default class extends ApplicationController {
           this.flashElement(inningScoreEl)
         }
       } else {
-        // Clear inning score for inactive player
         inningScoreEl.textContent = ""
       }
     }
-    
-    // Update goal display (if ball goal is shown)
+
+    // Update goal/remaining balls
     const goalEl = root.querySelector(`.goal[data-player="${playerId}"]`)
     if (goalEl && playerData.balls_goal > 0) {
-      // Goal text might include "Rest: X" or "Goal: X" - only update the number
       const currentText = goalEl.textContent
       const newGoalValue = playerData.balls_goal - playerData.score
       if (currentText.includes('Rest:')) {
-        goalEl.textContent = currentText.replace(/\d+/, newGoalValue)
+        const newText = currentText.replace(/\d+/, newGoalValue)
+        if (goalEl.textContent != newText) {
+          goalEl.textContent = newText
+        }
+      }
+    }
+
+    // Update innings count
+    const inningsEl = root.querySelector(`.innings[data-player="${playerId}"]`)
+    if (inningsEl && inningsEl.textContent != playerData.innings) {
+      inningsEl.textContent = playerData.innings
+    }
+
+    // Update HS (high score)
+    const hsEl = root.querySelector(`.hs[data-player="${playerId}"]`)
+    if (hsEl && playerData.hs > 0 && hsEl.textContent != playerData.hs) {
+      hsEl.textContent = playerData.hs
+    }
+
+    // Update GD (general durchschnitt)
+    const gdEl = root.querySelector(`.gd[data-player="${playerId}"]`)
+    if (gdEl && playerData.gd > 0) {
+      const gdText = playerData.gd.toFixed(2)
+      if (gdEl.textContent != gdText) {
+        gdEl.textContent = gdText
       }
     }
   }
 
   flashElement(element) {
-    // Add brief visual feedback to show element was updated
     if (!element) return
-    
-    element.style.transition = 'background-color 0.2s ease'
-    element.style.backgroundColor = 'rgba(59, 130, 246, 0.2)' // Subtle blue flash
-    
-    setTimeout(() => {
-      element.style.backgroundColor = ''
-    }, 200)
+    element.classList.add('flash-update')
+    setTimeout(() => element.classList.remove('flash-update'), 300)
   }
 
-  clearOptimisticMarkers() {
-    // Remove optimistic update markers when server update arrives
-    const root = this.findRootElement()
-    if (!root) return
+  // ========================================================================
+  // SCORE BUTTONS - Click on player's score area
+  // ========================================================================
+  
+  key_a () {
+    // Click on left player score
+    const leftPlayer = document.querySelector('#left')
+    const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
+    const activePlayerId = this.getCurrentActivePlayer()
+
+    if (activePlayerId === playerId) {
+      // Clicking on active player = add score
+      const increment = this.getDisciplineIncrement(playerId)
+      this.stimulate('TableMonitor#add_score', playerId, increment)
+    } else {
+      // Clicking on opposite side = player switch
+      this.next_step()
+    }
+  }
+
+  key_b () {
+    // Click on right player score
+    const rightPlayer = document.querySelector('#right')
+    const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
+    const activePlayerId = this.getCurrentActivePlayer()
+
+    if (activePlayerId === playerId) {
+      // Clicking on active player = add score
+      const increment = this.getDisciplineIncrement(playerId)
+      this.stimulate('TableMonitor#add_score', playerId, increment)
+    } else {
+      // Clicking on opposite side = player switch
+      this.next_step()
+    }
+  }
+
+  // ========================================================================
+  // +/- BUTTONS - Add or subtract points
+  // ========================================================================
+  
+  add_n () {
+    const activePlayerId = this.getCurrentActivePlayer()
+    const n = parseInt(this.element.dataset.n) || 1
     
-    root.querySelectorAll('.optimistic').forEach(el => {
-      el.classList.remove('optimistic')
-    })
+    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
+    this.stimulate('TableMonitor#add_score', activePlayerId, n)
+  }
+
+  minus_n () {
+    const activePlayerId = this.getCurrentActivePlayer()
+    const n = parseInt(this.element.dataset.n) || 1
+    
+    // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
+    this.stimulate('TableMonitor#add_score', activePlayerId, -n)
+  }
+
+  // ========================================================================
+  // PLAYER SWITCH / NEXT STEP
+  // ========================================================================
+  
+  next_step () {
+    this.stimulate('TableMonitor#next_step')
+  }
+
+  // ========================================================================
+  // OTHER CONTROL BUTTONS (unchanged - just pass through to server)
+  // ========================================================================
+  
+  select_game () {
+    this.stimulate('TableMonitor#select_game')
+  }
+
+  select_sets () {
+    this.stimulate('TableMonitor#select_sets')
+  }
+
+  start_game () {
+    this.stimulate('TableMonitor#start_game')
+  }
+
+  switch_players_and_start_game () {
+    this.stimulate('TableMonitor#switch_players_and_start_game')
+  }
+
+  select_players () {
+    this.stimulate('TableMonitor#select_players')
+  }
+
+  end_of_game () {
+    this.stimulate('TableMonitor#end_of_game')
+  }
+
+  end_of_set () {
+    this.stimulate('TableMonitor#end_of_set')
+  }
+
+  enter () {
+    this.stimulate('TableMonitor#enter')
+  }
+
+  show_protocol () {
+    this.stimulate('TableMonitor#show_protocol')
+  }
+
+  show_player_result () {
+    this.stimulate('TableMonitor#show_player_result')
+  }
+
+  show_game_data () {
+    this.stimulate('TableMonitor#show_game_data')
+  }
+
+  next () {
+    this.stimulate('TableMonitor#next')
+  }
+
+  back () {
+    this.stimulate('TableMonitor#back')
+  }
+
+  undo_last () {
+    this.stimulate('TableMonitor#undo_last')
+  }
+
+  redo_last () {
+    this.stimulate('TableMonitor#redo_last')
+  }
+
+  refresh () {
+    this.stimulate('TableMonitor#refresh')
+  }
+
+  do_logout () {
+    this.stimulate('TableMonitor#do_logout')
+  }
+
+  increment_a () {
+    this.stimulate('TableMonitor#increment_a')
+  }
+
+  increment_b () {
+    this.stimulate('TableMonitor#increment_b')
+  }
+
+  decrement_a () {
+    this.stimulate('TableMonitor#decrement_a')
+  }
+
+  decrement_b () {
+    this.stimulate('TableMonitor#decrement_b')
+  }
+
+  timer_mode () {
+    this.stimulate('TableMonitor#timer_mode')
+  }
+
+  pointer_mode () {
+    this.stimulate('TableMonitor#pointer_mode')
+  }
+
+  fullscreen_mode () {
+    this.stimulate('TableMonitor#fullscreen_mode')
+  }
+
+  remote_mode () {
+    this.stimulate('TableMonitor#remote_mode')
+  }
+
+  keyboard_mode () {
+    this.stimulate('TableMonitor#keyboard_mode')
+  }
+
+  ballcounter_mode () {
+    this.stimulate('TableMonitor#ballcounter_mode')
+  }
+
+  table_display_mode () {
+    this.stimulate('TableMonitor#table_display_mode')
+  }
+
+  toggle_timer_visibility () {
+    this.stimulate('TableMonitor#toggle_timer_visibility')
+  }
+
+  do_toggle_help_menu () {
+    this.stimulate('TableMonitor#do_toggle_help_menu')
+  }
+
+  do_start_timer () {
+    this.stimulate('TableMonitor#do_start_timer')
+  }
+
+  do_stop_timer () {
+    this.stimulate('TableMonitor#do_stop_timer')
+  }
+
+  do_reset_timer () {
+    this.stimulate('TableMonitor#do_reset_timer')
+  }
+
+  do_toggle_menu () {
+    this.stimulate('TableMonitor#do_toggle_menu')
   }
 }
