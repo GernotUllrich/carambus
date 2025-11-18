@@ -453,7 +453,70 @@ class TableMonitorReflex < ApplicationReflex
     raise e
   end
 
-  # NEW: Validate accumulated changes with total sum
+  # NEW: Simple, direct score addition (replaces complex async validation)
+  def add_score(player, points)
+    Rails.logger.info "➕ Adding #{points} points to #{player}" if DEBUG
+    morph :nothing
+    
+    # Security check
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked add_score from remote IP #{request.remote_ip}"
+      return
+    end
+    
+    table_monitor_id = element.andand.dataset[:id]
+    unless table_monitor_id
+      Rails.logger.error "❌ add_score: Missing table monitor id"
+      return
+    end
+    
+    @table_monitor = TableMonitor.find_by(id: table_monitor_id)
+    unless @table_monitor
+      Rails.logger.warn "❌ add_score: TableMonitor #{table_monitor_id} not found"
+      return
+    end
+    
+    unless @table_monitor.playing?
+      Rails.logger.info "ℹ️ add_score skipped: TableMonitor not playing"
+      return
+    end
+    
+    # Validate points are reasonable
+    points_int = points.to_i
+    if points_int.abs > 100
+      Rails.logger.warn "⚠️ Suspicious points value: #{points_int}, ignoring"
+      return
+    end
+    
+    # Process the score change
+    player_key = player.to_s.downcase
+    @table_monitor.data[player_key] ||= {}
+    @table_monitor.data[player_key]["innings_redo_list"] ||= [0]
+    
+    current_inning_score = @table_monitor.data[player_key]["innings_redo_list"][-1] || 0
+    new_inning_score = current_inning_score + points_int
+    
+    # Validate new score is not negative
+    if new_inning_score < 0
+      Rails.logger.info "⚠️ Cannot make inning score negative, setting to 0"
+      new_inning_score = 0
+    end
+    
+    # Update the inning score
+    @table_monitor.data[player_key]["innings_redo_list"][-1] = new_inning_score
+    @table_monitor.save
+    
+    Rails.logger.info "✅ Updated #{player} inning score: #{current_inning_score} → #{new_inning_score}" if DEBUG
+    
+    # Broadcast JSON update to all clients (fast!)
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    
+  rescue StandardError => e
+    Rails.logger.error "❌ add_score ERROR: #{e.message}"
+    Rails.logger.error "Backtrace: #{e.backtrace.first(5).join("\n")}"
+  end
+
+  # OLD: Complex async validation (to be removed after testing new approach)
   def validate_accumulated_changes(accumulated_data = nil)
     Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing

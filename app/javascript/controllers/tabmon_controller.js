@@ -566,66 +566,45 @@ export default class extends ApplicationController {
 
 
   key_a () {
-
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-
-    // Get the player ID for the left side
+    // 🚀 NEW SIMPLIFIED: Click on left player score
     const leftPlayer = document.querySelector('#left')
     const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
-
-    // Get which player currently has the green border (active player)
     const activePlayerId = this.getCurrentActivePlayer()
 
     // Check if we're clicking on the active player's side or opposite side
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-
-      // 🚀 NEW: Accumulate change FIRST, then update display
-      const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
-
-      // Only update display if accumulation was successful
-      if (accumulated) {
-        // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-        this.updateScoreOptimistically(playerId, increment, 'add')
-      }
+      
+      // Optimistic update
+      this.applyOptimisticUpdate(playerId, increment)
+      
+      // Send immediately to server
+      this.stimulate('TableMonitor#add_score', playerId, increment)
     } else {
-      // 🚀 TRIGGER NEXT_STEP when clicking on opposite side of active player
+      // Clicking on opposite side = player switch
       this.next_step()
     }
   }
 
   key_b () {
-
-    if (this.blockIfValidationLocked()) {
-      return
-    }
-
-    // Get the player ID for the right side
+    // 🚀 NEW SIMPLIFIED: Click on right player score
     const rightPlayer = document.querySelector('#right')
     const playerId = rightPlayer ? rightPlayer.dataset.player || 'playerb' : 'playerb'
-
-    // Get which player currently has the green border (active player)
     const activePlayerId = this.getCurrentActivePlayer()
-
 
     // Check if we're clicking on the active player's side or opposite side
     if (activePlayerId === playerId) {
       // Get increment based on discipline (Eurokegel = 2, others = 1)
       const increment = this.getDisciplineIncrement(playerId)
-
-      // 🚀 NEW: Accumulate change FIRST, then update display
-      const accumulated = this.accumulateAndValidateChange(playerId, increment, 'add')
-
-      // Only update display if accumulation was successful
-      if (accumulated) {
-        // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-        this.updateScoreOptimistically(playerId, increment, 'add')
-      }
+      
+      // Optimistic update
+      this.applyOptimisticUpdate(playerId, increment)
+      
+      // Send immediately to server
+      this.stimulate('TableMonitor#add_score', playerId, increment)
     } else {
-      // 🚀 TRIGGER NEXT_STEP when clicking on opposite side of active player
+      // Clicking on opposite side = player switch
       this.next_step()
     }
   }
@@ -637,43 +616,27 @@ export default class extends ApplicationController {
   }
 
   add_n () {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
+    // 🚀 NEW SIMPLIFIED: Send immediately to server (no delays, no accumulation!)
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
-
-
-    // Always increment the active player (the one with green border)
-
-    // 🚀 NEW: Accumulate change FIRST, then update display
-    const accumulated = this.accumulateAndValidateChange(activePlayerId, n, 'add')
-
-    // Only update display if accumulation was successful
-    if (accumulated) {
-      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-      this.updateScoreOptimistically(activePlayerId, n, 'add')
-    }
+    
+    // Optional: Optimistic update for instant feedback
+    this.applyOptimisticUpdate(activePlayerId, n)
+    
+    // Send immediately to server
+    this.stimulate('TableMonitor#add_score', activePlayerId, n)
   }
 
   minus_n () {
-    if (this.blockIfValidationLocked()) {
-      return
-    }
+    // 🚀 NEW SIMPLIFIED: Send immediately to server (no delays, no accumulation!)
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
-
-
-    // Always decrement the active player (the one with green border)
-
-    // 🚀 NEW: Accumulate change FIRST, then update display
-    const accumulated = this.accumulateAndValidateChange(activePlayerId, n, 'subtract')
-
-    // Only update display if accumulation was successful
-    if (accumulated) {
-      // 🚀 IMMEDIATE OPTIMISTIC UPDATE using accumulated totals
-      this.updateScoreOptimistically(activePlayerId, n, 'subtract')
-    }
+    
+    // Optional: Optimistic update for instant feedback
+    this.applyOptimisticUpdate(activePlayerId, -n)
+    
+    // Send immediately to server
+    this.stimulate('TableMonitor#add_score', activePlayerId, -n)
   }
 
   undo () {
