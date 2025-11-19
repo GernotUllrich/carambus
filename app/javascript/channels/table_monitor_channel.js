@@ -125,12 +125,24 @@ consumer.subscriptions.create("TableMonitorChannel", {
   // ========================================================================
   
   handleScoreUpdate(tableMonitorId, data) {
+    // Filter: Nur Updates für dieses Scoreboard verarbeiten
+    if (!this.isForThisMonitor(tableMonitorId)) {
+      console.log(`⏭️ Skipping score update for TM ${tableMonitorId} (not for this monitor)`)
+      return
+    }
+    
     // Nur Zahlen ändern - super schnell, kein Layout-Shift
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
   },
   
   handlePlayerSwitch(tableMonitorId, data) {
+    // Filter: Nur Updates für dieses Scoreboard verarbeiten
+    if (!this.isForThisMonitor(tableMonitorId)) {
+      console.log(`⏭️ Skipping player switch for TM ${tableMonitorId} (not for this monitor)`)
+      return
+    }
+    
     // Scores + aktiver Spieler + Border-Farben
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
@@ -144,6 +156,12 @@ consumer.subscriptions.create("TableMonitorChannel", {
   },
   
   handleStateChange(tableMonitorId, data) {
+    // Filter: Nur Updates für dieses Scoreboard verarbeiten
+    if (!this.isForThisMonitor(tableMonitorId)) {
+      console.log(`⏭️ Skipping state change for TM ${tableMonitorId} (not for this monitor)`)
+      return
+    }
+    
     // Komplettere Updates: Scores + Spieler + State
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
@@ -155,6 +173,33 @@ consumer.subscriptions.create("TableMonitorChannel", {
       stateEl.textContent = data.state_display
       this.flashElement(stateEl)
     }
+  },
+  
+  // ========================================================================
+  // FILTER HELPER - Nur Updates für dieses Scoreboard verarbeiten
+  // ========================================================================
+  
+  isForThisMonitor(tableMonitorId) {
+    // Finde das Scoreboard-Element auf dieser Seite
+    const scoreboardEl = document.querySelector('[id^="full_screen_table_monitor_"]')
+    
+    if (!scoreboardEl) {
+      console.warn('⚠️ No scoreboard element found on this page')
+      return false
+    }
+    
+    // Extrahiere die table_monitor_id aus der Element-ID
+    const match = scoreboardEl.id.match(/full_screen_table_monitor_(\d+)/)
+    if (!match) {
+      console.warn('⚠️ Could not extract table_monitor_id from element', scoreboardEl.id)
+      return false
+    }
+    
+    const thisMonitorId = parseInt(match[1])
+    const incomingMonitorId = parseInt(tableMonitorId)
+    
+    // Nur Updates für dieses Scoreboard verarbeiten
+    return thisMonitorId === incomingMonitorId
   },
   
   // ========================================================================
