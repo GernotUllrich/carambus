@@ -68,7 +68,14 @@ class TableMonitorJob < ApplicationJob
       end
       
       # Broadcast operations (nur für CableReady-Operationen, nicht für ActionCable.broadcast)
-      cable_ready.broadcast if cable_ready.instance_variable_get(:@enqueued_operations)&.any?
+      enqueued_ops = cable_ready.instance_variable_get(:@enqueued_operations)
+      if enqueued_ops&.any?
+        Rails.logger.info "📡 Broadcasting #{enqueued_ops.size} CableReady operations..." if debug
+        cable_ready.broadcast
+        Rails.logger.info "✅ Broadcast complete!" if debug
+      else
+        Rails.logger.info "⚠️ No CableReady operations to broadcast (might be ActionCable.broadcast instead)" if debug
+      end
       
       # Log performance metrics
       duration = ((Time.current - start_time) * 1000).round(2)
@@ -214,10 +221,13 @@ class TableMonitorJob < ApplicationJob
     # Seltener Fall: Komplettes Scoreboard neu rendern
     # → HTML via inner_html (KEIN Morphing! Direkter Austausch!)
     
+    Rails.logger.info "🔍 FULL_SCREEN START: TM[#{table_monitor.id}] updated_at=#{table_monitor.updated_at}" if debug
     Rails.logger.info "🔍 FULL_SCREEN: playera result=#{table_monitor.data['playera']['result']}, innings_list=#{table_monitor.data['playera']['innings_list']&.inspect}" if debug
     Rails.logger.info "🔍 FULL_SCREEN: playerb result=#{table_monitor.data['playerb']['result']}, innings_list=#{table_monitor.data['playerb']['innings_list']&.inspect}" if debug
+    Rails.logger.info "🔍 FULL_SCREEN: panel_state=#{table_monitor.panel_state}" if debug
     
     # Render HTML (ja, mit DB-Abfragen - aber das passiert selten)
+    Rails.logger.info "🔍 FULL_SCREEN: About to render partial..." if debug
     html = ApplicationController.render(
       partial: "table_monitors/scoreboard",
       locals: { 
@@ -230,12 +240,15 @@ class TableMonitorJob < ApplicationJob
     
     # inner_html statt morph → schneller, kein CPU-intensives Diffing
     selector = "#full_screen_table_monitor_#{table_monitor.id}"
+    Rails.logger.info "🔍 FULL_SCREEN: About to broadcast to table-monitor-stream, selector: #{selector}" if debug
+    
     cable_ready["table-monitor-stream"].inner_html(
       selector: selector,
       html: html
     )
     
-    Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) for table #{table_monitor.id}, selector: #{selector}" if debug
+    Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) queued for table #{table_monitor.id}, selector: #{selector}" if debug
+    Rails.logger.info "🔍 FULL_SCREEN: cable_ready operations count: #{cable_ready.instance_variable_get(:@enqueued_operations)&.size || 0}" if debug
     DebugLogger.log_operation("full_screen_html", table_monitor.id, selector, true)
   end
 
