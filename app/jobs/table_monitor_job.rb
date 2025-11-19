@@ -217,13 +217,14 @@ class TableMonitorJob < ApplicationJob
     )
     
     # inner_html statt morph → schneller, kein CPU-intensives Diffing
+    selector = "#full_screen_table_monitor_#{table_monitor.id}"
     cable_ready["table-monitor-stream"].inner_html(
-      selector: "#scoreboard-root",
+      selector: selector,
       html: html
     )
     
     Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) for table #{table_monitor.id}" if debug
-    DebugLogger.log_operation("full_screen_html", table_monitor.id, "#scoreboard-root", true)
+    DebugLogger.log_operation("full_screen_html", table_monitor.id, selector, true)
   end
 
   # ========================================================================

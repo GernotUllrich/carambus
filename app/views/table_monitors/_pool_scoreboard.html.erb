@@ -65,8 +65,8 @@
         </div>
         <%= content_tag "div",
                         data: {
-                          controller: "tabmon",
-                          action: "click->tabmon#key_a",
+                          controller: "table-monitor",
+                          action: "click->table-monitor#key_a",
                           id: table_monitor.id,
                           player: left_player_id,
                           discipline: left_player[:discipline]
@@ -166,14 +166,14 @@
           <%- end %>
           <%- if state_display.present? %>
             <%= content_tag "div",
-                            data: { controller: "tabmon", action: "click->tabmon#force_next_state", id: table_monitor.id },
+                            data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id },
                             id: "game_state",
                             class: "level-3 flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
               <%= table_monitor.state_display(I18n.locale) %>
             <%- end %>
           <%- else %>
             <%= content_tag "div",
-                            data: { controller: "tabmon", action: "click->tabmon#force_next_state", id: table_monitor.id },
+                            data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id },
                             id: "game_state",
                             class: "level-3 flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2} text-center dark:bg-black" do %>
             <%- end %>
@@ -211,7 +211,7 @@
           <div id="clock" class="hidden dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"><%= Time.now.strftime("%H:%M") %></div>
         </div>
         <%= content_tag "div",
-                        data: { controller: "tabmon", action: "click->tabmon#force_next_state", id: table_monitor.id },
+                        data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id },
                         id: "game_state",
                         class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
           <div class="flex flex-col h-2/6" tabindex="3" id="pointer_mode">
@@ -249,7 +249,7 @@
                             title: "Undo",
                             data: {
                               controller: "tabmon tooltip",
-                              action: "click->tabmon#undo",
+                              action: "click->table-monitor#undo",
                               id: table_monitor.id,
                               "tippy-content": "Letzte Eingabe zurücknehmen"
                             },
@@ -272,7 +272,7 @@
             <div class="flex h-2/3 flex-row space-x-3 rounded-full">
               <%- if table_monitor.playing? && options[:timeout].to_i > 0 %>
                 <%= content_tag "div",
-                                data: { controller: "tabmon", action: "click->tabmon#stop", id: table_monitor.id },
+                                data: { controller: "table-monitor", action: "click->table-monitor#stop", id: table_monitor.id },
                                 class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{'hidden' if table_monitor.timer_finish_at.blank?}",
                                 title: "Stop",
                                 id: "stop",
@@ -280,7 +280,7 @@
                   <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
                 <%- end %>
                 <%= content_tag "div",
-                                data: { controller: "tabmon", action: "click->tabmon#timeout", id: table_monitor.id },
+                                data: { controller: "table-monitor", action: "click->table-monitor#timeout", id: table_monitor.id },
                                 class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{'hidden' if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}",
                                 title: "TimeOut",
                                 id: "timeout",
@@ -288,7 +288,7 @@
                   <%= render_svg "icons/timer", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
                 <%- end %>
                 <%= content_tag "div",
-                                data: { controller: "tabmon", action: "click->tabmon#pause", id: table_monitor.id },
+                                data: { controller: "table-monitor", action: "click->table-monitor#pause", id: table_monitor.id },
                                 class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{'hidden' if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}",
                                 title: "Pause",
                                 id: "pause",
@@ -296,7 +296,7 @@
                   <%= render_svg "icons/286-pause2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
                 <%- end %>
                 <%= content_tag "div",
-                                data: { controller: "tabmon", action: "click->tabmon#play", id: table_monitor.id },
+                                data: { controller: "table-monitor", action: "click->table-monitor#play", id: table_monitor.id },
                                 class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{'hidden' if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}",
                                 title: "Play",
                                 id: "play",
@@ -327,8 +327,8 @@
         </div>
         <%= content_tag "div",
                         data: {
-                          controller: "tabmon",
-                          action: "click->tabmon#key_b",
+                          controller: "table-monitor",
+                          action: "click->table-monitor#key_b",
                           id: table_monitor.id,
                           player: right_player_id,
                           discipline: right_player[:discipline]
@@ -438,8 +438,8 @@
                 <%- if ['14.1 endlos'].include?(left_player[:discipline]) && highest >= n %>
                   <%= content_tag "div",
                                   data: {
-                                    controller: "tabmon",
-                                    action: "click->tabmon#balls_left",
+                                    controller: "table-monitor",
+                                    action: "click->table-monitor#balls_left",
                                     ball_no: n,
                                     id: table_monitor.id
                                   },
@@ -453,7 +453,7 @@
             <div></div>
             <div class="flex-col dark:bg-black">
               <%= content_tag "div",
-                              data: { controller: "tabmon", action: "click->tabmon#foul_one", id: table_monitor.id },
+                              data: { controller: "table-monitor", action: "click->table-monitor#foul_one", id: table_monitor.id },
                               class: "flex align-center overflow-hidden pb-1 hover:scale-125 w-18",
                               tabindex: 2 do %>
                 <%= image_tag "p0-1.png" %>
@@ -462,7 +462,7 @@
             <div class="flex-col dark:bg-black" data-controller="tippy" data-tippy-content="Break Foul" data-tippy-delay="0" data-tippy-arrow="true" data-tippy-size="regular" data-tippy-animation="fade">
               <%- if highest == 15 %>
                 <%= content_tag "div",
-                                data: { controller: "tabmon", action: "click->tabmon#foul_two", id: table_monitor.id },
+                                data: { controller: "table-monitor", action: "click->table-monitor#foul_two", id: table_monitor.id },
                                 class: "flex align-center overflow-hidden pb-1 hover:scale-125 w-18",
                                 tabindex: 2 do %>
                   <%= image_tag "p0-2r.png" %>

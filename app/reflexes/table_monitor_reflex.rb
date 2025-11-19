@@ -397,7 +397,7 @@ class TableMonitorReflex < ApplicationReflex
 
   def switch_players_and_start_game
     Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
-    morph :nothing
+    # KEIN morph :nothing - wir wollen den full_screen Job ausführen!
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
@@ -409,13 +409,15 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.do_play
     @table_monitor.save!
     
-    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
-    TableMonitorJob.perform_later(@table_monitor, 'state_change')
+    # Spielstart → full_screen (Modal muss weg, Scoreboard komplett neu)
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    
+    # WICHTIG: Kein expliziter morph - der Job macht das!
   end
 
   def start_game
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
-    morph :nothing
+    # KEIN morph :nothing - wir wollen den full_screen Job ausführen!
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
@@ -425,8 +427,10 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.do_play
     @table_monitor.save!
     
-    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
-    TableMonitorJob.perform_later(@table_monitor, 'state_change')
+    # Spielstart → full_screen (Modal muss weg, Scoreboard komplett neu)
+    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    
+    # WICHTIG: Kein expliziter morph - der Job macht das!
   end
 
   def home
@@ -461,7 +465,6 @@ class TableMonitorReflex < ApplicationReflex
 
   # NEW: Simple, direct score addition (replaces complex async validation)
   def add_score(player, points)
-    Rails.logger.info "➕ Adding #{points} points to #{player}" if DEBUG
     morph :nothing
     
     # Security check
@@ -494,6 +497,11 @@ class TableMonitorReflex < ApplicationReflex
       return
     end
     
+    # DEBUGGING: Log current state
+    Rails.logger.info "🔍 ADD_SCORE CALLED: player=#{player}, points=#{points_int}"
+    Rails.logger.info "🔍 BEFORE: playera result=#{@table_monitor.data['playera']['result']}, innings_redo_list=#{@table_monitor.data['playera']['innings_redo_list']&.inspect}"
+    Rails.logger.info "🔍 BEFORE: playerb result=#{@table_monitor.data['playerb']['result']}, innings_redo_list=#{@table_monitor.data['playerb']['innings_redo_list']&.inspect}"
+    
     # Process the score change
     player_key = player.to_s.downcase
     @table_monitor.data[player_key] ||= {}
@@ -518,7 +526,9 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.data_will_change!
     @table_monitor.save
     
-    Rails.logger.info "✅ Updated #{player} inning score: #{current_inning_score} → #{new_inning_score}" if DEBUG
+    Rails.logger.info "✅ AFTER UPDATE: #{player} inning score: #{current_inning_score} → #{new_inning_score}"
+    Rails.logger.info "🔍 AFTER: playera result=#{@table_monitor.data['playera']['result']}, innings_redo_list=#{@table_monitor.data['playera']['innings_redo_list']&.inspect}"
+    Rails.logger.info "🔍 AFTER: playerb result=#{@table_monitor.data['playerb']['result']}, innings_redo_list=#{@table_monitor.data['playerb']['innings_redo_list']&.inspect}"
     
     # 🎯 NEW: Simple server-side check for set completion
     if check_set_should_end(@table_monitor)
@@ -780,8 +790,8 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def next_step
-    Rails.logger.info "+++++++++++++++++>>> next_step <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
-    morph :nothing
+    Rails.logger.info "+++++++++++++++++>>> next_step <<<++++++++++++++++++++++++++++++++++++++"
+    # KEIN morph :nothing - wir wollen den player_switch Job ausführen!
     
     # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
     if remote_request? && !current_user&.admin?
@@ -791,8 +801,17 @@ class TableMonitorReflex < ApplicationReflex
     
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    # DEBUGGING: Log state BEFORE
+    Rails.logger.info "🔍 NEXT_STEP BEFORE: playera result=#{@table_monitor.data['playera']['result']}, innings_redo_list=#{@table_monitor.data['playera']['innings_redo_list']&.inspect}"
+    Rails.logger.info "🔍 NEXT_STEP BEFORE: playerb result=#{@table_monitor.data['playerb']['result']}, innings_redo_list=#{@table_monitor.data['playerb']['innings_redo_list']&.inspect}"
+    
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
+    
+    # DEBUGGING: Log state AFTER
+    Rails.logger.info "🔍 NEXT_STEP AFTER: playera result=#{@table_monitor.data['playera']['result']}, innings_redo_list=#{@table_monitor.data['playera']['innings_redo_list']&.inspect}"
+    Rails.logger.info "🔍 NEXT_STEP AFTER: playerb result=#{@table_monitor.data['playerb']['result']}, innings_redo_list=#{@table_monitor.data['playerb']['innings_redo_list']&.inspect}"
     
     # Spielerwechsel → player_switch update
     TableMonitorJob.perform_later(@table_monitor, 'player_switch')

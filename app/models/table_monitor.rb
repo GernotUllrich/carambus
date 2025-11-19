@@ -72,30 +72,36 @@ class TableMonitor < ApplicationRecord
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     return if skip_update_callbacks
 
-    #broadcast_replace_later_to self
-    relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element])
-    get_options!(I18n.locale)
+    changes = previous_changes
+    
+    # Early exit: Keine relevanten Änderungen
+    return if changes.empty?
+    
+    relevant_keys = (changes.keys - %w[data nnn panel_state pointer_mode current_element])
+    
+    # PartyMonitor: Spezielle Behandlung
     if tournament_monitor.is_a?(PartyMonitor) &&
       (relevant_keys.include?("state") || state != "playing")
-      TableMonitorJob.perform_later(self,
-                                    "party_monitor_scores")
+      TableMonitorJob.perform_later(self, "party_monitor_scores")
     end
-    if previous_changes.keys.present? && relevant_keys.present?
+    
+    # Table Scores: Nur bei relevanten Änderungen
+    if relevant_keys.present?
       TableMonitorJob.perform_later(self, "table_scores")
     else
       TableMonitorJob.perform_later(self, "teaser")
     end
-    TableMonitorJob.perform_later(self, "")
-    # broadcast_replace_to self
+    
+    # KEIN leerer Job mehr! (war: TableMonitorJob.perform_later(self, ""))
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
     if tournament_monitor.is_a?(TournamentMonitor) &&
        tournament_monitor.tournament.present? &&
        tournament_monitor.tournament.tournament_started &&
-       previous_changes.key?("data")
+       changes.key?("data")
       # Prüfe ob sich relevante Spiel-Daten geändert haben
-      old_data = previous_changes["data"][0] rescue {}
-      new_data = previous_changes["data"][1] rescue {}
+      old_data = changes["data"][0] rescue {}
+      new_data = changes["data"][1] rescue {}
 
       # Prüfe ob result oder innings_redo_list sich geändert haben
       data_changed = false
@@ -1149,6 +1155,14 @@ data[\"allow_overflow\"].present?")
   end
 
   def get_options!(locale)
+    # Cache options per instance to avoid expensive re-computation
+    # Cache-Key includes locale and updated_at timestamp
+    cache_key = "#{locale}_#{updated_at.to_i}"
+    
+    if @cached_options && @cached_options_key == cache_key
+      return @cached_options
+    end
+    
     I18n.with_locale(locale) do
       show_game = game.present? ? game : prev_game
       show_data = game.present? ? data : prev_data
@@ -1287,6 +1301,12 @@ data[\"allow_overflow\"].present?")
                           tournament_monitor&.tournament
                         end
       self.my_table = table
+      
+      # Cache the result for this instance
+      @cached_options = options
+      @cached_options_key = cache_key
+      
+      options
     end
   end
 

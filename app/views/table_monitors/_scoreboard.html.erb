@@ -24,9 +24,67 @@
 <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
 <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
 <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen %>
-<div class="fullscreen flex flex-col h-full  rounded shadow" 
+<div id="full_screen_table_monitor_<%= table_monitor.id %>" 
+     class="fullscreen flex flex-col h-full  rounded shadow" 
      data-tabmon-root="scoreboard" 
      data-table-monitor-id="<%= table_monitor.id %>">
+  
+  <%# Modals: Warmup, Shootout, Numbers - müssen INNERHALB des Container-DIVs sein! %>
+  <%- if fullscreen %>
+    <%- if table_monitor.warmup_modal_should_be_open? %>
+      <%= render partial: "table_monitors/warmup",
+                 locals: {
+                   modal_hidden: !table_monitor.warmup_modal_should_be_open?,
+                   full_screen: fullscreen,
+                   table_monitor: table_monitor }
+      %>
+    <%- end %>
+    <%- if table_monitor.shootout_modal_should_be_open? %>
+      <%= render partial: "table_monitors/shootout",
+                 locals: {
+                   options: table_monitor.options,
+                   table_monitor: table_monitor,
+                   full_screen: fullscreen,
+                   modal_hidden: !table_monitor.shootout_modal_should_be_open?
+                 }
+      %>
+    <%- end %>
+    <%- if table_monitor.numbers_modal_should_be_open? %>
+      <%= render partial: "table_monitors/numbers",
+                 locals: {
+                   options: table_monitor.options,
+                   table_monitor: table_monitor,
+                   full_screen: fullscreen,
+                   modal_hidden: !table_monitor.numbers_modal_should_be_open?
+                 }
+      %>
+    <%- end %>
+    
+    <%# Warning/Confirm Dialog - HÖCHSTER z-index, ABSOLUT ZENTRIERT! %>
+    <div class="hidden opacity-50 fixed inset-0 bg-black" id="modal-confirm-back-bg" style="z-index: 200;"></div>
+    <div class="hidden fixed" id="modal-confirm-back" style="z-index: 210; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+      <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-gray-500 rounded-lg shadow-lg flex flex-col justify-center items-center w-screen max-w-3xl max-h-screen overflow-y-auto text-gray-800 dark:text-gray-200 bg-white dark:bg-black p-8">
+        <div class="flex flex-col justify-center items-center space-y-4 w-full">
+          <%= render_svg "warning-sign-svgrepo-com", styles: "fill-current dark:text-yellow-400 text-red-600 h-8 w-8" %>
+          <h1 class="text-3vw text-center"><%= t('warning') %></h1>
+          <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
+          <%- if table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing?) %>
+            <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
+          <%- else %>
+            <p class="text-2vw text-center"><%= I18n.t('not_leave_party_game') %></p>
+          <%- end %>
+          <div class="flex flex-row pt-5 space-x-10">
+            <%= custom_link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbo" => false), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
+            <%- unless options[:tournament_title].present? && table_monitor.playing? %>
+              <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
+            <%- end %>
+            <%= custom_link_to t('continue'), "javascript:unset_warning_modal()", data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <%- end %>
+  
   <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- vw2 = fullscreen ? "2vw" : "1vw" %>
@@ -48,7 +106,7 @@
           </div>
         <%- end %>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_a", id: table_monitor.id, discipline: left_player[:discipline] }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1, onclick: "console.time('key_a_click')" do %>
+      <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#key_a", id: table_monitor.id, discipline: left_player[:discipline] }, class: "flex flex-col h-5/6 #{ options[:current_left_color] == "yellow" ? "bg-yellow-500" : "" } dark:bg-black border-solid #{ left_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playera", style: "letter-spacing: -5px;", id: "left", tabindex: 1, onclick: "console.time('key_a_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex-1 text-left font-bold text-red-400">
@@ -121,13 +179,13 @@
           <%- end %>
         <%- end %>
         <%- if table_monitor.state_display(I18n.locale).present? %>
-          <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
           text-center dark:bg-black" do %>
             <%= table_monitor.state_display(I18n.locale) %>
           <%- end %>
           <div id=clock class="hidden  dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
         <%- else %>
-          <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#force_next_state", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
         text-center dark:bg-black" do %>
           <%- end %>
           <div id=clock class=" dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
@@ -166,7 +224,7 @@
           <%- end %>
         </div>
         <%- if table_monitor.state_display(I18n.locale).present? %>
-          <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#undo", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
+          <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
           text-center dark:bg-black" do %>
             <%= "zurück" %>
           <%- end %>
@@ -174,16 +232,16 @@
         <div class="flex flex-col items-center h-1/6">
           <div class="flex h-2/3 flex-row space-x-3 rounded-full">
             <%- if table_monitor.playing? && options[:timeout].to_i > 0 %>
-              <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#stop", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -5px;", id: "stop", tabindex: 11 do %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#stop", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.blank?}", title: "Stop", style: "letter-spacing: -5px;", id: "stop", tabindex: 11 do %>
                 <%= render_svg "icons/287-stop2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
               <%- end %>
-              <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#timeout", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "TimeOut", style: "letter-spacing: -5px;", id: "timeout", tabindex: 11 do %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#timeout", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "TimeOut", style: "letter-spacing: -5px;", id: "timeout", tabindex: 11 do %>
                 <%= render_svg "icons/timer", styles: "svg-red fill-current icon-lg text-red-400 inline-block" %>
               <%- end %>
-              <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#pause", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none  bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -5px;", id: "pause", tabindex: 11 do %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#pause", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none  bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if (table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.present?) || table_monitor.timer_finish_at.blank?}", title: "Pause", style: "letter-spacing: -5px;", id: "pause", tabindex: 11 do %>
                 <%= render_svg "icons/286-pause2", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
               <%- end %>
-              <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#play", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -5px;", id: "play", tabindex: 11 do %>
+              <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#play", id: table_monitor.id }, class: "mr-2 w-full flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400 #{"hidden" if table_monitor.timer_finish_at.present? && table_monitor.timer_halt_at.blank?}", title: "Play", style: "letter-spacing: -5px;", id: "play", tabindex: 11 do %>
                 <%= render_svg "icons/285-play3", styles: "svg-red fill-current icon-2xl text-red-400 inline-block" %>
               <%- end %>
             <%- end %>
@@ -204,7 +262,7 @@
           <div class="flex-nowrap w-full mr-4 text-right <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && right_player[:fullname].andand.length.to_i < 20 %> text-<%= vw3 %>"><%= right_player[:fullname] %></div>
         </div>
       </div>
-      <%= content_tag "div", data: { controller: "tabmon", action: "click->tabmon#key_b", id: table_monitor.id, discipline: right_player[:discipline] }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
+      <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#key_b", id: table_monitor.id, discipline: right_player[:discipline] }, class: "flex flex-col h-5/6 #{options[:current_left_color] == "white" ? "bg-yellow-500" : ""} dark:bg-black border-solid #{ right_player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: "playerb", style: "letter-spacing: -5px;", id: "right", tabindex: 1, onclick: "console.time('key_b_click')" do %>
         <%- if !table_monitor.set_over? %>
           <div class="flex h-1/6">
             <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %> tracking-wide">
@@ -298,62 +356,62 @@
         <%- end %>
         <%- if options[:player_a].andand[:discipline] == "4 Ball" %>
           <div class="flex flex-1 justify-center">
-            <%= content_tag "div", class: "flex overflow-hidden  pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 1 to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 1, id: table_monitor.id }, id: "add_one", tabindex: 2 do %>
+            <%= content_tag "div", class: "flex overflow-hidden  pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 1 to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 1, id: table_monitor.id }, id: "add_one", tabindex: 2 do %>
               <%= image_tag "4-ball-1.png", class: "h-auto" %>
             <%- end %>
           </div>
           <div class="flex flex-1 justify-center">
-            <%= content_tag "div", class: "flex overflow-hidden pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 4 to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 4, id: table_monitor.id }, id: "add_four", tabindex: 2 do %>
+            <%= content_tag "div", class: "flex overflow-hidden pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 4 to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 4, id: table_monitor.id }, id: "add_four", tabindex: 2 do %>
               <%= image_tag "4-ball-4.png", class: "h-auto" %>
             <%- end %>
           </div>
           <div class="flex flex-1 justify-center">
-            <%= content_tag "div", class: "flex overflow-hidden pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 20 to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 20, id: table_monitor.id }, id: "add_twenty", tabindex: 2 do %>
+            <%= content_tag "div", class: "flex overflow-hidden pb-1 hover:scale-125 mt-2 mr-2 w-20 h-20", title: "Add 20 to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 20, id: table_monitor.id }, id: "add_twenty", tabindex: 2 do %>
               <%= image_tag "4-ball-20.png", class: "h-auto" %>
             <%- end %>
           </div>
         <%- else %>
           <%- if options[:player_a].andand[:discipline] == "Eurokegel" %>
-            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract two from current Inning", data: { controller: "tabmon", action: "click->tabmon#minus_n", n: 2, id: table_monitor.id }, id: "minus_two", tabindex: 2 do %>
+            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract two from current Inning", data: { controller: "table-monitor", action: "click->table-monitor#minus_n", n: 2, id: table_monitor.id }, id: "minus_two", tabindex: 2 do %>
               -2
             <%- end %>
-            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract four from current Inning", data: { controller: "tabmon", action: "click->tabmon#minus_n", n: 4, id: table_monitor.id }, id: "minus_four", tabindex: 2 do %>
+            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract four from current Inning", data: { controller: "table-monitor", action: "click->table-monitor#minus_n", n: 4, id: table_monitor.id }, id: "minus_four", tabindex: 2 do %>
               -4
             <%- end %>
           <%- else %>
-            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract one from current Inning", data: { controller: "tabmon", action: "click->tabmon#minus_n", n: 1, id: table_monitor.id }, id: "minus_one", tabindex: 2 do %>
+            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract one from current Inning", data: { controller: "table-monitor", action: "click->table-monitor#minus_n", n: 1, id: table_monitor.id }, id: "minus_one", tabindex: 2 do %>
               -1
             <%- end %>
-            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract five from current Inning", data: { controller: "tabmon", action: "click->tabmon#minus_n", n: 5, id: table_monitor.id }, id: "minus_five", tabindex: 2 do %>
+            <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract five from current Inning", data: { controller: "table-monitor", action: "click->table-monitor#minus_n", n: 5, id: table_monitor.id }, id: "minus_five", tabindex: 2 do %>
               -5
             <%- end %>
           <%- end %>
-          <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract ten from current Inning", data: { controller: "tabmon", action: "click->tabmon#minus_n", n: 10, id: table_monitor.id }, id: "minus_ten", tabindex: 2 do %>
+          <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-400 text-red-400", title: "Subtract ten from current Inning", data: { controller: "table-monitor", action: "click->table-monitor#minus_n", n: 10, id: table_monitor.id }, id: "minus_ten", tabindex: 2 do %>
             -10
           <%- end %>
         <%- end %>
-        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 dark:text_blue_400 text-blue-400", title: "Change Players", style: "letter-spacing: -5px;", data: { controller: "tabmon", action: "click->tabmon#next_step", id: table_monitor.id }, id: "next_step", tabindex: 2 do %>
+        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 dark:text_blue_400 text-blue-400", title: "Change Players", style: "letter-spacing: -5px;", data: { controller: "table-monitor", action: "click->table-monitor#next_step", id: table_monitor.id }, id: "next_step", tabindex: 2 do %>
           <%= render_svg "icons/exchange", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
         <%- end %>
-        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 10, id: table_monitor.id }, id: "add_ten", tabindex: 2 do %>
+        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 10, id: table_monitor.id }, id: "add_ten", tabindex: 2 do %>
           +10
         <%- end %>
         <%- if options[:player_a].andand[:discipline] == "Eurokegel" %>
-          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add four to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 4, id: table_monitor.id }, id: "add_four", tabindex: 2 do %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add four to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 4, id: table_monitor.id }, id: "add_four", tabindex: 2 do %>
             +4
           <%- end %>
-          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add two to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 2, id: table_monitor.id }, id: "add_two", tabindex: 2 do %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add two to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 2, id: table_monitor.id }, id: "add_two", tabindex: 2 do %>
             +2
           <%- end %>
         <%- else %>
-          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add five to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 5, id: table_monitor.id }, id: "add_five", tabindex: 2 do %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add five to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 5, id: table_monitor.id }, id: "add_five", tabindex: 2 do %>
             +5
           <%- end %>
-          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { controller: "tabmon", action: "click->tabmon#add_n", n: 1, id: table_monitor.id }, id: "add_one", tabindex: 2 do %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add one to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 1, id: table_monitor.id }, id: "add_one", tabindex: 2 do %>
             +1
           <%- end %>
         <%- end %>
-        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "number popup", data: { controller: "tabmon", action: "click->tabmon#numbers", id: table_monitor.id }, id: "numbers", tabindex: 2 do %>
+        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "number popup", data: { controller: "table-monitor", action: "click->table-monitor#numbers", id: table_monitor.id }, id: "numbers", tabindex: 2 do %>
           <%= render_svg "icons/calculator", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
         <%- end %>
       <%- end %>
