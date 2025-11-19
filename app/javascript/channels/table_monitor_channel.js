@@ -57,6 +57,21 @@ consumer.subscriptions.create("TableMonitorChannel", {
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
+    
+    // Handle custom JSON updates (new approach for fast scoreboard updates)
+    if (data.type === "scoreboard_update" && data.data) {
+      console.log('📊 Received scoreboard update:', data.data)
+      
+      // Dispatch custom event that the tabmon controller listens for
+      const event = new CustomEvent('scoreboard:data_update', {
+        detail: data.data,
+        bubbles: true
+      })
+      document.dispatchEvent(event)
+      return
+    }
+    
+    // Handle CableReady operations (old approach)
     if (data.cableReady) {
       // Debug messages removed - no more console spam
       

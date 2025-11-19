@@ -134,9 +134,14 @@ class TableMonitorJob < ApplicationJob
     # NEW APPROACH: Broadcast lightweight JSON data instead of heavy HTML
     # This is 100x faster on slow clients (Raspberry Pi 3)
     
-    cable_ready["table-monitor-stream"].dispatch_event(
-      name: "scoreboard:data_update",
-      detail: build_scoreboard_update(table_monitor)
+    # CableReady 5.0.6 doesn't support dispatch_event, so we broadcast raw data
+    # and let the channel handle the event dispatching
+    ActionCable.server.broadcast(
+      "table-monitor-stream",
+      {
+        type: "scoreboard_update",
+        data: build_scoreboard_update(table_monitor)
+      }
     )
     
     Rails.logger.info "📊 Broadcasted JSON update for table #{table_monitor.id}" if debug
