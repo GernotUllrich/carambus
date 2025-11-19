@@ -26,6 +26,13 @@ class TableMonitorJob < ApplicationJob
     table_monitor = args[0]
     operation_type = args[1] || 'unknown'
     
+    # WICHTIG: Reload from DB to get latest changes (especially after protocol edits!)
+    table_monitor.reload
+    
+    # KRITISCH: Cache leeren, damit get_options! die aktuellen Daten verwendet!
+    table_monitor.instance_variable_set(:@cached_options, nil)
+    table_monitor.instance_variable_set(:@cached_options_key, nil)
+    
     info = "🚀 [#{Time.current.strftime("%H:%M:%S.%3N")}] PERFORM JOB #{operation_type} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
     
@@ -207,6 +214,9 @@ class TableMonitorJob < ApplicationJob
     # Seltener Fall: Komplettes Scoreboard neu rendern
     # → HTML via inner_html (KEIN Morphing! Direkter Austausch!)
     
+    Rails.logger.info "🔍 FULL_SCREEN: playera result=#{table_monitor.data['playera']['result']}, innings_list=#{table_monitor.data['playera']['innings_list']&.inspect}" if debug
+    Rails.logger.info "🔍 FULL_SCREEN: playerb result=#{table_monitor.data['playerb']['result']}, innings_list=#{table_monitor.data['playerb']['innings_list']&.inspect}" if debug
+    
     # Render HTML (ja, mit DB-Abfragen - aber das passiert selten)
     html = ApplicationController.render(
       partial: "table_monitors/scoreboard",
@@ -216,6 +226,8 @@ class TableMonitorJob < ApplicationJob
       }
     )
     
+    Rails.logger.info "🔍 FULL_SCREEN: Rendered HTML length: #{html.length} bytes" if debug
+    
     # inner_html statt morph → schneller, kein CPU-intensives Diffing
     selector = "#full_screen_table_monitor_#{table_monitor.id}"
     cable_ready["table-monitor-stream"].inner_html(
@@ -223,7 +235,7 @@ class TableMonitorJob < ApplicationJob
       html: html
     )
     
-    Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) for table #{table_monitor.id}" if debug
+    Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) for table #{table_monitor.id}, selector: #{selector}" if debug
     DebugLogger.log_operation("full_screen_html", table_monitor.id, selector, true)
   end
 

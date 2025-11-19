@@ -21,13 +21,20 @@ class GameProtocolReflex < ApplicationReflex
   # Close protocol modal
   def close_protocol
     morph :nothing
-    Rails.logger.info "🎯 GameProtocolReflex#close_protocol" if TableMonitor::DEBUG
+    Rails.logger.info "🎯 GameProtocolReflex#close_protocol - STARTING" if TableMonitor::DEBUG
+    Rails.logger.info "🔍 BEFORE CLOSE: playera result=#{@table_monitor.data['playera']['result']}, innings_list=#{@table_monitor.data['playera']['innings_list']&.inspect}" if TableMonitor::DEBUG
+    Rails.logger.info "🔍 BEFORE CLOSE: playerb result=#{@table_monitor.data['playerb']['result']}, innings_list=#{@table_monitor.data['playerb']['innings_list']&.inspect}" if TableMonitor::DEBUG
+    
     @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.save!
     @table_monitor.skip_update_callbacks = false
+    
     send_modal_update("")
-    TableMonitorJob.perform_later(@table_monitor, "")
+    
+    Rails.logger.info "🚀 TRIGGERING full_screen update via TableMonitorJob" if TableMonitor::DEBUG
+    TableMonitorJob.perform_later(@table_monitor, "full_screen")
+    Rails.logger.info "🎯 GameProtocolReflex#close_protocol - COMPLETED" if TableMonitor::DEBUG
   end
   
   # Switch to edit mode
@@ -59,10 +66,15 @@ class GameProtocolReflex < ApplicationReflex
     player = element.dataset['player'] # 'playera' or 'playerb'
     
     Rails.logger.info "🎯 GameProtocolReflex#increment_points: inning=#{inning_index}, player=#{player}" if TableMonitor::DEBUG
+    Rails.logger.info "🔍 INCREMENT BEFORE: #{player} result=#{@table_monitor.data[player]['result']}, innings_list=#{@table_monitor.data[player]['innings_list']&.inspect}" if TableMonitor::DEBUG
     
     @table_monitor.skip_update_callbacks = true
     @table_monitor.increment_inning_points(inning_index, player)
     @table_monitor.skip_update_callbacks = false
+    
+    Rails.logger.info "🔍 INCREMENT AFTER: #{player} result=#{@table_monitor.data[player]['result']}, innings_list=#{@table_monitor.data[player]['innings_list']&.inspect}" if TableMonitor::DEBUG
+    Rails.logger.info "🔍 INCREMENT AFTER: updated_at=#{@table_monitor.updated_at}" if TableMonitor::DEBUG
+    
     send_table_update(render_protocol_table_body)
   end
   

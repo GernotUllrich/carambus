@@ -358,7 +358,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif @table_monitor.shootout_modal_should_be_open?
       # start game
       @table_monitor.reset_timer!
-      @table_monitor.finish_shootout!
+      @table_monitor.finish_shootout! if @table_monitor.match_shootout?
       @table_monitor.evaluate_result
       # @table_monitor.do_play
     elsif @table_monitor.playing?
@@ -396,15 +396,22 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def switch_players_and_start_game
-    Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    Rails.logger.info "+++++++++++++++++>>> switch_players_and_start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     # KEIN morph :nothing - wir wollen den full_screen Job ausführen!
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    Rails.logger.info "🎮 Current state BEFORE operations: #{@table_monitor.state}" if DEBUG
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     # Only finish shootout if we're actually in shootout state
-    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
+    Rails.logger.info "🎮 State after switch_players: #{@table_monitor.state}, match_shootout? = #{@table_monitor.match_shootout?}" if DEBUG
+    if @table_monitor.match_shootout?
+      Rails.logger.info "🎮 Calling finish_shootout!" if DEBUG
+      @table_monitor.finish_shootout!
+    else
+      Rails.logger.info "🎮 NOT calling finish_shootout (not in shootout state)" if DEBUG
+    end
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
@@ -419,10 +426,16 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     # KEIN morph :nothing - wir wollen den full_screen Job ausführen!
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    Rails.logger.info "🎮 start_game: Current state = #{@table_monitor.state}, match_shootout? = #{@table_monitor.match_shootout?}" if DEBUG
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     # Only finish shootout if we're actually in shootout state
-    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
+    if @table_monitor.match_shootout?
+      Rails.logger.info "🎮 Calling finish_shootout!" if DEBUG
+      @table_monitor.finish_shootout!
+    else
+      Rails.logger.info "🎮 NOT calling finish_shootout (not in shootout state)" if DEBUG
+    end
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!

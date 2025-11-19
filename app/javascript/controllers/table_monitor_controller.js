@@ -60,17 +60,48 @@ export default class extends ApplicationController {
 
   getCurrentActivePlayer() {
     const root = this.findRootElement()
-    if (!root) return 'playera'
+    if (!root) {
+      console.warn('⚠️ getCurrentActivePlayer: No root element found')
+      return 'playera'
+    }
 
-    const activePlayerEl = root.querySelector('[data-player-active="true"]')
-    return activePlayerEl?.dataset?.player || 'playera'
+    // Look for #left or #right container with data-player-active="true"
+    const leftContainer = root.querySelector('#left')
+    const rightContainer = root.querySelector('#right')
+    
+    console.log('🔍 getCurrentActivePlayer:', {
+      leftActive: leftContainer?.dataset?.playerActive,
+      leftPlayer: leftContainer?.dataset?.player,
+      rightActive: rightContainer?.dataset?.playerActive,
+      rightPlayer: rightContainer?.dataset?.player
+    })
+    
+    if (leftContainer?.dataset?.playerActive === 'true') {
+      return leftContainer.dataset.player || 'playera'
+    }
+    if (rightContainer?.dataset?.playerActive === 'true') {
+      return rightContainer.dataset.player || 'playerb'
+    }
+    
+    // Fallback: return playera
+    return 'playera'
   }
 
   getDisciplineIncrement(playerId) {
     const root = this.findRootElement()
     if (!root) return 1
 
-    const playerEl = root.querySelector(`[data-player="${playerId}"]`)
+    // Look for #left or #right container with matching playerId
+    const leftContainer = root.querySelector('#left')
+    const rightContainer = root.querySelector('#right')
+    
+    let playerEl = null
+    if (leftContainer?.dataset?.player === playerId) {
+      playerEl = leftContainer
+    } else if (rightContainer?.dataset?.player === playerId) {
+      playerEl = rightContainer
+    }
+    
     const discipline = playerEl?.dataset?.discipline || ''
     
     // Eurokegel uses increment of 2, all others use 1
@@ -103,6 +134,39 @@ export default class extends ApplicationController {
     if (!root) { 
       console.warn('⚠️ Root element not found for score update')
       return 
+    }
+
+    // 🎯 SIMPLIFIED: Find container by data-player attribute (now set in ERB!)
+    const leftContainer = root.querySelector('#left')
+    const rightContainer = root.querySelector('#right')
+    
+    let playerContainerEl = null
+    
+    // Check which container has this playerId
+    if (leftContainer?.dataset?.player === playerId) {
+      playerContainerEl = leftContainer
+    } else if (rightContainer?.dataset?.player === playerId) {
+      playerContainerEl = rightContainer
+    }
+    
+    if (!playerContainerEl) {
+      console.warn(`⚠️ Container for player ${playerId} not found`)
+      return
+    }
+    
+    // Update active state (border) for getCurrentActivePlayer()
+    if (playerData.active !== undefined) {
+      // Set data-player-active attribute for getCurrentActivePlayer()
+      playerContainerEl.dataset.playerActive = playerData.active.toString()
+      
+      // Update border styling ONLY on the container, not child elements
+      if (playerData.active) {
+        playerContainerEl.classList.remove('border-4', 'border-gray-500', 'border-gray', 'dark:border-gray-700')
+        playerContainerEl.classList.add('border-8', 'border-green-400')
+      } else {
+        playerContainerEl.classList.remove('border-8', 'border-green-400')
+        playerContainerEl.classList.add('border-4', 'border-gray-500')
+      }
     }
 
     // Update main score (result + current inning)
@@ -179,12 +243,16 @@ export default class extends ApplicationController {
     const playerId = leftPlayer ? leftPlayer.dataset.player || 'playera' : 'playera'
     const activePlayerId = this.getCurrentActivePlayer()
 
+    console.log('🎯 key_a:', { playerId, activePlayerId, match: activePlayerId === playerId })
+
     if (activePlayerId === playerId) {
       // Clicking on active player = add score
       const increment = this.getDisciplineIncrement(playerId)
+      console.log('➕ Adding score:', { playerId, increment })
       this.stimulate('TableMonitor#add_score', playerId, increment)
     } else {
       // Clicking on opposite side = player switch
+      console.log('🔄 Switching player')
       this.next_step()
     }
   }
@@ -212,6 +280,8 @@ export default class extends ApplicationController {
   add_n () {
     const activePlayerId = this.getCurrentActivePlayer()
     const n = parseInt(this.element.dataset.n) || 1
+    
+    console.log('🔢 add_n called:', { activePlayerId, n })
     
     // Send immediately to server (JSON response is fast enough - no optimistic update needed!)
     this.stimulate('TableMonitor#add_score', activePlayerId, n)
