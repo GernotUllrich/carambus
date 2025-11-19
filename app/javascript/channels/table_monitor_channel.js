@@ -163,42 +163,29 @@ consumer.subscriptions.create("TableMonitorChannel", {
   
   updatePlayerScores(playerId, playerData) {
     // Direktes textContent-Update - kein innerHTML, kein Morphing!
-    const playerEl = document.querySelector(`[data-player="${playerId}"]`)
-    if (!playerEl) return
+    // Strategie: Nur die KRITISCHEN Werte aktualisieren (Score + Inning Score)
+    // HS/GD/Innings werden beim nächsten full_screen aktualisiert
     
-    // Score (Hauptpunktzahl)
-    const scoreEl = playerEl.querySelector('.player-score')
+    // Main score (Gesamtpunktzahl) - findet das Element mit data-player attribute
+    const scoreEl = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (scoreEl && playerData.score !== undefined) {
+      const newDisplayScore = playerData.score + (playerData.inning_score || 0)
       const oldScore = parseInt(scoreEl.textContent) || 0
-      if (oldScore !== playerData.score) {
-        scoreEl.textContent = playerData.score
+      if (oldScore !== newDisplayScore) {
+        scoreEl.textContent = newDisplayScore
         this.flashElement(scoreEl)
       }
     }
     
-    // Innings
-    const inningsEl = playerEl.querySelector('.player-innings')
-    if (inningsEl && playerData.innings !== undefined) {
-      inningsEl.textContent = playerData.innings
-    }
-    
-    // HS (Höchstserie)
-    const hsEl = playerEl.querySelector('.player-hs')
-    if (hsEl && playerData.hs !== undefined) {
-      hsEl.textContent = playerData.hs
-    }
-    
-    // GD (Generaldurchschnitt)
-    const gdEl = playerEl.querySelector('.player-gd')
-    if (gdEl && playerData.gd !== undefined) {
-      gdEl.textContent = playerData.gd.toFixed(2)
-    }
-    
-    // Current inning score
-    const inningScoreEl = playerEl.querySelector('.inning-score')
+    // Current inning score (aktueller Aufnahme-Score)
+    const inningScoreEl = document.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (inningScoreEl && playerData.inning_score !== undefined) {
       inningScoreEl.textContent = playerData.inning_score
     }
+    
+    // Note: HS, GD, Innings werden NICHT hier aktualisiert
+    // Diese ändern sich selten und werden beim nächsten full_screen refresh aktualisiert
+    // Das spart CPU-Zeit und reduziert DOM-Manipulationen
   },
   
   updateActiveBorders(playeraActive, playerbActive) {
