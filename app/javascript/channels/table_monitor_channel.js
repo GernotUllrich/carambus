@@ -58,20 +58,32 @@ consumer.subscriptions.create("TableMonitorChannel", {
   received(data) {
     // Called when there's incoming data on the websocket for this channel
     
-    // Handle custom JSON updates (new approach for fast scoreboard updates)
-    if (data.type === "scoreboard_update" && data.data) {
-      console.log('📊 Received scoreboard update:', data.data)
-      
-      // Dispatch custom event that the tabmon controller listens for
-      const event = new CustomEvent('scoreboard:data_update', {
-        detail: data.data,
-        bubbles: true
-      })
-      document.dispatchEvent(event)
+    // ========================================================================
+    // FAST JSON UPDATES - Route to specific handlers based on update type
+    // ========================================================================
+    
+    if (data.type === "score_update") {
+      // Häufigster Fall: Nur Scores geändert
+      console.log('⚡ Score update:', data.data)
+      this.handleScoreUpdate(data.table_monitor_id, data.data)
       return
     }
     
-    // Handle CableReady operations (old approach)
+    if (data.type === "player_switch") {
+      // Spielerwechsel
+      console.log('🔄 Player switch:', data.data)
+      this.handlePlayerSwitch(data.table_monitor_id, data.data)
+      return
+    }
+    
+    if (data.type === "state_change") {
+      // Spielzustand geändert
+      console.log('🎮 State change:', data.data)
+      this.handleStateChange(data.table_monitor_id, data.data)
+      return
+    }
+    
+    // Handle CableReady operations (full_screen mit inner_html)
     if (data.cableReady) {
       // Debug messages removed - no more console spam
       
@@ -106,5 +118,120 @@ consumer.subscriptions.create("TableMonitorChannel", {
         // Debug messages removed - no more console spam
       }
     }
+  },
+  
+  // ========================================================================
+  // JSON UPDATE HANDLERS - Direkte DOM-Updates (kein Morphing!)
+  // ========================================================================
+  
+  handleScoreUpdate(tableMonitorId, data) {
+    // Nur Zahlen ändern - super schnell, kein Layout-Shift
+    this.updatePlayerScores('playera', data.playera)
+    this.updatePlayerScores('playerb', data.playerb)
+  },
+  
+  handlePlayerSwitch(tableMonitorId, data) {
+    // Scores + aktiver Spieler + Border-Farben
+    this.updatePlayerScores('playera', data.playera)
+    this.updatePlayerScores('playerb', data.playerb)
+    
+    // Active borders aktualisieren
+    this.updateActiveBorders(data.playera.active, data.playerb.active)
+    
+    // Layout (left/right) könnte sich geändert haben
+    // Aber wir morphen NICHT - wir akzeptieren kleine Verzögerungen
+    // bis zum nächsten full_screen refresh
+  },
+  
+  handleStateChange(tableMonitorId, data) {
+    // Komplettere Updates: Scores + Spieler + State
+    this.updatePlayerScores('playera', data.playera)
+    this.updatePlayerScores('playerb', data.playerb)
+    this.updateActiveBorders(data.playera.active, data.playerb.active)
+    
+    // State display aktualisieren
+    const stateEl = document.querySelector('.state-display')
+    if (stateEl && data.state_display) {
+      stateEl.textContent = data.state_display
+      this.flashElement(stateEl)
+    }
+  },
+  
+  // ========================================================================
+  // DOM UPDATE HELPERS
+  // ========================================================================
+  
+  updatePlayerScores(playerId, playerData) {
+    // Direktes textContent-Update - kein innerHTML, kein Morphing!
+    const playerEl = document.querySelector(`[data-player="${playerId}"]`)
+    if (!playerEl) return
+    
+    // Score (Hauptpunktzahl)
+    const scoreEl = playerEl.querySelector('.player-score')
+    if (scoreEl && playerData.score !== undefined) {
+      const oldScore = parseInt(scoreEl.textContent) || 0
+      if (oldScore !== playerData.score) {
+        scoreEl.textContent = playerData.score
+        this.flashElement(scoreEl)
+      }
+    }
+    
+    // Innings
+    const inningsEl = playerEl.querySelector('.player-innings')
+    if (inningsEl && playerData.innings !== undefined) {
+      inningsEl.textContent = playerData.innings
+    }
+    
+    // HS (Höchstserie)
+    const hsEl = playerEl.querySelector('.player-hs')
+    if (hsEl && playerData.hs !== undefined) {
+      hsEl.textContent = playerData.hs
+    }
+    
+    // GD (Generaldurchschnitt)
+    const gdEl = playerEl.querySelector('.player-gd')
+    if (gdEl && playerData.gd !== undefined) {
+      gdEl.textContent = playerData.gd.toFixed(2)
+    }
+    
+    // Current inning score
+    const inningScoreEl = playerEl.querySelector('.inning-score')
+    if (inningScoreEl && playerData.inning_score !== undefined) {
+      inningScoreEl.textContent = playerData.inning_score
+    }
+  },
+  
+  updateActiveBorders(playeraActive, playerbActive) {
+    // Border-Styles für aktiven Spieler
+    const playeraEl = document.querySelector('[data-player="playera"]')
+    const playerbEl = document.querySelector('[data-player="playerb"]')
+    
+    if (playeraEl) {
+      if (playeraActive) {
+        playeraEl.classList.remove('border-4', 'border-gray-500')
+        playeraEl.classList.add('border-8', 'border-green-400')
+      } else {
+        playeraEl.classList.remove('border-8', 'border-green-400')
+        playeraEl.classList.add('border-4', 'border-gray-500')
+      }
+    }
+    
+    if (playerbEl) {
+      if (playerbActive) {
+        playerbEl.classList.remove('border-4', 'border-gray-500')
+        playerbEl.classList.add('border-8', 'border-green-400')
+      } else {
+        playerbEl.classList.remove('border-8', 'border-green-400')
+        playerbEl.classList.add('border-4', 'border-gray-500')
+      }
+    }
+  },
+  
+  flashElement(element) {
+    // Kurzes visuelles Feedback für geänderte Werte
+    element.classList.add('bg-yellow-200')
+    setTimeout(() => {
+      element.classList.remove('bg-yellow-200')
+    }, 150)
   }
 });

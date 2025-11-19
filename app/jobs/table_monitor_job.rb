@@ -39,12 +39,25 @@ class TableMonitorJob < ApplicationJob
         perform_teaser_update(table_monitor, debug)
       when "table_scores"
         perform_table_scores_update(table_monitor, debug)
+      when "score_update"
+        # Häufig: Nur Scores geändert (add_score, minus_n)
+        perform_score_update(table_monitor, debug)
+      when "player_switch"
+        # Mittel: Spielerwechsel (next_step)
+        perform_player_switch_update(table_monitor, debug)
+      when "state_change"
+        # Gelegentlich: Spielzustand geändert (start_game, end_of_set)
+        perform_state_change_update(table_monitor, debug)
+      when "full_screen"
+        # Selten: Komplettes Scoreboard neu (komplexe Änderungen)
+        perform_full_screen_update(table_monitor, debug)
       else
+        # Fallback: Bei unbekanntem Typ → full_screen
         perform_full_screen_update(table_monitor, debug)
       end
       
-      # Broadcast operations
-      cable_ready.broadcast
+      # Broadcast operations (nur für CableReady-Operationen, nicht für ActionCable.broadcast)
+      cable_ready.broadcast if cable_ready.instance_variable_get(:@enqueued_operations)&.any?
       
       # Log performance metrics
       duration = ((Time.current - start_time) * 1000).round(2)
@@ -130,29 +143,152 @@ class TableMonitorJob < ApplicationJob
     DebugLogger.log_operation("table_scores", table_monitor.id, selector, true)
   end
 
-  def perform_full_screen_update(table_monitor, debug)
-    # NEW APPROACH: Broadcast lightweight JSON data instead of heavy HTML
-    # This is 100x faster on slow clients (Raspberry Pi 3)
+  # ========================================================================
+  # FAST JSON UPDATES (kein HTML-Morphing, direkte DOM-Updates)
+  # ========================================================================
+  
+  def perform_score_update(table_monitor, debug)
+    # Häufigster Fall: Nur Score-Werte haben sich geändert
+    # → Mini-JSON mit nur den nötigsten Daten
+    data = build_minimal_score_data(table_monitor)
     
-    # CableReady 5.0.6 doesn't support dispatch_event, so we broadcast raw data
-    # and let the channel handle the event dispatching
     ActionCable.server.broadcast(
       "table-monitor-stream",
       {
-        type: "scoreboard_update",
-        data: build_scoreboard_update(table_monitor)
+        type: "score_update",
+        table_monitor_id: table_monitor.id,
+        data: data
       }
     )
     
-    Rails.logger.info "📊 Broadcasted JSON update for table #{table_monitor.id}" if debug
-    DebugLogger.log_operation("json_data_update", table_monitor.id, "scoreboard:data_update", true)
+    Rails.logger.info "⚡ Score update (JSON) for table #{table_monitor.id}" if debug
+    DebugLogger.log_operation("score_update", table_monitor.id, "score_update", true)
+  end
+  
+  def perform_player_switch_update(table_monitor, debug)
+    # Spielerwechsel: Scores + aktiver Spieler + ggf. Farben
+    data = build_player_switch_data(table_monitor)
+    
+    ActionCable.server.broadcast(
+      "table-monitor-stream",
+      {
+        type: "player_switch",
+        table_monitor_id: table_monitor.id,
+        data: data
+      }
+    )
+    
+    Rails.logger.info "🔄 Player switch (JSON) for table #{table_monitor.id}" if debug
+    DebugLogger.log_operation("player_switch", table_monitor.id, "player_switch", true)
+  end
+  
+  def perform_state_change_update(table_monitor, debug)
+    # Spielzustand geändert: Vollständige Daten, aber als JSON
+    data = build_full_scoreboard_data(table_monitor)
+    
+    ActionCable.server.broadcast(
+      "table-monitor-stream",
+      {
+        type: "state_change",
+        table_monitor_id: table_monitor.id,
+        data: data
+      }
+    )
+    
+    Rails.logger.info "🎮 State change (JSON) for table #{table_monitor.id}" if debug
+    DebugLogger.log_operation("state_change", table_monitor.id, "state_change", true)
+  end
+  
+  def perform_full_screen_update(table_monitor, debug)
+    # Seltener Fall: Komplettes Scoreboard neu rendern
+    # → HTML via inner_html (KEIN Morphing! Direkter Austausch!)
+    
+    # Render HTML (ja, mit DB-Abfragen - aber das passiert selten)
+    html = ApplicationController.render(
+      partial: "table_monitors/scoreboard",
+      locals: { 
+        table_monitor: table_monitor, 
+        fullscreen: true 
+      }
+    )
+    
+    # inner_html statt morph → schneller, kein CPU-intensives Diffing
+    cable_ready["table-monitor-stream"].inner_html(
+      selector: "#scoreboard-root",
+      html: html
+    )
+    
+    Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) for table #{table_monitor.id}" if debug
+    DebugLogger.log_operation("full_screen_html", table_monitor.id, "#scoreboard-root", true)
   end
 
-  def build_scoreboard_update(table_monitor)
-    # Build minimal JSON payload with only the data that changes
-    # Payload size: ~1KB instead of ~50-100KB HTML
+  # ========================================================================
+  # DATA BUILDERS - Verschiedene Detail-Level für verschiedene Update-Typen
+  # ========================================================================
+  
+  def build_minimal_score_data(table_monitor)
+    # MINIMAL: Nur die Zahlen, die sich bei Score-Updates ändern
+    # Perfekt für: add_score, minus_n
+    # Payload: ~200 Bytes
     
-    table_monitor.get_options!(I18n.locale) # Ensure options are populated
+    table_monitor.get_options!(I18n.locale)
+    options = table_monitor.options
+    
+    {
+      playera: {
+        score: options.dig(:player_a, :result).to_i,
+        innings: options.dig(:player_a, :innings).to_i,
+        hs: options.dig(:player_a, :hs).to_i,
+        gd: options.dig(:player_a, :gd).to_f.round(2),
+        inning_score: table_monitor.data.dig("playera", "innings_redo_list")&.last || 0
+      },
+      playerb: {
+        score: options.dig(:player_b, :result).to_i,
+        innings: options.dig(:player_b, :innings).to_i,
+        hs: options.dig(:player_b, :hs).to_i,
+        gd: options.dig(:player_b, :gd).to_f.round(2),
+        inning_score: table_monitor.data.dig("playerb", "innings_redo_list")&.last || 0
+      }
+    }
+  end
+  
+  def build_player_switch_data(table_monitor)
+    # MITTEL: Scores + aktiver Spieler + Layout-Info
+    # Perfekt für: next_step, switch_players
+    # Payload: ~500 Bytes
+    
+    table_monitor.get_options!(I18n.locale)
+    options = table_monitor.options
+    
+    {
+      playera: {
+        score: options.dig(:player_a, :result).to_i,
+        innings: options.dig(:player_a, :innings).to_i,
+        hs: options.dig(:player_a, :hs).to_i,
+        gd: options.dig(:player_a, :gd).to_f.round(2),
+        active: options[:player_a_active] || false,
+        inning_score: table_monitor.data.dig("playera", "innings_redo_list")&.last || 0
+      },
+      playerb: {
+        score: options.dig(:player_b, :result).to_i,
+        innings: options.dig(:player_b, :innings).to_i,
+        hs: options.dig(:player_b, :hs).to_i,
+        gd: options.dig(:player_b, :gd).to_f.round(2),
+        active: options[:player_b_active] || false,
+        inning_score: table_monitor.data.dig("playerb", "innings_redo_list")&.last || 0
+      },
+      left_player: options[:current_left_player],
+      left_color: options[:current_left_color],
+      right_color: options[:current_right_color]
+    }
+  end
+  
+  def build_full_scoreboard_data(table_monitor)
+    # KOMPLETT: Alle Daten (aber immer noch als JSON, kein HTML!)
+    # Perfekt für: start_game, end_of_set, state changes
+    # Payload: ~1KB
+    
+    table_monitor.get_options!(I18n.locale)
     options = table_monitor.options
     game = table_monitor.game
     
@@ -161,38 +297,37 @@ class TableMonitorJob < ApplicationJob
       game_id: game&.id,
       timestamp: Time.current.to_i,
       
-      # Player A data
       playera: {
+        name: options.dig(:player_a, :fullname),
         score: options.dig(:player_a, :result).to_i,
         innings: options.dig(:player_a, :innings).to_i,
         hs: options.dig(:player_a, :hs).to_i,
         gd: options.dig(:player_a, :gd).to_f.round(2),
         active: options[:player_a_active] || false,
-        balls_goal: options.dig(:player_a, :balls_goal).to_i
+        balls_goal: options.dig(:player_a, :balls_goal).to_i,
+        inning_score: table_monitor.data.dig("playera", "innings_redo_list")&.last || 0
       },
       
-      # Player B data
       playerb: {
+        name: options.dig(:player_b, :fullname),
         score: options.dig(:player_b, :result).to_i,
         innings: options.dig(:player_b, :innings).to_i,
         hs: options.dig(:player_b, :hs).to_i,
         gd: options.dig(:player_b, :gd).to_f.round(2),
         active: options[:player_b_active] || false,
-        balls_goal: options.dig(:player_b, :balls_goal).to_i
+        balls_goal: options.dig(:player_b, :balls_goal).to_i,
+        inning_score: table_monitor.data.dig("playerb", "innings_redo_list")&.last || 0
       },
       
-      # Current inning scores (only for active player)
-      inning_score_playera: options[:player_a_active] ? 
-        (table_monitor.data.dig("playera", "innings_redo_list")&.last || 0) : 0,
-      inning_score_playerb: options[:player_b_active] ? 
-        (table_monitor.data.dig("playerb", "innings_redo_list")&.last || 0) : 0,
+      left_player: options[:current_left_player],
+      left_color: options[:current_left_color],
+      right_color: options[:current_right_color],
       
-      # Game state
       state: table_monitor.state,
-      state_display: table_monitor.state_display(I18n.locale).to_s
+      state_display: table_monitor.state_display(I18n.locale).to_s,
       
-      # Note: Timer updates happen separately via TableMonitorClockJob
-      # Not included here to keep payload minimal
+      sets_a: table_monitor.data["current_sets_a"] || 0,
+      sets_b: table_monitor.data["current_sets_b"] || 0
     }
   end
 end

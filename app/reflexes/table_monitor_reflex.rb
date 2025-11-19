@@ -409,8 +409,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.do_play
     @table_monitor.save!
     
-    # Broadcast JSON update to all clients
-    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
+    TableMonitorJob.perform_later(@table_monitor, 'state_change')
   end
 
   def start_game
@@ -425,8 +425,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.do_play
     @table_monitor.save!
     
-    # Broadcast JSON update to all clients
-    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
+    TableMonitorJob.perform_later(@table_monitor, 'state_change')
   end
 
   def home
@@ -524,10 +524,12 @@ class TableMonitorReflex < ApplicationReflex
     if check_set_should_end(@table_monitor)
       Rails.logger.info "🏁 Set completed - triggering end_of_set" if DEBUG
       @table_monitor.end_of_set!
+      # Set ended → state_change (kompletteres Update)
+      TableMonitorJob.perform_later(@table_monitor, 'state_change')
+    else
+      # Normal score update → nur die Zahlen
+      TableMonitorJob.perform_later(@table_monitor, 'score_update')
     end
-    
-    # Broadcast JSON update to all clients (fast!)
-    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
     
   rescue StandardError => e
     Rails.logger.error "❌ add_score ERROR: #{e.message}"
@@ -792,8 +794,8 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
     
-    # Broadcast JSON update to all clients
-    TableMonitorJob.perform_later(@table_monitor, 'full_screen')
+    # Spielerwechsel → player_switch update
+    TableMonitorJob.perform_later(@table_monitor, 'player_switch')
   end
 
   def admin_ack_result
