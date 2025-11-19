@@ -770,6 +770,7 @@ class TableMonitorReflex < ApplicationReflex
     tm1.save
     tm2.save
     @table_monitor.reload
+    @table_monitor.clear_options_cache  # Clear cache after reload to ensure fresh data
   rescue StandardError => e
     Rails.logger.info ";;; ERROR: up #{e} #{e.backtrace.to_a.join("\n")}"
   end
@@ -798,6 +799,7 @@ class TableMonitorReflex < ApplicationReflex
     tm1.save
     tm2.save
     @table_monitor.reload
+    @table_monitor.clear_options_cache  # Clear cache after reload to ensure fresh data
   rescue StandardError => e
     Rails.logger.info ";;; down ERROR:  #{e} #{e.backtrace.to_a.join("\n")}"
   end

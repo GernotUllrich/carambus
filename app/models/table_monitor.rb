@@ -1310,6 +1310,11 @@ data[\"allow_overflow\"].present?")
     end
   end
 
+  def clear_options_cache
+    @cached_options = nil
+    @cached_options_key = nil
+  end
+
   attr_reader :msg
 
   def marshal_dup(hash)

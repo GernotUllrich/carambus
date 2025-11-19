@@ -30,8 +30,7 @@ class TableMonitorJob < ApplicationJob
     table_monitor.reload
     
     # KRITISCH: Cache leeren, damit get_options! die aktuellen Daten verwendet!
-    table_monitor.instance_variable_set(:@cached_options, nil)
-    table_monitor.instance_variable_set(:@cached_options_key, nil)
+    table_monitor.clear_options_cache
     
     info = "🚀 [#{Time.current.strftime("%H:%M:%S.%3N")}] PERFORM JOB #{operation_type} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
@@ -67,14 +66,15 @@ class TableMonitorJob < ApplicationJob
         perform_full_screen_update(table_monitor, debug)
       end
       
-      # Broadcast operations (nur für CableReady-Operationen, nicht für ActionCable.broadcast)
-      enqueued_ops = cable_ready.instance_variable_get(:@enqueued_operations)
-      if enqueued_ops&.any?
-        Rails.logger.info "📡 Broadcasting #{enqueued_ops.size} CableReady operations..." if debug
+      # Broadcast operations
+      # Note: CableReady stores operations per channel (e.g., cable_ready["table-monitor-stream"])
+      # We need to broadcast to actually send the queued operations to clients
+      begin
         cable_ready.broadcast
-        Rails.logger.info "✅ Broadcast complete!" if debug
-      else
-        Rails.logger.info "⚠️ No CableReady operations to broadcast (might be ActionCable.broadcast instead)" if debug
+        Rails.logger.info "✅ CableReady broadcast complete!" if debug
+      rescue => e
+        Rails.logger.error "💥 CableReady broadcast failed: #{e.message}"
+        Rails.logger.error "   Backtrace: #{e.backtrace.first(3).join(', ')}"
       end
       
       # Log performance metrics
@@ -248,6 +248,7 @@ class TableMonitorJob < ApplicationJob
     )
     
     Rails.logger.info "🖼️ Full screen refresh (HTML inner_html) queued for table #{table_monitor.id}, selector: #{selector}" if debug
+    Rails.logger.info "🔍 FULL_SCREEN: CableReady operations count: #{cable_ready['table-monitor-stream'].instance_variable_get(:@enqueued_operations)&.size || 0}" if debug
     Rails.logger.info "🔍 FULL_SCREEN: cable_ready operations count: #{cable_ready.instance_variable_get(:@enqueued_operations)&.size || 0}" if debug
     DebugLogger.log_operation("full_screen_html", table_monitor.id, selector, true)
   end

@@ -115,6 +115,7 @@ class ScoreboardOptimisticService
   # Revert optimistic changes if needed
   def revert_changes
     @table_monitor.reload
+    @table_monitor.clear_options_cache  # Clear cache after reload to ensure fresh data
   rescue StandardError => e
     Rails.logger.error "ScoreboardOptimisticService: Error in revert_changes: #{e.message}"
     false
