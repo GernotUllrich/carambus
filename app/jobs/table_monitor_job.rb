@@ -51,8 +51,12 @@ class TableMonitorJob < ApplicationJob
       when "full_screen"
         # Selten: Komplettes Scoreboard neu (komplexe Änderungen)
         perform_full_screen_update(table_monitor, debug)
+      when "", nil
+        # Leerer Job aus after_update_commit - ignorieren, da Reflexes eigene Jobs triggern
+        Rails.logger.info "⏭️ Skipping empty job (triggered by callback)" if debug
       else
         # Fallback: Bei unbekanntem Typ → full_screen
+        Rails.logger.warn "⚠️ Unknown job type '#{args[1]}' - falling back to full_screen"
         perform_full_screen_update(table_monitor, debug)
       end
       
