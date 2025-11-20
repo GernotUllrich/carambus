@@ -1,0 +1,62 @@
+=== System Info ===
+Raspberry Pi 3 Model B Rev 1.2armv7l
+
+=== Memory Usage ===
+               total        used        free      shared  buff/cache   available
+Mem:           921Mi       248Mi       135Mi       6.7Mi       603Mi       672Mi
+Swap:          920Mi       6.5Mi       914Mi
+
+=== Memory Details ===
+Total: 921MB, Used: 248MB, Free: 135MB, Available: 672MB, Usage: 26.9%
+
+=== Swap Usage ===
+Total: 920MB, Used: 6MB, Free: 914MB, Usage: 0.7%
+
+=== CPU Usage ===
+%Cpu(s):  1.7 us,  3.3 sy,  0.0 ni, 95.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+
+=== Load Average ===
+ 22:57:26 up 24 min,  3 users,  load average: 0.15, 0.17, 0.44
+
+=== Top 10 Processes by Memory ===
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+pi        1317  0.0  5.0 196144 47508 ?        Ssl  22:33   0:00 /usr/libexec/xdg-desktop-portal-wlr
+pi        5802  0.7  4.8 253804 45572 ?        Sl   22:41   0:07 /usr/bin/wf-panel-pi
+pi        1125  0.7  3.6 113724 34708 ?        Sl   22:33   0:11 pcmanfm --desktop
+pi         938  0.1  3.4 231376 32820 ?        Ssl  22:33   0:02 /usr/bin/wireplumber
+vnc       5602  0.0  3.2 219572 30364 ?        Sl   22:41   0:00 wayvnc --detached --gpu --config /etc/wayvnc/config --socket /tmp/wayvnc/wayvncctl.sock
+pi        1158  0.0  2.5 106872 23892 ?        Sl   22:33   0:00 /usr/bin/squeekboard
+pi         935  0.9  2.2  65220 20944 ?        Ssl  22:33   0:14 /usr/bin/labwc -m
+pi        1272  0.0  1.9  83104 18640 ?        Ssl  22:33   0:00 /usr/libexec/xdg-desktop-portal-gtk
+pi        1108  0.0  1.8  82616 17688 ?        Sl   22:33   0:00 /usr/libexec/polkit-mate-authentication-agent-1
+pi        1100  0.0  1.8  82440 17180 ?        Sl   22:33   0:00 gtk-nop
+
+=== Active Network Connections ===
+NAME           UUID                                  TYPE      DEVICE 
+preconfigured  da704433-32bc-4093-a2a8-9a093234d1d2  wifi      wlan0  
+lo             59030a04-fed4-44b8-859c-0093bc12b681  loopback  lo     
+
+=== All Network Connections ===
+NAME                UUID                                  TYPE      DEVICE 
+preconfigured       da704433-32bc-4093-a2a8-9a093234d1d2  wifi      wlan0  
+lo                  59030a04-fed4-44b8-859c-0093bc12b681  loopback  lo     
+Wired connection 1  f5faa5ea-2016-3115-9459-4d1752619018  ethernet  --     
+
+=== Enabled Services (memory-related) ===
+avahi-daemon.service               enabled enabled
+bluetooth.service                  enabled enabled
+cups-browsed.service               enabled enabled
+cups.service                       enabled enabled
+
+=== Disk I/O ===
+iostat not available
+
+=== Chromium Process ===
+Chromium not running
+
+=== Browser Performance Test ===
+Chromium not running - cannot test browser performance
+
+=== CPU Temperature ===
+Temperature: 44°C
+

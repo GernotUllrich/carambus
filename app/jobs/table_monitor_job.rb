@@ -5,6 +5,11 @@ class TableMonitorJob < ApplicationJob
   def perform(*args)
     debug = true # Rails.env != 'production'
     table_monitor = args[0]
+    
+    # Reload and clear cache to ensure fresh data
+    table_monitor.reload
+    table_monitor.clear_options_cache
+    
     info = "perf +++++++!!!! C: PERFORM JOB #{Time.now} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
     case args[1]

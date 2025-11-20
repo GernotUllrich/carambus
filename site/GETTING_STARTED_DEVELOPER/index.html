@@ -1,0 +1,2288 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/GETTING_STARTED_DEVELOPER/">
+      
+      
+        <link rel="prev" href="../ai_search/">
+      
+      
+        <link rel="next" href="../DEVELOPER_GUIDE/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Getting Started - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#schnelleinstieg-fur-entwickler" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting Started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/GETTING_STARTED_DEVELOPER/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Einführung
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  Benutzerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Entwicklerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Einführung
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Einführung
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schnellstart Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benutzerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Benutzerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ligaspieltage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Entwicklerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-zugriff-einrichten-wichtig" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔑 GitHub-Zugriff einrichten (Wichtig!)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 GitHub-Zugriff einrichten (Wichtig!)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-ssh-key-generieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: SSH-Key generieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-ssh-key-zu-github-hinzufugen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: SSH-Key zu GitHub hinzufügen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-3-ssh-verbindung-testen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3: SSH-Verbindung testen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lokales-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Lokales Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentials-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔑 Credentials einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 Credentials einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-credentials-kopieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: Credentials kopieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-datenbank-dump-importieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: Datenbank-Dump importieren
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbank-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗄️ Datenbank einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Datenbank einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-automatisch-uber-scenario-management-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Automatisch über Scenario Management (Empfohlen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-manuell-uber-psql" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: Manuell über psql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-mit-leerer-datenbank-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Mit leerer Datenbank starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#haufige-probleme-losungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Häufige Probleme &amp; Lösungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Häufige Probleme &amp; Lösungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-zugriff-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub-Zugriff funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostgreSQL läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ports-sind-belegt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ports sind belegt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credentials-Fehler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Fehler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte-nach-dem-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Erste Schritte nach dem Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nachste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 Nächste Schritte
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hilfe-benotigt" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Hilfe benötigt?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-zugriff-einrichten-wichtig" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔑 GitHub-Zugriff einrichten (Wichtig!)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 GitHub-Zugriff einrichten (Wichtig!)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-ssh-key-generieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: SSH-Key generieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-ssh-key-zu-github-hinzufugen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: SSH-Key zu GitHub hinzufügen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-3-ssh-verbindung-testen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3: SSH-Verbindung testen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lokales-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Lokales Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentials-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔑 Credentials einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 Credentials einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-credentials-kopieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: Credentials kopieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-datenbank-dump-importieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: Datenbank-Dump importieren
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datenbank-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗄️ Datenbank einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Datenbank einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-automatisch-uber-scenario-management-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Automatisch über Scenario Management (Empfohlen)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-manuell-uber-psql" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: Manuell über psql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-mit-leerer-datenbank-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Mit leerer Datenbank starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#haufige-probleme-losungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Häufige Probleme &amp; Lösungen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Häufige Probleme &amp; Lösungen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-zugriff-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub-Zugriff funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      PostgreSQL läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ports-sind-belegt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ports sind belegt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credentials-Fehler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datenbank-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datenbank-Fehler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte-nach-dem-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Erste Schritte nach dem Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nachste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 Nächste Schritte
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hilfe-benotigt" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Hilfe benötigt?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="schnelleinstieg-fur-entwickler">🚀 <strong>Schnelleinstieg für Entwickler</strong><a class="headerlink" href="#schnelleinstieg-fur-entwickler" title="Permanent link">&para;</a></h1>
+<p>Willkommen bei Carambus! Dieser Guide hilft dir, schnell mit der Entwicklung zu beginnen.</p>
+<h2 id="voraussetzungen">📋 <strong>Voraussetzungen</strong><a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Ruby 3.2+</strong> (empfohlen: 3.2.1)</li>
+<li><strong>Rails 7.2+</strong></li>
+<li><strong>PostgreSQL 15+</strong></li>
+<li><strong>Redis</strong></li>
+<li><strong>Git</strong></li>
+<li><strong>SSH-Key</strong> für GitHub-Zugriff</li>
+</ul>
+<h2 id="github-zugriff-einrichten-wichtig">🔑 <strong>GitHub-Zugriff einrichten (Wichtig!)</strong><a class="headerlink" href="#github-zugriff-einrichten-wichtig" title="Permanent link">&para;</a></h2>
+<p><strong>Das Repository verwendet SSH-Authentifizierung, nicht HTTPS!</strong></p>
+<h3 id="schritt-1-ssh-key-generieren"><strong>Schritt 1: SSH-Key generieren</strong><a class="headerlink" href="#schritt-1-ssh-key-generieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># SSH-Key generieren</span>
+ssh-keygen<span class="w"> </span>-t<span class="w"> </span>rsa<span class="w"> </span>-b<span class="w"> </span><span class="m">4096</span><span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;deine-email@example.com&quot;</span>
+
+<span class="c1"># SSH-Key zu ssh-agent hinzufügen</span>
+ssh-add<span class="w"> </span>~/.ssh/id_rsa
+
+<span class="c1"># Öffentlichen Schlüssel anzeigen</span>
+cat<span class="w"> </span>~/.ssh/id_rsa.pub
+</code></pre></div>
+<h3 id="schritt-2-ssh-key-zu-github-hinzufugen"><strong>Schritt 2: SSH-Key zu GitHub hinzufügen</strong><a class="headerlink" href="#schritt-2-ssh-key-zu-github-hinzufugen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Den öffentlichen Schlüssel kopieren (Ausgabe von <code>cat ~/.ssh/id_rsa.pub</code>)</li>
+<li>GitHub → Settings → SSH and GPG keys → "New SSH key"</li>
+<li>Schlüssel einfügen und speichern</li>
+</ol>
+<h3 id="schritt-3-ssh-verbindung-testen"><strong>Schritt 3: SSH-Verbindung testen</strong><a class="headerlink" href="#schritt-3-ssh-verbindung-testen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test der SSH-Verbindung</span>
+ssh<span class="w"> </span>-T<span class="w"> </span>git@github.com
+
+<span class="c1"># Sollte ausgeben: &quot;Hi username! You&#39;ve successfully authenticated...&quot;</span>
+</code></pre></div>
+<h2 id="lokales-setup">🖥️ <strong>Lokales Setup</strong><a class="headerlink" href="#lokales-setup" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Repository klonen (WICHTIG: SSH-URL verwenden!)</span>
+git<span class="w"> </span>clone<span class="w"> </span>git@github.com:GernotUllrich/carambus.git
+<span class="nb">cd</span><span class="w"> </span>carambus
+
+<span class="c1"># Dependencies installieren</span>
+bundle<span class="w"> </span>install
+yarn<span class="w"> </span>install
+
+<span class="c1"># Datenbank einrichten</span>
+<span class="c1"># Option 1: Bestehenden Datenbank-Dump importieren (empfohlen)</span>
+<span class="c1"># Stellen Sie sicher, dass Sie eine Datenbank-Dump-Datei haben (z.B., carambus_api_development_YYYYMMDD_HHMMSS.sql)</span>
+<span class="c1"># Datenbank erstellen und Dump importieren:</span>
+createdb<span class="w"> </span>carambus_development
+psql<span class="w"> </span>-d<span class="w"> </span>carambus_development<span class="w"> </span>-f<span class="w"> </span>/pfad/zu/ihrem/dump.sql
+
+<span class="c1"># Option 2: Neue Datenbank erstellen (falls kein Dump verfügbar)</span>
+rails<span class="w"> </span>db:create
+rails<span class="w"> </span>db:migrate
+rails<span class="w"> </span>db:seed
+
+<span class="c1"># Server starten</span>
+rails<span class="w"> </span>server
+</code></pre></div>
+<h2 id="credentials-einrichten">🔑 <strong>Credentials einrichten</strong><a class="headerlink" href="#credentials-einrichten" title="Permanent link">&para;</a></h2>
+<p><strong>Wichtig:</strong> Du brauchst die <code>development.key</code> und <code>credentials.yml.enc</code> von einem funktionierenden System.</p>
+<h3 id="schritt-1-credentials-kopieren"><strong>Schritt 1: Credentials kopieren</strong><a class="headerlink" href="#schritt-1-credentials-kopieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Diese Dateien in config/credentials/ kopieren:</span>
+<span class="c1"># - development.key</span>
+<span class="c1"># - credentials.yml.enc</span>
+
+<span class="c1"># Beispiel (von einem anderen System):</span>
+cp<span class="w"> </span>/path/to/working/system/config/credentials/development.key<span class="w"> </span>config/credentials/
+cp<span class="w"> </span>/path/to/working/system/config/credentials/credentials.yml.enc<span class="w"> </span>config/credentials/
+</code></pre></div>
+<h3 id="schritt-2-datenbank-dump-importieren"><strong>Schritt 2: Datenbank-Dump importieren</strong><a class="headerlink" href="#schritt-2-datenbank-dump-importieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Datenbank-Dump importieren:</span>
+psql<span class="w"> </span>-d<span class="w"> </span>carambus_development<span class="w"> </span>-f<span class="w"> </span>/path/to/carambus_api_development_dump.sql
+</code></pre></div>
+<p><strong>Woher bekommen?</strong>
+- Von einem anderen Entwickler im Team
+- Aus deinem lokalen <code>carambus_api</code> Ordner
+- Vom Team Lead</p>
+<h2 id="datenbank-einrichten">🗄️ <strong>Datenbank einrichten</strong><a class="headerlink" href="#datenbank-einrichten" title="Permanent link">&para;</a></h2>
+<h3 id="option-1-automatisch-uber-scenario-management-empfohlen"><strong>Option 1: Automatisch über Scenario Management (Empfohlen)</strong><a class="headerlink" href="#option-1-automatisch-uber-scenario-management-empfohlen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Scenario konfigurieren und deployen</span>
+rake<span class="w"> </span>scenario:prepare_development<span class="o">[</span>scenario_name,development<span class="o">]</span>
+
+<span class="c1"># 2. Server starten</span>
+rails<span class="w"> </span>server
+</code></pre></div>
+<h3 id="option-2-manuell-uber-psql"><strong>Option 2: Manuell über psql</strong><a class="headerlink" href="#option-2-manuell-uber-psql" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Datenbank-Dump manuell importieren</span>
+gunzip<span class="w"> </span>-c<span class="w"> </span>/path/to/carambus_api_development_dump.sql.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>psql<span class="w"> </span>-d<span class="w"> </span>carambus_development
+</code></pre></div>
+<h3 id="option-3-mit-leerer-datenbank-starten"><strong>Option 3: Mit leerer Datenbank starten</strong><a class="headerlink" href="#option-3-mit-leerer-datenbank-starten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Falls kein Dump vorhanden:</span>
+rails<span class="w"> </span>db:create
+rails<span class="w"> </span>db:migrate
+</code></pre></div>
+<h2 id="haufige-probleme-losungen">🚨 <strong>Häufige Probleme &amp; Lösungen</strong><a class="headerlink" href="#haufige-probleme-losungen" title="Permanent link">&para;</a></h2>
+<h3 id="github-zugriff-funktioniert-nicht"><strong>GitHub-Zugriff funktioniert nicht</strong><a class="headerlink" href="#github-zugriff-funktioniert-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># SSH-Key überprüfen</span>
+ssh-add<span class="w"> </span>-l
+
+<span class="c1"># Falls leer, Key hinzufügen:</span>
+ssh-add<span class="w"> </span>~/.ssh/id_rsa
+
+<span class="c1"># SSH-Verbindung testen</span>
+ssh<span class="w"> </span>-T<span class="w"> </span>git@github.com
+</code></pre></div>
+<h3 id="postgresql-lauft-nicht"><strong>PostgreSQL läuft nicht</strong><a class="headerlink" href="#postgresql-lauft-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># PostgreSQL starten</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>postgresql
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>postgresql
+
+<span class="c1"># Oder auf macOS:</span>
+brew<span class="w"> </span>services<span class="w"> </span>start<span class="w"> </span>postgresql
+</code></pre></div>
+<h3 id="redis-lauft-nicht"><strong>Redis läuft nicht</strong><a class="headerlink" href="#redis-lauft-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Redis starten</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>redis
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>redis
+
+<span class="c1"># Oder auf macOS:</span>
+brew<span class="w"> </span>services<span class="w"> </span>start<span class="w"> </span>redis
+</code></pre></div>
+<h3 id="ports-sind-belegt"><strong>Ports sind belegt</strong><a class="headerlink" href="#ports-sind-belegt" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ports überprüfen</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:3000
+lsof<span class="w"> </span>-i<span class="w"> </span>:5432
+lsof<span class="w"> </span>-i<span class="w"> </span>:6379
+
+<span class="c1"># Falls belegt, andere Ports verwenden oder Services stoppen</span>
+</code></pre></div>
+<h3 id="credentials-fehler"><strong>Credentials-Fehler</strong><a class="headerlink" href="#credentials-fehler" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Entwicklungsschlüssel kopieren</span>
+cp<span class="w"> </span>/path/to/working/system/config/credentials/development.key<span class="w"> </span>config/credentials/
+cp<span class="w"> </span>/path/to/working/system/config/credentials/credentials.yml.enc<span class="w"> </span>config/credentials/
+</code></pre></div>
+<h3 id="datenbank-fehler"><strong>Datenbank-Fehler</strong><a class="headerlink" href="#datenbank-fehler" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Datenbank neu erstellen</span>
+rails<span class="w"> </span>db:drop
+rails<span class="w"> </span>db:create
+rails<span class="w"> </span>db:migrate
+
+<span class="c1"># Oder Dump importieren (über psql)</span>
+gunzip<span class="w"> </span>-c<span class="w"> </span>/path/to/dump.sql.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span>www_data<span class="w"> </span>-d<span class="w"> </span>carambus_api_development
+</code></pre></div>
+<p><strong>Hinweis zu Dump-Import-Fehlern</strong>: Beim Import eines Datenbank-Dumps können einige Fehler auftreten, die ignoriert werden können:
+- <code>relation "table_name" already exists</code> - Tabelle existiert bereits
+- <code>multiple primary keys for table "table_name" are not allowed</code> - Primärschlüssel bereits definiert
+- <code>relation "index_name" already exists</code> - Index existiert bereits
+- <code>constraint "constraint_name" for relation "table_name" already exists</code> - Constraint bereits definiert
+- <code>duplicate key value violates unique constraint</code> - Metadaten bereits gesetzt</p>
+<p>Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wurde.</p>
+<h2 id="erste-schritte-nach-dem-setup">🔍 <strong>Erste Schritte nach dem Setup</strong><a class="headerlink" href="#erste-schritte-nach-dem-setup" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Server starten</strong>: <code>rails server</code></li>
+<li><strong>Browser öffnen</strong>: http://localhost:3000</li>
+<li><strong>Admin-Interface</strong>: http://localhost:3000/admin</li>
+<li><strong>API testen</strong>: http://localhost:3000/api</li>
+</ol>
+<h2 id="nachste-schritte">📚 <strong>Nächste Schritte</strong><a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../DEVELOPER_GUIDE/">Entwicklerhandbuch</a> lesen</li>
+<li><a href="../API/">API-Dokumentation</a> studieren</li>
+<li><a href="../database_design/">Datenbankdesign</a> verstehen</li>
+<li><a href="../scenario_management/">Scenario Management</a> für Deployment-Konfiguration</li>
+<li>Mit dem Team sprechen über aktuelle Tasks</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Hinweis:</strong> Das alte "Enhanced Mode System" ist obsolet. Siehe <a href="obsolete/">docs/obsolete/</a> für Migrations-Hinweise.</p>
+</blockquote>
+<h2 id="hilfe-benotigt">🆘 <strong>Hilfe benötigt?</strong><a class="headerlink" href="#hilfe-benotigt" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Team Lead</strong>: Gernot Ullrich</li>
+<li><strong>Dokumentation</strong>: Dieses Repository</li>
+<li><strong>Issues</strong>: GitHub Issues verwenden</li>
+<li><strong>Chat</strong>: Team-Chat (Slack/Discord)</li>
+</ul>
+<hr />
+<p><strong>Viel Erfolg beim Einstieg! 🎯</strong> </p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

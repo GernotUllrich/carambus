@@ -1,0 +1,4766 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/scoreboard_benutzerhandbuch/">
+      
+      
+        <link rel="prev" href="../scoreboard_autostart_setup/">
+      
+      
+        <link rel="next" href="../ai_search/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Scoreboard User Guide - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#scoreboard-user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Scoreboard User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../scoreboard_benutzerhandbuch/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-scoreboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the Scoreboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#welcome-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Welcome Screen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-main-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Main View
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard Main View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Elements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Display Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-information-per-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Information (per side)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Display
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active-player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Active Player
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Bindings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Bindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Special Keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-input-in-pointer-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Input in Pointer Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Game Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-prepare-game-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Prepare Game Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Prepare Game Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-tournament-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      For Tournament Games
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      For Training Games
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-warm-up-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Warm-up Period
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Shootout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-game-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Game Running
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Game Running">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entering-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entering Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Buttons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-undoedit-function-important" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Undo/Edit Function (IMPORTANT!)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Undo/Edit Function (IMPORTANT!)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-innings-list-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the Innings List Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-1-correct-error-in-previous-inning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 1: Correct Error in Previous Inning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-2-multiple-innings-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 2: Multiple Innings Back
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-3-editing-both-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 3: Editing Both Players
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#important-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Switch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-end-of-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. End of Set
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-end-of-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. End of Game
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Display Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fullscreen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fullscreen Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-only-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display-Only Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menu-and-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu and Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu and Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-menu-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Menu Icons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ending-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ending a Game
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-not-responding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Not Responding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#points-not-being-saved" class="md-nav__link">
+    <span class="md-ellipsis">
+      Points Not Being Saved
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-not-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Not Running
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keyboard-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keyboard Not Working
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-is-distorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Is Distorted
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-setting-up-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Setting up Training Games
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Setting up Training Games">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-select-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Select Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-choose-game-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Choose Game Type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-select-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Select Players
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Select Players">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player A
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player B
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configure-game-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Configure Game Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configure Game Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#carom-straight-rail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carom - Straight Rail
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#carom-quick-game-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carom - Quick Game (Quick Start)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pool-billiards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pool Billiards
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-start-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Start Game
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-warm-up-and-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Warm-up and Shootout
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-tips-for-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Tips for Training Games
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#differences-training-vs-tournament" class="md-nav__link">
+    <span class="md-ellipsis">
+      Differences: Training vs. Tournament
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequently-asked-questions-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frequently Asked Questions (FAQ)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-reference-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keyboard Reference (Overview)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Reference (Overview)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-keyboard-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Keyboard Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#undoedit-functions-edit-innings-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      Undo/Edit Functions (Edit Innings List)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-undoedit-function-edit-innings-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix B: Undo/Edit Function (Edit Innings List)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix B: Undo/Edit Function (Edit Innings List)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-innings-list-works_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the Innings List Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-points_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-1-correct-error-in-previous-inning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 1: Correct Error in Previous Inning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-2-multiple-innings-back_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 2: Multiple Innings Back
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-3-editing-both-players_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 3: Editing Both Players
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#important-notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-errors_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suggestion-for-future-improvement" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Suggestion for Future Improvement
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Suggestion for Future Improvement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solution-1-game-protocol-modal-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution 1: Game Protocol Modal (RECOMMENDED)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solution-2-three-separate-buttons-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution 2: Three Separate Buttons (Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-and-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support and Help
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-scoreboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the Scoreboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#welcome-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Welcome Screen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-main-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Main View
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard Main View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Elements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Display Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-information-per-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Information (per side)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Display
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active-player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Active Player
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Bindings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Bindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Special Keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-input-in-pointer-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Input in Pointer Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Game Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-prepare-game-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Prepare Game Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Prepare Game Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-tournament-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      For Tournament Games
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      For Training Games
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-warm-up-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Warm-up Period
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Shootout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-game-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Game Running
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Game Running">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entering-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entering Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Buttons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-undoedit-function-important" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Undo/Edit Function (IMPORTANT!)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Undo/Edit Function (IMPORTANT!)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-innings-list-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the Innings List Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-1-correct-error-in-previous-inning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 1: Correct Error in Previous Inning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-2-multiple-innings-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 2: Multiple Innings Back
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-3-editing-both-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 3: Editing Both Players
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#important-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Switch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-end-of-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. End of Set
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-end-of-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. End of Game
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Modes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Display Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fullscreen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fullscreen Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-only-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display-Only Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menu-and-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu and Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu and Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-menu-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Menu Icons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ending-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ending a Game
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-not-responding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Not Responding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#points-not-being-saved" class="md-nav__link">
+    <span class="md-ellipsis">
+      Points Not Being Saved
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-not-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Not Running
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keyboard-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keyboard Not Working
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-is-distorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Is Distorted
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-setting-up-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix: Setting up Training Games
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Setting up Training Games">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-select-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Select Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-choose-game-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Choose Game Type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-select-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Select Players
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Select Players">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player A
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player B
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configure-game-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Configure Game Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configure Game Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#carom-straight-rail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carom - Straight Rail
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#carom-quick-game-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carom - Quick Game (Quick Start)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pool-billiards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pool Billiards
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-start-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Start Game
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-warm-up-and-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Warm-up and Shootout
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-tips-for-training-games" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Tips for Training Games
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#differences-training-vs-tournament" class="md-nav__link">
+    <span class="md-ellipsis">
+      Differences: Training vs. Tournament
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequently-asked-questions-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frequently Asked Questions (FAQ)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-reference-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keyboard Reference (Overview)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Reference (Overview)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-keyboard-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Keyboard Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#undoedit-functions-edit-innings-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      Undo/Edit Functions (Edit Innings List)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-undoedit-function-edit-innings-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix B: Undo/Edit Function (Edit Innings List)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix B: Undo/Edit Function (Edit Innings List)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-innings-list-works_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the Innings List Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-points_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-1-correct-error-in-previous-inning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 1: Correct Error in Previous Inning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-2-multiple-innings-back_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 2: Multiple Innings Back
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-example-3-editing-both-players_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Example 3: Editing Both Players
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#important-notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important Notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-errors_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suggestion-for-future-improvement" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Suggestion for Future Improvement
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Suggestion for Future Improvement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#solution-1-game-protocol-modal-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution 1: Game Protocol Modal (RECOMMENDED)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solution-2-three-separate-buttons-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution 2: Three Separate Buttons (Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-and-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support and Help
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="scoreboard-user-guide">Scoreboard User Guide<a class="headerlink" href="#scoreboard-user-guide" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The Carambus Scoreboard is a complete display system for billiards games that can be used for both tournaments and training games. The operation is identical in both cases.</p>
+<h2 id="main-features">Main Features<a class="headerlink" href="#main-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Score Display</strong> - Real-time display of scores for both players</li>
+<li><strong>Timer Function</strong> - Time measurement for innings and shot clocks</li>
+<li><strong>Warm-up Period</strong> - Guided warm-up phase before the game</li>
+<li><strong>Shootout</strong> - Determination of break rights</li>
+<li><strong>Discipline Support</strong> - Carom, Pool, Snooker and other disciplines</li>
+<li><strong>Dark Mode</strong> - Eye-friendly display for different lighting conditions</li>
+</ul>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#scoreboard-main-view">Scoreboard Main View</a></li>
+<li><a href="#key-bindings">Key Bindings</a></li>
+<li><a href="#game-flow">Game Flow</a></li>
+<li><a href="#display-modes">Display Modes</a></li>
+<li><a href="#appendix-setting-up-training-games">Appendix: Setting up Training Games</a></li>
+</ol>
+<hr />
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="starting-the-scoreboard">Starting the Scoreboard<a class="headerlink" href="#starting-the-scoreboard" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Raspberry Pi Setup</strong>: The scoreboard starts automatically when the Raspberry Pi boots</li>
+<li><strong>Manual Start</strong>: Open a browser and navigate to:
+   <div class="highlight"><pre><span></span><code>http://[server-address]:3000/locations/[location-id]/scoreboard?sb_state=welcome
+</code></pre></div></li>
+<li><strong>From Location Page</strong>: Click on the "scoreboard" link</li>
+</ol>
+<h3 id="welcome-screen">Welcome Screen<a class="headerlink" href="#welcome-screen" title="Permanent link">&para;</a></h3>
+<p><img alt="Welcome Screen" src="screenshots/scoreboard_welcome.png" /></p>
+<p>The welcome screen is the starting point for all scoreboard activities. From here you can:</p>
+<ul>
+<li><strong>Select Tournament</strong> - For official tournaments</li>
+<li><strong>Select Table</strong> - For training games</li>
+<li><strong>Show Scores</strong> - Overview of running games</li>
+</ul>
+<hr />
+<h2 id="scoreboard-main-view">Scoreboard Main View<a class="headerlink" href="#scoreboard-main-view" title="Permanent link">&para;</a></h2>
+<h3 id="layout-overview">Layout Overview<a class="headerlink" href="#layout-overview" title="Permanent link">&para;</a></h3>
+<p>The scoreboard displays the following information:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
+│  [Dark Mode] [Info] [Home] [Exit]                   │
+│                                                       │
+│  Player A                           Player B         │
+│  ┌─────────────────┐              ┌─────────────────┐│
+│  │  Current        │              │  Current        ││
+│  │  Inning: 5      │              │  Inning: --     ││
+│  │                 │              │                 ││
+│  │  Goal: 50       │              │  Goal: 50       ││
+│  │  GD: 1.250      │              │  GD: 0.800      ││
+│  │  HS: 8          │              │  HS: 12         ││
+│  │                 │              │                 ││
+│  │      45         │              │      38         ││
+│  │                 │              │                 ││
+│  │  Sets: 1        │              │  Sets: 0        ││
+│  └─────────────────┘              └─────────────────┘│
+│                                                       │
+│  [Input Area]                                        │
+└─────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="display-elements">Display Elements<a class="headerlink" href="#display-elements" title="Permanent link">&para;</a></h3>
+<h4 id="player-information-per-side">Player Information (per side)<a class="headerlink" href="#player-information-per-side" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Player Name</strong> - Full name or short name</li>
+<li><strong>Current Inning</strong> - Points in the current inning</li>
+<li><strong>Goal</strong> - Target score (or "no limit")</li>
+<li><strong>GD (General Average)</strong> - Average points per inning</li>
+<li><strong>HS (High Series)</strong> - Best single inning in the game</li>
+<li><strong>Total Score</strong> - Large score display in the center</li>
+<li><strong>Sets</strong> - Number of sets won (if set mode is active)</li>
+</ol>
+<h4 id="timer-display">Timer Display<a class="headerlink" href="#timer-display" title="Permanent link">&para;</a></h4>
+<p>When a timer is active, a progress bar display appears:</p>
+<div class="highlight"><pre><span></span><code>⏱ 00:45  IIIIIIIIIIIIIIII------
+        (Green)     (Red)
+</code></pre></div>
+<ul>
+<li><strong>Green</strong>: Remaining time in normal range</li>
+<li><strong>Red</strong>: Warning time expiring</li>
+</ul>
+<h4 id="active-player">Active Player<a class="headerlink" href="#active-player" title="Permanent link">&para;</a></h4>
+<p>The active player is indicated by a <strong>green border</strong> (8px wide). The waiting player has a thin gray border.</p>
+<hr />
+<h2 id="key-bindings">Key Bindings<a class="headerlink" href="#key-bindings" title="Permanent link">&para;</a></h2>
+<p>The scoreboard can be completely controlled via keyboard or remote control:</p>
+<h3 id="main-keys">Main Keys<a class="headerlink" href="#main-keys" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Arrow Left</strong></td>
+<td>Player A Points</td>
+<td>Point for left player (in pointer mode)</td>
+</tr>
+<tr>
+<td><strong>Arrow Right</strong></td>
+<td>Player B Points</td>
+<td>Point for right player (in pointer mode)</td>
+</tr>
+<tr>
+<td><strong>Arrow Up</strong></td>
+<td>Next Element</td>
+<td>Navigate right/forward</td>
+</tr>
+<tr>
+<td><strong>Arrow Down</strong></td>
+<td>Execute Action</td>
+<td>Activate/confirm element</td>
+</tr>
+<tr>
+<td><strong>Page Up</strong></td>
+<td>Player A Points</td>
+<td>Alternative key for Player A</td>
+</tr>
+<tr>
+<td><strong>Page Down</strong></td>
+<td>Player B Points</td>
+<td>Alternative key for Player B</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Back/Forward</td>
+<td>Back (Escape) in menu, Forward (right) in input fields</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Back/Exit</td>
+<td>Back to previous screen</td>
+</tr>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Confirm</td>
+<td>Confirm current selection</td>
+</tr>
+</tbody>
+</table>
+<h3 id="special-keys">Special Keys<a class="headerlink" href="#special-keys" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F5</strong></td>
+<td>Restart</td>
+</tr>
+<tr>
+<td><strong>F11</strong></td>
+<td>Fullscreen</td>
+</tr>
+<tr>
+<td><strong>F12</strong></td>
+<td>Exit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="quick-input-in-pointer-mode">Quick Input in Pointer Mode<a class="headerlink" href="#quick-input-in-pointer-mode" title="Permanent link">&para;</a></h3>
+<p>In <strong>Pointer Mode</strong> (main mode during the game):</p>
+<ul>
+<li><strong>Left/Right Key</strong>: Adds 1 point for the corresponding player</li>
+<li><strong>B Key</strong>: Switches to <strong>Timer Area</strong></li>
+<li><strong>B Key</strong> (in Timer): Switches to <strong>Input Area</strong></li>
+<li><strong>Down Key</strong>: Confirms the input</li>
+</ul>
+<hr />
+<h2 id="game-flow">Game Flow<a class="headerlink" href="#game-flow" title="Permanent link">&para;</a></h2>
+<h3 id="1-prepare-game-start">1. Prepare Game Start<a class="headerlink" href="#1-prepare-game-start" title="Permanent link">&para;</a></h3>
+<p>After selecting a table or tournament, the <strong>Setup Screen</strong> appears.</p>
+<h4 id="for-tournament-games">For Tournament Games<a class="headerlink" href="#for-tournament-games" title="Permanent link">&para;</a></h4>
+<p>Parameters are automatically taken from the tournament:
+- Player A and B
+- Discipline (e.g. Straight Rail, 3-Cushion, Pool)
+- Target points/balls
+- Innings limit
+- Sets
+- Timeout settings</p>
+<h4 id="for-training-games">For Training Games<a class="headerlink" href="#for-training-games" title="Permanent link">&para;</a></h4>
+<p>See <a href="#appendix-setting-up-training-games">Appendix: Setting up Training Games</a></p>
+<h3 id="2-warm-up-period">2. Warm-up Period<a class="headerlink" href="#2-warm-up-period" title="Permanent link">&para;</a></h3>
+<p><img alt="Warm-up" src="screenshots/scoreboard_warmup.png" /></p>
+<p>Both players have time for warm-up:</p>
+<ol>
+<li><strong>Start Warm-up</strong> (Player A) - Click to start 5 minutes for Player A</li>
+<li><strong>Timer Running</strong> - Green bars show remaining time</li>
+<li><strong>Halt</strong> - Stop timer if needed</li>
+<li><strong>Start Warm-up</strong> (Player B) - Then 5 minutes for Player B</li>
+<li><strong>Continue to Shootout</strong> - When both are finished</li>
+</ol>
+<p><strong>Keys:</strong>
+- <strong>Enter/Down</strong>: Start/Stop warm-up time
+- <strong>B</strong>: Switch between Player A and B</p>
+<h3 id="3-shootout">3. Shootout<a class="headerlink" href="#3-shootout" title="Permanent link">&para;</a></h3>
+<p><img alt="Shootout" src="screenshots/scoreboard_shootout.png" /></p>
+<p>Determine who starts the game:</p>
+<ol>
+<li>Both players lag from the head rail</li>
+<li>Select the winner:</li>
+<li><strong>Left Key</strong> or Button <strong>"Player A"</strong>: Player A wins the lag</li>
+<li><strong>Right Key</strong> or Button <strong>"Player B"</strong>: Player B wins the lag</li>
+<li><strong>Start Game</strong> - Click to begin the actual game</li>
+</ol>
+<p><strong>Alternative:</strong>
+- <strong>Switch</strong>: Change the active player</p>
+<h3 id="4-game-running">4. Game Running<a class="headerlink" href="#4-game-running" title="Permanent link">&para;</a></h3>
+<p><img alt="Game Running" src="screenshots/scoreboard_playing.png" /></p>
+<p>The scoreboard switches to <strong>Game Mode</strong>.</p>
+<h4 id="entering-points">Entering Points<a class="headerlink" href="#entering-points" title="Permanent link">&para;</a></h4>
+<p><strong>Method 1: Keyboard Input (recommended for simple point entries)</strong></p>
+<ul>
+<li><strong>Left Key</strong>: +1 point for the active player (left)</li>
+<li><strong>Right Key</strong>: +1 point for the active player (right, after player switch)</li>
+<li>Points are <strong>accumulated</strong> and automatically saved after a short delay</li>
+<li>When the goal is reached, immediate validation occurs</li>
+</ul>
+<p><strong>Method 2: Number Field (for larger scores)</strong></p>
+<ol>
+<li>Press <strong>Down Key</strong> multiple times until "numbers" is focused</li>
+<li>Enter the score via the number field:</li>
+<li>Keys <strong>1-9, 0</strong> for digits</li>
+<li><strong>Del</strong>: Delete last digit</li>
+<li><strong>Esc</strong>: Cancel</li>
+<li><strong>Enter</strong>: Confirm score</li>
+</ol>
+<h4 id="input-buttons">Input Buttons<a class="headerlink" href="#input-buttons" title="Permanent link">&para;</a></h4>
+<p>The input elements are arranged in <strong>horizontal order</strong>:</p>
+<div class="highlight"><pre><span></span><code>[Undo] [-1] [-5] [-10] [Next] [+10] [+5] [+1] [Numbers]
+</code></pre></div>
+<ul>
+<li><strong>Undo</strong>: Edit innings list (see detailed explanation below)</li>
+<li><strong>-1, -5, -10</strong>: Subtract points</li>
+<li><strong>+1, +5, +10</strong>: Add points</li>
+<li><strong>Next</strong>: Player switch</li>
+<li><strong>Numbers</strong>: Open number field for direct input</li>
+</ul>
+<p><strong>Navigation:</strong>
+- <strong>B Key</strong>: Moves right through the buttons
+- <strong>Down Key</strong>: Activates the focused button</p>
+<h4 id="the-undoedit-function-important">The Undo/Edit Function (IMPORTANT!)<a class="headerlink" href="#the-undoedit-function-important" title="Permanent link">&para;</a></h4>
+<p>⚠️ <strong>Frequently misunderstood:</strong> The "Undo" button is <strong>not</strong> a simple undo function, but a powerful <strong>editing tool</strong> for the innings list!</p>
+<p><strong>Exception:</strong> For Pool billiards, Undo actually works as a true undo function.</p>
+<h5 id="how-the-innings-list-works">How the Innings List Works<a class="headerlink" href="#how-the-innings-list-works" title="Permanent link">&para;</a></h5>
+<p>Below the main scores of both players, you see the <strong>innings list</strong>:</p>
+<div class="highlight"><pre><span></span><code>Player A                     Player B
+   45                           38
+┌─────────────┐            ┌─────────────┐
+│ [5][8][12][│20│]         │ [6][7][10][│15│] │  ← Innings
+└─────────────┘            └─────────────┘
+   ▲                          ▲
+   First                      Currently editable
+   Inning                     (framed = Cursor)
+</code></pre></div>
+<ul>
+<li><strong>First inning</strong> is on the left</li>
+<li><strong>Current inning</strong> is on the right and marked by a frame (cursor)</li>
+<li>Each number shows the points in that inning</li>
+</ul>
+<h5 id="cursor-navigation">Cursor Navigation<a class="headerlink" href="#cursor-navigation" title="Permanent link">&para;</a></h5>
+<p><strong>With Undo (cursor left):</strong></p>
+<ol>
+<li>Press <strong>Undo</strong></li>
+<li>The cursor jumps to the <strong>previous inning</strong> of the current player</li>
+<li>The point values remain <strong>unchanged</strong></li>
+</ol>
+<p><strong>With Next/Switch (cursor right):</strong></p>
+<ol>
+<li>Press <strong>Next</strong></li>
+<li>The cursor jumps to the <strong>next inning</strong> (alternating A/B)</li>
+<li>When at the last inning, a player switch is executed</li>
+</ol>
+<h5 id="editing-points">Editing Points<a class="headerlink" href="#editing-points" title="Permanent link">&para;</a></h5>
+<p>When the cursor is on an inning:</p>
+<ol>
+<li>Use <strong>-1, -5, -10</strong> to reduce points</li>
+<li>Use <strong>+1, +5, +10</strong> to increase points</li>
+<li>The total score is <strong>automatically recalculated</strong></li>
+</ol>
+<h5 id="step-by-step-example-1-correct-error-in-previous-inning">Step-by-Step Example 1: Correct Error in Previous Inning<a class="headerlink" href="#step-by-step-example-1-correct-error-in-previous-inning" title="Permanent link">&para;</a></h5>
+<p><strong>Situation:</strong>
+- Player A just made 8 points
+- You notice that the inning before had 12 instead of 10 points entered</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [5][10][│8│]  (Cursor on current inning)
+Total score: 23
+
+Step 1: Press Undo
+Player A: [5][│10│][8]  (Cursor on previous inning)
+
+Step 2: Press &quot;-1&quot; twice
+Player A: [5][│8│][8]   (10 → 8)
+Total score: 21 ✓       (automatically corrected)
+
+Step 3: Press &quot;Next&quot;
+Player A: [5][8][│8│]   (Cursor back to current inning)
+</code></pre></div>
+<p><strong>Important:</strong> After editing, you <strong>MUST</strong> navigate back to the current inning with "Next"!</p>
+<h5 id="step-by-step-example-2-multiple-innings-back">Step-by-Step Example 2: Multiple Innings Back<a class="headerlink" href="#step-by-step-example-2-multiple-innings-back" title="Permanent link">&para;</a></h5>
+<p><strong>Situation:</strong>
+- Player A: [6][8][10][│12│]
+- You want to correct the second inning (8) to 7</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [6][8][10][│12│]  (Cursor at position 4)
+Total score: 36
+
+Step 1: Press Undo (1x)
+Player A: [6][8][│10│][12]  (Cursor at position 3)
+
+Step 2: Press Undo (2x)
+Player A: [6][│8│][10][12]  (Cursor at position 2)
+
+Step 3: Press &quot;-1&quot;
+Player A: [6][│7│][10][12]  (8 → 7)
+Total score: 35 ✓
+
+Step 4: Press &quot;Next&quot; (1x)
+Player A: [6][7][│10│][12]  (Cursor at position 3)
+
+Step 5: Press &quot;Next&quot; (2x)
+Player A: [6][7][10][│12│]  (Cursor back at position 4)
+</code></pre></div>
+<h5 id="step-by-step-example-3-editing-both-players">Step-by-Step Example 3: Editing Both Players<a class="headerlink" href="#step-by-step-example-3-editing-both-players" title="Permanent link">&para;</a></h5>
+<p><strong>Situation:</strong>
+- Player A just played: [5][│8│]
+- Player B should play now: [6][│--│]
+- You need to correct Player A's first inning from 5 to 6</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [5][│8│]  (Cursor here)
+Player B: [6][--]
+
+Step 1: Press Undo
+Player A: [│5│][8]  (Cursor at position 1)
+
+Step 2: Press &quot;+1&quot;
+Player A: [│6│][8]  (5 → 6)
+
+Step 3: Press &quot;Next&quot; (1x)
+Player A: [6][│8│]  (back to position 2)
+
+Step 4: Press &quot;Next&quot; (2x) - executes player switch
+Player A: [6][8]
+Player B: [6][│--│]  ✓ (ready for new inning)
+</code></pre></div>
+<h5 id="important-notes">Important Notes<a class="headerlink" href="#important-notes" title="Permanent link">&para;</a></h5>
+<p><strong>✅ DO:</strong>
+- Navigate cursor consciously
+- <strong>Always</strong> return to current inning after editing
+- Visually verify changes (total score)</p>
+<p><strong>❌ DON'T:</strong>
+- Leave cursor somewhere
+- Continue playing without navigation
+- Blindly press "Undo" multiple times</p>
+<h5 id="common-errors">Common Errors<a class="headerlink" href="#common-errors" title="Permanent link">&para;</a></h5>
+<p><strong>Error 1: "I pressed Undo, but nothing happened"</strong></p>
+<p>→ You didn't change the points! Undo <strong>only moves the cursor</strong>, points stay the same.</p>
+<p><strong>Solution:</strong> After Undo, adjust points with &plusmn; buttons.</p>
+<p><strong>Error 2: "After Undo, the score shows wrong values"</strong></p>
+<p>→ The cursor is still on an old inning, not the current one.</p>
+<p><strong>Solution:</strong> Navigate back to current inning with "Next".</p>
+<p><strong>Error 3: "I can't get back"</strong></p>
+<p>→ You've lost track of where the cursor is.</p>
+<p><strong>Solution:</strong> 
+1. Look at the innings list - the framed number shows the cursor
+2. Press "Next" until you're back at the last inning
+3. In emergency: Press F5 (reload page)</p>
+<h5 id="when-to-use">When to Use?<a class="headerlink" href="#when-to-use" title="Permanent link">&para;</a></h5>
+<p><strong>Typical Use Cases:</strong></p>
+<p>✅ <strong>Correct typos</strong>
+- You accidentally entered 8 instead of 6</p>
+<p>✅ <strong>Change points retroactively</strong>
+- Referee decision corrects an earlier inning</p>
+<p>✅ <strong>Resolve discussions</strong>
+- Players disagree about an earlier inning
+- You can go back and correct</p>
+<p><strong>Don't use for:</strong></p>
+<p>❌ <strong>Change current inning</strong>
+- Use &plusmn; buttons instead</p>
+<p>❌ <strong>Switch players</strong>
+- Use the "Next" button</p>
+<h5 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h5>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+<th>Effect on Cursor</th>
+<th>Effect on Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Undo</strong></td>
+<td>Cursor back</td>
+<td>← One position back</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Next</strong></td>
+<td>Cursor forward / Player switch</td>
+<td>→ One position forward</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>+1, +5, +10</strong></td>
+<td>Add points</td>
+<td>None</td>
+<td>Increases value at cursor position</td>
+</tr>
+<tr>
+<td><strong>-1, -5, -10</strong></td>
+<td>Subtract points</td>
+<td>None</td>
+<td>Decreases value at cursor position</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remember:</strong> </p>
+<blockquote>
+<p>Undo = Move cursor, &plusmn; = Change points, Next = back to current inning</p>
+</blockquote>
+<h4 id="player-switch">Player Switch<a class="headerlink" href="#player-switch" title="Permanent link">&para;</a></h4>
+<p>The player switch occurs either:
+1. <strong>Automatically</strong> - When the active player scores 0 points
+2. <strong>Manually</strong> - With the <strong>"Next"</strong> button or by keyboard input</p>
+<p>After the switch:
+- The green border switches to the new active player
+- The current inning is reset
+- The timer restarts (if active)</p>
+<h4 id="timer-control">Timer Control<a class="headerlink" href="#timer-control" title="Permanent link">&para;</a></h4>
+<p>When timers are enabled:</p>
+<ul>
+<li><strong>Pause</strong> ⏸: Pause timer</li>
+<li><strong>Play</strong> ▶: Resume timer</li>
+<li><strong>Stop</strong> ⏹: Reset timer</li>
+<li><strong>Timeout</strong> ⏰: Take timeout (limited number per player, see timeout icons ⏱)</li>
+</ul>
+<h3 id="5-end-of-set">5. End of Set<a class="headerlink" href="#5-end-of-set" title="Permanent link">&para;</a></h3>
+<p>When a player reaches the target score:</p>
+<ol>
+<li><strong>Set Win Message</strong> appears</li>
+<li>Statistics are updated</li>
+<li>For multi-set games:</li>
+<li>New set begins automatically</li>
+<li>Set score is updated</li>
+<li>Break rights switch (depending on settings)</li>
+</ol>
+<h3 id="6-end-of-game">6. End of Game<a class="headerlink" href="#6-end-of-game" title="Permanent link">&para;</a></h3>
+<p>When the required number of sets is won or the game is ended:</p>
+<ol>
+<li><strong>Final Result</strong> is displayed</li>
+<li>Game statistics are saved</li>
+<li>Options:</li>
+<li><strong>Back to Overview</strong></li>
+<li><strong>Start New Game</strong></li>
+</ol>
+<hr />
+<h2 id="display-modes">Display Modes<a class="headerlink" href="#display-modes" title="Permanent link">&para;</a></h2>
+<h3 id="fullscreen-mode">Fullscreen Mode<a class="headerlink" href="#fullscreen-mode" title="Permanent link">&para;</a></h3>
+<p><strong>Activation:</strong>
+- Press <strong>F11</strong> or start via the corresponding link
+- The scoreboard fills the entire screen</p>
+<p><strong>Deactivation:</strong>
+- Press <strong>F11</strong> again</p>
+<p>Fullscreen mode is ideal for:
+- Spectator displays
+- Competition situations
+- Raspberry Pi kiosk mode</p>
+<h3 id="dark-mode">Dark Mode<a class="headerlink" href="#dark-mode" title="Permanent link">&para;</a></h3>
+<p><img alt="Dark Mode" src="screenshots/scoreboard_dark.png" /></p>
+<p><strong>Toggle:</strong>
+- Click on the <strong>Dark Mode Icon</strong> 🌓 in the menu bar
+- Or open the menu and select "Dark Mode"</p>
+<p><strong>Benefits:</strong>
+- Reduces eye strain in dark rooms
+- Saves energy on OLED displays
+- Better readability in low light</p>
+<p>The Dark Mode setting is saved in the user profile.</p>
+<h3 id="display-only-mode">Display-Only Mode<a class="headerlink" href="#display-only-mode" title="Permanent link">&para;</a></h3>
+<p>For pure display purposes without input capability:</p>
+<div class="highlight"><pre><span></span><code>/locations/[id]/scoreboard?sb_state=welcome&amp;display_only=true
+</code></pre></div>
+<p>In this mode:
+- No input elements visible
+- Score display only
+- Ideal for audience screens</p>
+<hr />
+<h2 id="menu-and-navigation">Menu and Navigation<a class="headerlink" href="#menu-and-navigation" title="Permanent link">&para;</a></h2>
+<h3 id="main-menu-icons">Main Menu Icons<a class="headerlink" href="#main-menu-icons" title="Permanent link">&para;</a></h3>
+<p>The menu bar at the top right contains:</p>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🌓</td>
+<td>Dark Mode</td>
+<td>Toggle light/dark mode</td>
+</tr>
+<tr>
+<td>ℹ️</td>
+<td>Info</td>
+<td>Switch to table overview</td>
+</tr>
+<tr>
+<td>🏠</td>
+<td>Home</td>
+<td>Back to welcome screen</td>
+</tr>
+<tr>
+<td>⌫</td>
+<td>Exit</td>
+<td>End game (with confirmation)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ending-a-game">Ending a Game<a class="headerlink" href="#ending-a-game" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on the <strong>Exit Icon</strong> ⌫ or press <strong>B Key</strong> in pointer mode</li>
+<li><strong>Confirmation Dialog</strong> appears:
+   <div class="highlight"><pre><span></span><code>┌─────────────────────────────────┐
+│  Really end game?               │
+│                                 │
+│  [OK]  [Cancel]                 │
+└─────────────────────────────────┘
+</code></pre></div></li>
+<li>Choose:</li>
+<li><strong>OK</strong>: Game ends, back to overview</li>
+<li><strong>Cancel</strong>: Back to game</li>
+</ol>
+<p><strong>For Tournament Games:</strong>
+- The game is marked as "not played"
+- Can be restarted by tournament director</p>
+<p><strong>For Training Games:</strong>
+- The game is deleted
+- Statistics are not saved</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="scoreboard-not-responding">Scoreboard Not Responding<a class="headerlink" href="#scoreboard-not-responding" title="Permanent link">&para;</a></h3>
+<p><strong>Solution:</strong>
+1. Press <strong>F5</strong> to reload the page
+2. If that doesn't help, press <strong>B</strong> to return to pointer mode
+3. In emergency: Close browser and restart</p>
+<h3 id="points-not-being-saved">Points Not Being Saved<a class="headerlink" href="#points-not-being-saved" title="Permanent link">&para;</a></h3>
+<p><strong>Cause:</strong> Network connection interrupted</p>
+<p><strong>Solution:</strong>
+1. Check network connection
+2. Points are buffered locally and transferred on next sync
+3. For longer interruptions: Note the score and correct manually after restoration</p>
+<h3 id="timer-not-running">Timer Not Running<a class="headerlink" href="#timer-not-running" title="Permanent link">&para;</a></h3>
+<p><strong>Check:</strong>
+1. Is the timer enabled for this game? (Timeout setting &gt; 0)
+2. Was the timer started? (Press Play button)
+3. Browser tab active? (Some browsers pause timers in background)</p>
+<h3 id="keyboard-not-working">Keyboard Not Working<a class="headerlink" href="#keyboard-not-working" title="Permanent link">&para;</a></h3>
+<p><strong>Solution:</strong>
+1. Click once in the scoreboard window to set focus
+2. Check if keyboard is properly connected
+3. For remote control: Check batteries</p>
+<h3 id="display-is-distorted">Display Is Distorted<a class="headerlink" href="#display-is-distorted" title="Permanent link">&para;</a></h3>
+<p><strong>Solution:</strong>
+1. Press <strong>F11</strong> to activate/deactivate fullscreen
+2. Reset browser zoom (Ctrl+0 / Cmd+0)
+3. Check screen resolution (minimum 1024x768 recommended)</p>
+<hr />
+<h2 id="appendix-setting-up-training-games">Appendix: Setting up Training Games<a class="headerlink" href="#appendix-setting-up-training-games" title="Permanent link">&para;</a></h2>
+<p>This section explains how to quickly and easily set up training games for free practice.</p>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<ul>
+<li>You have access to the scoreboard (as scoreboard user or administrator)</li>
+<li>A table is available and not occupied by a tournament</li>
+</ul>
+<h3 id="step-by-step-guide">Step-by-Step Guide<a class="headerlink" href="#step-by-step-guide" title="Permanent link">&para;</a></h3>
+<h4 id="1-select-table">1. Select Table<a class="headerlink" href="#1-select-table" title="Permanent link">&para;</a></h4>
+<p><img alt="Table Selection" src="screenshots/scoreboard_tables.png" /></p>
+<ol>
+<li>From the <strong>Welcome Screen</strong> select <strong>"Tables"</strong></li>
+<li>An overview of all tables at the location appears</li>
+<li>Select a <strong>free table</strong> (marked green):</li>
+<li><strong>Green</strong>: Table is free</li>
+<li><strong>Yellow</strong>: Table has a reservation but no active game</li>
+<li><strong>Red</strong>: Table is occupied with active game</li>
+<li>Click on the desired table</li>
+</ol>
+<h4 id="2-choose-game-type">2. Choose Game Type<a class="headerlink" href="#2-choose-game-type" title="Permanent link">&para;</a></h4>
+<p><img alt="Choose Game Type" src="screenshots/scoreboard_game_choice.png" /></p>
+<p>After selecting the table, a dialog for game type selection appears:</p>
+<p><strong>Carom:</strong>
+- <strong>Quick Game</strong> - Predefined quick games (Straight Rail, Cadre, etc.)
+- <strong>New Carom Game</strong> - Individual configuration</p>
+<p><strong>Pool:</strong>
+- <strong>Pool Game</strong> - 8-Ball, 9-Ball, 10-Ball, 14.1 Continuous</p>
+<p><strong>Select the appropriate category.</strong></p>
+<h4 id="3-select-players">3. Select Players<a class="headerlink" href="#3-select-players" title="Permanent link">&para;</a></h4>
+<p><img alt="Player Selection" src="screenshots/scoreboard_player_selection.png" /></p>
+<h5 id="player-a">Player A<a class="headerlink" href="#player-a" title="Permanent link">&para;</a></h5>
+<ol>
+<li>Click on the <strong>"Player A"</strong> field</li>
+<li>A dropdown with all players appears</li>
+<li>Search for the player:</li>
+<li><strong>Type</strong> the name for quick search</li>
+<li>Or <strong>scroll</strong> through the list</li>
+<li>Select the player</li>
+</ol>
+<h5 id="player-b">Player B<a class="headerlink" href="#player-b" title="Permanent link">&para;</a></h5>
+<p>Repeat the process for <strong>"Player B"</strong>.</p>
+<p><strong>Note:</strong> For training games you can also:
+- Choose the same player for both sides (solo training)
+- Create a dummy player (e.g. "Training")</p>
+<h4 id="4-configure-game-parameters">4. Configure Game Parameters<a class="headerlink" href="#4-configure-game-parameters" title="Permanent link">&para;</a></h4>
+<p>Depending on the chosen game type, different parameters are available:</p>
+<h5 id="carom-straight-rail">Carom - Straight Rail<a class="headerlink" href="#carom-straight-rail" title="Permanent link">&para;</a></h5>
+<p><img alt="Straight Rail Setup" src="screenshots/scoreboard_free_game_setup.png" /></p>
+<p><strong>Basic Settings:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Discipline</strong></td>
+<td>Game type (Straight Rail, Cadre, Three-Cushion, etc.)</td>
+<td>"Straight Rail"</td>
+</tr>
+<tr>
+<td><strong>Target Points</strong></td>
+<td>Points to win</td>
+<td>50, 100, 200</td>
+</tr>
+<tr>
+<td><strong>Innings Limit</strong></td>
+<td>Maximum innings (optional)</td>
+<td>50, 100, "no limit"</td>
+</tr>
+<tr>
+<td><strong>Sets</strong></td>
+<td>Number of sets to play</td>
+<td>1, 3, 5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Advanced Settings:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Timeout</strong></td>
+<td>Shot clock per inning (seconds)</td>
+<td>45</td>
+</tr>
+<tr>
+<td><strong>Timeouts per Set</strong></td>
+<td>Number of allowed timeouts</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Warning Time</strong></td>
+<td>Warning before expiry (seconds)</td>
+<td>10</td>
+</tr>
+<tr>
+<td><strong>Break Switches With</strong></td>
+<td>When does break right switch?</td>
+<td>"Set"</td>
+</tr>
+<tr>
+<td><strong>Color Remains With Set</strong></td>
+<td>Player colors remain at set change?</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Fixed Display Left</strong></td>
+<td>Left player stays left?</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Allow Overflow</strong></td>
+<td>Count beyond target points?</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Allow Follow-Up</strong></td>
+<td>Follow-up shot on object ball contact?</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h5 id="carom-quick-game-quick-start">Carom - Quick Game (Quick Start)<a class="headerlink" href="#carom-quick-game-quick-start" title="Permanent link">&para;</a></h5>
+<p><img alt="Quick Game" src="screenshots/scoreboard_quick_game.png" /></p>
+<p>For quick start without many settings:</p>
+<ol>
+<li><strong>Select a Preset:</strong></li>
+<li><strong>Straight Rail 50</strong> - Classic to 50 points</li>
+<li><strong>Straight Rail 100</strong> - Standard training game</li>
+<li><strong>Cadre 47/2 100</strong> - Cadre training</li>
+<li><strong>Three-Cushion 50</strong> - 3-Cushion to 50</li>
+<li>
+<p><strong>One-Cushion 100</strong> - 1-Cushion to 100</p>
+</li>
+<li>
+<p>Parameters are preconfigured but can still be adjusted</p>
+</li>
+<li>
+<p><strong>Start Game</strong> - Go directly</p>
+</li>
+</ol>
+<h5 id="pool-billiards">Pool Billiards<a class="headerlink" href="#pool-billiards" title="Permanent link">&para;</a></h5>
+<p><img alt="Pool Setup" src="screenshots/scoreboard_pool_setup.png" /></p>
+<p><strong>Disciplines:</strong>
+- <strong>8-Ball</strong> - Classic 8-Ball
+- <strong>9-Ball</strong> - 9-Ball
+- <strong>10-Ball</strong> - 10-Ball
+- <strong>14.1 Continuous</strong> - Straight Pool</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Discipline</strong></td>
+<td>Pool variant</td>
+<td>"9-Ball"</td>
+</tr>
+<tr>
+<td><strong>Sets to Win</strong></td>
+<td>Race to X</td>
+<td>3, 5, 7</td>
+</tr>
+<tr>
+<td><strong>Points/Balls</strong></td>
+<td>Target balls (14.1) or Sets</td>
+<td>100 (14.1)</td>
+</tr>
+<tr>
+<td><strong>First Break</strong></td>
+<td>Who breaks first?</td>
+<td>"Lag"</td>
+</tr>
+<tr>
+<td><strong>Next Break</strong></td>
+<td>Who breaks after set?</td>
+<td>"Winner", "Loser", "Alternating"</td>
+</tr>
+</tbody>
+</table>
+<h4 id="5-start-game">5. Start Game<a class="headerlink" href="#5-start-game" title="Permanent link">&para;</a></h4>
+<p>After all parameters are set:</p>
+<ol>
+<li>Review the settings once more</li>
+<li>Click on <strong>"Start Game"</strong> or <strong>"Continue"</strong></li>
+<li>The scoreboard switches to <strong>Warm-up</strong></li>
+</ol>
+<h4 id="6-warm-up-and-shootout">6. Warm-up and Shootout<a class="headerlink" href="#6-warm-up-and-shootout" title="Permanent link">&para;</a></h4>
+<p>See <a href="#2-warm-up-period">Game Flow - Warm-up</a> and <a href="#3-shootout">Shootout</a></p>
+<h3 id="quick-tips-for-training-games">Quick Tips for Training Games<a class="headerlink" href="#quick-tips-for-training-games" title="Permanent link">&para;</a></h3>
+<p><strong>Tip 1: Create Standard Player</strong></p>
+<p>Create a dummy player "Training" for quick setup:
+1. Go to <strong>Players</strong> &gt; <strong>New</strong>
+2. Name: "Training"
+3. First Name: "Solo"
+4. Club: Your club</p>
+<p><strong>Tip 2: Favorite Setups</strong></p>
+<p>Frequently used configurations:
+- <strong>Straight Rail 100</strong>: Standard practice game
+- <strong>Three-Cushion 50</strong>: Short 3-Cushion training
+- <strong>Cadre 47/2</strong>: Position play training</p>
+<p><strong>Tip 3: Disable Timer</strong></p>
+<p>For relaxed training:
+- Set <strong>Timeout to 0</strong>
+- No time limit</p>
+<p><strong>Tip 4: Allow Overflow</strong></p>
+<p>For continuous training:
+- Enable <strong>"Allow Overflow"</strong>
+- Play beyond target points</p>
+<p><strong>Tip 5: Quickly End Game</strong></p>
+<p>After training:
+1. <strong>B Key</strong> or <strong>Exit Icon</strong> ⌫
+2. Confirm <strong>OK</strong>
+3. Table is immediately free again</p>
+<h3 id="differences-training-vs-tournament">Differences: Training vs. Tournament<a class="headerlink" href="#differences-training-vs-tournament" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Training</th>
+<th>Tournament</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Player Selection</strong></td>
+<td>Freely selectable</td>
+<td>Predetermined by match schedule</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>Freely configurable</td>
+<td>Predetermined by tournament rules</td>
+</tr>
+<tr>
+<td><strong>Game Termination</strong></td>
+<td>Possible at any time</td>
+<td>Only after game end</td>
+</tr>
+<tr>
+<td><strong>Statistics</strong></td>
+<td>Not saved</td>
+<td>Fully recorded</td>
+</tr>
+<tr>
+<td><strong>Break Rights</strong></td>
+<td>Freely selectable</td>
+<td>According to tournament mode</td>
+</tr>
+</tbody>
+</table>
+<h3 id="frequently-asked-questions-faq">Frequently Asked Questions (FAQ)<a class="headerlink" href="#frequently-asked-questions-faq" title="Permanent link">&para;</a></h3>
+<p><strong>Q: Can I pause a training game?</strong></p>
+<p>A: Yes, click on the <strong>Home Icon</strong> 🏠. The game remains active in the background. Select the table again to continue.</p>
+<p><strong>Q: Are training statistics saved?</strong></p>
+<p>A: No, training games are not included in official statistics. For statistical recording, you should create an official game or tournament.</p>
+<p><strong>Q: Can I change parameters during a training session?</strong></p>
+<p>A: No, parameters are fixed after game start. You must end the game and start new to make changes.</p>
+<p><strong>Q: What happens if I close the browser?</strong></p>
+<p>A: The game continues running on the server. Open the browser again and navigate to the table to continue. Points saved in the meantime are retained.</p>
+<p><strong>Q: Can I run two training games simultaneously on different tables?</strong></p>
+<p>A: Yes, each table can have its own game. Simply start a separate game for each table.</p>
+<hr />
+<h2 id="keyboard-reference-overview">Keyboard Reference (Overview)<a class="headerlink" href="#keyboard-reference-overview" title="Permanent link">&para;</a></h2>
+<h3 id="main-keyboard-functions">Main Keyboard Functions<a class="headerlink" href="#main-keyboard-functions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>← / PgUp</td>
+<td>Player A +1 point</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>→ / PgDn</td>
+<td>Player B +1 point</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>B</td>
+<td>Timer area</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>↓ / Enter</td>
+<td>Activate pointer element</td>
+</tr>
+<tr>
+<td><strong>Timer</strong></td>
+<td>B</td>
+<td>Input area</td>
+</tr>
+<tr>
+<td><strong>Timer</strong></td>
+<td>↓ / Enter</td>
+<td>Timer action</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>B</td>
+<td>Next element (→)</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>←</td>
+<td>Previous element (←)</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>↓ / Enter</td>
+<td>Activate element</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>0-9</td>
+<td>Enter digit</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Del</td>
+<td>Delete last digit</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Esc</td>
+<td>Cancel</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>↓ / Enter</td>
+<td>Confirm</td>
+</tr>
+<tr>
+<td><strong>All</strong></td>
+<td>Esc / B</td>
+<td>Back / Exit</td>
+</tr>
+<tr>
+<td><strong>All</strong></td>
+<td>F5</td>
+<td>Reload</td>
+</tr>
+<tr>
+<td><strong>All</strong></td>
+<td>F11</td>
+<td>Fullscreen</td>
+</tr>
+<tr>
+<td><strong>All</strong></td>
+<td>F12</td>
+<td>Exit (Kiosk)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="undoedit-functions-edit-innings-list">Undo/Edit Functions (Edit Innings List)<a class="headerlink" href="#undoedit-functions-edit-innings-list" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Undo</strong></td>
+<td>Cursor ←</td>
+<td>Move cursor one inning back (points remain unchanged)</td>
+</tr>
+<tr>
+<td><strong>Next</strong></td>
+<td>Cursor →</td>
+<td>Move cursor one inning forward (at last position: player switch)</td>
+</tr>
+<tr>
+<td><strong>+1, +5, +10</strong></td>
+<td>Points +</td>
+<td>Increase points at current cursor position</td>
+</tr>
+<tr>
+<td><strong>-1, -5, -10</strong></td>
+<td>Points -</td>
+<td>Decrease points at current cursor position</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important:</strong> After editing with Undo, always return to current inning with "Next"!</p>
+<hr />
+<h2 id="appendix-b-undoedit-function-edit-innings-list">Appendix B: Undo/Edit Function (Edit Innings List)<a class="headerlink" href="#appendix-b-undoedit-function-edit-innings-list" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>Frequently misunderstood:</strong> The "Undo" button is <strong>not</strong> a simple undo function, but a powerful <strong>editing tool</strong> for the innings list!</p>
+<p><strong>Exception:</strong> For Pool billiards, Undo actually works as a true undo function.</p>
+<h3 id="how-the-innings-list-works_1">How the Innings List Works<a class="headerlink" href="#how-the-innings-list-works_1" title="Permanent link">&para;</a></h3>
+<p>Below the main scores of both players, you see the <strong>innings list</strong>:</p>
+<div class="highlight"><pre><span></span><code>Player A                     Player B
+   45                           38
+┌─────────────┐            ┌─────────────┐
+│ [5][8][12][│20│]         │ [6][7][10][│15│] │  ← Innings
+└─────────────┘            └─────────────┘
+   ▲                          ▲
+   First                      Currently editable
+   Inning                     (framed = Cursor)
+</code></pre></div>
+<ul>
+<li><strong>First inning</strong> is on the left</li>
+<li><strong>Current inning</strong> is on the right and marked by a frame (cursor)</li>
+<li>Each number shows the points in that inning</li>
+</ul>
+<h3 id="cursor-navigation_1">Cursor Navigation<a class="headerlink" href="#cursor-navigation_1" title="Permanent link">&para;</a></h3>
+<p><strong>With Undo (cursor left):</strong></p>
+<ol>
+<li>Press <strong>Undo</strong></li>
+<li>The cursor jumps to the <strong>previous inning</strong> of the current player</li>
+<li>The point values remain <strong>unchanged</strong></li>
+</ol>
+<p><strong>With Next/Switch (cursor right):</strong></p>
+<ol>
+<li>Press <strong>Next</strong></li>
+<li>The cursor jumps to the <strong>next inning</strong> (alternating A/B)</li>
+<li>When at the last inning, a player switch is executed</li>
+</ol>
+<h3 id="editing-points_1">Editing Points<a class="headerlink" href="#editing-points_1" title="Permanent link">&para;</a></h3>
+<p>When the cursor is on an inning:</p>
+<ol>
+<li>Use <strong>-1, -5, -10</strong> to reduce points</li>
+<li>Use <strong>+1, +5, +10</strong> to increase points</li>
+<li>The total score is <strong>automatically recalculated</strong></li>
+</ol>
+<h3 id="step-by-step-example-1-correct-error-in-previous-inning_1">Step-by-Step Example 1: Correct Error in Previous Inning<a class="headerlink" href="#step-by-step-example-1-correct-error-in-previous-inning_1" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Player A just made 8 points
+- You notice that the inning before had 12 instead of 10 points entered</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [5][10][│8│]  (Cursor on current inning)
+Total score: 23
+
+Step 1: Press Undo
+Player A: [5][│10│][8]  (Cursor on previous inning)
+
+Step 2: Press &quot;-1&quot; twice
+Player A: [5][│8│][8]   (10 → 8)
+Total score: 21 ✓       (automatically corrected)
+
+Step 3: Press &quot;Next&quot;
+Player A: [5][8][│8│]   (Cursor back to current inning)
+</code></pre></div>
+<p><strong>Important:</strong> After editing, you <strong>MUST</strong> navigate back to the current inning with "Next"!</p>
+<h3 id="step-by-step-example-2-multiple-innings-back_1">Step-by-Step Example 2: Multiple Innings Back<a class="headerlink" href="#step-by-step-example-2-multiple-innings-back_1" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Player A: [6][8][10][│12│]
+- You want to correct the second inning (8) to 7</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [6][8][10][│12│]  (Cursor at position 4)
+Total score: 36
+
+Step 1: Press Undo (1x)
+Player A: [6][8][│10│][12]  (Cursor at position 3)
+
+Step 2: Press Undo (2x)
+Player A: [6][│8│][10][12]  (Cursor at position 2)
+
+Step 3: Press &quot;-1&quot;
+Player A: [6][│7│][10][12]  (8 → 7)
+Total score: 35 ✓
+
+Step 4: Press &quot;Next&quot; (1x)
+Player A: [6][7][│10│][12]  (Cursor at position 3)
+
+Step 5: Press &quot;Next&quot; (2x)
+Player A: [6][7][10][│12│]  (Cursor back at position 4)
+</code></pre></div>
+<h3 id="step-by-step-example-3-editing-both-players_1">Step-by-Step Example 3: Editing Both Players<a class="headerlink" href="#step-by-step-example-3-editing-both-players_1" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Player A just played: [5][│8│]
+- Player B should play now: [6][│--│]
+- You need to correct Player A's first inning from 5 to 6</p>
+<p><strong>Solution:</strong></p>
+<div class="highlight"><pre><span></span><code>Starting situation:
+Player A: [5][│8│]  (Cursor here)
+Player B: [6][--]
+
+Step 1: Press Undo
+Player A: [│5│][8]  (Cursor at position 1)
+
+Step 2: Press &quot;+1&quot;
+Player A: [│6│][8]  (5 → 6)
+
+Step 3: Press &quot;Next&quot; (1x)
+Player A: [6][│8│]  (back to position 2)
+
+Step 4: Press &quot;Next&quot; (2x) - executes player switch
+Player A: [6][8]
+Player B: [6][│--│]  ✓ (ready for new inning)
+</code></pre></div>
+<h3 id="important-notes_1">Important Notes<a class="headerlink" href="#important-notes_1" title="Permanent link">&para;</a></h3>
+<p><strong>✅ DO:</strong>
+- Navigate cursor consciously
+- <strong>Always</strong> return to current inning after editing
+- Visually verify changes (total score)</p>
+<p><strong>❌ DON'T:</strong>
+- Leave cursor somewhere
+- Continue playing without navigation
+- Blindly press "Undo" multiple times</p>
+<h3 id="common-errors_1">Common Errors<a class="headerlink" href="#common-errors_1" title="Permanent link">&para;</a></h3>
+<p><strong>Error 1: "I pressed Undo, but nothing happened"</strong></p>
+<p>→ You didn't change the points! Undo <strong>only moves the cursor</strong>, points stay the same.</p>
+<p><strong>Solution:</strong> After Undo, adjust points with &plusmn; buttons.</p>
+<p><strong>Error 2: "After Undo, the score shows wrong values"</strong></p>
+<p>→ The cursor is still on an old inning, not the current one.</p>
+<p><strong>Solution:</strong> Navigate back to current inning with "Next".</p>
+<p><strong>Error 3: "I can't get back"</strong></p>
+<p>→ You've lost track of where the cursor is.</p>
+<p><strong>Solution:</strong> 
+1. Look at the innings list - the framed number shows the cursor
+2. Press "Next" until you're back at the last inning
+3. In emergency: Press F5 (reload page)</p>
+<h3 id="when-to-use_1">When to Use?<a class="headerlink" href="#when-to-use_1" title="Permanent link">&para;</a></h3>
+<p><strong>Typical Use Cases:</strong></p>
+<p>✅ <strong>Correct typos</strong>
+- You accidentally entered 8 instead of 6</p>
+<p>✅ <strong>Change points retroactively</strong>
+- Referee decision corrects an earlier inning</p>
+<p>✅ <strong>Resolve discussions</strong>
+- Players disagree about an earlier inning
+- You can go back and correct</p>
+<p><strong>Don't use for:</strong></p>
+<p>❌ <strong>Change current inning</strong>
+- Use &plusmn; buttons instead</p>
+<p>❌ <strong>Switch players</strong>
+- Use the "Next" button</p>
+<h3 id="summary_1">Summary<a class="headerlink" href="#summary_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+<th>Effect on Cursor</th>
+<th>Effect on Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Undo</strong></td>
+<td>Cursor back</td>
+<td>← One position back</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Next</strong></td>
+<td>Cursor forward / Player switch</td>
+<td>→ One position forward</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>+1, +5, +10</strong></td>
+<td>Add points</td>
+<td>None</td>
+<td>Increases value at cursor position</td>
+</tr>
+<tr>
+<td><strong>-1, -5, -10</strong></td>
+<td>Subtract points</td>
+<td>None</td>
+<td>Decreases value at cursor position</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remember:</strong> </p>
+<blockquote>
+<p>Undo = Move cursor, &plusmn; = Change points, Next = back to current inning</p>
+</blockquote>
+<h3 id="suggestion-for-future-improvement">💡 Suggestion for Future Improvement<a class="headerlink" href="#suggestion-for-future-improvement" title="Permanent link">&para;</a></h3>
+<h4 id="solution-1-game-protocol-modal-recommended">Solution 1: Game Protocol Modal (RECOMMENDED)<a class="headerlink" href="#solution-1-game-protocol-modal-recommended" title="Permanent link">&para;</a></h4>
+<p>The current Undo/Edit function is complex and error-prone. A much better solution would be a <strong>Game Protocol Modal</strong>:</p>
+<p><strong>Concept:</strong></p>
+<p>Replace "Undo" button with <strong>[📋 Game Protocol]</strong></p>
+<p>Clicking opens a modal with complete overview:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────── Game Protocol ────────────────────┐
+│                                                       │
+│  Player A: John Doe          Player B: Jane Smith   │
+│                                                       │
+│  Inng. │ Points │ Total     Inng. │ Points │ Total  │
+│  ──────┼────────┼─────     ──────┼────────┼───── │
+│    1   │   5    │   5         1   │   6    │   6    │
+│    2   │   8    │  13         2   │   7    │  13    │
+│    3   │  12    │  25         3   │  10    │  23    │
+│    4   │  20    │  45         4   │  15    │  38    │
+│                                                       │
+│  [Edit] [Done] [Print]                               │
+└───────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>In Edit Mode:</strong></p>
+<div class="highlight"><pre><span></span><code>┌─────────────────── Game Protocol (Edit) ─────────────┐
+│                                                       │
+│  Inng. │ Points      │ Total     Inng. │ Points │... │
+│  ──────┼─────────────┼─────     ──────┼────────┼──  │
+│    1   │  5 [↑][↓]  │   5         1   │   6 [↑][↓] │
+│    2   │  8 [↑][↓]  │  13         2   │   7 [↑][↓] │
+│    3   │ 12 [↑][↓]  │  25         3   │  10 [↑][↓] │
+│        │  [+ Insert inning]                           │
+│                                                       │
+│  [Save] [Cancel]                                     │
+└───────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Advantages:</strong></p>
+<p>✅ <strong>Clear Overview</strong>
+- ALL innings visible at a glance
+- No hidden cursor navigation
+- Complete game history immediately visible</p>
+<p>✅ <strong>Intuitive</strong>
+- Everyone understands tables
+- Clear Edit mode on/off
+- Arrows ↑↓ are self-explanatory</p>
+<p>✅ <strong>Safe</strong>
+- Accidental changes impossible (readonly in view mode)
+- Clear separation: View vs. Edit
+- "Done" unambiguously exits back to game</p>
+<p>✅ <strong>Powerful</strong>
+- <strong>Insert rows</strong> for forgotten player switches!
+- Complex corrections possible
+- Fix multiple errors at once</p>
+<p>✅ <strong>Professional</strong>
+- <strong>Print function</strong> for game protocol
+- Documentation of game progression
+- Archiving for tournaments</p>
+<p><strong>Features:</strong></p>
+<ol>
+<li><strong>View Mode (Default)</strong></li>
+<li>Readonly table</li>
+<li>Scrollbar for many innings</li>
+<li>Current inning highlighted</li>
+<li>
+<p>Buttons: [Edit] [Done] [Print]</p>
+</li>
+<li>
+<p><strong>Edit Mode</strong></p>
+</li>
+<li>All points with [↑] [↓] buttons</li>
+<li>Totals automatically recalculated</li>
+<li>[+ Insert inning] between rows</li>
+<li>
+<p>Buttons: [Save] [Cancel]</p>
+</li>
+<li>
+<p><strong>Print</strong></p>
+</li>
+<li>Print-optimized layout</li>
+<li>Date, players, final result</li>
+<li>Optional: PDF export</li>
+</ol>
+<p><strong>Use Case: Forgotten Player Switch</strong></p>
+<p>Problem: After inning 3 of Player A, forgot to switch, he played inning 4 directly.</p>
+<p>Solution:
+1. Open [📋 Game Protocol]
+2. Click [Edit]
+3. Between row 3 and 4 of Player A: [+ Insert inning]
+4. New empty row is inserted
+5. Move points from inning 4 to new row
+6. [Save]</p>
+<p>This would be a complete redesign, but <strong>significantly more user-friendly</strong> than the current solution.</p>
+<hr />
+<h4 id="solution-2-three-separate-buttons-alternative">Solution 2: Three Separate Buttons (Alternative)<a class="headerlink" href="#solution-2-three-separate-buttons-alternative" title="Permanent link">&para;</a></h4>
+<p>If the modal solution is too complex, a simpler improvement would be:</p>
+<p>The current button assignment is confusing because:
+- "Undo" sounds like "Undo", but is actually "Cursor back"
+- "Next" has two meanings: "Cursor forward" AND "Player switch"</p>
+<p><strong>Simplified Solution:</strong></p>
+<p>Three separate, clear buttons:</p>
+<div class="highlight"><pre><span></span><code>[◄ Cursor back] [Cursor forward ►] [✓ Done]
+</code></pre></div>
+<p><strong>Advantages:</strong>
+- ✅ Each button has <strong>exactly one</strong> function
+- ✅ Self-explanatory labels
+- ✅ "✓ Done" makes clear: "Finish editing"
+- ✅ Users can't get "stuck"</p>
+<p><strong>Disadvantages compared to Game Protocol Modal:</strong>
+- ❌ No complete overview
+- ❌ Still hidden navigation
+- ❌ No print function
+- ❌ No ability to insert rows</p>
+<hr />
+<p><strong>Recommendation:</strong> Solution 1 (Game Protocol Modal) is significantly better and fundamentally solves all problems.</p>
+<hr />
+<h2 id="support-and-help">Support and Help<a class="headerlink" href="#support-and-help" title="Permanent link">&para;</a></h2>
+<p>For problems or questions:</p>
+<ol>
+<li><strong>Documentation</strong>: Read this guide thoroughly</li>
+<li><strong>Contact Administrator</strong>: Your club administrator can help</li>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/GernotUllrich/carambus/issues">https://github.com/GernotUllrich/carambus/issues</a></li>
+</ol>
+<hr />
+<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
+<p>This manual applies to Carambus version 2.0 and higher.</p>
+<p>Last updated: November 2025</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

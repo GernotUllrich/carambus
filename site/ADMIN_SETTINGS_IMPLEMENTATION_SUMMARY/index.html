@@ -1,0 +1,2554 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/ADMIN_SETTINGS_IMPLEMENTATION_SUMMARY/">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Admin Settings Configuration - Implementation Summary - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#admin-settings-configuration-implementation-summary" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Admin Settings Configuration - Implementation Summary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/ADMIN_SETTINGS_IMPLEMENTATION_SUMMARY/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Einführung
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  Benutzerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Entwicklerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Einführung
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Einführung
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schnellstart Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benutzerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Benutzerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ligaspieltage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Entwicklerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-date" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Date
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changes-made" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changes Made
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Changes Made">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-view-layer-appviewsadminsettingsindexhtmlerb" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. View Layer (app/views/admin/settings/index.html.erb)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. View Layer (app/views/admin/settings/index.html.erb)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added-advanced-settings-section" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added Advanced Settings Section
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added-lock-status-indicator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added Lock Status Indicator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-notice-section" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enhanced Notice Section
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#css-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      CSS Enhancements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-controller-layer-appcontrollersadminsettings_controllerrb" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Controller Layer (app/controllers/admin/settings_controller.rb)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Controller Layer (app/controllers/admin/settings_controller.rb)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modified-index-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified index Action
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modified-create-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified create Action
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updated-permitted-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updated Permitted Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-application-configuration-configapplicationrb" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Application Configuration (config/application.rb)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Application Configuration (config/application.rb)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modified-carambussave_config-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified Carambus.save_config Method
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scenario-tasks-libtasksscenariosrake" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Scenario Tasks (lib/tasks/scenarios.rake)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Scenario Tasks (lib/tasks/scenarios.rake)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modified-generate_carambus_yml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified generate_carambus_yml
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modified-file-copy-operations-3-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified File Copy Operations (3 locations)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leveraged-existing-upload-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Leveraged Existing Upload Function
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-modifications-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Modifications Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-files-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      New Files Created
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feature Capabilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editable-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editable Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editable Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standard-fields-text-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standard Fields (Text Input)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dropdown-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dropdown Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json-fields-textarea" class="md-nav__link">
+    <span class="md-ellipsis">
+      JSON Fields (Textarea)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lock-file-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lock File Protection
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lock File Protection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Protection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remote Protection
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage Flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation &amp; Error Handling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation &amp; Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      JSON Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#console-output-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Console Output Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Console Output Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#during-scenario-preparation-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Scenario Preparation (Locked)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-scenario-update-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Scenario Update (Locked)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-production-upload-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Production Upload (Locked)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration Points
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration Points">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Existing Systems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-breaking-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      No Breaking Changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Impact
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Known Limitations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Future Enhancements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Future Enhancements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2 (Planned)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-potential" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3 (Potential)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing Recommendations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manual-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-testing-future" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Testing (Future)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rollback-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback Plan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support &amp; Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Support &amp; Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contact" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contact
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="admin-settings-configuration-implementation-summary">Admin Settings Configuration - Implementation Summary<a class="headerlink" href="#admin-settings-configuration-implementation-summary" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Implemented a feature allowing administrators to edit carambus.yml parameters through the web interface, with automatic lock file creation to prevent scenario deployment tasks from overwriting manual changes.</p>
+<h2 id="implementation-date">Implementation Date<a class="headerlink" href="#implementation-date" title="Permanent link">&para;</a></h2>
+<p>October 30, 2025</p>
+<h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">&para;</a></h2>
+<h3 id="1-view-layer-appviewsadminsettingsindexhtmlerb">1. View Layer (app/views/admin/settings/index.html.erb)<a class="headerlink" href="#1-view-layer-appviewsadminsettingsindexhtmlerb" title="Permanent link">&para;</a></h3>
+<h4 id="added-advanced-settings-section">Added Advanced Settings Section<a class="headerlink" href="#added-advanced-settings-section" title="Permanent link">&para;</a></h4>
+<ul>
+<li>New field group for JSON-based configuration</li>
+<li>Textarea for <code>quick_game_presets</code> with monospace font</li>
+<li>Help text explaining JSON format</li>
+<li>20 rows for comfortable editing</li>
+</ul>
+<h4 id="added-lock-status-indicator">Added Lock Status Indicator<a class="headerlink" href="#added-lock-status-indicator" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Warning banner when lock file exists</li>
+<li>Shows lock file path</li>
+<li>Yellow/orange styling for visibility</li>
+<li>Clear instructions for removing lock</li>
+</ul>
+<h4 id="enhanced-notice-section">Enhanced Notice Section<a class="headerlink" href="#enhanced-notice-section" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Updated text to explain lock file creation</li>
+<li>Added information about restart requirement</li>
+<li>Improved styling for better UX</li>
+</ul>
+<h4 id="css-enhancements">CSS Enhancements<a class="headerlink" href="#css-enhancements" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">.</span><span class="nc">field-unit</span><span class="w"> </span><span class="nt">textarea</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">width</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="kt">%</span><span class="p">;</span>
+<span class="w">  </span><span class="k">min-height</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">  </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">  </span><span class="k">border</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="kt">px</span><span class="w"> </span><span class="kc">solid</span><span class="w"> </span><span class="mh">#ddd</span><span class="p">;</span>
+<span class="w">  </span><span class="k">border-radius</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="kt">px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">.</span><span class="nc">notice</span><span class="w"> </span><span class="nt">code</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">background</span><span class="p">:</span><span class="w"> </span><span class="nb">rgba</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.05</span><span class="p">);</span>
+<span class="w">  </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="kt">px</span><span class="w"> </span><span class="mi">6</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">  </span><span class="k">border-radius</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">  </span><span class="k">font-family</span><span class="p">:</span><span class="w"> </span><span class="kc">monospace</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="2-controller-layer-appcontrollersadminsettings_controllerrb">2. Controller Layer (app/controllers/admin/settings_controller.rb)<a class="headerlink" href="#2-controller-layer-appcontrollersadminsettings_controllerrb" title="Permanent link">&para;</a></h3>
+<h4 id="modified-index-action">Modified <code>index</code> Action<a class="headerlink" href="#modified-index-action" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Added <code>@quick_game_presets_json</code> with pretty-printed JSON</li>
+<li>Added <code>@config_locked</code> flag based on lock file existence</li>
+<li>Uses <code>JSON.pretty_generate</code> for human-readable format</li>
+</ul>
+<h4 id="modified-create-action">Modified <code>create</code> Action<a class="headerlink" href="#modified-create-action" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Added JSON field parsing logic</li>
+<li>Validates JSON syntax before saving</li>
+<li>Returns error message if JSON invalid</li>
+<li>Passes <code>create_lock: true</code> to <code>Carambus.save_config</code></li>
+<li>Enhanced success message to mention lock file</li>
+</ul>
+<h4 id="updated-permitted-parameters">Updated Permitted Parameters<a class="headerlink" href="#updated-permitted-parameters" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Added <code>:quick_game_presets</code> to <code>config_params</code></li>
+</ul>
+<h3 id="3-application-configuration-configapplicationrb">3. Application Configuration (config/application.rb)<a class="headerlink" href="#3-application-configuration-configapplicationrb" title="Permanent link">&para;</a></h3>
+<h4 id="modified-carambussave_config-method">Modified <code>Carambus.save_config</code> Method<a class="headerlink" href="#modified-carambussave_config-method" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Added optional <code>create_lock</code> parameter (default: false)</li>
+<li>Creates <code>config/carambus.yml.lock</code> when requested</li>
+<li>Lock file contains metadata:</li>
+<li><code>created_at</code>: ISO 8601 timestamp</li>
+<li><code>created_by</code>: "admin_settings"</li>
+<li><code>message</code>: Human-readable explanation</li>
+</ul>
+<h3 id="4-scenario-tasks-libtasksscenariosrake">4. Scenario Tasks (lib/tasks/scenarios.rake)<a class="headerlink" href="#4-scenario-tasks-libtasksscenariosrake" title="Permanent link">&para;</a></h3>
+<h4 id="modified-generate_carambus_yml">Modified <code>generate_carambus_yml</code><a class="headerlink" href="#modified-generate_carambus_yml" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Checks for lock file before generating</li>
+<li>Skips generation if locked</li>
+<li>Logs warning message with lock file path</li>
+<li>Returns true (non-fatal) to allow task to continue</li>
+</ul>
+<h4 id="modified-file-copy-operations-3-locations">Modified File Copy Operations (3 locations)<a class="headerlink" href="#modified-file-copy-operations-3-locations" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>prepare_scenario_for_development</code> (line ~1465)</li>
+<li><code>update_scenario</code> (line ~2126)</li>
+<li>Each checks for <code>carambus.yml.lock</code> before copying</li>
+<li>Shows skip message if locked</li>
+<li>Provides instructions for allowing regeneration</li>
+</ul>
+<h4 id="leveraged-existing-upload-function">Leveraged Existing Upload Function<a class="headerlink" href="#leveraged-existing-upload-function" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>upload_config_file</code> helper already checks for <code>.lock</code> files</li>
+<li>Remote lock file checking already implemented (line ~2788)</li>
+<li>No changes needed for production upload protection</li>
+</ul>
+<h2 id="file-modifications-summary">File Modifications Summary<a class="headerlink" href="#file-modifications-summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Changes</th>
+<th>Lines Modified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>app/views/admin/settings/index.html.erb</td>
+<td>Added JSON field, lock indicator, styling</td>
+<td>~40 lines</td>
+</tr>
+<tr>
+<td>app/controllers/admin/settings_controller.rb</td>
+<td>JSON parsing, validation, lock check</td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td>config/application.rb</td>
+<td>Lock file creation in save_config</td>
+<td>~10 lines</td>
+</tr>
+<tr>
+<td>lib/tasks/scenarios.rake</td>
+<td>Lock file checks in 3 functions</td>
+<td>~30 lines</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>~110 lines</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="new-files-created">New Files Created<a class="headerlink" href="#new-files-created" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>docs/ADMIN_SETTINGS_CONFIGURATION.md</strong> (300+ lines)</li>
+<li>Complete feature documentation</li>
+<li>Usage examples</li>
+<li>Troubleshooting guide</li>
+<li>
+<p>Best practices</p>
+</li>
+<li>
+<p><strong>testing/ADMIN_SETTINGS_TEST_PLAN.md</strong> (350+ lines)</p>
+</li>
+<li>12 comprehensive test cases</li>
+<li>Test data and setup instructions</li>
+<li>Results tracking table</li>
+<li>Sign-off section</li>
+</ol>
+<h2 id="feature-capabilities">Feature Capabilities<a class="headerlink" href="#feature-capabilities" title="Permanent link">&para;</a></h2>
+<h3 id="editable-parameters">Editable Parameters<a class="headerlink" href="#editable-parameters" title="Permanent link">&para;</a></h3>
+<h4 id="standard-fields-text-input">Standard Fields (Text Input)<a class="headerlink" href="#standard-fields-text-input" title="Permanent link">&para;</a></h4>
+<ul>
+<li>application_name</li>
+<li>carambus_api_url</li>
+<li>carambus_domain</li>
+<li>queue_adapter</li>
+<li>season_name</li>
+<li>force_update</li>
+<li>no_local_protection</li>
+<li>support_email</li>
+<li>business_name</li>
+<li>business_address</li>
+</ul>
+<h4 id="dropdown-fields">Dropdown Fields<a class="headerlink" href="#dropdown-fields" title="Permanent link">&para;</a></h4>
+<ul>
+<li>context (Region)</li>
+<li>location_id</li>
+<li>club_id</li>
+</ul>
+<h4 id="json-fields-textarea">JSON Fields (Textarea)<a class="headerlink" href="#json-fields-textarea" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>quick_game_presets</strong>: Complete configuration for quick game buttons</li>
+<li>Supports multiple table kinds (small_billard, match_billard, etc.)</li>
+<li>Categories with multiple buttons</li>
+<li>Full button configuration (balls, innings, discipline, label, allow_follow_up)</li>
+</ul>
+<h3 id="lock-file-protection">Lock File Protection<a class="headerlink" href="#lock-file-protection" title="Permanent link">&para;</a></h3>
+<h4 id="local-protection">Local Protection<a class="headerlink" href="#local-protection" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Lock file: <code>config/carambus.yml.lock</code></li>
+<li>Prevents: <code>scenario:prepare_development</code>, <code>scenario:update</code></li>
+<li>Checked before: File copy operations</li>
+</ul>
+<h4 id="remote-protection">Remote Protection<a class="headerlink" href="#remote-protection" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Lock file: <code>/var/www/{basename}/shared/config/carambus.yml.lock</code></li>
+<li>Prevents: <code>scenario:prepare_deploy</code> upload</li>
+<li>Checked before: SCP upload operations</li>
+</ul>
+<h2 id="usage-flow">Usage Flow<a class="headerlink" href="#usage-flow" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>1. Admin navigates to /admin/settings
+   ↓
+2. Edits configuration (including JSON)
+   ↓
+3. Clicks &quot;Update Configuration&quot;
+   ↓
+4. Controller validates JSON
+   ↓
+5. If valid: Saves to carambus.yml + creates lock
+   ↓
+6. Success message + lock warning displayed
+   ↓
+7. Admin restarts application
+   ↓
+8. New config takes effect
+   ↓
+9. Scenario deployment tasks respect lock
+</code></pre></div>
+<h2 id="validation-error-handling">Validation &amp; Error Handling<a class="headerlink" href="#validation-error-handling" title="Permanent link">&para;</a></h2>
+<h3 id="json-validation">JSON Validation<a class="headerlink" href="#json-validation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">begin</span>
+<span class="w">  </span><span class="n">config</span><span class="o">[</span><span class="n">key</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">config</span><span class="o">[</span><span class="n">key</span><span class="o">]</span><span class="p">)</span>
+<span class="k">rescue</span><span class="w"> </span><span class="no">JSON</span><span class="o">::</span><span class="no">ParserError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+<span class="w">  </span><span class="n">flash</span><span class="o">[</span><span class="ss">:alert</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Invalid JSON for </span><span class="si">#{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="n">redirect_to</span><span class="w"> </span><span class="n">admin_settings_path</span>
+<span class="w">  </span><span class="k">return</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Prevents invalid JSON from breaking application</li>
+<li>Clear error messages show exact problem</li>
+<li>Original values preserved on error</li>
+<li>Lock file not created if validation fails</li>
+</ul>
+<h2 id="console-output-examples">Console Output Examples<a class="headerlink" href="#console-output-examples" title="Permanent link">&para;</a></h2>
+<h3 id="during-scenario-preparation-locked">During Scenario Preparation (Locked)<a class="headerlink" href="#during-scenario-preparation-locked" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>📁 Step 3: Copying basic configuration files to Rails root...
+   ✅ database.yml copied to Rails root
+   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)
+   Remove /path/to/carambus.yml.lock to allow regeneration
+</code></pre></div>
+<h3 id="during-scenario-update-locked">During Scenario Update (Locked)<a class="headerlink" href="#during-scenario-update-locked" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>📋 Updating configuration files...
+   ✅ Updated database.yml
+   ⚠️  SKIPPED: carambus.yml (lock file exists - manually edited)
+</code></pre></div>
+<h3 id="during-production-upload-locked">During Production Upload (Locked)<a class="headerlink" href="#during-production-upload-locked" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>📤 Step 4.5: Uploading configuration files to server...
+   ✅ Uploaded database.yml
+   🔒 Skipped carambus.yml (locked on server)
+</code></pre></div>
+<h2 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">&para;</a></h2>
+<h3 id="existing-systems">Existing Systems<a class="headerlink" href="#existing-systems" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Carambus.config</strong>: Uses existing config loading mechanism</li>
+<li><strong>Carambus.save_config</strong>: Extended with lock file support</li>
+<li><strong>Settings Controller</strong>: Extended existing CRUD operations</li>
+<li><strong>Scenarios.rake</strong>: Integrated with existing deployment workflow</li>
+</ul>
+<h3 id="no-breaking-changes">No Breaking Changes<a class="headerlink" href="#no-breaking-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All changes backward compatible</li>
+<li>Lock file creation optional</li>
+<li>Existing code works without modification</li>
+<li>Graceful degradation if lock file missing</li>
+</ul>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Admin Only</strong>: Settings page requires admin authentication</li>
+<li><strong>Input Validation</strong>: JSON validated before saving</li>
+<li><strong>File Permissions</strong>: Lock files created with standard permissions</li>
+<li><strong>SQL Injection</strong>: No direct SQL (uses ActiveRecord)</li>
+<li><strong>XSS</strong>: HTML escaped in views</li>
+<li><strong>Path Traversal</strong>: Uses Rails.root.join for safe paths</li>
+</ol>
+<h2 id="performance-impact">Performance Impact<a class="headerlink" href="#performance-impact" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Minimal</strong>: Lock file check is fast file existence test</li>
+<li><strong>No Database Queries</strong>: Lock files are filesystem-based</li>
+<li><strong>Caching</strong>: Config loaded once at startup</li>
+<li><strong>Memory</strong>: Lock file metadata &lt; 1KB</li>
+</ul>
+<h2 id="known-limitations">Known Limitations<a class="headerlink" href="#known-limitations" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Application Restart Required</strong>: Config changes need restart</li>
+<li><strong>No UI Lock Management</strong>: Must remove lock files manually</li>
+<li><strong>No Version History</strong>: Previous values not tracked</li>
+<li><strong>Single User Edit</strong>: No concurrent edit protection</li>
+<li><strong>No Schema Validation</strong>: JSON structure not validated beyond syntax</li>
+</ol>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<h3 id="phase-2-planned">Phase 2 (Planned)<a class="headerlink" href="#phase-2-planned" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Lock file management UI</li>
+<li>View lock details</li>
+<li>Remove lock button</li>
+<li>
+<p>Lock/unlock toggle</p>
+</li>
+<li>
+<p>Configuration preview</p>
+</li>
+<li>Preview quick game buttons</li>
+<li>Validate discipline names</li>
+<li>
+<p>Test JSON before save</p>
+</li>
+<li>
+<p>Change history</p>
+</li>
+<li>Track all modifications</li>
+<li>Revert to previous version</li>
+<li>Audit log with user and timestamp</li>
+</ol>
+<h3 id="phase-3-potential">Phase 3 (Potential)<a class="headerlink" href="#phase-3-potential" title="Permanent link">&para;</a></h3>
+<ol>
+<li>JSON Schema validation</li>
+<li>Multi-environment editing</li>
+<li>Configuration export/import</li>
+<li>Real-time config reload (without restart)</li>
+<li>Bulk lock file management</li>
+</ol>
+<h2 id="testing-recommendations">Testing Recommendations<a class="headerlink" href="#testing-recommendations" title="Permanent link">&para;</a></h2>
+<h3 id="manual-testing">Manual Testing<a class="headerlink" href="#manual-testing" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Test TC001-TC012 from test plan</li>
+<li>Verify lock file creation</li>
+<li>Test JSON validation</li>
+<li>Test scenario deployment with locks</li>
+<li>Test production upload protection</li>
+</ol>
+<h3 id="automated-testing-future">Automated Testing (Future)<a class="headerlink" href="#automated-testing-future" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Suggested test structure</span>
+<span class="n">describe</span><span class="w"> </span><span class="no">Admin</span><span class="o">::</span><span class="no">SettingsController</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="n">describe</span><span class="w"> </span><span class="s2">&quot;POST #create&quot;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="n">context</span><span class="w"> </span><span class="s2">&quot;with valid JSON&quot;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">      </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;creates lock file&quot;</span>
+<span class="w">      </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;saves quick_game_presets&quot;</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="n">context</span><span class="w"> </span><span class="s2">&quot;with invalid JSON&quot;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">      </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;shows error message&quot;</span>
+<span class="w">      </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;does not save config&quot;</span>
+<span class="w">      </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;does not create lock file&quot;</span>
+<span class="w">    </span><span class="k">end</span>
+<span class="w">  </span><span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="deployment-checklist">Deployment Checklist<a class="headerlink" href="#deployment-checklist" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled checked/> Code implemented in carambus_master</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Documentation created</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Test plan created</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Manual testing completed</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Code review by team</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Commit and push to repository</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Deploy to development environment</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Test in development</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Deploy to production</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Update operations documentation</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Train administrators on new feature</li>
+</ul>
+<h2 id="rollback-plan">Rollback Plan<a class="headerlink" href="#rollback-plan" title="Permanent link">&para;</a></h2>
+<p>If issues are discovered:</p>
+<ol>
+<li>
+<p><strong>Immediate</strong>: Remove lock files to restore normal deployment
+<div class="highlight"><pre><span></span><code>rm<span class="w"> </span>config/carambus.yml.lock
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Code Rollback</strong>: Revert these commits
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>revert<span class="w"> </span>&lt;commit-hash&gt;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Database</strong>: No database changes (safe to rollback)</p>
+</li>
+<li>
+<p><strong>Lock Files</strong>: Automatically ignored after rollback</p>
+</li>
+</ol>
+<h2 id="support-maintenance">Support &amp; Maintenance<a class="headerlink" href="#support-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Developer</strong>: [Your Name]</li>
+<li><strong>Documentation</strong>: docs/ADMIN_SETTINGS_CONFIGURATION.md</li>
+<li><strong>Issues</strong>: GitHub Issues</li>
+</ul>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check lock files don't accumulate unnecessarily</li>
+<li>Monitor for invalid JSON errors in logs</li>
+<li>Track restart frequency after config changes</li>
+</ul>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>This implementation provides a user-friendly way for administrators to customize Carambus configuration through the web interface while protecting those changes from being overwritten by automated deployment tasks. The lock file mechanism ensures manual edits persist across deployments without requiring changes to deployment workflows.</p>
+<p>The feature integrates seamlessly with existing code, requires minimal performance overhead, and provides clear feedback to both administrators and deployment engineers about configuration protection status.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

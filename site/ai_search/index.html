@@ -1,0 +1,2868 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/ai_search/">
+      
+      
+        <link rel="prev" href="../scoreboard_benutzerhandbuch/">
+      
+      
+        <link rel="next" href="../GETTING_STARTED_DEVELOPER/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>KI-gestützte Suche - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ki-gestutzte-suche" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              KI-gestützte Suche
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/ai_search/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Einführung
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  Benutzerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Entwicklerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Einführung
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Einführung
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schnellstart Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benutzerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Benutzerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ligaspieltage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-api-key-hinzufugen" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenAI API Key hinzufügen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verwendung" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Verwendung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Verwendung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zugriff" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zugriff
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suchanfrage-stellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suchanfrage stellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beispiel-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiel-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Beispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Beispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#turniere-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turniere finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vereine-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vereine finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieltage-und-ligen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieltage und Ligen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unterstutzte-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Unterstützte Entities
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filter-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Filter-Syntax
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Filter-Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regionen-kurzel-verwenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regionen (Kürzel verwenden!)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disziplinen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disziplinen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locations-spielorte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Locations (Spielorte)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seasons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Seasons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datum-relativ-und-absolut" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datum (relativ und absolut)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freitext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Freitext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kombination-mehrere-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kombination (mehrere Filter)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtig-werte-mit-leerzeichen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtig: Werte mit Leerzeichen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-nicht-konfiguriert" class="md-nav__link">
+    <span class="md-ellipsis">
+      "OpenAI nicht konfiguriert"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#die-ki-konnte-ihre-anfrage-nicht-verstehen" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Die KI konnte Ihre Anfrage nicht verstehen"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#niedrige-confidence-70" class="md-nav__link">
+    <span class="md-ellipsis">
+      Niedrige Confidence (&lt;70%)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#falsche-entity-erkannt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Falsche Entity erkannt
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kosten" class="md-nav__link">
+    <span class="md-ellipsis">
+      💰 Kosten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💰 Kosten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kostenuberwachung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kostenüberwachung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Technische Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Technische Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-struktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service-Struktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      System-Prompt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sicherheit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sicherheit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gute-anfragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gute Anfragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weniger-gute-anfragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Weniger gute Anfragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tipps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tipps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weiterfuhrende-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 Weiterführende Links
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤝 Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Entwicklerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-api-key-hinzufugen" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenAI API Key hinzufügen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verwendung" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Verwendung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Verwendung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zugriff" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zugriff
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suchanfrage-stellen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suchanfrage stellen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beispiel-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beispiel-Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Beispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Beispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#turniere-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Turniere finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vereine-finden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vereine finden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieltage-und-ligen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieltage und Ligen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unterstutzte-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Unterstützte Entities
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filter-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Filter-Syntax
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Filter-Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regionen-kurzel-verwenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regionen (Kürzel verwenden!)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disziplinen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disziplinen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locations-spielorte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Locations (Spielorte)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seasons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Seasons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datum-relativ-und-absolut" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datum (relativ und absolut)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freitext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Freitext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kombination-mehrere-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kombination (mehrere Filter)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtig-werte-mit-leerzeichen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtig: Werte mit Leerzeichen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-nicht-konfiguriert" class="md-nav__link">
+    <span class="md-ellipsis">
+      "OpenAI nicht konfiguriert"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#die-ki-konnte-ihre-anfrage-nicht-verstehen" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Die KI konnte Ihre Anfrage nicht verstehen"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#niedrige-confidence-70" class="md-nav__link">
+    <span class="md-ellipsis">
+      Niedrige Confidence (&lt;70%)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#falsche-entity-erkannt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Falsche Entity erkannt
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kosten" class="md-nav__link">
+    <span class="md-ellipsis">
+      💰 Kosten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💰 Kosten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kostenuberwachung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kostenüberwachung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Technische Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Technische Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architektur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architektur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-struktur" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service-Struktur
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      System-Prompt
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sicherheit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sicherheit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gute-anfragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gute Anfragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weniger-gute-anfragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Weniger gute Anfragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tipps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tipps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weiterfuhrende-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 Weiterführende Links
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤝 Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ki-gestutzte-suche">KI-gestützte Suche<a class="headerlink" href="#ki-gestutzte-suche" title="Permanent link">&para;</a></h1>
+<p>Die KI-gestützte Suche ermöglicht die Verwendung natürlicher deutscher Sprache, um Daten in Carambus zu finden. Die Funktion nutzt OpenAI's GPT-4o-mini Modell, um Suchanfragen in strukturierte Filter-Syntax zu übersetzen.</p>
+<h2 id="inhaltsverzeichnis">📋 Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#setup">Setup</a></li>
+<li><a href="#verwendung">Verwendung</a></li>
+<li><a href="#beispiele">Beispiele</a></li>
+<li><a href="#unterstützte-entities">Unterstützte Entities</a></li>
+<li><a href="#filter-syntax">Filter-Syntax</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#kosten">Kosten</a></li>
+</ul>
+<h2 id="setup">🚀 Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<h3 id="openai-api-key-hinzufugen">OpenAI API Key hinzufügen<a class="headerlink" href="#openai-api-key-hinzufugen" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>OpenAI API Key besorgen</strong></li>
+<li>Account auf https://platform.openai.com erstellen</li>
+<li>API Key unter "API Keys" generieren</li>
+<li>
+<p>Key kopieren (beginnt mit <code>sk-...</code>)</p>
+</li>
+<li>
+<p><strong>Key in Rails Credentials einfügen</strong></p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
+<span class="nv">EDITOR</span><span class="o">=</span><span class="s2">&quot;code --wait&quot;</span><span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>development
+</code></pre></div>
+<ol>
+<li><strong>Folgende Zeilen hinzufügen:</strong></li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nt">openai</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">api_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sk-your-actual-api-key-here</span>
+</code></pre></div>
+<ol>
+<li><strong>Speichern und schließen</strong></li>
+<li>Datei speichern (Cmd+S in VS Code)</li>
+<li>Editor schließen</li>
+<li>
+<p>Rails verschlüsselt die Credentials automatisch</p>
+</li>
+<li>
+<p><strong>Für Production</strong> (auf dem API-Server):</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nv">EDITOR</span><span class="o">=</span><span class="s2">&quot;nano&quot;</span><span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>production
+</code></pre></div>
+<h2 id="verwendung">💡 Verwendung<a class="headerlink" href="#verwendung" title="Permanent link">&para;</a></h2>
+<h3 id="zugriff">Zugriff<a class="headerlink" href="#zugriff" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>KI-Assistent Button</strong> in der linken Navigation (zwischen Logo und Menü)</li>
+<li>Button zeigt ein ✨ Sparkle-Icon</li>
+<li>Klick öffnet das Suchfeld</li>
+</ol>
+<h3 id="suchanfrage-stellen">Suchanfrage stellen<a class="headerlink" href="#suchanfrage-stellen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Anfrage in natürlicher deutscher Sprache eingeben</li>
+<li>Enter drücken oder "Suchen" klicken</li>
+<li>KI analysiert die Anfrage (1-3 Sekunden)</li>
+<li>Automatische Navigation zur Ergebnis-Seite</li>
+</ol>
+<h3 id="beispiel-workflow">Beispiel-Workflow<a class="headerlink" href="#beispiel-workflow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Eingabe: &quot;Turniere in Hamburg letzte 2 Wochen&quot;
+        ↓
+KI analysiert...
+        ↓
+Übersetzt zu: &quot;Region:HH Date:&gt;heute-2w&quot;
+        ↓
+Navigiert zu: /tournaments?sSearch=Region:HH+Date:&gt;heute-2w
+</code></pre></div>
+<h2 id="beispiele">📝 Beispiele<a class="headerlink" href="#beispiele" title="Permanent link">&para;</a></h2>
+<h3 id="turniere-finden">Turniere finden<a class="headerlink" href="#turniere-finden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>&quot;Turniere in Hamburg&quot;
+→ tournaments mit Filter: Region:HH
+
+&quot;Dreiband Turniere 2024&quot;
+→ tournaments mit Filter: Discipline:Dreiband Season:2024/2025
+
+&quot;Turniere letzte 2 Wochen&quot;
+→ tournaments mit Filter: Date:&gt;heute-2w
+
+&quot;Freie Partie in Westfalen heute&quot;
+→ tournaments mit Filter: Discipline:Freie Partie Region:WL Date:heute
+
+&quot;Turniere im BC Wedel&quot;
+→ tournaments mit Filter: Location:&quot;BC Wedel&quot;
+
+&quot;Turniere im BC Wedel Saison 2025&quot;
+→ tournaments mit Filter: Location:&quot;BC Wedel&quot; Season:2025/2026
+</code></pre></div>
+<h3 id="spieler-finden">Spieler finden<a class="headerlink" href="#spieler-finden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>&quot;Alle Spieler aus Westfalen&quot;
+→ players mit Filter: Region:WL
+
+&quot;Meyer Hamburg&quot;
+→ players mit Filter: Meyer Region:HH
+
+&quot;Spieler aus Berlin Saison 2024&quot;
+→ players mit Filter: Region:BE Season:2024/2025
+</code></pre></div>
+<h3 id="vereine-finden">Vereine finden<a class="headerlink" href="#vereine-finden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>&quot;Vereine in Hamburg&quot;
+→ clubs mit Filter: Region:HH
+
+&quot;Clubs Westfalen&quot;
+→ clubs mit Filter: Region:WL
+</code></pre></div>
+<h3 id="spieltage-und-ligen">Spieltage und Ligen<a class="headerlink" href="#spieltage-und-ligen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>&quot;Spieltage letzte Woche&quot;
+→ parties mit Filter: Date:&gt;heute-1w
+
+&quot;Mannschaftsspiele heute&quot;
+→ party_games mit Filter: Date:heute
+
+&quot;Spieltage Hamburg 2024&quot;
+→ parties mit Filter: Region:HH Season:2024/2025
+</code></pre></div>
+<h2 id="unterstutzte-entities">🎯 Unterstützte Entities<a class="headerlink" href="#unterstutzte-entities" title="Permanent link">&para;</a></h2>
+<p>Die KI kann folgende Datentypen durchsuchen:</p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Deutsche Namen</th>
+<th>Häufige Filter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>players</code></td>
+<td>Spieler, Player, Teilnehmer</td>
+<td>Region, Club, Firstname, Lastname, Season</td>
+</tr>
+<tr>
+<td><code>clubs</code></td>
+<td>Vereine, Clubs, Verein</td>
+<td>Region, Name</td>
+</tr>
+<tr>
+<td><code>tournaments</code></td>
+<td>Turniere, Turnier, Veranstaltung</td>
+<td>Season, Region, Discipline, Date, Title, Location</td>
+</tr>
+<tr>
+<td><code>locations</code></td>
+<td>Spielorte, Locations, Orte</td>
+<td>Region, Name, City</td>
+</tr>
+<tr>
+<td><code>regions</code></td>
+<td>Regionen, Region, Landesverbände</td>
+<td>Shortname, Name</td>
+</tr>
+<tr>
+<td><code>seasons</code></td>
+<td>Saisons, Saison, Spielzeit</td>
+<td>Name</td>
+</tr>
+<tr>
+<td><code>season_participations</code></td>
+<td>Saisonteilnahmen</td>
+<td>Season, Player, Club, Region</td>
+</tr>
+<tr>
+<td><code>parties</code></td>
+<td>Spieltage, Spieltag, Partien</td>
+<td>Season, League, Date, Region</td>
+</tr>
+<tr>
+<td><code>game_participations</code></td>
+<td>Spielteilnahmen</td>
+<td>Player, Game, Season</td>
+</tr>
+<tr>
+<td><code>seedings</code></td>
+<td>Setzungen, Turnierteilnahmen</td>
+<td>Tournament, Player, Season, Discipline</td>
+</tr>
+<tr>
+<td><code>party_games</code></td>
+<td>Mannschaftsspiele</td>
+<td>Party, Player, Date</td>
+</tr>
+<tr>
+<td><code>disciplines</code></td>
+<td>Disziplinen</td>
+<td>Name</td>
+</tr>
+</tbody>
+</table>
+<h2 id="filter-syntax">🔍 Filter-Syntax<a class="headerlink" href="#filter-syntax" title="Permanent link">&para;</a></h2>
+<p>Die KI übersetzt Ihre Anfrage in folgende Filter-Syntax:</p>
+<h3 id="regionen-kurzel-verwenden">Regionen (Kürzel verwenden!)<a class="headerlink" href="#regionen-kurzel-verwenden" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Region:WL   → Westfalen-Lippe
+Region:HH   → Hamburg
+Region:BE   → Berlin
+Region:BY   → Bayern
+Region:NI   → Niedersachsen
+Region:BW   → Baden-Württemberg
+Region:HE   → Hessen
+Region:NW   → Nordrhein-Westfalen
+Region:RP   → Rheinland-Pfalz
+Region:SH   → Schleswig-Holstein
+Region:SL   → Saarland
+</code></pre></div>
+<h3 id="disziplinen">Disziplinen<a class="headerlink" href="#disziplinen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Discipline:Freie Partie
+Discipline:Dreiband
+Discipline:Einband
+Discipline:Cadre
+Discipline:Pool
+Discipline:Snooker
+</code></pre></div>
+<h3 id="locations-spielorte">Locations (Spielorte)<a class="headerlink" href="#locations-spielorte" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code># Für Werte mit Leerzeichen: Anführungszeichen verwenden
+Location:&quot;BC Wedel&quot;
+Location:&quot;Billard-Centrum Hamburg&quot;
+
+# Alternativ: Wenn der Name eindeutig ist
+Location:Wedel
+Location:Hamburg
+</code></pre></div>
+<h3 id="seasons">Seasons<a class="headerlink" href="#seasons" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Season:2024/2025
+Season:2023/2024
+</code></pre></div>
+<h3 id="datum-relativ-und-absolut">Datum (relativ und absolut)<a class="headerlink" href="#datum-relativ-und-absolut" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code># Relativ
+Date:heute              → heute
+Date:&gt;heute-2w          → nach vor 2 Wochen
+Date:&lt;heute+7           → vor in 7 Tagen
+Date:&gt;heute-1m          → nach vor 1 Monat
+
+# Einheiten
+d = Tage
+w = Wochen  
+m = Monate
+
+# Absolut
+Date:&gt;2025-01-01
+Date:&lt;2025-12-31
+Date:2025-10-24
+</code></pre></div>
+<h3 id="freitext">Freitext<a class="headerlink" href="#freitext" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Meyer                   → Sucht &quot;Meyer&quot; in allen Textfeldern
+Dreiband Hamburg        → Kombiniert mehrere Suchbegriffe mit AND-Logik
+</code></pre></div>
+<h3 id="kombination-mehrere-filter">Kombination (mehrere Filter)<a class="headerlink" href="#kombination-mehrere-filter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Season:2024/2025 Region:HH                  → Saison UND Region
+Discipline:Dreiband Date:&gt;heute-2w          → Disziplin UND Datum
+Meyer Region:WL Season:2024/2025            → Freitext UND Filter
+Location:&quot;BC Wedel&quot; Season:2025/2026        → Location mit Leerzeichen UND Saison
+</code></pre></div>
+<h3 id="wichtig-werte-mit-leerzeichen">Wichtig: Werte mit Leerzeichen<a class="headerlink" href="#wichtig-werte-mit-leerzeichen" title="Permanent link">&para;</a></h3>
+<p>Wenn ein Filterwert Leerzeichen enthält (z.B. Spielortnamen), <strong>müssen</strong> Anführungszeichen verwendet werden:</p>
+<div class="highlight"><pre><span></span><code>✅ Richtig:
+Location:&quot;BC Wedel&quot; Season:2025/2026
+Discipline:&quot;Freie Partie&quot; Region:HH
+
+❌ Falsch (wird nicht korrekt geparst):
+Location:BC Wedel Season:2025/2026
+→ Wird interpretiert als: Location:BC + Freitext &quot;Wedel&quot; + Season:2025/2026
+</code></pre></div>
+<p>Sie können sowohl <code>"</code> als auch <code>'</code> verwenden:
+<div class="highlight"><pre><span></span><code>Location:&quot;BC Wedel&quot;
+Location:&#39;BC Wedel&#39;
+</code></pre></div></p>
+<h2 id="troubleshooting">🔧 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="openai-nicht-konfiguriert">"OpenAI nicht konfiguriert"<a class="headerlink" href="#openai-nicht-konfiguriert" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> API Key fehlt in credentials<br />
+<strong>Lösung:</strong> Setup-Schritte oben befolgen, API Key hinzufügen</p>
+<h3 id="die-ki-konnte-ihre-anfrage-nicht-verstehen">"Die KI konnte Ihre Anfrage nicht verstehen"<a class="headerlink" href="#die-ki-konnte-ihre-anfrage-nicht-verstehen" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> Anfrage zu vage oder mehrdeutig<br />
+<strong>Lösung:</strong> 
+- Genauer formulieren: "Turniere" statt "Veranstaltungen"
+- Region/Disziplin/Zeitraum explizit nennen
+- Beispiele als Vorlage nutzen</p>
+<h3 id="niedrige-confidence-70">Niedrige Confidence (&lt;70%)<a class="headerlink" href="#niedrige-confidence-70" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> KI ist unsicher<br />
+<strong>Lösung:</strong>
+- Eindeutigere Begriffe verwenden
+- Mehr Kontext geben
+- Direkt die Filter-Syntax verwenden (in normalem Suchfeld)</p>
+<h3 id="falsche-entity-erkannt">Falsche Entity erkannt<a class="headerlink" href="#falsche-entity-erkannt" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> Suche nach "Spieler" führt zu "Turnieren"<br />
+<strong>Lösung:</strong>
+- Klarer formulieren: "Alle Spieler aus..." statt "Spieler Hamburg"
+- Entity-Namen aus Tabelle oben verwenden</p>
+<h2 id="kosten">💰 Kosten<a class="headerlink" href="#kosten" title="Permanent link">&para;</a></h2>
+<p>Die Nutzung von OpenAI GPT-4o-mini ist <strong>sehr günstig</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Input Tokens</th>
+<th>Output Tokens</th>
+<th>Kosten</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 Anfrage</td>
+<td>~500</td>
+<td>~100</td>
+<td>~€0.0001</td>
+</tr>
+<tr>
+<td>1000 Anfragen/Monat</td>
+<td>-</td>
+<td>-</td>
+<td>~€0.08</td>
+</tr>
+<tr>
+<td>10.000 Anfragen/Monat</td>
+<td>-</td>
+<td>-</td>
+<td>~€0.80</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hinweis:</strong> Die tatsächlichen Kosten sind minimal und für normale Nutzung vernachlässigbar.</p>
+<h3 id="kostenuberwachung">Kostenüberwachung<a class="headerlink" href="#kostenuberwachung" title="Permanent link">&para;</a></h3>
+<p>OpenAI Dashboard zeigt Echtzeit-Nutzung: https://platform.openai.com/usage</p>
+<h2 id="technische-details">📊 Technische Details<a class="headerlink" href="#technische-details" title="Permanent link">&para;</a></h2>
+<h3 id="architektur">Architektur<a class="headerlink" href="#architektur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>User Input (Deutsch)
+        ↓
+Stimulus Controller (ai_search_controller.js)
+        ↓
+POST /api/ai_search
+        ↓
+AiSearchController
+        ↓
+AiSearchService
+        ↓
+OpenAI GPT-4o-mini (JSON Response)
+        ↓
+Filter-Syntax
+        ↓
+Navigation zu gefilterten Ergebnissen
+</code></pre></div>
+<h3 id="service-struktur">Service-Struktur<a class="headerlink" href="#service-struktur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="no">AiSearchService</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+<span class="w">  </span><span class="ss">query</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Turniere in Hamburg&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">user</span><span class="p">:</span><span class="w"> </span><span class="n">current_user</span>
+<span class="p">)</span>
+
+<span class="c1"># Returns:</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="ss">success</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">entity</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tournaments&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">filters</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Region:HH&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">confidence</span><span class="p">:</span><span class="w"> </span><span class="mi">95</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">explanation</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Suche nach Turnieren in Hamburg&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="ss">path</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/tournaments?sSearch=Region:HH&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="system-prompt">System-Prompt<a class="headerlink" href="#system-prompt" title="Permanent link">&para;</a></h3>
+<p>Der KI-Service nutzt einen optimierten System-Prompt:
+- Deutsche Billard-Terminologie (Dreiband, Freie Partie, etc.)
+- Carambus Entity-Mapping
+- Filter-Syntax mit Beispielen
+- JSON Schema Enforcement
+- Context über verfügbare Regionen und Disziplinen</p>
+<h3 id="sicherheit">Sicherheit<a class="headerlink" href="#sicherheit" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ User Authentication erforderlich</li>
+<li>✅ CSRF-Protection</li>
+<li>✅ API Key verschlüsselt in Rails Credentials</li>
+<li>✅ Input Sanitization</li>
+<li>✅ Error Handling mit Fallbacks</li>
+</ul>
+<h2 id="best-practices">🎓 Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="gute-anfragen">Gute Anfragen<a class="headerlink" href="#gute-anfragen" title="Permanent link">&para;</a></h3>
+<p>✅ "Turniere in Hamburg letzte 2 Wochen"<br />
+✅ "Dreiband Spieler aus Berlin"<br />
+✅ "Freie Partie Saison 2024/2025"<br />
+✅ "Spieltage Hamburg heute"</p>
+<h3 id="weniger-gute-anfragen">Weniger gute Anfragen<a class="headerlink" href="#weniger-gute-anfragen" title="Permanent link">&para;</a></h3>
+<p>❌ "Sachen" (zu vage)<br />
+❌ "Irgendwas mit Billard" (nicht spezifisch)<br />
+❌ "Alle Daten" (keine Filter)</p>
+<h3 id="tipps">Tipps<a class="headerlink" href="#tipps" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Spezifisch sein:</strong> Region/Disziplin/Zeitraum erwähnen</li>
+<li><strong>Standard-Begriffe nutzen:</strong> "Turnier" statt "Event"</li>
+<li><strong>Kombinieren:</strong> Mehrere Filter in einer Anfrage möglich</li>
+<li><strong>Bei Unsicherheit:</strong> Beispiele als Vorlage nehmen</li>
+</ol>
+<h2 id="weiterfuhrende-links">📚 Weiterführende Links<a class="headerlink" href="#weiterfuhrende-links" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://platform.openai.com">OpenAI Platform</a></li>
+<li><a href="https://openai.com/pricing">GPT-4o-mini Pricing</a></li>
+<li><a href="../search/">Carambus Filter-Dokumentation</a></li>
+</ul>
+<h2 id="support">🤝 Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>Bei Problemen oder Fragen:
+1. Troubleshooting-Sektion oben prüfen
+2. Log-Files checken: <code>log/development.log</code> oder <code>log/production.log</code>
+3. GitHub Issues erstellen</p>
+<hr />
+<p><strong>Version:</strong> 1.0.0<br />
+<strong>Letzte Aktualisierung:</strong> Oktober 2024<br />
+<strong>Status:</strong> MVP (Minimum Viable Product)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

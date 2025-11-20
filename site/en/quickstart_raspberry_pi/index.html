@@ -1,0 +1,2715 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/quickstart_raspberry_pi/">
+      
+      
+        <link rel="prev" href="../installation_overview/">
+      
+      
+        <link rel="next" href="../tournament/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Quick Start Raspberry Pi - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quick-start-raspberry-pi-scoreboard-installation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quick Start Raspberry Pi
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../quickstart_raspberry_pi/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Knowledge Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-sd-card-5-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare SD Card (5 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Prepare SD Card (5 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-download-and-install-raspberry-pi-imager" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Download and Install Raspberry Pi Imager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-flash-raspberry-pi-os" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Flash Raspberry Pi OS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-first-boot" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 First Boot
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-ansible-configuration-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Ansible Configuration (10 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Ansible Configuration (10 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-initial-server-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Initial Server Setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-deploy-scenario-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Deploy Scenario (10 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Deploy Scenario (10 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-create-scenario-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Create Scenario Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-run-complete-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Run Complete Deployment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-verify-installation-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verify Installation (2 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Verify Installation (2 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-check-web-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Check Web Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-verify-scoreboard-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Verify Scoreboard Display
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-test-from-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Test from Command Line
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browser-not-starting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser Not Starting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web-interface-not-accessible" class="md-nav__link">
+    <span class="md-ellipsis">
+      Web Interface Not Accessible
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permission-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permission Errors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#management-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Management Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Management Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Daily Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updates and Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-port-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Port Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple Locations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headless-setup-no-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Headless Setup (No Monitor)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credits
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Software
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Knowledge Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-sd-card-5-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare SD Card (5 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Prepare SD Card (5 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-download-and-install-raspberry-pi-imager" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Download and Install Raspberry Pi Imager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-flash-raspberry-pi-os" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Flash Raspberry Pi OS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-first-boot" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 First Boot
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-ansible-configuration-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Ansible Configuration (10 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Ansible Configuration (10 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-initial-server-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Initial Server Setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-deploy-scenario-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Deploy Scenario (10 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Deploy Scenario (10 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-create-scenario-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Create Scenario Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-run-complete-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Run Complete Deployment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-verify-installation-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verify Installation (2 minutes)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Verify Installation (2 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-check-web-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Check Web Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-verify-scoreboard-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Verify Scoreboard Display
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-test-from-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Test from Command Line
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browser-not-starting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser Not Starting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web-interface-not-accessible" class="md-nav__link">
+    <span class="md-ellipsis">
+      Web Interface Not Accessible
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permission-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permission Errors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#management-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Management Commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Management Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Daily Operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updates and Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-port-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Port Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple Locations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headless-setup-no-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Headless Setup (No Monitor)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credits
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quick-start-raspberry-pi-scoreboard-installation">Quick Start: Raspberry Pi Scoreboard Installation<a class="headerlink" href="#quick-start-raspberry-pi-scoreboard-installation" title="Permanent link">&para;</a></h1>
+<p>Complete installation guide from blank SD card to functioning scoreboard in under 30 minutes.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This guide walks you through the complete setup of a Carambus Scoreboard on a Raspberry Pi, including:</p>
+<ul>
+<li>✅ Raspberry Pi OS installation</li>
+<li>✅ Ansible configuration</li>
+<li>✅ Server deployment</li>
+<li>✅ Client/Kiosk setup</li>
+<li>✅ Automatic browser start</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Raspberry Pi 4 or 5 (recommended: 4GB+ RAM)</li>
+<li>MicroSD card (minimum 16GB, recommended 32GB+)</li>
+<li>Power supply (official Raspberry Pi power adapter recommended)</li>
+<li>Monitor with HDMI connection</li>
+<li>Keyboard and mouse (for initial setup)</li>
+<li>Network connection (Ethernet recommended, WiFi supported)</li>
+</ul>
+<h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Computer with SD card reader</li>
+<li><a href="https://www.raspberrypi.com/software/">Raspberry Pi Imager</a></li>
+</ul>
+<h3 id="knowledge-requirements">Knowledge Requirements<a class="headerlink" href="#knowledge-requirements" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Basic command line experience</li>
+<li>Understanding of SSH connections</li>
+<li>Basic network configuration knowledge</li>
+</ul>
+<h2 id="step-1-prepare-sd-card-5-minutes">Step 1: Prepare SD Card (5 minutes)<a class="headerlink" href="#step-1-prepare-sd-card-5-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="11-download-and-install-raspberry-pi-imager">1.1 Download and Install Raspberry Pi Imager<a class="headerlink" href="#11-download-and-install-raspberry-pi-imager" title="Permanent link">&para;</a></h3>
+<p>Download from: https://www.raspberrypi.com/software/</p>
+<h3 id="12-flash-raspberry-pi-os">1.2 Flash Raspberry Pi OS<a class="headerlink" href="#12-flash-raspberry-pi-os" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Insert SD card into computer</li>
+<li>Launch Raspberry Pi Imager</li>
+<li><strong>Choose Device:</strong> Select your Raspberry Pi model</li>
+<li><strong>Choose OS:</strong> </li>
+<li>Raspberry Pi OS (64-bit) - Recommended</li>
+<li>Or: Raspberry Pi OS Lite (64-bit) for headless setup</li>
+<li><strong>Choose Storage:</strong> Select your SD card</li>
+<li><strong>Configure Settings</strong> (click gear icon ⚙️):
+   <div class="highlight"><pre><span></span><code>Hostname: raspberrypi (or your preferred name)
+Username: pi
+Password: [your-secure-password]
+WiFi: [configure if needed]
+Locale: [your timezone and keyboard layout]
+
+✅ Enable SSH
+☐ Use password authentication (recommended for initial setup)
+</code></pre></div></li>
+<li>Click <strong>Write</strong> and wait for completion</li>
+</ol>
+<h3 id="13-first-boot">1.3 First Boot<a class="headerlink" href="#13-first-boot" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Insert SD card into Raspberry Pi</li>
+<li>Connect monitor, keyboard, and network cable</li>
+<li>Power on</li>
+<li>Wait for boot (first boot may take 2-3 minutes)</li>
+<li>Note the IP address (shown on screen or check your router)</li>
+</ol>
+<p><strong>Verify SSH Access:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>pi@raspberrypi.local
+<span class="c1"># or</span>
+ssh<span class="w"> </span>pi@&lt;IP-ADDRESS&gt;
+</code></pre></div></p>
+<h2 id="step-2-ansible-configuration-10-minutes">Step 2: Ansible Configuration (10 minutes)<a class="headerlink" href="#step-2-ansible-configuration-10-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="21-initial-server-setup">2.1 Initial Server Setup<a class="headerlink" href="#21-initial-server-setup" title="Permanent link">&para;</a></h3>
+<p>Run Ansible playbook to configure the Raspberry Pi as a server:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>carambus_master
+ansible-playbook<span class="w"> </span>-i<span class="w"> </span>ansible/inventory/production.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ansible/playbooks/raspberry_pi_server.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--extra-vars<span class="w"> </span><span class="s2">&quot;target_host=raspberrypi.local&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ask-become-pass
+</code></pre></div>
+<p>This will:
+- ✅ Update system packages
+- ✅ Install Ruby, Rails, PostgreSQL, Nginx
+- ✅ Configure PostgreSQL
+- ✅ Create www-data user
+- ✅ Set up directory structures
+- ✅ Configure firewall</p>
+<p><strong>Duration:</strong> ~10 minutes (depending on network speed)</p>
+<h2 id="step-3-deploy-scenario-10-minutes">Step 3: Deploy Scenario (10 minutes)<a class="headerlink" href="#step-3-deploy-scenario-10-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="31-create-scenario-configuration">3.1 Create Scenario Configuration<a class="headerlink" href="#31-create-scenario-configuration" title="Permanent link">&para;</a></h3>
+<p>If not already exists, create a scenario configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>carambus_data/scenarios
+cp<span class="w"> </span>-r<span class="w"> </span>carambus_location_template<span class="w"> </span>carambus_bcw<span class="w">  </span><span class="c1"># Example name</span>
+<span class="nb">cd</span><span class="w"> </span>carambus_bcw
+</code></pre></div>
+<p>Edit <code>config.yml</code>:
+<div class="highlight"><pre><span></span><code><span class="nt">scenario</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carambus_bcw</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Billardclub</span><span class="nv"> </span><span class="s">Wedel&quot;</span>
+<span class="w">  </span><span class="nt">location_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NBV</span>
+<span class="w">  </span><span class="nt">region_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">club_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">357</span>
+
+<span class="nt">environments</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">production</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">webserver_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.178.107</span><span class="w">  </span><span class="c1"># Your Raspberry Pi IP</span>
+<span class="w">    </span><span class="nt">ssh_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.178.107</span>
+<span class="w">    </span><span class="nt">webserver_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3131</span>
+<span class="w">    </span><span class="nt">ssh_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8910</span>
+<span class="w">    </span><span class="nt">database_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carambus_bcw_production</span>
+<span class="w">    </span><span class="nt">database_username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www_data</span>
+<span class="w">    </span><span class="nt">database_password</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">secure-password</span><span class="p p-Indicator">]</span>
+
+<span class="w">    </span><span class="nt">raspberry_pi_client</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">ip_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;192.168.178.107&quot;</span><span class="w">  </span><span class="c1"># Same as server (all-in-one)</span>
+<span class="w">      </span><span class="nt">ssh_user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;www-data&quot;</span>
+<span class="w">      </span><span class="nt">ssh_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8910</span>
+<span class="w">      </span><span class="nt">kiosk_user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pi&quot;</span>
+<span class="w">      </span><span class="nt">local_server_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">autostart_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<h3 id="32-run-complete-deployment">3.2 Run Complete Deployment<a class="headerlink" href="#32-run-complete-deployment" title="Permanent link">&para;</a></h3>
+<p>Use the automated deployment workflow:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>carambus_master
+rake<span class="w"> </span><span class="s2">&quot;scenario:deploy_complete[carambus_bcw]&quot;</span>
+</code></pre></div>
+<p>This comprehensive task will:</p>
+<ol>
+<li><strong>Generate Configuration Files</strong></li>
+<li>Database configuration</li>
+<li>Nginx configuration</li>
+<li>Puma service files</li>
+<li>
+<p>Credentials</p>
+</li>
+<li>
+<p><strong>Create Database Dump</strong></p>
+</li>
+<li>Export development database</li>
+<li>
+<p>Compress for transfer</p>
+</li>
+<li>
+<p><strong>Deploy to Server</strong></p>
+</li>
+<li>Upload database dump</li>
+<li>Restore on production server</li>
+<li>Upload configuration files</li>
+<li>
+<p>Deploy application code (via Capistrano)</p>
+</li>
+<li>
+<p><strong>Setup Raspberry Pi Client</strong></p>
+</li>
+<li>Install required packages (Chromium, wmctrl, xdotool)</li>
+<li>Configure kiosk user</li>
+<li>
+<p>Create systemd service</p>
+</li>
+<li>
+<p><strong>Deploy Client Configuration</strong></p>
+</li>
+<li>Upload scoreboard URL</li>
+<li>Install autostart script</li>
+<li>
+<p>Enable and start kiosk service</p>
+</li>
+<li>
+<p><strong>Test Everything</strong></p>
+</li>
+<li>Verify SSH connection</li>
+<li>Check systemd service</li>
+<li>Confirm browser is running</li>
+</ol>
+<p><strong>Duration:</strong> ~10 minutes</p>
+<p><strong>Expected Output:</strong>
+<div class="highlight"><pre><span></span><code>🎉 COMPLETE WORKFLOW SUCCESSFUL!
+================================
+Scenario &#39;carambus_bcw&#39; is now fully deployed and operational
+
+Access Information:
+  - Web Interface: http://192.168.178.107:3131
+  - SSH Access: ssh -p 8910 www-data@192.168.178.107
+
+Management Commands:
+  - Restart Browser: rake scenario:restart_raspberry_pi_client[carambus_bcw]
+  - Test Client: rake scenario:test_raspberry_pi_client[carambus_bcw]
+  - Check Service: ssh -p 8910 www-data@192.168.178.107 &#39;sudo systemctl status scoreboard-kiosk&#39;
+</code></pre></div></p>
+<h2 id="step-4-verify-installation-2-minutes">Step 4: Verify Installation (2 minutes)<a class="headerlink" href="#step-4-verify-installation-2-minutes" title="Permanent link">&para;</a></h2>
+<h3 id="41-check-web-interface">4.1 Check Web Interface<a class="headerlink" href="#41-check-web-interface" title="Permanent link">&para;</a></h3>
+<p>Open browser on another computer:
+<div class="highlight"><pre><span></span><code>http://192.168.178.107:3131
+</code></pre></div></p>
+<h3 id="42-verify-scoreboard-display">4.2 Verify Scoreboard Display<a class="headerlink" href="#42-verify-scoreboard-display" title="Permanent link">&para;</a></h3>
+<p>The Raspberry Pi monitor should show:
+- ✅ Fullscreen Chromium browser
+- ✅ Carambus Scoreboard welcome screen
+- ✅ No desktop visible (kiosk mode)</p>
+<h3 id="43-test-from-command-line">4.3 Test from Command Line<a class="headerlink" href="#43-test-from-command-line" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check service status</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl status scoreboard-kiosk&#39;</span>
+
+<span class="c1"># Check browser process</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;pgrep -fa chromium&#39;</span>
+
+<span class="c1"># View logs</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;tail -50 /tmp/chromium-kiosk.log&#39;</span>
+</code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="browser-not-starting">Browser Not Starting<a class="headerlink" href="#browser-not-starting" title="Permanent link">&para;</a></h4>
+<p><strong>Check logs:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo journalctl -u scoreboard-kiosk.service -n 50&#39;</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;cat /tmp/chromium-kiosk.log&#39;</span>
+</code></pre></div></p>
+<p><strong>Restart service:</strong>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span><span class="s2">&quot;scenario:restart_raspberry_pi_client[carambus_bcw]&quot;</span>
+</code></pre></div></p>
+<h4 id="web-interface-not-accessible">Web Interface Not Accessible<a class="headerlink" href="#web-interface-not-accessible" title="Permanent link">&para;</a></h4>
+<p><strong>Check Puma service:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl status puma-carambus_bcw&#39;</span>
+</code></pre></div></p>
+<p><strong>Check Nginx:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl status nginx&#39;</span>
+</code></pre></div></p>
+<p><strong>Check database connection:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;cd /var/www/carambus_bcw/current &amp;&amp; RAILS_ENV=production bundle exec rails runner &quot;puts Region.count&quot;&#39;</span>
+</code></pre></div></p>
+<h4 id="permission-errors">Permission Errors<a class="headerlink" href="#permission-errors" title="Permanent link">&para;</a></h4>
+<p>If you see permission errors for Chromium profile directory:
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo rm -rf /tmp/chromium-scoreboard*&#39;</span>
+rake<span class="w"> </span><span class="s2">&quot;scenario:restart_raspberry_pi_client[carambus_bcw]&quot;</span>
+</code></pre></div></p>
+<h2 id="management-commands">Management Commands<a class="headerlink" href="#management-commands" title="Permanent link">&para;</a></h2>
+<h3 id="daily-operations">Daily Operations<a class="headerlink" href="#daily-operations" title="Permanent link">&para;</a></h3>
+<p><strong>Restart Scoreboard Browser:</strong>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span><span class="s2">&quot;scenario:restart_raspberry_pi_client[carambus_bcw]&quot;</span>
+</code></pre></div></p>
+<p><strong>Restart Rails Application:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart puma-carambus_bcw&#39;</span>
+</code></pre></div></p>
+<p><strong>View Application Logs:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;tail -f /var/www/carambus_bcw/shared/log/production.log&#39;</span>
+</code></pre></div></p>
+<p><strong>Reboot Raspberry Pi:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo reboot&#39;</span>
+</code></pre></div></p>
+<h3 id="updates-and-maintenance">Updates and Maintenance<a class="headerlink" href="#updates-and-maintenance" title="Permanent link">&para;</a></h3>
+<p><strong>Update Application Code:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>carambus_master
+rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_bcw,production]&quot;</span>
+</code></pre></div></p>
+<p><strong>Update System Packages:</strong>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo apt update &amp;&amp; sudo apt upgrade -y&#39;</span>
+</code></pre></div></p>
+<p><strong>Backup Database:</strong>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span><span class="s2">&quot;scenario:create_database_dump[carambus_bcw,production]&quot;</span>
+</code></pre></div></p>
+<p><strong>Restore Database:</strong>
+<div class="highlight"><pre><span></span><code>rake<span class="w"> </span><span class="s2">&quot;scenario:restore_database_dump[carambus_bcw,production]&quot;</span>
+</code></pre></div></p>
+<h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="custom-port-configuration">Custom Port Configuration<a class="headerlink" href="#custom-port-configuration" title="Permanent link">&para;</a></h3>
+<p>Edit <code>config.yml</code> to change ports:
+<div class="highlight"><pre><span></span><code><span class="nt">environments</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">production</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">webserver_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3131</span><span class="w">  </span><span class="c1"># Change to your preferred port</span>
+<span class="w">    </span><span class="nt">ssh_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8910</span><span class="w">        </span><span class="c1"># Change SSH port if needed</span>
+</code></pre></div></p>
+<h3 id="multiple-locations">Multiple Locations<a class="headerlink" href="#multiple-locations" title="Permanent link">&para;</a></h3>
+<p>For multiple tables/locations in one club:
+<div class="highlight"><pre><span></span><code><span class="nt">scenario</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">location_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">  </span><span class="c1"># First table</span>
+
+<span class="c1"># Create separate scenarios for each table:</span>
+<span class="c1"># - carambus_bcw_table1</span>
+<span class="c1"># - carambus_bcw_table2</span>
+<span class="c1"># - carambus_bcw_table3</span>
+</code></pre></div></p>
+<h3 id="headless-setup-no-monitor">Headless Setup (No Monitor)<a class="headerlink" href="#headless-setup-no-monitor" title="Permanent link">&para;</a></h3>
+<p>For remote-only access without kiosk mode:
+<div class="highlight"><pre><span></span><code><span class="nt">raspberry_pi_client</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">  </span><span class="c1"># Disable kiosk mode</span>
+</code></pre></div></p>
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────┐
+│         Raspberry Pi (All-in-One)               │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐   │
+│  │   Kiosk Mode (User: pi)                 │   │
+│  │   - Chromium Browser (Fullscreen)       │   │
+│  │   - Systemd Service: scoreboard-kiosk   │   │
+│  └─────────────────────────────────────────┘   │
+│                      ↓ HTTP                     │
+│  ┌─────────────────────────────────────────┐   │
+│  │   Web Server                            │   │
+│  │   - Nginx (Port 3131)                   │   │
+│  │   - Puma App Server                     │   │
+│  │   - Rails Application                   │   │
+│  └─────────────────────────────────────────┘   │
+│                      ↓                          │
+│  ┌─────────────────────────────────────────┐   │
+│  │   Database                              │   │
+│  │   - PostgreSQL                          │   │
+│  │   - Database: carambus_bcw_production   │   │
+│  └─────────────────────────────────────────┘   │
+│                                                 │
+└─────────────────────────────────────────────────┘
+</code></pre></div>
+<h2 id="success-checklist">Success Checklist<a class="headerlink" href="#success-checklist" title="Permanent link">&para;</a></h2>
+<p>After completing all steps, verify:</p>
+<ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> Raspberry Pi boots successfully</li>
+<li class="task-list-item"><input type="checkbox" disabled/> SSH access works</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Web interface accessible from network</li>
+<li class="task-list-item"><input type="checkbox" disabled/> PostgreSQL database running</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Rails application responding</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Nginx proxy working</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Scoreboard displays on monitor</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Browser starts automatically after reboot</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Touch input working (if touch display)</li>
+<li class="task-list-item"><input type="checkbox" disabled/> No error messages in logs</li>
+</ul>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>If you encounter issues:</p>
+<ol>
+<li>Review system logs</li>
+<li>Verify network configuration</li>
+<li>Check GitHub issues: https://github.com/GernotUllrich/carambus/issues</li>
+</ol>
+<h2 id="credits">Credits<a class="headerlink" href="#credits" title="Permanent link">&para;</a></h2>
+<p>This installation process has been streamlined through extensive testing and automation. The complete workflow - from blank SD card to functioning scoreboard - typically takes 25-30 minutes.</p>
+<p><strong>Key Technologies:</strong>
+- Raspberry Pi OS (Debian)
+- Ruby on Rails 7.2
+- PostgreSQL 15
+- Nginx
+- Puma
+- Chromium (Kiosk Mode)
+- Ansible
+- Capistrano</p>
+<hr />
+<p><strong>Last Updated:</strong> October 2025<br />
+<strong>Tested On:</strong> Raspberry Pi 4 Model B (4GB), Raspberry Pi 5 (8GB)<br />
+<strong>OS Version:</strong> Raspberry Pi OS (Bookworm/Trixie, 64-bit)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

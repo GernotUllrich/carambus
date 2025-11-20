@@ -1,0 +1,77 @@
+=== System Info ===
+Raspberry Pi 3 Model B Rev 1.2armv7l
+
+=== Memory Usage ===
+               total        used        free      shared  buff/cache   available
+Mem:           921Mi       423Mi       107Mi        44Mi       488Mi       497Mi
+Swap:          920Mi       243Mi       677Mi
+
+=== Memory Details ===
+Total: 921MB, Used: 423MB, Free: 107MB, Available: 497MB, Usage: 45.9%
+
+=== Swap Usage ===
+Total: 920MB, Used: 243MB, Free: 677MB, Usage: 26.4%
+
+=== CPU Usage ===
+%Cpu(s):  1.8 us,  3.6 sy,  0.0 ni, 94.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+
+=== Load Average ===
+ 22:00:39 up 32 min,  5 users,  load average: 0.91, 0.66, 0.58
+
+=== Top 10 Processes by Memory ===
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+pi        4371  1.7 13.6 730544 129008 ?       Sl   21:35   0:26 /usr/lib/chromium/chromium --force-renderer-accessibility --enable-remote-extensions --show-component-extension-options --enable-gpu-rasterization --no-default-browser-check --disable-pings --media-router=0 --disable-dev-shm-usage --enable-remote-extensions --load-extension= --use-angle=gles --start-fullscreen --disable-restore-session-state --user-data-dir=/tmp/chromium-scoreboard-pi --disable-features=VizDisplayCompositor,TranslateUI --disable-translate --disable-dev-shm-usage --app=http://bc-wedel.duckdns.org:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard?sb_state=welcome&locale=de
+pi        4783  5.3 11.2 459276 106528 ?       Sl   21:35   1:21 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable --disable-dev-shm-usage --ozone-platform=x11 --lang=en-GB --num-raster-threads=2 --enable-main-frame-before-activation --renderer-client-id=8 --time-ticks-at-unix-epoch=-1762720117459684 --launch-time-ticks=407827330 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,5759559688942297127,122843037699074720,2097152 --field-trial-handle=3,i,324203653415810521,18252014212639625778,262144 --disable-features=TranslateUI,VizDisplayCompositor --variations-seed-version --trace-process-track-uuid=3452074400
+pi        4583  2.2  9.6 625660 91300 ?        Sl   21:35   0:34 /usr/lib/chromium/chromium --type=gpu-process --disable-dev-shm-usage --enable-gpu-rasterization --ozone-platform=x11 --use-angle=gles --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable --gpu-preferences=UAAAAAAAAAAgAAAAAAAAAAAAAAAAAGAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --shared-files --metrics-shmem-handle=4,i,17649687229619846493,14807133988089459686,262144 --field-trial-handle=3,i,324203653415810521,18252014212639625778,262144 --disable-features=TranslateUI,VizDisplayCompositor --variations-seed-version --trace-process-track-uuid=1653604857
+pi        4938  0.0  6.4 510140 60844 ?        Sl   21:38   0:00 /usr/lib/chromium/chromium --type=utility --utility-sub-type=on_device_model.mojom.OnDeviceModelService --lang=en-GB --service-sandbox-type=on_device_model_execution --disable-dev-shm-usage --use-angle=gles --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,14518291733826969315,18162021373721660976,524288 --field-trial-handle=3,i,324203653415810521,18252014212639625778,262144 --disable-features=TranslateUI,VizDisplayCompositor --variations-seed-version --trace-process-track-uuid=1156783208
+pi        4204  0.2  4.5 216584 42616 ?        S    21:35   0:03 /usr/bin/Xwayland -auth /home/pi/.Xauthority :0 -rootless -core -terminate 10 -listenfd 25 -listenfd 26 -displayfd 80 -wm 75
+pi        4589  0.3  4.3 330928 41036 ?        Sl   21:35   0:05 /usr/lib/chromium/chromium --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --disable-dev-shm-usage --use-angle=gles --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,12959535438602872753,3031552776076863908,524288 --field-trial-handle=3,i,324203653415810521,18252014212639625778,262144 --disable-features=TranslateUI,VizDisplayCompositor --variations-seed-version --trace-process-track-uuid=521694016
+pi        1410  0.0  3.7 196144 34900 ?        Ssl  21:29   0:00 /usr/libexec/xdg-desktop-portal-wlr
+pi        4522  0.0  2.6 279416 25024 ?        S    21:35   0:00 /usr/lib/chromium/chromium --type=zygote --no-zygote-sandbox --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable
+pi        4524  0.0  2.5 279412 24316 ?        S    21:35   0:00 /usr/lib/chromium/chromium --type=zygote --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable
+pi        1109  0.5  2.4 245780 22916 ?        Sl   21:29   0:11 /usr/bin/wf-panel-pi
+
+=== Active Network Connections ===
+NAME           UUID                                  TYPE      DEVICE 
+preconfigured  2ec590ec-5385-4d71-a8ab-621fd7093e91  wifi      wlan0  
+lo             4c77baca-a9f0-482d-97f5-3cf5aab9ce96  loopback  lo     
+
+=== All Network Connections ===
+NAME                UUID                                  TYPE      DEVICE 
+preconfigured       2ec590ec-5385-4d71-a8ab-621fd7093e91  wifi      wlan0  
+lo                  4c77baca-a9f0-482d-97f5-3cf5aab9ce96  loopback  lo     
+Wired connection 1  af95444f-9ef8-33dc-a9f9-e505c2643d6d  ethernet  --     
+WLAN-15AE35         fd485353-38ef-4ad3-922b-63cc8ddf69cd  wifi      --     
+
+=== Enabled Services (memory-related) ===
+avahi-daemon.service               enabled enabled
+bluetooth.service                  enabled enabled
+cups-browsed.service               enabled enabled
+cups.service                       enabled enabled
+scoreboard-kiosk.service           enabled enabled
+
+=== Disk I/O ===
+iostat not available
+
+=== Chromium Process ===
+pi        4371  1.7 13.6 730544 129008 ?       Sl   21:35   0:26 /usr/lib/chromium/chromium --force-renderer-accessibility --enable-remote-extensions --show-component-extension-options --enable-gpu-rasterization --no-default-browser-check --disable-pings --media-router=0 --disable-dev-shm-usage --enable-remote-extensions --load-extension= --use-angle=gles --start-fullscreen --disable-restore-session-state --user-data-dir=/tmp/chromium-scoreboard-pi --disable-features=VizDisplayCompositor,TranslateUI --disable-translate --disable-dev-shm-usage --app=http://bc-wedel.duckdns.org:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard?sb_state=welcome&locale=de
+pi        4516  0.0  0.2  15616  2464 ?        Sl   21:35   0:00 /usr/lib/chromium/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/home/pi/.config/chromium/Crash Reports --annotation=channel=built on Debian GNU/Linux 13 (trixie) --annotation=lsb-release=Raspbian GNU/Linux 13 (trixie) --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=142.0.7444.59 --initial-client-fd=5 --shared-client-connection
+pi        4518  0.0  0.1   7404  1536 ?        S    21:35   0:00 /usr/lib/chromium/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/home/pi/.config/chromium/Crash Reports --annotation=channel=built on Debian GNU/Linux 13 (trixie) --annotation=lsb-release=Raspbian GNU/Linux 13 (trixie) --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=142.0.7444.59 --initial-client-fd=4 --shared-client-connection
+pi        4522  0.0  2.6 279416 25028 ?        S    21:35   0:00 /usr/lib/chromium/chromium --type=zygote --no-zygote-sandbox --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable
+pi        4524  0.0  2.5 279412 24320 ?        S    21:35   0:00 /usr/lib/chromium/chromium --type=zygote --crashpad-handler-pid=0 --enable-crash-reporter=,built on Debian GNU/Linux 13 (trixie) --user-data-dir=/tmp/chromium-scoreboard-pi --change-stack-guard-on-fork=enable
+
+=== Chromium Memory Usage ===
+  PID   RSS    VSZ COMMAND
+ 4371 129008 730544 chromium
+
+=== Chromium Memory Details ===
+RSS: 125MB
+
+=== Browser Performance Test ===
+Chromium is running - performance test available
+Note: For detailed browser metrics, check Chromium DevTools
+      or use: chrome://system/ in browser
+
+=== CPU Temperature ===
+Temperature: 48°C
+

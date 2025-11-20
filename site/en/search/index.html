@@ -1,0 +1,2794 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/search/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Search and Filters in Carambus - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#search-and-filters-in-carambus" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Search and Filters in Carambus
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../search/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-search-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Search Field
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Main Search Field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#free-text-search-with-and-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Free-text Search with AND Logic
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-areas-context-dependent" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search Areas (context-dependent)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search Areas (context-dependent)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#club-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Club Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Search
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intelligent-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Intelligent Relationships
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filter-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter Form
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filter Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opening-the-filter-icon" class="md-nav__link">
+    <span class="md-ellipsis">
+      Opening the Filter Icon
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structure-of-the-filter-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Structure of the Filter Form
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure of the Filter Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-general-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. General Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-field-specific-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Field-specific Filters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-info-tooltips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Understanding Info Tooltips
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combined-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combined Search
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combined Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#combining-free-text-field-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combining Free-text + Field Filters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#condition-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Condition Linking
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-specific-filter-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field-specific Filter Syntax
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field-specific Filter Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#syntax-in-main-search-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      Syntax in Main Search Field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combining-multiple-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combining Multiple Filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operators
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#date-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Date Filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Number Filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Text Filters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field Name Reference
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Practical Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-search_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#club-search_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Club Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-search_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-match-days-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party (Match Days) Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partygame-match-day-games-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      PartyGame (Match Day Games) Search
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-tips-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search Tips &amp; Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search Tips &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#effective-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Effective Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#touch-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Touch Operation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Touch Operation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#on-tabletssmartphones" class="md-nav__link">
+    <span class="md-ellipsis">
+      On Tablets/Smartphones:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#avoiding-common-mistakes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Avoiding Common Mistakes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-search-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Search Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Search Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-partial-match-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Partial Match Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-sensitivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Case Sensitivity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#umlauts-and-special-characters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Umlauts and Special Characters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cascading-filters-dependent-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cascading Filters (Dependent Filters)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cascading Filters (Dependent Filters)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#players-locations-seasonparticipation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Players, Locations, SeasonParticipation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#party-partygame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party, PartyGame
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-types-in-filter-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field Types in Filter Form
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field Types in Filter Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hidden-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hidden Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visible-field-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visible Field Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visible Field Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-reference-fields-dropdowns" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Reference Fields (Dropdowns)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-number-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Number Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-text-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Text Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-date-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Date Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#search-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search Algorithm
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-results-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      No Results Found
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unexpected-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unexpected Results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resetting-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resetting Filters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keyboard Shortcuts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Shortcuts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-main-search-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      In Main Search Field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq-frequently-asked-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      FAQ - Frequently Asked Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ - Frequently Asked Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-cant-i-find-manfred-meyer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why can't I find "Manfred Meyer"?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-does-meyer-region_id1-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      How does "Meyer region_id:1" work?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-do-i-see-fewer-fields-in-the-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why do I see fewer fields in the filter?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-do-the-info-icons-i-mean" class="md-nav__link">
+    <span class="md-ellipsis">
+      What do the info icons (ℹ️) mean?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-does-cascading-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      How does cascading work?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-specific-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model-specific Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model-specific Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#players-player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Players (Player)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match-day-games-partygame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Match Day Games (PartyGame)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tournament-participations-seeding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tournament Participations (Seeding)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#games-gameparticipation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Games (GameParticipation)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Future Enhancements
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="search-and-filters-in-carambus">Search and Filters in Carambus<a class="headerlink" href="#search-and-filters-in-carambus" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The search and filter function in Carambus enables quick and precise data discovery on all index pages. The system combines:
+- <strong>Free-text search</strong> for quick finding
+- <strong>Structured filters</strong> for precise queries
+- <strong>AND logic</strong> for combined searches
+- <strong>Info tooltips</strong> for easy operation</p>
+<h2 id="main-search-field">Main Search Field<a class="headerlink" href="#main-search-field" title="Permanent link">&para;</a></h2>
+<h3 id="free-text-search-with-and-logic">Free-text Search with AND Logic<a class="headerlink" href="#free-text-search-with-and-logic" title="Permanent link">&para;</a></h3>
+<p>Enter one or more terms in the main search field. All terms are connected with <strong>AND</strong>.</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code>&quot;Manfred Meyer&quot; → finds entries containing BOTH terms
+&quot;Meyer Berlin&quot; → finds all Meyers in Berlin
+&quot;Hamburg 2024&quot; → finds Hamburg-related entries from 2024
+</code></pre></div></p>
+<p><strong>Important:</strong> The <strong>order doesn't matter!</strong>
+- "Manfred Meyer" = "Meyer Manfred" (same result)</p>
+<h3 id="search-areas-context-dependent">Search Areas (context-dependent)<a class="headerlink" href="#search-areas-context-dependent" title="Permanent link">&para;</a></h3>
+<h4 id="player-search">Player Search<a class="headerlink" href="#player-search" title="Permanent link">&para;</a></h4>
+<p>Searches in:
+- Full name (first and last name combined)
+- First name
+- Last name
+- Nickname
+- CC-ID (numeric)</p>
+<h4 id="club-search">Club Search<a class="headerlink" href="#club-search" title="Permanent link">&para;</a></h4>
+<p>Searches in:
+- Club name (full and short name)
+- Address
+- Email
+- Homepage
+- Region (via relationship)
+- CC-ID, BA-ID (numeric)</p>
+<h4 id="tournament-search">Tournament Search<a class="headerlink" href="#tournament-search" title="Permanent link">&para;</a></h4>
+<p>Searches in:
+- Tournament title
+- Short name
+- Season
+- Region/Organizer</p>
+<h3 id="intelligent-relationships">Intelligent Relationships<a class="headerlink" href="#intelligent-relationships" title="Permanent link">&para;</a></h3>
+<p>The search automatically uses relationships between tables:
+- <strong>Players</strong> → finds via Club → Region
+- <strong>Locations</strong> → finds via Club → Region
+- <strong>Tournaments</strong> → finds via Season, Region, Discipline</p>
+<h2 id="filter-form">Filter Form<a class="headerlink" href="#filter-form" title="Permanent link">&para;</a></h2>
+<h3 id="opening-the-filter-icon">Opening the Filter Icon<a class="headerlink" href="#opening-the-filter-icon" title="Permanent link">&para;</a></h3>
+<p>Click the <strong>filter icon</strong> (⚙️) to the right of the search field to open the filter form.</p>
+<h3 id="structure-of-the-filter-form">Structure of the Filter Form<a class="headerlink" href="#structure-of-the-filter-form" title="Permanent link">&para;</a></h3>
+<h4 id="1-general-search">1. General Search<a class="headerlink" href="#1-general-search" title="Permanent link">&para;</a></h4>
+<p>Free-text search across all relevant fields (like the main search field).</p>
+<h4 id="2-field-specific-filters">2. Field-specific Filters<a class="headerlink" href="#2-field-specific-filters" title="Permanent link">&para;</a></h4>
+<p>Each field has its own filter with:
+- <strong>Info icon</strong> (ℹ️) - Shows description and examples on hover
+- <strong>Appropriate input type:</strong>
+  - <strong>Dropdowns</strong> for references (Region, Club, Season, etc.)
+  - <strong>Number fields</strong> for IDs and numeric values
+  - <strong>Text fields</strong> for names, addresses, etc.
+  - <strong>Date picker</strong> for date fields (touch-optimized)</p>
+<h3 id="understanding-info-tooltips">Understanding Info Tooltips<a class="headerlink" href="#understanding-info-tooltips" title="Permanent link">&para;</a></h3>
+<p>Hover over an <strong>info icon</strong> (ℹ️) to see:
+- <strong>Description</strong> of the field
+- <strong>Example values</strong> for input</p>
+<p><strong>Example tooltip:</strong>
+<div class="highlight"><pre><span></span><code>Numeric ID | Examples: 12345, 67890
+</code></pre></div></p>
+<h3 id="combined-search">Combined Search<a class="headerlink" href="#combined-search" title="Permanent link">&para;</a></h3>
+<h4 id="combining-free-text-field-filters">Combining Free-text + Field Filters<a class="headerlink" href="#combining-free-text-field-filters" title="Permanent link">&para;</a></h4>
+<p>You can use <strong>both search types simultaneously</strong>:</p>
+<p><strong>Enter in main search field:</strong>
+<div class="highlight"><pre><span></span><code>Meyer region_id:1
+</code></pre></div>
+Finds: All "Meyer" in Region 1</p>
+<p><strong>Or in filter form:</strong>
+- General search: <code>Meyer</code>
+- Region: Select <code>NBV</code>
+- Click "Apply"</p>
+<p>Both ways lead to the same result!</p>
+<h3 id="condition-linking">Condition Linking<a class="headerlink" href="#condition-linking" title="Permanent link">&para;</a></h3>
+<p>All conditions are <strong>AND-linked</strong>:
+- Free-text terms with each other (AND)
+- Field filters with each other (AND)
+- Free-text + field filters (AND)</p>
+<h2 id="field-specific-filter-syntax">Field-specific Filter Syntax<a class="headerlink" href="#field-specific-filter-syntax" title="Permanent link">&para;</a></h2>
+<h3 id="syntax-in-main-search-field">Syntax in Main Search Field<a class="headerlink" href="#syntax-in-main-search-field" title="Permanent link">&para;</a></h3>
+<p>Format: <code>fieldname:value</code></p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code>region_id:1           → Region with ID 1
+cc_id:12345          → CC-ID 12345
+firstname:Hans       → First name &quot;Hans&quot;
+date:&gt;2024-01-01     → Date after January 1, 2024
+</code></pre></div></p>
+<h3 id="combining-multiple-filters">Combining Multiple Filters<a class="headerlink" href="#combining-multiple-filters" title="Permanent link">&para;</a></h3>
+<p>Separate filters with <strong>spaces</strong>:
+<div class="highlight"><pre><span></span><code>Meyer region_id:1 season_id:5
+</code></pre></div>
+Finds: All "Meyer" in Region 1 AND Season 5</p>
+<h3 id="operators">Operators<a class="headerlink" href="#operators" title="Permanent link">&para;</a></h3>
+<h4 id="date-filters">Date Filters<a class="headerlink" href="#date-filters" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>date:2024-01-15      → Exactly this date
+date:&gt;2024-01-01     → After this date
+date:&gt;=2024-01-01    → From this date (incl.)
+date:&lt;2024-12-31     → Before this date
+date:&lt;=2024-12-31    → Until this date (incl.)
+date:heute           → Today (converted to current date)
+</code></pre></div>
+<h4 id="number-filters">Number Filters<a class="headerlink" href="#number-filters" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>cc_id:12345          → Exactly this ID
+points:&gt;100          → More than 100 points
+innings:&lt;=50         → Up to 50 innings
+</code></pre></div>
+<h4 id="text-filters">Text Filters<a class="headerlink" href="#text-filters" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>firstname:Hans       → First name contains &quot;Hans&quot;
+club:Berlin          → Club contains &quot;Berlin&quot;
+</code></pre></div>
+<h3 id="field-name-reference">Field Name Reference<a class="headerlink" href="#field-name-reference" title="Permanent link">&para;</a></h3>
+<p>The most important field names for filters:</p>
+<p><strong>General:</strong>
+- <code>id</code> - Record ID
+- <code>region_id</code> - Region ID
+- <code>season_id</code> - Season ID
+- <code>club_id</code> - Club ID</p>
+<p><strong>IDs:</strong>
+- <code>cc_id</code> - ClubCloud ID
+- <code>ba_id</code> - Billard-Amateure ID
+- <code>dbu_id</code> - DBU number</p>
+<p><strong>Names:</strong>
+- <code>firstname</code> - First name
+- <code>lastname</code> - Last name
+- <code>nickname</code> - Nickname
+- <code>name</code> - Name (general)</p>
+<p><strong>Date:</strong>
+- <code>date</code> - Date (tournament, party, etc.)</p>
+<h2 id="practical-examples">Practical Examples<a class="headerlink" href="#practical-examples" title="Permanent link">&para;</a></h2>
+<h3 id="player-search_1">Player Search<a class="headerlink" href="#player-search_1" title="Permanent link">&para;</a></h3>
+<p><strong>Simple search:</strong>
+<div class="highlight"><pre><span></span><code>Müller               → All players with &quot;Müller&quot; in name
+Manfred Meyer        → Players with &quot;Manfred&quot; AND &quot;Meyer&quot; (AND logic)
+Meyer Manfred        → Same result (order doesn&#39;t matter!)
+</code></pre></div></p>
+<p><strong>With field filters:</strong>
+<div class="highlight"><pre><span></span><code>Meyer region_id:1    → All Meyers in Region 1 (NBV)
+Hans club_id:347     → All Hans in Club 347
+cc_id:12345         → Player with CC-ID 12345
+</code></pre></div></p>
+<p><strong>Using filter form:</strong>
+1. Click filter icon
+2. Region: Select "NBV"
+3. Firstname: Enter "Hans"
+4. Click "Apply"</p>
+<h3 id="club-search_1">Club Search<a class="headerlink" href="#club-search_1" title="Permanent link">&para;</a></h3>
+<p><strong>Simple search:</strong>
+<div class="highlight"><pre><span></span><code>Hamburg              → All clubs in/with &quot;Hamburg&quot;
+Berlin Billard       → Clubs with &quot;Berlin&quot; AND &quot;Billard&quot;
+</code></pre></div></p>
+<p><strong>With field filters:</strong>
+<div class="highlight"><pre><span></span><code>region_id:1          → All clubs in Region 1
+Hamburg region_id:1  → Hamburg clubs in Region 1
+homepage:billard     → Clubs with &quot;billard&quot; in homepage URL
+</code></pre></div></p>
+<h3 id="tournament-search_1">Tournament Search<a class="headerlink" href="#tournament-search_1" title="Permanent link">&para;</a></h3>
+<p><strong>Simple search:</strong>
+<div class="highlight"><pre><span></span><code>Stadtmeisterschaft   → All city championships
+Pokal 2024          → Cup tournaments from 2024
+</code></pre></div></p>
+<p><strong>With field filters:</strong>
+<div class="highlight"><pre><span></span><code>season_id:5          → Tournaments of Season 5
+Pokal region_id:1    → Cup tournaments in Region 1
+date:&gt;2024-01-01    → Tournaments after January 1, 2024
+</code></pre></div></p>
+<p><strong>In filter form:</strong>
+1. Click filter icon
+2. Season: Select
+3. Discipline: Select
+4. Date: Use date picker
+5. Click "Apply"</p>
+<h3 id="party-match-days-search">Party (Match Days) Search<a class="headerlink" href="#party-match-days-search" title="Permanent link">&para;</a></h3>
+<p><strong>With cascading filters:</strong>
+<div class="highlight"><pre><span></span><code>region_id:1          → Match days in Region 1
+Liga region_id:1     → League match days in Region 1
+</code></pre></div></p>
+<p><strong>In filter form (cascading):</strong>
+1. Select Region → Season list is filtered
+2. Select Season → League list is filtered
+3. Select League → Party list is filtered</p>
+<h3 id="partygame-match-day-games-search">PartyGame (Match Day Games) Search<a class="headerlink" href="#partygame-match-day-games-search" title="Permanent link">&para;</a></h3>
+<p><strong>Complex search:</strong>
+<div class="highlight"><pre><span></span><code>Meyer                → All games with player &quot;Meyer&quot;
+Meyer region_id:1    → Meyer games in Region 1
+Liga 1 Meyer         → Meyer in League 1
+</code></pre></div></p>
+<h2 id="search-tips-best-practices">Search Tips &amp; Best Practices<a class="headerlink" href="#search-tips-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="effective-search">Effective Search<a class="headerlink" href="#effective-search" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Start simple</strong> - One term is often enough
+   <div class="highlight"><pre><span></span><code>Meyer    → finds all Meyers
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Refine with AND</strong> - Add more terms
+   <div class="highlight"><pre><span></span><code>Meyer Hans    → only Hans Meyers
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use field filters</strong> - For precise queries
+   <div class="highlight"><pre><span></span><code>Meyer region_id:1    → Meyers in specific region
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Combine everything</strong> - Free-text + multiple filters
+   <div class="highlight"><pre><span></span><code>Hans Berlin region_id:1 club_id:347
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use info icons</strong> - Hover over ℹ️ for help and examples</p>
+</li>
+</ol>
+<h3 id="touch-operation">Touch Operation<a class="headerlink" href="#touch-operation" title="Permanent link">&para;</a></h3>
+<h4 id="on-tabletssmartphones">On Tablets/Smartphones:<a class="headerlink" href="#on-tabletssmartphones" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Dropdowns</strong> - Large touch targets for references</li>
+<li><strong>Date picker</strong> - Native OS picker (iOS/Android)</li>
+<li><strong>Filter form</strong> - Scrollable with many fields</li>
+<li><strong>Without keyboard</strong> - Most filters operable by touch</li>
+</ol>
+<h3 id="avoiding-common-mistakes">Avoiding Common Mistakes<a class="headerlink" href="#avoiding-common-mistakes" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Wrong:</strong> Too many filters at once
+<div class="highlight"><pre><span></span><code>Meyer Hans Berlin NBV 2024 Club
+</code></pre></div>
+→ Probably finds nothing</p>
+<p>✅ <strong>Right:</strong> Refine step by step
+<div class="highlight"><pre><span></span><code>Step 1: Meyer        → 500 results
+Step 2: Meyer Hans   → 50 results  
+Step 3: Meyer Hans region_id:1  → 5 results
+</code></pre></div></p>
+<p>❌ <strong>Wrong:</strong> Searching exact phrase (no longer works)
+<div class="highlight"><pre><span></span><code>&quot;Hans Meyer&quot;    (with quotes)
+</code></pre></div></p>
+<p>✅ <strong>Right:</strong> Simply enter terms
+<div class="highlight"><pre><span></span><code>Hans Meyer      (without quotes, AND logic)
+</code></pre></div></p>
+<h2 id="advanced-search-functions">Advanced Search Functions<a class="headerlink" href="#advanced-search-functions" title="Permanent link">&para;</a></h2>
+<h3 id="automatic-partial-match-search">Automatic Partial Match Search<a class="headerlink" href="#automatic-partial-match-search" title="Permanent link">&para;</a></h3>
+<p>The search <strong>automatically finds partial matches</strong> - you don't need to enter the complete term.</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code>Ham      → finds &quot;Hamburg&quot;, &quot;Hamm&quot;, &quot;Hamborn&quot;
+Mey      → finds &quot;Meyer&quot;, &quot;Meyerhofer&quot;, &quot;Meyers&quot;
+</code></pre></div></p>
+<h3 id="case-sensitivity">Case Sensitivity<a class="headerlink" href="#case-sensitivity" title="Permanent link">&para;</a></h3>
+<p>The search is <strong>case-insensitive</strong>:
+<div class="highlight"><pre><span></span><code>hamburg = Hamburg = HAMBURG    (same results)
+meyer = Meyer = MEYER          (same results)
+</code></pre></div></p>
+<h3 id="umlauts-and-special-characters">Umlauts and Special Characters<a class="headerlink" href="#umlauts-and-special-characters" title="Permanent link">&para;</a></h3>
+<p>Umlauts and special characters are handled correctly:
+<div class="highlight"><pre><span></span><code>Müller = Müller    (exact search)
+Straße = Straße    (ß is treated as ß)
+</code></pre></div></p>
+<h3 id="cascading-filters-dependent-filters">Cascading Filters (Dependent Filters)<a class="headerlink" href="#cascading-filters-dependent-filters" title="Permanent link">&para;</a></h3>
+<p>Some filters automatically affect others:</p>
+<h4 id="players-locations-seasonparticipation">Players, Locations, SeasonParticipation<a class="headerlink" href="#players-locations-seasonparticipation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>Select Region → Club list shows only clubs of this region
+</code></pre></div>
+<h4 id="party-partygame">Party, PartyGame<a class="headerlink" href="#party-partygame" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>Select Region → Season list filtered
+Select Season → League list filtered
+Select League → Party list filtered
+</code></pre></div>
+<p><strong>Tip:</strong> Use the filter form for cascading - dropdowns update automatically!</p>
+<h2 id="field-types-in-filter-form">Field Types in Filter Form<a class="headerlink" href="#field-types-in-filter-form" title="Permanent link">&para;</a></h2>
+<h3 id="hidden-fields">Hidden Fields<a class="headerlink" href="#hidden-fields" title="Permanent link">&para;</a></h3>
+<p>Some technical fields (e.g., internal IDs) are <strong>not displayed in the filter form</strong>, 
+but still work in the main search field:</p>
+<p><strong>Examples of hidden fields:</strong>
+- <code>id</code> - Record ID (internal)
+- <code>region_id</code> - Region ID (internal, use Region dropdown instead)
+- <code>club_id</code> - Club ID (internal, use Club dropdown instead)</p>
+<p><strong>Why hidden?</strong>
+- Simplifies UI (fewer fields)
+- Only relevant fields visible
+- Still works in main search field with <code>fieldname:value</code> syntax</p>
+<h3 id="visible-field-types">Visible Field Types<a class="headerlink" href="#visible-field-types" title="Permanent link">&para;</a></h3>
+<h4 id="1-reference-fields-dropdowns">1. Reference Fields (Dropdowns)<a class="headerlink" href="#1-reference-fields-dropdowns" title="Permanent link">&para;</a></h4>
+<p><strong>Examples:</strong> Region, Club, Season, League, Discipline</p>
+<p><strong>Usage:</strong>
+- In filter form: Dropdown list for selection
+- In main search field: Use ID variant (<code>region_id:1</code>)</p>
+<h4 id="2-number-fields">2. Number Fields<a class="headerlink" href="#2-number-fields" title="Permanent link">&para;</a></h4>
+<p><strong>Examples:</strong> CC_ID, BA_ID, DBU_ID, Points, Result, Innings</p>
+<p><strong>Usage:</strong>
+- In filter form: Operator dropdown + number input
+- In main search field: <code>cc_id:12345</code> or <code>points:&gt;100</code></p>
+<h4 id="3-text-fields">3. Text Fields<a class="headerlink" href="#3-text-fields" title="Permanent link">&para;</a></h4>
+<p><strong>Examples:</strong> Firstname, Lastname, Name, Address, Email</p>
+<p><strong>Usage:</strong>
+- In filter form: Text input
+- In main search field: <code>firstname:Hans</code> or simply <code>Hans</code></p>
+<h4 id="4-date-fields">4. Date Fields<a class="headerlink" href="#4-date-fields" title="Permanent link">&para;</a></h4>
+<p><strong>Examples:</strong> Date, Created At, Updated At</p>
+<p><strong>Usage:</strong>
+- In filter form: Native date picker (touch-optimized)
+- In main search field: <code>date:2024-01-15</code> or <code>date:&gt;2024-01-01</code></p>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="search-algorithm">Search Algorithm<a class="headerlink" href="#search-algorithm" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>AND logic</strong> for multiple terms (all must match)</li>
+<li><strong>ILIKE</strong> for case-insensitive partial match search</li>
+<li><strong>LEFT JOIN</strong> for relationships between tables</li>
+<li><strong>DISTINCT</strong> where needed (prevents duplicates)</li>
+</ul>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Database indexes</strong> for fast ID searches</li>
+<li><strong>Eager loading</strong> of associations (avoids N+1 queries)</li>
+<li><strong>Pagination</strong> for large result sets</li>
+<li><strong>Optimized JOINs</strong> for complex queries</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="no-results-found">No Results Found<a class="headerlink" href="#no-results-found" title="Permanent link">&para;</a></h3>
+<p><strong>Possible causes:</strong></p>
+<ol>
+<li>
+<p><strong>Too restrictive filters</strong>
+   <div class="highlight"><pre><span></span><code>Problem: Meyer Hans Berlin region_id:1 club_id:347
+Solution: Remove some filters
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Typo</strong>
+   <div class="highlight"><pre><span></span><code>Problem: Mayer (wrong)
+Solution: Meyer (correct)
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Wrong Region/Season selected</strong></p>
+</li>
+<li>
+<p>Solution: Reset filters and start fresh</p>
+</li>
+<li>
+<p><strong>Cascading filter not updated</strong></p>
+</li>
+<li>Solution: Reload page (browser refresh)</li>
+</ol>
+<h3 id="unexpected-results">Unexpected Results<a class="headerlink" href="#unexpected-results" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> Too many hits
+<div class="highlight"><pre><span></span><code>Example: Search &quot;Meyer&quot; finds 500 players
+Solution: Refine with region_id:1 or firstname:Hans
+</code></pre></div></p>
+<p><strong>Problem:</strong> Field filter doesn't work
+<div class="highlight"><pre><span></span><code>Check: Is the field name correct? (see field name reference)
+Tip: Use info icons (ℹ️) for correct syntax
+</code></pre></div></p>
+<h3 id="resetting-filters">Resetting Filters<a class="headerlink" href="#resetting-filters" title="Permanent link">&para;</a></h3>
+<p><strong>In filter form:</strong>
+- Click the <strong>"Reset"</strong> button</p>
+<p><strong>In main search field:</strong>
+- Manually delete the text
+- Or: <code>Cmd+A</code> (select all) → <code>Delete</code></p>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
+<h3 id="quick-access">Quick Access<a class="headerlink" href="#quick-access" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tab</strong> - Switch between fields</li>
+<li><strong>Enter</strong> - Apply filters / start search</li>
+<li><strong>Esc</strong> - Close filter popup</li>
+</ul>
+<h3 id="in-main-search-field">In Main Search Field<a class="headerlink" href="#in-main-search-field" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Enter</strong> - Execute search</li>
+<li><strong>Cmd+A / Ctrl+A</strong> - Select all</li>
+<li><strong>Backspace</strong> - Delete search</li>
+</ul>
+<h2 id="faq-frequently-asked-questions">FAQ - Frequently Asked Questions<a class="headerlink" href="#faq-frequently-asked-questions" title="Permanent link">&para;</a></h2>
+<h3 id="why-cant-i-find-manfred-meyer">Why can't I find "Manfred Meyer"?<a class="headerlink" href="#why-cant-i-find-manfred-meyer" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Solution:</strong> Make sure AND logic is enabled (standard since October 2024).
+The search now finds entries containing BOTH terms.</p>
+<h3 id="how-does-meyer-region_id1-work">How does "Meyer region_id:1" work?<a class="headerlink" href="#how-does-meyer-region_id1-work" title="Permanent link">&para;</a></h3>
+<p>✅ This is <strong>mixed search</strong>: Free-text ("Meyer") + field filter ("region_id:1").
+Both conditions are AND-linked.</p>
+<h3 id="why-do-i-see-fewer-fields-in-the-filter">Why do I see fewer fields in the filter?<a class="headerlink" href="#why-do-i-see-fewer-fields-in-the-filter" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>This is intentional!</strong> Technical ID fields are now hidden to simplify the UI.
+They still work in the main search field though.</p>
+<h3 id="what-do-the-info-icons-i-mean">What do the info icons (ℹ️) mean?<a class="headerlink" href="#what-do-the-info-icons-i-mean" title="Permanent link">&para;</a></h3>
+<p>✅ Hover over them to see description and examples.
+Helps understand what values can be entered.</p>
+<h3 id="how-does-cascading-work">How does cascading work?<a class="headerlink" href="#how-does-cascading-work" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Cascading filters</strong> automatically filter dependent lists:
+- Select Region → Club list shows only clubs of this region
+- Select Season → League list shows only leagues of this season</p>
+<h2 id="model-specific-features">Model-specific Features<a class="headerlink" href="#model-specific-features" title="Permanent link">&para;</a></h2>
+<h3 id="players-player">Players (Player)<a class="headerlink" href="#players-player" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Also searches combined names (<code>fl_name</code>)</li>
+<li>Region → Club cascading active</li>
+<li>CC_ID and DBU_ID as number fields</li>
+</ul>
+<h3 id="match-day-games-partygame">Match Day Games (PartyGame)<a class="headerlink" href="#match-day-games-partygame" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Most complex cascading:</strong> Region → Season → League → Party</li>
+<li>Player A and Player B separately searchable</li>
+<li>Many hidden ID fields (6 hidden, 8 visible)</li>
+</ul>
+<h3 id="tournament-participations-seeding">Tournament Participations (Seeding)<a class="headerlink" href="#tournament-participations-seeding" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Supports tournaments AND leagues (polymorphic)</li>
+<li>Complex JOINs for Season/Region</li>
+<li>Position and status filterable</li>
+</ul>
+<h3 id="games-gameparticipation">Games (GameParticipation)<a class="headerlink" href="#games-gameparticipation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Many numeric filters (Points, Result, GD, HS, Innings)</li>
+<li>Operators for comparisons (&gt;, &lt;, =, &gt;=, &lt;=)</li>
+<li>Role filterable (home, guest, playera, playerb)</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<p>Planned improvements:
+- <strong>Quick filter chips</strong> above table ("My Region", "Current Season")
+- <strong>Saved filters</strong> for frequently used combinations
+- <strong>Filter presets</strong> ("Last 30 days", "My Players")
+- <strong>Export</strong> of filtered results
+- <strong>Filter history</strong> (recently used filters)</p>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>For search problems:
+1. Check this documentation
+2. Use info icons (ℹ️) in filter form
+3. Contact the administrator</p>
+<hr />
+<p><strong>Last update:</strong> October 2024 (new filter architecture)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

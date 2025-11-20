@@ -1,0 +1,2287 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/clubcloud_integration/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>ClubCloud Integration and Scraping - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clubcloud-integration-and-scraping" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ClubCloud Integration and Scraping
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../clubcloud_integration/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is ClubCloud?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What is ClubCloud?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-functions-of-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Functions of ClubCloud:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regional-clubcloud-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌐 Regional ClubCloud Instances
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 Regional ClubCloud Instances">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#associations-with-clubcloud-14-of-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Associations WITH ClubCloud (14 of 17):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#associations-without-clubcloud-3-of-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Associations WITHOUT ClubCloud (3 of 17):
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-carambus-synchronizes-with-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 How Carambus Synchronizes with ClubCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 How Carambus Synchronizes with ClubCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scraping-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scraping Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-scraped" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is Scraped?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-often-is-data-scraped" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Often is Data Scraped?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-ids-and-dbu-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆔 Global IDs and DBU Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Technical Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Technical Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scraping-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scraping Implementation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-integrity-problems-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Integrity Problems and Solutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Integrity Problems and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-1-duplicates-at-inter-regional-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem 1: Duplicates at Inter-Regional Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-2-inconsistent-spelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem 2: Inconsistent Spelling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-3-erroneous-data-in-regional-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem 3: Erroneous Data in Regional ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#synchronization-back-to-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Synchronization Back to ClubCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Synchronization Back to ClubCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uploading-results-manual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Results (Manual)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Practical Application
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Practical Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-new-tournament-in-clubcloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 1: New Tournament in ClubCloud
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-preparing-a-match-day" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 2: Preparing a Match Day
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-duplicate-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 3: Duplicate Handling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frequently-asked-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ Frequently Asked Questions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 See Also
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="clubcloud-integration-and-scraping">ClubCloud Integration and Scraping<a class="headerlink" href="#clubcloud-integration-and-scraping" title="Permanent link">&para;</a></h1>
+<h2 id="what-is-clubcloud">What is ClubCloud?<a class="headerlink" href="#what-is-clubcloud" title="Permanent link">&para;</a></h2>
+<p><strong><a href="https://club-cloud.de/">ClubCloud</a></strong> is a web-based management software for sports associations and clubs in Germany.</p>
+<p><strong>Operator:</strong> ClubCloud GmbH<br />
+<strong>Website:</strong> https://club-cloud.de/</p>
+<h3 id="main-functions-of-clubcloud">Main Functions of ClubCloud:<a class="headerlink" href="#main-functions-of-clubcloud" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Member management</li>
+<li>Tournament planning and management</li>
+<li>League management (match days, teams)</li>
+<li>Registration system (tournament registrations, transfers)</li>
+<li>Result recording</li>
+<li>Rankings</li>
+<li>Website CMS for associations/clubs</li>
+</ul>
+<hr />
+<h2 id="regional-clubcloud-instances">🌐 Regional ClubCloud Instances<a class="headerlink" href="#regional-clubcloud-instances" title="Permanent link">&para;</a></h2>
+<p><strong>Important:</strong> There is <strong>NO central</strong> ClubCloud for all of Germany!</p>
+<p>Instead, each billard association operates its <strong>own ClubCloud instance</strong>:</p>
+<h3 id="associations-with-clubcloud-14-of-17">Associations WITH ClubCloud (14 of 17):<a class="headerlink" href="#associations-with-clubcloud-14-of-17" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Association</th>
+<th>Name</th>
+<th>ClubCloud URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DBU</strong></td>
+<td>Deutsche Billard-Union</td>
+<td><a href="https://billard-union.net/">billard-union.net</a></td>
+</tr>
+<tr>
+<td><strong>BBBV</strong></td>
+<td>Brandenburgischer Billardverband</td>
+<td><a href="https://billard-brandenburg.net/">billard-brandenburg.net</a></td>
+</tr>
+<tr>
+<td><strong>BLMR</strong></td>
+<td>Billard LV Mittleres Rheinland</td>
+<td><a href="https://blmr.club-cloud.de/">blmr.club-cloud.de</a></td>
+</tr>
+<tr>
+<td><strong>BLVN</strong></td>
+<td>Billard LV Niedersachsen</td>
+<td><a href="https://billard-niedersachsen.de/">billard-niedersachsen.de</a></td>
+</tr>
+<tr>
+<td><strong>BVB</strong></td>
+<td>Billard-Verband Berlin</td>
+<td><a href="https://billardverband-berlin.net/">billardverband-berlin.net</a></td>
+</tr>
+<tr>
+<td><strong>BVBW</strong></td>
+<td>Billard-Verband Baden-Württemberg</td>
+<td><a href="https://billard-bvbw.de/">billard-bvbw.de</a></td>
+</tr>
+<tr>
+<td><strong>BVNR</strong></td>
+<td>Billard-Verband Niederrhein</td>
+<td><a href="https://billard-niederrhein.de/">billard-niederrhein.de</a></td>
+</tr>
+<tr>
+<td><strong>BVNRW</strong></td>
+<td>Billard-Verband Nordrhein-Westfalen</td>
+<td><a href="https://bvnrw.net/">bvnrw.net</a></td>
+</tr>
+<tr>
+<td><strong>BVRP</strong></td>
+<td>Billard Verband Rheinland-Pfalz</td>
+<td><a href="https://billardverband-rlp.de/">billardverband-rlp.de</a></td>
+</tr>
+<tr>
+<td><strong>BVS</strong></td>
+<td>Billard-Verband-Saar</td>
+<td><a href="https://billard-ergebnisse.de/">billard-ergebnisse.de</a></td>
+</tr>
+<tr>
+<td><strong>BVW</strong></td>
+<td>Billard-Verband Westfalen</td>
+<td><a href="https://westfalenbillard.net/">westfalenbillard.net</a></td>
+</tr>
+<tr>
+<td><strong>NBV</strong></td>
+<td>Norddeutscher Billard Verband</td>
+<td><a href="https://ndbv.de/">ndbv.de</a></td>
+</tr>
+<tr>
+<td><strong>SBV</strong></td>
+<td>Sächsischer Billardverband</td>
+<td><a href="https://billard-sachsen.de/">billard-sachsen.de</a></td>
+</tr>
+<tr>
+<td><strong>TBV</strong></td>
+<td>Thüringer Billard Verband</td>
+<td><a href="https://billard-thueringen.de/">billard-thueringen.de</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="associations-without-clubcloud-3-of-17">Associations WITHOUT ClubCloud (3 of 17):<a class="headerlink" href="#associations-without-clubcloud-3-of-17" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Association</th>
+<th>Name</th>
+<th>Alternative Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BBV</strong></td>
+<td>Bayerischer Billardverband</td>
+<td><a href="https://billardbayern.de/">billardbayern.de</a> (own system)</td>
+</tr>
+<tr>
+<td><strong>HBU</strong></td>
+<td>Hessische Billard Union</td>
+<td>(status unclear)</td>
+</tr>
+<tr>
+<td><strong>BLVSA</strong></td>
+<td>Billard LV Sachsen-Anhalt</td>
+<td><a href="https://www.blv-sa.de/">blv-sa.de</a> (own system)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Problems with this federal structure:</strong>
+- ❌ No central control
+- ❌ Data integrity only guaranteed regionally
+- ❌ Different data quality per region
+- ❌ Duplicates possible at inter-regional events (different local names)
+- ❌ Inconsistent spelling (players, clubs, locations)</p>
+<p><strong>Advantages:</strong>
+- ✅ Regional autonomy
+- ✅ Adaptation to local needs
+- ✅ Independence of associations</p>
+<hr />
+<h2 id="how-carambus-synchronizes-with-clubcloud">🔄 How Carambus Synchronizes with ClubCloud<a class="headerlink" href="#how-carambus-synchronizes-with-clubcloud" title="Permanent link">&para;</a></h2>
+<h3 id="scraping-concept">Scraping Concept<a class="headerlink" href="#scraping-concept" title="Permanent link">&para;</a></h3>
+<p><strong>Important to understand:</strong> Carambus is <strong>NOT</strong> part of ClubCloud!</p>
+<p>Carambus is an <strong>independent, standalone application</strong> that <strong>reads</strong> (scrapes/extracts) data from ClubCloud instances.</p>
+<div class="highlight"><pre><span></span><code>ClubCloud Instances (14 regional servers)
+  ndbv.de (NBV)
+  billardverband-rlp.de (BVRP)
+  westfalenbillard.net (BVW)
+  billard-bvbw.de (BVBW)
+  ... (10 more)
+        ↓ Scraping (automatic + manual)
+Carambus API Server (central data collection)
+        ↓ Synchronization (regionally filtered)
+Carambus Local Servers (Clubs, Raspberry Pi)
+        ↓ Local usage
+Scoreboards, Tournament management, etc.
+</code></pre></div>
+<h3 id="what-is-scraped">What is Scraped?<a class="headerlink" href="#what-is-scraped" title="Permanent link">&para;</a></h3>
+<p><strong>Almost everything</strong> from ClubCloud instances:</p>
+<ul>
+<li>✅ <strong>Players</strong> (name, DBU-ID, club, contact)</li>
+<li>✅ <strong>Clubs</strong> (name, DBU-ID, region, address, contact)</li>
+<li>✅ <strong>Tournaments</strong> (title, date, location, discipline, organizer)</li>
+<li>✅ <strong>Leagues</strong> (name, teams, schedule, season)</li>
+<li>✅ <strong>Match days</strong> (Parties) with dates</li>
+<li>✅ <strong>Results</strong> (tournament and league results)</li>
+<li>✅ <strong>Rankings</strong> (regional and nationwide)</li>
+<li>✅ <strong>Seeding lists</strong> (tournament participants with positions)</li>
+<li>✅ <strong>Game Plans</strong> (game patterns for leagues)</li>
+<li>✅ <strong>LeagueTeams</strong> (teams with players)</li>
+</ul>
+<p><strong>Special note:</strong> Each region has its own <strong>TournamentPlans</strong> (tournament modes).
+These are the basis for automated tournament and table management (TournamentMonitor, TableMonitor).</p>
+<h3 id="how-often-is-data-scraped">How Often is Data Scraped?<a class="headerlink" href="#how-often-is-data-scraped" title="Permanent link">&para;</a></h3>
+<p><strong>Automatically:</strong>
+- 🕐 <strong>Daily at 4:00 AM</strong> (night job)
+- Updates all regions
+- Runs on API Server</p>
+<p><strong>Manually:</strong>
+- 🎯 <strong>Before tournaments</strong> - Update seeding lists
+- 🔄 <strong>Before match days</strong> - Current team lineups
+- 🛠️ <strong>As needed</strong> - Admin can trigger scraping via UI</p>
+<p><strong>Workflow:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Automatic (Cron job):</span>
+<span class="n">rake</span><span class="w"> </span><span class="ss">regions</span><span class="p">:</span><span class="n">scrape_all</span><span class="w">  </span><span class="c1"># All regions at 4:00 AM</span>
+
+<span class="c1"># Manual (via UI):</span>
+<span class="no">Region</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">shortname</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;NBV&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc</span>
+<span class="no">Tournament</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc</span><span class="w">  </span><span class="c1"># Only one tournament</span>
+<span class="no">League</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc_with_details</span><span class="w">  </span><span class="c1"># League with details</span>
+</code></pre></div></p>
+<hr />
+<h2 id="global-ids-and-dbu-data">🆔 Global IDs and DBU Data<a class="headerlink" href="#global-ids-and-dbu-data" title="Permanent link">&para;</a></h2>
+<p>The <strong><a href="https://billard-union.net/">Deutsche Billard-Union (DBU)</a></strong> is the umbrella association and manages:</p>
+<p><strong>1. Global IDs (Master Identifiers)</strong>
+- <strong>Player IDs (DBU-Nr):</strong> Unique across Germany
+- <strong>Club IDs (DBU-Nr):</strong> Unique across Germany</p>
+<p><strong>2. Nationwide Data</strong>
+- <strong>Bundesliga</strong> and other DBU tournaments
+- <strong>German Championships</strong>
+- <strong>Nationwide rankings</strong>
+- <strong>Squad data</strong></p>
+<p><strong>Important:</strong> DBU data is <strong>scraped just like</strong> regional data!
+<div class="highlight"><pre><span></span><code>DBU (billard-union.net)
+        ↓ Scraping
+Carambus API Server
+</code></pre></div></p>
+<p><strong>Advantages of DBU-IDs:</strong>
+- ✅ A player has the same ID nationwide
+- ✅ Prevents fundamental duplicates
+- ✅ Enables inter-regional evaluations
+- ✅ Unique assignment when changing clubs</p>
+<p><strong>In Carambus:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find player by DBU-ID</span>
+<span class="no">Player</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">dbu_nr</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span><span class="p">)</span>
+
+<span class="c1"># Find club by DBU-ID</span>
+<span class="no">Club</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">dbu_nr</span><span class="p">:</span><span class="w"> </span><span class="mi">67890</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h2 id="technical-details">🔧 Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="scraping-implementation">Scraping Implementation<a class="headerlink" href="#scraping-implementation" title="Permanent link">&para;</a></h3>
+<p><strong>Carambus scrapes publicly accessible web pages</strong> - no API integration!</p>
+<p><strong>Technology:</strong>
+- Nokogiri (Ruby HTML/XML Parser)
+- HTTP requests to ClubCloud pages
+- Extraction from HTML structure
+- Parsing of tables, lists, detail pages</p>
+<p><strong>Advantages:</strong>
+- ✅ No ClubCloud changes needed
+- ✅ Works with public data
+- ✅ Independent of ClubCloud APIs</p>
+<p><strong>Disadvantages:</strong>
+- ⚠️ Vulnerable to HTML structure changes
+- ⚠️ Parsing logic must be adjusted for ClubCloud updates</p>
+<h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h3>
+<p><strong>For Scraping (Reading):</strong>
+- ✅ <strong>No authentication needed!</strong>
+- Carambus only scrapes <strong>publicly accessible</strong> web pages
+- Same data any visitor sees</p>
+<p><strong>For CSV Upload (Writing):</strong>
+- 🔐 <strong>Authentication required</strong>
+- Login with admin credentials
+- Upload via ClubCloud interface
+- Manual approval in ClubCloud needed</p>
+<h3 id="data-integrity-problems-and-solutions">Data Integrity Problems and Solutions<a class="headerlink" href="#data-integrity-problems-and-solutions" title="Permanent link">&para;</a></h3>
+<h4 id="problem-1-duplicates-at-inter-regional-events">Problem 1: Duplicates at Inter-Regional Events<a class="headerlink" href="#problem-1-duplicates-at-inter-regional-events" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> DBU tournament with participants from different regions</p>
+<div class="highlight"><pre><span></span><code>ClubCloud NBV: &quot;Player Meyer, BC Hamburg&quot;
+ClubCloud BVRP: &quot;Player Meier, BC Hamburg&quot;  ← Typo!
+ClubCloud BVW: &quot;Player H. Meyer, Hamburg&quot;   ← Abbreviation!
+
+Problem: 3 different entries for the same player!
+</code></pre></div>
+<p><strong>Carambus Solution:</strong></p>
+<p><strong>1. Duplicate Detection with Synonyms</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Club model stores synonyms:</span>
+<span class="n">club</span><span class="o">.</span><span class="n">synonyms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BC Hamburg, Billard Club Hamburg, BCH&quot;</span>
+
+<span class="c1"># During scraping: Synonym matching</span>
+<span class="c1"># &quot;BC Hamburg&quot; = &quot;Billard Club Hamburg&quot; = same club</span>
+</code></pre></div></p>
+<p><strong>2. Manual Merge Functions</strong>
+- Index lists have <strong>Merge buttons</strong>
+- Admin can merge duplicates
+- Player.merge(player1, player2)
+- Club.merge(club1, club2)
+- Tournament.merge(tournament1, tournament2)</p>
+<p><strong>3. DBU-ID as Master</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># In case of conflict: DBU-ID takes precedence</span>
+<span class="k">if</span><span class="w"> </span><span class="n">player1</span><span class="o">.</span><span class="n">dbu_nr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">player2</span><span class="o">.</span><span class="n">dbu_nr</span>
+<span class="w">  </span><span class="c1"># Same player → Merge!</span>
+<span class="k">end</span>
+</code></pre></div></p>
+<h4 id="problem-2-inconsistent-spelling">Problem 2: Inconsistent Spelling<a class="headerlink" href="#problem-2-inconsistent-spelling" title="Permanent link">&para;</a></h4>
+<p><strong>Examples:</strong>
+- "BC Hamburg" vs. "Billard Club Hamburg"
+- "Meyer, Hans" vs. "Hans Meyer"
+- "Hamburg" vs. "HH" vs. "Hamburg (City)"</p>
+<p><strong>Carambus Solution:</strong>
+- Synonym system (see above)
+- Normalization during import
+- Manual corrections by admins</p>
+<h4 id="problem-3-erroneous-data-in-regional-clubcloud">Problem 3: Erroneous Data in Regional ClubCloud<a class="headerlink" href="#problem-3-erroneous-data-in-regional-clubcloud" title="Permanent link">&para;</a></h4>
+<p><strong>Example:</strong> NBV enters wrong tournament date</p>
+<p><strong>Carambus Solution:</strong>
+- Local overrides possible (LocalProtector)
+- Admin can correct data locally
+- Scraping does <strong>NOT</strong> overwrite protected Local Data</p>
+<hr />
+<h2 id="synchronization-back-to-clubcloud">🔄 Synchronization Back to ClubCloud<a class="headerlink" href="#synchronization-back-to-clubcloud" title="Permanent link">&para;</a></h2>
+<p><strong>Current state:</strong> Only via <strong>CSV upload</strong> possible</p>
+<h3 id="uploading-results-manual">Uploading Results (Manual)<a class="headerlink" href="#uploading-results-manual" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>1. Run tournament in Carambus
+2. Results captured in Carambus (via scoreboards)
+3. Export as CSV file
+4. Login to ClubCloud (with admin credentials)
+5. CSV upload via ClubCloud interface
+6. Manual approval/review in ClubCloud
+</code></pre></div>
+<p><strong>Why CSV and not API?</strong>
+- ClubCloud doesn't (yet) offer upload API
+- CSV is universally supported
+- Manual control by admin desired</p>
+<p><strong>Future possibilities:</strong>
+- Direct API integration (when ClubCloud provides it)
+- Automatic upload after tournament end
+- Real-time synchronization during match day</p>
+<hr />
+<h2 id="practical-application">💡 Practical Application<a class="headerlink" href="#practical-application" title="Permanent link">&para;</a></h2>
+<h3 id="scenario-1-new-tournament-in-clubcloud">Scenario 1: New Tournament in ClubCloud<a class="headerlink" href="#scenario-1-new-tournament-in-clubcloud" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>1. Association enters tournament in ClubCloud (e.g., ndbv.de)
+   - &quot;Hamburg Championship 2024&quot;
+   - Date: 11/15/2024
+   - Location: BC Hamburg
+
+2. Carambus scrapes automatically (at night, 4:00 AM)
+   - Tournament imported to Carambus DB
+   - ID &lt; 50,000,000 (scraped)
+   - cc_id references ClubCloud entry
+
+3. Tournament appears in Carambus
+   - Under &quot;Tournaments&quot; → Region NBV
+   - With all details from ClubCloud
+   - Seeding list can be updated (manual scraping)
+
+4. Tournament execution with Carambus
+   - TournamentMonitor controls process
+   - TableMonitor + Scoreboards capture results
+   - Everything stored in Carambus
+
+5. Results back to ClubCloud
+   - CSV export from Carambus
+   - Upload to ClubCloud (manual)
+   - Publication for all associations
+</code></pre></div>
+<h3 id="scenario-2-preparing-a-match-day">Scenario 2: Preparing a Match Day<a class="headerlink" href="#scenario-2-preparing-a-match-day" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>1. League match day upcoming (e.g., BC Hamburg vs. BV Wedel)
+   - Party already registered in ClubCloud
+   - Teams and schedule available
+
+2. Manual scraping before match day
+   - Admin clicks &quot;Reload from CC&quot; in Carambus
+   - Current team lineups are loaded
+   - Ensures newest players are available
+
+3. Execute match day
+   - Carambus Party Monitor controls process
+   - Scoreboards capture games live
+   - No ClubCloud connection needed (offline!)
+
+4. Upload results
+   - After match day: CSV export
+   - Upload to ClubCloud
+   - Update league table
+</code></pre></div>
+<h3 id="scenario-3-duplicate-handling">Scenario 3: Duplicate Handling<a class="headerlink" href="#scenario-3-duplicate-handling" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Problem:
+- DBU tournament &quot;German Championship&quot;
+- Player &quot;Meyer&quot; from Hamburg listed in NBV as &quot;Hans Meyer&quot;
+- Same player in BVRP listed as &quot;H. Meyer&quot;
+- Carambus scrapes both → 2 entries!
+
+Solution in Carambus:
+1. Duplicate detection (same DBU-ID)
+2. Admin uses merge function in Carambus
+3. Player.merge(player_nbv, player_bvrp)
+4. Synonyms are stored
+5. Future scrapes recognize both names as same player
+</code></pre></div>
+<hr />
+<h2 id="frequently-asked-questions">❓ Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permanent link">&para;</a></h2>
+<p><strong>Q: Why doesn't Carambus use ClubCloud directly?</strong><br />
+A: ClubCloud is optimized for association administration, not for real-time scoreboards and local offline usage. Carambus offers:
+- Offline capability for match days
+- Fast scoreboards (local LAN)
+- Own features (TournamentMonitor, TableMonitor)
+- Local Data for internal club tournaments/training</p>
+<p><strong>Q: Can I use Carambus without ClubCloud?</strong><br />
+A: Yes! With <strong>Local Data</strong> (ID &gt;= 50,000,000) you can work completely independently. Scraping is optional.</p>
+<p><strong>Q: What happens when ClubCloud changes its HTML structure?</strong><br />
+A: Scraping breaks or delivers faulty data. Carambus developers must then adapt the parsing logic. Regular updates important!</p>
+<p><strong>Q: Can Carambus work with multiple regions simultaneously?</strong><br />
+A: Yes! The API Server scrapes all 14+ ClubCloud instances. A Local Server can access data from multiple regions (configurable).</p>
+<p><strong>Q: How often should I manually scrape?</strong><br />
+A: 
+- Before <strong>tournaments:</strong> Update seeding lists
+- Before <strong>match days:</strong> Check team lineups
+- After <strong>changes:</strong> When ClubCloud data was corrected</p>
+<p><strong>Q: Are deleted data in ClubCloud also deleted in Carambus?</strong><br />
+A: No. Carambus only marks them as "no longer in ClubCloud". Historical data is preserved (important for statistics).</p>
+<hr />
+<h2 id="summary">🚀 Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p><strong>Carambus-ClubCloud Integration:</strong></p>
+<p>✅ <strong>Scraping</strong> from 14 regional ClubCloud instances<br />
+✅ <strong>Automatic</strong> daily at 4:00 AM<br />
+✅ <strong>Manual</strong> before tournaments/match days<br />
+✅ <strong>No authentication</strong> for reading (public data)<br />
+✅ <strong>CSV upload</strong> for results back to ClubCloud<br />
+✅ <strong>DBU-IDs</strong> as global master identifiers<br />
+✅ <strong>Duplicate handling</strong> with synonyms and merge<br />
+✅ <strong>Offline-capable</strong> through local data storage  </p>
+<p><strong>Most important insight:</strong>
+Carambus is <strong>independent</strong> of ClubCloud and works completely <strong>without</strong> it. Scraping is an <strong>optional service</strong> for data integration, not a technical must!</p>
+<hr />
+<h2 id="see-also">📚 See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../server_architektur/">Server Architecture</a> - API vs Local Server</li>
+<li><a href="../glossar/">Glossary</a> - All terms explained</li>
+<li><a href="../datenbank-partitionierung-und-synchronisierung/">Database Synchronization</a> - Technical details</li>
+<li><a href="../region_tagging_cleanup_summary/">Region Tagging</a> - Regional filtering</li>
+<li><a href="tournament_duplicate_handling.de.md">Tournament Duplicate Handling</a> - Duplicate management</li>
+</ul>
+<hr />
+<p><strong>Version:</strong> 1.0<br />
+<strong>Last Update:</strong> October 2024<br />
+<strong>Status:</strong> Complete</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

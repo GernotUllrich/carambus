@@ -1,0 +1,2356 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/server_architektur/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Carambus Server Architecture - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#carambus-server-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Carambus Server Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../server_architektur/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-server-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌐 Two Server Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 Two Server Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-server-central-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Server (Central Server)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-server-regionalclub-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Server (Regional/Club Server)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-scraping-api-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Scraping (API Server)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-synchronization-api-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Synchronization (API → Local)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-local-data-upload-local-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Local Data Upload (Local → API)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-data-special-id-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔢 Local Data - Special ID Range
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔢 Local Data - Special ID Range">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is Local Data?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id-ranges" class="md-nav__link">
+    <span class="md-ellipsis">
+      ID Ranges
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#practical-examples-for-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Practical Examples for Local Data
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Practical Examples for Local Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-club-tournament-without-clubcloud-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Club Tournament without ClubCloud Registration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-training-games-for-performance-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Training Games for Performance Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-guest-players-at-club" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Guest Players at Club
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-table-reservation-with-heating-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Table Reservation with Heating Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-internal-club-championship-over-multiple-weeks" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Internal Club Championship over Multiple Weeks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-with-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 What Happens with Local Data?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 What Happens with Local Data?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#created-locally-local-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Created Locally (Local Server):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-upload-to-api-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optional: Upload to API Server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synchronization-to-other-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronization to Other Local Servers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 When to Use Local Data?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-api-vs-local-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Comparison: API vs Local Server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typical-setups" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ Typical Setups
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Typical Setups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-1-single-club" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup 1: Single Club
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-2-state-association" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup 2: State Association
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-3-api-server-only-developmenttesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup 3: API Server Only (Development/Testing)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Security and Isolation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Security and Isolation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Isolation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Why This Architecture?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Why This Architecture?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problems-without-distributed-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problems without distributed system:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solution-with-api-local-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution with API + Local Servers:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Technical Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Technical Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regional-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regional Filtering
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synchronization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 See Also
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frequently-asked-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ Frequently Asked Questions
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="carambus-server-architecture">Carambus Server Architecture<a class="headerlink" href="#carambus-server-architecture" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Carambus uses a <strong>distributed architecture</strong> with a central <strong>API Server</strong> and multiple <strong>Local Servers</strong>. This design enables efficient data management and optimal performance for local venues.</p>
+<hr />
+<h2 id="two-server-types">🌐 Two Server Types<a class="headerlink" href="#two-server-types" title="Permanent link">&para;</a></h2>
+<h3 id="api-server-central-server">API Server (Central Server)<a class="headerlink" href="#api-server-central-server" title="Permanent link">&para;</a></h3>
+<p>The <strong>API Server</strong> is the central data source for all Carambus installations.</p>
+<p><strong>Tasks:</strong>
+1. <strong>Scraping External Data</strong>
+   - Loads data from ClubCloud (regional associations)
+   - Loads data from billardarea.de (historical)
+   - Imports tournament data, players, clubs, etc.
+   - Updates rankings and results</p>
+<ol>
+<li><strong>Central Data Storage</strong></li>
+<li>Stores <strong>all</strong> data from <strong>all</strong> regions</li>
+<li>Complete database with all associations</li>
+<li>
+<p>Master data source for synchronization</p>
+</li>
+<li>
+<p><strong>Data Synchronization</strong></p>
+</li>
+<li>Distributes data to Local Servers</li>
+<li>Filters data by region (see below)</li>
+<li>Provides APIs for data queries</li>
+</ol>
+<p><strong>Hosting:</strong>
+- Typically on dedicated server (VPS/Cloud)
+- Runs 24/7
+- High bandwidth for scraping
+- Large database (all regions)</p>
+<p><strong>Example:</strong> carambus.de (API Server for all of Germany)</p>
+<hr />
+<h3 id="local-server-regionalclub-server">Local Server (Regional/Club Server)<a class="headerlink" href="#local-server-regionalclub-server" title="Permanent link">&para;</a></h3>
+<p>A <strong>Local Server</strong> is a Carambus installation for a specific location (club, venue, region).</p>
+<p><strong>Tasks:</strong>
+1. <strong>Local Game Management</strong>
+   - Manages tournaments at location
+   - Controls scoreboards in real-time
+   - Local data capture</p>
+<ol>
+<li><strong>Regional Data Storage</strong></li>
+<li>Stores only data from <strong>own region</strong> (filtered!)</li>
+<li>Plus: Globally relevant data (DBU tournaments, etc.)</li>
+<li>
+<p>Plus: Own Local Data (see below)</p>
+</li>
+<li>
+<p><strong>Offline Capability</strong></p>
+</li>
+<li>Can work independently from API Server</li>
+<li>Important for match days (no internet dependency)</li>
+<li>Synchronizes later with API Server</li>
+</ol>
+<p><strong>Hosting:</strong>
+- Typically Raspberry Pi in club house
+- Or server at state association
+- Runs on local network
+- Smaller database (only own region)</p>
+<p><strong>Examples:</strong> 
+- BC Hamburg Local Server (only Hamburg data + DBU tournaments)
+- BV Westfalen Local Server (only Westphalia data + DBU tournaments)</p>
+<hr />
+<h2 id="data-flow">🔄 Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
+<h3 id="1-scraping-api-server">1. Scraping (API Server)<a class="headerlink" href="#1-scraping-api-server" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>ClubCloud (NBV) → API Server → scraping → Database (all regions)
+ClubCloud (BVW) → API Server → scraping → Database (all regions)
+...
+</code></pre></div>
+<h3 id="2-synchronization-api-local">2. Synchronization (API → Local)<a class="headerlink" href="#2-synchronization-api-local" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>API Server (all data)
+    ↓ Filter: region_id = Hamburg
+Local Server Hamburg (only Hamburg data + Global)
+    ↓ 
+Scoreboards, Tournaments, etc.
+</code></pre></div>
+<h3 id="3-local-data-upload-local-api">3. Local Data Upload (Local → API)<a class="headerlink" href="#3-local-data-upload-local-api" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Local Server Hamburg
+    ↓ creates Tournament (Local Data, ID &gt; 50,000,000)
+    ↓ Upload to API Server
+API Server (stores Local Data)
+    ↓ Synchronization
+Other Local Servers (receive Hamburg&#39;s Local Data)
+</code></pre></div>
+<hr />
+<h2 id="local-data-special-id-range">🔢 Local Data - Special ID Range<a class="headerlink" href="#local-data-special-id-range" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-local-data">What is Local Data?<a class="headerlink" href="#what-is-local-data" title="Permanent link">&para;</a></h3>
+<p><strong>Local Data</strong> is data created on a <strong>Local Server</strong> that doesn't come from scraping by the API Server.</p>
+<p><strong>Simply put:</strong> Everything the club <strong>creates and manages itself</strong>, without being recorded in the supra-regional ClubCloud.</p>
+<h3 id="id-ranges">ID Ranges<a class="headerlink" href="#id-ranges" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>IDs:           1 - 49,999,999    → From API Server (scraped from ClubCloud)
+IDs: 50,000,000 - 99,999,999    → Local Data (created locally at club)
+</code></pre></div>
+<p><strong>Why important?</strong>
+- ✅ Local Server can work <strong>offline</strong>
+- ✅ No ID conflicts between servers
+- ✅ Clear distinction: External vs. Internal
+- ✅ Club has full control over own data</p>
+<hr />
+<h3 id="practical-examples-for-local-data">💡 Practical Examples for Local Data<a class="headerlink" href="#practical-examples-for-local-data" title="Permanent link">&para;</a></h3>
+<h4 id="1-club-tournament-without-clubcloud-registration">1. Club Tournament without ClubCloud Registration<a class="headerlink" href="#1-club-tournament-without-clubcloud-registration" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> BC Hamburg organizes an internal year-end club tournament.</p>
+<div class="highlight"><pre><span></span><code>Problem:
+- Tournament only takes place at club
+- Should NOT be registered in ClubCloud (internal)
+- Still needs Carambus for scoreboards and management
+
+Solution with Local Data:
+- Create tournament locally → ID: 50,012,345
+- Full Carambus functionality
+- Scoreboards, seeding, results
+- Stays local, not in ClubCloud
+</code></pre></div>
+<h4 id="2-training-games-for-performance-tracking">2. Training Games for Performance Tracking<a class="headerlink" href="#2-training-games-for-performance-tracking" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> Players want to track their development, but not enter every training session in ClubCloud.</p>
+<div class="highlight"><pre><span></span><code>Example BC Hamburg:
+- Every Tuesday: Training with 8 players
+- Capture via scoreboards
+- Statistics: GD development, high series, etc.
+- Local ranking for the club
+
+Local Data:
+- Training Games: IDs 50,100,001, 50,100,002, ...
+- Only visible in club
+- Long-term statistics possible
+- Motivates players (measurable improvement!)
+</code></pre></div>
+<h4 id="3-guest-players-at-club">3. Guest Players at Club<a class="headerlink" href="#3-guest-players-at-club" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> A player from another club visits regularly and participates in training.</p>
+<div class="highlight"><pre><span></span><code>Problem:
+- Player is not a club member
+- Not listed in ClubCloud as BC Hamburg player
+- Should still be able to play on scoreboards
+
+Solution:
+- Create guest player locally → ID: 50,200,123
+- Can participate in local games
+- Does NOT appear in official lists
+- Is NOT synchronized to API Server
+</code></pre></div>
+<h4 id="4-table-reservation-with-heating-control">4. Table Reservation with Heating Control<a class="headerlink" href="#4-table-reservation-with-heating-control" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> The club has an automatic reservation system for billard tables with heating control.</p>
+<div class="highlight"><pre><span></span><code>Local Data Tables:
+- Reservations: IDs 50,300,001, 50,300,002, ...
+- Table occupancy
+- Heating schedules
+- Internal club management
+
+Why local?
+- Not relevant for other clubs
+- No ClubCloud integration needed
+- Faster access (local)
+- Privacy (only club members)
+</code></pre></div>
+<h4 id="5-internal-club-championship-over-multiple-weeks">5. Internal Club Championship over Multiple Weeks<a class="headerlink" href="#5-internal-club-championship-over-multiple-weeks" title="Permanent link">&para;</a></h4>
+<p><strong>Scenario:</strong> The club organizes a multi-week internal championship.</p>
+<div class="highlight"><pre><span></span><code>Setup:
+- League (local): &quot;BC Hamburg Winter Championship&quot;
+  ID: 50,400,001
+- LeagueTeams (local): &quot;The Veterans&quot;, &quot;The Young Guns&quot;, etc.
+  IDs: 50,400,010, 50,400,011, ...
+- Parties (Match days): Every Friday
+  IDs: 50,400,100, 50,400,101, ...
+- PartyGames: Hundreds of games
+  IDs: 50,400,500+
+
+Advantage:
+- Complete league management in club
+- Not in official ClubCloud
+- Own rules and modes possible
+- Long-term statistics stored locally
+</code></pre></div>
+<hr />
+<h3 id="what-happens-with-local-data">🔄 What Happens with Local Data?<a class="headerlink" href="#what-happens-with-local-data" title="Permanent link">&para;</a></h3>
+<h4 id="created-locally-local-server">Created Locally (Local Server):<a class="headerlink" href="#created-locally-local-server" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>BC Hamburg Local Server
+  ↓ Create tournament
+  ID: 50,012,345 (Local Data)
+  cc_id: NULL (not in ClubCloud)
+</code></pre></div>
+<h4 id="optional-upload-to-api-server">Optional: Upload to API Server<a class="headerlink" href="#optional-upload-to-api-server" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>Local Server
+  ↓ rake sync:to_api (if desired)
+API Server
+  ↓ stores with same ID
+  ID: 50,012,345 is preserved!
+</code></pre></div>
+<h4 id="synchronization-to-other-local-servers">Synchronization to Other Local Servers<a class="headerlink" href="#synchronization-to-other-local-servers" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>API Server (now has BC Hamburg Local Data)
+  ↓ Synchronization (regionally filtered!)
+Other NBV servers receive it
+  ↓
+BV Wedel Local Server sees:
+  &quot;BC Hamburg Club Tournament&quot; (read-only)
+</code></pre></div>
+<p><strong>Important:</strong>
+- Local Data remains <strong>protected</strong> (LocalProtector)
+- Only the <strong>creating server</strong> can edit
+- Other servers: <strong>read-only</strong>
+- No accidental overwrites</p>
+<hr />
+<h3 id="when-to-use-local-data">🎯 When to Use Local Data?<a class="headerlink" href="#when-to-use-local-data" title="Permanent link">&para;</a></h3>
+<p><strong>Use Local Data for:</strong>
+- ✅ Internal club tournaments
+- ✅ Training games and statistics
+- ✅ Guest players without club membership
+- ✅ Reservation systems
+- ✅ Internal leagues/championships
+- ✅ Everything that should NOT be in ClubCloud</p>
+<p><strong>Use scraped data for:</strong>
+- ✅ Official association tournaments
+- ✅ Bundesliga match days
+- ✅ Ranking tournaments
+- ✅ Regional championships
+- ✅ Everything that's in ClubCloud</p>
+<hr />
+<h2 id="comparison-api-vs-local-server">📊 Comparison: API vs Local Server<a class="headerlink" href="#comparison-api-vs-local-server" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>API Server</th>
+<th>Local Server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data Scope</strong></td>
+<td>All regions</td>
+<td>Only own region + Global</td>
+</tr>
+<tr>
+<td><strong>Database Size</strong></td>
+<td>Large (~GB)</td>
+<td>Small (~MB)</td>
+</tr>
+<tr>
+<td><strong>Scraping</strong></td>
+<td>Yes, active</td>
+<td>No, only receives</td>
+</tr>
+<tr>
+<td><strong>Internet Required</strong></td>
+<td>Yes, always</td>
+<td>No, offline-capable</td>
+</tr>
+<tr>
+<td><strong>Scoreboards</strong></td>
+<td>Rare</td>
+<td>Yes, permanent</td>
+</tr>
+<tr>
+<td><strong>Hosting</strong></td>
+<td>VPS/Cloud</td>
+<td>Raspberry Pi, local</td>
+</tr>
+<tr>
+<td><strong>Quantity</strong></td>
+<td>1 central</td>
+<td>Many (per club/region)</td>
+</tr>
+<tr>
+<td><strong>Main Purpose</strong></td>
+<td>Collect &amp; distribute data</td>
+<td>Run match days</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="typical-setups">🏗️ Typical Setups<a class="headerlink" href="#typical-setups" title="Permanent link">&para;</a></h2>
+<h3 id="setup-1-single-club">Setup 1: Single Club<a class="headerlink" href="#setup-1-single-club" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>API Server (carambus.de)
+    ↓ Synchronization (filtered)
+Local Server (BC Hamburg, Raspberry Pi)
+    ↓ LAN
+Scoreboards (3 tables in club house)
+</code></pre></div>
+<h3 id="setup-2-state-association">Setup 2: State Association<a class="headerlink" href="#setup-2-state-association" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>API Server (carambus.de)
+    ↓ Synchronization (NBV data)
+Local Server State Association (NBV server)
+    ↓ Internet
+    ├─ Local Server BC Hamburg (Raspberry Pi)
+    ├─ Local Server BV Wedel (Raspberry Pi)
+    └─ Local Server SC Pinneberg (Raspberry Pi)
+</code></pre></div>
+<h3 id="setup-3-api-server-only-developmenttesting">Setup 3: API Server Only (Development/Testing)<a class="headerlink" href="#setup-3-api-server-only-developmenttesting" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>API Server (localhost:3000)
+    ↓ direct
+Browser (Developer, no scoreboards needed)
+</code></pre></div>
+<hr />
+<h2 id="security-and-isolation">🔐 Security and Isolation<a class="headerlink" href="#security-and-isolation" title="Permanent link">&para;</a></h2>
+<h3 id="data-isolation">Data Isolation<a class="headerlink" href="#data-isolation" title="Permanent link">&para;</a></h3>
+<p><strong>Advantage of regional filtering:</strong>
+- Hamburg sees <strong>no</strong> internal Westphalia data
+- Smaller database = faster queries
+- GDPR compliant (only relevant data)</p>
+<p><strong>Globally visible:</strong>
+- DBU tournaments (nationwide)
+- Rankings
+- Public events</p>
+<p><strong>Not global:</strong>
+- Internal club tournaments
+- Training parties
+- Local player details</p>
+<hr />
+<h2 id="why-this-architecture">💡 Why This Architecture?<a class="headerlink" href="#why-this-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="problems-without-distributed-system">Problems without distributed system:<a class="headerlink" href="#problems-without-distributed-system" title="Permanent link">&para;</a></h3>
+<p>❌ Every club needs constant internet connection<br />
+❌ Central overload during many match days<br />
+❌ Single Point of Failure<br />
+❌ Slow scoreboards (remote access)</p>
+<h3 id="solution-with-api-local-servers">Solution with API + Local Servers:<a class="headerlink" href="#solution-with-api-local-servers" title="Permanent link">&para;</a></h3>
+<p>✅ Local Servers work offline<br />
+✅ Scoreboards are lightning-fast (LAN)<br />
+✅ Fail-safe (decentralized)<br />
+✅ Scalable (many Local Servers possible)<br />
+✅ Regional data stays regional  </p>
+<hr />
+<h2 id="technical-details">🔧 Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="regional-filtering">Regional Filtering<a class="headerlink" href="#regional-filtering" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># API Server has everything:</span>
+<span class="no">Tournament</span><span class="o">.</span><span class="n">count</span><span class="w"> </span><span class="c1"># =&gt; 5000 (all regions)</span>
+
+<span class="c1"># Local Server Hamburg only has:</span>
+<span class="no">Tournament</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">region_id</span><span class="p">:</span><span class="w"> </span><span class="n">nbv_id</span><span class="p">)</span>
+<span class="w">          </span><span class="o">.</span><span class="n">or</span><span class="p">(</span><span class="no">Tournament</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">global_context</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">))</span>
+<span class="w">          </span><span class="o">.</span><span class="n">count</span><span class="w"> </span><span class="c1"># =&gt; 500 (only Hamburg + Global)</span>
+</code></pre></div>
+<h3 id="synchronization">Synchronization<a class="headerlink" href="#synchronization" title="Permanent link">&para;</a></h3>
+<p><strong>From API → Local:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Rake task on Local Server:</span>
+<span class="n">rake</span><span class="w"> </span><span class="ss">sync</span><span class="p">:</span><span class="n">from_api</span><span class="o">[</span><span class="n">region_id</span><span class="o">]</span>
+
+<span class="c1"># Loads:</span>
+<span class="c1"># - All data with region_id = Hamburg</span>
+<span class="c1"># - All data with global_context = true</span>
+<span class="c1"># - All data with region_id = NULL</span>
+</code></pre></div></p>
+<p><strong>From Local → API:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Rake task on Local Server:</span>
+<span class="n">rake</span><span class="w"> </span><span class="ss">sync</span><span class="p">:</span><span class="n">to_api</span><span class="o">[</span><span class="n">local_data</span><span class="o">]</span>
+
+<span class="c1"># Uploads:</span>
+<span class="c1"># - All data with ID &gt;= 50,000,000 (Local Data)</span>
+<span class="c1"># - Newly created tournaments, players, etc.</span>
+</code></pre></div></p>
+<hr />
+<h2 id="see-also">📚 See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../datenbank-partitionierung-und-synchronisierung/">Database Partitioning</a> - Technical details</li>
+<li><a href="../scenario_management/">Scenario Management</a> - Development with multiple scenarios</li>
+<li><a href="../installation_overview/">Installation</a> - Setting up servers</li>
+<li><a href="../quickstart_raspberry_pi/">Raspberry Pi Setup</a> - Local Server on Raspberry Pi</li>
+</ul>
+<hr />
+<h2 id="frequently-asked-questions">❓ Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permanent link">&para;</a></h2>
+<p><strong>Q: Can a club operate without an API Server?</strong><br />
+A: Yes! Local Server is fully functional without API Server. However, scraped data from ClubCloud will be missing.</p>
+<p><strong>Q: Does every club need a Local Server?</strong><br />
+A: No. Clubs can also use the API Server directly (via browser). Local Server is only needed for scoreboards and offline operation.</p>
+<p><strong>Q: What happens with ID conflicts?</strong><br />
+A: No conflicts possible:
+- API Server: IDs &lt; 50,000,000
+- Local Server: IDs &gt;= 50,000,000
+- Different ID ranges guarantee uniqueness</p>
+<p><strong>Q: Can a Local Server have data for multiple regions?</strong><br />
+A: Yes! A Local Server can filter multiple regions. Configurable via <code>region_ids</code> array.</p>
+<hr />
+<p><strong>Version:</strong> 1.0<br />
+<strong>Last Update:</strong> October 2024<br />
+<strong>Status:</strong> Production in Use</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

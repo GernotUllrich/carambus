@@ -1,0 +1,4377 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/scoreboard_benutzerhandbuch/">
+      
+      
+        <link rel="prev" href="../scoreboard_autostart_setup/">
+      
+      
+        <link rel="next" href="../ai_search/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Scoreboard Benutzerhandbuch - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#scoreboard-benutzerhandbuch" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Scoreboard Benutzerhandbuch
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/scoreboard_benutzerhandbuch/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Einführung
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  Benutzerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Entwicklerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Einführung
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Einführung
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schnellstart Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benutzerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Benutzerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ligaspieltage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptfunktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard starten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#willkommensbildschirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Willkommensbildschirm
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-hauptansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard-Hauptansicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard-Hauptansicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout-Übersicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anzeigeelemente" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeigeelemente
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anzeigeelemente">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spielerinformationen-je-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerinformationen (je Seite)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-anzeige" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer-Anzeige
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aktiver-spieler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aktiver Spieler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tastenbelegung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastenbelegung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tastenbelegung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#haupttasten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Haupttasten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spezielle-tasten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spezielle Tasten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schnelleingabe-im-pointer-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schnelleingabe im Pointer-Modus
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spielablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielablauf
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spielablauf">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-spielstart-vorbereiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Spielstart vorbereiten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Spielstart vorbereiten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fur-turnierspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Turnierspiele
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fur-trainingsspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Trainingsspiele
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-einspielzeit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Einspielzeit (Warm-up)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-ausstoen-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Ausstoßen (Shootout)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-spiel-lauft" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Spiel läuft
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Spiel läuft">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#punkte-eintragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte eintragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eingabe-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Eingabe-Buttons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielerwechsel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerwechsel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-steuerung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer-Steuerung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-satzende" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Satzende
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-spielende" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Spielende
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anzeige-modi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeige-Modi
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anzeige-Modi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fullscreen-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fullscreen-Modus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-only-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display-Only Modus
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menu-und-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu und Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu und Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hauptmenu-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptmenü-Icons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spiel-beenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spiel beenden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-reagiert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard reagiert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punkte-werden-nicht-gespeichert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte werden nicht gespeichert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tastatur-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastatur funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anzeige-ist-verzerrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeige ist verzerrt
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anhang-a-training-spiele-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anhang A: Training-Spiele einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anhang A: Training-Spiele einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-anleitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Anleitung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schritt-für-Schritt Anleitung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-tisch-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Tisch auswählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-spielform-wahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Spielform wählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spieler-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Spieler auswählen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Spieler auswählen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spieler-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler A
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler B
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-spiel-parameter-konfigurieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Spiel-Parameter konfigurieren
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Spiel-Parameter konfigurieren">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#karambolage-freie-partie" class="md-nav__link">
+    <span class="md-ellipsis">
+      Karambolage - Freie Partie
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#karambolage-quick-game-schnellstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Karambolage - Quick Game (Schnellstart)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pool-billard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pool-Billard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-spiel-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Spiel starten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-einspielzeit-und-ausstoen" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Einspielzeit und Ausstoßen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-tipps-fur-trainingsspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick-Tipps für Trainingsspiele
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unterschiede-training-vs-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unterschiede: Training vs. Turnier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haufige-fragen-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Fragen (FAQ)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tastatur-referenz-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastatur-Referenz (Übersicht)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tastatur-Referenz (Übersicht)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#haupttastatur-funktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Haupttastatur-Funktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#undoedit-funktionen-aufnahmenliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Undo/Edit-Funktionen (Aufnahmenliste bearbeiten)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anhang-b-undoedit-funktion-aufnahmenliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wie-die-aufnahmenliste-funktioniert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie die Aufnahmenliste funktioniert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor-Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punkte-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-1-fehler-in-vorheriger-aufnahme-korrigieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 1: Fehler in vorheriger Aufnahme korrigieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-2-mehrere-aufnahmen-zuruck" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 2: Mehrere Aufnahmen zurück
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-3-beide-spieler-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 3: Beide Spieler bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtige-hinweise" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Hinweise
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haufige-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Fehler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wann-verwenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wann verwenden?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zusammenfassung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zusammenfassung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vorschlag-fur-zukunftige-verbesserung" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Vorschlag für zukünftige Verbesserung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Vorschlag für zukünftige Verbesserung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#losung-1-spielprotokoll-modal-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lösung 1: Spielprotokoll-Modal (EMPFOHLEN)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#losung-2-drei-separate-buttons-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lösung 2: Drei separate Buttons (Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-und-hilfe" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support und Hilfe
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Entwicklerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hauptfunktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptfunktionen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inhaltsverzeichnis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inhaltsverzeichnis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#erste-schritte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Erste Schritte
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Erste Schritte">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard starten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#willkommensbildschirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Willkommensbildschirm
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-hauptansicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard-Hauptansicht
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard-Hauptansicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout-Übersicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anzeigeelemente" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeigeelemente
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anzeigeelemente">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spielerinformationen-je-seite" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerinformationen (je Seite)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-anzeige" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer-Anzeige
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aktiver-spieler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aktiver Spieler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tastenbelegung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastenbelegung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tastenbelegung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#haupttasten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Haupttasten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spezielle-tasten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spezielle Tasten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schnelleingabe-im-pointer-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schnelleingabe im Pointer-Modus
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spielablauf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielablauf
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spielablauf">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-spielstart-vorbereiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Spielstart vorbereiten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Spielstart vorbereiten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fur-turnierspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Turnierspiele
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fur-trainingsspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Für Trainingsspiele
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-einspielzeit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Einspielzeit (Warm-up)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-ausstoen-shootout" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Ausstoßen (Shootout)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-spiel-lauft" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Spiel läuft
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Spiel läuft">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#punkte-eintragen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte eintragen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eingabe-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Eingabe-Buttons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spielerwechsel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spielerwechsel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-steuerung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer-Steuerung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-satzende" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Satzende
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-spielende" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Spielende
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anzeige-modi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeige-Modi
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anzeige-Modi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fullscreen-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fullscreen-Modus
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-only-modus" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display-Only Modus
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#menu-und-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu und Navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu und Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hauptmenu-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hauptmenü-Icons
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spiel-beenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spiel beenden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-reagiert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard reagiert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punkte-werden-nicht-gespeichert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte werden nicht gespeichert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timer-lauft-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer läuft nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tastatur-funktioniert-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastatur funktioniert nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anzeige-ist-verzerrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anzeige ist verzerrt
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anhang-a-training-spiele-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anhang A: Training-Spiele einrichten
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anhang A: Training-Spiele einrichten">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#voraussetzungen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Voraussetzungen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-anleitung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Anleitung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schritt-für-Schritt Anleitung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-tisch-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Tisch auswählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-spielform-wahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Spielform wählen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spieler-auswahlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Spieler auswählen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Spieler auswählen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spieler-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler A
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spieler-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spieler B
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-spiel-parameter-konfigurieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Spiel-Parameter konfigurieren
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Spiel-Parameter konfigurieren">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#karambolage-freie-partie" class="md-nav__link">
+    <span class="md-ellipsis">
+      Karambolage - Freie Partie
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#karambolage-quick-game-schnellstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      Karambolage - Quick Game (Schnellstart)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pool-billard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pool-Billard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-spiel-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Spiel starten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-einspielzeit-und-ausstoen" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Einspielzeit und Ausstoßen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-tipps-fur-trainingsspiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick-Tipps für Trainingsspiele
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unterschiede-training-vs-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unterschiede: Training vs. Turnier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haufige-fragen-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Fragen (FAQ)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tastatur-referenz-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tastatur-Referenz (Übersicht)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tastatur-Referenz (Übersicht)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#haupttastatur-funktionen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Haupttastatur-Funktionen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#undoedit-funktionen-aufnahmenliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Undo/Edit-Funktionen (Aufnahmenliste bearbeiten)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anhang-b-undoedit-funktion-aufnahmenliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wie-die-aufnahmenliste-funktioniert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wie die Aufnahmenliste funktioniert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cursor-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cursor-Navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punkte-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punkte bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-1-fehler-in-vorheriger-aufnahme-korrigieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 1: Fehler in vorheriger Aufnahme korrigieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-2-mehrere-aufnahmen-zuruck" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 2: Mehrere Aufnahmen zurück
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-fur-schritt-beispiel-3-beide-spieler-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt-für-Schritt Beispiel 3: Beide Spieler bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wichtige-hinweise" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Hinweise
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haufige-fehler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Häufige Fehler
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wann-verwenden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wann verwenden?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zusammenfassung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zusammenfassung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vorschlag-fur-zukunftige-verbesserung" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Vorschlag für zukünftige Verbesserung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Vorschlag für zukünftige Verbesserung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#losung-1-spielprotokoll-modal-empfohlen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lösung 1: Spielprotokoll-Modal (EMPFOHLEN)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#losung-2-drei-separate-buttons-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lösung 2: Drei separate Buttons (Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-und-hilfe" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support und Hilfe
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="scoreboard-benutzerhandbuch">Scoreboard Benutzerhandbuch<a class="headerlink" href="#scoreboard-benutzerhandbuch" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das Carambus Scoreboard ist ein vollständiges Anzeigesystem für Billardspiele, das sowohl für Turniere als auch für Trainingsspiele verwendet werden kann. Die Bedienung ist in beiden Fällen identisch.</p>
+<h2 id="hauptfunktionen">Hauptfunktionen<a class="headerlink" href="#hauptfunktionen" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Spielstandanzeige</strong> - Echtzeit-Anzeige der Punktestände beider Spieler</li>
+<li><strong>Timer-Funktion</strong> - Zeitmessung für Aufnahmen und Bedenkzeit</li>
+<li><strong>Einspielzeit</strong> - Geführte Warm-up-Phase vor dem Spiel</li>
+<li><strong>Ausstoßen</strong> - Bestimmung des Anstoßrechts</li>
+<li><strong>Disziplin-Unterstützung</strong> - Karambolage, Pool, Snooker und weitere Disziplinen</li>
+<li><strong>Dark Mode</strong> - Augenfreundliche Darstellung für verschiedene Lichtverhältnisse</li>
+</ul>
+<hr />
+<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#erste-schritte">Erste Schritte</a></li>
+<li><a href="#scoreboard-hauptansicht">Scoreboard-Hauptansicht</a></li>
+<li><a href="#tastenbelegung">Tastenbelegung</a></li>
+<li><a href="#spielablauf">Spielablauf</a></li>
+<li><a href="#anzeige-modi">Anzeige-Modi</a></li>
+<li><a href="#anhang-a-training-spiele-einrichten">Anhang A: Training-Spiele einrichten</a></li>
+<li><a href="#anhang-b-undoedit-funktion">Anhang B: Undo/Edit-Funktion</a></li>
+</ol>
+<hr />
+<h2 id="erste-schritte">Erste Schritte<a class="headerlink" href="#erste-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="scoreboard-starten">Scoreboard starten<a class="headerlink" href="#scoreboard-starten" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Raspberry Pi Setup</strong>: Das Scoreboard startet automatisch beim Hochfahren des Raspberry Pi</li>
+<li><strong>Manueller Start</strong>: Öffnen Sie einen Browser und navigieren zu:
+   <div class="highlight"><pre><span></span><code>http://[server-adresse]:3000/locations/[location-id]/scoreboard?sb_state=welcome
+</code></pre></div></li>
+<li><strong>Von der Location-Seite</strong>: Klicken Sie auf den "scoreboard" Link</li>
+</ol>
+<h3 id="willkommensbildschirm">Willkommensbildschirm<a class="headerlink" href="#willkommensbildschirm" title="Permanent link">&para;</a></h3>
+<p><img alt="Willkommensbildschirm" src="screenshots/scoreboard_welcome.png" /></p>
+<p>Der Willkommensbildschirm ist der Startpunkt für alle Scoreboard-Aktivitäten. Von hier aus können Sie:</p>
+<ul>
+<li><strong>Turnier auswählen</strong> - Für offizielle Turniere</li>
+<li><strong>Tisch auswählen</strong> - Für Trainingsspiele</li>
+<li><strong>Spielstände anzeigen</strong> - Übersicht laufender Spiele</li>
+</ul>
+<hr />
+<h2 id="scoreboard-hauptansicht">Scoreboard-Hauptansicht<a class="headerlink" href="#scoreboard-hauptansicht" title="Permanent link">&para;</a></h2>
+<h3 id="layout-ubersicht">Layout-Übersicht<a class="headerlink" href="#layout-ubersicht" title="Permanent link">&para;</a></h3>
+<p>Das Scoreboard zeigt folgende Informationen:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
+│  [Dark Mode] [Info] [Home] [Beenden]                │
+│                                                       │
+│  Spieler A                          Spieler B        │
+│  ┌─────────────────┐              ┌─────────────────┐│
+│  │  Aktuelle       │              │  Aktuelle       ││
+│  │  Aufnahme: 5    │              │  Aufnahme: --   ││
+│  │                 │              │                 ││
+│  │  Ziel: 50       │              │  Ziel: 50       ││
+│  │  GD: 1.250      │              │  GD: 0.800      ││
+│  │  HS: 8          │              │  HS: 12         ││
+│  │                 │              │                 ││
+│  │      45         │              │      38         ││
+│  │                 │              │                 ││
+│  │  Sätze: 1       │              │  Sätze: 0       ││
+│  └─────────────────┘              └─────────────────┘│
+│                                                       │
+│  [Eingabe-Bereich]                                   │
+└─────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="anzeigeelemente">Anzeigeelemente<a class="headerlink" href="#anzeigeelemente" title="Permanent link">&para;</a></h3>
+<h4 id="spielerinformationen-je-seite">Spielerinformationen (je Seite)<a class="headerlink" href="#spielerinformationen-je-seite" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Spielername</strong> - Vollständiger Name oder Kurzname</li>
+<li><strong>Aktuelle Aufnahme</strong> - Punkte in der laufenden Aufnahme</li>
+<li><strong>Ziel</strong> - Zielpunktzahl (oder "no limit")</li>
+<li><strong>GD (Generaldurchschnitt)</strong> - Durchschnittliche Punkte pro Aufnahme</li>
+<li><strong>HS (Höchstserie)</strong> - Beste Einzelaufnahme im Spiel</li>
+<li><strong>Gesamtpunkte</strong> - Großer Punktestand in der Mitte</li>
+<li><strong>Sätze</strong> - Anzahl gewonnener Sätze (wenn Satzmodus aktiv)</li>
+</ol>
+<h4 id="timer-anzeige">Timer-Anzeige<a class="headerlink" href="#timer-anzeige" title="Permanent link">&para;</a></h4>
+<p>Wenn ein Timer aktiv ist, erscheint eine Fortschrittsbalken-Anzeige:</p>
+<div class="highlight"><pre><span></span><code>⏱ 00:45  IIIIIIIIIIIIIIII------
+        (Grün)     (Rot)
+</code></pre></div>
+<ul>
+<li><strong>Grün</strong>: Verbleibende Zeit im normalen Bereich</li>
+<li><strong>Rot</strong>: Warnzeit läuft ab</li>
+</ul>
+<h4 id="aktiver-spieler">Aktiver Spieler<a class="headerlink" href="#aktiver-spieler" title="Permanent link">&para;</a></h4>
+<p>Der aktive Spieler wird durch einen <strong>grünen Rahmen</strong> (8px breit) gekennzeichnet. Der wartende Spieler hat einen dünnen grauen Rahmen.</p>
+<hr />
+<h2 id="tastenbelegung">Tastenbelegung<a class="headerlink" href="#tastenbelegung" title="Permanent link">&para;</a></h2>
+<p>Das Scoreboard kann vollständig per Tastatur oder Fernbedienung gesteuert werden:</p>
+<h3 id="haupttasten">Haupttasten<a class="headerlink" href="#haupttasten" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Taste</th>
+<th>Funktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pfeil Links</strong></td>
+<td>Spieler A Punkte</td>
+<td>Punkt für linken Spieler (im Pointer-Modus)</td>
+</tr>
+<tr>
+<td><strong>Pfeil Rechts</strong></td>
+<td>Spieler B Punkte</td>
+<td>Punkt für rechten Spieler (im Pointer-Modus)</td>
+</tr>
+<tr>
+<td><strong>Pfeil Oben</strong></td>
+<td>Nächstes Element</td>
+<td>Navigation nach rechts/weiter</td>
+</tr>
+<tr>
+<td><strong>Pfeil Unten</strong></td>
+<td>Aktion ausführen</td>
+<td>Element aktivieren/bestätigen</td>
+</tr>
+<tr>
+<td><strong>Bild Auf</strong></td>
+<td>Spieler A Punkte</td>
+<td>Alternative Taste für Spieler A</td>
+</tr>
+<tr>
+<td><strong>Bild Ab</strong></td>
+<td>Spieler B Punkte</td>
+<td>Alternative Taste für Spieler B</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Zurück/Weiter</td>
+<td>Zurück (Escape) im Menü, Weiter (rechts) in Eingabefeldern</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Zurück/Beenden</td>
+<td>Zurück zum vorherigen Bildschirm</td>
+</tr>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Bestätigen</td>
+<td>Aktuelle Auswahl bestätigen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spezielle-tasten">Spezielle Tasten<a class="headerlink" href="#spezielle-tasten" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Taste</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F5</strong></td>
+<td>Neustart</td>
+</tr>
+<tr>
+<td><strong>F11</strong></td>
+<td>Fullscreen</td>
+</tr>
+<tr>
+<td><strong>F12</strong></td>
+<td>Beenden</td>
+</tr>
+</tbody>
+</table>
+<h3 id="schnelleingabe-im-pointer-modus">Schnelleingabe im Pointer-Modus<a class="headerlink" href="#schnelleingabe-im-pointer-modus" title="Permanent link">&para;</a></h3>
+<p>Im <strong>Pointer-Modus</strong> (Hauptmodus während des Spiels):</p>
+<ul>
+<li><strong>Links/Rechts-Taste</strong>: Fügt 1 Punkt für den entsprechenden Spieler hinzu</li>
+<li><strong>B-Taste</strong>: Wechselt zum <strong>Timer-Bereich</strong></li>
+<li><strong>B-Taste</strong> (im Timer): Wechselt zum <strong>Eingabe-Bereich</strong></li>
+<li><strong>Down-Taste</strong>: Bestätigt die Eingabe</li>
+</ul>
+<hr />
+<h2 id="spielablauf">Spielablauf<a class="headerlink" href="#spielablauf" title="Permanent link">&para;</a></h2>
+<h3 id="1-spielstart-vorbereiten">1. Spielstart vorbereiten<a class="headerlink" href="#1-spielstart-vorbereiten" title="Permanent link">&para;</a></h3>
+<p>Nach Auswahl eines Tisches oder Turniers erscheint der <strong>Setup-Bildschirm</strong>.</p>
+<h4 id="fur-turnierspiele">Für Turnierspiele<a class="headerlink" href="#fur-turnierspiele" title="Permanent link">&para;</a></h4>
+<p>Die Parameter werden automatisch aus dem Turnier übernommen:
+- Spieler A und B
+- Disziplin (z.B. Freie Partie, 3-Band, Pool)
+- Zielpunkte/Bälle
+- Aufnahmen-Limit
+- Sätze
+- Timeout-Einstellungen</p>
+<h4 id="fur-trainingsspiele">Für Trainingsspiele<a class="headerlink" href="#fur-trainingsspiele" title="Permanent link">&para;</a></h4>
+<p>Siehe <a href="#anhang-training-spiele-einrichten">Anhang: Training-Spiele einrichten</a></p>
+<h3 id="2-einspielzeit-warm-up">2. Einspielzeit (Warm-up)<a class="headerlink" href="#2-einspielzeit-warm-up" title="Permanent link">&para;</a></h3>
+<p><img alt="Einspielzeit" src="screenshots/scoreboard_warmup.png" /></p>
+<p>Beide Spieler haben Zeit zum Einspielen:</p>
+<ol>
+<li><strong>Start Einspielzeit</strong> (Spieler A) - Klicken um 5 Minuten für Spieler A zu starten</li>
+<li><strong>Timer läuft</strong> - Grüne Balken zeigen die verbleibende Zeit</li>
+<li><strong>Halt</strong> - Timer anhalten bei Bedarf</li>
+<li><strong>Start Einspielzeit</strong> (Spieler B) - Dann 5 Minuten für Spieler B</li>
+<li><strong>Weiter zum Ausstoßen</strong> - Wenn beide fertig sind</li>
+</ol>
+<p><strong>Tasten:</strong>
+- <strong>Enter/Down</strong>: Start/Stopp der Einspielzeit
+- <strong>B</strong>: Zwischen Spieler A und B wechseln</p>
+<h3 id="3-ausstoen-shootout">3. Ausstoßen (Shootout)<a class="headerlink" href="#3-ausstoen-shootout" title="Permanent link">&para;</a></h3>
+<p><img alt="Ausstoßen" src="screenshots/scoreboard_shootout.png" /></p>
+<p>Bestimmen Sie, wer das Spiel beginnt:</p>
+<ol>
+<li>Beide Spieler stoßen vom Kopfende</li>
+<li>Wählen Sie den Gewinner:</li>
+<li><strong>Links-Taste</strong> oder Button <strong>"Spieler A"</strong>: Spieler A gewinnt das Ausstoßen</li>
+<li><strong>Rechts-Taste</strong> oder Button <strong>"Spieler B"</strong>: Spieler B gewinnt das Ausstoßen</li>
+<li><strong>Spiel starten</strong> - Klicken um das eigentliche Spiel zu beginnen</li>
+</ol>
+<p><strong>Alternative:</strong>
+- <strong>Wechseln</strong>: Den aktiven Spieler wechseln</p>
+<h3 id="4-spiel-lauft">4. Spiel läuft<a class="headerlink" href="#4-spiel-lauft" title="Permanent link">&para;</a></h3>
+<p><img alt="Spiel läuft" src="screenshots/scoreboard_playing.png" /></p>
+<p>Das Scoreboard wechselt in den <strong>Spielmodus</strong>.</p>
+<h4 id="punkte-eintragen">Punkte eintragen<a class="headerlink" href="#punkte-eintragen" title="Permanent link">&para;</a></h4>
+<p><strong>Methode 1: Tasteneingabe (empfohlen für einfache Punkteingaben)</strong></p>
+<ul>
+<li><strong>Links-Taste</strong>: +1 Punkt für den aktiven Spieler (links)</li>
+<li><strong>Rechts-Taste</strong>: +1 Punkt für den aktiven Spieler (rechts, bei Spielerwechsel)</li>
+<li>Die Punkte werden <strong>akkumuliert</strong> und nach kurzer Verzögerung automatisch gespeichert</li>
+<li>Wenn das Ziel erreicht wird, erfolgt sofortige Validierung</li>
+</ul>
+<p><strong>Methode 2: Zahlenfeld (für größere Punktzahlen)</strong></p>
+<ol>
+<li>Drücken Sie <strong>Down-Taste</strong> mehrmals bis "numbers" fokussiert ist</li>
+<li>Geben Sie die Punktzahl über das Zahlenfeld ein:</li>
+<li>Tasten <strong>1-9, 0</strong> für Ziffern</li>
+<li><strong>Del</strong>: Letzte Ziffer löschen</li>
+<li><strong>Esc</strong>: Abbrechen</li>
+<li><strong>Enter</strong>: Punktzahl bestätigen</li>
+</ol>
+<h4 id="eingabe-buttons">Eingabe-Buttons<a class="headerlink" href="#eingabe-buttons" title="Permanent link">&para;</a></h4>
+<p>Die Eingabeelemente sind in <strong>horizontaler Reihenfolge</strong> angeordnet:</p>
+<div class="highlight"><pre><span></span><code>[Undo] [-1] [-5] [-10] [Nächster] [+10] [+5] [+1] [Numbers]
+</code></pre></div>
+<ul>
+<li><strong>Undo</strong>: Aufnahmenliste bearbeiten (siehe <a href="#anhang-b-undoedit-funktion">Anhang B: Undo/Edit-Funktion</a>)</li>
+<li><strong>-1, -5, -10</strong>: Punkte abziehen</li>
+<li><strong>+1, +5, +10</strong>: Punkte hinzufügen</li>
+<li><strong>Nächster</strong>: Spielerwechsel</li>
+<li><strong>Numbers</strong>: Zahlenfeld öffnen für direkte Eingabe</li>
+</ul>
+<p><strong>Navigation:</strong>
+- <strong>B-Taste</strong>: Bewegt sich nach rechts durch die Buttons
+- <strong>Down-Taste</strong>: Aktiviert den fokussierten Button</p>
+<blockquote>
+<p>ℹ️ <strong>Hinweis:</strong> Die Undo/Edit-Funktion ist komplex und wird häufig missverstanden. Eine vollständige Erklärung mit Beispielen finden Sie in <a href="#anhang-b-undoedit-funktion">Anhang B</a>.</p>
+<p>💡 <strong>Geplante Verbesserung:</strong> In einer zukünftigen Version wird die Undo-Funktion durch drei intuitivere Buttons ersetzt: <strong>[◄ Cursor zurück] [Cursor vor ►] [✓ Fertig]</strong></p>
+</blockquote>
+<h4 id="spielerwechsel">Spielerwechsel<a class="headerlink" href="#spielerwechsel" title="Permanent link">&para;</a></h4>
+<p>Der Spielerwechsel erfolgt entweder:
+1. <strong>Automatisch</strong> - Wenn der aktive Spieler 0 Punkte macht
+2. <strong>Manuell</strong> - Mit dem Button <strong>"Nächster"</strong> oder durch Tastatureingabe</p>
+<p>Nach dem Wechsel:
+- Der grüne Rahmen wechselt zum neuen aktiven Spieler
+- Die aktuelle Aufnahme wird zurückgesetzt
+- Der Timer startet neu (falls aktiv)</p>
+<h4 id="timer-steuerung">Timer-Steuerung<a class="headerlink" href="#timer-steuerung" title="Permanent link">&para;</a></h4>
+<p>Wenn Timer aktiviert sind:</p>
+<ul>
+<li><strong>Pause</strong> ⏸: Timer anhalten</li>
+<li><strong>Play</strong> ▶: Timer fortsetzen</li>
+<li><strong>Stop</strong> ⏹: Timer zurücksetzen</li>
+<li><strong>Timeout</strong> ⏰: Timeout nehmen (begrenzte Anzahl pro Spieler, siehe Timeout-Icons ⏱)</li>
+</ul>
+<h3 id="5-satzende">5. Satzende<a class="headerlink" href="#5-satzende" title="Permanent link">&para;</a></h3>
+<p>Wenn ein Spieler die Zielpunktzahl erreicht:</p>
+<ol>
+<li><strong>Satzgewinn-Meldung</strong> erscheint</li>
+<li>Statistiken werden aktualisiert</li>
+<li>Bei Mehrfachsatz-Spielen:</li>
+<li>Neuer Satz beginnt automatisch</li>
+<li>Satzstand wird aktualisiert</li>
+<li>Anstoßrecht wechselt (je nach Einstellung)</li>
+</ol>
+<h3 id="6-spielende">6. Spielende<a class="headerlink" href="#6-spielende" title="Permanent link">&para;</a></h3>
+<p>Wenn die erforderliche Anzahl von Sätzen gewonnen wurde oder das Spiel beendet wird:</p>
+<ol>
+<li><strong>Endergebnis</strong> wird angezeigt</li>
+<li>Spielstatistiken werden gespeichert</li>
+<li>Optionen:</li>
+<li><strong>Zurück zur Übersicht</strong></li>
+<li><strong>Neues Spiel starten</strong></li>
+</ol>
+<hr />
+<h2 id="anzeige-modi">Anzeige-Modi<a class="headerlink" href="#anzeige-modi" title="Permanent link">&para;</a></h2>
+<h3 id="fullscreen-modus">Fullscreen-Modus<a class="headerlink" href="#fullscreen-modus" title="Permanent link">&para;</a></h3>
+<p><strong>Aktivierung:</strong>
+- Drücken Sie <strong>F11</strong> oder starten Sie über den entsprechenden Link
+- Das Scoreboard füllt den gesamten Bildschirm</p>
+<p><strong>Deaktivierung:</strong>
+- Drücken Sie erneut <strong>F11</strong></p>
+<p>Der Fullscreen-Modus ist ideal für:
+- Zuschauer-Displays
+- Wettkampfsituationen
+- Raspberry Pi Kiosk-Modus</p>
+<h3 id="dark-mode">Dark Mode<a class="headerlink" href="#dark-mode" title="Permanent link">&para;</a></h3>
+<p><img alt="Dark Mode" src="screenshots/scoreboard_dark.png" /></p>
+<p><strong>Umschalten:</strong>
+- Klicken Sie auf das <strong>Dark Mode Icon</strong> 🌓 in der Menüleiste
+- Oder öffnen Sie das Menü und wählen Sie "Dark Mode"</p>
+<p><strong>Vorteile:</strong>
+- Reduziert Augenbelastung in dunklen Räumen
+- Spart Energie auf OLED-Displays
+- Bessere Lesbarkeit bei schwachem Licht</p>
+<p>Die Dark Mode Einstellung wird im Benutzerprofil gespeichert.</p>
+<h3 id="display-only-modus">Display-Only Modus<a class="headerlink" href="#display-only-modus" title="Permanent link">&para;</a></h3>
+<p>Für reine Anzeigezwecke ohne Eingabemöglichkeit:</p>
+<div class="highlight"><pre><span></span><code>/locations/[id]/scoreboard?sb_state=welcome&amp;display_only=true
+</code></pre></div>
+<p>In diesem Modus:
+- Keine Eingabeelemente sichtbar
+- Nur Spielstandanzeige
+- Ideal für Publikums-Bildschirme</p>
+<hr />
+<h2 id="menu-und-navigation">Menu und Navigation<a class="headerlink" href="#menu-und-navigation" title="Permanent link">&para;</a></h2>
+<h3 id="hauptmenu-icons">Hauptmenü-Icons<a class="headerlink" href="#hauptmenu-icons" title="Permanent link">&para;</a></h3>
+<p>Die Menüleiste oben rechts enthält:</p>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Funktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🌓</td>
+<td>Dark Mode</td>
+<td>Hell/Dunkel-Modus umschalten</td>
+</tr>
+<tr>
+<td>ℹ️</td>
+<td>Info</td>
+<td>Zur Tischübersicht wechseln</td>
+</tr>
+<tr>
+<td>🏠</td>
+<td>Home</td>
+<td>Zurück zum Willkommensbildschirm</td>
+</tr>
+<tr>
+<td>⌫</td>
+<td>Beenden</td>
+<td>Spiel beenden (mit Bestätigung)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spiel-beenden">Spiel beenden<a class="headerlink" href="#spiel-beenden" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Klicken Sie auf das <strong>Beenden-Icon</strong> ⌫ oder drücken Sie <strong>B-Taste</strong> im Pointer-Modus</li>
+<li><strong>Bestätigungsdialog</strong> erscheint:
+   <div class="highlight"><pre><span></span><code>┌─────────────────────────────────┐
+│  Spiel wirklich beenden?        │
+│                                 │
+│  [OK]  [Abbrechen]              │
+└─────────────────────────────────┘
+</code></pre></div></li>
+<li>Wählen Sie:</li>
+<li><strong>OK</strong>: Spiel wird beendet, zurück zur Übersicht</li>
+<li><strong>Abbrechen</strong>: Zurück zum Spiel</li>
+</ol>
+<p><strong>Für Turnierspiele:</strong>
+- Das Spiel wird als "nicht gespielt" markiert
+- Kann vom Turnierleiter neu gestartet werden</p>
+<p><strong>Für Trainingsspiele:</strong>
+- Das Spiel wird gelöscht
+- Statistiken werden nicht gespeichert</p>
+<hr />
+<h2 id="fehlerbehebung">Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="scoreboard-reagiert-nicht">Scoreboard reagiert nicht<a class="headerlink" href="#scoreboard-reagiert-nicht" title="Permanent link">&para;</a></h3>
+<p><strong>Lösung:</strong>
+1. Drücken Sie <strong>F5</strong> um die Seite neu zu laden
+2. Falls das nicht hilft, drücken Sie <strong>B</strong> um zum Pointer-Modus zurückzukehren
+3. Im Notfall: Browser schließen und neu starten</p>
+<h3 id="punkte-werden-nicht-gespeichert">Punkte werden nicht gespeichert<a class="headerlink" href="#punkte-werden-nicht-gespeichert" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Netzwerkverbindung unterbrochen</p>
+<p><strong>Lösung:</strong>
+1. Überprüfen Sie die Netzwerkverbindung
+2. Die Punkte werden lokal gepuffert und beim nächsten Sync übertragen
+3. Bei längerer Unterbrechung: Notieren Sie den Stand und korrigieren Sie manuell nach Wiederherstellung</p>
+<h3 id="timer-lauft-nicht">Timer läuft nicht<a class="headerlink" href="#timer-lauft-nicht" title="Permanent link">&para;</a></h3>
+<p><strong>Überprüfung:</strong>
+1. Ist der Timer für dieses Spiel aktiviert? (Timeout-Einstellung &gt; 0)
+2. Wurde der Timer gestartet? (Play-Button drücken)
+3. Browser-Tab aktiv? (Manche Browser pausieren Timer im Hintergrund)</p>
+<h3 id="tastatur-funktioniert-nicht">Tastatur funktioniert nicht<a class="headerlink" href="#tastatur-funktioniert-nicht" title="Permanent link">&para;</a></h3>
+<p><strong>Lösung:</strong>
+1. Klicken Sie einmal in das Scoreboard-Fenster um den Fokus zu setzen
+2. Prüfen Sie, ob die Tastatur korrekt angeschlossen ist
+3. Bei Fernbedienung: Batterien überprüfen</p>
+<h3 id="anzeige-ist-verzerrt">Anzeige ist verzerrt<a class="headerlink" href="#anzeige-ist-verzerrt" title="Permanent link">&para;</a></h3>
+<p><strong>Lösung:</strong>
+1. Drücken Sie <strong>F11</strong> um Fullscreen zu aktivieren/deaktivieren
+2. Browser-Zoom zurücksetzen (Strg+0 / Cmd+0)
+3. Bildschirmauflösung überprüfen (mindestens 1024x768 empfohlen)</p>
+<hr />
+<h2 id="anhang-a-training-spiele-einrichten">Anhang A: Training-Spiele einrichten<a class="headerlink" href="#anhang-a-training-spiele-einrichten" title="Permanent link">&para;</a></h2>
+<p>Dieser Abschnitt erklärt, wie Sie schnell und einfach Trainingsspiele für freies Üben einrichten.</p>
+<h3 id="voraussetzungen">Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Sie haben Zugang zum Scoreboard (als Scoreboard-User oder Administrator)</li>
+<li>Ein Tisch ist verfügbar und nicht für ein Turnier belegt</li>
+</ul>
+<h3 id="schritt-fur-schritt-anleitung">Schritt-für-Schritt Anleitung<a class="headerlink" href="#schritt-fur-schritt-anleitung" title="Permanent link">&para;</a></h3>
+<h4 id="1-tisch-auswahlen">1. Tisch auswählen<a class="headerlink" href="#1-tisch-auswahlen" title="Permanent link">&para;</a></h4>
+<p><img alt="Tischauswahl" src="screenshots/scoreboard_tables.png" /></p>
+<ol>
+<li>Vom <strong>Willkommensbildschirm</strong> aus wählen Sie <strong>"Tische"</strong></li>
+<li>Es erscheint eine Übersicht aller Tische der Location</li>
+<li>Wählen Sie einen <strong>freien Tisch</strong> (grün markiert):</li>
+<li><strong>Grün</strong>: Tisch ist frei</li>
+<li><strong>Gelb</strong>: Tisch hat eine Reservierung aber kein aktives Spiel</li>
+<li><strong>Rot</strong>: Tisch ist belegt mit aktivem Spiel</li>
+<li>Klicken Sie auf den gewünschten Tisch</li>
+</ol>
+<h4 id="2-spielform-wahlen">2. Spielform wählen<a class="headerlink" href="#2-spielform-wahlen" title="Permanent link">&para;</a></h4>
+<p><img alt="Spielform wählen" src="screenshots/scoreboard_game_choice.png" /></p>
+<p>Nach Auswahl des Tisches erscheint ein Dialog zur Spielform-Auswahl:</p>
+<p><strong>Karambolage:</strong>
+- <strong>Quick Game</strong> - Vordefinierte Schnellspiele (Freie Partie, Cadre, etc.)
+- <strong>Neue Karambol-Partie</strong> - Individuelle Konfiguration</p>
+<p><strong>Pool:</strong>
+- <strong>Pool-Spiel</strong> - 8-Ball, 9-Ball, 10-Ball, 14.1 endlos</p>
+<p><strong>Wählen Sie die passende Kategorie.</strong></p>
+<h4 id="3-spieler-auswahlen">3. Spieler auswählen<a class="headerlink" href="#3-spieler-auswahlen" title="Permanent link">&para;</a></h4>
+<p><img alt="Spieler auswählen" src="screenshots/scoreboard_player_selection.png" /></p>
+<h5 id="spieler-a">Spieler A<a class="headerlink" href="#spieler-a" title="Permanent link">&para;</a></h5>
+<ol>
+<li>Klicken Sie auf das Feld <strong>"Spieler A"</strong></li>
+<li>Ein Dropdown mit allen Spielern erscheint</li>
+<li>Suchen Sie den Spieler:</li>
+<li><strong>Tippen Sie</strong> den Namen ein für schnelle Suche</li>
+<li>Oder <strong>scrollen Sie</strong> durch die Liste</li>
+<li>Wählen Sie den Spieler aus</li>
+</ol>
+<h5 id="spieler-b">Spieler B<a class="headerlink" href="#spieler-b" title="Permanent link">&para;</a></h5>
+<p>Wiederholen Sie den Vorgang für <strong>"Spieler B"</strong>.</p>
+<p><strong>Hinweis:</strong> Für Trainingsspiele können Sie auch:
+- Denselben Spieler für beide Seiten wählen (Solo-Training)
+- Einen Dummy-Spieler anlegen (z.B. "Training")</p>
+<h4 id="4-spiel-parameter-konfigurieren">4. Spiel-Parameter konfigurieren<a class="headerlink" href="#4-spiel-parameter-konfigurieren" title="Permanent link">&para;</a></h4>
+<p>Je nach gewählter Spielform stehen verschiedene Parameter zur Verfügung:</p>
+<h5 id="karambolage-freie-partie">Karambolage - Freie Partie<a class="headerlink" href="#karambolage-freie-partie" title="Permanent link">&para;</a></h5>
+<p><img alt="Freie Partie Setup" src="screenshots/scoreboard_free_game_setup.png" /></p>
+<p><strong>Grundeinstellungen:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Disziplin</strong></td>
+<td>Spielart (Freie Partie, Cadre, Dreiband, etc.)</td>
+<td>"Freie Partie"</td>
+</tr>
+<tr>
+<td><strong>Zielpunkte</strong></td>
+<td>Punkte zum Gewinnen</td>
+<td>50, 100, 200</td>
+</tr>
+<tr>
+<td><strong>Aufnahmen-Limit</strong></td>
+<td>Maximale Aufnahmen (optional)</td>
+<td>50, 100, "kein Limit"</td>
+</tr>
+<tr>
+<td><strong>Sätze</strong></td>
+<td>Anzahl zu spielender Sätze</td>
+<td>1, 3, 5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Erweiterte Einstellungen:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Timeout</strong></td>
+<td>Bedenkzeit pro Aufnahme (Sekunden)</td>
+<td>45</td>
+</tr>
+<tr>
+<td><strong>Timeouts pro Satz</strong></td>
+<td>Anzahl erlaubter Timeouts</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Warnzeit</strong></td>
+<td>Warnung vor Ablauf (Sekunden)</td>
+<td>10</td>
+</tr>
+<tr>
+<td><strong>Anstoß wechselt mit</strong></td>
+<td>Wann wechselt das Anstoßrecht?</td>
+<td>"Satz"</td>
+</tr>
+<tr>
+<td><strong>Farbe bleibt bei Satz</strong></td>
+<td>Spielerfarben bleiben beim Satzwechsel?</td>
+<td>Nein</td>
+</tr>
+<tr>
+<td><strong>Feste Anzeige links</strong></td>
+<td>Linker Spieler bleibt links?</td>
+<td>Nein</td>
+</tr>
+<tr>
+<td><strong>Überlauf erlauben</strong></td>
+<td>Über Zielpunkte hinaus zählen?</td>
+<td>Nein</td>
+</tr>
+<tr>
+<td><strong>Nachstoß erlauben</strong></td>
+<td>Nachstoß bei Zielballberührung?</td>
+<td>Ja</td>
+</tr>
+</tbody>
+</table>
+<h5 id="karambolage-quick-game-schnellstart">Karambolage - Quick Game (Schnellstart)<a class="headerlink" href="#karambolage-quick-game-schnellstart" title="Permanent link">&para;</a></h5>
+<p><img alt="Quick Game" src="screenshots/scoreboard_quick_game.png" /></p>
+<p>Für schnelles Starten ohne viele Einstellungen:</p>
+<ol>
+<li><strong>Wählen Sie ein Preset:</strong></li>
+<li><strong>Freie Partie 50</strong> - Klassisch zu 50 Punkten</li>
+<li><strong>Freie Partie 100</strong> - Standard-Trainingsspiel</li>
+<li><strong>Cadre 47/2 100</strong> - Cadre-Training</li>
+<li><strong>Dreiband 50</strong> - 3-Band zu 50</li>
+<li>
+<p><strong>Einband 100</strong> - 1-Band zu 100</p>
+</li>
+<li>
+<p>Die Parameter sind vorkonfiguriert, können aber noch angepasst werden</p>
+</li>
+<li>
+<p><strong>Spiel starten</strong> - Direkt loslegen</p>
+</li>
+</ol>
+<h5 id="pool-billard">Pool-Billard<a class="headerlink" href="#pool-billard" title="Permanent link">&para;</a></h5>
+<p><img alt="Pool Setup" src="screenshots/scoreboard_pool_setup.png" /></p>
+<p><strong>Disziplinen:</strong>
+- <strong>8-Ball</strong> - Klassisches 8-Ball
+- <strong>9-Ball</strong> - 9-Ball
+- <strong>10-Ball</strong> - 10-Ball
+- <strong>14.1 endlos</strong> - Straight Pool</p>
+<p><strong>Parameter:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Disziplin</strong></td>
+<td>Pool-Variante</td>
+<td>"9-Ball"</td>
+</tr>
+<tr>
+<td><strong>Sätze zu gewinnen</strong></td>
+<td>Race to X</td>
+<td>3, 5, 7</td>
+</tr>
+<tr>
+<td><strong>Punkte/Bälle</strong></td>
+<td>Zielbälle (14.1) oder Sets</td>
+<td>100 (14.1)</td>
+</tr>
+<tr>
+<td><strong>Erster Anstoß</strong></td>
+<td>Wer stößt zuerst an?</td>
+<td>"Ausstoßen"</td>
+</tr>
+<tr>
+<td><strong>Nächster Anstoß</strong></td>
+<td>Wer stößt nach Satz an?</td>
+<td>"Gewinner", "Verlierer", "Abwechselnd"</td>
+</tr>
+</tbody>
+</table>
+<h4 id="5-spiel-starten">5. Spiel starten<a class="headerlink" href="#5-spiel-starten" title="Permanent link">&para;</a></h4>
+<p>Nachdem alle Parameter gesetzt sind:</p>
+<ol>
+<li>Überprüfen Sie nochmals die Einstellungen</li>
+<li>Klicken Sie auf <strong>"Spiel starten"</strong> oder <strong>"Weiter"</strong></li>
+<li>Das Scoreboard wechselt zur <strong>Einspielzeit</strong></li>
+</ol>
+<h4 id="6-einspielzeit-und-ausstoen">6. Einspielzeit und Ausstoßen<a class="headerlink" href="#6-einspielzeit-und-ausstoen" title="Permanent link">&para;</a></h4>
+<p>Siehe <a href="#2-einspielzeit-warm-up">Spielablauf - Einspielzeit</a> und <a href="#3-ausstoßen-shootout">Ausstoßen</a></p>
+<h3 id="quick-tipps-fur-trainingsspiele">Quick-Tipps für Trainingsspiele<a class="headerlink" href="#quick-tipps-fur-trainingsspiele" title="Permanent link">&para;</a></h3>
+<p><strong>Tipp 1: Standard-Spieler anlegen</strong></p>
+<p>Legen Sie einen Dummy-Spieler "Training" an für schnelles Setup:
+1. Gehen Sie zu <strong>Spieler</strong> &gt; <strong>Neu</strong>
+2. Name: "Training"
+3. Vorname: "Solo"
+4. Verein: Ihr Club</p>
+<p><strong>Tipp 2: Favoriten-Setups</strong></p>
+<p>Häufig verwendete Konfigurationen:
+- <strong>Freie Partie 100</strong>: Standard-Übungsspiel
+- <strong>Dreiband 50</strong>: Kurzes 3-Band-Training
+- <strong>Cadre 47/2</strong>: Positionsspiel-Training</p>
+<p><strong>Tipp 3: Timer deaktivieren</strong></p>
+<p>Für entspanntes Training:
+- Setzen Sie <strong>Timeout auf 0</strong>
+- So gibt es keine Zeitbegrenzung</p>
+<p><strong>Tipp 4: Überlauf erlauben</strong></p>
+<p>Für kontinuierliches Training:
+- Aktivieren Sie <strong>"Überlauf erlauben"</strong>
+- So können Sie über die Zielpunkte hinaus spielen</p>
+<p><strong>Tipp 5: Spiel schnell beenden</strong></p>
+<p>Nach dem Training:
+1. <strong>B-Taste</strong> oder <strong>Beenden-Icon</strong> ⌫
+2. <strong>OK</strong> bestätigen
+3. Tisch ist sofort wieder frei</p>
+<h3 id="unterschiede-training-vs-turnier">Unterschiede: Training vs. Turnier<a class="headerlink" href="#unterschiede-training-vs-turnier" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th>Training</th>
+<th>Turnier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spieler-Auswahl</strong></td>
+<td>Frei wählbar</td>
+<td>Vorgegeben durch Spielplan</td>
+</tr>
+<tr>
+<td><strong>Parameter</strong></td>
+<td>Frei konfigurierbar</td>
+<td>Vorgegeben durch Turnierregeln</td>
+</tr>
+<tr>
+<td><strong>Spielbeendigung</strong></td>
+<td>Jederzeit möglich</td>
+<td>Nur nach Spielende</td>
+</tr>
+<tr>
+<td><strong>Statistiken</strong></td>
+<td>Nicht gespeichert</td>
+<td>Vollständig erfasst</td>
+</tr>
+<tr>
+<td><strong>Anstoßrecht</strong></td>
+<td>Frei wählbar</td>
+<td>Gemäß Turniermodus</td>
+</tr>
+</tbody>
+</table>
+<h3 id="haufige-fragen-faq">Häufige Fragen (FAQ)<a class="headerlink" href="#haufige-fragen-faq" title="Permanent link">&para;</a></h3>
+<p><strong>F: Kann ich ein Trainingsspiel pausieren?</strong></p>
+<p>A: Ja, klicken Sie auf das <strong>Home-Icon</strong> 🏠. Das Spiel bleibt im Hintergrund aktiv. Wählen Sie den Tisch erneut aus um fortzufahren.</p>
+<p><strong>F: Werden Trainings-Statistiken gespeichert?</strong></p>
+<p>A: Nein, Trainingsspiele werden nicht in die offizielle Statistik aufgenommen. Für statistische Erfassung sollten Sie ein offizielles Spiel oder Turnier anlegen.</p>
+<p><strong>F: Kann ich während eines Trainings die Parameter ändern?</strong></p>
+<p>A: Nein, die Parameter sind nach Spielstart fixiert. Sie müssen das Spiel beenden und neu starten um Änderungen vorzunehmen.</p>
+<p><strong>F: Was passiert, wenn ich den Browser schließe?</strong></p>
+<p>A: Das Spiel läuft auf dem Server weiter. Öffnen Sie den Browser erneut und navigieren Sie zum Tisch um fortzufahren. In der Zwischenzeit gespeicherte Punkte bleiben erhalten.</p>
+<p><strong>F: Kann ich zwei Trainingsspiele gleichzeitig auf verschiedenen Tischen laufen lassen?</strong></p>
+<p>A: Ja, jeder Tisch kann ein eigenes Spiel haben. Starten Sie einfach für jeden Tisch ein separates Spiel.</p>
+<hr />
+<h2 id="tastatur-referenz-ubersicht">Tastatur-Referenz (Übersicht)<a class="headerlink" href="#tastatur-referenz-ubersicht" title="Permanent link">&para;</a></h2>
+<h3 id="haupttastatur-funktionen">Haupttastatur-Funktionen<a class="headerlink" href="#haupttastatur-funktionen" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Modus</th>
+<th>Taste</th>
+<th>Aktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>← / Bild↑</td>
+<td>Spieler A +1 Punkt</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>→ / Bild↓</td>
+<td>Spieler B +1 Punkt</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>B</td>
+<td>Timer-Bereich</td>
+</tr>
+<tr>
+<td><strong>Pointer</strong></td>
+<td>↓ / Enter</td>
+<td>Pointer-Element aktivieren</td>
+</tr>
+<tr>
+<td><strong>Timer</strong></td>
+<td>B</td>
+<td>Eingabe-Bereich</td>
+</tr>
+<tr>
+<td><strong>Timer</strong></td>
+<td>↓ / Enter</td>
+<td>Timer-Aktion</td>
+</tr>
+<tr>
+<td><strong>Eingabe</strong></td>
+<td>B</td>
+<td>Nächstes Element (→)</td>
+</tr>
+<tr>
+<td><strong>Eingabe</strong></td>
+<td>←</td>
+<td>Vorheriges Element (←)</td>
+</tr>
+<tr>
+<td><strong>Eingabe</strong></td>
+<td>↓ / Enter</td>
+<td>Element aktivieren</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>0-9</td>
+<td>Ziffer eingeben</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Del</td>
+<td>Letzte Ziffer löschen</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Esc</td>
+<td>Abbrechen</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>↓ / Enter</td>
+<td>Bestätigen</td>
+</tr>
+<tr>
+<td><strong>Alle</strong></td>
+<td>Esc / B</td>
+<td>Zurück / Beenden</td>
+</tr>
+<tr>
+<td><strong>Alle</strong></td>
+<td>F5</td>
+<td>Neu laden</td>
+</tr>
+<tr>
+<td><strong>Alle</strong></td>
+<td>F11</td>
+<td>Fullscreen</td>
+</tr>
+<tr>
+<td><strong>Alle</strong></td>
+<td>F12</td>
+<td>Exit (Kiosk)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="undoedit-funktionen-aufnahmenliste-bearbeiten">Undo/Edit-Funktionen (Aufnahmenliste bearbeiten)<a class="headerlink" href="#undoedit-funktionen-aufnahmenliste-bearbeiten" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Funktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Undo</strong></td>
+<td>Cursor ←</td>
+<td>Cursor eine Aufnahme zurück bewegen (Punkte bleiben unverändert)</td>
+</tr>
+<tr>
+<td><strong>Nächster</strong></td>
+<td>Cursor →</td>
+<td>Cursor eine Aufnahme vorwärts bewegen (bei letzter Position: Spielerwechsel)</td>
+</tr>
+<tr>
+<td><strong>+1, +5, +10</strong></td>
+<td>Punkte +</td>
+<td>Punkte an aktueller Cursor-Position erhöhen</td>
+</tr>
+<tr>
+<td><strong>-1, -5, -10</strong></td>
+<td>Punkte -</td>
+<td>Punkte an aktueller Cursor-Position reduzieren</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Wichtig:</strong> Nach Bearbeitung mit Undo immer mit "Nächster" zur aktuellen Aufnahme zurückkehren!</p>
+<hr />
+<h2 id="anhang-b-undoedit-funktion-aufnahmenliste-bearbeiten">Anhang B: Undo/Edit-Funktion (Aufnahmenliste bearbeiten)<a class="headerlink" href="#anhang-b-undoedit-funktion-aufnahmenliste-bearbeiten" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>Häufig missverstanden:</strong> Die "Undo"-Taste ist <strong>keine</strong> einfache Rückgängig-Funktion, sondern ein mächtiges <strong>Bearbeitungswerkzeug</strong> für die Aufnahmenliste!</p>
+<p><strong>Ausnahme:</strong> Bei Pool-Billard funktioniert Undo tatsächlich als echte Rückgängig-Funktion.</p>
+<h3 id="wie-die-aufnahmenliste-funktioniert">Wie die Aufnahmenliste funktioniert<a class="headerlink" href="#wie-die-aufnahmenliste-funktioniert" title="Permanent link">&para;</a></h3>
+<p>Unter den Hauptpunkteständen beider Spieler sehen Sie die <strong>Aufnahmenliste</strong>:</p>
+<div class="highlight"><pre><span></span><code>Spieler A                    Spieler B
+   45                           38
+┌─────────────┐            ┌─────────────┐
+│ [5][8][12][│20│]         │ [6][7][10][│15│] │  ← Aufnahmen
+└─────────────┘            └─────────────┘
+   ▲                          ▲
+   Erste                      Aktuell editierbar
+   Aufnahme                   (umrandet = Cursor)
+</code></pre></div>
+<ul>
+<li><strong>Erste Aufnahme</strong> steht links</li>
+<li><strong>Aktuelle Aufnahme</strong> ist rechts und durch einen Rahmen markiert (Cursor)</li>
+<li>Jede Zahl zeigt die Punkte in dieser Aufnahme</li>
+</ul>
+<h3 id="cursor-navigation">Cursor-Navigation<a class="headerlink" href="#cursor-navigation" title="Permanent link">&para;</a></h3>
+<p><strong>Mit Undo (Cursor nach links):</strong></p>
+<ol>
+<li>Drücken Sie <strong>Undo</strong></li>
+<li>Der Cursor springt zur <strong>vorherigen Aufnahme</strong> des aktuellen Spielers</li>
+<li>Die Punktzahlen bleiben <strong>unverändert</strong></li>
+</ol>
+<p><strong>Mit Nächster/Wechsel (Cursor nach rechts):</strong></p>
+<ol>
+<li>Drücken Sie <strong>Nächster</strong></li>
+<li>Der Cursor springt zur <strong>nächsten Aufnahme</strong> (abwechselnd A/B)</li>
+<li>Wenn Sie bei der letzten Aufnahme sind, wird ein Spielerwechsel ausgeführt</li>
+</ol>
+<h3 id="punkte-bearbeiten">Punkte bearbeiten<a class="headerlink" href="#punkte-bearbeiten" title="Permanent link">&para;</a></h3>
+<p>Wenn der Cursor auf einer Aufnahme steht:</p>
+<ol>
+<li>Verwenden Sie <strong>-1, -5, -10</strong> um Punkte zu reduzieren</li>
+<li>Verwenden Sie <strong>+1, +5, +10</strong> um Punkte zu erhöhen</li>
+<li>Die Gesamtpunktzahl wird <strong>automatisch neu berechnet</strong></li>
+</ol>
+<h3 id="schritt-fur-schritt-beispiel-1-fehler-in-vorheriger-aufnahme-korrigieren">Schritt-für-Schritt Beispiel 1: Fehler in vorheriger Aufnahme korrigieren<a class="headerlink" href="#schritt-fur-schritt-beispiel-1-fehler-in-vorheriger-aufnahme-korrigieren" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Spieler A hat gerade 8 Punkte gemacht
+- Sie bemerken, dass in der Aufnahme davor 12 statt 10 Punkte eingetragen wurden</p>
+<p><strong>Lösung:</strong></p>
+<div class="highlight"><pre><span></span><code>Ausgangssituation:
+Spieler A: [5][10][│8│]  (Cursor auf aktueller Aufnahme)
+Gesamtpunktzahl: 23
+
+Schritt 1: Undo drücken
+Spieler A: [5][│10│][8]  (Cursor auf vorheriger Aufnahme)
+
+Schritt 2: Zweimal &quot;-1&quot; drücken
+Spieler A: [5][│8│][8]   (10 → 8)
+Gesamtpunktzahl: 21 ✓    (automatisch korrigiert)
+
+Schritt 3: &quot;Nächster&quot; drücken
+Spieler A: [5][8][│8│]   (Cursor zurück zur aktuellen Aufnahme)
+</code></pre></div>
+<p><strong>Wichtig:</strong> Nach der Bearbeitung <strong>MUSS</strong> man mit "Nächster" zurück zur aktuellen Aufnahme navigieren!</p>
+<h3 id="schritt-fur-schritt-beispiel-2-mehrere-aufnahmen-zuruck">Schritt-für-Schritt Beispiel 2: Mehrere Aufnahmen zurück<a class="headerlink" href="#schritt-fur-schritt-beispiel-2-mehrere-aufnahmen-zuruck" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Spieler A: [6][8][10][│12│]
+- Sie wollen die zweite Aufnahme (8) auf 7 korrigieren</p>
+<p><strong>Lösung:</strong></p>
+<div class="highlight"><pre><span></span><code>Ausgangssituation:
+Spieler A: [6][8][10][│12│]  (Cursor auf Position 4)
+Gesamtpunktzahl: 36
+
+Schritt 1: Undo drücken (1x)
+Spieler A: [6][8][│10│][12]  (Cursor auf Position 3)
+
+Schritt 2: Undo drücken (2x)
+Spieler A: [6][│8│][10][12]  (Cursor auf Position 2)
+
+Schritt 3: &quot;-1&quot; drücken
+Spieler A: [6][│7│][10][12]  (8 → 7)
+Gesamtpunktzahl: 35 ✓
+
+Schritt 4: &quot;Nächster&quot; drücken (1x)
+Spieler A: [6][7][│10│][12]  (Cursor auf Position 3)
+
+Schritt 5: &quot;Nächster&quot; drücken (2x)
+Spieler A: [6][7][10][│12│]  (Cursor zurück auf Position 4)
+</code></pre></div>
+<h3 id="schritt-fur-schritt-beispiel-3-beide-spieler-bearbeiten">Schritt-für-Schritt Beispiel 3: Beide Spieler bearbeiten<a class="headerlink" href="#schritt-fur-schritt-beispiel-3-beide-spieler-bearbeiten" title="Permanent link">&para;</a></h3>
+<p><strong>Situation:</strong>
+- Spieler A hat gerade gespielt: [5][│8│]
+- Spieler B soll jetzt spielen: [6][│--│]
+- Sie müssen Spieler A's erste Aufnahme von 5 auf 6 korrigieren</p>
+<p><strong>Lösung:</strong></p>
+<div class="highlight"><pre><span></span><code>Ausgangssituation:
+Spieler A: [5][│8│]  (Cursor hier)
+Spieler B: [6][--]
+
+Schritt 1: Undo drücken
+Spieler A: [│5│][8]  (Cursor auf Position 1)
+
+Schritt 2: &quot;+1&quot; drücken
+Spieler A: [│6│][8]  (5 → 6)
+
+Schritt 3: &quot;Nächster&quot; drücken (1x)
+Spieler A: [6][│8│]  (zurück zu Position 2)
+
+Schritt 4: &quot;Nächster&quot; drücken (2x) - führt Spielerwechsel aus
+Spieler A: [6][8]
+Spieler B: [6][│--│]  ✓ (bereit für neue Aufnahme)
+</code></pre></div>
+<h3 id="wichtige-hinweise">Wichtige Hinweise<a class="headerlink" href="#wichtige-hinweise" title="Permanent link">&para;</a></h3>
+<p><strong>✅ DO:</strong>
+- Cursor bewusst navigieren
+- Nach Bearbeitung <strong>immer</strong> zurück zur aktuellen Aufnahme
+- Änderungen visuell überprüfen (Gesamtpunktzahl)</p>
+<p><strong>❌ DON'T:</strong>
+- Cursor irgendwo "stehen lassen"
+- Ohne Navigation direkt weiterspielen
+- Blindlings "Undo" mehrfach drücken</p>
+<h3 id="haufige-fehler">Häufige Fehler<a class="headerlink" href="#haufige-fehler" title="Permanent link">&para;</a></h3>
+<p><strong>Fehler 1: "Ich habe Undo gedrückt, aber nichts passiert"</strong></p>
+<p>→ Sie haben die Punkte nicht geändert! Undo <strong>verschiebt nur den Cursor</strong>, die Punkte bleiben gleich.</p>
+<p><strong>Lösung:</strong> Nach Undo die Punkte mit &plusmn; Tasten anpassen.</p>
+<p><strong>Fehler 2: "Nach Undo zeigt die Punktzahl falsche Werte"</strong></p>
+<p>→ Der Cursor steht noch auf einer alten Aufnahme, nicht auf der aktuellen.</p>
+<p><strong>Lösung:</strong> Mit "Nächster" zurück zur aktuellen Aufnahme navigieren.</p>
+<p><strong>Fehler 3: "Ich komme nicht mehr zurück"</strong></p>
+<p>→ Sie haben den Überblick verloren, wo der Cursor steht.</p>
+<p><strong>Lösung:</strong> 
+1. Schauen Sie auf die Aufnahmenliste - die umrandete Zahl zeigt den Cursor
+2. Drücken Sie "Nächster" bis Sie wieder bei der letzten Aufnahme sind
+3. Im Notfall: F5 drücken (Seite neu laden)</p>
+<h3 id="wann-verwenden">Wann verwenden?<a class="headerlink" href="#wann-verwenden" title="Permanent link">&para;</a></h3>
+<p><strong>Typische Anwendungsfälle:</strong></p>
+<p>✅ <strong>Tippfehler korrigieren</strong>
+- Sie haben versehentlich 8 statt 6 eingegeben</p>
+<p>✅ <strong>Nachträglich Punkte ändern</strong>
+- Schiedsrichterentscheidung korrigiert eine frühere Aufnahme</p>
+<p>✅ <strong>Diskussionen klären</strong>
+- Spieler sind sich uneinig über eine frühere Aufnahme
+- Sie können zurückgehen und korrigieren</p>
+<p><strong>Nicht verwenden für:</strong></p>
+<p>❌ <strong>Aktuelle Aufnahme ändern</strong>
+- Verwenden Sie stattdessen einfach &plusmn; Buttons</p>
+<p>❌ <strong>Spieler wechseln</strong>
+- Verwenden Sie den "Nächster" Button</p>
+<h3 id="zusammenfassung">Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Taste</th>
+<th>Funktion</th>
+<th>Wirkung auf Cursor</th>
+<th>Wirkung auf Punkte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Undo</strong></td>
+<td>Cursor zurück</td>
+<td>← Eine Position zurück</td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Nächster</strong></td>
+<td>Cursor vor / Spielerwechsel</td>
+<td>→ Eine Position vor</td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>+1, +5, +10</strong></td>
+<td>Punkte hinzufügen</td>
+<td>Keine</td>
+<td>Erhöht Wert an Cursor-Position</td>
+</tr>
+<tr>
+<td><strong>-1, -5, -10</strong></td>
+<td>Punkte abziehen</td>
+<td>Keine</td>
+<td>Reduziert Wert an Cursor-Position</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Merksatz:</strong> </p>
+<blockquote>
+<p>Undo = Cursor bewegen, &plusmn; = Punkte ändern, Nächster = zurück zur aktuellen Aufnahme</p>
+</blockquote>
+<h3 id="vorschlag-fur-zukunftige-verbesserung">💡 Vorschlag für zukünftige Verbesserung<a class="headerlink" href="#vorschlag-fur-zukunftige-verbesserung" title="Permanent link">&para;</a></h3>
+<h4 id="losung-1-spielprotokoll-modal-empfohlen">Lösung 1: Spielprotokoll-Modal (EMPFOHLEN)<a class="headerlink" href="#losung-1-spielprotokoll-modal-empfohlen" title="Permanent link">&para;</a></h4>
+<p>Die aktuelle Undo/Edit-Funktion ist komplex und fehleranfällig. Eine viel bessere Lösung wäre ein <strong>Spielprotokoll-Modal</strong>:</p>
+<p><strong>Konzept:</strong></p>
+<p>Button "Undo" wird ersetzt durch <strong>[📋 Spielprotokoll]</strong></p>
+<p>Beim Klick öffnet sich ein Modal mit vollständiger Übersicht:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────── Spielprotokoll ───────────────────┐
+│                                                       │
+│  Spieler A: Max Mustermann    Spieler B: Hans Test  │
+│                                                       │
+│  Aufn. │ Punkte │ Total     Aufn. │ Punkte │ Total  │
+│  ──────┼────────┼─────     ──────┼────────┼───── │
+│    1   │   5    │   5         1   │   6    │   6    │
+│    2   │   8    │  13         2   │   7    │  13    │
+│    3   │  12    │  25         3   │  10    │  23    │
+│    4   │  20    │  45         4   │  15    │  38    │
+│                                                       │
+│  [Bearbeiten] [Fertig] [Drucken]                    │
+└───────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Im Bearbeiten-Modus:</strong></p>
+<div class="highlight"><pre><span></span><code>┌─────────────────── Spielprotokoll (Bearbeiten) ──────┐
+│                                                       │
+│  Aufn. │ Punkte      │ Total     Aufn. │ Punkte │... │
+│  ──────┼─────────────┼─────     ──────┼────────┼──  │
+│    1   │  5 [↑][↓]  │   5         1   │   6 [↑][↓] │
+│    2   │  8 [↑][↓]  │  13         2   │   7 [↑][↓] │
+│    3   │ 12 [↑][↓]  │  25         3   │  10 [↑][↓] │
+│        │  [+ Aufnahme einfügen]                       │
+│                                                       │
+│  [Speichern] [Abbrechen]                             │
+└───────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Vorteile:</strong></p>
+<p>✅ <strong>Übersichtlich</strong>
+- ALLE Aufnahmen auf einen Blick sichtbar
+- Keine versteckte Cursor-Navigation
+- Gesamtverlauf sofort erkennbar</p>
+<p>✅ <strong>Intuitiv</strong>
+- Tabellenformat kennt jeder
+- Klarer Edit-Modus mit Ein/Aus
+- Pfeile ↑↓ sind selbsterklärend</p>
+<p>✅ <strong>Sicher</strong>
+- Versehentliche Änderungen ausgeschlossen (readonly im Ansicht-Modus)
+- Klare Trennung: Ansehen vs. Bearbeiten
+- "Fertig" beendet eindeutig und kehrt zum Spiel zurück</p>
+<p>✅ <strong>Mächtig</strong>
+- <strong>Zeilen einfügen</strong> für vergessene Spielerwechsel!
+- Komplexe Korrekturen möglich
+- Mehrere Fehler gleichzeitig korrigieren</p>
+<p>✅ <strong>Professionell</strong>
+- <strong>Druckfunktion</strong> für Spielprotokoll
+- Dokumentation des Spielverlaufs
+- Archivierung für Turniere</p>
+<p><strong>Funktionen:</strong></p>
+<ol>
+<li><strong>Ansicht-Modus (Standard)</strong></li>
+<li>Readonly-Tabelle</li>
+<li>Scrollbar bei vielen Aufnahmen</li>
+<li>Aktuelle Aufnahme hervorgehoben</li>
+<li>
+<p>Buttons: [Bearbeiten] [Fertig] [Drucken]</p>
+</li>
+<li>
+<p><strong>Bearbeiten-Modus</strong></p>
+</li>
+<li>Alle Punkte mit [↑] [↓] Buttons</li>
+<li>Totals werden automatisch neu berechnet</li>
+<li>[+ Aufnahme einfügen] zwischen Zeilen</li>
+<li>
+<p>Buttons: [Speichern] [Abbrechen]</p>
+</li>
+<li>
+<p><strong>Drucken</strong></p>
+</li>
+<li>Druckoptimiertes Layout</li>
+<li>Datum, Spieler, Endergebnis</li>
+<li>Optional: PDF-Export</li>
+</ol>
+<p><strong>Anwendungsfall: Vergessener Spielerwechsel</strong></p>
+<p>Problem: Nach Aufnahme 3 von Spieler A wurde vergessen zu wechseln, er hat direkt Aufnahme 4 gespielt.</p>
+<p>Lösung:
+1. [📋 Spielprotokoll] öffnen
+2. [Bearbeiten] klicken
+3. Zwischen Zeile 3 und 4 von Spieler A: [+ Aufnahme einfügen]
+4. Neue Leerzeile wird eingefügt
+5. Punkte von Aufnahme 4 in die neue Zeile verschieben
+6. [Speichern]</p>
+<p>Dies wäre eine vollständige Neuentwicklung, aber <strong>deutlich benutzerfreundlicher</strong> als die aktuelle Lösung.</p>
+<hr />
+<h4 id="losung-2-drei-separate-buttons-alternative">Lösung 2: Drei separate Buttons (Alternative)<a class="headerlink" href="#losung-2-drei-separate-buttons-alternative" title="Permanent link">&para;</a></h4>
+<p>Falls die Modal-Lösung zu aufwendig ist, wäre eine einfachere Verbesserung:</p>
+<p>Die aktuelle Button-Belegung ist verwirrend, weil:
+- "Undo" klingt wie "Rückgängig", ist aber "Cursor zurück"
+- "Nächster" hat zwei Bedeutungen: "Cursor vor" UND "Spielerwechsel"</p>
+<p><strong>Vereinfachte Lösung:</strong></p>
+<p>Drei separate, eindeutige Buttons:</p>
+<div class="highlight"><pre><span></span><code>[◄ Cursor zurück] [Cursor vor ►] [✓ Fertig]
+</code></pre></div>
+<p><strong>Vorteile:</strong>
+- ✅ Jeder Button hat <strong>genau eine</strong> Funktion
+- ✅ Selbsterklärende Beschriftung
+- ✅ "✓ Fertig" macht klar: "Bearbeitung abschließen"
+- ✅ Benutzer können nicht mehr "steckenbleiben"</p>
+<p><strong>Nachteil gegenüber Spielprotokoll-Modal:</strong>
+- ❌ Keine Gesamtübersicht
+- ❌ Immer noch versteckte Navigation
+- ❌ Keine Druckfunktion
+- ❌ Keine Möglichkeit Zeilen einzufügen</p>
+<hr />
+<p><strong>Empfehlung:</strong> Lösung 1 (Spielprotokoll-Modal) ist deutlich besser und löst alle Probleme grundlegend.</p>
+<hr />
+<h2 id="support-und-hilfe">Support und Hilfe<a class="headerlink" href="#support-und-hilfe" title="Permanent link">&para;</a></h2>
+<p>Bei Problemen oder Fragen:</p>
+<ol>
+<li><strong>Dokumentation</strong>: Lesen Sie diese Anleitung gründlich</li>
+<li><strong>Administrator kontaktieren</strong>: Ihr Club-Administrator kann helfen</li>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/GernotUllrich/carambus/issues">https://github.com/GernotUllrich/carambus/issues</a></li>
+</ol>
+<hr />
+<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
+<p>Dieses Handbuch gilt für Carambus Version 2.0 und höher.</p>
+<p>Letzte Aktualisierung: November 2025</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -67,7 +67,7 @@ class TableMonitor < ApplicationRecord
 
   after_update_commit lambda {
     #broadcast_replace_later_to self
-    relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element])
+    relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
     get_options!(I18n.locale)
     if tournament_monitor.is_a?(PartyMonitor) &&
       (relevant_keys.include?("state") || state != "playing")
@@ -1072,6 +1072,12 @@ data[\"allow_overflow\"].present?")
     Tournament.logger.info "#{e}, #{e.backtrace.to_a.join("\n")}"
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace.to_a.join("\n")}" if DEBUG
     raise StandardError unless Rails.env == "production"
+  end
+
+  # Clear cached options after reload to ensure fresh data
+  def clear_options_cache
+    @cached_options = nil
+    @cached_options_key = nil
   end
 
   def get_options!(locale)

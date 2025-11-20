@@ -298,12 +298,24 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked minus_#{n} from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "minus_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(-n)
-    @table_monitor.save
+    @table_monitor.save!  # Use save! to ensure commit
+    Rails.logger.info "minus_#{n} completed successfully" if DEBUG
+  rescue StandardError => e
+    Rails.logger.error("[minus_#{n}] ERROR: #{e}")
+    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+    raise e
   end
 
   def switch_players_and_start_game
@@ -339,18 +351,29 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   def add_n
+    n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked add_#{n} from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-    n = element.andand.dataset[:n].to_i
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(n)
     @table_monitor.do_play
-    @table_monitor.save
+    @table_monitor.save!  # Use save! to ensure commit before broadcasts
+    Rails.logger.info "add_#{n} completed successfully" if DEBUG
   rescue StandardError => e
-    Rails.logger.info("[add_#{n}] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
+    Rails.logger.error("[add_#{n}] ERROR: #{e}")
+    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+    # Re-raise the error so StimulusReflex can handle it properly
+    raise e
   end
 
   def set_balls

@@ -1,0 +1,32 @@
+==========================================
+PERFORMANCE COMPARISON REPORT
+==========================================
+
+BEFORE File: raspi_performance_results/before_192.168.178.176_20251109_225723.txt
+AFTER File: raspi_performance_results/after_192.168.178.176_20251109_230527.txt
+Generated: So.  9 Nov. 2025 23:05:37 CET
+
+==========================================
+MEMORY USAGE
+==========================================
+Metric                                  BEFORE           AFTER          Change
+------------------------------------------
+Memory Used (MB)                         248MB           251MB            -3MB
+Memory Available (MB)                    672MB           669MB            -3MB
+Memory Usage (%)                         26.9%           27.3%            -.4%
+
+==========================================
+SWAP USAGE
+==========================================
+Metric                                  BEFORE           AFTER          Change
+------------------------------------------
+Swap Used (MB)                             6MB             6MB             0MB
+Swap Usage (%)                            0.7%            0.7%              0%
+
+==========================================
+SUMMARY
+==========================================
+⚠️  Memory usage increased by 3MB
+⚠️  Available memory decreased by 3MB
+➡️  Swap usage unchanged
+

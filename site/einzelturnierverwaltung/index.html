@@ -1,0 +1,2502 @@
+
+<!doctype html>
+<html lang="de" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/einzelturnierverwaltung/">
+      
+      
+        <link rel="prev" href="../table_reservation_heating_control/">
+      
+      
+        <link rel="next" href="../scoreboard_autostart_setup/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Einzelturnierverwaltung - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#einzelturnierverwaltung-wizard-system" class="md-skip">
+          Zum Inhalt
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Einzelturnierverwaltung
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/einzelturnierverwaltung/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Suche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Suche wird initialisiert
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Startseite
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Einführung
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  Benutzerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Entwicklerhandbuch
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Sonstiges
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Startseite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Einführung
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Einführung
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Über
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Übersicht
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schnellstart Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benutzerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Benutzerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnierverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ligaspieltage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Einzelturnierverwaltung
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zugang" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zugang
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#der-wizard-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Der Wizard-Workflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Der Wizard-Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-meldeliste-von-clubcloud-laden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: Meldeliste von ClubCloud laden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-setzliste-aus-einladung-ubernehmen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: Setzliste aus Einladung übernehmen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-3-teilnehmerliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3: Teilnehmerliste bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-4-teilnehmerliste-finalisieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 4: Teilnehmerliste finalisieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-5-turniermodus-festlegen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 5: Turniermodus festlegen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-6-turnier-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 6: Turnier starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wahrend-des-turniers-tournament-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Während des Turniers: Tournament Status
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-keine-seedings-gefunden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Keine Seedings gefunden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-spieler-wird-nicht-erkannt-bei-einladung-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Spieler wird nicht erkannt" (bei Einladung-Upload)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-gruppenbildung-stimmt-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Gruppenbildung stimmt nicht"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-nachmelder-kann-nicht-hinzugefugt-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Nachmelder kann nicht hinzugefügt werden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-turnier-kann-nicht-gestartet-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Turnier kann nicht gestartet werden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-seedings-werden-nach-synchronisation-geloscht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Seedings werden nach Synchronisation gelöscht"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nach-dem-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nach dem Turnier
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Nach dem Turnier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisse-exportieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisse exportieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisse-in-clubcloud-hochladen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisse in ClubCloud hochladen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finaler-abgleich" class="md-nav__link">
+    <span class="md-ellipsis">
+      Finaler Abgleich
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wichtige-unterschiede-meldeliste-vs-setzliste-vs-teilnehmerliste" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Unterschiede: Meldeliste vs. Setzliste vs. Teilnehmerliste
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technische Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technische Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-extraktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Extraktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nbv-konforme-gruppenbildung" class="md-nav__link">
+    <span class="md-ellipsis">
+      NBV-konforme Gruppenbildung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronisation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Benutzerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KI-gestützte Suche
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Entwicklerhandbuch
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entwicklerhandbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../raspberry_pi_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Dokumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbankdesign
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenbank-Partitionierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin-Rollen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenverwaltung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spielplan-Rekonstruktion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimierung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER-Diagramm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter-Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Turnier-Duplikate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regions-Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Referenz
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Referenz
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AGB
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Datenschutz
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Sonstiges
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sonstiges
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tischreservierung Heizung
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Inhaltsverzeichnis
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zugang" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zugang
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#der-wizard-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Der Wizard-Workflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Der Wizard-Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schritt-1-meldeliste-von-clubcloud-laden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 1: Meldeliste von ClubCloud laden
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-2-setzliste-aus-einladung-ubernehmen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 2: Setzliste aus Einladung übernehmen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-3-teilnehmerliste-bearbeiten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 3: Teilnehmerliste bearbeiten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-4-teilnehmerliste-finalisieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 4: Teilnehmerliste finalisieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-5-turniermodus-festlegen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 5: Turniermodus festlegen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schritt-6-turnier-starten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schritt 6: Turnier starten
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wahrend-des-turniers-tournament-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Während des Turniers: Tournament Status
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-keine-seedings-gefunden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Keine Seedings gefunden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-spieler-wird-nicht-erkannt-bei-einladung-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Spieler wird nicht erkannt" (bei Einladung-Upload)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-gruppenbildung-stimmt-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Gruppenbildung stimmt nicht"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-nachmelder-kann-nicht-hinzugefugt-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Nachmelder kann nicht hinzugefügt werden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-turnier-kann-nicht-gestartet-werden" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Turnier kann nicht gestartet werden"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-seedings-werden-nach-synchronisation-geloscht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem: "Seedings werden nach Synchronisation gelöscht"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nach-dem-turnier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nach dem Turnier
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Nach dem Turnier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisse-exportieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisse exportieren
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ergebnisse-in-clubcloud-hochladen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ergebnisse in ClubCloud hochladen
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finaler-abgleich" class="md-nav__link">
+    <span class="md-ellipsis">
+      Finaler Abgleich
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wichtige-unterschiede-meldeliste-vs-setzliste-vs-teilnehmerliste" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wichtige Unterschiede: Meldeliste vs. Setzliste vs. Teilnehmerliste
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technische-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technische Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technische Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatische-extraktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatische Extraktion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nbv-konforme-gruppenbildung" class="md-nav__link">
+    <span class="md-ellipsis">
+      NBV-konforme Gruppenbildung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synchronisation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="einzelturnierverwaltung-wizard-system">Einzelturnierverwaltung - Wizard-System<a class="headerlink" href="#einzelturnierverwaltung-wizard-system" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das neue <strong>Wizard-System</strong> für die Turnierverwaltung führt Sie Schritt für Schritt durch den gesamten Prozess der Turnier-Vorbereitung. Jeder Schritt ist klar strukturiert und bietet kontextbezogene Hilfe, damit auch weniger technisch versierte Turnierleiter das System sicher bedienen können.</p>
+<h2 id="zugang">Zugang<a class="headerlink" href="#zugang" title="Permanent link">&para;</a></h2>
+<p>Für das Carambus Turniermanagement ist ein Account mit <strong>Admin-Rechten</strong> auf dem Carambus Location Server erforderlich. Dieser kann vom Club-Vorsitzenden oder <a href="mailto:gernot.ullrich@gmx.de">Carambus-Entwickler</a> eingerichtet werden.</p>
+<p>Die URL ist aus den URLs der Scoreboards ableitbar, z.B. in Wedel: <code>http://192.168.2.143:3131</code></p>
+<h2 id="der-wizard-workflow">Der Wizard-Workflow<a class="headerlink" href="#der-wizard-workflow" title="Permanent link">&para;</a></h2>
+<p>Das neue Wizard-System besteht aus <strong>6 Hauptschritten</strong>, die Sie visuell durch den gesamten Prozess führen:</p>
+<h3 id="schritt-1-meldeliste-von-clubcloud-laden">Schritt 1: Meldeliste von ClubCloud laden<a class="headerlink" href="#schritt-1-meldeliste-von-clubcloud-laden" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Die Teilnehmerliste vom API Server holen.</p>
+<p><strong>Was passiert hier?</strong>
+- Das System synchronisiert die Meldeliste aus der ClubCloud
+- Spieler werden automatisch erkannt und zugeordnet
+- Neue Spieler werden zur Datenbank hinzugefügt</p>
+<p><strong>Wann wird dieser Schritt benötigt?</strong>
+- Wenn das Turnier erstmalig geladen wird
+- Wenn sich die Meldeliste nach dem Meldeschluss geändert hat
+- Wenn neue Spieler nachgemeldet wurden</p>
+<p><strong>Schnell-Laden:</strong>
+- ⚡ <strong>"Anstehende Turniere laden"</strong> Button: Lädt nur Turniere der nächsten 30 Tage (schneller als vollständige Synchronisation)
+- Verfügbar auf der Regionalverband-Seite: <code>Regionalverbände → [Ihr Verband] → "⚡ Schnell-Aktualisierung"</code></p>
+<p><strong>Manuelle Synchronisation:</strong>
+- <code>Turnier → "Jetzt synchronisieren"</code>: Vollständige Synchronisation aller Daten
+- <code>Turnier → "📊 Ergebnisse von ClubCloud laden"</code>: Nur für Archivierung nach Turnierende (löscht lokale Daten!)</p>
+<h3 id="schritt-2-setzliste-aus-einladung-ubernehmen">Schritt 2: Setzliste aus Einladung übernehmen<a class="headerlink" href="#schritt-2-setzliste-aus-einladung-ubernehmen" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Die offizielle Setzliste aus der Einladung des Landessportwartes übernehmen, oder direkt mit der Meldeliste weitergehen.</p>
+<p><strong>Was passiert hier?</strong>
+- <strong>Option 1:</strong> Sie laden eine PDF-Datei oder ein Screenshot der Einladung hoch
+- Das System extrahiert automatisch:
+  - Spielernamen und Positionen
+  - <strong>Vorgaben (Handicap-Punkte)</strong> für Vorgabeturniere
+  - <strong>Gruppenbildung</strong> (wenn in der Einladung vorhanden)
+  - <strong>Turniermodus</strong> (z.B. "T21 - Turnier wird im Modus...")
+- <strong>Option 2 (Alternative):</strong> Wenn keine Einladung vorliegt, können Sie direkt mit der Meldeliste zu Schritt 3 weitergehen
+  - Die Spieler werden automatisch nach dem <strong>Carambus-Ranking</strong> für die Disziplin sortiert
+  - Die Sortierung basiert auf den effektiven Rankings (neueste verfügbare Saison aus den letzten 2-3 Jahren)</p>
+<p><strong>Wie funktioniert es?</strong>
+1. Klicken Sie auf <strong>"Einladung hochladen"</strong>
+2. Wählen Sie eine PDF-Datei oder ein Screenshot (PNG/JPG) der Einladung
+3. Das System analysiert das Dokument automatisch
+4. Prüfen Sie die <strong>Extrahierte Setzliste</strong>:
+   - ✅ Spieler korrekt erkannt?
+   - ✅ Positionen richtig?
+   - ✅ Vorgaben vorhanden (bei Vorgabeturnieren)?
+5. Korrigieren Sie ggf. manuell:
+   - Spieler falsch erkannt → <strong>"Spieler ändern"</strong> klicken
+   - Position falsch → In der Liste korrigieren
+   - Vorgabe fehlt → Manuell eintragen
+6. <strong>"Setzliste übernehmen"</strong> klicken</p>
+<p><strong>Unterstützte Formate:</strong>
+- ✅ PDF-Dateien (mit Text)
+- ✅ Screenshots (PNG, JPG)
+- ✅ Ein- und zweispaltige Tabellen
+- ✅ Tabellen mit Vorgaben-Spalte ("Pkt")</p>
+<p><strong>Was wird extrahiert?</strong>
+- Spielernamen (Vor- und Nachname)
+- Positionen in der Setzliste
+- Vorgaben (bei Vorgabeturnieren)
+- Gruppenbildung (wenn vorhanden)
+- Turniermodus-Vorschlag (z.B. "T21")</p>
+<h3 id="schritt-3-teilnehmerliste-bearbeiten">Schritt 3: Teilnehmerliste bearbeiten<a class="headerlink" href="#schritt-3-teilnehmerliste-bearbeiten" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Die finale Teilnehmerliste erstellen und anpassen.</p>
+<p><strong>Was passiert hier?</strong>
+- Sie sehen die aktuelle Teilnehmerliste mit folgenden Informationen:
+  - Position (Setzliste)
+  - Spielername und Club
+  - <strong>Carambus-Ranking</strong> für die Disziplin (mit Link zur Rangliste)
+  - Vorgabe (bei Vorgabeturnieren)
+- Sie können:
+  - <strong>No-Shows</strong> markieren (Spieler erscheint nicht)
+  - <strong>Vorgaben korrigieren</strong> (bei Vorgabeturnieren)
+  - <strong>Positionen anpassen</strong> mit ↑↓ Buttons oder direkter Eingabe
+  - <strong>Nachmelder hinzufügen</strong> (mit DBU-Nummer)</p>
+<p><strong>Neue Features in Schritt 3:</strong></p>
+<p><strong>1. Ranking-Anzeige:</strong>
+- Jeder Spieler zeigt sein <strong>effektives Carambus-Ranking</strong> für die Disziplin
+- Basierend auf den letzten 2-3 Saisons (neueste verfügbare)
+- Klickbar: Link führt zur vollständigen Rangliste der Region mit Anchor zur Disziplin</p>
+<p><strong>2. Positionsänderung:</strong>
+- <strong>↑↓ Buttons:</strong> Spieler eine Position nach oben/unten verschieben
+- <strong>Direkte Eingabe:</strong> Neue Position direkt eingeben (z.B. "5" eingeben und Enter)
+- Änderungen werden sofort gespeichert
+- Die Gruppenzuordnungen in der Turnierplan-Vorschau aktualisieren sich automatisch</p>
+<p><strong>3. Turnierplan-Vorschau:</strong>
+- Zeigt <strong>mögliche Turnierpläne</strong> für die aktuelle Teilnehmerzahl
+- <strong>Gruppenzuordnungen</strong> werden dynamisch berechnet und angezeigt
+- Aktualisiert sich automatisch bei Änderungen an der Teilnehmerliste
+- Zeigt Anzahl der Runden für jeden Plan
+- <strong>Vorgeschlagener Plan:</strong> Aus Einladung (falls vorhanden) oder automatisch berechnet
+- <strong>Alternative Pläne:</strong> Gleiche Disziplin, andere Disziplinen, "Jeder gegen Jeden" (bei ≤6 Teilnehmern)</p>
+<p><strong>Nachmelder hinzufügen:</strong>
+1. Scrollen Sie zum Abschnitt <strong>"➕ Kurzfristiger Nachmelder?"</strong>
+2. Geben Sie die <strong>DBU-Nummer</strong> des Spielers ein
+3. Klicken Sie auf <strong>"Spieler hinzufügen"</strong>
+4. Der Spieler wird automatisch zur Liste hinzugefügt (am Ende)</p>
+<p><strong>⚠️ Wichtig:</strong>
+- Spieler <strong>ohne DBU-Nummer</strong> können nicht nachgemeldet werden
+- Grund: In der ClubCloud können nur Spieler mit DBU-Nummer eingetragen werden
+- Lösung: Spieler muss DBU-Nummer beantragen, oder als Gast eintragen lassen</p>
+<p><strong>Automatisches Speichern:</strong>
+- Alle Änderungen (Checkboxen, Vorgaben) werden <strong>sofort gespeichert</strong>
+- Sie können jederzeit hierher zurückkehren</p>
+<p><strong>Weiter zum nächsten Schritt:</strong>
+- Nach Abschluss: <strong>"← Zurück zum Wizard"</strong> klicken
+- Dann weiter zu <strong>Schritt 4: Teilnehmerliste finalisieren</strong></p>
+<h3 id="schritt-4-teilnehmerliste-finalisieren">Schritt 4: Teilnehmerliste finalisieren<a class="headerlink" href="#schritt-4-teilnehmerliste-finalisieren" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Die Teilnehmerliste abschließen und für die Gruppenbildung vorbereiten.</p>
+<p><strong>Was passiert hier?</strong>
+- Die Teilnehmerliste wird finalisiert
+- No-Shows werden aus der Liste entfernt
+- Die Liste wird für die Gruppenbildung gesperrt</p>
+<p><strong>⚠️ Wichtig:</strong>
+- Dieser Schritt ist <strong>nicht umkehrbar</strong>
+- Nach der Finalisierung können keine Spieler mehr hinzugefügt oder entfernt werden
+- Positionen können nicht mehr geändert werden</p>
+<h3 id="schritt-5-turniermodus-festlegen">Schritt 5: Turniermodus festlegen<a class="headerlink" href="#schritt-5-turniermodus-festlegen" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Den passenden Turniermodus auswählen und die Gruppenbildung überprüfen.</p>
+<p><strong>Was passiert hier?</strong>
+- Das System schlägt automatisch einen Turniermodus vor:
+  - Basierend auf der Teilnehmeranzahl
+  - Basierend auf der Disziplin
+  - Basierend auf dem <strong>extrahierte Turniermodus aus der Einladung</strong></p>
+<p><strong>Vorschläge aus Einladung:</strong>
+- Wenn eine Einladung hochgeladen wurde, wird der <strong>extrahierte Turniermodus</strong> bevorzugt angezeigt
+- Beispiel: "T21 - Turnier wird im Modus..."
+- Diese Vorgabe kommt direkt vom Landessportwart</p>
+<p><strong>Gruppenbildung:</strong>
+- Das System zeigt die <strong>berechnete Gruppenbildung</strong> nach NBV-Standard
+- Wenn eine Einladung hochgeladen wurde, wird auch die <strong>extrahierte Gruppenbildung</strong> angezeigt</p>
+<p><strong>Drei mögliche Szenarien:</strong></p>
+<ol>
+<li><strong>✅ Gruppenbildung aus Einladung stimmt mit Algorithmus überein</strong></li>
+<li>Grüne Banner: "✅ Gruppenbildung aus Einladung übernommen"</li>
+<li>Die Zuordnung ist identisch mit dem NBV-Standard-Algorithmus</li>
+<li>
+<p><strong>Empfehlung:</strong> Einladung verwenden (vom Landessportwart vorgegeben)</p>
+</li>
+<li>
+<p><strong>⚠️ Gruppenbildung aus Einladung weicht vom Algorithmus ab</strong></p>
+</li>
+<li>Rotes Banner: "⚠️ WARNUNG: Abweichung vom NBV-Standard erkannt!"</li>
+<li>Vergleich wird angezeigt: Einladung vs. berechnet</li>
+<li><strong>Empfehlung:</strong> Einladung verwenden (vom Landessportwart vorgegeben)</li>
+<li>
+<p><strong>Alternative:</strong> Algorithmus verwenden (falls Sie sicher sind, dass der Algorithmus korrekt ist)</p>
+</li>
+<li>
+<p><strong>🤖 Keine Einladung vorhanden</strong></p>
+</li>
+<li>Blaues Banner: "🤖 Gruppenbildung automatisch berechnet (NBV-konform)"</li>
+<li>Standard-Algorithmus wird verwendet</li>
+</ol>
+<p><strong>Turniermodus auswählen:</strong>
+1. Prüfen Sie die <strong>vorgeschlagene Option</strong> (grün hervorgehoben)
+2. Prüfen Sie <strong>Alternativen</strong> (falls verfügbar):
+   - Gleiche Disziplin mit anderen Spieleranzahlen
+   - Andere Disziplinen mit gleicher Spieleranzahl
+3. <strong>"Weiter mit [Modusname]"</strong> klicken</p>
+<p><strong>Manuelle Anpassung:</strong>
+- ⚠️ <strong>"🔄 Neu berechnen"</strong>: Verwirft die extrahierte Gruppenbildung und berechnet neu
+- ⚠️ <strong>"✏️ Manuell anpassen"</strong>: (In Entwicklung) Drag-and-Drop für Gruppenzuordnung</p>
+<h3 id="schritt-6-turnier-starten">Schritt 6: Turnier starten<a class="headerlink" href="#schritt-6-turnier-starten" title="Permanent link">&para;</a></h3>
+<p><strong>Ziel:</strong> Das Turnier initialisieren und die Scoreboards aktivieren.</p>
+<p><strong>Was passiert hier?</strong>
+- Sie konfigurieren die Turnierparameter:
+  - <strong>Tische zuordnen</strong> (Mapping interner Tischname zu extern Namen)
+  - <strong>Ballziel</strong> (ggf. bereits für Turnier vorgegeben)
+  - <strong>Aufnahmebegrenzung</strong> (ggf. bereits für Turnier vorgegeben)
+  - <strong>Timeout</strong> in Sekunden (0 oder leer, wenn keine Timeouts)
+  - <strong>Timeouts</strong> (maximale Anzahl von Timeout-Verlängerungen)
+  - <strong>Checkbox:</strong> "Tournament manager checks results before acceptance"
+  - <strong>Einspielzeit</strong> (Standard und verkürzt bei Wechsel)</p>
+<p><strong>Turnierparameter:</strong>
+- Viele Parameter können aus der <strong>Einladung</strong> übernommen werden
+- Beispiel: "Das Ausspielziel beträgt 80 Punkte in 20 Aufnahmen"
+- Diese Informationen werden automatisch extrahiert (falls verfügbar)</p>
+<p><strong>Turnier starten:</strong>
+1. Alle Parameter prüfen und ggf. anpassen
+2. <strong>"Turnier starten"</strong> klicken
+3. Das System:
+   - Initialisiert den Tournament Monitor
+   - Erstellt alle Spiele gemäß Turniermodus
+   - Ordnet Tische zu
+   - Startet die Scoreboards</p>
+<p><strong>Nach dem Start:</strong>
+- Neue Spielpaarungen erscheinen automatisch auf den Scoreboards
+- Der <strong>Tournament Monitor</strong> zeigt den aktuellen Stand
+- Spieler können Spiele starten und Ergebnisse eingeben</p>
+<h2 id="wahrend-des-turniers-tournament-status">Während des Turniers: Tournament Status<a class="headerlink" href="#wahrend-des-turniers-tournament-status" title="Permanent link">&para;</a></h2>
+<p>Nach dem Start des Turniers wird der <strong>Wizard ausgeblendet</strong> und durch die <strong>Tournament Status</strong>-Ansicht ersetzt.</p>
+<p><strong>Was zeigt der Tournament Status?</strong></p>
+<p><strong>1. Turnier-Übersicht:</strong>
+- Aktuelle Turnier-Phase (z.B. "Gruppenphase", "Finalrunde")
+- Fortschrittsbalken (gespielte vs. geplante Spiele)
+- Anzahl der abgeschlossenen Spiele</p>
+<p><strong>2. Aktuelle Spiele:</strong>
+- Zeigt bis zu 6 laufende Spiele gleichzeitig
+- Live-Punktestände mit aktuellen Inning-Ergebnissen
+- Status-Anzeige: "▶️ Läuft" oder "Wartet"
+- Zugeordnete Tische</p>
+<p><strong>3. Gruppeneinteilung:</strong>
+- Übersicht über alle Gruppen
+- Spieler je Gruppe
+- NBV-konforme Zuordnung</p>
+<p><strong>4. Setzliste:</strong>
+- Finale Teilnehmerliste mit Positionen
+- <strong>Carambus-Rankings</strong> für jeden Spieler
+- Club-Zugehörigkeit
+- Bei Vorgabeturnieren: Ballziele
+- <strong>Link zur Rangliste:</strong> Führt zur vollständigen Rangliste der Region</p>
+<p><strong>5. Aktuelle Platzierungen:</strong>
+- Zwischenstände nach Gruppenphasen
+- Finale Platzierungen nach Turnierablauf
+- Generaldurchschnitt, Höchstserie, etc.</p>
+<p><strong>Nur für Spielleiter sichtbar:</strong>
+- <strong>🎮 Tournament Monitor öffnen</strong> Button
+- Zugriff auf Spielverwaltung und Tischzuordnung
+- Ergebnis-Kontrolle und Freigabe</p>
+<p><strong>Für Zuschauer:</strong>
+- Übersichtliche Ansicht des Turnierstands
+- Live-Updates bei Spielfortschritt
+- Keine Bearbeitungsmöglichkeiten</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="problem-keine-seedings-gefunden">Problem: "Keine Seedings gefunden"<a class="headerlink" href="#problem-keine-seedings-gefunden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Die Meldeliste wurde noch nicht synchronisiert.</p>
+<p><strong>Lösung:</strong>
+1. Gehen Sie zu <strong>Schritt 1</strong>
+2. Klicken Sie auf <strong>"Jetzt synchronisieren"</strong>
+3. Warten Sie auf die Synchronisation
+4. Prüfen Sie, ob Seedings vorhanden sind</p>
+<h3 id="problem-spieler-wird-nicht-erkannt-bei-einladung-upload">Problem: "Spieler wird nicht erkannt" (bei Einladung-Upload)<a class="headerlink" href="#problem-spieler-wird-nicht-erkannt-bei-einladung-upload" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Der Name im Dokument wurde nicht korrekt erkannt.</p>
+<p><strong>Lösung:</strong>
+1. In der <strong>Extrahierte Setzliste</strong> finden Sie den Spieler
+2. Klicken Sie auf <strong>"Spieler ändern"</strong>
+3. Suchen Sie nach dem korrekten Spieler
+4. Wählen Sie den richtigen aus</p>
+<h3 id="problem-gruppenbildung-stimmt-nicht">Problem: "Gruppenbildung stimmt nicht"<a class="headerlink" href="#problem-gruppenbildung-stimmt-nicht" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Die Extraktion aus der Einladung war nicht korrekt, oder der Algorithmus passt nicht.</p>
+<p><strong>Lösung:</strong>
+1. Prüfen Sie die <strong>Extrahierte Gruppenbildung</strong> vs. <strong>Berechnet</strong>
+2. Wenn Einladung vorhanden: <strong>"✅ Einladung verwenden"</strong> klicken (vom Landessportwart vorgegeben)
+3. Wenn keine Einladung: <strong>"🔄 Neu berechnen"</strong> klicken
+4. Falls weiterhin falsch: <strong>Schritt 3</strong> erneut aufrufen und Positionen anpassen</p>
+<h3 id="problem-nachmelder-kann-nicht-hinzugefugt-werden">Problem: "Nachmelder kann nicht hinzugefügt werden"<a class="headerlink" href="#problem-nachmelder-kann-nicht-hinzugefugt-werden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Spieler hat keine DBU-Nummer.</p>
+<p><strong>Lösung:</strong>
+1. Spieler muss DBU-Nummer beantragen, oder
+2. Turnierleiter trägt Spieler als Gast ein (kontaktieren Sie den Landessportwart)</p>
+<h3 id="problem-turnier-kann-nicht-gestartet-werden">Problem: "Turnier kann nicht gestartet werden"<a class="headerlink" href="#problem-turnier-kann-nicht-gestartet-werden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> TournamentPlan passt nicht zur Spieleranzahl.</p>
+<p><strong>Lösung:</strong>
+1. Prüfen Sie die <strong>Fehlermeldung</strong> im Tournament Monitor
+2. Gehen Sie zurück zu <strong>Schritt 5</strong>
+3. Wählen Sie den <strong>richtigen TournamentPlan</strong> aus:
+   - Beispiel: 11 Spieler → T21 (nicht T22!)
+   - Prüfen Sie die Spieleranzahl in Schritt 3</p>
+<h3 id="problem-seedings-werden-nach-synchronisation-geloscht">Problem: "Seedings werden nach Synchronisation gelöscht"<a class="headerlink" href="#problem-seedings-werden-nach-synchronisation-geloscht" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache:</strong> Alte "destroy" Version Records auf dem API Server.</p>
+<p><strong>Lösung:</strong>
+1. Auf API Server ausführen: <code>rake tournament:check_seeding_versions[TOURNAMENT_ID]</code>
+2. Falls destroy-Version Records gefunden: <code>rake tournament:cleanup_seeding_versions[TOURNAMENT_ID]</code>
+3. Erneut synchronisieren</p>
+<h2 id="nach-dem-turnier">Nach dem Turnier<a class="headerlink" href="#nach-dem-turnier" title="Permanent link">&para;</a></h2>
+<h3 id="ergebnisse-exportieren">Ergebnisse exportieren<a class="headerlink" href="#ergebnisse-exportieren" title="Permanent link">&para;</a></h3>
+<p>Nach Abschluss des Turniers erhalten Sie automatisch per <strong>eMail</strong> eine CSV-Datei mit den Ergebnissen im Format für den Upload in die ClubCloud.</p>
+<p>Die Datei wird auch lokal gespeichert: <code>{carambus}/tmp/result-{ba_id}.csv</code></p>
+<h3 id="ergebnisse-in-clubcloud-hochladen">Ergebnisse in ClubCloud hochladen<a class="headerlink" href="#ergebnisse-in-clubcloud-hochladen" title="Permanent link">&para;</a></h3>
+<p>Der Turnierleiter kann die CSV-Datei direkt in die ClubCloud hochladen.</p>
+<h3 id="finaler-abgleich">Finaler Abgleich<a class="headerlink" href="#finaler-abgleich" title="Permanent link">&para;</a></h3>
+<p>Als letzten Schritt kann nochmal ein <strong>Abgleich mit der ClubCloud</strong> erfolgen:
+- <code>Turnier → "📊 Ergebnisse von ClubCloud laden"</code> (nur für Archivierung!)</p>
+<p>Die damit heruntergeladenen Daten sind Grundlage für später ausgerechnete Rankings.</p>
+<h2 id="wichtige-unterschiede-meldeliste-vs-setzliste-vs-teilnehmerliste">Wichtige Unterschiede: Meldeliste vs. Setzliste vs. Teilnehmerliste<a class="headerlink" href="#wichtige-unterschiede-meldeliste-vs-setzliste-vs-teilnehmerliste" title="Permanent link">&para;</a></h2>
+<p><strong>Meldeliste:</strong>
+- Alle Spieler, die sich für das Turnier angemeldet haben
+- Kommt aus der ClubCloud
+- Wird täglich aktualisiert</p>
+<p><strong>Setzliste:</strong>
+- Die <strong>Reihenfolge</strong> nach effektivem Ranking
+- Beste Spieler zuerst (niedrigste Ranking-Nummer = Position 1)
+- <strong>Effektives Ranking:</strong> Basiert auf der neuesten verfügbaren Saison aus den letzten 2-3 Jahren
+- Kommt aus der <strong>Einladung</strong> vom Landessportwart ODER wird automatisch nach Carambus-Rankings sortiert
+- Wird in <strong>Schritt 2</strong> übernommen oder berechnet</p>
+<p><strong>Teilnehmerliste:</strong>
+- Die Spieler, die <strong>tatsächlich zum Turnier erscheinen</strong>
+- Kann mehr oder weniger Spieler haben als die Meldeliste
+- No-Shows werden entfernt
+- Nachmelder werden hinzugefügt
+- Wird in <strong>Schritt 3</strong> erstellt und in <strong>Schritt 4</strong> finalisiert</p>
+<h2 id="technische-details">Technische Details<a class="headerlink" href="#technische-details" title="Permanent link">&para;</a></h2>
+<h3 id="automatische-extraktion">Automatische Extraktion<a class="headerlink" href="#automatische-extraktion" title="Permanent link">&para;</a></h3>
+<p>Das System verwendet <strong>OCR (Optical Character Recognition)</strong> und <strong>PDF-Text-Extraktion</strong>, um Informationen aus Einladungen zu extrahieren:</p>
+<ul>
+<li><strong>PDF:</strong> Text wird direkt extrahiert</li>
+<li><strong>Screenshots:</strong> Tesseract OCR erkennt Text</li>
+<li><strong>Tabellen:</strong> Ein- und zweispaltige Layouts werden erkannt</li>
+<li><strong>Vorgaben:</strong> Werden aus "Pkt"-Spalten extrahiert</li>
+<li><strong>Gruppenbildung:</strong> Wird aus "Gruppenbildung"-Tabellen extrahiert</li>
+</ul>
+<h3 id="nbv-konforme-gruppenbildung">NBV-konforme Gruppenbildung<a class="headerlink" href="#nbv-konforme-gruppenbildung" title="Permanent link">&para;</a></h3>
+<p>Das System verwendet <strong>offizielle NBV-Algorithmen</strong> für die Gruppenbildung:</p>
+<ul>
+<li><strong>2 Gruppen:</strong> Zig-Zag/Serpentine-Pattern</li>
+<li><strong>3+ Gruppen:</strong> Round-Robin-Pattern</li>
+<li><strong>Ungleiche Gruppengrößen:</strong> Spezial-Algorithmus (z.B. T21: 3+4+4)</li>
+</ul>
+<p>Die Gruppengrößen werden aus den <code>executor_params</code> des TournamentPlans extrahiert.</p>
+<h3 id="synchronisation">Synchronisation<a class="headerlink" href="#synchronisation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Setup-Phase:</strong> Seedings werden nicht gelöscht (nur lokale Seedings werden zurückgesetzt)</li>
+<li><strong>Archivierungs-Phase:</strong> Alle Seedings werden gelöscht und neu geladen (für Ergebnis-Übernahme)</li>
+</ul>
+<p>Der Parameter <code>reload_games</code> steuert, ob Seedings gelöscht werden:
+- <code>false</code> (Standard): Setup-Phase (Seedings bleiben erhalten)
+- <code>true</code>: Archivierungs-Phase (Seedings werden gelöscht)</p>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>Bei Problemen oder Fragen:
+- <strong>E-Mail:</strong> <a href="mailto:gernot.ullrich@gmx.de">gernot.ullrich@gmx.de</a>
+- <strong>Dokumentation:</strong> Diese Seite und die Inline-Hilfen im Wizard</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

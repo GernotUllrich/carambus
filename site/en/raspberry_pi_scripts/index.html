@@ -1,0 +1,2724 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Docs for Carambus - Billiards management with Ruby on Rails">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/raspberry_pi_scripts/">
+      
+      
+        <link rel="prev" href="../scenario_management/">
+      
+      
+        <link rel="next" href="../server_management_scripts/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Raspberry Pi Scripts - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#raspberry-pi-management-scripts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Raspberry Pi Scripts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../raspberry_pi_scripts/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation_overview/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tournament/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../GETTING_STARTED_DEVELOPER/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../API/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tischreservierung_heizungssteuerung/" class="md-tabs__link">
+          
+  
+  
+  Miscellaneous
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    README
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart_raspberry_pi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start Raspberry Pi
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Days
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../table_reservation_heating_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../einzelturnierverwaltung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Individual Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_autostart_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoreboard_benutzerhandbuch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GETTING_STARTED_DEVELOPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPER_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Scripts
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uberblick" class="md-nav__link">
+    <span class="md-ellipsis">
+      Überblick
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup &amp; Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup &amp; Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-client-onlysh" class="md-nav__link">
+    <span class="md-ellipsis">
+      install-client-only.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-scoreboard-clientsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      install-scoreboard-client.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-phillips-table-sshsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup-phillips-table-ssh.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing &amp; Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing &amp; Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      find-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      test-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-raspberry-pi-restartsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      test-raspberry-pi-restart.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      start-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#autostart-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      autostart-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      restart-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exit-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanup-chromiumsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      cleanup-chromium.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Utilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-sd-cardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      prepare-sd-card.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#legacydeprecated-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Legacy/Deprecated Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Legacy/Deprecated Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-start-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      quick-start-raspberry-pi.sh ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-setup-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      auto-setup-raspberry-pi.sh ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_scoreboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_scoreboard ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_scoreboard_delayed" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_scoreboard_delayed ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-beispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Beispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workflow-Beispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neuer-raspberry-pi-komplett-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neuer Raspberry Pi komplett einrichten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-probleme-beheben" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser-Probleme beheben
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-update-auf-raspi-deployen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario-Update auf RasPi deployen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ssh-verbindung-schlagt-fehl" class="md-nav__link">
+    <span class="md-ellipsis">
+      SSH-Verbindung schlägt fehl
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-startet-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser startet nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-zeigt-alte-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard zeigt alte Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#raspi-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      RasPi-Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netzwerk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Netzwerk
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wartung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wartung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#siehe-auch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Siehe auch
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server_management_scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Management Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entwickler-rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rake Tasks & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mkdocs_dokumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datenbank-partitionierung-und-synchronisierung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin_roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_plan_reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_trail_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PaperTrail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter_popup_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Filter Popup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_duplicate_handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region_tagging_cleanup_summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Miscellaneous
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tischreservierung_heizungssteuerung/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation Heating
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uberblick" class="md-nav__link">
+    <span class="md-ellipsis">
+      Überblick
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup &amp; Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup &amp; Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-client-onlysh" class="md-nav__link">
+    <span class="md-ellipsis">
+      install-client-only.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-scoreboard-clientsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      install-scoreboard-client.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-phillips-table-sshsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup-phillips-table-ssh.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing &amp; Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing &amp; Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      find-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      test-raspberry-pi.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-raspberry-pi-restartsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      test-raspberry-pi-restart.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoreboard-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scoreboard Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      start-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#autostart-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      autostart-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      restart-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exit-scoreboardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit-scoreboard.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanup-chromiumsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      cleanup-chromium.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Utilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-sd-cardsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      prepare-sd-card.sh
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#legacydeprecated-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Legacy/Deprecated Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Legacy/Deprecated Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-start-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      quick-start-raspberry-pi.sh ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-setup-raspberry-pish" class="md-nav__link">
+    <span class="md-ellipsis">
+      auto-setup-raspberry-pi.sh ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_scoreboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_scoreboard ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_scoreboard_delayed" class="md-nav__link">
+    <span class="md-ellipsis">
+      start_scoreboard_delayed ⚠️
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-beispiele" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow-Beispiele
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workflow-Beispiele">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neuer-raspberry-pi-komplett-einrichten" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neuer Raspberry Pi komplett einrichten
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-probleme-beheben" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser-Probleme beheben
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-update-auf-raspi-deployen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario-Update auf RasPi deployen
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fehlerbehebung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fehlerbehebung
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fehlerbehebung">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ssh-verbindung-schlagt-fehl" class="md-nav__link">
+    <span class="md-ellipsis">
+      SSH-Verbindung schlägt fehl
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-startet-nicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser startet nicht
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoreboard-zeigt-alte-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scoreboard zeigt alte Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#raspi-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      RasPi-Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netzwerk" class="md-nav__link">
+    <span class="md-ellipsis">
+      Netzwerk
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wartung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Wartung
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#siehe-auch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Siehe auch
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="raspberry-pi-management-scripts">Raspberry Pi Management Scripts<a class="headerlink" href="#raspberry-pi-management-scripts" title="Permanent link">&para;</a></h1>
+<p>Diese Dokumentation beschreibt alle verfügbaren Scripts für die Verwaltung von Raspberry Pi Clients im Carambus-System.</p>
+<h2 id="uberblick">Überblick<a class="headerlink" href="#uberblick" title="Permanent link">&para;</a></h2>
+<p>Die Raspberry Pi Scripts befinden sich in <code>carambus_master/bin/</code> und decken folgende Bereiche ab:
+- <strong>Setup &amp; Installation</strong>: Vollständige Einrichtung neuer RasPi-Clients
+- <strong>Testing &amp; Debugging</strong>: Netzwerk-Scans und Funktionsprüfungen
+- <strong>Scoreboard Management</strong>: Kiosk-Mode und Browser-Steuerung
+- <strong>Utilities</strong>: SSH-Setup, SD-Karten-Vorbereitung</p>
+<hr />
+<h2 id="setup-installation">Setup &amp; Installation<a class="headerlink" href="#setup-installation" title="Permanent link">&para;</a></h2>
+<h3 id="setup-raspberry-pish"><code>setup-raspberry-pi.sh</code><a class="headerlink" href="#setup-raspberry-pish" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Vollständige Einrichtung eines Raspberry Pi als Carambus-Client</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>carambus_master
+./bin/setup-raspberry-pi.sh<span class="w"> </span>&lt;scenario_name&gt;
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ✅ Installiert erforderliche Pakete (chromium, wmctrl, xdotool)
+2. ✅ Erstellt Kiosk-Benutzer
+3. ✅ Richtet systemd-Service ein
+4. ✅ Konfiguriert Autostart für Scoreboard
+5. ✅ Startet Kiosk-Mode</p>
+<p><strong>Voraussetzungen</strong>:
+- SSH-Zugang zum Raspberry Pi
+- Scenario-Konfiguration in <code>carambus_data/scenarios/&lt;scenario_name&gt;/config.yml</code>
+- Raspberry Pi läuft bereits mit OS</p>
+<p><strong>Dokumentiert in</strong>: <a href="../client_only_installation/">Client-Only Installation</a></p>
+<p><strong>Beispiel</strong>:
+<div class="highlight"><pre><span></span><code>./bin/setup-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<span class="c1"># Richtet RasPi für Location 5101 ein</span>
+</code></pre></div></p>
+<hr />
+<h3 id="install-client-onlysh"><code>install-client-only.sh</code><a class="headerlink" href="#install-client-onlysh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Installation eines reinen Client-Systems (ohne lokalen Server)</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/install-client-only.sh<span class="w"> </span>&lt;scenario_name&gt;
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ✅ Konfiguriert Browser-Kiosk-Mode
+2. ✅ Richtet Autostart für Scoreboard ein
+3. ✅ Verbindet mit Remote-Server (kein lokaler Puma)
+4. ✅ Optimiert für minimale Ressourcennutzung</p>
+<p><strong>Use Case</strong>: Tablet oder RasPi, das nur als Display dient</p>
+<p><strong>Dokumentiert in</strong>: <a href="../client_only_installation/">Client-Only Installation</a></p>
+<hr />
+<h3 id="install-scoreboard-clientsh"><code>install-scoreboard-client.sh</code><a class="headerlink" href="#install-scoreboard-clientsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Installiert Scoreboard-Client-Software</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/install-scoreboard-client.sh
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+- Installiert Client-Dependencies
+- Konfiguriert Browser für Fullscreen
+- Richtet Autostart ein</p>
+<hr />
+<h3 id="setup-phillips-table-sshsh"><code>setup-phillips-table-ssh.sh</code><a class="headerlink" href="#setup-phillips-table-sshsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: SSH-Zugang für Phillips Table einrichten</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/setup-phillips-table-ssh.sh
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ✅ Generiert SSH-Schlüssel
+2. ✅ Kopiert Public Key zum RasPi
+3. ✅ Konfiguriert passwordless SSH
+4. ✅ Testet Verbindung</p>
+<p><strong>Voraussetzungen</strong>:
+- Initiales Passwort für RasPi bekannt
+- Netzwerkzugriff auf RasPi</p>
+<p><strong>Beispiel</strong>:
+<div class="highlight"><pre><span></span><code>./bin/setup-phillips-table-ssh.sh
+<span class="c1"># Interaktiv: Fragt nach IP, Port, Passwort</span>
+</code></pre></div></p>
+<hr />
+<h2 id="testing-debugging">Testing &amp; Debugging<a class="headerlink" href="#testing-debugging" title="Permanent link">&para;</a></h2>
+<h3 id="find-raspberry-pish"><code>find-raspberry-pi.sh</code><a class="headerlink" href="#find-raspberry-pish" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Findet Raspberry Pis im lokalen Netzwerk</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/find-raspberry-pi.sh<span class="w"> </span><span class="o">[</span>subnet<span class="o">]</span>
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+- Scannt Netzwerk nach RasPi-Hosts
+- Zeigt IP-Adressen und Hostnamen
+- Prüft SSH-Verfügbarkeit</p>
+<p><strong>Beispiele</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Standard-Scan im lokalen Netzwerk</span>
+./bin/find-raspberry-pi.sh
+
+<span class="c1"># Spezifisches Subnetz scannen</span>
+./bin/find-raspberry-pi.sh<span class="w"> </span><span class="m">192</span>.168.178.0/24
+</code></pre></div></p>
+<p><strong>Output-Beispiel</strong>:
+<div class="highlight"><pre><span></span><code>Scanning for Raspberry Pis in 192.168.178.0/24...
+Found: 192.168.178.107 (raspberrypi.local)
+  SSH: Available (Port 8910)
+  Service: puma-carambus_location_5101
+</code></pre></div></p>
+<hr />
+<h3 id="test-raspberry-pish"><code>test-raspberry-pi.sh</code><a class="headerlink" href="#test-raspberry-pish" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Umfassende Tests für RasPi-Funktionalität</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/test-raspberry-pi.sh<span class="w"> </span>&lt;scenario_name&gt;
+</code></pre></div></p>
+<p><strong>Was wird getestet</strong>:
+1. ✅ SSH-Verbindung
+2. ✅ Puma-Service-Status
+3. ✅ Nginx-Konfiguration
+4. ✅ Datenbank-Konnektivität
+5. ✅ Scoreboard-Erreichbarkeit
+6. ✅ Browser-Kiosk-Mode</p>
+<p><strong>Beispiel</strong>:
+<div class="highlight"><pre><span></span><code>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<span class="c1"># Führt alle Tests aus und zeigt Ergebnisse</span>
+</code></pre></div></p>
+<hr />
+<h3 id="test-raspberry-pi-restartsh"><code>test-raspberry-pi-restart.sh</code><a class="headerlink" href="#test-raspberry-pi-restartsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Testet RasPi-Restart-Funktionalität</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/test-raspberry-pi-restart.sh<span class="w"> </span>&lt;scenario_name&gt;
+</code></pre></div></p>
+<p><strong>Was wird getestet</strong>:
+- Restart-Command funktioniert
+- Services starten korrekt nach Reboot
+- Scoreboard startet automatisch</p>
+<hr />
+<h2 id="scoreboard-management">Scoreboard Management<a class="headerlink" href="#scoreboard-management" title="Permanent link">&para;</a></h2>
+<h3 id="start-scoreboardsh"><code>start-scoreboard.sh</code><a class="headerlink" href="#start-scoreboardsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Startet Scoreboard im Kiosk-Mode</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Auf dem RasPi:</span>
+./bin/start-scoreboard.sh<span class="w"> </span><span class="o">[</span>url<span class="o">]</span>
+
+<span class="c1"># Remote von Development-Rechner:</span>
+ssh<span class="w"> </span>pi@raspberrypi.local<span class="w"> </span><span class="s1">&#39;/path/to/start-scoreboard.sh&#39;</span>
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ✅ Startet Chromium im Fullscreen-Mode
+2. ✅ Öffnet Scoreboard-URL
+3. ✅ Versteckt Panel/Taskbar
+4. ✅ Deaktiviert Screensaver</p>
+<p><strong>Voraussetzungen</strong>:
+- X11-Display verfügbar
+- Chromium installiert</p>
+<hr />
+<h3 id="autostart-scoreboardsh"><code>autostart-scoreboard.sh</code><a class="headerlink" href="#autostart-scoreboardsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Scoreboard-Autostart-Konfiguration</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/autostart-scoreboard.sh<span class="w"> </span>&lt;scenario_name&gt;
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+- Erstellt systemd-Service
+- Konfiguriert Autostart bei Boot
+- Wartet auf Puma-Server
+- Startet Browser automatisch</p>
+<p><strong>Dokumentiert in</strong>: <a href="scoreboard_autostart_setup.de.md">Scoreboard Autostart Setup</a></p>
+<hr />
+<h3 id="restart-scoreboardsh"><code>restart-scoreboard.sh</code><a class="headerlink" href="#restart-scoreboardsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Neustart des Scoreboard-Browsers</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Lokal auf RasPi:</span>
+./bin/restart-scoreboard.sh
+
+<span class="c1"># Remote via SSH:</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ✅ Beendet laufende Chromium-Prozesse
+2. ✅ Bereinigt Cache
+3. ✅ Startet Browser neu mit Scoreboard-URL</p>
+<p><strong>Use Cases</strong>:
+- Browser hängt oder ist langsam
+- Nach Software-Update
+- Nach Änderung der Scoreboard-URL</p>
+<hr />
+<h3 id="exit-scoreboardsh"><code>exit-scoreboard.sh</code><a class="headerlink" href="#exit-scoreboardsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Beendet Scoreboard-Kiosk-Mode sauber</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/exit-scoreboard.sh
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+- Beendet Chromium-Prozesse
+- Zeigt Panel/Taskbar wieder
+- Bereinigt temporäre Dateien</p>
+<hr />
+<h3 id="cleanup-chromiumsh"><code>cleanup-chromium.sh</code><a class="headerlink" href="#cleanup-chromiumsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Bereinigt Chromium-Cache und temporäre Dateien</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/cleanup-chromium.sh
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+- Löscht Browser-Cache
+- Entfernt Cookies
+- Bereinigt Downloads
+- Löscht Crash-Reports</p>
+<p><strong>Use Cases</strong>:
+- Browser wird langsam
+- Zu wenig Speicherplatz
+- Nach längerer Laufzeit</p>
+<hr />
+<h2 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">&para;</a></h2>
+<h3 id="prepare-sd-cardsh"><code>prepare-sd-card.sh</code><a class="headerlink" href="#prepare-sd-cardsh" title="Permanent link">&para;</a></h3>
+<p><strong>Zweck</strong>: Bereitet SD-Karte für RasPi-Installation vor</p>
+<p><strong>Verwendung</strong>:
+<div class="highlight"><pre><span></span><code>./bin/prepare-sd-card.sh<span class="w"> </span><span class="o">[</span>device<span class="o">]</span>
+</code></pre></div></p>
+<p><strong>Was wird gemacht</strong>:
+1. ⚠️ Formatiert SD-Karte (ACHTUNG: Alle Daten werden gelöscht!)
+2. ✅ Installiert Raspberry Pi OS
+3. ✅ Konfiguriert SSH
+4. ✅ Konfiguriert WLAN (optional)
+5. ✅ Erstellt Basis-Konfiguration</p>
+<p><strong>Voraussetzungen</strong>:
+- SD-Karte eingelegt
+- Raspberry Pi OS Image heruntergeladen
+- Admin-Rechte (sudo)</p>
+<p><strong>Beispiel</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Liste verfügbare Devices</span>
+diskutil<span class="w"> </span>list
+
+<span class="c1"># Bereite SD-Karte vor</span>
+sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
+</code></pre></div></p>
+<p><strong>⚠️ WARNUNG</strong>: Überprüfen Sie das Device sorgfältig! Falsches Device führt zu Datenverlust.</p>
+<hr />
+<h2 id="legacydeprecated-scripts">Legacy/Deprecated Scripts<a class="headerlink" href="#legacydeprecated-scripts" title="Permanent link">&para;</a></h2>
+<h3 id="quick-start-raspberry-pish"><code>quick-start-raspberry-pi.sh</code> ⚠️<a class="headerlink" href="#quick-start-raspberry-pish" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: Obsolet (durch <code>setup-raspberry-pi.sh</code> ersetzt)</p>
+<h3 id="auto-setup-raspberry-pish"><code>auto-setup-raspberry-pi.sh</code> ⚠️<a class="headerlink" href="#auto-setup-raspberry-pish" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: Obsolet (durch <code>setup-raspberry-pi.sh</code> ersetzt)</p>
+<h3 id="start_scoreboard"><code>start_scoreboard</code> ⚠️<a class="headerlink" href="#start_scoreboard" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: Obsolet (durch <code>start-scoreboard.sh</code> ersetzt)</p>
+<h3 id="start_scoreboard_delayed"><code>start_scoreboard_delayed</code> ⚠️<a class="headerlink" href="#start_scoreboard_delayed" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: Obsolet (durch <code>autostart-scoreboard.sh</code> ersetzt)</p>
+<hr />
+<h2 id="workflow-beispiele">Workflow-Beispiele<a class="headerlink" href="#workflow-beispiele" title="Permanent link">&para;</a></h2>
+<h3 id="neuer-raspberry-pi-komplett-einrichten">Neuer Raspberry Pi komplett einrichten<a class="headerlink" href="#neuer-raspberry-pi-komplett-einrichten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. SD-Karte vorbereiten</span>
+sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
+
+<span class="c1"># 2. RasPi booten und im Netzwerk finden</span>
+./bin/find-raspberry-pi.sh
+
+<span class="c1"># 3. SSH-Zugang einrichten</span>
+./bin/setup-phillips-table-ssh.sh
+<span class="c1"># IP: 192.168.178.107</span>
+<span class="c1"># Port: 22</span>
+<span class="c1"># Password: [initiales Passwort]</span>
+
+<span class="c1"># 4. Vollständige Installation</span>
+./bin/setup-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+
+<span class="c1"># 5. Testen</span>
+./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+</code></pre></div>
+<h3 id="browser-probleme-beheben">Browser-Probleme beheben<a class="headerlink" href="#browser-probleme-beheben" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Chromium-Cache bereinigen</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh&#39;</span>
+
+<span class="c1"># 2. Browser neustarten</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+
+<span class="c1"># 3. Falls immer noch Probleme: Service neustarten</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart scoreboard-kiosk&#39;</span>
+</code></pre></div>
+<h3 id="scenario-update-auf-raspi-deployen">Scenario-Update auf RasPi deployen<a class="headerlink" href="#scenario-update-auf-raspi-deployen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Deployment von Development-Rechner</span>
+<span class="nb">cd</span><span class="w"> </span>carambus_master
+./bin/deploy-scenario.sh<span class="w"> </span>carambus_location_5101
+
+<span class="c1"># 2. Browser auf RasPi neustarten (um neue Assets zu laden)</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+
+<span class="c1"># 3. Testen</span>
+./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+</code></pre></div>
+<hr />
+<h2 id="fehlerbehebung">Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="ssh-verbindung-schlagt-fehl">SSH-Verbindung schlägt fehl<a class="headerlink" href="#ssh-verbindung-schlagt-fehl" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Problem: &quot;Connection refused&quot;</span>
+<span class="c1"># Lösung: SSH manuell auf RasPi aktivieren</span>
+<span class="c1"># 1. Monitor + Tastatur an RasPi anschließen</span>
+<span class="c1"># 2. sudo raspi-config</span>
+<span class="c1"># 3. Interface Options → SSH → Enable</span>
+
+<span class="c1"># Problem: &quot;Permission denied (publickey)&quot;</span>
+<span class="c1"># Lösung: SSH-Keys neu einrichten</span>
+./bin/setup-phillips-table-ssh.sh
+</code></pre></div>
+<h3 id="browser-startet-nicht">Browser startet nicht<a class="headerlink" href="#browser-startet-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Problem: &quot;Display not available&quot;</span>
+<span class="c1"># Lösung: X11-Display prüfen</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;echo $DISPLAY&#39;</span>
+<span class="c1"># Sollte &quot;:0&quot; sein</span>
+
+<span class="c1"># Falls nicht gesetzt:</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;export DISPLAY=:0 &amp;&amp; ./bin/start-scoreboard.sh&#39;</span>
+</code></pre></div>
+<h3 id="scoreboard-zeigt-alte-version">Scoreboard zeigt alte Version<a class="headerlink" href="#scoreboard-zeigt-alte-version" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Cache bereinigen und Browser neustarten</span>
+ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh &amp;&amp; ./bin/restart-scoreboard.sh&#39;</span>
+
+<span class="c1"># Falls das nicht hilft: Hard-Reload im Browser</span>
+<span class="c1"># Strg+Shift+R oder systemctl restart</span>
+</code></pre></div>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="raspi-setup">RasPi-Setup<a class="headerlink" href="#raspi-setup" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ Immer zuerst <code>find-raspberry-pi.sh</code> verwenden, um IP zu ermitteln</li>
+<li>✅ SSH-Keys einrichten (passwordless) für Automatisierung</li>
+<li>✅ Nach jedem Deployment Browser neustarten</li>
+<li>✅ Regelmäßig Chromium-Cache bereinigen</li>
+</ol>
+<h3 id="netzwerk">Netzwerk<a class="headerlink" href="#netzwerk" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ Statische IP für Production-RasPis verwenden</li>
+<li>✅ SSH-Port ändern (Standard: 8910 statt 22)</li>
+<li>✅ Firewall auf RasPi konfigurieren</li>
+</ol>
+<h3 id="wartung">Wartung<a class="headerlink" href="#wartung" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ Wöchentlich: <code>cleanup-chromium.sh</code> ausführen</li>
+<li>✅ Monatlich: OS-Updates via <code>apt update &amp;&amp; apt upgrade</code></li>
+<li>✅ Bei Problemen: Zuerst Browser-Restart, dann Service-Restart, dann Reboot</li>
+</ol>
+<hr />
+<h2 id="siehe-auch">Siehe auch<a class="headerlink" href="#siehe-auch" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../client_only_installation/">Client-Only Installation</a> - Detaillierte Installationsanleitung</li>
+<li><a href="scoreboard_autostart_setup.de.md">Scoreboard Autostart Setup</a> - Autostart-Konfiguration</li>
+<li><a href="deployment_workflow.de.md">Deployment Workflow</a> - Vollständiger Deployment-Prozess</li>
+<li><a href="scenario_management.de.md">Scenario Management</a> - Scenario-System-Übersicht</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
