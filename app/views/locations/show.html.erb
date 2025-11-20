@@ -73,8 +73,8 @@
             <%- end %>
             <td>
               <%= form_tag add_tables_to_location_path(@location) do %>
-                <%= select_tag :table_kind_id, options_for_select(@table_kind_all.map { |tk| [tk.name, tk.id] },
-                                                                  @table_kind_all.select{|tk| tk.name =="Small Billard"}.first&.id), class: "border-2" %>
+                <%= select_tag :table_kind_id, options_for_select(TableKind::TABLE_KIND_ALL.map { |tk| [tk.name, tk.id] },
+                                                                  TableKind::TABLE_KIND_ALL.select{|tk| tk.name =="Small Billard"}.first&.id), class: "border-2" %>
                 <br>
                 <%= number_field_tag :number, value = 1, class: "border-2", style: "width: 50px" %>
                 <%= submit_tag "Add" %>

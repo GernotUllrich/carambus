@@ -54,6 +54,8 @@ class TableKind < ApplicationRecord
     "Measures" => "table_kinds.measures"
   }
 
+  TABLE_KIND_ALL = TableKind.all.order(:name).to_a
+
   def display_name
     I18n.t("table_kind.display_name_#{name.downcase.tr(" ", "_")}")
   end

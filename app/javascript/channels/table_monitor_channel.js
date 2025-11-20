@@ -57,36 +57,36 @@ consumer.subscriptions.create("TableMonitorChannel", {
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
-    
+
     // ========================================================================
     // FAST JSON UPDATES - Route to specific handlers based on update type
     // ========================================================================
-    
+
     if (data.type === "score_update") {
       // Häufigster Fall: Nur Scores geändert
       console.log('⚡ Score update:', data.data)
       this.handleScoreUpdate(data.table_monitor_id, data.data)
       return
     }
-    
+
     if (data.type === "player_switch") {
       // Spielerwechsel
       console.log('🔄 Player switch:', data.data)
       this.handlePlayerSwitch(data.table_monitor_id, data.data)
       return
     }
-    
+
     if (data.type === "state_change") {
       // Spielzustand geändert
       console.log('🎮 State change:', data.data)
       this.handleStateChange(data.table_monitor_id, data.data)
       return
     }
-    
+
     // Handle CableReady operations (full_screen mit inner_html)
     if (data.cableReady) {
       // Debug messages removed - no more console spam
-      
+
       try {
         // Filter out operations for elements that don't exist on current page
         const applicableOperations = data.operations?.filter(operation => {
@@ -99,56 +99,56 @@ consumer.subscriptions.create("TableMonitorChannel", {
           }
           return true
         }) || []
-        
+
         if (applicableOperations.length === 0) {
           // Debug messages removed - no more console spam
           return
         }
-        
+
         // Debug messages removed - no more console spam
-        
+
         CableReady.perform(applicableOperations)
-        
+
         // Log successful operations
         applicableOperations.forEach(operation => {
           scoreboardDebugger.logOperation(operation.operation || 'unknown', operation.selector || 'unknown', true)
         })
-        
+
       } catch (error) {
         // Debug messages removed - no more console spam
       }
     }
   },
-  
+
   // ========================================================================
   // JSON UPDATE HANDLERS - Direkte DOM-Updates (kein Morphing!)
   // ========================================================================
-  
+
   handleScoreUpdate(tableMonitorId, data) {
     // Nur Zahlen ändern - super schnell, kein Layout-Shift
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
   },
-  
+
   handlePlayerSwitch(tableMonitorId, data) {
     // Scores + aktiver Spieler + Border-Farben
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
-    
+
     // Active borders aktualisieren
     this.updateActiveBorders(data.playera.active, data.playerb.active)
-    
+
     // Layout (left/right) könnte sich geändert haben
     // Aber wir morphen NICHT - wir akzeptieren kleine Verzögerungen
     // bis zum nächsten full_screen refresh
   },
-  
+
   handleStateChange(tableMonitorId, data) {
     // Komplettere Updates: Scores + Spieler + State
     this.updatePlayerScores('playera', data.playera)
     this.updatePlayerScores('playerb', data.playerb)
     this.updateActiveBorders(data.playera.active, data.playerb.active)
-    
+
     // State display aktualisieren
     const stateEl = document.querySelector('.state-display')
     if (stateEl && data.state_display) {
@@ -156,16 +156,16 @@ consumer.subscriptions.create("TableMonitorChannel", {
       this.flashElement(stateEl)
     }
   },
-  
+
   // ========================================================================
   // DOM UPDATE HELPERS
   // ========================================================================
-  
+
   updatePlayerScores(playerId, playerData) {
     // Direktes textContent-Update - kein innerHTML, kein Morphing!
     // Strategie: Nur die KRITISCHEN Werte aktualisieren (Score + Inning Score)
     // HS/GD/Innings werden beim nächsten full_screen aktualisiert
-    
+
     // Main score (Gesamtpunktzahl) - findet das Element mit data-player attribute
     const scoreEl = document.querySelector(`.main-score[data-player="${playerId}"]`)
     if (scoreEl && playerData.score !== undefined) {
@@ -176,23 +176,23 @@ consumer.subscriptions.create("TableMonitorChannel", {
         this.flashElement(scoreEl)
       }
     }
-    
+
     // Current inning score (aktueller Aufnahme-Score)
     const inningScoreEl = document.querySelector(`.inning-score[data-player="${playerId}"]`)
     if (inningScoreEl && playerData.inning_score !== undefined) {
       inningScoreEl.textContent = playerData.inning_score
     }
-    
+
     // Note: HS, GD, Innings werden NICHT hier aktualisiert
     // Diese ändern sich selten und werden beim nächsten full_screen refresh aktualisiert
     // Das spart CPU-Zeit und reduziert DOM-Manipulationen
   },
-  
+
   updateActiveBorders(playeraActive, playerbActive) {
     // Border-Styles für aktiven Spieler
     const playeraEl = document.querySelector('[data-player="playera"]')
     const playerbEl = document.querySelector('[data-player="playerb"]')
-    
+
     if (playeraEl) {
       if (playeraActive) {
         playeraEl.classList.remove('border-4', 'border-gray-500')
@@ -202,7 +202,7 @@ consumer.subscriptions.create("TableMonitorChannel", {
         playeraEl.classList.add('border-4', 'border-gray-500')
       }
     }
-    
+
     if (playerbEl) {
       if (playerbActive) {
         playerbEl.classList.remove('border-4', 'border-gray-500')
@@ -213,12 +213,12 @@ consumer.subscriptions.create("TableMonitorChannel", {
       }
     }
   },
-  
+
   flashElement(element) {
     // Kurzes visuelles Feedback für geänderte Werte
-    element.classList.add('bg-yellow-200')
-    setTimeout(() => {
-      element.classList.remove('bg-yellow-200')
-    }, 150)
+    // element.classList.add('bg-yellow-200')
+    // setTimeout(() => {
+    //   element.classList.remove('bg-yellow-200')
+    // }, 150)
   }
 });

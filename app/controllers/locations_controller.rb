@@ -32,7 +32,6 @@ class LocationsController < ApplicationController
 
   # GET /locations/1
   def show
-    @table_kind_all = TableKind.all.order(:name).to_a
     Rails.logger.info "params[:table_id] = #{params[:table_id]}"
     Rails.logger.info "params[:sb_state] = #{params[:sb_state]}"
     Rails.logger.info "Current.user = #{Current.user&.email}"
@@ -132,7 +131,7 @@ class LocationsController < ApplicationController
           players = Player.joins(:season_participations).where(season_participations: {
             season_id: Season.current_season&.id, club_id: club.id
           }).where(id: (guest_player_ids + club_player_ids)).to_a
-          
+
           guest_players_default = Player.where(id: [default_guest_a.player.id,
                                                     default_guest_b.player.id]).order("fl_name")
           guest_players_other = Player.joins(season_participations: %i[club season])
@@ -144,7 +143,7 @@ class LocationsController < ApplicationController
                                       .order("fl_name")
 
           club_players = Player.where(id: club_player_ids).order("fl_name")
-          
+
           if @table.present?
             @bg_color ||= "#1B0909"
             render "scoreboard_free_game_karambol_quick",
@@ -250,7 +249,7 @@ class LocationsController < ApplicationController
   def scoreboard
     session[:location_id] = @location.id
     sb_state = params[:sb_state] || "welcome"
-    
+
     # Auto-Login zum Scoreboard-User nur wenn kein User angemeldet ist
     # Wenn ein User bereits angemeldet ist, bleibt current_user erhalten
     unless current_user.present?
@@ -258,7 +257,7 @@ class LocationsController < ApplicationController
       bypass_sign_in @user, scope: :user
       Current.user = @user
     end
-    
+
     scoreboard_current = scoreboard_location_url(@location.md5, sb_state: "welcome")
     scoreboard_url = if File.exist?("#{Rails.root}/config/scoreboard_url")
                        File.read("#{Rails.root}/config/scoreboard_url").to_s.strip
