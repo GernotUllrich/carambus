@@ -6,6 +6,7 @@ class TableMonitorJob < ApplicationJob
     debug = true # Rails.env != 'production'
     table_monitor = args[0]
     operation_type = args[1]
+    options = args[2] || {}
     
     # Performance timing
     job_start = Time.now.to_f
@@ -14,6 +15,7 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 ========== TableMonitorJob START =========="
     Rails.logger.info "📡 TableMonitor ID: #{table_monitor.id}"
     Rails.logger.info "📡 Operation Type: #{operation_type}"
+    Rails.logger.info "📡 Options: #{options.inspect}" if options.present?
     Rails.logger.info "📡 Stream: table-monitor-stream"
     Rails.logger.info "📡 Broadcast Timestamp: #{broadcast_timestamp}"
     
@@ -102,6 +104,64 @@ class TableMonitorJob < ApplicationJob
         selector: selector,
         html: rendered_html,
       )
+    when "player_score_panel"
+      # FAST PATH: Targeted player panel update
+      # Only renders and sends one player's panel (~10KB instead of ~100KB)
+      # Uses morph for efficient DOM updates
+      player_key = options[:player]
+      
+      Rails.logger.info "📡 ⚡ FAST PATH: Broadcasting player panel update for #{player_key}"
+      
+      render_start = Time.now.to_f
+      # Target the wrapper div, not the panel itself
+      selector = "#player_score_wrapper_#{player_key}_#{table_monitor.id}"
+      
+      begin
+        # Ensure fresh options are loaded before rendering
+        # Get options and pass as local to avoid race condition (options is cattr_accessor)
+        table_monitor.get_options!(I18n.locale)
+        options_snapshot = table_monitor.options.dup
+        
+        # Render ONLY the changed player's panel (without wrapper - wrapper is in scoreboard)
+        player_panel_html = ApplicationController.render(
+          partial: "table_monitors/player_score_panel",
+          locals: { 
+            table_monitor: table_monitor,
+            player_key: player_key,
+            fullscreen: true,
+            options: options_snapshot
+          }
+        )
+        
+        render_time = ((Time.now.to_f - render_start) * 1000).round(2)
+        Rails.logger.info "📡 ⚡ Render time: #{render_time}ms"
+        Rails.logger.info "📡 ⚡ HTML size: #{player_panel_html.bytesize} bytes (vs ~100KB for full scoreboard)"
+        Rails.logger.info "📡 ⚡ HTML blank?: #{player_panel_html.strip.empty?}"
+        Rails.logger.info "📡 ⚡ HTML preview: #{player_panel_html[0..200]}" if debug
+        
+        # Use inner_html to replace the wrapper's content
+        cable_ready["table-monitor-stream"].inner_html(
+          selector: selector,
+          html: player_panel_html,
+        )
+      rescue => e
+        Rails.logger.error "📡 ⚡ ERROR rendering player panel: #{e.message}"
+        Rails.logger.error "📡 ⚡ Backtrace: #{e.backtrace.first(5).join("\n")}"
+        # Fallback to full update
+        show = case table_monitor.data["free_game_form"]
+               when "pool" then "_pool"
+               when "snooker" then "_snooker"
+               else ""
+               end
+        full_screen_html = ApplicationController.render(
+          partial: "table_monitors/show#{show}",
+          locals: { table_monitor: table_monitor, full_screen: true }
+        )
+        cable_ready["table-monitor-stream"].inner_html(
+          selector: "#full_screen_table_monitor_#{table_monitor.id}",
+          html: full_screen_html,
+        )
+      end
     else
       # Default case: Full scoreboard update
       # Triggered by empty string "" from after_update_commit callback

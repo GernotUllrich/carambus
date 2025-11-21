@@ -71,19 +71,20 @@ class TableMonitor < ApplicationRecord
   after_update_commit lambda {
     Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
     Rails.logger.info "🔔 TableMonitor ID: #{id}"
-    Rails.logger.info "🔔 Previous changes: #{previous_changes.keys.inspect}"
-    
+    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
+
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     if skip_update_callbacks
       Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
       Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
+      @collected_changes = nil
       return
     end
 
     #broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
     Rails.logger.info "🔔 Relevant keys: #{relevant_keys.inspect}"
-    
+
     get_options!(I18n.locale)
     if tournament_monitor.is_a?(PartyMonitor) &&
       (relevant_keys.include?("state") || state != "playing")
@@ -99,17 +100,32 @@ class TableMonitor < ApplicationRecord
       Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
       TableMonitorJob.perform_later(self, "teaser")
     end
-    
-    # CRITICAL: Always update active scoreboard view
-    # The empty string triggers the `else` branch in TableMonitorJob's case statement,
-    # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
-    # Without this, browsers viewing the active scoreboard would show stale data,
-    # while only the table_scores overview would be updated.
-    # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
-    Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
-    TableMonitorJob.perform_later(self, "")
-    Rails.logger.info "🔔 ========== after_update_commit END =========="
-    # broadcast_replace_to self
+
+    # FAST PATH: Check for simple score changes that can use targeted updates
+    # If only one player's score changed (plus balls_on_table), use partial update instead of full render
+    if simple_score_update?
+      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+
+      Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
+      Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_changes.flat_map(&:keys).uniq.inspect}"
+      TableMonitorJob.perform_later(self, "player_score_panel", player: player_key)
+
+      @collected_changes = nil
+      Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
+    else
+      # CRITICAL: Always update active scoreboard view (SLOW PATH)
+      # The empty string triggers the `else` branch in TableMonitorJob's case statement,
+      # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
+      # Without this, browsers viewing the active scoreboard would show stale data,
+      # while only the table_scores overview would be updated.
+      # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
+      Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
+      TableMonitorJob.perform_later(self, "")
+      @collected_changes = nil
+      Rails.logger.info "🔔 ========== after_update_commit END =========="
+      # broadcast_replace_to self
+    end
+
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
     if tournament_monitor.is_a?(TournamentMonitor) &&
@@ -161,6 +177,20 @@ class TableMonitor < ApplicationRecord
     else
       [hash_a, hash_b]
     end
+  end
+
+  def simple_score_update?
+    return false if @collected_changes.blank?
+
+    # Flatten all keys from collected changes
+    all_keys = @collected_changes.flat_map(&:keys).uniq
+
+    # Fast path: only balls_on_table and/or one player changed
+    safe_keys = ['balls_on_table', 'playera', 'playerb']
+    player_keys = all_keys & ['playera', 'playerb']
+
+    # Must have exactly one player key, and only safe keys
+    player_keys.size == 1 && (all_keys - safe_keys).empty?
   end
 
   DEFAULT_ENTRY = {
@@ -338,6 +368,10 @@ class TableMonitor < ApplicationRecord
   end
 
   def log_state_change
+    @collected_changes ||= []
+    if changes.present?
+      @collected_changes << deep_diff(*changes['data'])
+    end
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<\
 ------------------------------------------"

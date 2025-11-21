@@ -1,0 +1,184 @@
+<%
+# This partial renders a single player's score panel for fast-path updates
+# Parameters:
+#   table_monitor - the TableMonitor instance
+#   player_key - "playera" or "playerb"
+#   fullscreen - boolean
+#   options - (optional) pass pre-computed options to avoid race condition with cattr_accessor
+
+# Get or use provided options
+unless local_assigns.key?(:options)
+  table_monitor.get_options!(I18n.locale)
+  options = table_monitor.options
+end
+
+# Determine if this player is on left or right
+is_left = options[:current_left_player] == player_key
+player = is_left ? options[:player_a] : options[:player_b]
+player_id = player_key
+player_active = is_left ? options[:player_a_active] : options[:player_b_active]
+other_player_id = player_key == "playera" ? "playerb" : "playera"
+
+# Visual position
+position = is_left ? "left" : "right"
+click_action = player_key == "playera" ? "key_a" : "key_b"
+
+# Colors
+if is_left
+  color_class = options[:current_left_color] == "yellow" ? "player_b dark:bg-black text-gray-800 dark:text-yellow-400" : "player_a  text-gray-800 dark:text-gray-200"
+  bg_color = options[:current_left_color] == "yellow" ? "bg-yellow-500" : ""
+else
+  color_class = options[:current_left_color] == "white" ? "player_b dark:bg-black  dark:text-yellow-400" : "player_a text-gray-200 bg-yellow-500"
+  bg_color = options[:current_left_color] == "white" ? "bg-yellow-500" : ""
+end
+
+# Timer visibility
+showing_timer = (player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && 
+                 ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || 
+                  table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden"
+
+# Font sizes
+vw2 = fullscreen ? "2vw" : "1vw"
+vw3 = fullscreen ? "3vw" : "1-5vw"
+vw6 = fullscreen ? "6vw" : "3vw"
+vw8 = fullscreen ? "8vw" : "4vw"
+vw24 = fullscreen ? "24vw" : "12vw"
+
+if fullscreen && options[:timer_data].present?
+  time_counter, green_bars, *_rest = options[:timer_data]
+else
+  time_counter = nil
+  green_bars = 0
+end
+
+gps = table_monitor.gps
+gp_index = player_key == "playera" ? 0 : 1
+
+# Sets display
+current_sets = player_key == "playera" ? options[:current_sets_a] : options[:current_sets_b]
+%>
+<div class="h-full">
+  <div class="flex h-1/6  dark:bg-black items-center">
+    <%- if is_left %>
+      <div class="flex <%= "w-5/6" if options[:sets_to_play].to_i > 1 %>">
+        <div class="p-2"><%= image_tag(player[:logo], class: "object-contain h-10 w-20") if player[:logo].present? %></div>
+        <div class="flex-nowrap w-full text-right <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && player[:fullname].andand.length.to_i < 20 %> text-<%= vw3 %>"><%= player[:fullname] %></div>
+      </div>
+      <%- if options[:sets_to_play].to_i > 1 %>
+        <div class="w-1/6 grid place-items-center border-solid font-bold text-<%= vw6 %> border-4">
+          <%= current_sets %>
+        </div>
+      <%- end %>
+    <%- else %>
+      <%- if options[:sets_to_play].to_i > 1 %>
+        <div class="w-1/6 grid place-items-center border-solid font-bold text-<%= vw6 %> border-4">
+          <div><%= current_sets %></div>
+        </div>
+      <%- end %>
+      <div class="flex <%= "w-5/6" if options[:sets_to_play].to_i > 1 %>">
+        <div class="p-2 w-30"><%= image_tag(player[:logo], class: "object-contain h-10 w-20") if player[:logo].present? %></div>
+        <div class="flex-nowrap w-full mr-4 text-right <%= "lg:pt-4" if table_monitor.tournament_monitor.andand.id.present? && player[:fullname].andand.length.to_i < 20 %> text-<%= vw3 %>"><%= player[:fullname] %></div>
+      </div>
+    <%- end %>
+  </div>
+  <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor##{click_action}", id: table_monitor.id, discipline: player[:discipline] }, class: "flex flex-col h-5/6 #{bg_color} dark:bg-black border-solid #{ player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: player_key, style: "letter-spacing: -5px;", id: position, tabindex: 1, onclick: "console.time('#{click_action}_click')" do %>
+    <%- if !table_monitor.set_over? %>
+      <div class="flex h-1/6">
+        <%- if is_left %>
+          <div class="flex-1 text-left font-bold text-red-400">
+            <div class="text-<%= vw8 %> p-4">
+              <span class="inning-score" data-player="<%= player_id %>"><%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
+            </div>
+            <div class="text-<%= vw2 %>">
+              <%- to_play = player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
+              <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
+                <div>Nachstoß</div>
+              <%- end %>
+              <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>
+                pour <%= to_play %>
+              <%- end %>
+              <%- if options[:innings_goal].to_i > 0 && player_active && (options[:innings_goal].to_i - player[:innings].to_i) == 1 %>
+                <%= t('last_inning').html_safe %>
+              <%- end %>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 text-right text-gray-500 text-<%= vw3 %> tracking-wide">
+            <div class="flex-1 mb-1 goal" data-player="<%= player_id %>">
+              <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+            </div>
+            <% unless table_monitor.discipline == "Biathlon" %>
+              <div class="flex-1 mb-1"><%= t('gd') %>: <%= player[:gd] %></div>
+              <div class="flex-1">HS: <%= player[:hs] %></div>
+            <%- end %>
+            <div class="flex-1">
+              <%- (1..options[:timeouts].to_i).each do |i| %>
+                <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{player[:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
+              <%- end %>
+            </div>
+          </div>
+        <%- else %>
+          <div class="flex flex-col flex-1 text-left text-gray-500 text-<%= vw3 %> tracking-wide">
+            <div class="flex-1 mb-1 goal" data-player="<%= player_id %>">
+              <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+            </div>
+            <% unless table_monitor.discipline == "Biathlon" %>
+              <div class="flex-1 mb-1"><%= t('gd') %>: <%= player[:gd] %></div>
+              <div class="flex-1"> HS: <%= player[:hs] %></div>
+            <%- end %>
+            <div class="flex-1">
+              <%- (1..options[:timeouts].to_i).each do |i| %>
+                <%= render_svg "icons/timer", styles: "svg-red fill-current icon text-#{player[:tc].to_i > (i - 1) ? "green" : "red"}-400 inline-block" %>
+              <%- end %>
+            </div>
+          </div>
+          <div class="flex-1 text-right font-bold text-red-400">
+            <div class="text-<%= vw8 %> p-4">
+              <span class="inning-score" data-player="<%= player_id %>"><%= player_active ? table_monitor.data[player_id].andand["innings_redo_list"].andand[-1] : "" %></span>
+            </div>
+            <div class="text-<%= vw2 %>">
+              <%- to_play = player[:balls_goal].to_i > 0 ? player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
+              <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
+                <div>Nachstoß</div>
+              <%- end %>
+              <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>
+                pour <%= to_play %>
+              <%- end %>
+            </div>
+          </div>
+        <%- end %>
+      </div>
+      <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", title: player_key, style: "letter-spacing: -5px;", tabindex: 1, data: { player: player_id, score: player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i } do %>
+        <%- if options['free_game_form'] == 'pool' && player["discipline"] != "14.1 endlos" %>
+          <%= current_sets %>
+        <%- else %>
+          <span class="main-score" data-player="<%= player_id %>"><%= player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i %></span>
+        <%- end %>
+      <%- end %>
+      <%- if fullscreen %>
+        <%- if showing_timer.blank? %>
+          <div class="hide-on-display-only">
+            <div class="flex flex-1 flex-col">
+              <div class="flex flex-1 flex-row items-center <%= showing_timer %>" id="timer_table_monitor_<%= showing_timer %><%= table_monitor.id %>">
+                <div class="w-1/6 font-bold text-4vw p-2"><%= time_counter %></div>
+                <div class="flex flex-1 flex-row w-5/6">
+                  <div class="flex text-<%= vw6 %> font-bold text-green-400"><%= "I" * green_bars.to_i %></div>
+                  <div class="flex text-<%= vw6 %> font-bold text-red-400"><%= "I" * (18 - green_bars.to_i) %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <%- else %>
+          <div class="flex h-1/6 w-full flex-row">
+            <%- innings_str = table_monitor.render_last_innings(60, gps&.dig(gp_index)&.role) %>
+            <div class="flex w-full items-end <%= is_left ? 'justify-end' : 'justify-start' %> text-gray-500 text-<%= innings_str.length > 250 ? '1.5' : '2' %>vw p-2 flex-wrap tracking-wide">
+              <%= innings_str %>
+            </div>
+          </div>
+        <%- end %>
+      <%- end %>
+    <%- else %>
+      <%= table_monitor.render_innings_list(gps&.dig(gp_index)&.role) %>
+    <%- end %>
+  <%- end %>
+</div>
+
