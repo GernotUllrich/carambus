@@ -62,29 +62,31 @@
     <%= "pointer_mode" %>
   <%- end %>
 
-  <!--suppress RubyScope, RubyScope -->
-  <div class="hidden opacity-50 fixed inset-0 z-100 bg-black" id="modal-confirm-back-bg"></div>
-  <div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-110 outline-none focus:outline-none justify-center items-center" id="modal-confirm-back">
-    <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col h-1/2 w-3/5 text-gray-800 dark:text-gray-200 bg-white dark:bg-black outline-none focus:outline-none">
-      <div class="flex flex-col justify-center items-center">
-        <%= render_svg "icons/warning-sign-svgrepo-com", styles: "flex fill-current lg:m-5 dark:text-black text-white h-12 lg:h-24 w-12 lg:w-24" %>
-        <h1 class="text-3vw mb-5"><%= t('warning') %></h1>
-        <p class="text-2vw text-center"><%= t('leaving_game') %></p>
+<%# Warning/Confirm Dialog - HÖCHSTER z-index, ABSOLUT ZENTRIERT! %>
+    <div class="hidden opacity-50 fixed inset-0 bg-black" id="modal-confirm-back-bg" style="z-index: 200;"></div>
+    <div class="hidden fixed" id="modal-confirm-back" style="z-index: 210; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+      <div id="table_monitor_modal_setup__2<%= table_monitor.id %>" class="border-2 border-gray-500 rounded-lg shadow-lg flex flex-col justify-center items-center w-screen max-w-3xl max-h-screen overflow-y-auto text-gray-800 dark:text-gray-200 bg-white dark:bg-black p-8">
+        <div class="flex flex-col justify-center items-center space-y-4 w-full">
+          <%= render_svg "warning-sign-svgrepo-com", styles: "fill-current dark:text-yellow-400 text-red-600 h-8 w-8" %>
+          <h1 class="text-3vw text-center"><%= t('warning') %></h1>
+          <p class="text-2vw text-center"> <%= t('leaving_game') %> </p>
         <%- if table_monitor.tournament_monitor.blank? || (table_monitor.tournament_monitor.present? && !table_monitor.playing?) %>
           <p class="text-2vw text-center"><%= t('may_loose_results') %></p>
         <%- else %>
-          <p class="text-2vw text-center"><%= t('not_leave_party_game') %></p>
+            <p class="text-2vw text-center"><%= I18n.t('not_leave_party_game') %></p>
         <%- end %>
         <div class="flex flex-row pt-5 space-x-10">
-          <%= custom_link_to "Home", scoreboard_location_path(table_monitor.location.md5, sb_state: "welcome", :"data-turbo" => false), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
-          <%- unless table_monitor.tournament_monitor.present? && table_monitor.playing? %>
+            <%= custom_link_to "Home", scoreboard_location_path(table_monitor.table.location.md5, sb_state: "welcome", :"data-turbo" => false), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "ok", tabindex: "1" %>
+            <%- unless options[:tournament_title].present? && table_monitor.playing? %>
             <%= custom_link_to t("cancel_game"), location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id), data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "terminate", tabindex: "1" %>
           <%- end %>
-          <%= button_to t('back'), "#", class: "bg-blue-500 text-white text-2vw font-bold py-2 px-4 rounded", onclick: "set_warning_modal(); return false;", tabindex: 2 %>
+            <%= custom_link_to t('continue'), "javascript:unset_warning_modal()", data: { turbo: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
         </div>
       </div>
     </div>
   </div>
+
+
 
   <%- if options.present? %>
     <%- args = {
