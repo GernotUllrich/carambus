@@ -370,7 +370,7 @@ class TableMonitor < ApplicationRecord
   def log_state_change
     @collected_changes ||= []
     if changes.present?
-      @collected_changes << deep_diff(*changes['data'])
+      changes['data']&.count == 2 && @collected_changes << deep_diff(*changes['data'])
     end
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<\
@@ -1212,6 +1212,14 @@ data[\"allow_overflow\"].present?")
   end
 
   def get_options!(locale)
+    # Cache options per instance to avoid expensive re-computation
+    # Cache-Key includes locale and updated_at timestamp
+    cache_key = "#{locale}_#{updated_at.to_i}"
+
+    if @cached_options && @cached_options_key == cache_key
+      return @cached_options
+    end
+
     I18n.with_locale(locale) do
       show_game = game.present? ? game : prev_game
       show_data = game.present? ? data : prev_data
@@ -1350,6 +1358,12 @@ data[\"allow_overflow\"].present?")
                           tournament_monitor&.tournament
                         end
       self.my_table = table
+
+      # Cache the result for this instance
+      @cached_options = options
+      @cached_options_key = cache_key
+
+      options
     end
   end
 
