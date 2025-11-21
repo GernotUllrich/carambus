@@ -2,6 +2,7 @@
 <%- location_ = local_assigns[:location] || table_monitor_.andand.location || @location %>
 <%- if location_.present? %>
   <%- table_kinds = local_assigns[:table_kinds] || location_.table_kinds %>
+  <div data-location-id="<%= location_.id %>">
   <h1 style="text-shadow: 2px 2px #000000" class="text-center text-gray-400 dark:text-gray-200 text-3vw mb-10"><%= "Laufende Partien" %>
     - <%= location_.name %></h1>
   <%- if table_kinds.present? -%>
@@ -29,4 +30,5 @@
       </turbo-frame>
     <%- end %>
   <% end %>
+  </div>
 <%- end %>

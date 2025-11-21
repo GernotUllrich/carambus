@@ -68,7 +68,7 @@ class TableMonitorJob < ApplicationJob
     when "teaser"
       render_start = Time.now.to_f
       selector = "#teaser_#{table_monitor.id}"
-      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
+      Rails.logger.info "📡 Broadcasting teaser to location stream (for table_scores view)"
       
       rendered_html = ApplicationController.render(
         partial: "table_monitors/teaser",
@@ -77,7 +77,9 @@ class TableMonitorJob < ApplicationJob
       render_time = ((Time.now.to_f - render_start) * 1000).round(2)
       Rails.logger.info "📡 Render time: #{render_time}ms"
       
-      cable_ready["table-monitor-stream"].inner_html(
+      # Send to location-specific stream (for table_scores pages)
+      location_id = table_monitor.table.location_id
+      cable_ready["location-#{location_id}-stream"].inner_html(
         selector: selector,
         html: rendered_html,
       )
@@ -85,7 +87,7 @@ class TableMonitorJob < ApplicationJob
     when "table_scores"
       render_start = Time.now.to_f
       selector = "#table_scores"
-      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
+      Rails.logger.info "📡 Broadcasting table_scores to location stream"
       location = table_monitor.table.location
       
       rendered_html = ApplicationController.render(
@@ -96,7 +98,8 @@ class TableMonitorJob < ApplicationJob
       Rails.logger.info "📡 Render time: #{render_time}ms"
       Rails.logger.info "📡 HTML size: #{rendered_html.bytesize} bytes, blank?: #{rendered_html.strip.empty?}"
       
-      cable_ready["table-monitor-stream"].inner_html(
+      # Send to location-specific stream (for table_scores pages)
+      cable_ready["location-#{location.id}-stream"].inner_html(
         selector: selector,
         html: rendered_html,
       )
@@ -118,7 +121,7 @@ class TableMonitorJob < ApplicationJob
 
       render_start = Time.now.to_f
       selector = "#full_screen_table_monitor_#{table_monitor.id}"
-      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
+      Rails.logger.info "📡 Broadcasting scoreboard to table-monitor stream (for scoreboard view)"
       
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show#{show}",
@@ -159,15 +162,32 @@ class TableMonitorJob < ApplicationJob
     Rails.logger.info "📡 Enqueued operations: #{cable_ready.instance_variable_get(:@enqueued_operations).size rescue 'unknown'}"
     
     # Send timestamp as separate message first for performance measurement
-    ActionCable.server.broadcast(
-      "table-monitor-stream",
-      {
-        type: "performance_timestamp",
-        timestamp: broadcast_timestamp,
-        table_monitor_id: table_monitor.id,
-        operation_type: operation_type
-      }
-    )
+    # Send to appropriate stream(s) based on operation type
+    case operation_type
+    when "teaser", "table_scores"
+      # For table_scores view - send to location stream
+      location_id = table_monitor.table.location_id
+      ActionCable.server.broadcast(
+        "location-#{location_id}-stream",
+        {
+          type: "performance_timestamp",
+          timestamp: broadcast_timestamp,
+          table_monitor_id: table_monitor.id,
+          operation_type: operation_type
+        }
+      )
+    else
+      # For scoreboard view - send to table-monitor stream
+      ActionCable.server.broadcast(
+        "table-monitor-stream",
+        {
+          type: "performance_timestamp",
+          timestamp: broadcast_timestamp,
+          table_monitor_id: table_monitor.id,
+          operation_type: operation_type
+        }
+      )
+    end
     
     cable_ready.broadcast
     broadcast_time = ((Time.now.to_f - broadcast_start) * 1000).round(2)
