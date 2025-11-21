@@ -306,6 +306,12 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", :as => :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", :as => :pwa_manifest
 
+  # Cable health check
+  namespace :cable do
+    get 'health', to: 'cable_health#show'
+    post 'health/check', to: 'cable_health#check'
+  end
+
   # Mount ActionCable
   mount ActionCable.server => '/cable'
 

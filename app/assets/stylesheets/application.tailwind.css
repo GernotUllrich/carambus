@@ -273,6 +273,82 @@ a[class*="btn-primary"]:is(.dark *):hover {
   100% { transform: rotate(360deg); }
 }
 
+/* Connection Status Indicator */
+.connection-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  z-index: 9999;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.connection-status-healthy {
+  background-color: #10b981; /* green-500 */
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.connection-status-disconnected {
+  background-color: #ef4444; /* red-500 */
+  animation: pulse-red 1s ease-in-out infinite;
+}
+
+.connection-status-reconnecting {
+  background-color: #f59e0b; /* amber-500 */
+  animation: pulse-amber 0.5s ease-in-out infinite;
+}
+
+.connection-status-reloading {
+  background-color: #8b5cf6; /* violet-500 */
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 1);
+  }
+}
+
+@keyframes pulse-amber {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
+  }
+}
+
+/* Hide connection indicator on small screens or when explicitly hidden */
+@media (max-width: 640px) {
+  .connection-status {
+    width: 8px;
+    height: 8px;
+    top: 5px;
+    right: 5px;
+  }
+}
+
 /* FINAL OVERRIDE - Must be at the very end to override everything including a:is(.dark *) */
 /* This rule has higher specificity and comes last to ensure it wins */
 a:is(.dark *).btn.btn-primary,

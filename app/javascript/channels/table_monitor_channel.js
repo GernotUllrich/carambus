@@ -1,13 +1,124 @@
 import consumer from "./consumer"
 import CableReady from 'cable_ready'
 
-consumer.subscriptions.create("TableMonitorChannel", {
+// Connection Health Monitor
+class ConnectionHealthMonitor {
+  constructor(subscription) {
+    this.subscription = subscription
+    this.healthCheckInterval = null
+    this.reconnectTimeout = null
+    this.healthCheckFrequency = 30000 // 30 seconds
+    this.maxSilenceTime = 120000 // 2 minutes without any message
+    this.reconnectDelay = 5000 // 5 seconds
+    this.forceReloadDelay = 10000 // 10 seconds if reconnect fails
+  }
+
+  start() {
+    console.log("🏥 Health monitor started")
+    this.healthCheckInterval = setInterval(() => {
+      this.checkHealth()
+    }, this.healthCheckFrequency)
+
+    // Also check on page visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log("📱 Page became visible, checking health...")
+        this.checkHealth()
+      }
+    })
+  }
+
+  stop() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval)
+      this.healthCheckInterval = null
+    }
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
+    }
+    console.log("🏥 Health monitor stopped")
+  }
+
+  checkHealth() {
+    try {
+      const state = consumer.connection.getState()
+      const timeSinceLastMessage = Date.now() - this.subscription.lastReceived
+      
+      console.log("🏥 Health check:", {
+        connectionState: state,
+        timeSinceLastMessage: Math.round(timeSinceLastMessage / 1000) + "s",
+        lastReceived: new Date(this.subscription.lastReceived).toISOString()
+      })
+
+      // Check 1: Connection not open
+      if (state !== "open") {
+        console.warn("⚠️ Connection not open, state:", state)
+        this.triggerReconnect("connection_not_open")
+        return
+      }
+
+      // Check 2: No messages for too long
+      if (timeSinceLastMessage > this.maxSilenceTime) {
+        console.warn("⚠️ No messages received for", Math.round(timeSinceLastMessage / 1000), "seconds")
+        this.triggerReconnect("message_timeout")
+        return
+      }
+
+      // Connection looks healthy
+      console.log("✅ Connection healthy")
+      this.updateStatusIndicator('healthy')
+    } catch (error) {
+      console.error("❌ Health check failed:", error)
+      this.triggerReconnect("health_check_error")
+    }
+  }
+
+  triggerReconnect(reason) {
+    console.warn("🔄 Triggering reconnection, reason:", reason)
+    this.updateStatusIndicator('reconnecting')
+    
+    // Try to reopen connection
+    consumer.connection.reopen()
+
+    // If reconnection doesn't work, reload page
+    this.reconnectTimeout = setTimeout(() => {
+      const state = consumer.connection.getState()
+      if (state !== "open") {
+        console.error("🔄 Reconnection failed, reloading page...")
+        this.updateStatusIndicator('reloading')
+        window.location.reload()
+      } else {
+        console.log("✅ Reconnection successful")
+        this.updateStatusIndicator('healthy')
+      }
+    }, this.reconnectDelay)
+  }
+
+  updateStatusIndicator(status) {
+    // Update visual indicator if it exists
+    const indicator = document.getElementById('connection-status-indicator')
+    if (indicator) {
+      indicator.className = `connection-status connection-status-${status}`
+      indicator.title = `Connection: ${status}`
+    }
+
+    // Dispatch custom event for other parts of the app
+    window.dispatchEvent(new CustomEvent('connection-status-change', {
+      detail: { status }
+    }))
+  }
+}
+
+// Create subscription
+const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChannel", {
 
   // Called once when the subscription is created.
   initialized() {
     console.log("🔌 TableMonitor Channel initialized")
     this.connectionAttempts = 0
     this.lastReceived = Date.now()
+    this.healthMonitor = new ConnectionHealthMonitor(this)
   },
 
   connected() {
@@ -15,6 +126,10 @@ consumer.subscriptions.create("TableMonitorChannel", {
     console.log("🔌 TableMonitor Channel connected")
     console.log("🔌 Consumer state:", consumer.connection.getState())
     this.connectionAttempts = 0
+    
+    // Start health monitoring
+    this.healthMonitor.start()
+    this.healthMonitor.updateStatusIndicator('healthy')
   },
 
   disconnected() {
@@ -22,11 +137,31 @@ consumer.subscriptions.create("TableMonitorChannel", {
     this.connectionAttempts++
     console.warn("🔌 TableMonitor Channel disconnected (attempt #" + this.connectionAttempts + ")")
     console.warn("🔌 Time since last message:", (Date.now() - this.lastReceived) / 1000, "seconds")
+    
+    // Stop health monitoring
+    this.healthMonitor.stop()
+    this.healthMonitor.updateStatusIndicator('disconnected')
   },
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
     this.lastReceived = Date.now()
+    
+    // Handle force reconnect
+    if (data.type === "force_reconnect") {
+      console.warn("🔄 Server requested forced reconnect:", data.reason)
+      this.healthMonitor.updateStatusIndicator('reconnecting')
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+      return
+    }
+
+    // Handle heartbeat acknowledgment
+    if (data.type === "heartbeat_ack") {
+      console.log("💓 Heartbeat acknowledged by server")
+      return
+    }
     
     // Log incoming data with details
     console.log("📥 TableMonitor Channel received:", {
@@ -50,5 +185,13 @@ consumer.subscriptions.create("TableMonitorChannel", {
       CableReady.perform(data.operations)
       console.log("✅ CableReady operations performed")
     }
+  },
+
+  // Send heartbeat to server
+  sendHeartbeat() {
+    this.perform('heartbeat', { timestamp: Date.now() })
   }
 });
+
+// Export for external access if needed
+export default tableMonitorSubscription;

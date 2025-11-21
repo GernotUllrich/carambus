@@ -27,6 +27,10 @@
 <div class="fullscreen flex flex-col h-full  rounded shadow" 
      data-table-monitor-root="scoreboard" 
      data-table-monitor-id="<%= table_monitor.id %>">
+  <!-- Connection Status Indicator -->
+  <div id="connection-status-indicator" 
+       class="connection-status connection-status-healthy" 
+       title="Connection: healthy"></div>
   <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- vw2 = fullscreen ? "2vw" : "1vw" %>
