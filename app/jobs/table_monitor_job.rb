@@ -75,12 +75,14 @@ class TableMonitorJob < ApplicationJob
       selector = "#table_scores"
       Rails.logger.info "📡 Broadcasting to selector: #{selector}"
       location = table_monitor.table.location
+      rendered_html = ApplicationController.render(
+        partial: "locations/table_scores",
+        locals: { location: location, table_kinds: location.table_kinds }
+      )
+      Rails.logger.info "📡 HTML size: #{rendered_html.bytesize} bytes, blank?: #{rendered_html.strip.empty?}"
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
-        html: ApplicationController.render(
-          partial: "locations/table_scores",
-          locals: { location: location, table_kinds: location.table_kinds }
-        )
+        html: rendered_html
       )
     else
       # Default case: Full scoreboard update
