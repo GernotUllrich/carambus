@@ -219,10 +219,19 @@
   }
 
   function set_warning_modal() {
-    document.getElementById("modal-confirm-back").classList.toggle("hidden");
-    document.getElementById("modal-confirm-back" + "-bg").classList.toggle("hidden");
-    document.getElementById("modal-confirm-back").classList.toggle("flex");
-    document.getElementById("modal-confirm-back" + "-bg").classList.toggle("flex");
+    const modal = document.getElementById("modal-confirm-back");
+    const modalBg = document.getElementById("modal-confirm-back-bg");
+    
+    // Check if modal elements exist (only in pool/snooker views)
+    if (!modal || !modalBg) {
+      console.warn("Warning modal not found - may not be supported in this discipline");
+      return;
+    }
+    
+    modal.classList.toggle("hidden");
+    modalBg.classList.toggle("hidden");
+    modal.classList.toggle("flex");
+    modalBg.classList.toggle("flex");
   }
 
   function unset_warning_modal() {
@@ -265,6 +274,13 @@
   }
 
   function warning_mode() {
+    // Check if warning modal is available (pool/snooker only)
+    if (!document.getElementById("modal-confirm-back")) {
+      console.log("Warning modal not available - navigating back directly");
+      window.history.back();
+      return;
+    }
+    
     set_previous_element(get_current_element())
     set_previous_panel(get_panel_state())
     set_panel_state("warning")
