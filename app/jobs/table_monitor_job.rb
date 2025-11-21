@@ -79,6 +79,12 @@ class TableMonitorJob < ApplicationJob
         )
       )
     else
+      # Default case: Full scoreboard update
+      # Triggered by empty string "" from after_update_commit callback
+      # Updates: #full_screen_table_monitor_{id} (active scoreboard view)
+      # This ensures browsers viewing the scoreboard get updates even when
+      # only teaser or table_scores jobs are enqueued based on change type.
+      # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
       show = case table_monitor.data["free_game_form"]
              when "pool"
                "_pool"

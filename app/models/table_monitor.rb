@@ -80,11 +80,19 @@ class TableMonitor < ApplicationRecord
       TableMonitorJob.perform_later(self,
                                     "party_monitor_scores")
     end
+    # Update table_scores overview (if structural changes) OR individual teaser (if score changes only)
     if previous_changes.keys.present? && relevant_keys.present?
       TableMonitorJob.perform_later(self, "table_scores")
     else
       TableMonitorJob.perform_later(self, "teaser")
     end
+    
+    # CRITICAL: Always update active scoreboard view
+    # The empty string triggers the `else` branch in TableMonitorJob's case statement,
+    # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
+    # Without this, browsers viewing the active scoreboard would show stale data,
+    # while only the table_scores overview would be updated.
+    # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
     TableMonitorJob.perform_later(self, "")
     # broadcast_replace_to self
 
