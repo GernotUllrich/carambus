@@ -69,21 +69,34 @@ class TableMonitor < ApplicationRecord
   attr_accessor :skip_update_callbacks
 
   after_update_commit lambda {
+    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
+    Rails.logger.info "🔔 TableMonitor ID: #{id}"
+    Rails.logger.info "🔔 Previous changes: #{previous_changes.keys.inspect}"
+    
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
-    return if skip_update_callbacks
+    if skip_update_callbacks
+      Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
+      Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
+      return
+    end
 
     #broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
+    Rails.logger.info "🔔 Relevant keys: #{relevant_keys.inspect}"
+    
     get_options!(I18n.locale)
     if tournament_monitor.is_a?(PartyMonitor) &&
       (relevant_keys.include?("state") || state != "playing")
+      Rails.logger.info "🔔 Enqueuing: party_monitor_scores job"
       TableMonitorJob.perform_later(self,
                                     "party_monitor_scores")
     end
     # Update table_scores overview (if structural changes) OR individual teaser (if score changes only)
     if previous_changes.keys.present? && relevant_keys.present?
+      Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
       TableMonitorJob.perform_later(self, "table_scores")
     else
+      Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
       TableMonitorJob.perform_later(self, "teaser")
     end
     
@@ -93,7 +106,9 @@ class TableMonitor < ApplicationRecord
     # Without this, browsers viewing the active scoreboard would show stale data,
     # while only the table_scores overview would be updated.
     # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
+    Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
     TableMonitorJob.perform_later(self, "")
+    Rails.logger.info "🔔 ========== after_update_commit END =========="
     # broadcast_replace_to self
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
