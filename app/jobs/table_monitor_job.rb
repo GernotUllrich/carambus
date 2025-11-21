@@ -5,14 +5,22 @@ class TableMonitorJob < ApplicationJob
   def perform(*args)
     debug = true # Rails.env != 'production'
     table_monitor = args[0]
+    operation_type = args[1]
+    
+    Rails.logger.info "📡 ========== TableMonitorJob START =========="
+    Rails.logger.info "📡 TableMonitor ID: #{table_monitor.id}"
+    Rails.logger.info "📡 Operation Type: #{operation_type}"
+    Rails.logger.info "📡 Stream: table-monitor-stream"
     
     # Reload and clear cache to ensure fresh data
     table_monitor.reload
     table_monitor.clear_options_cache
     
+    Rails.logger.info "📡 Reloaded state: #{table_monitor.state}, game_id: #{table_monitor.game_id}"
+    
     info = "perf +++++++!!!! C: PERFORM JOB #{Time.now} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
-    case args[1]
+    case operation_type
     when "party_monitor_scores"
       row = table_monitor.data["row"]
       r_no = table_monitor.game.andand.round_no
@@ -110,6 +118,11 @@ class TableMonitorJob < ApplicationJob
 
       end
     end
+    
+    Rails.logger.info "📡 Calling cable_ready.broadcast..."
+    Rails.logger.info "📡 Enqueued operations: #{cable_ready.instance_variable_get(:@enqueued_operations).size rescue 'unknown'}"
     cable_ready.broadcast
+    Rails.logger.info "📡 Broadcast complete!"
+    Rails.logger.info "📡 ========== TableMonitorJob END =========="
   end
 end
