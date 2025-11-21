@@ -7,10 +7,15 @@ class TableMonitorJob < ApplicationJob
     table_monitor = args[0]
     operation_type = args[1]
     
+    # Performance timing
+    job_start = Time.now.to_f
+    broadcast_timestamp = (Time.now.to_f * 1000).to_i # Milliseconds since epoch
+    
     Rails.logger.info "📡 ========== TableMonitorJob START =========="
     Rails.logger.info "📡 TableMonitor ID: #{table_monitor.id}"
     Rails.logger.info "📡 Operation Type: #{operation_type}"
     Rails.logger.info "📡 Stream: table-monitor-stream"
+    Rails.logger.info "📡 Broadcast Timestamp: #{broadcast_timestamp}"
     
     # Reload and clear cache to ensure fresh data
     table_monitor.reload
@@ -61,28 +66,41 @@ class TableMonitorJob < ApplicationJob
       )
       # cable_ready.broadcast
     when "teaser"
+      render_start = Time.now.to_f
       selector = "#teaser_#{table_monitor.id}"
       Rails.logger.info "📡 Broadcasting to selector: #{selector}"
+      
+      rendered_html = ApplicationController.render(
+        partial: "table_monitors/teaser",
+        locals: { table_monitor: table_monitor }
+      )
+      render_time = ((Time.now.to_f - render_start) * 1000).round(2)
+      Rails.logger.info "📡 Render time: #{render_time}ms"
+      
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
-        html: ApplicationController.render(
-          partial: "table_monitors/teaser",
-          locals: { table_monitor: table_monitor }
-        )
+        html: rendered_html,
+        broadcast_timestamp: broadcast_timestamp
       )
       # cable_ready.broadcast
     when "table_scores"
+      render_start = Time.now.to_f
       selector = "#table_scores"
       Rails.logger.info "📡 Broadcasting to selector: #{selector}"
       location = table_monitor.table.location
+      
       rendered_html = ApplicationController.render(
         partial: "locations/table_scores",
         locals: { location: location, table_kinds: location.table_kinds }
       )
+      render_time = ((Time.now.to_f - render_start) * 1000).round(2)
+      Rails.logger.info "📡 Render time: #{render_time}ms"
       Rails.logger.info "📡 HTML size: #{rendered_html.bytesize} bytes, blank?: #{rendered_html.strip.empty?}"
+      
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
-        html: rendered_html
+        html: rendered_html,
+        broadcast_timestamp: broadcast_timestamp
       )
     else
       # Default case: Full scoreboard update
@@ -100,6 +118,7 @@ class TableMonitorJob < ApplicationJob
                ""
              end
 
+      render_start = Time.now.to_f
       selector = "#full_screen_table_monitor_#{table_monitor.id}"
       Rails.logger.info "📡 Broadcasting to selector: #{selector}"
       
@@ -107,11 +126,15 @@ class TableMonitorJob < ApplicationJob
         partial: "table_monitors/show#{show}",
         locals: { table_monitor: table_monitor, full_screen: true }
       )
+      render_time = ((Time.now.to_f - render_start) * 1000).round(2)
+      Rails.logger.info "📡 Render time: #{render_time}ms"
+      Rails.logger.info "📡 HTML size: #{full_screen_html.bytesize} bytes"
       Rails.logger.info " ########### table_monitor#show id: #{table_monitor.andand.id} ###########" if debug
 
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
-        html: full_screen_html
+        html: full_screen_html,
+        broadcast_timestamp: broadcast_timestamp
       )
       if table_monitor.tournament_monitor.present? && false
         html_current_games = ApplicationController.render(
@@ -134,9 +157,15 @@ class TableMonitorJob < ApplicationJob
       end
     end
     
+    broadcast_start = Time.now.to_f
     Rails.logger.info "📡 Calling cable_ready.broadcast..."
     Rails.logger.info "📡 Enqueued operations: #{cable_ready.instance_variable_get(:@enqueued_operations).size rescue 'unknown'}"
     cable_ready.broadcast
+    broadcast_time = ((Time.now.to_f - broadcast_start) * 1000).round(2)
+    total_time = ((Time.now.to_f - job_start) * 1000).round(2)
+    
+    Rails.logger.info "📡 Broadcast time: #{broadcast_time}ms"
+    Rails.logger.info "📡 Total job time: #{total_time}ms"
     Rails.logger.info "📡 Broadcast complete!"
     Rails.logger.info "📡 ========== TableMonitorJob END =========="
   end

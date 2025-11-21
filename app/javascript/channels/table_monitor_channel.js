@@ -1,6 +1,9 @@
 import consumer from "./consumer"
 import CableReady from 'cable_ready'
 
+// Performance logging - can be enabled via localStorage
+const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
+
 // Connection Health Monitor
 class ConnectionHealthMonitor {
   constructor(subscription) {
@@ -45,11 +48,13 @@ class ConnectionHealthMonitor {
       const state = consumer.connection.getState()
       const timeSinceLastMessage = Date.now() - this.subscription.lastReceived
       
-      console.log("🏥 Health check:", {
-        connectionState: state,
-        timeSinceLastMessage: Math.round(timeSinceLastMessage / 1000) + "s",
-        lastReceived: new Date(this.subscription.lastReceived).toISOString()
-      })
+      if (PERF_LOGGING) {
+        console.log("🏥 Health check:", {
+          connectionState: state,
+          timeSinceLastMessage: Math.round(timeSinceLastMessage / 1000) + "s",
+          lastReceived: new Date(this.subscription.lastReceived).toISOString()
+        })
+      }
 
       // Check 1: Connection not open
       if (state !== "open") {
@@ -66,7 +71,9 @@ class ConnectionHealthMonitor {
       }
 
       // Connection looks healthy
-      console.log("✅ Connection healthy")
+      if (PERF_LOGGING) {
+        console.log("✅ Connection healthy")
+      }
       this.updateStatusIndicator('healthy')
     } catch (error) {
       console.error("❌ Health check failed:", error)
@@ -115,7 +122,9 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
   // Called once when the subscription is created.
   initialized() {
-    console.log("🔌 TableMonitor Channel initialized")
+    if (PERF_LOGGING) {
+      console.log("🔌 TableMonitor Channel initialized")
+    }
     this.connectionAttempts = 0
     this.lastReceived = Date.now()
     this.healthMonitor = new ConnectionHealthMonitor(this)
@@ -124,7 +133,9 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
   connected() {
     // Called when the subscription is ready for use on the server
     console.log("🔌 TableMonitor Channel connected")
-    console.log("🔌 Consumer state:", consumer.connection.getState())
+    if (PERF_LOGGING) {
+      console.log("🔌 Consumer state:", consumer.connection.getState())
+    }
     this.connectionAttempts = 0
     
     // Start health monitoring
@@ -145,7 +156,8 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
-    this.lastReceived = Date.now()
+    const receiveTime = Date.now()
+    this.lastReceived = receiveTime
     
     // Handle force reconnect
     if (data.type === "force_reconnect") {
@@ -159,31 +171,69 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
     // Handle heartbeat acknowledgment
     if (data.type === "heartbeat_ack") {
-      console.log("💓 Heartbeat acknowledged by server")
+      if (PERF_LOGGING) {
+        console.log("💓 Heartbeat acknowledged by server")
+      }
       return
     }
     
-    // Log incoming data with details
-    console.log("📥 TableMonitor Channel received:", {
-      timestamp: new Date().toISOString(),
-      hasCableReady: !!data.cableReady,
-      operationCount: data.operations?.length,
-      type: data.type || 'broadcast'
-    })
+    // Performance measurement
+    let broadcastTimestamp = null
+    let networkLatency = null
     
-    if (data.cableReady) {
-      // Log each operation before performing
-      data.operations.forEach((op, index) => {
-        console.log(`📥 CableReady operation #${index + 1}:`, {
-          type: op.operation,
-          selector: op.selector,
-          htmlSize: op.html ? (op.html.length + " chars") : "N/A",
-          selectorExists: !!document.querySelector(op.selector)
-        })
-      })
+    if (data.cableReady && data.operations?.length > 0) {
+      // Extract broadcast_timestamp from first operation
+      const firstOp = data.operations[0]
+      if (firstOp.broadcast_timestamp) {
+        broadcastTimestamp = firstOp.broadcast_timestamp
+        networkLatency = receiveTime - broadcastTimestamp
+      }
       
+      // Log incoming data with performance details
+      if (PERF_LOGGING) {
+        console.log("📥 TableMonitor Channel received:", {
+          timestamp: new Date().toISOString(),
+          hasCableReady: true,
+          operationCount: data.operations.length,
+          type: data.type || 'broadcast',
+          broadcastTimestamp: broadcastTimestamp,
+          networkLatency: networkLatency ? `${networkLatency.toFixed(0)}ms` : 'N/A'
+        })
+        
+        // Log each operation before performing
+        data.operations.forEach((op, index) => {
+          console.log(`📥 CableReady operation #${index + 1}:`, {
+            type: op.operation,
+            selector: op.selector,
+            htmlSize: op.html ? (op.html.length + " chars") : "N/A",
+            selectorExists: !!document.querySelector(op.selector)
+          })
+        })
+      }
+      
+      // Measure CableReady performance
+      const performStart = Date.now()
       CableReady.perform(data.operations)
-      console.log("✅ CableReady operations performed")
+      const performTime = Date.now() - performStart
+      const totalLatency = Date.now() - (broadcastTimestamp || receiveTime)
+      
+      // Always log performance summary for significant operations
+      if (broadcastTimestamp) {
+        console.log(`⚡ Performance [${firstOp.selector}]:`, {
+          network: `${networkLatency.toFixed(0)}ms`,
+          dom: `${performTime}ms`,
+          total: `${totalLatency}ms`
+        })
+      } else if (PERF_LOGGING) {
+        console.log("✅ CableReady operations performed in", performTime + "ms")
+      }
+    } else if (PERF_LOGGING) {
+      console.log("📥 TableMonitor Channel received:", {
+        timestamp: new Date().toISOString(),
+        hasCableReady: !!data.cableReady,
+        operationCount: data.operations?.length,
+        type: data.type || 'broadcast'
+      })
     }
   },
 
