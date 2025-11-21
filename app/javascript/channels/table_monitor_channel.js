@@ -243,11 +243,14 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       // Measure post-update rendering (requestAnimationFrame = after browser repaint)
       const selector = firstOp.selector || 'unknown'
       
-      // Skip all logging if NO_LOGGING is enabled
+      // Simple performance output without requestAnimationFrame (faster)
       if (NO_LOGGING) {
-        // Just perform the update without any measurements or logging
-        // This is the fastest possible path
+        // Minimal logging for NO_LOGGING mode
+        if (broadcastTimestamp && networkLatency !== null) {
+          console.log(`⚡ [${selector}] network:${networkLatency.toFixed(0)}ms dom:${performTime}ms total:${totalLatency}ms`)
+        }
       } else {
+        // Full performance measurement with reflow timing
         requestAnimationFrame(() => {
           const afterRenderTime = Date.now() - performStart
           const totalWithRender = Date.now() - (broadcastTimestamp || receiveTime)
