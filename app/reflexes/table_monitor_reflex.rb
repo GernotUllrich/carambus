@@ -592,6 +592,14 @@ class TableMonitorReflex < ApplicationReflex
 
   private
 
+  # Helper method to check if request is from remote (not localhost)
+  def remote_request?
+    return false unless request.present?
+    remote_ip = request.remote_ip
+    # Consider localhost, 127.0.0.1, and ::1 as local
+    !['127.0.0.1', '::1', 'localhost'].include?(remote_ip) && !remote_ip.start_with?('192.168.')
+  end
+
   def warmup_state_change(player)
     if DEBUG
       Rails.logger.info "+++++++++++++++++>>> #{"warmup_state_change(#{player})"} <<<++++++++++++++++++++++++++++++++++++++"
