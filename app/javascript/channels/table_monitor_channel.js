@@ -128,6 +128,7 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     this.connectionAttempts = 0
     this.lastReceived = Date.now()
     this.healthMonitor = new ConnectionHealthMonitor(this)
+    this.pendingBroadcastTimestamp = null // Store timestamp from performance_timestamp message
   },
 
   connected() {
@@ -159,6 +160,15 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     const receiveTime = Date.now()
     this.lastReceived = receiveTime
     
+    // Handle performance timestamp message (sent before CableReady operations)
+    if (data.type === "performance_timestamp") {
+      this.pendingBroadcastTimestamp = data.timestamp
+      if (PERF_LOGGING) {
+        console.log("⏱️ Received broadcast timestamp:", data.timestamp)
+      }
+      return
+    }
+    
     // Handle force reconnect
     if (data.type === "force_reconnect") {
       console.warn("🔄 Server requested forced reconnect:", data.reason)
@@ -178,15 +188,15 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     }
     
     // Performance measurement
-    let broadcastTimestamp = null
+    let broadcastTimestamp = this.pendingBroadcastTimestamp
     let networkLatency = null
     
     if (data.cableReady && data.operations?.length > 0) {
-      // Extract broadcast_timestamp from first operation
-      const firstOp = data.operations[0]
-      if (firstOp.broadcast_timestamp) {
-        broadcastTimestamp = firstOp.broadcast_timestamp
+      // Use pending broadcast timestamp if available
+      if (broadcastTimestamp) {
         networkLatency = receiveTime - broadcastTimestamp
+        // Clear it so it's not reused
+        this.pendingBroadcastTimestamp = null
       }
       
       // Log incoming data with performance details
@@ -218,14 +228,21 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       const totalLatency = Date.now() - (broadcastTimestamp || receiveTime)
       
       // Always log performance summary for significant operations
-      if (broadcastTimestamp) {
-        console.log(`⚡ Performance [${firstOp.selector}]:`, {
+      if (broadcastTimestamp && networkLatency !== null) {
+        const selector = firstOp.selector || 'unknown'
+        console.log(`⚡ Performance [${selector}]:`, {
+          server_timestamp: new Date(broadcastTimestamp).toISOString(),
           network: `${networkLatency.toFixed(0)}ms`,
           dom: `${performTime}ms`,
           total: `${totalLatency}ms`
         })
-      } else if (PERF_LOGGING) {
-        console.log("✅ CableReady operations performed in", performTime + "ms")
+      } else {
+        // Fallback without network timing
+        if (firstOp && firstOp.selector) {
+          console.log(`⚡ Performance [${firstOp.selector}]: dom=${performTime}ms (no timestamp)`)
+        } else if (PERF_LOGGING) {
+          console.log("✅ CableReady operations performed in", performTime + "ms")
+        }
       }
     } else if (PERF_LOGGING) {
       console.log("📥 TableMonitor Channel received:", {

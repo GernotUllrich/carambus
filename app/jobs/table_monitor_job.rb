@@ -80,7 +80,6 @@ class TableMonitorJob < ApplicationJob
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
         html: rendered_html,
-        broadcast_timestamp: broadcast_timestamp
       )
       # cable_ready.broadcast
     when "table_scores"
@@ -100,7 +99,6 @@ class TableMonitorJob < ApplicationJob
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
         html: rendered_html,
-        broadcast_timestamp: broadcast_timestamp
       )
     else
       # Default case: Full scoreboard update
@@ -134,7 +132,6 @@ class TableMonitorJob < ApplicationJob
       cable_ready["table-monitor-stream"].inner_html(
         selector: selector,
         html: full_screen_html,
-        broadcast_timestamp: broadcast_timestamp
       )
       if table_monitor.tournament_monitor.present? && false
         html_current_games = ApplicationController.render(
@@ -160,6 +157,18 @@ class TableMonitorJob < ApplicationJob
     broadcast_start = Time.now.to_f
     Rails.logger.info "📡 Calling cable_ready.broadcast..."
     Rails.logger.info "📡 Enqueued operations: #{cable_ready.instance_variable_get(:@enqueued_operations).size rescue 'unknown'}"
+    
+    # Send timestamp as separate message first for performance measurement
+    ActionCable.server.broadcast(
+      "table-monitor-stream",
+      {
+        type: "performance_timestamp",
+        timestamp: broadcast_timestamp,
+        table_monitor_id: table_monitor.id,
+        operation_type: operation_type
+      }
+    )
+    
     cable_ready.broadcast
     broadcast_time = ((Time.now.to_f - broadcast_start) * 1000).round(2)
     total_time = ((Time.now.to_f - job_start) * 1000).round(2)
