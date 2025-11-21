@@ -1,47 +1,6 @@
 # frozen_string_literal: true
 
 class TableMonitorReflex < ApplicationReflex
-  # Enhanced debugging infrastructure for StimulusReflex operations
-  class ReflexDebugger
-    def self.log_reflex_start(method_name, element_data, url)
-      timestamp = Time.current.strftime("%H:%M:%S.%3N")
-      Rails.logger.info "🎯 [#{timestamp}] REFLEX START: #{method_name}"
-      Rails.logger.info "   URL: #{url}"
-      Rails.logger.info "   Element: #{element_data.inspect}" if element_data
-    end
-
-    def self.log_reflex_success(method_name, duration_ms)
-      Rails.logger.info "✅ REFLEX SUCCESS: #{method_name} (#{duration_ms}ms)"
-    end
-
-    def self.log_reflex_error(method_name, error, duration_ms)
-      Rails.logger.error "❌ REFLEX ERROR: #{method_name} (#{duration_ms}ms)"
-      Rails.logger.error "   Error: #{error.message}"
-      Rails.logger.error "   Backtrace: #{error.backtrace.first(3).join(', ')}"
-    end
-
-    def self.log_url_mismatch(current_url, reflex_url)
-      Rails.logger.warn "⚠️ URL MISMATCH DETECTED:"
-      Rails.logger.warn "   Current URL: #{current_url}"
-      Rails.logger.warn "   Reflex URL: #{reflex_url}"
-    end
-
-    def self.validate_element(element)
-      if element.nil?
-        Rails.logger.warn "⚠️ Element is nil"
-        return false
-      end
-
-      if element.dataset.nil?
-        Rails.logger.warn "⚠️ Element dataset is nil"
-        return false
-      end
-
-      Rails.logger.info "✅ Element validation passed"
-      true
-    end
-  end
-
   # Add Reflex methods in this file.
   #
   # All Reflex instances expose the following properties:
@@ -64,40 +23,6 @@ class TableMonitorReflex < ApplicationReflex
   # Learn more at: https://docs.stimulusreflex.com
   #
   DEBUG = true
-
-  # Override before_reflex to add comprehensive debugging
-  def before_reflex(element, reflex, noop, id)
-    @reflex_start_time = Time.current
-    @reflex_method_name = reflex
-    
-    # Validate URL consistency
-    current_url = request.url rescue 'unknown'
-    if url != current_url
-      ReflexDebugger.log_url_mismatch(current_url, url)
-    end
-    
-    # Validate element
-    ReflexDebugger.validate_element(element)
-    
-    # Log reflex start
-    ReflexDebugger.log_reflex_start(reflex, element&.dataset, url)
-    
-    super
-  end
-
-  # Override after_reflex to add success logging
-  def after_reflex(element, reflex, noop, id)
-    duration = ((Time.current - @reflex_start_time) * 1000).round(2)
-    ReflexDebugger.log_reflex_success(@reflex_method_name, duration)
-    super
-  end
-
-  # Override rescue_reflex to add error logging
-  def rescue_reflex(element, reflex, error, id)
-    duration = ((Time.current - @reflex_start_time) * 1000).round(2)
-    ReflexDebugger.log_reflex_error(@reflex_method_name, error, duration)
-    super
-  end
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
       Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
@@ -178,13 +103,6 @@ class TableMonitorReflex < ApplicationReflex
   def key_a
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
-    
-    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked key_a from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
-    
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
       return if @table_monitor.locked_scoreboard
@@ -252,13 +170,6 @@ class TableMonitorReflex < ApplicationReflex
   def key_b
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
-    
-    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked key_b from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
-    
     TableMonitor.transaction do
       @table_monitor = TableMonitor.find(element.andand.dataset[:id])
       return if @table_monitor.locked_scoreboard
@@ -387,12 +298,24 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
+    
+    # Security: Check if remote request requires admin rights
+    if remote_request? && !current_user&.admin?
+      Rails.logger.warn "🚫 Blocked minus_#{n} from remote IP #{request.remote_ip} - Admin required"
+      return
+    end
+    
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "minus_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(-n)
-    @table_monitor.save
+    @table_monitor.save!  # Use save! to ensure commit
+    Rails.logger.info "minus_#{n} completed successfully" if DEBUG
+  rescue StandardError => e
+    Rails.logger.error("[minus_#{n}] ERROR: #{e}")
+    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+    raise e
   end
 
   def switch_players_and_start_game
@@ -403,14 +326,11 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.switch_players
     @table_monitor.reset_timer!
     # noinspection RubyResolve
-    # Only finish shootout if we're actually in shootout state
-    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
+    @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
-    
-    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
-    TableMonitorJob.perform_later(@table_monitor, 'state_change')
+    # morph dom_id(@table_monitor), render(@table_monitor)
   end
 
   def start_game
@@ -419,14 +339,11 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
-    # Only finish shootout if we're actually in shootout state
-    @table_monitor.finish_shootout! if @table_monitor.match_shootout?
+    @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
     @table_monitor.save!
-    
-    # Spielstart → state_change (komplettes Update mit Spielernamen etc.)
-    TableMonitorJob.perform_later(@table_monitor, 'state_change')
+    # morph dom_id(@table_monitor), render(@table_monitor)
   end
 
   def home
@@ -438,7 +355,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     
-    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
+    # Security: Check if remote request requires admin rights
     if remote_request? && !current_user&.admin?
       Rails.logger.warn "🚫 Blocked add_#{n} from remote IP #{request.remote_ip} - Admin required"
       return
@@ -450,256 +367,10 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(n)
     @table_monitor.do_play
-    @table_monitor.save
-    Rails.logger.info "add_#{n} completed successfully"
+    @table_monitor.save!  # Use save! to ensure commit before broadcasts
+    Rails.logger.info "add_#{n} completed successfully" if DEBUG
   rescue StandardError => e
     Rails.logger.error("[add_#{n}] ERROR: #{e}")
-    Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
-    # Re-raise the error so StimulusReflex can handle it properly
-    raise e
-  end
-
-  # NEW: Simple, direct score addition (replaces complex async validation)
-  def add_score(player, points)
-    Rails.logger.info "➕ Adding #{points} points to #{player}" if DEBUG
-    morph :nothing
-    
-    # Security check
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked add_score from remote IP #{request.remote_ip}"
-      return
-    end
-    
-    table_monitor_id = element.andand.dataset[:id]
-    unless table_monitor_id
-      Rails.logger.error "❌ add_score: Missing table monitor id"
-      return
-    end
-    
-    @table_monitor = TableMonitor.find_by(id: table_monitor_id)
-    unless @table_monitor
-      Rails.logger.warn "❌ add_score: TableMonitor #{table_monitor_id} not found"
-      return
-    end
-    
-    unless @table_monitor.playing?
-      Rails.logger.info "ℹ️ add_score skipped: TableMonitor not playing"
-      return
-    end
-    
-    # Validate points are reasonable
-    points_int = points.to_i
-    if points_int.abs > 100
-      Rails.logger.warn "⚠️ Suspicious points value: #{points_int}, ignoring"
-      return
-    end
-    
-    # Process the score change
-    player_key = player.to_s.downcase
-    @table_monitor.data[player_key] ||= {}
-    @table_monitor.data[player_key]["innings_redo_list"] ||= [0]
-    
-    # Ensure innings_redo_list has at least one element (fix for empty array case)
-    if @table_monitor.data[player_key]["innings_redo_list"].empty?
-      @table_monitor.data[player_key]["innings_redo_list"] = [0]
-    end
-    
-    current_inning_score = @table_monitor.data[player_key]["innings_redo_list"][-1] || 0
-    new_inning_score = current_inning_score + points_int
-    
-    # Validate new score is not negative
-    if new_inning_score < 0
-      Rails.logger.info "⚠️ Cannot make inning score negative, setting to 0"
-      new_inning_score = 0
-    end
-    
-    # Update the inning score
-    @table_monitor.data[player_key]["innings_redo_list"][-1] = new_inning_score
-    @table_monitor.data_will_change!
-    @table_monitor.save
-    
-    Rails.logger.info "✅ Updated #{player} inning score: #{current_inning_score} → #{new_inning_score}" if DEBUG
-    
-    # 🎯 NEW: Simple server-side check for set completion
-    if check_set_should_end(@table_monitor)
-      Rails.logger.info "🏁 Set completed - triggering end_of_set" if DEBUG
-      @table_monitor.end_of_set!
-      # Set ended → state_change (kompletteres Update)
-      TableMonitorJob.perform_later(@table_monitor, 'state_change')
-    else
-      # Normal score update → nur die Zahlen
-      TableMonitorJob.perform_later(@table_monitor, 'score_update')
-    end
-    
-  rescue StandardError => e
-    Rails.logger.error "❌ add_score ERROR: #{e.message}"
-    Rails.logger.error "Backtrace: #{e.backtrace.first(5).join("\n")}"
-  end
-  
-  # Simple server-side check: should the set end?
-  def check_set_should_end(table_monitor)
-    return false unless table_monitor.playing?
-    
-    # Get options to check goals and innings limits
-    table_monitor.get_options!(I18n.locale)
-    options = table_monitor.options
-    
-    # Calculate current total scores (result + current inning)
-    score_a = (table_monitor.data.dig('playera', 'result') || 0) + 
-              (table_monitor.data.dig('playera', 'innings_redo_list')&.last || 0)
-    score_b = (table_monitor.data.dig('playerb', 'result') || 0) + 
-              (table_monitor.data.dig('playerb', 'innings_redo_list')&.last || 0)
-    
-    # Check ball goals
-    goal_a = options.dig(:player_a, :balls_goal).to_i
-    goal_b = options.dig(:player_b, :balls_goal).to_i
-    
-    if goal_a > 0 && score_a >= goal_a
-      Rails.logger.info "🎯 Player A reached goal: #{score_a} >= #{goal_a}" if DEBUG
-      return true
-    end
-    
-    if goal_b > 0 && score_b >= goal_b
-      Rails.logger.info "🎯 Player B reached goal: #{score_b} >= #{goal_b}" if DEBUG
-      return true
-    end
-    
-    # Check innings limit
-    innings_goal = options[:innings_goal].to_i
-    if innings_goal > 0
-      innings_a = table_monitor.data.dig('playera', 'innings').to_i
-      innings_b = table_monitor.data.dig('playerb', 'innings').to_i
-      
-      # Set ends when BOTH players have completed the innings limit
-      # (current inning is still in progress until player switch)
-      if innings_a >= innings_goal && innings_b >= innings_goal
-        Rails.logger.info "📊 Innings limit reached: A=#{innings_a}, B=#{innings_b}, limit=#{innings_goal}" if DEBUG
-        return true
-      end
-    end
-    
-    false
-  end
-
-  # OLD: Complex async validation (to be removed after testing new approach)
-  def validate_accumulated_changes(accumulated_data = nil)
-    Rails.logger.info "+++++++++++++++++>>> validate_accumulated_changes <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
-    morph :nothing
-    
-    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked validate_accumulated_changes from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
-    
-    table_monitor_id = element.andand.dataset[:id]
-    unless table_monitor_id
-      Rails.logger.error "❌ Tabmon validate_accumulated_changes aborted: Missing table monitor id in dataset"
-      return
-    end
-
-    @table_monitor = TableMonitor.find_by(id: table_monitor_id)
-
-    unless @table_monitor
-      Rails.logger.warn "❌ Tabmon validate_accumulated_changes: TableMonitor #{table_monitor_id} not found"
-      return
-    end
-
-    unless @table_monitor.playing?
-      Rails.logger.info "ℹ️ Tabmon validate_accumulated_changes skipped: TableMonitor #{table_monitor_id} is not playing"
-      return
-    end
-    
-    # Get accumulated changes from params or method argument
-    accumulated_data ||= params[:accumulatedChanges] || {}
-    Rails.logger.info "🔍 Tabmon server validating accumulated changes: #{accumulated_data.inspect}"
-    Rails.logger.info "🔍 Tabmon accumulated_data class: #{accumulated_data.class}"
-    Rails.logger.info "🔍 Tabmon accumulated_data keys: #{accumulated_data.keys if accumulated_data.respond_to?(:keys)}"
-    
-    # NEW: Check for request ID and detect duplicates
-    request_id = accumulated_data['requestId'] || accumulated_data['request_id']
-    if request_id
-      cache_key = "tabmon_validation:#{table_monitor_id}:#{request_id}"
-      
-      if Rails.cache.read(cache_key)
-        Rails.logger.info "⏭️ Skipping duplicate validation request: #{request_id} for table #{table_monitor_id}"
-        return  # Already processed, ignore silently
-      end
-      
-      # Mark as processing (expire after 1 hour to prevent cache bloat)
-      Rails.cache.write(cache_key, Time.current, expires_in: 1.hour)
-      Rails.logger.info "🆔 Processing new validation request: #{request_id} for table #{table_monitor_id}"
-    else
-      Rails.logger.warn "⚠️ No request ID provided in validation data (old client version?)"
-    end
-    
-    # Extract the actual player changes from the wrapper
-    player_changes_data = accumulated_data['accumulated_changes'] || accumulated_data['accumulatedChanges'] || {}
-    Rails.logger.info "🔍 Tabmon player_changes_data: #{player_changes_data.inspect}"
-    
-    # Log current server state before changes
-    Rails.logger.info "📊 Tabmon current server state:"
-    Rails.logger.info "   playera result: #{@table_monitor.data['playera']['result']}"
-    Rails.logger.info "   playerb result: #{@table_monitor.data['playerb']['result']}"
-    Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
-    Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
-    
-    # Process each player's accumulated changes
-    player_changes_data.each do |player_id, change_data|
-      Rails.logger.info "🔍 Tabmon processing player #{player_id} with data: #{change_data.inspect} (class: #{change_data.class})"
-      
-      # Ensure change_data is a hash
-      unless change_data.is_a?(Hash)
-        Rails.logger.error "❌ Tabmon change_data is not a hash for #{player_id}: #{change_data.class}"
-        next
-      end
-      
-      # Handle both camelCase and snake_case key formats
-      total_increment = (change_data['totalIncrement'] || change_data['total_increment'] || 0).to_i
-      operation_count = (change_data['operationCount'] || change_data['operation_count'] || 0).to_i
-      operations = change_data['operations'] || []
-      
-      Rails.logger.info "🔧 Tabmon processing #{player_id}:"
-      Rails.logger.info "   Total increment: #{total_increment}"
-      Rails.logger.info "   Operations count: #{operation_count}"
-      Rails.logger.info "   Operations: #{operations.inspect}"
-      
-      if total_increment != 0
-        # Log before applying change
-        Rails.logger.info "📈 Tabmon before applying change for #{player_id}:"
-        Rails.logger.info "   Current result: #{@table_monitor.data[player_id]['result']}"
-        Rails.logger.info "   Current innings: #{@table_monitor.data[player_id]['innings_redo_list']&.last}"
-        
-        # Apply the total accumulated change in one operation
-        if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
-          @table_monitor.add_n_balls(total_increment, player_id)
-          Rails.logger.info "🎯 Tabmon applied pool-specific add_n_balls(#{total_increment}, #{player_id})"
-        else
-          @table_monitor.add_n_balls(total_increment)
-          Rails.logger.info "🎯 Tabmon applied standard add_n_balls(#{total_increment})"
-        end
-        
-        @table_monitor.do_play
-        @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-        
-        # Log after applying change
-        Rails.logger.info "📈 Tabmon after applying change for #{player_id}:"
-        Rails.logger.info "   New result: #{@table_monitor.data[player_id]['result']}"
-        Rails.logger.info "   New innings: #{@table_monitor.data[player_id]['innings_redo_list']&.last}"
-        Rails.logger.info "   Applied increment: #{total_increment}"
-      end
-    end
-    
-    @table_monitor.save!
-    Rails.logger.info "✅ Tabmon validation of accumulated changes completed successfully"
-    Rails.logger.info "📊 Tabmon final server state:"
-    Rails.logger.info "   playera result: #{@table_monitor.data['playera']['result']}"
-    Rails.logger.info "   playerb result: #{@table_monitor.data['playerb']['result']}"
-    Rails.logger.info "   playera innings: #{@table_monitor.data['playera']['innings_redo_list']&.last}"
-    Rails.logger.info "   playerb innings: #{@table_monitor.data['playerb']['innings_redo_list']&.last}"
-    
-  rescue StandardError => e
-    Rails.logger.error("❌ Tabmon validate_accumulated_changes ERROR: #{e}")
     Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
     raise e
   end
@@ -782,20 +453,10 @@ class TableMonitorReflex < ApplicationReflex
   def next_step
     Rails.logger.info "+++++++++++++++++>>> next_step <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
-    
-    # Prüfe ob von remote und ob Admin-Rechte vorhanden sind
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked next_step from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
-    
     Rails.logger.info "next_step from connection #{connection.connection_identifier}"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     @table_monitor.terminate_current_inning
-    
-    # Spielerwechsel → player_switch update
-    TableMonitorJob.perform_later(@table_monitor, 'player_switch')
   end
 
   def admin_ack_result
@@ -829,26 +490,12 @@ class TableMonitorReflex < ApplicationReflex
 
   def warm_up_finished
     Rails.logger.info "+++++++++++++++++>>> warm_up_finished <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
-    Rails.logger.info "🔥 WARM_UP_FINISHED REFLEX CALLED - ALWAYS LOG"
-    Rails.logger.info "🔥 ELEMENT DATA: #{element&.dataset&.inspect}"
-    Rails.logger.info "🔥 URL: #{url}"
-    
+    morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_warmup!
     @table_monitor.save!
-    
-    # Morph the updated view IMMEDIATELY after state change
-    # This ensures the shootout modal is shown before background jobs render the page
-    morph "#full_screen_table_monitor_#{@table_monitor.id}", render(partial: "table_monitors/show", locals: { table_monitor: @table_monitor, full_screen: true })
-  end
-
-  def test_reflex
-    Rails.logger.info "🧪 TEST REFLEX CALLED - SIMPLE TEST"
-    Rails.logger.info "🧪 ELEMENT: #{element&.inspect}"
-    Rails.logger.info "🧪 URL: #{url}"
-    morph :nothing
   end
 
   def play_warm_up_a
@@ -944,40 +591,6 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   private
-
-  # Prüft ob eine IP-Adresse lokal ist (localhost oder private IP-Bereiche)
-  def local_ip?(ip)
-    return true if ip.blank? || ip == '::1' || ip == '127.0.0.1' || ip == 'localhost'
-    
-    # Private IP-Bereiche:
-    # 10.0.0.0/8 (10.0.0.0 - 10.255.255.255)
-    # 172.16.0.0/12 (172.16.0.0 - 172.31.255.255)
-    # 192.168.0.0/16 (192.168.0.0 - 192.168.255.255)
-    parts = ip.split('.').map(&:to_i)
-    return false unless parts.length == 4
-    
-    case parts[0]
-    when 10
-      true
-    when 172
-      parts[1] >= 16 && parts[1] <= 31
-    when 192
-      parts[1] == 168
-    else
-      false
-    end
-  end
-
-  # Prüft ob der Request von remote kommt (nicht lokal)
-  def remote_request?
-    ip = begin
-      request.remote_ip
-    rescue
-      connection.request&.remote_ip rescue nil
-    end
-    return false if ip.blank?
-    !local_ip?(ip)
-  end
 
   def warmup_state_change(player)
     if DEBUG

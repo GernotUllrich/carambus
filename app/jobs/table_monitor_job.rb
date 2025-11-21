@@ -26,6 +26,10 @@ class TableMonitorJob < ApplicationJob
     table_monitor = args[0]
     operation_type = args[1] || 'unknown'
     
+    # Reload and clear cache to ensure fresh data
+    table_monitor.reload
+    table_monitor.clear_options_cache
+    
     info = "🚀 [#{Time.current.strftime("%H:%M:%S.%3N")}] PERFORM JOB #{operation_type} TM[#{table_monitor.id}]"
     Rails.logger.info info if debug
     
