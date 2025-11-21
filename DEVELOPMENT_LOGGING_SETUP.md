@@ -47,10 +47,20 @@ cd /Volumes/EXT2TB/gullrich/DEV/carambus/carambus_master
 # Editiere config/environments/development.rb (Zeile 13-16)
 ```
 
-**WICHTIG:** Die Datei ist in `.gitignore`, daher:
-1. Änderung manuell in JEDEM Workspace machen
-2. Nicht committen (wird ignoriert)
-3. Bei neuem Clone: Änderung erneut machen
+**WICHTIG - Templates sind bereits aktualisiert! ✅**
+
+Die Development-Templates in `carambus_data/scenarios/*/development/development.rb` 
+wurden bereits mit dem BroadcastLogger updated. Das bedeutet:
+
+1. ✅ Bei `bin/deploy-scenario.sh`: Neue Scenarios bekommen automatisch File-Logging
+2. ✅ Bei bestehenden Scenarios: `rake scenario:update_scenario[scenario_name]` kopiert neue config
+3. ⚠️ Manuelle Änderung nur noch nötig in `carambus_bcw` und `carambus_master` 
+   (da diese nicht via deploy-scenario erstellt wurden)
+
+**Für carambus_bcw und carambus_master:**
+- Datei ist in `.gitignore` (umgebungsspezifisch)
+- Änderung manuell machen (siehe unten)
+- Nicht committen
 
 ---
 
