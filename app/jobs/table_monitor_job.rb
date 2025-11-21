@@ -61,8 +61,10 @@ class TableMonitorJob < ApplicationJob
       )
       # cable_ready.broadcast
     when "teaser"
+      selector = "#teaser_#{table_monitor.id}"
+      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
       cable_ready["table-monitor-stream"].inner_html(
-        selector: "#teaser_#{table_monitor.id}",
+        selector: selector,
         html: ApplicationController.render(
           partial: "table_monitors/teaser",
           locals: { table_monitor: table_monitor }
@@ -70,9 +72,11 @@ class TableMonitorJob < ApplicationJob
       )
       # cable_ready.broadcast
     when "table_scores"
+      selector = "#table_scores"
+      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
       location = table_monitor.table.location
       cable_ready["table-monitor-stream"].inner_html(
-        selector: "#table_scores",
+        selector: selector,
         html: ApplicationController.render(
           partial: "locations/table_scores",
           locals: { location: location, table_kinds: location.table_kinds }
@@ -94,6 +98,9 @@ class TableMonitorJob < ApplicationJob
                ""
              end
 
+      selector = "#full_screen_table_monitor_#{table_monitor.id}"
+      Rails.logger.info "📡 Broadcasting to selector: #{selector}"
+      
       full_screen_html = ApplicationController.render(
         partial: "table_monitors/show#{show}",
         locals: { table_monitor: table_monitor, full_screen: true }
@@ -101,7 +108,7 @@ class TableMonitorJob < ApplicationJob
       Rails.logger.info " ########### table_monitor#show id: #{table_monitor.andand.id} ###########" if debug
 
       cable_ready["table-monitor-stream"].inner_html(
-        selector: "#full_screen_table_monitor_#{table_monitor.id}",
+        selector: selector,
         html: full_screen_html
       )
       if table_monitor.tournament_monitor.present? && false
