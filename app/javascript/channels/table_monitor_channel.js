@@ -234,11 +234,19 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
         })
       }
       
+      // Check if selector exists before logging (avoid logging for filtered updates)
+      const selectorExists = document.querySelector(firstOp.selector)
+      
       // Measure CableReady performance
       const performStart = Date.now()
       CableReady.perform(data.operations)
       const performTime = Date.now() - performStart
       const totalLatency = Date.now() - (broadcastTimestamp || receiveTime)
+      
+      // Skip logging if element doesn't exist (update was filtered out)
+      if (!selectorExists) {
+        return
+      }
       
       // Measure post-update rendering (requestAnimationFrame = after browser repaint)
       const selector = firstOp.selector || 'unknown'
