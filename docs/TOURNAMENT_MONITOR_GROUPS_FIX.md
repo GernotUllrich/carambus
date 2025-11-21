@@ -169,3 +169,4 @@ puts "hf2 playerb: #{hf2_game.game_participations.find_by(role: 'playerb').playe
 
 **Datum:** 2025-11-01
 
+

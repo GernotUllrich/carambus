@@ -24,19 +24,19 @@
               <h4><%= I18n.t("tournament_monitors.show.tournament_phase", :default => "Tournament:") %></h4>
               <%= @tournament_monitor.state.gsub("_", " ") %>
             </div>
-            <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |tabmon| %>
-            <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |tabmon| %>
+            <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |table-monitor| %>
+            <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |table-monitor| %>
               <div class="flex-1 flex-col">
-                <h4><%= "#{tabmon.display_name}" %>:</h4>
-                <%= tabmon.state.gsub("_", " ") %><br/>
-                <% if tabmon.game.present? %>
-                  <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= tabmon.game.andand.display_gname %>
+                <h4><%= "#{table-monitor.display_name}" %>:</h4>
+                <%= table-monitor.state.gsub("_", " ") %><br/>
+                <% if table-monitor.game.present? %>
+                  <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= table-monitor.game.andand.display_gname %>
 <!--                <br/>-->
-                  <%- player_a = tabmon.game.game_participations.where(role: "playera").first.andand.player %>
-                  <%- player_b = tabmon.game.game_participations.where(role: "playerb").first.andand.player %>
+                  <%- player_a = table-monitor.game.game_participations.where(role: "playera").first.andand.player %>
+                  <%- player_b = table-monitor.game.game_participations.where(role: "playerb").first.andand.player %>
                   <strong class="flex 1 mt-4 text-black dark:text-white"><%= player_a.andand.fullname %></strong>
                   <strong class="flex 1 mb-4 text-yellow-400"><%= player_b.andand.fullname %></strong>
-                  <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: tabmon.game.id), class: "btn btn-primary" %>
+                  <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: table-monitor.game.id), class: "btn btn-primary" %>
                 <% end %>
               </div>
             <% end %>

@@ -43,7 +43,7 @@
 <%- vw24 = fullscreen ? "24vw" : "12vw" %>
 
 <div class="<%= fullscreen ? "fullscreen flex flex-col h-full rounded shadow dark:bg-black" : "flex h-full rounded shadow" %>" 
-     data-tabmon-root="scoreboard" 
+     data-table-monitor-root="scoreboard" 
      data-table-monitor-id="<%= table_monitor.id %>">
   <div class="<%= fullscreen ? "flex flex-col w-full h-full" : "flex w-full bg-gray-200" %>">
     <div class="<%= fullscreen ? "flex h-5/6 bg-gray-200" : "flex w-full bg-gray-200" %>">
@@ -248,7 +248,7 @@
                             class: "mr-4 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-red-50 dark:bg-black hover:bg-gray-300 dark:text-red-200 text-red-200",
                             title: "Undo",
                             data: {
-                              controller: "tabmon tooltip",
+                              controller: "table-monitor tooltip",
                               action: "click->table-monitor#undo",
                               id: table_monitor.id,
                               "tippy-content": "Letzte Eingabe zurücknehmen"
