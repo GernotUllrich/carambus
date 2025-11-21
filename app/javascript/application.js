@@ -1,5 +1,8 @@
 /* eslint no-console:0 */
 
+// Console silencer must be first to intercept all console calls
+import "./src/console_silencer"
+
 import "@hotwired/turbo-rails"
 import { Turbo } from "@hotwired/turbo-rails"
 Turbo.session.debug = true
