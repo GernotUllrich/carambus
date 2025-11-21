@@ -192,6 +192,8 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     let networkLatency = null
     
     if (data.cableReady && data.operations?.length > 0) {
+      const firstOp = data.operations[0]
+      
       // Use pending broadcast timestamp if available
       if (broadcastTimestamp) {
         networkLatency = receiveTime - broadcastTimestamp
