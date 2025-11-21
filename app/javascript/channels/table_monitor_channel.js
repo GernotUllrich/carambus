@@ -3,6 +3,7 @@ import CableReady from 'cable_ready'
 
 // Performance logging - can be enabled via localStorage
 const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
+const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 
 // Connection Health Monitor
 class ConnectionHealthMonitor {
@@ -48,7 +49,7 @@ class ConnectionHealthMonitor {
       const state = consumer.connection.getState()
       const timeSinceLastMessage = Date.now() - this.subscription.lastReceived
       
-      if (PERF_LOGGING) {
+      if (PERF_LOGGING && !NO_LOGGING) {
         console.log("🏥 Health check:", {
           connectionState: state,
           timeSinceLastMessage: Math.round(timeSinceLastMessage / 1000) + "s",
@@ -71,7 +72,7 @@ class ConnectionHealthMonitor {
       }
 
       // Connection looks healthy
-      if (PERF_LOGGING) {
+      if (PERF_LOGGING && !NO_LOGGING) {
         console.log("✅ Connection healthy")
       }
       this.updateStatusIndicator('healthy')
@@ -122,7 +123,7 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
   // Called once when the subscription is created.
   initialized() {
-    if (PERF_LOGGING) {
+    if (PERF_LOGGING && !NO_LOGGING) {
       console.log("🔌 TableMonitor Channel initialized")
     }
     this.connectionAttempts = 0
@@ -133,8 +134,10 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
   connected() {
     // Called when the subscription is ready for use on the server
-    console.log("🔌 TableMonitor Channel connected")
-    if (PERF_LOGGING) {
+    if (!NO_LOGGING) {
+      console.log("🔌 TableMonitor Channel connected")
+    }
+    if (PERF_LOGGING && !NO_LOGGING) {
       console.log("🔌 Consumer state:", consumer.connection.getState())
     }
     this.connectionAttempts = 0
@@ -147,8 +150,10 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
   disconnected() {
     // Called when the subscription has been terminated by the server
     this.connectionAttempts++
-    console.warn("🔌 TableMonitor Channel disconnected (attempt #" + this.connectionAttempts + ")")
-    console.warn("🔌 Time since last message:", (Date.now() - this.lastReceived) / 1000, "seconds")
+    if (!NO_LOGGING) {
+      console.warn("🔌 TableMonitor Channel disconnected (attempt #" + this.connectionAttempts + ")")
+      console.warn("🔌 Time since last message:", (Date.now() - this.lastReceived) / 1000, "seconds")
+    }
     
     // Stop health monitoring
     this.healthMonitor.stop()
@@ -164,10 +169,10 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     if (data.type === "performance_timestamp") {
       this.pendingBroadcastTimestamp = data.timestamp
       // Mark start for user perception measurement
-      if (typeof performance !== 'undefined' && performance.mark) {
+      if (!NO_LOGGING && typeof performance !== 'undefined' && performance.mark) {
         performance.mark('broadcast-start')
       }
-      if (PERF_LOGGING) {
+      if (PERF_LOGGING && !NO_LOGGING) {
         console.log("⏱️ Received broadcast timestamp:", data.timestamp)
       }
       return
@@ -175,7 +180,9 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     
     // Handle force reconnect
     if (data.type === "force_reconnect") {
-      console.warn("🔄 Server requested forced reconnect:", data.reason)
+      if (!NO_LOGGING) {
+        console.warn("🔄 Server requested forced reconnect:", data.reason)
+      }
       this.healthMonitor.updateStatusIndicator('reconnecting')
       setTimeout(() => {
         window.location.reload()
@@ -185,7 +192,7 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
 
     // Handle heartbeat acknowledgment
     if (data.type === "heartbeat_ack") {
-      if (PERF_LOGGING) {
+      if (PERF_LOGGING && !NO_LOGGING) {
         console.log("💓 Heartbeat acknowledged by server")
       }
       return
@@ -206,7 +213,7 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       }
       
       // Log incoming data with performance details
-      if (PERF_LOGGING) {
+      if (PERF_LOGGING && !NO_LOGGING) {
         console.log("📥 TableMonitor Channel received:", {
           timestamp: new Date().toISOString(),
           hasCableReady: true,
@@ -235,51 +242,58 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       
       // Measure post-update rendering (requestAnimationFrame = after browser repaint)
       const selector = firstOp.selector || 'unknown'
-      requestAnimationFrame(() => {
-        const afterRenderTime = Date.now() - performStart
-        const totalWithRender = Date.now() - (broadcastTimestamp || receiveTime)
-        
-        // Mark end and measure total perceived time
-        let perceivedTime = null
-        if (typeof performance !== 'undefined' && performance.mark && performance.measure) {
-          try {
-            performance.mark('broadcast-end')
-            performance.measure('broadcast-perceived', 'broadcast-start', 'broadcast-end')
-            const measure = performance.getEntriesByName('broadcast-perceived')[0]
-            perceivedTime = Math.round(measure.duration)
-            // Clean up marks
-            performance.clearMarks('broadcast-start')
-            performance.clearMarks('broadcast-end')
-            performance.clearMeasures('broadcast-perceived')
-          } catch (e) {
-            // Ignore timing errors
+      
+      // Skip all logging if NO_LOGGING is enabled
+      if (NO_LOGGING) {
+        // Just perform the update without any measurements or logging
+        // This is the fastest possible path
+      } else {
+        requestAnimationFrame(() => {
+          const afterRenderTime = Date.now() - performStart
+          const totalWithRender = Date.now() - (broadcastTimestamp || receiveTime)
+          
+          // Mark end and measure total perceived time
+          let perceivedTime = null
+          if (typeof performance !== 'undefined' && performance.mark && performance.measure) {
+            try {
+              performance.mark('broadcast-end')
+              performance.measure('broadcast-perceived', 'broadcast-start', 'broadcast-end')
+              const measure = performance.getEntriesByName('broadcast-perceived')[0]
+              perceivedTime = Math.round(measure.duration)
+              // Clean up marks
+              performance.clearMarks('broadcast-start')
+              performance.clearMarks('broadcast-end')
+              performance.clearMeasures('broadcast-perceived')
+            } catch (e) {
+              // Ignore timing errors
+            }
           }
-        }
-        
-        // Always log performance summary for significant operations
-        if (broadcastTimestamp && networkLatency !== null) {
-          const perfData = {
-            server_timestamp: new Date(broadcastTimestamp).toISOString(),
-            network: `${networkLatency.toFixed(0)}ms`,
-            innerHTML: `${performTime}ms`,
-            reflow: `${afterRenderTime - performTime}ms`,
-            dom_total: `${afterRenderTime}ms`,
-            total: `${totalWithRender}ms`
+          
+          // Always log performance summary for significant operations
+          if (broadcastTimestamp && networkLatency !== null) {
+            const perfData = {
+              server_timestamp: new Date(broadcastTimestamp).toISOString(),
+              network: `${networkLatency.toFixed(0)}ms`,
+              innerHTML: `${performTime}ms`,
+              reflow: `${afterRenderTime - performTime}ms`,
+              dom_total: `${afterRenderTime}ms`,
+              total: `${totalWithRender}ms`
+            }
+            if (perceivedTime !== null) {
+              perfData.perceived = `${perceivedTime}ms`
+            }
+            console.log(`⚡ Performance [${selector}]:`, perfData)
+          } else {
+            // Fallback without network timing
+            if (firstOp && firstOp.selector) {
+              console.log(`⚡ Performance [${selector}]: innerHTML=${performTime}ms, reflow=${afterRenderTime - performTime}ms, total=${afterRenderTime}ms`)
+            } else if (PERF_LOGGING) {
+              console.log("✅ CableReady operations performed in", performTime + "ms")
+            }
           }
-          if (perceivedTime !== null) {
-            perfData.perceived = `${perceivedTime}ms`
-          }
-          console.log(`⚡ Performance [${selector}]:`, perfData)
-        } else {
-          // Fallback without network timing
-          if (firstOp && firstOp.selector) {
-            console.log(`⚡ Performance [${selector}]: innerHTML=${performTime}ms, reflow=${afterRenderTime - performTime}ms, total=${afterRenderTime}ms`)
-          } else if (PERF_LOGGING) {
-            console.log("✅ CableReady operations performed in", performTime + "ms")
-          }
-        }
-      })
-    } else if (PERF_LOGGING) {
+        })
+      }
+    } else if (PERF_LOGGING && !NO_LOGGING) {
       console.log("📥 TableMonitor Channel received:", {
         timestamp: new Date().toISOString(),
         hasCableReady: !!data.cableReady,
