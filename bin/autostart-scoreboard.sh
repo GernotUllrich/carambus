@@ -109,15 +109,27 @@ if [ -d /tmp/chromium-scoreboard ]; then
     chmod 755 /tmp/chromium-scoreboard 2>/dev/null || true
 fi
 
-# Start browser in fullscreen with additional flags to handle display issues
+# Start browser in fullscreen with optimized flags for Raspberry Pi performance
 # Note: Removed sudo - runs as current user (pj) for proper X11 access
 /usr/bin/chromium-browser \
+  --remote-debugging-port=9222 \
+  --enable-gpu-rasterization \
+  --enable-accelerated-2d-canvas \
+  --enable-zero-copy \
+  --enable-native-gpu-memory-buffers \
+  --use-angle=gles \
   --start-fullscreen \
   --disable-restore-session-state \
   --user-data-dir=/tmp/chromium-scoreboard \
   --disable-features=VizDisplayCompositor,TranslateUI \
   --disable-translate \
   --disable-dev-shm-usage \
+  --disable-smooth-scrolling \
+  --disable-gpu-vsync \
+  --disable-composited-antialiasing \
+  --no-default-browser-check \
+  --disable-pings \
+  --media-router=0 \
   --app="$SCOREBOARD_URL" \
   --no-sandbox \
   >/dev/null 2>&1 &
