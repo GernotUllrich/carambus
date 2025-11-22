@@ -8,13 +8,16 @@ const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 // Ultra-fast score update handler
 // Note: CableReady dispatch_event creates events on document with camelCase keys
 document.addEventListener('score:update', (event) => {
-  console.log('⚡⚡ score:update event received!', event.detail)
+  const eventReceivedAt = Date.now()
+  console.log(`⚡⚡ [${eventReceivedAt}] score:update event received!`, event.detail)
   
   const { tableMonitorId, playerKey, score, inning } = event.detail
   
   if (!NO_LOGGING) {
     console.log(`⚡⚡ Ultra-fast score update: ${playerKey} = ${score} (inning: ${inning})`)
   }
+  
+  const updateStart = Date.now()
   
   // Update main score
   const scoreElements = document.querySelectorAll(`.main-score[data-player="${playerKey}"]`)
@@ -39,9 +42,8 @@ document.addEventListener('score:update', (event) => {
     el.textContent = inning
   })
   
-  if (PERF_LOGGING) {
-    console.log(`⚡⚡ DOM updated in <1ms (no rendering!)`)
-  }
+  const updateEnd = Date.now()
+  console.log(`⚡⚡ DOM updated in ${updateEnd - updateStart}ms`)
 })
 
 console.log('✅ score:update event listener registered on document')
@@ -244,10 +246,15 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       const firstOp = data.operations[0]
       if (firstOp.operation === 'dispatchEvent') {
         // dispatch_event creates actual DOM events, CableReady will handle it
-        console.log('⚡⚡ Received dispatchEvent operation:', firstOp)
+        const receivedAt = Date.now()
+        console.log(`⚡⚡ [${receivedAt}] Received dispatchEvent operation:`, firstOp)
         console.log('⚡⚡ Event name:', firstOp.name, 'Detail:', firstOp.detail)
+        
+        const beforePerform = Date.now()
         CableReady.perform(data.operations)
-        console.log('⚡⚡ CableReady.perform completed for dispatchEvent')
+        const afterPerform = Date.now()
+        
+        console.log(`⚡⚡ CableReady.perform completed in ${afterPerform - beforePerform}ms (total delay: ${afterPerform - receivedAt}ms)`)
         return
       }
     }
