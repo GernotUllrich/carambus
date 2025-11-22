@@ -120,10 +120,10 @@ class TableMonitorJob < ApplicationJob
       current_inning = innings_redo_list.last || 0
       total_score = player_option[:result].to_i + current_inning
       
-      # Send minimal JSON data
+      # Send minimal JSON data (keys will be camelCased by CableReady)
       data = {
-        table_monitor_id: table_monitor.id,
-        player_key: player_key,
+        tableMonitorId: table_monitor.id,
+        playerKey: player_key,
         score: total_score,
         inning: current_inning
       }

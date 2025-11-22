@@ -6,34 +6,34 @@ const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
 const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 
 // Ultra-fast score update handler
-// Note: CableReady dispatch_event creates events on document or specific elements
+// Note: CableReady dispatch_event creates events on document with camelCase keys
 document.addEventListener('score:update', (event) => {
   console.log('⚡⚡ score:update event received!', event.detail)
   
-  const { table_monitor_id, player_key, score, inning } = event.detail
+  const { tableMonitorId, playerKey, score, inning } = event.detail
   
   if (!NO_LOGGING) {
-    console.log(`⚡⚡ Ultra-fast score update: ${player_key} = ${score} (inning: ${inning})`)
+    console.log(`⚡⚡ Ultra-fast score update: ${playerKey} = ${score} (inning: ${inning})`)
   }
   
   // Update main score
-  const scoreElements = document.querySelectorAll(`.main-score[data-player="${player_key}"]`)
-  console.log(`⚡⚡ Found ${scoreElements.length} .main-score elements for ${player_key}`)
+  const scoreElements = document.querySelectorAll(`.main-score[data-player="${playerKey}"]`)
+  console.log(`⚡⚡ Found ${scoreElements.length} .main-score elements for ${playerKey}`)
   scoreElements.forEach(el => {
     console.log(`⚡⚡ Updating score element:`, el, `from ${el.textContent} to ${score}`)
     el.textContent = score
   })
   
   // Update score-display data attribute
-  const scoreDisplays = document.querySelectorAll(`.score-display[data-player="${player_key}"]`)
-  console.log(`⚡⚡ Found ${scoreDisplays.length} .score-display elements for ${player_key}`)
+  const scoreDisplays = document.querySelectorAll(`.score-display[data-player="${playerKey}"]`)
+  console.log(`⚡⚡ Found ${scoreDisplays.length} .score-display elements for ${playerKey}`)
   scoreDisplays.forEach(el => {
     el.dataset.score = score
   })
   
   // Update inning score
-  const inningElements = document.querySelectorAll(`.inning-score[data-player="${player_key}"]`)
-  console.log(`⚡⚡ Found ${inningElements.length} .inning-score elements for ${player_key}`)
+  const inningElements = document.querySelectorAll(`.inning-score[data-player="${playerKey}"]`)
+  console.log(`⚡⚡ Found ${inningElements.length} .inning-score elements for ${playerKey}`)
   inningElements.forEach(el => {
     console.log(`⚡⚡ Updating inning element:`, el, `to ${inning}`)
     el.textContent = inning
