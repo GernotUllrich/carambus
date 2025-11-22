@@ -101,6 +101,19 @@ class TableMonitor < ApplicationRecord
       TableMonitorJob.perform_later(self, "teaser")
     end
 
+    # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
+    if ultra_fast_score_update?
+      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+
+      Rails.logger.info "🔔 ⚡⚡ ULTRA-FAST PATH: Score-only update for #{player_key}"
+      Rails.logger.info "🔔 ⚡⚡ Changed: innings_redo_list only"
+      TableMonitorJob.perform_later(self, "score_data", player: player_key)
+
+      @collected_changes = nil
+      Rails.logger.info "🔔 ========== after_update_commit END (ultra-fast path) =========="
+      return
+    end
+    
     # FAST PATH: Check for simple score changes that can use targeted updates
     # If only one player's score changed (plus balls_on_table), use partial update instead of full render
     if simple_score_update?
@@ -112,19 +125,17 @@ class TableMonitor < ApplicationRecord
 
       @collected_changes = nil
       Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
-    else
-      # CRITICAL: Always update active scoreboard view (SLOW PATH)
-      # The empty string triggers the `else` branch in TableMonitorJob's case statement,
-      # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
-      # Without this, browsers viewing the active scoreboard would show stale data,
-      # while only the table_scores overview would be updated.
-      # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
-      Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
-      TableMonitorJob.perform_later(self, "")
-      @collected_changes = nil
-      Rails.logger.info "🔔 ========== after_update_commit END =========="
-      # broadcast_replace_to self
+      return
     end
+    
+    # SLOW PATH: Full scoreboard update
+    # The empty string triggers the `else` branch in TableMonitorJob's case statement,
+    # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
+    # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
+    Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
+    TableMonitorJob.perform_later(self, "")
+    @collected_changes = nil
+    Rails.logger.info "🔔 ========== after_update_commit END =========="
 
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
@@ -179,16 +190,36 @@ class TableMonitor < ApplicationRecord
     end
   end
 
-  def simple_score_update?
+  def ultra_fast_score_update?
     return false if @collected_changes.blank?
-
+    
     # Flatten all keys from collected changes
     all_keys = @collected_changes.flat_map(&:keys).uniq
-
+    
+    # Ultra-fast path: ONLY score/innings changed for one player
+    # Check if only one player changed and only innings_redo_list
+    player_keys = all_keys & ['playera', 'playerb']
+    return false unless player_keys.size == 1
+    
+    player_key = player_keys.first
+    player_changes = @collected_changes.find { |c| c.key?(player_key) }
+    return false unless player_changes
+    
+    # Check if only innings_redo_list changed for this player
+    player_change_keys = player_changes[player_key].keys
+    player_change_keys == ['innings_redo_list']
+  end
+  
+  def simple_score_update?
+    return false if @collected_changes.blank?
+    
+    # Flatten all keys from collected changes
+    all_keys = @collected_changes.flat_map(&:keys).uniq
+    
     # Fast path: only balls_on_table and/or one player changed
     safe_keys = ['balls_on_table', 'playera', 'playerb']
     player_keys = all_keys & ['playera', 'playerb']
-
+    
     # Must have exactly one player key, and only safe keys
     player_keys.size == 1 && (all_keys - safe_keys).empty?
   end

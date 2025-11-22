@@ -5,6 +5,37 @@ import CableReady from 'cable_ready'
 const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
 const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 
+// Ultra-fast score update handler
+document.addEventListener('score:update', (event) => {
+  const { table_monitor_id, player_key, score, inning } = event.detail
+  
+  if (!NO_LOGGING) {
+    console.log(`⚡⚡ Ultra-fast score update: ${player_key} = ${score} (inning: ${inning})`)
+  }
+  
+  // Update main score
+  const scoreElements = document.querySelectorAll(`.main-score[data-player="${player_key}"]`)
+  scoreElements.forEach(el => {
+    el.textContent = score
+  })
+  
+  // Update score-display data attribute
+  const scoreDisplays = document.querySelectorAll(`.score-display[data-player="${player_key}"]`)
+  scoreDisplays.forEach(el => {
+    el.dataset.score = score
+  })
+  
+  // Update inning score
+  const inningElements = document.querySelectorAll(`.inning-score[data-player="${player_key}"]`)
+  inningElements.forEach(el => {
+    el.textContent = inning
+  })
+  
+  if (PERF_LOGGING) {
+    console.log(`⚡⚡ DOM updated in <1ms (no rendering!)`)
+  }
+})
+
 // Connection Health Monitor
 class ConnectionHealthMonitor {
   constructor(subscription) {

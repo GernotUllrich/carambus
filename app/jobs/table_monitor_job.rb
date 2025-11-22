@@ -104,6 +104,37 @@ class TableMonitorJob < ApplicationJob
         selector: selector,
         html: rendered_html,
       )
+    when "score_data"
+      # ULTRA-FAST PATH: Send only JSON data for score update
+      # No HTML rendering - JavaScript updates DOM directly
+      player_key = options[:player]
+      
+      Rails.logger.info "📡 ⚡⚡ ULTRA-FAST PATH: Sending score data for #{player_key}"
+      
+      # Get fresh data
+      table_monitor.get_options!(I18n.locale)
+      player_option = player_key == "playera" ? table_monitor.options[:player_a] : table_monitor.options[:player_b]
+      
+      # Calculate current score
+      innings_redo_list = table_monitor.data[player_key]["innings_redo_list"] || []
+      current_inning = innings_redo_list.last || 0
+      total_score = player_option[:result].to_i + current_inning
+      
+      # Send minimal JSON data
+      data = {
+        table_monitor_id: table_monitor.id,
+        player_key: player_key,
+        score: total_score,
+        inning: current_inning
+      }
+      
+      Rails.logger.info "📡 ⚡⚡ Data: #{data.inspect}"
+      
+      # Broadcast as dispatchEvent (custom event that JavaScript can listen to)
+      cable_ready["table-monitor-stream"].dispatch_event(
+        name: "score:update",
+        detail: data
+      )
     when "player_score_panel"
       # FAST PATH: Targeted player panel update
       # Only renders and sends one player's panel (~10KB instead of ~100KB)
