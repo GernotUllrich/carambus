@@ -135,6 +135,15 @@ class TableMonitorJob < ApplicationJob
         name: "score:update",
         detail: data
       )
+      
+      # CRITICAL: Broadcast immediately for ultra-fast path (don't wait for batching)
+      # This bypasses the normal batching at the end of the job
+      cable_ready.broadcast
+      
+      Rails.logger.info "📡 ⚡⚡ Broadcast sent immediately (no batching)"
+      
+      # Exit early to prevent double broadcast at the end
+      return
     when "player_score_panel"
       # FAST PATH: Targeted player panel update
       # Only renders and sends one player's panel (~10KB instead of ~100KB)
