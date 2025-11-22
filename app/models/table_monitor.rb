@@ -104,13 +104,8 @@ class TableMonitor < ApplicationRecord
     # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
     if ultra_fast_score_update?
       player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
-
-      Rails.logger.info "🔔 ⚡⚡ ULTRA-FAST PATH: Score-only update for #{player_key}"
-      Rails.logger.info "🔔 ⚡⚡ Changed: innings_redo_list only"
       TableMonitorJob.perform_later(self, "score_data", player: player_key)
-
       @collected_changes = nil
-      Rails.logger.info "🔔 ========== after_update_commit END (ultra-fast path) =========="
       return
     end
     

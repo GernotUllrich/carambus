@@ -109,8 +109,6 @@ class TableMonitorJob < ApplicationJob
       # No HTML rendering - JavaScript updates DOM directly
       player_key = options[:player]
       
-      Rails.logger.info "📡 ⚡⚡ ULTRA-FAST PATH: Sending score data for #{player_key}"
-      
       # Get fresh data
       table_monitor.get_options!(I18n.locale)
       player_option = player_key == "playera" ? table_monitor.options[:player_a] : table_monitor.options[:player_b]
@@ -128,21 +126,16 @@ class TableMonitorJob < ApplicationJob
         inning: current_inning
       }
       
-      Rails.logger.info "📡 ⚡⚡ Data: #{data.inspect}"
-      
       # Broadcast as dispatchEvent (custom event that JavaScript can listen to)
       cable_ready["table-monitor-stream"].dispatch_event(
         name: "score:update",
         detail: data
       )
       
-      # CRITICAL: Broadcast immediately for ultra-fast path (don't wait for batching)
-      # This bypasses the normal batching at the end of the job
+      # Broadcast immediately (don't wait for batching at end of job)
       cable_ready.broadcast
       
-      Rails.logger.info "📡 ⚡⚡ Broadcast sent immediately (no batching)"
-      
-      # Exit early to prevent double broadcast at the end
+      # Exit early to prevent double broadcast
       return
     when "player_score_panel"
       # FAST PATH: Targeted player panel update
