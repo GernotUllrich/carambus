@@ -6,7 +6,10 @@ const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
 const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 
 // Ultra-fast score update handler
+// Note: CableReady dispatch_event creates events on document or specific elements
 document.addEventListener('score:update', (event) => {
+  console.log('⚡⚡ score:update event received!', event.detail)
+  
   const { table_monitor_id, player_key, score, inning } = event.detail
   
   if (!NO_LOGGING) {
@@ -15,19 +18,24 @@ document.addEventListener('score:update', (event) => {
   
   // Update main score
   const scoreElements = document.querySelectorAll(`.main-score[data-player="${player_key}"]`)
+  console.log(`⚡⚡ Found ${scoreElements.length} .main-score elements for ${player_key}`)
   scoreElements.forEach(el => {
+    console.log(`⚡⚡ Updating score element:`, el, `from ${el.textContent} to ${score}`)
     el.textContent = score
   })
   
   // Update score-display data attribute
   const scoreDisplays = document.querySelectorAll(`.score-display[data-player="${player_key}"]`)
+  console.log(`⚡⚡ Found ${scoreDisplays.length} .score-display elements for ${player_key}`)
   scoreDisplays.forEach(el => {
     el.dataset.score = score
   })
   
   // Update inning score
   const inningElements = document.querySelectorAll(`.inning-score[data-player="${player_key}"]`)
+  console.log(`⚡⚡ Found ${inningElements.length} .inning-score elements for ${player_key}`)
   inningElements.forEach(el => {
+    console.log(`⚡⚡ Updating inning element:`, el, `to ${inning}`)
     el.textContent = inning
   })
   
@@ -35,6 +43,8 @@ document.addEventListener('score:update', (event) => {
     console.log(`⚡⚡ DOM updated in <1ms (no rendering!)`)
   }
 })
+
+console.log('✅ score:update event listener registered on document')
 
 // Connection Health Monitor
 class ConnectionHealthMonitor {
@@ -234,8 +244,10 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       const firstOp = data.operations[0]
       if (firstOp.operation === 'dispatchEvent') {
         // dispatch_event creates actual DOM events, CableReady will handle it
-        // Just perform it without our custom logging
+        console.log('⚡⚡ Received dispatchEvent operation:', firstOp)
+        console.log('⚡⚡ Event name:', firstOp.name, 'Detail:', firstOp.detail)
         CableReady.perform(data.operations)
+        console.log('⚡⚡ CableReady.perform completed for dispatchEvent')
         return
       }
     }
