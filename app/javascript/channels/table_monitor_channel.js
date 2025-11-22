@@ -229,6 +229,17 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       return
     }
     
+    // Handle dispatch_event operations (they have a different structure)
+    if (data.cableReady && data.operations?.length > 0) {
+      const firstOp = data.operations[0]
+      if (firstOp.operation === 'dispatchEvent') {
+        // dispatch_event creates actual DOM events, CableReady will handle it
+        // Just perform it without our custom logging
+        CableReady.perform(data.operations)
+        return
+      }
+    }
+    
     // Performance measurement
     let broadcastTimestamp = this.pendingBroadcastTimestamp
     let networkLatency = null
