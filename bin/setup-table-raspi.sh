@@ -318,10 +318,23 @@ info "  Model: $PI_MODEL"
 info "  RAM: ${RAM_MB}MB"
 info "  Architecture: $OS_ARCH"
 
+# If detection failed completely, skip the performance check
+if [ "$RAM_MB" -eq 0 ] || [ "$PI_MODEL" = "Unknown" ]; then
+    warning "System detection failed - skipping performance compatibility check"
+    warning "This is not critical - setup will continue normally"
+    echo ""
+else
+    # Continue with full performance check
+
 # Check current memory usage
 MEM_USED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$3}'" 2>/dev/null || echo "0")
 MEM_AVAIL=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$7}'" 2>/dev/null || echo "0")
-MEM_PERCENT=$((MEM_USED * 100 / RAM_MB))
+# Avoid division by zero if RAM detection failed
+if [ "$RAM_MB" -gt 0 ]; then
+    MEM_PERCENT=$((MEM_USED * 100 / RAM_MB))
+else
+    MEM_PERCENT=0
+fi
 
 # Check swap configuration
 SWAP_SIZE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Swap:/ {print \$2}'" 2>/dev/null || echo "0")
@@ -367,16 +380,19 @@ fi
 # Performance recommendations - check if any issues exist
 PERFORMANCE_ISSUES=false
 
-if [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
-    PERFORMANCE_ISSUES=true
-fi
+# Only check if we successfully detected system info
+if [ "$RAM_MB" -gt 0 ]; then
+    if [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+        PERFORMANCE_ISSUES=true
+    fi
 
-if [ "$MEM_PERCENT" -gt 80 ]; then
-    PERFORMANCE_ISSUES=true
-fi
+    if [ -n "$MEM_PERCENT" ] && [ "$MEM_PERCENT" -gt 80 ]; then
+        PERFORMANCE_ISSUES=true
+    fi
 
-if [ "$SWAP_USED" -gt 100 ]; then
-    PERFORMANCE_ISSUES=true
+    if [ -n "$SWAP_USED" ] && [ "$SWAP_USED" -gt 100 ]; then
+        PERFORMANCE_ISSUES=true
+    fi
 fi
 
 if [ -n "$UNNECESSARY_SERVICES" ]; then
@@ -417,7 +433,7 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     fi
     
     # Check memory usage
-    if [ "$MEM_PERCENT" -gt 80 ]; then
+    if [ -n "$MEM_PERCENT" ] && [ "$MEM_PERCENT" -gt 0 ] && [ "$MEM_PERCENT" -gt 80 ]; then
         warning "  • High memory usage (${MEM_PERCENT}%) - system may be slow"
     fi
     
@@ -456,6 +472,8 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     warning ""
 fi
 
+fi  # End of performance check (skipped if detection failed)
+
 echo ""
 
 # Step 3: Detect network management system
@@ -463,7 +481,15 @@ log "🌐 Step 3: Detecting Network Management System"
 log "=============================================="
 
 info "Detecting network management system..."
-NETWORK_MANAGER=$(ssh -p $SSH_PORT "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive")
+NETWORK_MANAGER=$(ssh -p "$SSH_PORT" -o ConnectTimeout=10 -o ServerAliveInterval=5 "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive" 2>&1)
+
+# Check if SSH command succeeded
+if [ $? -ne 0 ] || [ -z "$NETWORK_MANAGER" ]; then
+    error "Failed to detect network management system"
+    error "SSH connection may have been interrupted"
+    error "Please check SSH connectivity and try again"
+    exit 1
+fi
 
 if [ "$NETWORK_MANAGER" = "active" ]; then
     log "✓ NetworkManager detected - using nmcli"
