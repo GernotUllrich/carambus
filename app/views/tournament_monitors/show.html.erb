@@ -3,18 +3,18 @@
   <div class="container mx-auto my-8 px-4">
     <h2 class="text-center"><%= t("tournaments.tournament_monitor") %></h2>
     <h3 class="text-center"><%= custom_link_to @tournament_monitor.tournament.title, tournament_path(@tournament_monitor.tournament) %></h3>
-    
+
     <!-- Links zu Scoreboards (read-only) -->
     <% if @tournament_monitor.tournament.location.present? %>
       <div class="text-center mb-4">
-        <%= link_to "📺 Scoreboards anzeigen (read-only)", 
+        <%= link_to "📺 Scoreboards anzeigen (read-only)",
             scoreboard_location_path(@tournament_monitor.tournament.location.md5, sb_state: "tournament_scores"),
             data: { turbo: false },
             class: "btn btn-secondary btn-sm",
             target: "_blank" %>
       </div>
     <% end %>
-    
+
     <div class="mx-auto">
 
       <%- if @tournament_monitor.andand.tournament.andand.tournament_plan.present? %>
@@ -24,19 +24,19 @@
               <h4><%= I18n.t("tournament_monitors.show.tournament_phase", :default => "Tournament:") %></h4>
               <%= @tournament_monitor.state.gsub("_", " ") %>
             </div>
-            <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |table-monitor| %>
-            <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |table-monitor| %>
+            <% TableMonitor.includes(:table, :game).where(tournament_monitor: @tournament_monitor).order(:name).each do |table_monitor| %>
+            <%# @tournament_monitor.table_monitors.includes(game: {game_participations: :player}).order(:name).each do |table_monitor| %>
               <div class="flex-1 flex-col">
-                <h4><%= "#{table-monitor.display_name}" %>:</h4>
-                <%= table-monitor.state.gsub("_", " ") %><br/>
-                <% if table-monitor.game.present? %>
-                  <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= table-monitor.game.andand.display_gname %>
+                <h4><%= "#{table_monitor.display_name}" %>:</h4>
+                <%= table_monitor.state.gsub("_", " ") %><br/>
+                <% if table_monitor.game.present? %>
+                  <%= I18n.t("tournament_monitors.show.playing", :default => "playing ") %><%= table_monitor.game.andand.display_gname %>
 <!--                <br/>-->
-                  <%- player_a = table-monitor.game.game_participations.where(role: "playera").first.andand.player %>
-                  <%- player_b = table-monitor.game.game_participations.where(role: "playerb").first.andand.player %>
+                  <%- player_a = table_monitor.game.game_participations.where(role: "playera").first.andand.player %>
+                  <%- player_b = table_monitor.game.game_participations.where(role: "playerb").first.andand.player %>
                   <strong class="flex 1 mt-4 text-black dark:text-white"><%= player_a.andand.fullname %></strong>
                   <strong class="flex 1 mb-4 text-yellow-400"><%= player_b.andand.fullname %></strong>
-                  <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: table-monitor.game.id), class: "btn btn-primary" %>
+                  <%= button_to "#{player_b.andand.fullname} stößt an!", switch_players_tournament_monitor_path(@tournament_monitor, game_id: table_monitor.game.id), class: "btn btn-primary" %>
                 <% end %>
               </div>
             <% end %>
@@ -44,10 +44,10 @@
         <% else %>
           <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
             <h4 class="text-red-900 font-semibold mb-2">⚠️ Fehler beim Initialisieren des Turniers</h4>
-            <% 
+            <%
               has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-              seeding_scope = has_local_seedings ? 
-                              "seedings.id >= #{Seeding::MIN_ID}" : 
+              seeding_scope = has_local_seedings ?
+                              "seedings.id >= #{Seeding::MIN_ID}" :
                               "seedings.id < #{Seeding::MIN_ID}"
               used_seedings_count = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).count
               total_seedings_count = @tournament_monitor.tournament.seedings.count
@@ -98,14 +98,14 @@
   <% if @tournament_monitor.data['groups'].present? %>
     <% @groups = @tournament_monitor.data['groups'] %>
   <% else %>
-    <% 
+    <%
       has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      seeding_scope = has_local_seedings ? 
-                      "seedings.id >= #{Seeding::MIN_ID}" : 
+      seeding_scope = has_local_seedings ?
+                      "seedings.id >= #{Seeding::MIN_ID}" :
                       "seedings.id < #{Seeding::MIN_ID}"
     %>
     <% @groups = TournamentMonitor.distribute_to_group(
-      @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+      @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player),
       @tournament_monitor.tournament.tournament_plan.ngroups,
       @tournament_monitor.tournament.tournament_plan.group_sizes
     ) %>
