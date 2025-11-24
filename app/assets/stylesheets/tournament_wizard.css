@@ -1,5 +1,19 @@
 /* Tournament Wizard UI Styles */
 
+:root {
+  --tournament-card-bg: #ffffff;
+  --tournament-card-heading: #1f2937;
+  --tournament-card-text: #4b5563;
+  --tournament-card-shadow: rgba(0, 0, 0, 0.1);
+}
+
+html.dark {
+  --tournament-card-bg: #111827;
+  --tournament-card-heading: #f9fafb;
+  --tournament-card-text: #d1d5db;
+  --tournament-card-shadow: rgba(0, 0, 0, 0.6);
+}
+
 /* Header */
 .wizard-header {
   background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
@@ -246,20 +260,22 @@
 
 /* Tournament Details Card */
 .tournament-details-card {
-  background-color: white;
+  background-color: var(--tournament-card-bg);
   border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--tournament-card-shadow);
   padding: 1.5rem;
   margin-bottom: 2rem;
+  color: var(--tournament-card-text);
 }
 
 /* Seedings Table Container */
 .seedings-table-container {
-  background-color: white;
+  background-color: var(--tournament-card-bg);
   border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--tournament-card-shadow);
   padding: 1.5rem;
   margin-top: 2rem;
+  color: var(--tournament-card-text);
 }
 
 .seedings-table-container h2,
@@ -267,7 +283,7 @@
   font-size: 1.25rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #1f2937;
+  color: var(--tournament-card-heading);
 }
 
 /* Responsive */
