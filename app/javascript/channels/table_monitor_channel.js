@@ -79,7 +79,6 @@ function getPageContext() {
   return { type: 'unknown' }
 }
 
-// VERIFICATION_MARKER_v2.0: This function must be in production build
 function shouldAcceptOperation(operation, pageContext) {
   if (!operation.selector) {
     // Operations without selectors are accepted (e.g., dispatch_event)
@@ -96,14 +95,38 @@ function shouldAcceptOperation(operation, pageContext) {
       // Only accept full_screen updates for THIS specific table monitor
       if (fullScreenMatch) {
         const selectorTableMonitorId = parseInt(fullScreenMatch[1])
-        return selectorTableMonitorId === pageContext.tableMonitorId
+        const isMatch = selectorTableMonitorId === pageContext.tableMonitorId
+        if (!isMatch && (PERF_LOGGING || !NO_LOGGING)) {
+          console.log(`🚫 REJECTED: Selector ${selector} (ID: ${selectorTableMonitorId}) does not match current scoreboard (ID: ${pageContext.tableMonitorId})`)
+        }
+        return isMatch
       }
       // Reject teaser and table_scores updates on scoreboard pages
       if (selector.startsWith('#teaser_') || selector === '#table_scores') {
+        if (PERF_LOGGING || !NO_LOGGING) {
+          console.log(`🚫 REJECTED: Selector ${selector} not relevant for scoreboard page`)
+        }
         return false
       }
-      // For unknown selectors, check if element exists (conservative)
-      return !!document.querySelector(selector)
+      // For unknown selectors on scoreboard pages, be strict - only accept if it's for this monitor
+      // Check if it's a full_screen selector we didn't catch
+      if (selector.includes('full_screen_table_monitor')) {
+        const idMatch = selector.match(/full_screen_table_monitor_(\d+)/)
+        if (idMatch) {
+          const selectorId = parseInt(idMatch[1])
+          return selectorId === pageContext.tableMonitorId
+        }
+      }
+      // For other selectors, check if element exists AND is within this scoreboard's context
+      const element = document.querySelector(selector)
+      if (element) {
+        // Verify the element is within the current scoreboard's DOM
+        const currentScoreboard = document.querySelector(`#full_screen_table_monitor_${pageContext.tableMonitorId}`)
+        if (currentScoreboard && currentScoreboard.contains(element)) {
+          return true
+        }
+      }
+      return false
       
     case 'table_scores':
       // Accept table_scores and teaser updates
@@ -131,7 +154,13 @@ function shouldAcceptOperation(operation, pageContext) {
       
     case 'unknown':
     default:
-      // Conservative: only accept if element exists
+      // For unknown context, be very conservative
+      // Only accept if it's clearly not a full_screen update
+      if (fullScreenMatch) {
+        // Don't accept full_screen updates if we don't know the context
+        return false
+      }
+      // For other selectors, check if element exists
       return !!document.querySelector(selector)
   }
 }
@@ -377,10 +406,32 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       
       // Context-aware filtering: only process operations relevant to this page
       const pageContext = getPageContext()
-      const applicableOperations = data.operations.filter(op => shouldAcceptOperation(op, pageContext))
+      
+      // Debug logging to diagnose filtering issues
+      if (PERF_LOGGING || !NO_LOGGING) {
+        console.log('🔍 Filtering operations:', {
+          pageContext,
+          operationCount: data.operations.length,
+          operations: data.operations.map(op => ({
+            operation: op.operation,
+            selector: op.selector
+          }))
+        })
+      }
+      
+      const applicableOperations = data.operations.filter(op => {
+        const accepted = shouldAcceptOperation(op, pageContext)
+        if (PERF_LOGGING || !NO_LOGGING) {
+          console.log(`${accepted ? '✅' : '🚫'} ${op.selector || 'no selector'}: ${accepted ? 'ACCEPTED' : 'REJECTED'}`)
+        }
+        return accepted
+      })
       
       // If no operations are applicable, skip processing
       if (applicableOperations.length === 0) {
+        if (PERF_LOGGING || !NO_LOGGING) {
+          console.log('⏭️ All operations filtered out, skipping')
+        }
         return
       }
       
