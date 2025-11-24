@@ -40,6 +40,7 @@ document.addEventListener('score:update', (event) => {
 })
 
 // Page Context Detection and Filtering
+// VERIFICATION_MARKER_v2.0: This function must be in production build
 function getPageContext() {
   // Detect individual scoreboard page
   const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
@@ -79,6 +80,7 @@ function getPageContext() {
   return { type: 'unknown' }
 }
 
+// VERIFICATION_MARKER_v2.0: This function must be in production build
 function shouldAcceptOperation(operation, pageContext) {
   if (!operation.selector) {
     // Operations without selectors are accepted (e.g., dispatch_event)
