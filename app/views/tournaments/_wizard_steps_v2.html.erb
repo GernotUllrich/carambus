@@ -62,10 +62,10 @@
             <details>
               <summary>💡 Was ist die Meldeliste?</summary>
               <p>
-                Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier 
-                <em>angemeldet</em> haben. Diese Liste kommt von der ClubCloud und wird täglich 
+                Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier
+                <em>angemeldet</em> haben. Diese Liste kommt von der ClubCloud und wird täglich
                 bis zum Meldeschluss aktualisiert.<br><br>
-                
+
                 <strong>Nicht verwechseln mit:</strong><br>
                 • <strong>Setzliste</strong> = Reihenfolge nach Ranking (kommt in Schritt 2)<br>
                 • <strong>Teilnehmerliste</strong> = Wer tatsächlich da ist (Schritt 3)
@@ -79,17 +79,17 @@
         <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament),
             method: :post,
             class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
-        
+
         <!-- Ergebnisse laden (nach Turnier-Ende) -->
         <% if %w[tournament_started playing_groups playing_finals finals_finished results_published].include?(tournament.state) %>
-          <%= button_to '📊 Ergebnisse von ClubCloud laden', 
+          <%= button_to '📊 Ergebnisse von ClubCloud laden',
               reload_from_cc_tournament_path(tournament, reload_games: true),
               method: :post,
               class: 'btn btn-warning btn-sm ml-2',
               data: { confirm: "⚠️ ACHTUNG: Lädt Spiele und Ergebnisse von ClubCloud.\n\nLokale Änderungen gehen verloren!\n\nNur verwenden wenn Turnier abgeschlossen und Ergebnisse hochgeladen wurden." },
               title: 'Für Archivierung nach Turnier-Ende' %>
         <% end %>
-        
+
         <% if tournament.source_url.present? %>
           <%= link_to '🔗 ClubCloud öffnen', tournament.source_url,
               target: '_blank',
@@ -97,7 +97,7 @@
               rel: 'noopener' %>
         <% end %>
       </div>
-      
+
       <!-- Troubleshooting: Turnier nicht gefunden -->
       <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
         <details>
@@ -107,7 +107,7 @@
           <div class="mt-3 text-sm text-yellow-900 space-y-3">
             <div>
               <p class="font-semibold mb-1">Empfohlen: Nur anstehende Turniere aktualisieren</p>
-              <%= button_to '🔄 Anstehende Turniere laden (nächste 30 Tage)', 
+              <%= button_to '🔄 Anstehende Turniere laden (nächste 30 Tage)',
                   reload_upcoming_tournaments_region_path(tournament.organizer),
                   method: :post,
                   class: 'btn btn-sm btn-warning',
@@ -117,10 +117,10 @@
                 ⏱️ Schnell (10-30 Sekunden) - Nur Turniere der nächsten 30 Tage
               </p>
             </div>
-            
+
             <div class="border-t border-yellow-300 pt-2">
               <p class="font-semibold mb-1">Alternative: Alle Turniere aktualisieren</p>
-              <%= button_to '🔄 Alle Turniere vom API Server laden', 
+              <%= button_to '🔄 Alle Turniere vom API Server laden',
                   reload_tournaments_region_path(tournament.organizer),
                   method: :post,
                   class: 'btn btn-sm btn-outline-warning',
@@ -169,15 +169,15 @@
           <details>
             <summary>💡 Was macht dieser Schritt?</summary>
             <p>
-              Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. 
+              Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch.
               Carambus extrahiert automatisch:<br>
               • <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>
               • <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>
               Unterstützt PDF oder Screenshot (PNG/JPG).<br>
               Zweispaltige Tabellen werden automatisch erkannt.<br><br>
-              <strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der 
+              <strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der
               Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br>
-              <strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong> 
+              <strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong>
               bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe).
             </p>
           </details>
@@ -192,13 +192,13 @@
       <%# Zeige Button auch wenn keine ClubCloud-Daten, aber wenn Turnier Seedings hat %>
       <% has_any_seedings = tournament.seedings.any? %>
       <% show_alternative_button = clubcloud_seedings_count > 0 || (has_any_seedings && step_2_status == :active) %>
-      
+
       <% if step_2_status == :active %>
-        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
+        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present?}" %>
-        
+
         <%# Zeige alternativen Button wenn Seedings vorhanden sind %>
         <% if show_alternative_button %>
           <div class="mt-3 p-3 bg-gray-50 border border-gray-300 rounded">
@@ -206,36 +206,36 @@
               <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
             </p>
             <% seedings_count = clubcloud_seedings_count > 0 ? clubcloud_seedings_count : tournament.seedings.count %>
-            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{seedings_count} Spieler, nach Rangliste sortiert)", 
+            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{seedings_count} Spieler, nach Rangliste sortiert)",
                 use_clubcloud_as_participants_tournament_path(tournament),
                 method: :post,
-                class: 'btn btn-outline-primary',
+                class: 'btn btn-primary',
                 data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste für #{tournament.discipline.name} sortiert." },
                 title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
           </div>
         <% end %>
-        
+
       <% elsif step_2_status == :completed %>
-        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen', 
+        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: 'btn btn-secondary btn-sm' %>
-        
+
         <%# Zeige alternativen Button auch bei completed wenn Seedings vorhanden sind %>
         <% if clubcloud_seedings_count > 0 %>
           <div class="mt-2 p-2 bg-gray-50 border border-gray-300 rounded">
             <p class="text-xs text-gray-700 mb-2">
               <strong>Wenn keine Einladung zum Upload vorliegt:</strong>
             </p>
-            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)", 
+            <%= button_to "→ Mit Meldeliste zu Schritt 3 (#{clubcloud_seedings_count} Spieler, nach Rangliste)",
                 use_clubcloud_as_participants_tournament_path(tournament),
                 method: :post,
-                class: 'btn btn-outline-secondary btn-sm',
+                class: 'btn btn-primary btn-sm',
                 data: { confirm: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\n#{clubcloud_seedings_count} Spieler werden übernommen und automatisch nach der Carambus-Rangliste sortiert." },
                 title: 'Übernimmt Meldeliste und sortiert automatisch nach Rangliste' %>
           </div>
         <% end %>
-        
+
       <% else %>
         <span class="disabled-text">
           Erst verfügbar nach vorherigem Schritt
@@ -279,7 +279,7 @@
       info: nil,
       warning: false,
       danger: true,
-      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong> 
+      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong>
              wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet." %>
 
   <!-- Schritt 5: Turniermodus wählen -->
@@ -296,7 +296,7 @@
       info: mode_info_text(tournament),
       warning: false,
       danger: false,
-      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. 
+      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer.
              Der Modus bestimmt Gruppenaufteilung und K.O.-Runden." %>
 
   <!-- Schritt 6: Turnier starten & verwalten -->
@@ -343,18 +343,18 @@
     <div class="wizard-step-actions">
       <% if tournament.tournament_started && tournament.tournament_monitor.present? %>
         <!-- Prominenter Button wenn Turnier läuft -->
-        <%= link_to '🎮 Tournament Monitor öffnen', 
+        <%= link_to '🎮 Tournament Monitor öffnen',
             tournament_monitor_path(tournament.tournament_monitor),
             class: 'btn btn-success btn-lg',
             style: 'font-weight: bold;' %>
       <% elsif wizard_step_status(tournament, 6) == :active %>
         <!-- Button zum Starten wenn noch nicht gestartet -->
-        <%= link_to 'Turnier starten', 
+        <%= link_to 'Turnier starten',
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-primary btn-pulse' %>
       <% elsif wizard_step_status(tournament, 6) == :completed %>
         <!-- Button auch wenn Schritt abgeschlossen (falls Turnier zurückgesetzt wurde) -->
-        <%= link_to 'Turnier starten', 
+        <%= link_to 'Turnier starten',
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-secondary btn-sm' %>
       <% else %>
@@ -373,10 +373,10 @@
   <dl class="text-sm text-blue-800 space-y-2">
     <dt class="font-semibold">Meldeliste:</dt>
     <dd class="ml-4">Wer hat sich für das Turnier <em>angemeldet</em> (aus ClubCloud)</dd>
-    
+
     <dt class="font-semibold">Setzliste:</dt>
     <dd class="ml-4">Offizielle <em>Reihenfolge</em> nach Ranking (aus Einladung vom Landessportwart)</dd>
-    
+
     <dt class="font-semibold">Teilnehmerliste:</dt>
     <dd class="ml-4">Wer ist <em>tatsächlich da</em> am Turniertag (= Setzliste ± Änderungen)</dd>
   </dl>
