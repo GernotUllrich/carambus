@@ -40,7 +40,6 @@ document.addEventListener('score:update', (event) => {
 })
 
 // Page Context Detection and Filtering
-// VERIFICATION_MARKER_v2.0: This function must be in production build
 function getPageContext() {
   // Detect individual scoreboard page
   const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
@@ -378,10 +377,6 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       
       // Context-aware filtering: only process operations relevant to this page
       const pageContext = getPageContext()
-      // VERIFICATION: Remove this log after confirming deployment
-      if (PERF_LOGGING || !NO_LOGGING) {
-        console.log('✅ FILTERING ACTIVE v2.0 - pageContext:', pageContext)
-      }
       const applicableOperations = data.operations.filter(op => shouldAcceptOperation(op, pageContext))
       
       // If no operations are applicable, skip processing
