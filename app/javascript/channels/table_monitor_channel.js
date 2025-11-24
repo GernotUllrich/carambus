@@ -359,10 +359,28 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
     }
     
     // Handle dispatch_event operations (they have a different structure)
+    // Note: dispatch_event operations create DOM events that are handled by event listeners
+    // The event listeners themselves filter by tableMonitorId, so we can allow these through
+    // However, we should still check if we're on the right page type
     if (data.cableReady && data.operations?.length > 0) {
       const firstOp = data.operations[0]
       if (firstOp.operation === 'dispatchEvent') {
-        // dispatch_event creates actual DOM events, CableReady will handle it
+        // For score:update events, the event listener will filter by tableMonitorId
+        // For other dispatch events, allow them through (they'll be handled by their listeners)
+        // But skip if we're on a page type that shouldn't receive these
+        const pageContext = getPageContext()
+        if (firstOp.name === 'score:update' && pageContext.type === 'scoreboard') {
+          // score:update events are filtered by the event listener, so allow through
+          CableReady.perform(data.operations)
+          return
+        } else if (firstOp.name === 'score:update') {
+          // Don't dispatch score:update on non-scoreboard pages
+          if (PERF_LOGGING || !NO_LOGGING) {
+            console.log(`🚫 REJECTED dispatch_event score:update on ${pageContext.type} page`)
+          }
+          return
+        }
+        // For other dispatch events, allow through
         CableReady.perform(data.operations)
         return
       }
