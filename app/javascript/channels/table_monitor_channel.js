@@ -10,6 +10,16 @@ const NO_LOGGING = localStorage.getItem('cable_no_logging') === 'true'
 document.addEventListener('score:update', (event) => {
   const { tableMonitorId, playerKey, score, inning } = event.detail
   
+  // Get the current page's table monitor ID from the DOM
+  const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
+  const currentTableMonitorId = scoreboardRoot?.dataset?.tableMonitorId
+  
+  // Only process updates for THIS specific table monitor
+  // If no scoreboard root exists (e.g., on table_scores page), ignore the update
+  if (!currentTableMonitorId || parseInt(currentTableMonitorId) !== parseInt(tableMonitorId)) {
+    return
+  }
+  
   // Update main score
   const scoreElements = document.querySelectorAll(`.main-score[data-player="${playerKey}"]`)
   scoreElements.forEach(el => {
