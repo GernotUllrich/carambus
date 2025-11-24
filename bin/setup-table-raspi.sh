@@ -44,13 +44,15 @@ info() {
 
 # Show usage
 show_usage() {
-    echo "Usage: $0 <scenario_name> <current_ip> <table_name|server>"
+    echo "Usage: $0 <scenario_name> <current_ip> <table_name|server> [static_ip]"
     echo ""
     echo "Arguments:"
     echo "  scenario_name    Name of the scenario (e.g., carambus_bcw)"
     echo "  current_ip       Current IP of the Raspberry Pi (e.g., 192.168.178.81)"
     echo "  table_name       Name of the table (e.g., 'Tisch 2' or 'Table 2')"
     echo "                   Use 'server' for server deployment (club WLAN uses DHCP)"
+    echo "  static_ip        Optional: Static IP address to configure (e.g., 192.168.2.217)"
+    echo "                   If not provided, will query database for the table's IP address"
     echo ""
     echo "Configuration Sources:"
     echo "  Club WLAN:  scenarios/<scenario>/config.yml → production.network.club_wlan"
@@ -87,8 +89,9 @@ fi
 SCENARIO_NAME="$1"
 CURRENT_IP="$2"
 TABLE_NAME="$3"
-SSH_PORT_ARG="${4:-}"
-SSH_USER_ARG="${5:-}"
+TABLE_IP_ARG="${4:-}"
+SSH_PORT_ARG="${5:-}"
+SSH_USER_ARG="${6:-}"
 KIOSK=""
 
 # Set defaults (will be overridden from config.yml for server mode)
@@ -182,6 +185,15 @@ config = YAML.load_file('$SCENARIO_CONFIG')
 puts config.dig('scenario', 'location_id')
 ")
 
+if [ -z "$LOCATION_ID" ]; then
+    error "Location ID not found in scenario config: $SCENARIO_CONFIG"
+    error "Please check that 'scenario.location_id' is set in the config.yml file"
+    exit 1
+fi
+
+log "✓ Location ID from config: $LOCATION_ID"
+echo ""
+
 # Check if table_name is "server" (explicit server mode)
 # Note: Table clients always use pi/22 for SSH, servers use config.yml SSH settings
 if [ "$TABLE_NAME" = "server" ] || [ -z "$TABLE_NAME" ]; then
@@ -242,24 +254,139 @@ else
     # Get kiosk user from config.yml (for desktop operations, default to pi)
     KIOSK_USER="pi"
     
-    # Get table IP from database
-    info "Querying database for table IP address..."
-    TABLE_IP=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "
-location = Location.find($LOCATION_ID)
-table = location.tables.where('name LIKE ?', '%$TABLE_NAME%').or(
-  location.tables.where(name: '$TABLE_NAME')
-).first
-
-if table && table.table_local && table.table_local.ip_address.present?
-  puts table.table_local.ip_address
-else
-  puts 'NOT_FOUND'
+    # Get table IP from database or use provided argument
+    if [ -n "$TABLE_IP_ARG" ]; then
+        # IP provided as argument - validate and use it
+        if ! echo "$TABLE_IP_ARG" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            error "Invalid IP address format: '$TABLE_IP_ARG'"
+            error "Expected format: 192.168.2.217"
+            exit 1
+        fi
+        TABLE_IP="$TABLE_IP_ARG"
+        log "✓ Using provided static IP: $TABLE_IP"
+        
+        # Detect database environment (needed for LOCATION_MD5 lookup later)
+        # Use development database only (should always be available locally)
+        info "Detecting database environment for location MD5 lookup..."
+        DB_ENV="development"
+        info "  Checking development database (required for setup)..."
+        
+        # Try to connect to development database directly
+        TEST_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "puts Location.count" 2>&1 | head -20)
+        if echo "$TEST_OUTPUT" | tail -1 | grep -qE '^[0-9]+$'; then
+            log "✓ Development database detected and accessible"
+        else
+            # Development database not accessible - this is required
+            error "Development database is not accessible"
+            error "This is required for location MD5 lookup"
+            if echo "$TEST_OUTPUT" | grep -qi "database.*does not exist\|could not find.*database"; then
+                error "Please create the development database:"
+                error "  cd $RAILS_APP_DIR && RAILS_ENV=development bundle exec rails db:create"
+            else
+                error "Database connection failed. Output:"
+                echo "$TEST_OUTPUT" | head -5 | while IFS= read -r line; do
+                    error "  $line"
+                done
+            fi
+            DB_ENV=""
+        fi
+        
+        if [ -z "$DB_ENV" ]; then
+            warning "⚠️  Cannot access database locally - location MD5 lookup will be attempted later"
+            warning "   The script may need database access to complete setup"
+        fi
+    else
+        # Query database for IP
+        info "Querying database for table IP address..."
+        info "  Location ID: $LOCATION_ID"
+        info "  Table name: '$TABLE_NAME'"
+        
+        # Use development database only (should always be available locally)
+        if [ -z "$DB_ENV" ]; then
+            DB_ENV="development"
+            info "  Trying development database (required for setup)..."
+            
+            TEST_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "puts Location.count" 2>&1 | head -20)
+            if echo "$TEST_OUTPUT" | tail -1 | grep -qE '^[0-9]+$'; then
+                DB_ENV="development"
+                log "✓ Using development database (found $(echo "$TEST_OUTPUT" | tail -1) locations)"
+            else
+                error "Development database is not accessible"
+                error "This is required for table IP lookup"
+                if echo "$TEST_OUTPUT" | grep -qi "database.*does not exist\|could not find.*database"; then
+                    error "Please create the development database:"
+                    error "  cd $RAILS_APP_DIR && RAILS_ENV=development bundle exec rails db:create"
+                else
+                    error "Database connection failed. Output:"
+                    echo "$TEST_OUTPUT" | head -5 | while IFS= read -r line; do
+                        error "  $line"
+                    done
+                fi
+                error ""
+                error "Alternative: Provide IP address as 4th argument to skip IP lookup:"
+                error "  $0 $SCENARIO_NAME $CURRENT_IP '$TABLE_NAME' <static_ip>"
+                error ""
+                error "But note: Database is still required for location MD5 hash lookup"
+                exit 1
+            fi
+        fi
+    
+    # Try to get more debug info about what's in the database
+    DEBUG_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=$DB_ENV bundle exec rails runner "
+begin
+  location = Location.find($LOCATION_ID)
+  puts \"Location found: #{location.name} (id: #{location.id})\"
+  tables = location.tables
+  puts \"Found #{tables.count} tables in this location\"
+  if tables.count > 0
+    puts \"Table names: #{tables.pluck(:name).join(', ')}\"
+  end
+  table = tables.where('name LIKE ?', '%$TABLE_NAME%').or(
+    tables.where(name: '$TABLE_NAME')
+  ).first
+  if table
+    puts \"Table found: #{table.name} (id: #{table.id})\"
+    if table.ip_address.present?
+      puts \"IP address: #{table.ip_address}\"
+      puts table.ip_address
+    else
+      puts 'IP_NOT_SET'
+    end
+  else
+    puts 'TABLE_NOT_FOUND'
+  end
+rescue ActiveRecord::RecordNotFound
+  puts 'LOCATION_NOT_FOUND'
+rescue => e
+  puts \"ERROR: #{e.message}\"
+  puts e.backtrace.first(3).join(\"\\n\")
 end
-" 2>/dev/null | tail -1)
+" 2>&1)
+    
+    # Extract just the IP address or error
+    TABLE_IP=$(echo "$DEBUG_OUTPUT" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)
+    
+    # Show debug info if no IP found
+    if [ -z "$TABLE_IP" ] || [ "$TABLE_IP" = "TABLE_NOT_FOUND" ] || [ "$TABLE_IP" = "IP_NOT_SET" ] || [ "$TABLE_IP" = "LOCATION_NOT_FOUND" ]; then
+        warning "Debug information from database query:"
+        echo "$DEBUG_OUTPUT" | while IFS= read -r line; do
+            info "  $line"
+        done
+        TABLE_IP="NOT_FOUND"
+    fi
 
-    if [ "$TABLE_IP" = "NOT_FOUND" ] || [ -z "$TABLE_IP" ]; then
-        error "Table '$TABLE_NAME' not found or has no IP address in table_local"
-        error "Please ensure the table exists in the database with ip_address set"
+        if [ "$TABLE_IP" = "NOT_FOUND" ] || [ -z "$TABLE_IP" ]; then
+            error "Table '$TABLE_NAME' not found or has no IP address configured"
+            error "Please ensure the table exists in location_id $LOCATION_ID with ip_address set"
+            exit 1
+        fi
+    fi  # End of else block (database query)
+    
+    # Validate that TABLE_IP is actually a valid IP address format
+    if ! echo "$TABLE_IP" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+        error "Invalid IP address format retrieved from database: '$TABLE_IP'"
+        error "Expected format: 192.168.2.217"
+        error "Please check the table_local.ip_address value for table '$TABLE_NAME' in location_id $LOCATION_ID"
         exit 1
     fi
 
@@ -302,6 +429,8 @@ PI_MODEL=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat /proc/device-tree/mod
 
 # Detect RAM amount (in MB)
 RAM_MB=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$2}'" 2>/dev/null || echo "0")
+# Ensure RAM_MB is numeric, default to 0 if empty or non-numeric
+RAM_MB=$(echo "$RAM_MB" | grep -E '^[0-9]+$' || echo "0")
 
 # Detect OS architecture
 OS_ARCH=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "uname -m" 2>/dev/null || echo "unknown")
@@ -319,7 +448,8 @@ info "  RAM: ${RAM_MB}MB"
 info "  Architecture: $OS_ARCH"
 
 # If detection failed completely, skip the performance check
-if [ "$RAM_MB" -eq 0 ] || [ "$PI_MODEL" = "Unknown" ]; then
+# Use numeric comparison - ensure RAM_MB is treated as number
+if [ "${RAM_MB:-0}" -eq 0 ] || [ "$PI_MODEL" = "Unknown" ]; then
     warning "System detection failed - skipping performance compatibility check"
     warning "This is not critical - setup will continue normally"
     echo ""
@@ -329,8 +459,11 @@ else
 # Check current memory usage
 MEM_USED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$3}'" 2>/dev/null || echo "0")
 MEM_AVAIL=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Mem:/ {print \$7}'" 2>/dev/null || echo "0")
+# Ensure variables are numeric
+MEM_USED=$(echo "$MEM_USED" | grep -E '^[0-9]+$' || echo "0")
+MEM_AVAIL=$(echo "$MEM_AVAIL" | grep -E '^[0-9]+$' || echo "0")
 # Avoid division by zero if RAM detection failed
-if [ "$RAM_MB" -gt 0 ]; then
+if [ "${RAM_MB:-0}" -gt 0 ]; then
     MEM_PERCENT=$((MEM_USED * 100 / RAM_MB))
 else
     MEM_PERCENT=0
@@ -339,6 +472,9 @@ fi
 # Check swap configuration
 SWAP_SIZE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Swap:/ {print \$2}'" 2>/dev/null || echo "0")
 SWAP_USED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "free -m | awk '/^Swap:/ {print \$3}'" 2>/dev/null || echo "0")
+# Ensure variables are numeric
+SWAP_SIZE=$(echo "$SWAP_SIZE" | grep -E '^[0-9]+$' || echo "0")
+SWAP_USED=$(echo "$SWAP_USED" | grep -E '^[0-9]+$' || echo "0")
 
 # Check for unnecessary services that can be disabled
 UNNECESSARY_SERVICES=""
@@ -373,7 +509,7 @@ ZRAM_INSTALLED=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "dpkg -l | grep -q z
 
 # Show system status
 info "Current memory usage: ${MEM_USED}MB used, ${MEM_AVAIL}MB available (${MEM_PERCENT}% used)"
-if [ "$SWAP_SIZE" -gt 0 ]; then
+if [ "${SWAP_SIZE:-0}" -gt 0 ]; then
     info "Swap: ${SWAP_SIZE}MB total, ${SWAP_USED}MB used"
 fi
 
@@ -381,16 +517,16 @@ fi
 PERFORMANCE_ISSUES=false
 
 # Only check if we successfully detected system info
-if [ "$RAM_MB" -gt 0 ]; then
-    if [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+if [ "${RAM_MB:-0}" -gt 0 ]; then
+    if [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         PERFORMANCE_ISSUES=true
     fi
 
-    if [ -n "$MEM_PERCENT" ] && [ "$MEM_PERCENT" -gt 80 ]; then
+    if [ -n "$MEM_PERCENT" ] && [ "${MEM_PERCENT:-0}" -gt 80 ]; then
         PERFORMANCE_ISSUES=true
     fi
 
-    if [ -n "$SWAP_USED" ] && [ "$SWAP_USED" -gt 100 ]; then
+    if [ -n "$SWAP_USED" ] && [ "${SWAP_USED:-0}" -gt 100 ]; then
         PERFORMANCE_ISSUES=true
     fi
 fi
@@ -403,11 +539,11 @@ if [ -n "$HEAVY_PACKAGES" ]; then
     PERFORMANCE_ISSUES=true
 fi
 
-if [ "$RAM_MB" -le 1024 ] && [ "$SWAP_SIZE" -lt 1024 ]; then
+if [ "${RAM_MB:-0}" -le 1024 ] && [ "${SWAP_SIZE:-0}" -lt 1024 ]; then
     PERFORMANCE_ISSUES=true
 fi
 
-if [ "$RAM_MB" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
+if [ "${RAM_MB:-0}" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
     PERFORMANCE_ISSUES=true
 fi
 
@@ -417,7 +553,7 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     warning "⚠️  PERFORMANCE OPTIMIZATION RECOMMENDATIONS ⚠️"
     warning "=============================================="
     
-    if [ "$IS_PI3" = true ] && [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+    if [ "$IS_PI3" = true ] && [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "Critical: Raspberry Pi 3 with 1GB RAM running 64-bit OS"
         warning "This configuration will cause performance issues!"
         warning ""
@@ -426,19 +562,19 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     warning "Recommendations to improve performance:"
     
     # Check for performance issue: Pi 3 with 1GB RAM running 64-bit
-    if [ "$IS_PI3" = true ] && [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+    if [ "$IS_PI3" = true ] && [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "  • Switch to Raspberry Pi OS (32-bit) for better memory efficiency"
-    elif [ "$RAM_MB" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
+    elif [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "  • Consider using 32-bit OS for better performance"
     fi
     
     # Check memory usage
-    if [ -n "$MEM_PERCENT" ] && [ "$MEM_PERCENT" -gt 0 ] && [ "$MEM_PERCENT" -gt 80 ]; then
+    if [ -n "$MEM_PERCENT" ] && [ "${MEM_PERCENT:-0}" -gt 0 ] && [ "${MEM_PERCENT:-0}" -gt 80 ]; then
         warning "  • High memory usage (${MEM_PERCENT}%) - system may be slow"
     fi
     
     # Check swap usage
-    if [ "$SWAP_USED" -gt 100 ]; then
+    if [ "${SWAP_USED:-0}" -gt 100 ]; then
         warning "  • High swap usage (${SWAP_USED}MB) - SD card swapping is slow"
     fi
     
@@ -455,13 +591,13 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     fi
     
     # Check swap size for low-RAM systems
-    if [ "$RAM_MB" -le 1024 ] && [ "$SWAP_SIZE" -lt 1024 ]; then
+    if [ "${RAM_MB:-0}" -le 1024 ] && [ "${SWAP_SIZE:-0}" -lt 1024 ]; then
         warning "  • Increase swap size to 2GB for better stability"
         warning "    Edit /etc/dphys-swapfile and set CONF_SWAPSIZE=2048"
     fi
     
     # Check for zram (compressed RAM swap - better than SD card swap)
-    if [ "$RAM_MB" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
+    if [ "${RAM_MB:-0}" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
         warning "  • Install zram-tools for faster compressed RAM swap"
         warning "    Run: sudo apt install zram-tools"
     fi
@@ -481,18 +617,50 @@ log "🌐 Step 3: Detecting Network Management System"
 log "=============================================="
 
 info "Detecting network management system..."
-NETWORK_MANAGER=$(ssh -p "$SSH_PORT" -o ConnectTimeout=10 -o ServerAliveInterval=5 "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive" 2>&1)
+# First, verify SSH connection still works
+info "  Verifying SSH connection..."
+if ! ssh -p "$SSH_PORT" -o ConnectTimeout=5 -o BatchMode=yes "$SSH_USER@$CURRENT_IP" "echo 'SSH OK'" 2>/dev/null; then
+    warning "⚠️  SSH connection test failed - network may have changed"
+    warning "  Attempting to reconnect..."
+    sleep 3
+    # Try once more with the original IP
+    if ! ssh -p "$SSH_PORT" -o ConnectTimeout=5 "$SSH_USER@$CURRENT_IP" "echo 'SSH OK'" 2>/dev/null; then
+        error "SSH connection lost - cannot continue network configuration"
+        error "Please reconnect via SSH and run the remaining steps manually"
+        exit 1
+    fi
+fi
 
-# Check if SSH command succeeded
-if [ $? -ne 0 ] || [ -z "$NETWORK_MANAGER" ]; then
+# Use a quick SSH command to detect network manager
+info "  Checking network management system..."
+NETWORK_MANAGER_RESULT=$(ssh -p "$SSH_PORT" -o ConnectTimeout=5 -o ServerAliveInterval=2 -o ServerAliveCountMax=3 "$SSH_USER@$CURRENT_IP" "systemctl is-active NetworkManager 2>/dev/null || echo inactive" 2>&1)
+EXIT_CODE=$?
+
+# Parse the result
+if [ $EXIT_CODE -eq 0 ] && [ -n "$NETWORK_MANAGER_RESULT" ]; then
+    # Filter out any error messages and get just the status
+    NETWORK_MANAGER=$(echo "$NETWORK_MANAGER_RESULT" | grep -E "^(active|inactive|failed|activating|deactivating)$" | head -1 || echo "inactive")
+else
+    # SSH failed or no valid response
+    warning "Could not detect network management system via SSH"
+    warning "Assuming NetworkManager (default for modern systems)"
+    NETWORK_MANAGER="assumed"
+fi
+
+# Final check
+if [ -z "$NETWORK_MANAGER" ]; then
     error "Failed to detect network management system"
     error "SSH connection may have been interrupted"
     error "Please check SSH connectivity and try again"
     exit 1
 fi
 
-if [ "$NETWORK_MANAGER" = "active" ]; then
-    log "✓ NetworkManager detected - using nmcli"
+if [ "$NETWORK_MANAGER" = "active" ] || [ "$NETWORK_MANAGER" = "assumed" ]; then
+    if [ "$NETWORK_MANAGER" = "assumed" ]; then
+        log "✓ Assuming NetworkManager - using nmcli"
+    else
+        log "✓ NetworkManager detected - using nmcli"
+    fi
     USING_NETWORK_MANAGER=true
 else
     log "✓ dhcpcd detected - using wpa_supplicant + dhcpcd.conf"
@@ -514,6 +682,10 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     # IMPORTANT: We preserve the existing "preconfigured" connection (user's dev WLAN)
     # so passwordless SSH access remains available
     
+    # Check if connection already exists and is active (to avoid disconnecting during setup)
+    CLUB_CONN_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+    CLUB_CONN_ACTIVE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+    
     # Determine IP configuration based on mode and config
     if [ -n "$TABLE_IP" ]; then
         # Static IP mode (either table client or server with static_ip configured)
@@ -523,32 +695,66 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
             info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP - Table Client)"
         fi
         
-        # Delete existing connection if it exists
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
-        
-        # Create club WLAN connection with static IP
-        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/${CLUB_SUBNET} ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '${CLUB_DNS} 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
-        CLUB_CONN_EXIT_CODE=$?
+        if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
+            # Connection exists and is active - modify in-place to preserve SSH connection
+            warning "Connection '$CLUB_WLAN_SSID' is currently active - modifying in-place to preserve network connectivity"
+            info "Updating existing connection with static IP configuration..."
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.addresses ${TABLE_IP}/${CLUB_SUBNET} ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '${CLUB_DNS} 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        elif [ "$CLUB_CONN_EXISTS" = "yes" ]; then
+            # Connection exists but not active - safe to delete and recreate
+            info "Connection exists but not active - recreating with static IP configuration..."
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/${CLUB_SUBNET} ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '${CLUB_DNS} 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        else
+            # Connection doesn't exist - create new
+            info "Creating new connection with static IP configuration..."
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.addresses ${TABLE_IP}/${CLUB_SUBNET} ipv4.gateway ${CLUB_GATEWAY} ipv4.dns '${CLUB_DNS} 1.1.1.1' ipv4.method manual connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        fi
     else
         # DHCP mode (server without static_ip)
         info "Configuring club WLAN: $CLUB_WLAN_SSID (DHCP - Server Mode)"
         
-        # Delete existing connection if it exists
-        ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
-        
-        # Create club WLAN connection with DHCP
-        # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
-        CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
-        CLUB_CONN_EXIT_CODE=$?
+        if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
+            # Connection exists and is active - modify in-place to preserve SSH connection
+            warning "Connection '$CLUB_WLAN_SSID' is currently active - modifying in-place to preserve network connectivity"
+            info "Updating existing connection with DHCP configuration..."
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        elif [ "$CLUB_CONN_EXISTS" = "yes" ]; then
+            # Connection exists but not active - safe to delete and recreate
+            info "Connection exists but not active - recreating with DHCP configuration..."
+            ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$CLUB_WLAN_SSID' 2>/dev/null || true"
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        else
+            # Connection doesn't exist - create new
+            info "Creating new connection with DHCP configuration..."
+            CLUB_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$CLUB_WLAN_SSID' ssid '$CLUB_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$CLUB_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority 0 2>&1")
+            CLUB_CONN_EXIT_CODE=$?
+        fi
     fi
     
     if [ $CLUB_CONN_EXIT_CODE -eq 0 ]; then
-        log "✅ Club WLAN connection created (not activated - will connect on reboot)"
+        # Connection created/modified successfully
+        if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
+            log "✅ Club WLAN connection updated (configuration will apply fully on reboot)"
+            if [ -n "$TABLE_IP" ]; then
+                warning "⚠️  Note: Connection is currently active with DHCP. Static IP ($TABLE_IP) will be fully applied after reboot."
+                warning "   Network may disconnect briefly when static IP is applied - this is normal."
+            fi
+        else
+            log "✅ Club WLAN connection created (not activated - will connect on reboot)"
+        fi
         
-        # Verify connection was created but not activated
-        CLUB_ACTIVE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
-        if [ "$CLUB_ACTIVE" = "yes" ]; then
+        # Verify connection status
+        CLUB_ACTIVE_NOW=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
+        
+        # Only try to bring down if it was newly created (didn't exist before) and unexpectedly activated
+        # If it was already active before, we modified it in-place and it should stay connected
+        if [ "$CLUB_ACTIVE_NOW" = "yes" ] && [ "$CLUB_CONN_EXISTS" != "yes" ]; then
             warning "Club WLAN connection was activated unexpectedly - bringing it down..."
             ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' && sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null || true
         fi
@@ -571,7 +777,13 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
             info "No 'preconfigured' connection found (may have been removed previously)"
         fi
     else
-        error "Failed to create club WLAN connection: $CLUB_CONN_OUTPUT"
+        error "Failed to create/modify club WLAN connection"
+        error "Exit code: $CLUB_CONN_EXIT_CODE"
+        error "Output: $CLUB_CONN_OUTPUT"
+        error "This may be due to invalid IP address format or NetworkManager configuration issue"
+        if [ -n "$TABLE_IP" ]; then
+            error "Attempted to use IP address: $TABLE_IP"
+        fi
         exit 1
     fi
     
@@ -736,13 +948,20 @@ log "🔧 Step 7: Creating Autostart Configuration"
 log "=========================================="
 
 info "Getting location MD5 hash from database..."
-LOCATION_MD5=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "
+if [ -z "$DB_ENV" ]; then
+    error "Database environment not detected - cannot query location MD5"
+    error "Please ensure database connection is available or run on server where database is located"
+    exit 1
+fi
+
+LOCATION_MD5=$(cd "$RAILS_APP_DIR" && RAILS_ENV=$DB_ENV bundle exec rails runner "
 location = Location.find($LOCATION_ID)
 puts location.md5
-" 2>/dev/null | tail -1)
+" 2>&1 | grep -E '^[a-f0-9]{32}$' | head -1)
 
 if [ -z "$LOCATION_MD5" ]; then
-    error "Failed to get location MD5 hash"
+    error "Failed to get location MD5 hash from database"
+    error "Tried environment: $DB_ENV, Location ID: $LOCATION_ID"
     exit 1
 fi
 
@@ -777,8 +996,8 @@ done
 
 xhost +local: 2>/dev/null || true
 
-# Wait for display
-sleep 5
+# Wait for display (reduced delay - display is usually ready quickly)
+sleep 2
 
 # Hide panels
 wmctrl -r "panel" -b add,hidden 2>/dev/null || true
@@ -786,55 +1005,39 @@ wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
 SCOREBOARD_URL="'"$SCOREBOARD_URL"'"
 
-# Wait for web server to be ready
+# Wait for web server to be ready (only for local server mode)
 if [ "$IS_LOCAL_SERVER" = "true" ]; then
-    # Local server mode: Wait longer for Puma to start
+    # Local server mode: Wait for Puma to start
     echo "Local server mode - waiting for Puma service to be ready..."
-    MAX_WAIT=120  # Maximum 2 minutes
-    WAIT_INTERVAL=5
-else
-    # Remote server mode: Short wait (server should already be running)
-    echo "Remote server mode - checking server availability..."
-    MAX_WAIT=30  # Maximum 30 seconds
-    WAIT_INTERVAL=3
-fi
-
-WAITED=0
-SERVER_READY=false
-
-while [ $WAITED -lt $MAX_WAIT ]; do
-    # Try to connect to the server
-    if curl -s -f -o /dev/null --connect-timeout 2 "$SCOREBOARD_URL" 2>/dev/null; then
-        SERVER_READY=true
-        echo "✓ Server is ready after ${WAITED}s"
-        break
-    fi
+    MAX_WAIT=60  # Maximum 1 minute
+    WAIT_INTERVAL=3  # Check every 3 seconds
     
-    # Also check if just the port is responding (even with 502)
-    if curl -s --connect-timeout 2 "http://'"$WEBSERVER_HOST"':'"$WEBSERVER_PORT"'/" >/dev/null 2>&1; then
-        if [ "$IS_LOCAL_SERVER" = "true" ]; then
-            echo "  Port responding but Puma not ready yet (possibly 502)..."
-        else
-            echo "  Port responding but server not ready yet..."
-        fi
-    else
-        if [ "$IS_LOCAL_SERVER" = "true" ]; then
-            echo "  Waiting for Puma service to start..."
-        else
-            echo "  Server not responding yet..."
-        fi
-    fi
+    WAITED=0
+    SERVER_READY=false
     
-    sleep $WAIT_INTERVAL
-    WAITED=$((WAITED + WAIT_INTERVAL))
-done
-
-if [ "$SERVER_READY" = false ]; then
-    if [ "$IS_LOCAL_SERVER" = "true" ]; then
+    while [ $WAITED -lt $MAX_WAIT ]; do
+        # Try to connect to the server
+        if curl -s -f -o /dev/null --connect-timeout 2 "$SCOREBOARD_URL" 2>/dev/null; then
+            SERVER_READY=true
+            echo "✓ Server is ready after ${WAITED}s"
+            break
+        fi
+        
+        # Show progress every 5 seconds
+        if [ $((WAITED % 5)) -eq 0 ] && [ $WAITED -gt 0 ]; then
+            echo "  Still waiting for Puma service... (${WAITED}s)"
+        fi
+        
+        sleep $WAIT_INTERVAL
+        WAITED=$((WAITED + WAIT_INTERVAL))
+    done
+    
+    if [ "$SERVER_READY" = false ]; then
         echo "⚠️  Warning: Local Puma service did not respond after ${MAX_WAIT}s - starting browser anyway"
-    else
-        echo "⚠️  Warning: Remote server did not respond after ${MAX_WAIT}s - starting browser anyway"
     fi
+else
+    # Remote server mode: No wait - server should already be running
+    echo "Remote server mode - starting browser immediately (server should be running)"
 fi
 
 echo "Loading: $SCOREBOARD_URL"
@@ -929,9 +1132,31 @@ done
 '
 
 # Upload autostart script
-echo "$AUTOSTART_SCRIPT" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/autostart-scoreboard.sh" 2>/dev/null
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/autostart-scoreboard.sh /usr/local/bin/autostart-scoreboard.sh && sudo chmod +x /usr/local/bin/autostart-scoreboard.sh" 2>/dev/null
-log "✅ Autostart script installed"
+info "Uploading autostart script..."
+if ! echo "$AUTOSTART_SCRIPT" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/autostart-scoreboard.sh"; then
+    error "Failed to upload autostart script to /tmp/"
+    exit 1
+fi
+
+# Verify file was created and has content
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "test -s /tmp/autostart-scoreboard.sh"; then
+    error "Autostart script file is empty after upload"
+    exit 1
+fi
+
+# Move and set permissions
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/autostart-scoreboard.sh /usr/local/bin/autostart-scoreboard.sh && sudo chmod +x /usr/local/bin/autostart-scoreboard.sh"; then
+    error "Failed to install autostart script"
+    exit 1
+fi
+
+# Verify final installation
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "test -x /usr/local/bin/autostart-scoreboard.sh && test -s /usr/local/bin/autostart-scoreboard.sh"; then
+    error "Autostart script verification failed"
+    exit 1
+fi
+
+log "✅ Autostart script installed and verified"
 echo ""
 
 # Step 8: Create systemd service
@@ -983,10 +1208,51 @@ WantedBy=graphical.target
 "
 fi
 
-echo "$SYSTEMD_SERVICE" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/scoreboard-kiosk.service" 2>/dev/null
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/scoreboard-kiosk.service /etc/systemd/system/scoreboard-kiosk.service" 2>/dev/null
-ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo systemctl daemon-reload && sudo systemctl enable scoreboard-kiosk && sudo systemctl start scoreboard-kiosk" 2>/dev/null
-log "✅ Systemd service enabled and started"
+info "Uploading systemd service file..."
+if ! echo "$SYSTEMD_SERVICE" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/scoreboard-kiosk.service"; then
+    error "Failed to upload systemd service file to /tmp/"
+    exit 1
+fi
+
+# Verify file was created and has content
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "test -s /tmp/scoreboard-kiosk.service"; then
+    error "Systemd service file is empty after upload"
+    exit 1
+fi
+
+# Move to systemd directory
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/scoreboard-kiosk.service /etc/systemd/system/scoreboard-kiosk.service"; then
+    error "Failed to install systemd service file"
+    exit 1
+fi
+
+# Verify final installation
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "test -f /etc/systemd/system/scoreboard-kiosk.service && test -s /etc/systemd/system/scoreboard-kiosk.service"; then
+    error "Systemd service file verification failed"
+    exit 1
+fi
+
+# Reload daemon and enable service
+info "Reloading systemd daemon..."
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo systemctl daemon-reload"; then
+    error "Failed to reload systemd daemon"
+    exit 1
+fi
+
+info "Enabling scoreboard-kiosk service..."
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo systemctl enable scoreboard-kiosk"; then
+    error "Failed to enable scoreboard-kiosk service"
+    exit 1
+fi
+
+info "Starting scoreboard-kiosk service..."
+if ! ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo systemctl start scoreboard-kiosk"; then
+    error "Failed to start scoreboard-kiosk service"
+    error "Check service status with: sudo systemctl status scoreboard-kiosk"
+    exit 1
+fi
+
+log "✅ Systemd service installed, enabled, and started"
 echo ""
 
 # Step 9: Create desktop shortcut for scoreboard restart
