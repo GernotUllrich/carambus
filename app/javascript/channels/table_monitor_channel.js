@@ -95,17 +95,10 @@ function shouldAcceptOperation(operation, pageContext) {
       // Only accept full_screen updates for THIS specific table monitor
       if (fullScreenMatch) {
         const selectorTableMonitorId = parseInt(fullScreenMatch[1])
-        const isMatch = selectorTableMonitorId === pageContext.tableMonitorId
-        if (!isMatch && (PERF_LOGGING || !NO_LOGGING)) {
-          console.log(`🚫 REJECTED: Selector ${selector} (ID: ${selectorTableMonitorId}) does not match current scoreboard (ID: ${pageContext.tableMonitorId})`)
-        }
-        return isMatch
+        return selectorTableMonitorId === pageContext.tableMonitorId
       }
       // Reject teaser and table_scores updates on scoreboard pages
       if (selector.startsWith('#teaser_') || selector === '#table_scores') {
-        if (PERF_LOGGING || !NO_LOGGING) {
-          console.log(`🚫 REJECTED: Selector ${selector} not relevant for scoreboard page`)
-        }
         return false
       }
       // For unknown selectors on scoreboard pages, be strict - only accept if it's for this monitor
@@ -375,9 +368,6 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
           return
         } else if (firstOp.name === 'score:update') {
           // Don't dispatch score:update on non-scoreboard pages
-          if (PERF_LOGGING || !NO_LOGGING) {
-            console.log(`🚫 REJECTED dispatch_event score:update on ${pageContext.type} page`)
-          }
           return
         }
         // For other dispatch events, allow through
@@ -425,31 +415,10 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       // Context-aware filtering: only process operations relevant to this page
       const pageContext = getPageContext()
       
-      // Debug logging to diagnose filtering issues
-      if (PERF_LOGGING || !NO_LOGGING) {
-        console.log('🔍 Filtering operations:', {
-          pageContext,
-          operationCount: data.operations.length,
-          operations: data.operations.map(op => ({
-            operation: op.operation,
-            selector: op.selector
-          }))
-        })
-      }
-      
-      const applicableOperations = data.operations.filter(op => {
-        const accepted = shouldAcceptOperation(op, pageContext)
-        if (PERF_LOGGING || !NO_LOGGING) {
-          console.log(`${accepted ? '✅' : '🚫'} ${op.selector || 'no selector'}: ${accepted ? 'ACCEPTED' : 'REJECTED'}`)
-        }
-        return accepted
-      })
+      const applicableOperations = data.operations.filter(op => shouldAcceptOperation(op, pageContext))
       
       // If no operations are applicable, skip processing
       if (applicableOperations.length === 0) {
-        if (PERF_LOGGING || !NO_LOGGING) {
-          console.log('⏭️ All operations filtered out, skipping')
-        }
         return
       }
       
