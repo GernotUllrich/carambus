@@ -39,6 +39,102 @@ document.addEventListener('score:update', (event) => {
   })
 })
 
+// Page Context Detection and Filtering
+function getPageContext() {
+  // Detect individual scoreboard page
+  const scoreboardRoot = document.querySelector('[data-table-monitor-root="scoreboard"]')
+  if (scoreboardRoot) {
+    const tableMonitorId = scoreboardRoot.dataset.tableMonitorId
+    if (tableMonitorId) {
+      return { 
+        type: 'scoreboard', 
+        tableMonitorId: parseInt(tableMonitorId)
+      }
+    }
+  }
+  
+  // Fallback: try to detect by ID if data attribute is missing
+  const scoreboardEl = document.querySelector('[id^="full_screen_table_monitor_"]')
+  if (scoreboardEl) {
+    const idMatch = scoreboardEl.id.match(/full_screen_table_monitor_(\d+)/)
+    const tableMonitorId = idMatch ? parseInt(idMatch[1]) : null
+    if (tableMonitorId) {
+      return { 
+        type: 'scoreboard', 
+        tableMonitorId: tableMonitorId
+      }
+    }
+  }
+  
+  // Detect table_scores overview
+  if (document.querySelector('#table_scores')) {
+    return { type: 'table_scores' }
+  }
+  
+  // Detect tournament_scores view
+  if (document.querySelector('turbo-frame#teasers')) {
+    return { type: 'tournament_scores' }
+  }
+  
+  return { type: 'unknown' }
+}
+
+function shouldAcceptOperation(operation, pageContext) {
+  if (!operation.selector) {
+    // Operations without selectors are accepted (e.g., dispatch_event)
+    return true
+  }
+  
+  const selector = operation.selector
+  
+  // Extract table monitor ID from full_screen selectors
+  const fullScreenMatch = selector.match(/^#full_screen_table_monitor_(\d+)$/)
+  
+  switch (pageContext.type) {
+    case 'scoreboard':
+      // Only accept full_screen updates for THIS specific table monitor
+      if (fullScreenMatch) {
+        const selectorTableMonitorId = parseInt(fullScreenMatch[1])
+        return selectorTableMonitorId === pageContext.tableMonitorId
+      }
+      // Reject teaser and table_scores updates on scoreboard pages
+      if (selector.startsWith('#teaser_') || selector === '#table_scores') {
+        return false
+      }
+      // For unknown selectors, check if element exists (conservative)
+      return !!document.querySelector(selector)
+      
+    case 'table_scores':
+      // Accept table_scores and teaser updates
+      if (selector === '#table_scores' || selector.startsWith('#teaser_')) {
+        return !!document.querySelector(selector)
+      }
+      // Reject full_screen updates
+      if (fullScreenMatch) {
+        return false
+      }
+      // For unknown selectors, check if element exists
+      return !!document.querySelector(selector)
+      
+    case 'tournament_scores':
+      // Accept teaser updates
+      if (selector.startsWith('#teaser_')) {
+        return !!document.querySelector(selector)
+      }
+      // Reject table_scores and full_screen updates
+      if (selector === '#table_scores' || fullScreenMatch) {
+        return false
+      }
+      // For unknown selectors, check if element exists
+      return !!document.querySelector(selector)
+      
+    case 'unknown':
+    default:
+      // Conservative: only accept if element exists
+      return !!document.querySelector(selector)
+  }
+}
+
 // Connection Health Monitor
 class ConnectionHealthMonitor {
   constructor(subscription) {
@@ -278,12 +374,22 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
         })
       }
       
-      // Check if selector exists before logging (avoid logging for filtered updates)
+      // Context-aware filtering: only process operations relevant to this page
+      const pageContext = getPageContext()
+      const applicableOperations = data.operations.filter(op => shouldAcceptOperation(op, pageContext))
+      
+      // If no operations are applicable, skip processing
+      if (applicableOperations.length === 0) {
+        return
+      }
+      
+      // Check if first operation's selector exists (for logging purposes)
       const selectorExists = document.querySelector(firstOp.selector)
       
       // Measure CableReady performance
       const performStart = Date.now()
-      CableReady.perform(data.operations)
+      // Only perform filtered operations
+      CableReady.perform(applicableOperations)
       const performTime = Date.now() - performStart
       const totalLatency = Date.now() - (broadcastTimestamp || receiveTime)
       
