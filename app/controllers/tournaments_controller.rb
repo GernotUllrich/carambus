@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class TournamentsController < ApplicationController
   include FiltersHelper
+
   before_action :set_tournament,
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
@@ -7,19 +10,19 @@ class TournamentsController < ApplicationController
                          use_clubcloud_as_participants update_seeding_position
                          recalculate_groups test_tournament_status_update]
   before_action :ensure_rankings_cached, only: %i[show]
-  before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap 
-                                                finish_seeding edit_games reload_from_cc new_team
-                                                finalize_modus select_modus reset start define_participants add_team
-                                                upload_invitation parse_invitation apply_seeding_order compare_seedings 
-                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
-                                                recalculate_groups]
+  before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap
+                                               finish_seeding edit_games reload_from_cc new_team
+                                               finalize_modus select_modus reset start define_participants add_team
+                                               upload_invitation parse_invitation apply_seeding_order compare_seedings
+                                               add_player_by_dbu use_clubcloud_as_participants update_seeding_position
+                                               recalculate_groups]
 
   # GET /tournaments
   def index
     # Default sort by date descending if no sort specified
     search_params = params.dup
-    search_params[:sort] ||= 'date'
-    search_params[:direction] ||= 'asc'
+    search_params[:sort] ||= "date"
+    search_params[:direction] ||= "asc"
 
     results = SearchService.call(Tournament.search_hash(search_params))
     @pagy, @tournaments = pagy(results.includes(:discipline, :season, :location, :tournament_cc).preload(:organizer))
@@ -105,7 +108,7 @@ class TournamentsController < ApplicationController
       @tournament.finish_seeding!
       @tournament.reload
       # Berechne Rankings explizit (falls after_enter callback nicht funktioniert hat)
-      @tournament.calculate_and_cache_rankings if @tournament.data['player_rankings'].blank?
+      @tournament.calculate_and_cache_rankings if @tournament.data["player_rankings"].blank?
     else
       flash[:alert] = t("not_allowed_on_api_server")
     end
@@ -115,7 +118,7 @@ class TournamentsController < ApplicationController
 
   def reload_from_cc
     # Unterscheide zwischen Setup-Phase und Ergebnis-Phase
-    reload_games = params[:reload_games] == 'true'
+    reload_games = params[:reload_games] == "true"
 
     if local_server?
       if reload_games
@@ -153,9 +156,11 @@ class TournamentsController < ApplicationController
       # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
       # Ansonsten ClubCloud-Seedings zählen (verhindert Duplikat-Zählung)
       has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      @seeding_scope = has_local_seedings ?
-                        "seedings.id >= #{Seeding::MIN_ID}" :
-                        "seedings.id < #{Seeding::MIN_ID}"
+      @seeding_scope = if has_local_seedings
+                         "seedings.id >= #{Seeding::MIN_ID}"
+                       else
+                         "seedings.id < #{Seeding::MIN_ID}"
+                       end
 
       @participant_count = @tournament.seedings
                                       .where.not(state: "no_show")
@@ -164,13 +169,11 @@ class TournamentsController < ApplicationController
 
       # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
       @proposed_discipline_tournament_plan = nil
-      if @tournament.data['extracted_plan_info'].present?
-        # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
-        if (match = @tournament.data['extracted_plan_info'].match(/^(T\d+)/i))
-          plan_name = match[1].upcase
-          @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
-          Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
-        end
+      # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+      if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
+        plan_name = match[1].upcase
+        @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
+        Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
       end
 
       # Fallback: Suche nach Spielerzahl + Disziplin
@@ -187,27 +190,26 @@ class TournamentsController < ApplicationController
         @nbv_groups = TournamentMonitor.distribute_to_group(
           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
           @proposed_discipline_tournament_plan.ngroups,
-          @proposed_discipline_tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
+          @proposed_discipline_tournament_plan.group_sizes # NEU: Gruppengrößen aus executor_params
         )
 
         # Wenn extrahierte Gruppenbildung vorhanden: vergleiche
-        if @tournament.data['extracted_group_assignment'].present?
+        if @tournament.data["extracted_group_assignment"].present?
           @extracted_groups = convert_position_groups_to_player_groups(
-            @tournament.data['extracted_group_assignment'],
+            @tournament.data["extracted_group_assignment"],
             @tournament
           )
 
           # Vergleiche die beiden Gruppenbildungen
           @groups_match = groups_identical?(@extracted_groups, @nbv_groups)
 
+          @groups = @extracted_groups
           if @groups_match
             # Identisch: Verwende extrahierte (aber eigentlich egal)
-            @groups = @extracted_groups
             @groups_source = :extracted_matches_nbv
             Rails.logger.info "===== finalize_modus ===== Extrahierte Gruppenbildung ist identisch mit NBV-Algorithmus ✓"
           else
             # Abweichung: Verwende extrahierte, aber zeige Warnung
-            @groups = @extracted_groups
             @groups_source = :extracted_differs_from_nbv
             Rails.logger.warn "===== finalize_modus ===== ⚠️  Extrahierte Gruppenbildung weicht von NBV-Algorithmus ab!"
           end
@@ -218,13 +220,13 @@ class TournamentsController < ApplicationController
         end
       end
       @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
-                                                      .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
+                                                      .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan&.id })
                                                       .where(discipline_tournament_plans: {
                                                                players: @participant_count,
                                                                discipline_id: @tournament.discipline_id
                                                              }).uniq
       @alternatives_other_disciplines = ::TournamentPlan
-                                        .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) })
+                                        .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan&.id] + @alternatives_same_discipline.map(&:id) })
                                         .where(players: @participant_count).uniq.to_a
       @default_plan = TournamentPlan.default_plan(@participant_count)
       @ko_plan = TournamentPlan.ko_plan(@participant_count)
@@ -276,19 +278,19 @@ class TournamentsController < ApplicationController
 
   def start
     data_ = @tournament.data
-    data_["table_ids"] =params[:table_id]
-    data_["balls_goal"] =params[:balls_goal].to_i
-    data_["innings_goal"] =params[:innings_goal].to_i
-    data_["timeout"] =params[:timeout].to_i
-    data_["timeouts"] =params[:timeouts].to_i
-    data_["sets_to_play"] =params[:sets_to_play].to_i
-    data_["sets_to_win"] =params[:sets_to_win].to_i
-    data_["time_out_warm_up_first_min"] =params[:time_out_warm_up_first_min].to_i
-    data_["time_out_warm_up_follow_up_min"] =params[:time_out_warm_up_follow_up_min].to_i
-    data_["kickoff_switches_with"] =params[:kickoff_switches_with]
-    data_["fixed_display_left"] =params[:fixed_display_left].to_s
-    data_["color_remains_with_set"] =params[:color_remains_with_set]
-    data_["allow_overflow"] =params[:allow_overflow]
+    data_["table_ids"] = params[:table_id]
+    data_["balls_goal"] = params[:balls_goal].to_i
+    data_["innings_goal"] = params[:innings_goal].to_i
+    data_["timeout"] = params[:timeout].to_i
+    data_["timeouts"] = params[:timeouts].to_i
+    data_["sets_to_play"] = params[:sets_to_play].to_i
+    data_["sets_to_win"] = params[:sets_to_win].to_i
+    data_["time_out_warm_up_first_min"] = params[:time_out_warm_up_first_min].to_i
+    data_["time_out_warm_up_follow_up_min"] = params[:time_out_warm_up_follow_up_min].to_i
+    data_["kickoff_switches_with"] = params[:kickoff_switches_with]
+    data_["fixed_display_left"] = params[:fixed_display_left].to_s
+    data_["color_remains_with_set"] = params[:color_remains_with_set]
+    data_["allow_overflow"] = params[:allow_overflow]
     data_["allow_follow_up"] = params[:allow_follow_up]
     @tournament.unprotected = true
     @tournament.data_will_change!
@@ -314,16 +316,14 @@ class TournamentsController < ApplicationController
       end
       if @tournament.tournament_started_waiting_for_monitors?
         redirect_to tournament_monitor_path(@tournament.tournament_monitor)
-        return
       else
         redirect_back_or_to(tournament_path(@tournament))
-        return
       end
     else
       flash[:alert] = @tournament.errors.full_messages
       redirect_back_or_to(tournament_path(@tournament))
-      return
     end
+    nil
   end
 
   # GET /tournaments/new
@@ -380,9 +380,11 @@ class TournamentsController < ApplicationController
 
     # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
     has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    @seeding_scope = has_local_seedings ?
-                      "seedings.id >= #{Seeding::MIN_ID}" :
-                      "seedings.id < #{Seeding::MIN_ID}"
+    @seeding_scope = if has_local_seedings
+                       "seedings.id >= #{Seeding::MIN_ID}"
+                     else
+                       "seedings.id < #{Seeding::MIN_ID}"
+                     end
 
     @participant_count = @tournament.seedings
                                     .where.not(state: "no_show")
@@ -391,12 +393,10 @@ class TournamentsController < ApplicationController
 
     # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21")
     @proposed_discipline_tournament_plan = nil
-    if @tournament.data['extracted_plan_info'].present?
-      # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
-      if (match = @tournament.data['extracted_plan_info'].match(/^(T\d+)/i))
-        plan_name = match[1].upcase
-        @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
-      end
+    # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
+    if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
+      plan_name = match[1].upcase
+      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
     end
 
     # Fallback: Suche nach Spielerzahl + Disziplin
@@ -428,9 +428,9 @@ class TournamentsController < ApplicationController
       )
 
       # Wenn extrahierte Gruppenbildung vorhanden: vergleiche
-      if @tournament.data['extracted_group_assignment'].present?
+      if @tournament.data["extracted_group_assignment"].present?
         @extracted_groups = convert_position_groups_to_player_groups(
-          @tournament.data['extracted_group_assignment'],
+          @tournament.data["extracted_group_assignment"],
           @tournament
         )
 
@@ -446,7 +446,7 @@ class TournamentsController < ApplicationController
 
     # Alternative Pläne (gleiche Disziplin, maximal 3)
     @alternatives_same_discipline = ::TournamentPlan.joins(discipline_tournament_plans: :discipline)
-                                                    .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan.andand.id })
+                                                    .where.not(tournament_plans: { id: @proposed_discipline_tournament_plan&.id })
                                                     .where(discipline_tournament_plans: {
                                                              players: @participant_count,
                                                              discipline_id: @tournament.discipline_id
@@ -454,7 +454,7 @@ class TournamentsController < ApplicationController
 
     # Weitere alternative Pläne (andere Disziplinen, OHNE Default- und KO-Pläne)
     @alternatives_other_disciplines = ::TournamentPlan
-                                      .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan.andand.id] + @alternatives_same_discipline.map(&:id) })
+                                      .where.not(tournament_plans: { id: [@proposed_discipline_tournament_plan&.id] + @alternatives_same_discipline.map(&:id) })
                                       .where(players: @participant_count)
                                       .where.not("name LIKE 'Default%'")  # Keine Default-Pläne
                                       .where.not("name LIKE 'KO%'")       # Keine KO-Pläne
@@ -467,38 +467,36 @@ class TournamentsController < ApplicationController
   def new_team; end
 
   def add_team
-    try do
-      team_players = []
-      (1..@tournament.team_size).each_with_index do |n, ix|
-        next unless params["player_#{n}_ba_id"].present?
+    team_players = []
+    (1..@tournament.team_size).each_with_index do |n, ix|
+      next unless params["player_#{n}_ba_id"].present?
 
-        player = Player.find_by_ba_id(params["player_#{n}_ba_id"])
-        if player.present?
-          team_players[ix] = player
-        else
-          redirect_to define_participants_tournament_path(@tournament),
-                      alert: t("No Player with ba_id #{params["player_#{n}_ba_id"]}")
-          return
-        end
+      player = Player.find_by_ba_id(params["player_#{n}_ba_id"])
+      if player.present?
+        team_players[ix] = player
+      else
+        redirect_to define_participants_tournament_path(@tournament),
+                    alert: t("No Player with ba_id #{params["player_#{n}_ba_id"]}")
+        return
       end
-      team_players.sort_by!(&:ba_id)
-      team = Team.find_or_create_by!(tournament_id: @tournament.id, firstname: team_players[0].firstname,
-                                     lastname: team_players[0].lastname)
-      ary = team_players.map do |pl|
-        {
-          "firstname" => pl.firstname,
-          "lastname" => pl.lastname,
-          "player_id" => pl.id,
-          "ba_id" => pl.ba_id
-        }
-      end
-      team.deep_merge_data!("players" => ary)
-      team.save!
-      @tournament.reload
-      redirect_to define_participants_tournament_path(@tournament)
-    rescue StandardError => e
-      Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
     end
+    team_players.sort_by!(&:ba_id)
+    team = Team.find_or_create_by!(tournament_id: @tournament.id, firstname: team_players[0].firstname,
+                                   lastname: team_players[0].lastname)
+    ary = team_players.map do |pl|
+      {
+        "firstname" => pl.firstname,
+        "lastname" => pl.lastname,
+        "player_id" => pl.id,
+        "ba_id" => pl.ba_id
+      }
+    end
+    team.deep_merge_data!("players" => ary)
+    team.save!
+    @tournament.reload
+    redirect_to define_participants_tournament_path(@tournament)
+  rescue StandardError => e
+    Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
   end
 
   # GET /tournaments/:id/compare_seedings
@@ -517,17 +515,15 @@ class TournamentsController < ApplicationController
       uploaded_file = params[:invitation_file]
 
       # Speichere temporär
-      file_path = Rails.root.join('tmp', "invitation_#{@tournament.id}#{File.extname(uploaded_file.original_filename)}")
-      File.open(file_path, 'wb') do |file|
-        file.write(uploaded_file.read)
-      end
+      file_path = Rails.root.join("tmp", "invitation_#{@tournament.id}#{File.extname(uploaded_file.original_filename)}")
+      File.binwrite(file_path, uploaded_file.read)
 
       # Speichere Pfad im Tournament (mit unprotected für global records)
       @tournament.unprotected = true
       @tournament.data = @tournament.data.merge({
-        'invitation_file_path' => file_path.to_s,
-        'invitation_filename' => uploaded_file.original_filename
-      })
+                                                  "invitation_file_path" => file_path.to_s,
+                                                  "invitation_filename" => uploaded_file.original_filename
+                                                })
       @tournament.save!
       @tournament.unprotected = false
 
@@ -541,11 +537,12 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments/:id/parse_invitation
   def parse_invitation
-    file_path = @tournament.data['invitation_file_path']
+    file_path = @tournament.data["invitation_file_path"]
 
     if file_path.blank? || !File.exist?(file_path)
       flash[:alert] = "Keine Einladung hochgeladen"
-      redirect_to compare_seedings_tournament_path(@tournament) and return
+      redirect_to compare_seedings_tournament_path(@tournament)
+      return
     end
 
     # Extrahiere Setzliste
@@ -560,13 +557,22 @@ class TournamentsController < ApplicationController
 
       # Speichere extrahierte Daten
       data_updates = {}
-      data_updates['extracted_group_assignment'] = @extraction_result[:group_assignment] if @extraction_result[:group_assignment].present?
-      data_updates['extracted_plan_info'] = @extraction_result[:plan_info] if @extraction_result[:plan_info].present?
+      if @extraction_result[:group_assignment].present?
+        data_updates["extracted_group_assignment"] =
+          @extraction_result[:group_assignment]
+      end
+      data_updates["extracted_plan_info"] = @extraction_result[:plan_info] if @extraction_result[:plan_info].present?
 
       # Speichere extrahierte Turnier-Parameter
       if @extraction_result[:extracted_params].present?
-        data_updates['extracted_balls_goal'] = @extraction_result[:extracted_params][:balls_goal] if @extraction_result[:extracted_params][:balls_goal].present?
-        data_updates['extracted_innings_goal'] = @extraction_result[:extracted_params][:innings_goal] if @extraction_result[:extracted_params][:innings_goal].present?
+        if @extraction_result[:extracted_params][:balls_goal].present?
+          data_updates["extracted_balls_goal"] =
+            @extraction_result[:extracted_params][:balls_goal]
+        end
+        if @extraction_result[:extracted_params][:innings_goal].present?
+          data_updates["extracted_innings_goal"] =
+            @extraction_result[:extracted_params][:innings_goal]
+        end
       end
 
       if data_updates.any?
@@ -585,7 +591,7 @@ class TournamentsController < ApplicationController
   # Option C: Verwirft extrahierte Gruppenbildung und berechnet neu
   def recalculate_groups
     @tournament.unprotected = true
-    @tournament.data = @tournament.data.except('extracted_group_assignment')
+    @tournament.data = @tournament.data.except("extracted_group_assignment")
     @tournament.save!
     @tournament.unprotected = false
 
@@ -599,7 +605,8 @@ class TournamentsController < ApplicationController
 
     if dbu_nr.blank?
       redirect_to define_participants_tournament_path(@tournament),
-                  alert: "Bitte DBU-Nummer eingeben" and return
+                  alert: "Bitte DBU-Nummer eingeben"
+      return
     end
 
     # Suche Spieler anhand DBU-Nummer
@@ -607,19 +614,23 @@ class TournamentsController < ApplicationController
 
     unless player
       redirect_to define_participants_tournament_path(@tournament),
-                  alert: "❌ Kein Spieler mit DBU-Nummer #{dbu_nr} gefunden" and return
+                  alert: "❌ Kein Spieler mit DBU-Nummer #{dbu_nr} gefunden"
+      return
     end
 
     # Prüfe ob Spieler bereits in der Teilnehmerliste ist
-    seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ?
-                      "seedings.id >= #{Seeding::MIN_ID}" :
+    seeding_scope = if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+                      "seedings.id >= #{Seeding::MIN_ID}"
+                    else
                       "seedings.id < #{Seeding::MIN_ID}"
+                    end
 
     existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
 
     if existing_seeding
       redirect_to define_participants_tournament_path(@tournament),
-                  notice: "ℹ️ #{player.fullname} ist bereits in der Liste (Position #{existing_seeding.position})" and return
+                  notice: "ℹ️ #{player.fullname} ist bereits in der Liste (Position #{existing_seeding.position})"
+      return
     end
 
     # Füge Spieler ans Ende der Setzliste hinzu
@@ -662,7 +673,7 @@ class TournamentsController < ApplicationController
                     else
                       "✅ Setzliste übernommen (#{seeding_order.count} Spieler)"
                     end
-      
+
       # Leite zu Schritt 3 weiter (Teilnehmerliste bearbeiten)
       redirect_to define_participants_tournament_path(@tournament), notice: notice_text
     else
@@ -675,8 +686,8 @@ class TournamentsController < ApplicationController
   # Konvertiert ClubCloud-Seedings zu lokalen Seedings, sortiert nach Rangliste und leitet zu Schritt 3 weiter
   def use_clubcloud_as_participants
     clubcloud_seedings = @tournament.seedings
-                                     .where("seedings.id < #{Seeding::MIN_ID}")
-                                     .order(:position)
+                                    .where("seedings.id < #{Seeding::MIN_ID}")
+                                    .order(:position)
 
     if clubcloud_seedings.any?
       # Konvertiere ClubCloud-Seedings zu lokalen Seedings
@@ -698,7 +709,7 @@ class TournamentsController < ApplicationController
         # Berechne effektive Rankings (wie in calculate_and_cache_rankings)
         if @tournament.organizer.is_a?(Region) && @tournament.discipline.present?
           current_season = Season.current_season
-          seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
+          seasons = Season.where("id <= ?", current_season.id).order(id: :desc).limit(3).reverse
 
           all_rankings = PlayerRanking.where(
             discipline_id: @tournament.discipline_id,
@@ -718,9 +729,9 @@ class TournamentsController < ApplicationController
             player_effective_gd[player_id] = effective_gd if effective_gd.present?
           end
 
-          sorted_players = player_effective_gd.sort_by { |player_id, gd| -gd }
+          sorted_players = player_effective_gd.sort_by { |_player_id, gd| -gd }
           player_rank = {}
-          sorted_players.each_with_index do |(player_id, gd), index|
+          sorted_players.each_with_index do |(player_id, _gd), index|
             player_rank[player_id] = index + 1
           end
         else
@@ -769,7 +780,7 @@ class TournamentsController < ApplicationController
     seeding_id = params[:seeding_id]
     new_position = params[:position].to_i
 
-    if seeding_id.present? && new_position > 0
+    if seeding_id.present? && new_position.positive?
       seeding = @tournament.seedings.find(seeding_id)
 
       # Verwende acts_as_list move_to_position wenn verfügbar
@@ -784,15 +795,15 @@ class TournamentsController < ApplicationController
             if old_position < new_position
               # Nach unten verschoben
               @tournament.seedings
-                        .where("seedings.id >= #{Seeding::MIN_ID}")
-                        .where("position > ? AND position <= ?", old_position, new_position)
-                        .update_all("position = position - 1")
+                         .where("seedings.id >= #{Seeding::MIN_ID}")
+                         .where("position > ? AND position <= ?", old_position, new_position)
+                         .update_all("position = position - 1")
             else
               # Nach oben verschoben
               @tournament.seedings
-                        .where("seedings.id >= #{Seeding::MIN_ID}")
-                        .where("position >= ? AND position < ?", new_position, old_position)
-                        .update_all("position = position + 1")
+                         .where("seedings.id >= #{Seeding::MIN_ID}")
+                         .where("position >= ? AND position < ?", new_position, old_position)
+                         .update_all("position = position + 1")
             end
             # Setze neue Position
             seeding.update_column(:position, new_position)
@@ -811,8 +822,8 @@ class TournamentsController < ApplicationController
   # Stellt sicher dass Rankings gecacht sind (für alte lokale Turniere)
   def ensure_rankings_cached
     return unless @tournament
-    return unless @tournament.id.present? && @tournament.id >= Tournament::MIN_ID  # Nur für lokale Tournaments
-    return if @tournament.data['player_rankings'].present?
+    return unless @tournament.id.present? && @tournament.id >= Tournament::MIN_ID # Nur für lokale Tournaments
+    return if @tournament.data["player_rankings"].present?
 
     # Berechne Rankings wenn Seedings vorhanden sind (auch wenn State noch nicht korrekt)
     return unless @tournament.seedings.any?
@@ -840,7 +851,7 @@ class TournamentsController < ApplicationController
     player_groups = {}
     position_groups.each do |group_no, positions|
       player_groups["group#{group_no}"] = positions.map do |pos|
-        seedings[pos - 1]&.player_id  # Position 1 = Index 0
+        seedings[pos - 1]&.player_id # Position 1 = Index 0
       end.compact
     end
 
@@ -880,15 +891,17 @@ class TournamentsController < ApplicationController
   # Auch auf lokalen Servern: Wenn ClubCloud-Ergebnisse vorliegen, ist das Turnier schreibgeschützt
   def ensure_local_server
     unless local_server?
-      flash[:alert] = "⚠️ Turniermanagement ist nur auf lokalen Servern möglich. Der API Server dient ausschließlich als zentrale Datenquelle."
+      flash[:alert] =
+        "⚠️ Turniermanagement ist nur auf lokalen Servern möglich. Der API Server dient ausschließlich als zentrale Datenquelle."
       redirect_to tournaments_path
       return
     end
-    
+
     # Auch auf lokalen Servern: Prüfe ob ClubCloud-Ergebnisse vorliegen
-    if @tournament&.has_clubcloud_results?
-      flash[:alert] = "⚠️ Dieses Turnier hat bereits Ergebnisse aus der ClubCloud und ist schreibgeschützt. Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere."
-      redirect_to tournament_path(@tournament)
-    end
+    return unless @tournament&.has_clubcloud_results?
+
+    flash[:alert] =
+      "⚠️ Dieses Turnier hat bereits Ergebnisse aus der ClubCloud und ist schreibgeschützt. Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere."
+    redirect_to tournament_path(@tournament)
   end
 end
