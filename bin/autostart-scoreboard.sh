@@ -124,7 +124,9 @@ fi
   --disable-features=VizDisplayCompositor,TranslateUI \
   --disable-translate \
   --disable-dev-shm-usage \
-  --disable-smooth-scrolling \
+  --touch-events=enabled \
+  --overscroll-history-navigation=0 \
+  --enable-features=TouchDragDrop \
   --disable-gpu-vsync \
   --disable-composited-antialiasing \
   --no-default-browser-check \
