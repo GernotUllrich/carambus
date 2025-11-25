@@ -5,6 +5,7 @@
 class CalendarEvent < ApplicationRecord
   include ApiProtector
   broadcasts_refreshes
+  DEBUG = false
 
   #    handle_event(calendar_id, event_ids, lead_time_in_hours, location, response, service, summaries, tables_to_be_heated_all, upcoming_events, upcoming_events_h)
   # accululation structures summaries[], upcoming_events[], upcoming_events_h{}, event_ids[] managed outside of this method

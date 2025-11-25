@@ -36,6 +36,7 @@ class Table < ApplicationRecord
     heater_off_reason heater_switched_on_at heater_switched_off_at manual_heater_on_at manual_heater_off_at
     scoreboard scoreboard_on_at scoreboard_off_at
   ].freeze
+  DEBUG_CALENDAR = false
 
   serialize :data, coder: JSON, type: Hash
 
@@ -64,12 +65,12 @@ class Table < ApplicationRecord
   end
 
   def heater_on!(reason = "")
-    Rails.logger.info "Reservations: #{name} heater_on! ..."
+    Rails.logger.info "Reservations: #{name} heater_on! ..." if DEBUG_CALENDAR
     res = {}
     if Rails.env != "production"
-      Rails.logger.info "Reservations: would do: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}"
+      Rails.logger.info "Reservations: would do: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
     else
-      Rails.logger.info "Reservations: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}"
+      Rails.logger.info "Reservations: HEATER ON - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
       res = perform("on")
     end
     unless res["error"].present?
@@ -77,7 +78,7 @@ class Table < ApplicationRecord
       self.heater_switched_off_at = nil
       self.heater_on_reason = reason
       self.heater = true
-      Rails.logger.info "Reservations: Heater switch on detected #{JSON.pretty_generate table_local.attributes}"
+      Rails.logger.info "Reservations: Heater switch on detected #{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
       save
     end
     res
@@ -87,9 +88,9 @@ class Table < ApplicationRecord
     res = {}
     if Rails.env != "production"
       Rails.logger.info "Reservations: #{name} would do: \
-HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
+HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
     else
-      Rails.logger.info "Reservations: #{name} HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
+      Rails.logger.info "Reservations: #{name} HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}" if DEBUG_CALENDAR
       res = perform("off")
     end
     unless res["error"].present?
@@ -97,14 +98,14 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
       self.heater_off_reason = reason
       self.heater = false
       Rails.logger.info "Reservations: #{name} Heater switch off detected \
-#{JSON.pretty_generate table_local.attributes}"
+#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
       save
     end
     res
   end
 
   def scoreboard_on?
-    Rails.logger.info "Reservations: #{name} scoreboard_on?..."
+    Rails.logger.info "Reservations: #{name} scoreboard_on?..." if DEBUG_CALENDAR
     if ip_address.present?
       pt = Net::Ping::External.new(ip_address)
       pt.ping?
@@ -114,7 +115,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
   end
 
   def heater_on?
-    Rails.logger.info "Reservations: #{name} heater_on?..."
+    Rails.logger.info "Reservations: #{name} heater_on?..." if DEBUG_CALENDAR
     if Rails.env != "production"
       heater_switched_on_at.present? && heater_switched_off_at.blank?
     else
@@ -123,7 +124,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
       unless v["error"].present?
         heater_status = v["system"]["get_sysinfo"]["relay_state"] == 1
         self.heater = heater_status
-        Rails.logger.info "Reservations: #{name} Check Heater Status - is #{heater_status}"
+        Rails.logger.info "Reservations: #{name} Check Heater Status - is #{heater_status}" if DEBUG_CALENDAR
         save
       end
       heater_status
@@ -137,7 +138,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
       (((event.start.date || event.start.date_time).to_i - DateTime.now.to_i) / 1.hour) < pre_heating_time_in_hours &&
         ((event.end.date || event.end.date_time).to_i - DateTime.now.to_i).positive?
       Rails.logger.info "Reservations: #{name} check_heater_on \
-#{JSON.pretty_generate table_local&.attributes.to_s} #{event.summary}..."
+#{JSON.pretty_generate table_local&.attributes.to_s} #{event.summary}..." if DEBUG_CALENDAR
       if event_id != event.id || (table_kind.name != "Pool" && !heater_on?)
         self.event_id = event.id
         self.event_summary = event.summary
@@ -145,7 +146,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
         self.event_end = event.end.date || event.end.date_time
         self.event_creator = event.creator.email
         heater_on!("event") unless table_kind.name == "Pool"
-        Rails.logger.info "Reservations: #{name} event detected #{JSON.pretty_generate table_local.attributes}"
+        Rails.logger.info "Reservations: #{name} event detected #{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
         save
       elsif DateTime.now > event_start + 1.hour
         heater_off_on_idle(event_ids: event_ids) unless table_kind.name == "Pool"
@@ -169,7 +170,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
   end
 
   def check_heater_off(event_ids: [])
-    Rails.logger.info "Reservations: #{name} check_heater_off..."
+    Rails.logger.info "Reservations: #{name} check_heater_off..." if DEBUG_CALENDAR
     heater_off_on_idle(event_ids: event_ids)
   end
 
@@ -182,12 +183,12 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
   end
 
   def heater_off_on_idle(event_ids: [])
-    Rails.logger.info "Reservations: #{name} heater_off_on_idle..."
+    Rails.logger.info "Reservations: #{name} heater_off_on_idle..." if DEBUG_CALENDAR
     if event_id.present? && !event_ids.include?(event_id)
       if event_end < DateTime.now
-        Rails.logger.info "Reservations: #{name} Event #{event_summary} has finished!"
+        Rails.logger.info "Reservations: #{name} Event #{event_summary} has finished!" if DEBUG_CALENDAR
       else
-        Rails.logger.info "Reservations: #{name} Event #{event_summary} has been cancelled!"
+        Rails.logger.info "Reservations: #{name} Event #{event_summary} has been cancelled!" if DEBUG_CALENDAR
       end
       self.event_id = nil
       self.event_summary = nil
@@ -202,7 +203,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
         self.scoreboard_on_at = DateTime.now
         self.scoreboard_off_at = nil
         Rails.logger.info "Reservations: #{name} Scoreboard switch on detected - \
-#{JSON.pretty_generate table_local.attributes}"
+#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
         save
       end
       heater_on!("activity detected")
@@ -211,7 +212,7 @@ HEATER OFF - #{name}#{reason.present? ? " because of #{reason}" : ""}"
         self.scoreboard = false
         self.scoreboard_off_at = DateTime.now
         Rails.logger.info "Reservations: #{name} Scoreboard switch off detected - \
-#{JSON.pretty_generate table_local.attributes}"
+#{JSON.pretty_generate table_local.attributes}" if DEBUG_CALENDAR
         save
       end
 
