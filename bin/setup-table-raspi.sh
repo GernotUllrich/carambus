@@ -70,7 +70,7 @@ show_usage() {
     echo "Before running, ensure:"
     echo "  1. ~/.carambus_config has DEV_WLAN settings (if using dev WLAN)"
     echo "  2. config.yml has club_wlan settings"
-    echo "  3. For table clients: Table exists in database with ip_address in table_local"
+    echo "  3. For table clients: Table exists in database with ip_address in table or table_local"
     echo "  4. For servers: config.yml has raspberry_pi_client.local_server_enabled: true"
 }
 
@@ -198,13 +198,13 @@ echo ""
 # Note: Table clients always use pi/22 for SSH, servers use config.yml SSH settings
 if [ "$TABLE_NAME" = "server" ] || [ -z "$TABLE_NAME" ]; then
     SERVER_MODE=true
-    
+
     # Check if server has a static IP configured in config.yml
     SERVER_STATIC_IP=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
 config = YAML.load_file('$SCENARIO_CONFIG')
 puts config.dig('environments', 'production', 'network', 'club_wlan', 'static_ip') || ''
 " 2>/dev/null || echo "")
-    
+
     if [ -n "$SERVER_STATIC_IP" ]; then
         TABLE_IP="$SERVER_STATIC_IP"
         log "✓ Server mode detected - using static IP from config.yml: $TABLE_IP"
@@ -212,7 +212,7 @@ puts config.dig('environments', 'production', 'network', 'club_wlan', 'static_ip
         TABLE_IP=""
         log "✓ Server mode detected - club WLAN will use DHCP"
     fi
-    
+
     # Get SSH port from config.yml for server mode (if not explicitly provided)
     if [ -z "$SSH_PORT_ARG" ]; then
         CONFIG_SSH_PORT=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
@@ -224,7 +224,7 @@ puts config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_port')
             log "✓ SSH port from config.yml: $SSH_PORT"
         fi
     fi
-    
+
     # Get SSH user from config.yml for server mode (if not explicitly provided)
     if [ -z "$SSH_USER_ARG" ]; then
         CONFIG_SSH_USER=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
@@ -236,7 +236,7 @@ puts config.dig('environments', 'production', 'raspberry_pi_client', 'ssh_user')
             log "✓ SSH user from config.yml: $SSH_USER"
         fi
     fi
-    
+
     # Get kiosk user from config.yml (for desktop operations)
     KIOSK_USER=$(cd "$RAILS_APP_DIR" && bundle exec ruby -ryaml -e "
 config = YAML.load_file('$SCENARIO_CONFIG')
@@ -250,10 +250,10 @@ else
     # Table clients always use pi/22 for SSH (don't read from config)
     SSH_PORT="${SSH_PORT_ARG:-22}"
     SSH_USER="${SSH_USER_ARG:-pi}"
-    
+
     # Get kiosk user from config.yml (for desktop operations, default to pi)
     KIOSK_USER="pi"
-    
+
     # Get table IP from database or use provided argument
     if [ -n "$TABLE_IP_ARG" ]; then
         # IP provided as argument - validate and use it
@@ -264,13 +264,13 @@ else
         fi
         TABLE_IP="$TABLE_IP_ARG"
         log "✓ Using provided static IP: $TABLE_IP"
-        
+
         # Detect database environment (needed for LOCATION_MD5 lookup later)
         # Use development database only (should always be available locally)
         info "Detecting database environment for location MD5 lookup..."
         DB_ENV="development"
         info "  Checking development database (required for setup)..."
-        
+
         # Try to connect to development database directly
         TEST_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "puts Location.count" 2>&1 | head -20)
         if echo "$TEST_OUTPUT" | tail -1 | grep -qE '^[0-9]+$'; then
@@ -290,7 +290,7 @@ else
             fi
             DB_ENV=""
         fi
-        
+
         if [ -z "$DB_ENV" ]; then
             warning "⚠️  Cannot access database locally - location MD5 lookup will be attempted later"
             warning "   The script may need database access to complete setup"
@@ -300,12 +300,12 @@ else
         info "Querying database for table IP address..."
         info "  Location ID: $LOCATION_ID"
         info "  Table name: '$TABLE_NAME'"
-        
+
         # Use development database only (should always be available locally)
         if [ -z "$DB_ENV" ]; then
             DB_ENV="development"
             info "  Trying development database (required for setup)..."
-            
+
             TEST_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=development bundle exec rails runner "puts Location.count" 2>&1 | head -20)
             if echo "$TEST_OUTPUT" | tail -1 | grep -qE '^[0-9]+$'; then
                 DB_ENV="development"
@@ -330,7 +330,7 @@ else
                 exit 1
             fi
         fi
-    
+
     # Try to get more debug info about what's in the database
     DEBUG_OUTPUT=$(cd "$RAILS_APP_DIR" && RAILS_ENV=$DB_ENV bundle exec rails runner "
 begin
@@ -362,10 +362,10 @@ rescue => e
   puts e.backtrace.first(3).join(\"\\n\")
 end
 " 2>&1)
-    
+
     # Extract just the IP address or error
     TABLE_IP=$(echo "$DEBUG_OUTPUT" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)
-    
+
     # Show debug info if no IP found
     if [ -z "$TABLE_IP" ] || [ "$TABLE_IP" = "TABLE_NOT_FOUND" ] || [ "$TABLE_IP" = "IP_NOT_SET" ] || [ "$TABLE_IP" = "LOCATION_NOT_FOUND" ]; then
         warning "Debug information from database query:"
@@ -381,7 +381,7 @@ end
             exit 1
         fi
     fi  # End of else block (database query)
-    
+
     # Validate that TABLE_IP is actually a valid IP address format
     if ! echo "$TABLE_IP" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
         error "Invalid IP address format retrieved from database: '$TABLE_IP'"
@@ -552,56 +552,56 @@ if [ "$PERFORMANCE_ISSUES" = true ]; then
     warning ""
     warning "⚠️  PERFORMANCE OPTIMIZATION RECOMMENDATIONS ⚠️"
     warning "=============================================="
-    
+
     if [ "$IS_PI3" = true ] && [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "Critical: Raspberry Pi 3 with 1GB RAM running 64-bit OS"
         warning "This configuration will cause performance issues!"
         warning ""
     fi
-    
+
     warning "Recommendations to improve performance:"
-    
+
     # Check for performance issue: Pi 3 with 1GB RAM running 64-bit
     if [ "$IS_PI3" = true ] && [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "  • Switch to Raspberry Pi OS (32-bit) for better memory efficiency"
     elif [ "${RAM_MB:-0}" -le 1024 ] && [ "$OS_ARCH" = "aarch64" ]; then
         warning "  • Consider using 32-bit OS for better performance"
     fi
-    
+
     # Check memory usage
     if [ -n "$MEM_PERCENT" ] && [ "${MEM_PERCENT:-0}" -gt 0 ] && [ "${MEM_PERCENT:-0}" -gt 80 ]; then
         warning "  • High memory usage (${MEM_PERCENT}%) - system may be slow"
     fi
-    
+
     # Check swap usage
     if [ "${SWAP_USED:-0}" -gt 100 ]; then
         warning "  • High swap usage (${SWAP_USED}MB) - SD card swapping is slow"
     fi
-    
+
     # Check for unnecessary services
     if [ -n "$UNNECESSARY_SERVICES" ]; then
         warning "  • Disable unnecessary services: $UNNECESSARY_SERVICES"
         warning "    Run: sudo systemctl disable $UNNECESSARY_SERVICES"
     fi
-    
+
     # Check for heavy packages
     if [ -n "$HEAVY_PACKAGES" ]; then
         warning "  • Remove unused heavy packages: $HEAVY_PACKAGES"
         warning "    Run: sudo apt remove $HEAVY_PACKAGES"
     fi
-    
+
     # Check swap size for low-RAM systems
     if [ "${RAM_MB:-0}" -le 1024 ] && [ "${SWAP_SIZE:-0}" -lt 1024 ]; then
         warning "  • Increase swap size to 2GB for better stability"
         warning "    Edit /etc/dphys-swapfile and set CONF_SWAPSIZE=2048"
     fi
-    
+
     # Check for zram (compressed RAM swap - better than SD card swap)
     if [ "${RAM_MB:-0}" -le 1024 ] && [ "$ZRAM_INSTALLED" = "no" ]; then
         warning "  • Install zram-tools for faster compressed RAM swap"
         warning "    Run: sudo apt install zram-tools"
     fi
-    
+
     warning ""
     warning "The setup will continue, but applying these recommendations"
     warning "will significantly improve scoreboard performance."
@@ -674,18 +674,18 @@ log "================================"
 
 if [ "$USING_NETWORK_MANAGER" = true ]; then
     # NetworkManager configuration
-    
+
     # Configure club WLAN
     # CRITICAL: Create connection WITHOUT ifname to prevent immediate activation
     # This is the standard approach for preparing SD cards for use on different networks
     # The connection will be created but NOT activated until autoconnect is enabled
     # IMPORTANT: We preserve the existing "preconfigured" connection (user's dev WLAN)
     # so passwordless SSH access remains available
-    
+
     # Check if connection already exists and is active (to avoid disconnecting during setup)
     CLUB_CONN_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
     CLUB_CONN_ACTIVE=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
-    
+
     # Determine IP configuration based on mode and config
     if [ -n "$TABLE_IP" ]; then
         # Static IP mode (either table client or server with static_ip configured)
@@ -694,7 +694,7 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         else
             info "Configuring club WLAN: $CLUB_WLAN_SSID (Static IP: $TABLE_IP - Table Client)"
         fi
-        
+
         if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
             # Connection exists and is active - modify in-place to preserve SSH connection
             warning "Connection '$CLUB_WLAN_SSID' is currently active - modifying in-place to preserve network connectivity"
@@ -716,7 +716,7 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
     else
         # DHCP mode (server without static_ip)
         info "Configuring club WLAN: $CLUB_WLAN_SSID (DHCP - Server Mode)"
-        
+
         if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
             # Connection exists and is active - modify in-place to preserve SSH connection
             warning "Connection '$CLUB_WLAN_SSID' is currently active - modifying in-place to preserve network connectivity"
@@ -736,7 +736,7 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
             CLUB_CONN_EXIT_CODE=$?
         fi
     fi
-    
+
     if [ $CLUB_CONN_EXIT_CODE -eq 0 ]; then
         # Connection created/modified successfully
         if [ "$CLUB_CONN_EXISTS" = "yes" ] && [ "$CLUB_CONN_ACTIVE" = "yes" ]; then
@@ -748,17 +748,17 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         else
             log "✅ Club WLAN connection created (not activated - will connect on reboot)"
         fi
-        
+
         # Verify connection status
         CLUB_ACTIVE_NOW=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show --active 2>/dev/null | grep -q '^$CLUB_WLAN_SSID$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
-        
+
         # Only try to bring down if it was newly created (didn't exist before) and unexpectedly activated
         # If it was already active before, we modified it in-place and it should stay connected
         if [ "$CLUB_ACTIVE_NOW" = "yes" ] && [ "$CLUB_CONN_EXISTS" != "yes" ]; then
             warning "Club WLAN connection was activated unexpectedly - bringing it down..."
             ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection down '$CLUB_WLAN_SSID' && sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect no connection.autoconnect-priority 0" 2>/dev/null || true
         fi
-        
+
         # Preserve the existing "preconfigured" connection (user's dev WLAN from Raspberry Pi Imager)
         # This ensures passwordless SSH access remains available
         info "Preserving existing development WLAN connection..."
@@ -786,25 +786,25 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         fi
         exit 1
     fi
-    
+
     # Configure dev WLAN with DHCP (if provided)
     if [ -n "$DEV_WLAN_SSID" ]; then
         info "Configuring dev WLAN: $DEV_WLAN_SSID (DHCP)"
-        
+
         # Delete existing connection if it exists
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection delete '$DEV_WLAN_SSID' 2>/dev/null || true"
-        
+
         # Create dev WLAN connection with autoconnect=no initially
         # NOTE: Omitting 'ifname' prevents NetworkManager from immediately activating the connection
         DEV_CONN_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection add type wifi con-name '$DEV_WLAN_SSID' ssid '$DEV_WLAN_SSID' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '$DEV_WLAN_PASSWORD' ipv4.method auto connection.autoconnect no connection.autoconnect-priority ${DEV_WLAN_PRIORITY} 2>&1")
-        
+
         if [ $? -eq 0 ]; then
             log "✅ Dev WLAN connection created (autoconnect disabled during setup)"
         else
             warning "Failed to create dev WLAN connection: $DEV_CONN_OUTPUT"
         fi
     fi
-    
+
     # Verify connections were created (with retries for NetworkManager registration)
     info "Verifying connections..."
     CLUB_EXISTS="no"
@@ -819,7 +819,7 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
             sleep 1
         fi
     done
-    
+
     if [ "$CLUB_EXISTS" = "yes" ]; then
         log "✓ Club WLAN connection verified"
         # Show connection details
@@ -838,11 +838,11 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         warning "Connection creation succeeded but verification failed - continuing anyway..."
         warning "The connection should be available after reboot"
     fi
-    
+
     log "✅ NetworkManager configuration complete (connections will auto-connect on reboot)"
 else
     # dhcpcd/wpa_supplicant configuration (legacy)
-    
+
     # Build wpa_supplicant.conf with multiple networks
     WPA_SUPPLICANT_CONFIG="ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -892,7 +892,7 @@ network={
     echo "$WPA_SUPPLICANT_CONFIG" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/wpa_supplicant.conf" 2>/dev/null
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf" 2>/dev/null
-    
+
     # Configure static IP for club WLAN via dhcpcd hook (only for table clients, not servers)
     if [ "$SERVER_MODE" != true ]; then
         DHCPCD_HOOK="#!/bin/bash
@@ -917,7 +917,7 @@ fi
     else
         log "✅ Server mode - using DHCP (no static IP hook needed)"
     fi
-    
+
     log "✅ wpa_supplicant + dhcpcd configuration complete"
 fi
 echo ""
@@ -1011,10 +1011,10 @@ if [ "$IS_LOCAL_SERVER" = "true" ]; then
     echo "Local server mode - waiting for Puma service to be ready..."
     MAX_WAIT=60  # Maximum 1 minute
     WAIT_INTERVAL=3  # Check every 3 seconds
-    
+
     WAITED=0
     SERVER_READY=false
-    
+
     while [ $WAITED -lt $MAX_WAIT ]; do
         # Try to connect to the server
         if curl -s -f -o /dev/null --connect-timeout 2 "$SCOREBOARD_URL" 2>/dev/null; then
@@ -1022,16 +1022,16 @@ if [ "$IS_LOCAL_SERVER" = "true" ]; then
             echo "✓ Server is ready after ${WAITED}s"
             break
         fi
-        
+
         # Show progress every 5 seconds
         if [ $((WAITED % 5)) -eq 0 ] && [ $WAITED -gt 0 ]; then
             echo "  Still waiting for Puma service... (${WAITED}s)"
         fi
-        
+
         sleep $WAIT_INTERVAL
         WAITED=$((WAITED + WAIT_INTERVAL))
     done
-    
+
     if [ "$SERVER_READY" = false ]; then
         echo "⚠️  Warning: Local Puma service did not respond after ${MAX_WAIT}s - starting browser anyway"
     fi
@@ -1303,7 +1303,7 @@ if [ -z "$DESKTOP_PATH" ]; then
     info "DEBUG: Trying fallback /home/pi/Desktop..."
     FALLBACK_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo test -d /home/pi/Desktop 2>&1 || sudo mkdir -p /home/pi/Desktop 2>&1" 2>&1)
     FALLBACK_EXIT=$?
-    
+
     if [ $FALLBACK_EXIT -eq 0 ]; then
         DESKTOP_PATH="/home/pi/Desktop"
         info "DEBUG: Desktop path set to $DESKTOP_PATH (fallback)"
@@ -1330,32 +1330,32 @@ DESKTOP_SHORTCUT_CREATED=false
 if [ -n "$DESKTOP_PATH" ]; then
     info "Creating shortcut in $DESKTOP_PATH..."
     info "DEBUG: Desktop shortcut content length: ${#DESKTOP_SHORTCUT} characters"
-    
+
     # Create the desktop file using tee with sudo (more reliable than piping)
     info "DEBUG: Attempting to create file with sudo tee..."
     TEE_OUTPUT=$(echo "$DESKTOP_SHORTCUT" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo tee '$DESKTOP_PATH/restart-scoreboard.desktop' > /dev/null 2>&1" 2>&1)
     TEE_EXIT_CODE=$?
-    
+
     if [ $TEE_EXIT_CODE -eq 0 ]; then
         info "DEBUG: File created successfully with tee (exit code: $TEE_EXIT_CODE)"
-        
+
         # Set permissions and ownership
         info "DEBUG: Setting permissions and ownership..."
         PERM_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo chmod +x '$DESKTOP_PATH/restart-scoreboard.desktop' && sudo chown $KIOSK_USER:$KIOSK_USER '$DESKTOP_PATH/restart-scoreboard.desktop' 2>&1" 2>&1)
         PERM_EXIT_CODE=$?
-        
+
         if [ $PERM_EXIT_CODE -eq 0 ]; then
             info "DEBUG: Permissions set successfully (exit code: $PERM_EXIT_CODE)"
-            
+
             # Verify it was created
             info "DEBUG: Verifying file exists and is executable..."
             VERIFY_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo test -f '$DESKTOP_PATH/restart-scoreboard.desktop' && sudo test -x '$DESKTOP_PATH/restart-scoreboard.desktop' && sudo ls -la '$DESKTOP_PATH/restart-scoreboard.desktop' 2>&1" 2>&1)
             VERIFY_EXIT_CODE=$?
-            
+
             if [ $VERIFY_EXIT_CODE -eq 0 ]; then
                 log "✅ Desktop shortcut created at $DESKTOP_PATH/restart-scoreboard.desktop"
                 info "DEBUG: Verification output: $VERIFY_OUTPUT"
-                
+
                 # Mark desktop file as trusted (so it appears as clickable icon, not just a file)
                 info "DEBUG: Marking desktop file as trusted..."
                 TRUST_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo -u $KIOSK_USER dbus-launch gio set '$DESKTOP_PATH/restart-scoreboard.desktop' metadata::trusted true 2>&1" 2>&1 || ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo -u $KIOSK_USER xdg-mime default restart-scoreboard.desktop application/x-desktop 2>&1" 2>&1 || true)
@@ -1365,7 +1365,7 @@ if [ -n "$DESKTOP_PATH" ]; then
                     warning "DEBUG: Could not mark as trusted automatically: $TRUST_OUTPUT"
                     info "DEBUG: User may need to right-click and select 'Allow Launching' on the Pi"
                 fi
-                
+
                 DESKTOP_SHORTCUT_CREATED=true
             else
                 warning "File creation succeeded but verification failed (exit code: $VERIFY_EXIT_CODE)"
@@ -1387,7 +1387,7 @@ fi
 if [ "$DESKTOP_SHORTCUT_CREATED" = false ]; then
     info "Trying alternative method: creating application entry..."
     info "DEBUG: Fallback method - creating in /usr/share/applications..."
-    
+
     if echo "$DESKTOP_SHORTCUT" | ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "cat > /tmp/restart-scoreboard.desktop" 2>&1; then
         info "DEBUG: Temporary file created in /tmp"
         # Check if file was created
@@ -1396,17 +1396,17 @@ if [ "$DESKTOP_SHORTCUT_CREATED" = false ]; then
             # Create in applications directory
             APP_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mv /tmp/restart-scoreboard.desktop /usr/share/applications/restart-scoreboard.desktop && sudo chmod +x /usr/share/applications/restart-scoreboard.desktop 2>&1" 2>&1)
             APP_EXIT_CODE=$?
-            
+
             if [ $APP_EXIT_CODE -eq 0 ]; then
                 log "✅ Application entry created at /usr/share/applications/restart-scoreboard.desktop"
                 info "DEBUG: Application entry created successfully"
-                
+
                 # Try to create symlink on desktop (use sudo when needed)
                 for SYMLINK_PATH in "/home/$KIOSK_USER/Desktop" "/home/pi/Desktop"; do
                     info "DEBUG: Trying to create symlink in $SYMLINK_PATH..."
                     SYMLINK_OUTPUT=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo mkdir -p '$SYMLINK_PATH' 2>&1 && sudo ln -sf /usr/share/applications/restart-scoreboard.desktop '$SYMLINK_PATH/restart-scoreboard.desktop' 2>&1 && sudo test -L '$SYMLINK_PATH/restart-scoreboard.desktop' 2>&1 && sudo chown $KIOSK_USER:$KIOSK_USER '$SYMLINK_PATH/restart-scoreboard.desktop' 2>&1" 2>&1)
                     SYMLINK_EXIT_CODE=$?
-                    
+
                     if [ $SYMLINK_EXIT_CODE -eq 0 ]; then
                         log "✅ Desktop symlink created at $SYMLINK_PATH/restart-scoreboard.desktop"
                         info "DEBUG: Symlink created successfully: $SYMLINK_OUTPUT"
@@ -1446,7 +1446,7 @@ echo ""
 if [ "$USING_NETWORK_MANAGER" = true ]; then
     log "🔌 Step 10: Enabling WLAN Auto-Connect"
     log "===================================="
-    
+
     # Verify SSH connection is still alive before enabling autoconnect
     info "Verifying SSH connection is still active..."
     if ! ssh -p "$SSH_PORT" -o ConnectTimeout=5 "$SSH_USER@$CURRENT_IP" "echo 'SSH still connected'" 2>/dev/null; then
@@ -1455,14 +1455,14 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         echo "  ssh -p $SSH_PORT $SSH_USER@$CURRENT_IP 'sudo nmcli connection modify \"$CLUB_WLAN_SSID\" connection.autoconnect yes'"
         exit 1
     fi
-    
+
     # Small delay to ensure NetworkManager has settled
     sleep 2
-    
+
     info "Enabling autoconnect for club WLAN..."
     # Enable autoconnect with correct priority (connection was created with autoconnect=no)
     ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$CLUB_WLAN_SSID' connection.autoconnect yes connection.autoconnect-priority ${CLUB_WLAN_PRIORITY}" 2>/dev/null
-    
+
     # Ensure "preconfigured" connection (dev WLAN) has lower priority than club WLAN
     # This way club WLAN is preferred when available, but dev WLAN still works
     PRECONFIGURED_EXISTS=$(ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "nmcli -t -f NAME connection show 2>/dev/null | grep -q '^preconfigured$' && echo 'yes' || echo 'no'" 2>/dev/null || echo "no")
@@ -1476,12 +1476,12 @@ if [ "$USING_NETWORK_MANAGER" = true ]; then
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify 'preconfigured' connection.autoconnect yes connection.autoconnect-priority ${PRECONFIGURED_PRIORITY}" 2>/dev/null
         log "✓ 'preconfigured' connection will autoconnect with priority ${PRECONFIGURED_PRIORITY} (club WLAN priority: ${CLUB_WLAN_PRIORITY})"
     fi
-    
+
     if [ -n "$DEV_WLAN_SSID" ]; then
         info "Enabling autoconnect for dev WLAN..."
         ssh -p "$SSH_PORT" "$SSH_USER@$CURRENT_IP" "sudo nmcli connection modify '$DEV_WLAN_SSID' connection.autoconnect yes connection.autoconnect-priority ${DEV_WLAN_PRIORITY}" 2>/dev/null
     fi
-    
+
     # Final verification that we're still connected
     if ssh -p "$SSH_PORT" -o ConnectTimeout=5 "$SSH_USER@$CURRENT_IP" "echo 'SSH still connected'" 2>/dev/null; then
         log "✅ Auto-connect enabled (will activate on reboot)"
