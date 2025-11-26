@@ -128,21 +128,21 @@ module TournamentMonitorState
     @tournament_plan ||= tournament.tournament_plan
     if @tournament_plan.present?
       initialize_table_monitors unless tournament.manual_assignment
-      
+
       # Intelligentes seeding_scope: Lokale Seedings bevorzugen, sonst ClubCloud
       has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      
+
       # Debug: Logging der verwendeten Seedings
       if has_local_seedings
         seedings_query = tournament.seedings.where.not(state: "no_show").where("seedings.id >= ?", Seeding::MIN_ID).order(:position)
       else
         seedings_query = tournament.seedings.where.not(state: "no_show").where("seedings.id < ?", Seeding::MIN_ID).order(:position)
       end
-      
+
       seedings_count = seedings_query.count
       Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings: #{seedings_count} (has_local: #{has_local_seedings})"
       Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings IDs: #{seedings_query.pluck(:id).join(', ')}"
-      
+
       if seedings_count == 0
         error_msg = "Keine Seedings gefunden (has_local: #{has_local_seedings})"
         Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
@@ -150,7 +150,7 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       # Validiere dass TournamentPlan zur Spieleranzahl passt
       if @tournament_plan.players != seedings_count
         error_msg = "TournamentPlan #{@tournament_plan.name} passt nicht: erwartet #{@tournament_plan.players} Spieler, aber #{seedings_count} gefunden. Bitte wählen Sie den richtigen TournamentPlan (z.B. T21 für 11 Spieler)."
@@ -159,20 +159,20 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       @groups = TournamentMonitor.distribute_to_group(
-        seedings_query.map(&:player), 
+        seedings_query.map(&:player),
         @tournament_plan.andand.ngroups.to_i,
         @tournament_plan.group_sizes  # NEU: Gruppengrößen aus executor_params
       )
-      
+
       Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppen berechnet: #{@groups.keys.map { |k| "#{k}: #{@groups[k].count}" }.join(', ')}"
-      
+
       @placements = {}
       current_round!(1)
       deep_merge_data!("groups" => @groups, "placements" => @placements)
       save!
-      
+
       # Prüfe ob executor_params vorhanden ist
       unless @tournament_plan.executor_params.present?
         error_msg = "executor_params is empty for TournamentPlan #{@tournament_plan.name}"
@@ -181,7 +181,7 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       begin
         executor_params = JSON.parse(@tournament_plan.executor_params)
         Tournament.logger.info "[tmon-reset_tournament_monitor] executor_params: #{executor_params.inspect}"
@@ -192,7 +192,7 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       # Validiere executor_params: Prüfe ob Tische mehrfach in derselben Runde verwendet werden
       table_usage = {} # { "r1" => { "t1" => ["g1", "g2"], ... }, ... }
       executor_params.each_key do |k|
@@ -200,11 +200,11 @@ module TournamentMonitorState
         group_no = m[1].to_i
         sequence = executor_params[k]["sq"]
         next unless sequence.present? && sequence.is_a?(Hash)
-        
+
         sequence.each do |round_key, round_data|
           next unless round_key.is_a?(String) && round_key.match?(/^r\d+/)
           next unless round_data.is_a?(Hash)
-          
+
           table_usage[round_key] ||= {}
           round_data.each do |tno_str, game_pair|
             next unless tno_str.is_a?(String) && tno_str.match?(/^t\d+/)
@@ -213,7 +213,7 @@ module TournamentMonitorState
           end
         end
       end
-      
+
       # Prüfe auf mehrfache Verwendung
       validation_errors = []
       table_usage.each do |round_key, tables|
@@ -223,7 +223,7 @@ module TournamentMonitorState
           end
         end
       end
-      
+
       if validation_errors.any?
         error_msg = "executor_params Inkonsistenz: Tische werden mehrfach in derselben Runde verwendet:\n" + validation_errors.join("\n")
         Tournament.logger.error "[tmon-reset_tournament_monitor] ERROR: #{error_msg}"
@@ -231,9 +231,9 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       Tournament.logger.info "[tmon-reset_tournament_monitor] executor_params Validierung erfolgreich: Keine Tisch-Konflikte gefunden"
-      
+
       groups_must_be_played = false
       executor_params.each_key do |k|
         next unless (m = k.match(/g(\d+)/))
@@ -254,10 +254,10 @@ module TournamentMonitorState
         rule_system = executor_params[k]["rs"]
         sequence = executor_params[k]["sq"] # Reihenfolge der Spiele
         Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: repeats=#{repeats}, rule_system=#{rule_system.inspect}, players=#{actual_count}, sequence=#{sequence.inspect}"
-        
+
         # rule_system könnte ein String oder Array sein
         rule_system_str = rule_system.is_a?(Array) ? rule_system.first : rule_system.to_s
-        
+
         unless rule_system_str.present? && /^eae/.match?(rule_system_str)
           Tournament.logger.warn "[tmon-reset_tournament_monitor] WARNING: Gruppe #{group_no} hat rule_system '#{rule_system.inspect}' (#{rule_system_str}), das nicht mit /^eae/ übereinstimmt. Spiele werden übersprungen."
           next
@@ -286,10 +286,16 @@ module TournamentMonitorState
               end
             end
           end
+          # füge weitere Spiele der Permutation hinzu für den Fall dynamisch generierter Paarungen
+          if  rule_system == "eae_pg"
+            (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each do |a|
+              games_to_create << "#{a[0]}-#{a[1]}" unless games_to_create.include?("#{a[0]}-#{a[1]}")
+            end
+          end
           games_to_create.uniq!
           Tournament.logger.info "[tmon-reset_tournament_monitor] Gruppe #{group_no}: Verwendet sq-Sequenz: #{games_to_create.inspect}"
         end
-        
+
         # Wenn keine Sequenz vorhanden: Erstelle alle Permutationen
         if games_to_create.empty?
           (1..@groups["group#{group_no}"].count).to_a.permutation(2).to_a.select { |v1, v2| v1 < v2 }.each do |a|
@@ -306,7 +312,7 @@ module TournamentMonitorState
             i2 = match[2].to_i
             player1_id = @groups["group#{group_no}"][i1 - 1]
             player2_id = @groups["group#{group_no}"][i2 - 1]
-            
+
             unless player1_id.present? && player2_id.present?
               error_msg = "ERROR: Gruppe #{group_no}, Spiel #{i1}-#{i2}: Spieler-ID fehlt (player1: #{player1_id}, player2: #{player2_id})"
               Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
@@ -314,12 +320,12 @@ module TournamentMonitorState
               save!
               return { "ERROR" => error_msg }
             end
-            
+
             begin
               gname = "group#{group_no}:#{i1}-#{i2}#{"/#{rp}" if repeats > 1}"
               Tournament.logger.info "[tmon-reset_tournament_monitor] NEW GAME #{gname} (player1_id: #{player1_id}, player2_id: #{player2_id})"
               game = tournament.games.create(gname: gname, group_no: group_no)
-              
+
               unless game.persisted?
                 error_msg = "ERROR: Spiel konnte nicht erstellt werden: #{game.errors.full_messages.join(', ')}"
                 Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
@@ -327,11 +333,11 @@ module TournamentMonitorState
                 save!
                 return { "ERROR" => error_msg }
               end
-              
+
               # @groups now contains player IDs, not player objects
               gp1 = game.game_participations.create(player_id: player1_id, role: "playera")
               gp2 = game.game_participations.create(player_id: player2_id, role: "playerb")
-              
+
               unless gp1.persisted? && gp2.persisted?
                 error_msg = "ERROR: GameParticipations konnten nicht erstellt werden: gp1.errors=#{gp1.errors.full_messages.join(', ')}, gp2.errors=#{gp2.errors.full_messages.join(', ')}"
                 Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
@@ -350,10 +356,10 @@ module TournamentMonitorState
           end
         end
       end
-      
+
       games_count = tournament.games.where("games.id >= #{Game::MIN_ID}").count
       Tournament.logger.info "[tmon-reset_tournament_monitor] Spiele erstellt: #{games_count}"
-      
+
       if groups_must_be_played && games_count == 0
         error_msg = "ERROR: Keine Spiele erstellt, obwohl groups_must_be_played=true ist. Möglicherweise stimmt das rule_system (rs) in executor_params nicht mit /^eae/ überein."
         Tournament.logger.error "[tmon-reset_tournament_monitor] #{error_msg}"
@@ -361,7 +367,7 @@ module TournamentMonitorState
         save!
         return { "ERROR" => error_msg }
       end
-      
+
       # noinspection RubyResolve
       start_playing_finals! unless groups_must_be_played
       populate_tables unless tournament.manual_assignment
