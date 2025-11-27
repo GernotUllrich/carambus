@@ -59,7 +59,7 @@
       <% end %>
 
       <!-- Matched Players -->
-      <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <div class="bg-white  dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">
           Erkannte Spieler (<%= @match_result[:match_rate] %>% Übereinstimmung)
         </h2>
@@ -67,7 +67,7 @@
         <%= form_with url: apply_seeding_order_tournament_path(@tournament), method: :post do |f| %>
           <table class="w-full">
             <thead>
-              <tr class="bg-gray-100">
+              <tr class="bg-gray-100 dark:bg-slate-900">
                 <th class="p-3 text-left">Position</th>
                 <th class="p-3 text-left">Erkannter Name</th>
                 <th class="p-3 text-left">Zugeordneter Spieler</th>
