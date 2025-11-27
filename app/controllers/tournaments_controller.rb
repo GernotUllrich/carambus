@@ -10,6 +10,7 @@ class TournamentsController < ApplicationController
                          use_clubcloud_as_participants update_seeding_position
                          recalculate_groups test_tournament_status_update]
   before_action :ensure_rankings_cached, only: %i[show]
+  before_action :load_clubcloud_seedings, only: %i[show]
   before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap
                                                finish_seeding edit_games reload_from_cc new_team
                                                finalize_modus select_modus reset start define_participants add_team
@@ -868,6 +869,12 @@ class TournamentsController < ApplicationController
       # Vergleiche als Sets (Reihenfolge egal innerhalb der Gruppe)
       groups_a[group_key].sort == groups_b[group_key].sort
     end
+  end
+
+  def load_clubcloud_seedings
+    @clubcloud_seedings = @tournament.seedings
+                                    .where("seedings.id < ?", Seeding::MIN_ID)
+                                    .order(:position)
   end
 
   # Use callbacks to share common setup or constraints between actions.

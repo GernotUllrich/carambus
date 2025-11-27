@@ -1051,6 +1051,16 @@ en:
       syncing_with_club_cloud: With the StandardError of Club-organized tournaments almost all tournament data must be entered on the ClubCloud website. This form exists to add supplementary data, as far as they are necessary for the tournament handling (table assignments, locations etc.)
       team_size: 'Team Size:'
       title: 'Title:'
+      clubcloud_registration_list:
+        title: "ClubCloud registration list"
+        description: "As long as no results have been entered here, this list reflects the current registrations from ClubCloud."
+        link_label: "Open ClubCloud (check registration status)"
+        empty: "⚠️ The ClubCloud registration list has not been synchronized yet. Please go through Wizard step 1 first."
+        unknown_player: "Unknown player"
+        table:
+          order: "Order"
+          name: "Player"
+          club: "Club"
     start_tournament: Start Tournament
     tournament_monitor: Tournament Monitor
   tournaments_season: Tournaments of current Season

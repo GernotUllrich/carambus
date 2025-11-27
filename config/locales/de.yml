@@ -1073,6 +1073,16 @@ de:
       syncing_with_billard_area_ext: Der Abgleich mit den Daten der Billard-Area erfogt über den Link
       team_size: 'Teamgrösse:'
       title: 'Titel:'
+      clubcloud_registration_list:
+        title: "ClubCloud-Meldeliste"
+        description: "Solange noch keine Ergebnisse vorliegen, zeigt diese Liste die aktuellen Meldungen aus der ClubCloud."
+        link_label: "ClubCloud öffnen (Meldestatus prüfen)"
+        empty: "⚠️ Die ClubCloud-Meldeliste wurde noch nicht synchronisiert. Bitte zuerst Schritt 1 des Wizard-Durchlaufs verwenden."
+        unknown_player: "Unbekannter Spieler"
+        table:
+          order: "Reihenfolge"
+          name: "Spieler"
+          club: "Verein"
     start_tournament: Starte den Turnier-Monitor
     tournament_monitor: Turnier-Monitor
   tournaments_season: Aktuelle Turniere in der Saison

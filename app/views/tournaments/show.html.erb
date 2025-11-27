@@ -39,6 +39,57 @@
   <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>
 
+  <% if !@tournament.has_clubcloud_results? %>
+    <div class="seedings-table-container">
+      <h2>
+        <%= t("tournaments.show.clubcloud_registration_list.title") %>
+        (<%= @clubcloud_seedings.count %>)
+      </h2>
+      <p class="text-gray-600 text-sm mb-4">
+        <%= t("tournaments.show.clubcloud_registration_list.description") %>
+      </p>
+      <% if @tournament.source_url.present? %>
+        <p class="text-sm mb-4">
+          <%= link_to t("tournaments.show.clubcloud_registration_list.link_label"),
+              @tournament.source_url,
+              target: "_blank",
+              rel: "noopener",
+              class: "inline-flex items-center gap-1 text-blue-700 hover:text-blue-900" %>
+        </p>
+      <% end %>
+
+      <% if @clubcloud_seedings.any? %>
+        <div class="bg-white rounded shadow overflow-hidden">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-100 border-b">
+              <tr>
+                <th class="p-3 text-left font-semibold"><%= t("tournaments.show.clubcloud_registration_list.table.order") %></th>
+                <th class="p-3 text-left font-semibold"><%= t("tournaments.show.clubcloud_registration_list.table.name") %></th>
+                <th class="p-3 text-left font-semibold"><%= t("tournaments.show.clubcloud_registration_list.table.club") %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @clubcloud_seedings.each do |seeding| %>
+                <% player = seeding.player %>
+                <tr class="border-b last:border-b-0">
+                  <td class="p-3 text-sm text-gray-800"><%= seeding.position.presence || "—" %></td>
+                  <td class="p-3 text-sm text-gray-800"><%= player&.fullname.presence || t("tournaments.show.clubcloud_registration_list.unknown_player") %></td>
+                  <td class="p-3 text-sm text-gray-800"><%= player&.club&.shortname.presence || "—" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+          <p class="text-sm text-yellow-800">
+            <%= t("tournaments.show.clubcloud_registration_list.empty") %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
   <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
   
   <!-- Rankings Section -->
