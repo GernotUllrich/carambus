@@ -2699,18 +2699,32 @@ data[\"allow_overflow\"].present?")
     old_innings_a = data['playera']['innings'].to_i
     old_innings_b = data['playerb']['innings'].to_i
 
-    # Decrement innings counter for both players (min 1)
-    # We're deleting one completed inning, so counter decreases by 1
-    # The counter represents total innings (completed + current), so deleting a completed inning reduces it by 1
-    new_innings_a = [old_innings_a - 1, 1].max
-    new_innings_b = [old_innings_b - 1, 1].max
+    # Recalculate innings counter based on actual data structure
+    # Counter = completed innings (list length) + 1 if there's a current inning
+    innings_redo_a = Array(data.dig('playera', 'innings_redo_list'))
+    innings_redo_b = Array(data.dig('playerb', 'innings_redo_list'))
+    active_player = data.dig('current_inning', 'active_player')
+    
+    # Check if there's a current inning (redo_list has non-zero value or player is active)
+    has_current_a = innings_redo_a.any? { |v| v.to_i > 0 } || active_player == 'playera'
+    has_current_b = innings_redo_b.any? { |v| v.to_i > 0 } || active_player == 'playerb'
+    
+    # Calculate new counter: list length + 1 if current inning exists
+    new_innings_a = innings_list_a.length + (has_current_a ? 1 : 0)
+    new_innings_b = innings_list_b.length + (has_current_b ? 1 : 0)
+    
+    # Ensure minimum of 1
+    new_innings_a = [new_innings_a, 1].max
+    new_innings_b = [new_innings_b, 1].max
     
     # Directly assign to ensure change is tracked
     data['playera']['innings'] = new_innings_a
     data['playerb']['innings'] = new_innings_b
 
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Innings counters: A=#{old_innings_a} -> #{new_innings_a} (list length: #{innings_list_a.length}), B=#{old_innings_b} -> #{new_innings_b} (list length: #{innings_list_b.length})"
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Data before save: playera.innings=#{data['playera']['innings']}, playerb.innings=#{data['playerb']['innings']}"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Recalculated innings counters:"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️   Player A: #{old_innings_a} -> #{new_innings_a} (list: #{innings_list_a.length}, has_current: #{has_current_a}, redo: #{innings_redo_a.inspect})"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️   Player B: #{old_innings_b} -> #{new_innings_b} (list: #{innings_list_b.length}, has_current: #{has_current_b}, redo: #{innings_redo_b.inspect})"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️   Active player: #{active_player}"
 
     # Recalculate stats for both players
     recalculate_player_stats('playera', save_now: false)
