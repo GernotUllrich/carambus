@@ -18,7 +18,74 @@ export default class extends ApplicationController {
 
   connect () {
     super.connect()
-    // add your code here, if applicable
+    
+    // Restore scroll position when returning to tournament show page
+    this.restoreScrollPosition()
+    
+    // Set up click handlers for wizard links to save scroll position
+    this.setupScrollSaving()
+  }
+  
+  disconnect() {
+    // Clean up event listeners if needed
+    if (this.boundSaveScroll) {
+      document.removeEventListener('turbo:before-visit', this.boundSaveScroll)
+    }
+  }
+  
+  restoreScrollPosition() {
+    const tournamentId = this.element.dataset.tournamentId
+    if (!tournamentId) return
+    
+    const scrollKey = `tournament_${tournamentId}_scroll`
+    const savedScroll = sessionStorage.getItem(scrollKey)
+    
+    if (savedScroll) {
+      const scrollY = parseInt(savedScroll, 10)
+      console.log(`Restoring scroll position for tournament ${tournamentId}: ${scrollY}px`)
+      
+      // Use multiple animation frames to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: scrollY,
+            behavior: 'instant' // Use instant to avoid smooth scrolling on restoration
+          })
+          // Clear the saved position after restoring
+          sessionStorage.removeItem(scrollKey)
+        })
+      })
+    }
+  }
+  
+  setupScrollSaving() {
+    const tournamentId = this.element.dataset.tournamentId
+    if (!tournamentId) return
+    
+    // Save scroll position before navigating away
+    this.boundSaveScroll = (event) => {
+      // Only save if we're on a tournament show page
+      if (!this.element.isConnected) return
+      
+      const scrollY = window.scrollY || window.pageYOffset
+      const scrollKey = `tournament_${tournamentId}_scroll`
+      
+      console.log(`Saving scroll position for tournament ${tournamentId}: ${scrollY}px`)
+      sessionStorage.setItem(scrollKey, scrollY.toString())
+    }
+    
+    // Listen to Turbo navigation events
+    document.addEventListener('turbo:before-visit', this.boundSaveScroll)
+    
+    // Also save on regular link clicks within the tournament wizard
+    this.element.addEventListener('click', (event) => {
+      const link = event.target.closest('a, button[formmethod]')
+      if (link && link.href) {
+        const scrollY = window.scrollY || window.pageYOffset
+        const scrollKey = `tournament_${tournamentId}_scroll`
+        sessionStorage.setItem(scrollKey, scrollY.toString())
+      }
+    })
   }
 
   /* Reflex specific lifecycle methods.
