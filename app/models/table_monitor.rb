@@ -50,6 +50,13 @@ class TableMonitor < ApplicationRecord
   serialize :gps, coder: YAML, type: Hash
   serialize :options, coder: YAML, type: Hash
 
+  # PaperTrail configuration for undo/redo functionality
+  # Ignore UI-only fields and timestamps that don't affect game state
+  # Track all meaningful game state changes: state, data, timers, game_id, etc.
+  has_paper_trail ignore: [:updated_at, :panel_state, :current_element, :ip_address, :nnn, :clock_job_id, :timer_job_id],
+                  skip: [:touch],
+                  if: proc { |t| Carambus.config.carambus_api_url.present? }
+
   include AASM
   belongs_to :tournament_monitor, polymorphic: true, optional: true
   belongs_to :game, optional: true
@@ -2883,6 +2890,122 @@ data[\"allow_overflow\"].present?")
       totals << sum
     end
     totals
+  end
+
+  # ============================================================================
+  # Undo/Redo functionality using PaperTrail
+  # ============================================================================
+
+  # Check if undo is available
+  # Don't allow undo past the ready state (before game started)
+  def can_undo?
+    return false unless versions.exists?
+    
+    # Get the previous version
+    current_version_index = version_index
+    return false if current_version_index <= 0
+    
+    # Check if previous version was before game started (ready state)
+    prev_version = versions.order(:created_at).offset(current_version_index - 1).first
+    return false unless prev_version
+    
+    # Allow undo if we're not going back before the game was ready
+    prev_object = prev_version.reify
+    return false unless prev_object
+    
+    # Don't allow undo past ready state, or if we're in new state
+    !prev_object.new? && (prev_object.ready? || prev_object.warmup? || prev_object.warmup_a? || 
+     prev_object.warmup_b? || prev_object.match_shootout? || prev_object.playing? || 
+     prev_object.set_over? || prev_object.final_set_score? || prev_object.final_match_score?)
+  end
+
+  # Check if redo is available
+  def can_redo?
+    return false unless versions.exists?
+    
+    current_version_index = version_index
+    total_versions = versions.count
+    
+    # Can redo if there are versions after the current state
+    current_version_index < total_versions - 1
+  end
+
+  # Perform undo - revert to previous version
+  def perform_undo
+    return { success: false, error: 'Undo nicht verfügbar' } unless can_undo?
+    
+    begin
+      current_version_index = version_index
+      prev_version = versions.order(:created_at).offset(current_version_index - 1).first
+      
+      unless prev_version
+        return { success: false, error: 'Keine vorherige Version gefunden' }
+      end
+      
+      prev_object = prev_version.reify
+      unless prev_object
+        return { success: false, error: 'Version kann nicht wiederhergestellt werden' }
+      end
+      
+      Rails.logger.info "🔄 UNDO: Reverting from version #{current_version_index} to #{current_version_index - 1}" if DEBUG
+      
+      # Disable callbacks to avoid creating new versions during undo
+      PaperTrail.request(enabled: false) do
+        # Copy all tracked attributes from the previous version
+        prev_object.attributes.each do |key, value|
+          next if %w[id created_at updated_at].include?(key)
+          send("#{key}=", value) if respond_to?("#{key}=")
+        end
+        
+        save!
+      end
+      
+      { success: true }
+    rescue StandardError => e
+      Rails.logger.error "ERROR in perform_undo: #{e.message}\n#{e.backtrace.join("\n")}" if DEBUG
+      { success: false, error: e.message }
+    end
+  end
+
+  # Perform redo - move forward to next version
+  def perform_redo
+    return { success: false, error: 'Redo nicht verfügbar' } unless can_redo?
+    
+    begin
+      current_version_index = version_index
+      next_version = versions.order(:created_at).offset(current_version_index + 1).first
+      
+      unless next_version
+        return { success: false, error: 'Keine nächste Version gefunden' }
+      end
+      
+      Rails.logger.info "🔄 REDO: Moving from version #{current_version_index} to #{current_version_index + 1}" if DEBUG
+      
+      # Disable callbacks to avoid creating new versions during redo
+      PaperTrail.request(enabled: false) do
+        # Apply the changes from the next version
+        next_version.changeset.each do |attribute, (old_value, new_value)|
+          next if %w[id created_at updated_at].include?(attribute)
+          send("#{attribute}=", new_value) if respond_to?("#{attribute}=")
+        end
+        
+        save!
+      end
+      
+      { success: true }
+    rescue StandardError => e
+      Rails.logger.error "ERROR in perform_redo: #{e.message}\n#{e.backtrace.join("\n")}" if DEBUG
+      { success: false, error: e.message }
+    end
+  end
+
+  private
+
+  # Get the current version index (0-based)
+  # This represents which version in the history we're currently at
+  def version_index
+    return versions.count - 1 if versions.exists?
+    -1
   end
 
 end

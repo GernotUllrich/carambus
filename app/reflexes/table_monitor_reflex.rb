@@ -304,6 +304,40 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
+  # PaperTrail-based undo - reverts to previous version
+  def undo_version
+    Rails.logger.info "+++++++++++++++++>>> undo_version <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    result = @table_monitor.perform_undo
+    
+    if result[:success]
+      # Broadcast update to refresh the UI
+      TableMonitorJob.perform_later(@table_monitor, "")
+    else
+      Rails.logger.error "UNDO ERROR: #{result[:error]}"
+      # TODO: Show error message to user
+    end
+  end
+
+  # PaperTrail-based redo - moves forward to next version
+  def redo_version
+    Rails.logger.info "+++++++++++++++++>>> redo_version <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    
+    result = @table_monitor.perform_redo
+    
+    if result[:success]
+      # Broadcast update to refresh the UI
+      TableMonitorJob.perform_later(@table_monitor, "")
+    else
+      Rails.logger.error "REDO ERROR: #{result[:error]}"
+      # TODO: Show error message to user
+    end
+  end
+
   def minus_n
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG

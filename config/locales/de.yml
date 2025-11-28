@@ -859,6 +859,10 @@ de:
       start_game: Spiel starten
       tournament_endresult: Tournament Result
       wait_check: "-OK?"
+    undo: Rückgängig
+    redo: Wiederholen
+    undo_tooltip: Letzte Eingabe rückgängig machen
+    redo_tooltip: Rückgängig gemachte Eingabe wiederholen
       warmup: Spielbeginn
       warmup_a: Einstoßen Spieler A
       warmup_b: Einstoßen Spieler B
