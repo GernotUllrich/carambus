@@ -74,6 +74,7 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.reset_timer!
 
     if TableMonitor::NNN == "db"
@@ -82,6 +83,7 @@ class TableMonitorReflex < ApplicationReflex
       session_key = :"nnn_#{table_monitor_id}"
       @table_monitor.set_n_balls(session[session_key].to_i, true)
     end
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -90,8 +92,10 @@ class TableMonitorReflex < ApplicationReflex
     morph :nothing
     table_monitor_id = element.andand.dataset[:id]
     @table_monitor = TableMonitor.find(table_monitor_id)
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.touch
     @table_monitor.assign_attributes(nnn: nil, panel_state: "pointer_mode", current_element: "pointer_mode")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -103,141 +107,142 @@ class TableMonitorReflex < ApplicationReflex
   def key_a
     Rails.logger.info "+++++++++++++++++>>> key_a <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
-    TableMonitor.transaction do
-      @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-      return if @table_monitor.locked_scoreboard
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
+    return if @table_monitor.locked_scoreboard
 
+    # noinspection RubyResolve
+    if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
-      if @table_monitor.warmup_modal_should_be_open?
-        # noinspection RubyResolve
-        warmup_state_change("a") if @table_monitor.warmup? || @table_monitor.warmup_b?
-      elsif @table_monitor.shootout_modal_should_be_open?
-        @table_monitor.reset_timer!
-        @table_monitor.switch_players
-      elsif @table_monitor.playing?
-        if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
-          @table_monitor.add_n_balls(1, "playera")
-        else
-          current_role = @table_monitor.data["current_inning"]["active_player"]
-          case current_role
-          when "playera"
-            @table_monitor.reset_timer!
-            if @table_monitor.data["current_left_player"] == "playerb"
-              @table_monitor.data[current_role]["fouls_1"] = 0
-              @table_monitor.terminate_current_inning
-            else
-              #+++++++
-              @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
-            end
-            @table_monitor.do_play
-            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-          when "playerb"
-            @table_monitor.reset_timer!
-            if @table_monitor.data["current_left_player"] == "playerb"
-              #+++++++
-              @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
-            else
-              @table_monitor.data[current_role]["fouls_1"] = 0
-              @table_monitor.terminate_current_inning
-            end
-            @table_monitor.do_play
-            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+      warmup_state_change("a") if @table_monitor.warmup? || @table_monitor.warmup_b?
+    elsif @table_monitor.shootout_modal_should_be_open?
+      @table_monitor.reset_timer!
+      @table_monitor.switch_players
+    elsif @table_monitor.playing?
+      if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
+        @table_monitor.add_n_balls(1, "playera")
+      else
+        current_role = @table_monitor.data["current_inning"]["active_player"]
+        case current_role
+        when "playera"
+          @table_monitor.reset_timer!
+          if @table_monitor.data["current_left_player"] == "playerb"
+            @table_monitor.data[current_role]["fouls_1"] = 0
+            @table_monitor.terminate_current_inning
           else
-            # type code here
+            #+++++++
+            @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           end
-        end
-      elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
-        @table_monitor.evaluate_result
-        # @table_monitor.acknowledge_result!
-        # @table_monitor.prepare_final_game_result
-      elsif @table_monitor.final_set_score?
-        if @table_monitor.tournament_monitor.present?
-          @table_monitor.evaluate_result
-          # @table_monitor.tournament_monitor.report_result(@table_monitor)
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+        when "playerb"
+          @table_monitor.reset_timer!
+          if @table_monitor.data["current_left_player"] == "playerb"
+            #+++++++
+            @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
+          else
+            @table_monitor.data[current_role]["fouls_1"] = 0
+            @table_monitor.terminate_current_inning
+          end
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
         else
-          # noinspection RubyResolve
-          # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
-          @table_monitor.tournament_monitor.andand.report_result(self)
-          @table_monitor.finish_match! if @table_monitor.may_finish_match?
-          @table_monitor.reset_table_monitor
+          # type code here
         end
       end
-      @table_monitor.save
-      Rails.logger.info "key_a completed"
+    elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
+      @table_monitor.evaluate_result
+      # @table_monitor.acknowledge_result!
+      # @table_monitor.prepare_final_game_result
+    elsif @table_monitor.final_set_score?
+      if @table_monitor.tournament_monitor.present?
+        @table_monitor.evaluate_result
+        # @table_monitor.tournament_monitor.report_result(@table_monitor)
+      else
+        # noinspection RubyResolve
+        # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
+        @table_monitor.tournament_monitor.andand.report_result(self)
+        @table_monitor.finish_match! if @table_monitor.may_finish_match?
+        @table_monitor.reset_table_monitor
+      end
     end
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save
+    Rails.logger.info "key_a completed"
   end
 
   def key_b
     Rails.logger.info "+++++++++++++++++>>> key_b <<<++++++++++++++++++++++++++++++++++++++"
     morph :nothing
-    TableMonitor.transaction do
-      @table_monitor = TableMonitor.find(element.andand.dataset[:id])
-      return if @table_monitor.locked_scoreboard
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
+    return if @table_monitor.locked_scoreboard
 
+    # noinspection RubyResolve
+    if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
-      if @table_monitor.warmup_modal_should_be_open?
-        # noinspection RubyResolve
-        warmup_state_change("b") if @table_monitor.warmup? || @table_monitor.warmup_a?
-      elsif @table_monitor.shootout_modal_should_be_open?
-        @table_monitor.reset_timer!
-        @table_monitor.switch_players
-      elsif @table_monitor.playing?
-        if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
-          @table_monitor.add_n_balls(1, "playerb")
-        else
-          current_role = @table_monitor.data["current_inning"]["active_player"]
-          case current_role
-          when "playerb"
-            @table_monitor.reset_timer!
-            if @table_monitor.data["current_left_player"] == "playera"
-              #+++++++
-              @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
-            else
-              @table_monitor.data[current_role]["fouls_1"] = 0
-              @table_monitor.terminate_current_inning
-            end
-            @table_monitor.do_play
-            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
-          when "playera"
-            @table_monitor.reset_timer!
-            if @table_monitor.data["current_left_player"] == "playerb"
-              #+++++++
-              @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
-            else
-              @table_monitor.data[current_role]["fouls_1"] = 0
-              @table_monitor.terminate_current_inning
-            end
-            @table_monitor.do_play
-            @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+      warmup_state_change("b") if @table_monitor.warmup? || @table_monitor.warmup_a?
+    elsif @table_monitor.shootout_modal_should_be_open?
+      @table_monitor.reset_timer!
+      @table_monitor.switch_players
+    elsif @table_monitor.playing?
+      if @table_monitor.data["free_game_form"] == "pool" && @table_monitor.data["playera"].andand["discipline"] != "14.1 endlos"
+        @table_monitor.add_n_balls(1, "playerb")
+      else
+        current_role = @table_monitor.data["current_inning"]["active_player"]
+        case current_role
+        when "playerb"
+          @table_monitor.reset_timer!
+          if @table_monitor.data["current_left_player"] == "playera"
+            #+++++++
+            @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           else
-            # type code here
+            @table_monitor.data[current_role]["fouls_1"] = 0
+            @table_monitor.terminate_current_inning
           end
-        end
-      elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
-        @table_monitor.evaluate_result
-        # @table_monitor.acknowledge_result!
-        # @table_monitor.prepare_final_game_result
-      elsif @table_monitor.final_set_score?
-        if @table_monitor.tournament_monitor.present?
-          @table_monitor.evaluate_result
-          # @table_monitor.tournament_monitor.report_result(@table_monitor)
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+        when "playera"
+          @table_monitor.reset_timer!
+          if @table_monitor.data["current_left_player"] == "playerb"
+            #+++++++
+            @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
+          else
+            @table_monitor.data[current_role]["fouls_1"] = 0
+            @table_monitor.terminate_current_inning
+          end
+          @table_monitor.do_play
+          @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
         else
-          # noinspection RubyResolve
-          # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
-          @table_monitor.tournament_monitor.andand.report_result(self)
-          @table_monitor.finish_match! if @table_monitor.may_finish_match?
-          @table_monitor.reset_table_monitor
+          # type code here
         end
       end
-      @table_monitor.save
-      Rails.logger.info "key_b completed"
+    elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
+      @table_monitor.evaluate_result
+      # @table_monitor.acknowledge_result!
+      # @table_monitor.prepare_final_game_result
+    elsif @table_monitor.final_set_score?
+      if @table_monitor.tournament_monitor.present?
+        @table_monitor.evaluate_result
+        # @table_monitor.tournament_monitor.report_result(@table_monitor)
+      else
+        # noinspection RubyResolve
+        # Tournament.logger.info "[table_monitor_reflex#keyb] #{caller[0..4].select{|s| s.include?("/app/").join("\n")}"
+        @table_monitor.tournament_monitor.andand.report_result(self)
+        @table_monitor.finish_match! if @table_monitor.may_finish_match?
+        @table_monitor.reset_table_monitor
+      end
     end
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save
+    Rails.logger.info "key_b completed"
   end
 
   def key_c
     Rails.logger.info "+++++++++++++++++>>> key_c <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     # noinspection RubyResolve
     if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
@@ -251,6 +256,7 @@ class TableMonitorReflex < ApplicationReflex
     elsif @table_monitor.final_set_score?
       @table_monitor.evaluate_result
     end
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -258,6 +264,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> key_dc <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     # noinspection RubyResolve
     if @table_monitor.warmup_modal_should_be_open?
       # noinspection RubyResolve
@@ -282,6 +289,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.evaluate_result
       # @table_monitor.tournament_monitor.report_result(@table_monitor)
     end
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -289,8 +297,10 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> undo <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.undo
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -298,19 +308,21 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
-    
+
     # Security: Check if remote request requires admin rights
     if remote_request? && !current_user&.admin?
       Rails.logger.warn "🚫 Blocked minus_#{n} from remote IP #{request.remote_ip} - Admin required"
       return
     end
-    
+
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "minus_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(-n)
-    @table_monitor.save!  # Use save! to ensure commit
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save! # Use save! to ensure commit
     Rails.logger.info "minus_#{n} completed successfully" if DEBUG
   rescue StandardError => e
     Rails.logger.error("[minus_#{n}] ERROR: #{e}")
@@ -322,6 +334,7 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> switch_players <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     # @table_monitor.panel_state = 'input
     @table_monitor.switch_players
     @table_monitor.reset_timer!
@@ -329,6 +342,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
     # morph dom_id(@table_monitor), render(@table_monitor)
   end
@@ -337,11 +351,13 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> start_game <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_shootout!
     @table_monitor.panel_state = "pointer_mode"
     @table_monitor.do_play
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
     # morph dom_id(@table_monitor), render(@table_monitor)
   end
@@ -354,20 +370,22 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
-    
+
     # Security: Check if remote request requires admin rights
     if remote_request? && !current_user&.admin?
       Rails.logger.warn "🚫 Blocked add_#{n} from remote IP #{request.remote_ip} - Admin required"
       return
     end
-    
+
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
     @table_monitor.reset_timer!
     @table_monitor.add_n_balls(n)
     @table_monitor.do_play
-    @table_monitor.save!  # Use save! to ensure commit before broadcasts
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save! # Use save! to ensure commit before broadcasts
     Rails.logger.info "add_#{n} completed successfully" if DEBUG
   rescue StandardError => e
     Rails.logger.error("[add_#{n}] ERROR: #{e}")
@@ -475,8 +493,9 @@ class TableMonitorReflex < ApplicationReflex
     from_admin = element.andand.dataset[:from_admin]
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     return if @table_monitor.locked_scoreboard && !from_admin
-
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.force_next_state
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
   end
 
@@ -492,9 +511,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> warm_up_finished <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.reset_timer!
     # noinspection RubyResolve
     @table_monitor.finish_warmup!
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
   end
 
@@ -502,7 +523,9 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play_warm_up_a <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     warmup_state_change("a")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -510,7 +533,9 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play_warm_up_b <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     warmup_state_change("b")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -518,10 +543,12 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> balls_left <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     n_balls_left = element.andand.dataset[:ball_no].to_i
     @table_monitor.balls_left(n_balls_left)
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -529,9 +556,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_two <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.foul_two
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
   end
 
@@ -539,9 +568,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> foul_one <<<------------------------------------------" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.foul_one
     @table_monitor.do_play
     @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode")
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save!
   end
 
@@ -549,9 +580,11 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> play <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     @table_monitor.panel_state = "timer"
     @table_monitor.current_element = "play"
     @table_monitor.do_play
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   end
 
@@ -569,6 +602,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     # noinspection RubyResolve
     if @table_monitor.playing?
+      @table_monitor.skip_update_callbacks = true
       data = @table_monitor.data
       current_role = data["current_inning"]["active_player"]
       if data["timeout"].to_i.positive? && data[current_role]["tc"].to_i.positive?
@@ -579,12 +613,14 @@ class TableMonitorReflex < ApplicationReflex
                 else
                   (data["timeout"].to_i.positive? ? data["timeout"].to_i.seconds : 5.minutes)
                 end
-        @table_monitor.update(
+        @table_monitor.assign_attributes(
           timer_halt_at: nil,
           timer_finish_at: @table_monitor.timer_finish_at + delta,
           data: data
         )
       end
+      @table_monitor.skip_update_callbacks = false
+      @table_monitor.save
     end
   rescue StandardError => e
     Rails.logger.info("[add_one] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")
@@ -607,6 +643,7 @@ class TableMonitorReflex < ApplicationReflex
     # morph :nothing
     other_player = player == "a" ? "b" : "a"
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
     active_timer = if @table_monitor.send(:"player_#{player}_on_table_before")
                      "time_out_warm_up_follow_up_min"
                    else
@@ -634,6 +671,7 @@ class TableMonitorReflex < ApplicationReflex
     else
       Time.now
     end
+    @table_monitor.skip_update_callbacks = false
     @table_monitor.save
   rescue StandardError => e
     Rails.logger.info("[add_one] ERROR: #{e} #{e.backtrace.to_a.join("\n")}")

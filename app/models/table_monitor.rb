@@ -34,8 +34,7 @@ class TableMonitor < ApplicationRecord
   include ApiProtector
   include CableReady::Broadcaster
 
-  #broadcasts_to ->(table_monitor) { [table_monitor, :table_show2] }, inserts_by: :prepend, updates_by: :replace
-
+  # broadcasts_to ->(table_monitor) { [table_monitor, :table_show2] }, inserts_by: :prepend, updates_by: :replace
 
   DEBUG = Rails.env != "production"
 
@@ -69,19 +68,20 @@ class TableMonitor < ApplicationRecord
   attr_accessor :skip_update_callbacks
 
   after_update_commit lambda {
-    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
-    Rails.logger.info "🔔 TableMonitor ID: #{id}"
-    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
-
     # Skip callbacks if flag is set (used in start_game to prevent redundant job enqueues)
     if skip_update_callbacks
       Rails.logger.info "🔔 Skipping callbacks (skip_update_callbacks=true)"
       Rails.logger.info "🔔 ========== after_update_commit END (skipped) =========="
-      @collected_changes = nil
+      # @collected_data_changes = nil ## ! still collect changes!
       return
     end
 
-    #broadcast_replace_later_to self
+    Rails.logger.info "🔔 ========== after_update_commit TRIGGERED =========="
+    Rails.logger.info "🔔 TableMonitor ID: #{id}"
+    Rails.logger.info "🔔 Previous changes: #{@collected_changes.inspect}"
+    Rails.logger.info "🔔 Previous data changes: #{@collected_dada_changes.inspect}"
+
+    # broadcast_replace_later_to self
     relevant_keys = (previous_changes.keys - %w[data nnn panel_state pointer_mode current_element updated_at])
     Rails.logger.info "🔔 Relevant keys: #{relevant_keys.inspect}"
 
@@ -100,47 +100,48 @@ class TableMonitor < ApplicationRecord
       Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
       TableMonitorJob.perform_later(self, "teaser")
     else
-      Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
-      TableMonitorJob.perform_later(self, "teaser")
+      if @collected_changes.present? || @collected_data_changes.select{ |a| a.present? }.present?
+        Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
+        TableMonitorJob.perform_later(self, "teaser")
+      end
     end
 
     # ULTRA-FAST PATH: Only score/innings changed - send just data, no HTML
     if ultra_fast_score_update?
-      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
       TableMonitorJob.perform_later(self, "score_data", player: player_key)
-      @collected_changes = nil
+      @collected_data_changes = nil
       return
     end
-    
+
     # FAST PATH: Check for simple score changes that can use targeted updates
     # If only one player's score changed (plus balls_on_table), use partial update instead of full render
     if simple_score_update?
-      player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+      player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
 
       Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
-      Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_changes.flat_map(&:keys).uniq.inspect}"
+      Rails.logger.info "🔔 ⚡ Changed keys: #{@collected_data_changes.flat_map(&:keys).uniq.inspect}"
       TableMonitorJob.perform_later(self, "player_score_panel", player: player_key)
 
-      @collected_changes = nil
+      @collected_data_changes = nil
       Rails.logger.info "🔔 ========== after_update_commit END (fast path) =========="
       return
     end
-    
+
     # SLOW PATH: Full scoreboard update
     # The empty string triggers the `else` branch in TableMonitorJob's case statement,
     # which renders and broadcasts the full scoreboard HTML (#full_screen_table_monitor_X).
     # See docs/EMPTY_STRING_JOB_ANALYSIS.md for detailed explanation.
     Rails.logger.info "🔔 Enqueuing: score_update job (empty string for full screen)"
     TableMonitorJob.perform_later(self, "")
-    @collected_changes = nil
+    @collected_data_changes = nil
     Rails.logger.info "🔔 ========== after_update_commit END =========="
-
 
     # Broadcast Tournament Status Update wenn sich Spielstände während des Turniers ändern
     if tournament_monitor.is_a?(TournamentMonitor) &&
-       tournament_monitor.tournament.present? &&
-       tournament_monitor.tournament.tournament_started &&
-       previous_changes.key?("data")
+      tournament_monitor.tournament.present? &&
+      tournament_monitor.tournament.tournament_started &&
+      previous_changes.key?("data")
       # Prüfe ob sich relevante Spiel-Daten geändert haben
       old_data = previous_changes["data"][0] rescue {}
       new_data = previous_changes["data"][1] rescue {}
@@ -189,35 +190,37 @@ class TableMonitor < ApplicationRecord
   end
 
   def ultra_fast_score_update?
-    return false if @collected_changes.blank?
-    
+    return false if @collected_data_changes.blank?
+    return false if @collected_changes.present?
+
     # Flatten all keys from collected changes
-    all_keys = @collected_changes.flat_map(&:keys).uniq
-    
+    all_keys = @collected_data_changes.flat_map(&:keys).uniq
+
     # Ultra-fast path: ONLY score/innings changed for one player
     # Check if only one player changed and only innings_redo_list
     player_keys = all_keys & ['playera', 'playerb']
     return false unless player_keys.size == 1
-    
+
     player_key = player_keys.first
-    player_changes = @collected_changes.find { |c| c.key?(player_key) }
+    player_changes = @collected_data_changes.find { |c| c.key?(player_key) }
     return false unless player_changes
-    
+
     # Check if only innings_redo_list changed for this player
     player_change_keys = player_changes[player_key].keys
     player_change_keys == ['innings_redo_list']
   end
-  
+
   def simple_score_update?
-    return false if @collected_changes.blank?
-    
+    return false if @collected_data_changes.blank?
+    return false if @collected_changes.present?
+
     # Flatten all keys from collected changes
-    all_keys = @collected_changes.flat_map(&:keys).uniq
-    
+    all_keys = @collected_data_changes.flat_map(&:keys).uniq
+
     # Fast path: only balls_on_table and/or one player changed
     safe_keys = ['balls_on_table', 'playera', 'playerb']
     player_keys = all_keys & ['playera', 'playerb']
-    
+
     # Must have exactly one player key, and only safe keys
     player_keys.size == 1 && (all_keys - safe_keys).empty?
   end
@@ -397,9 +400,11 @@ class TableMonitor < ApplicationRecord
   end
 
   def log_state_change
+    @collected_data_changes ||= []
     @collected_changes ||= []
     if changes.present?
-      changes['data']&.count == 2 && @collected_changes << deep_diff(*changes['data'])
+      changes['data']&.count == 2 && @collected_data_changes << deep_diff(*changes['data'])
+      @collected_changes << changes.except('data') if changes.except('data').present?
     end
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]-------->>> log_state_change #{self.changes.inspect} <<<\
@@ -482,7 +487,7 @@ class TableMonitor < ApplicationRecord
     units = "seconds"
     start_at = Time.now
     delta = tournament_monitor&.tournament&.send(active_timer.to_sym)
-                              &.send(units.to_sym) ||
+              &.send(units.to_sym) ||
       (data["timeout"].to_i.positive? ? data["timeout"].to_i.seconds : nil)
     finish_at = delta.to_i != 0 && delta.present? ? start_at + delta.to_i : nil
     if timer_halt_at.present? && finish_at.present?
@@ -765,7 +770,7 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
                            "playerb" => ret_b
                          })
       end
-      #save!
+      # save!
     end
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -1401,6 +1406,7 @@ data[\"allow_overflow\"].present?")
   def marshal_dup(hash)
     Marshal.load(Marshal.dump(hash))
   end
+
   def evaluate_panel_and_current
     return unless remote_control_detected
 
@@ -2098,7 +2104,7 @@ data[\"allow_overflow\"].present?")
   rescue StandardError => e
     msg = "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     Rails.logger.info msg if DEBUG
-    self.skip_update_callbacks = false  # Ensure callbacks are re-enabled on error
+    self.skip_update_callbacks = false # Ensure callbacks are re-enabled on error
     raise StandardError unless Rails.env == "production"
   end
 
@@ -2349,7 +2355,7 @@ data[\"allow_overflow\"].present?")
     # So we use MIN, not MAX of the list lengths
     completed_innings = [innings_list_a.length, innings_list_b.length].min
     num_rows = completed_innings + 1
-    num_rows = [num_rows, 1].max  # At least 1
+    num_rows = [num_rows, 1].max # At least 1
 
     Rails.logger.warn "📋 INNINGS_HISTORY_DEBUG 📋 CALCULATION:"
     Rails.logger.warn "  completed_innings (MIN of list lengths) = #{completed_innings}"
@@ -2433,7 +2439,7 @@ data[\"allow_overflow\"].present?")
         innings_count: data.dig('playerb', 'innings').to_i
       },
       current_inning: {
-        number: num_rows,  # Current inning = number of rows
+        number: num_rows, # Current inning = number of rows
         active_player: data.dig('current_inning', 'active_player')
       },
       discipline: data.dig('playera', 'discipline'),
@@ -2816,10 +2822,10 @@ data[\"allow_overflow\"].present?")
     # Calculate GD (average) from all innings
     total_points = all_innings.compact.sum
     data[player]['gd'] = if current_innings > 0
-                            format("%.3f", total_points.to_f / current_innings)
-                          else
-                            0.0
-                          end
+                           format("%.3f", total_points.to_f / current_innings)
+                         else
+                           0.0
+                         end
 
     Rails.logger.warn "🔍 RECALC: player=#{player}, result=#{data[player]['result']}, hs=#{data[player]['hs']}, gd=#{data[player]['gd']}"
 
@@ -2858,10 +2864,10 @@ data[\"allow_overflow\"].present?")
     # Update GD (average) - use TOTAL points (including current inning) divided by innings counter
     total_points = innings_array.compact.sum
     data[player]['gd'] = if current_innings > 0
-                            format("%.3f", total_points.to_f / current_innings)
-                          else
-                            0.0
-                          end
+                           format("%.3f", total_points.to_f / current_innings)
+                         else
+                           0.0
+                         end
 
     data_will_change!
     save!

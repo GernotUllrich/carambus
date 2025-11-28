@@ -23,10 +23,10 @@ In `app/models/table_monitor.rb`:
 
 ```ruby
 def simple_score_update?
-  return false if @collected_changes.blank?
+  return false if @collected_data_changes.blank?
   
   # Flatten all keys from collected changes
-  all_keys = @collected_changes.flat_map(&:keys).uniq
+  all_keys = @collected_data_changes.flat_map(&:keys).uniq
   
   # Fast path: only balls_on_table and/or one player changed
   safe_keys = ['balls_on_table', 'playera', 'playerb']
@@ -72,9 +72,9 @@ end
 
 ```ruby
 def log_state_change
-  @collected_changes ||= []
+  @collected_data_changes ||= []
   if changes.present?
-    @collected_changes << deep_diff(*changes['data'])
+    @collected_data_changes << deep_diff(*changes['data'])
   end
   # ... rest of method
 end
@@ -90,18 +90,18 @@ after_update_commit lambda {
   
   # FAST PATH: Check for simple score changes
   if simple_score_update?
-    player_key = (@collected_changes.flat_map(&:keys) & ['playera', 'playerb']).first
+    player_key = (@collected_data_changes.flat_map(&:keys) & ['playera', 'playerb']).first
     
     Rails.logger.info "🔔 ⚡ FAST PATH: Simple score update detected for #{player_key}"
     TableMonitorJob.perform_later(self, "player_score_panel", player: player_key)
     
-    @collected_changes = nil
+    @collected_data_changes = nil
     return  # Skip full update
   end
   
   # SLOW PATH: Full scoreboard update
   TableMonitorJob.perform_later(self, "")
-  @collected_changes = nil
+  @collected_data_changes = nil
 }
 ```
 
