@@ -2702,19 +2702,31 @@ data[\"allow_overflow\"].present?")
     # Decrement innings counter for both players (min 1)
     # We're deleting one completed inning, so counter decreases by 1
     # The counter represents total innings (completed + current), so deleting a completed inning reduces it by 1
-    data['playera']['innings'] = [old_innings_a - 1, 1].max
-    data['playerb']['innings'] = [old_innings_b - 1, 1].max
+    new_innings_a = [old_innings_a - 1, 1].max
+    new_innings_b = [old_innings_b - 1, 1].max
+    
+    # Directly assign to ensure change is tracked
+    data['playera']['innings'] = new_innings_a
+    data['playerb']['innings'] = new_innings_b
 
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Innings counters: A=#{old_innings_a} -> #{data['playera']['innings']} (list length: #{innings_list_a.length}), B=#{old_innings_b} -> #{data['playerb']['innings']} (list length: #{innings_list_b.length})"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Innings counters: A=#{old_innings_a} -> #{new_innings_a} (list length: #{innings_list_a.length}), B=#{old_innings_b} -> #{new_innings_b} (list length: #{innings_list_b.length})"
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Data before save: playera.innings=#{data['playera']['innings']}, playerb.innings=#{data['playerb']['innings']}"
 
     # Recalculate stats for both players
     recalculate_player_stats('playera', save_now: false)
     recalculate_player_stats('playerb', save_now: false)
 
+    # Ensure data changes are tracked and saved
+    # Mark data as changed before saving (required for JSON/JSONB columns)
     data_will_change!
-    save!
-
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ SUCCESS"
+    
+    # Save the changes
+    if save
+      Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ SUCCESS - Saved with innings: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
+    else
+      Rails.logger.error "🗑️ DELETE_DEBUG 🗑️ SAVE FAILED: #{errors.full_messages.join(', ')}"
+      return { success: false, error: 'Failed to save changes' }
+    end
     { success: true }
   rescue StandardError => e
     Rails.logger.error "🗑️ DELETE_DEBUG 🗑️ ERROR: #{e.message}"

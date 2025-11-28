@@ -92,8 +92,9 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = false
     
     if result[:success]
-      # Reload to ensure we have fresh data
+      # Reload to ensure we have fresh data and clear cache
       @table_monitor.reload
+      @table_monitor.clear_options_cache
       send_table_update(render_protocol_table_body)
       # Refresh scoreboard to update innings counter in the middle
       TableMonitorJob.perform_later(@table_monitor, "")
