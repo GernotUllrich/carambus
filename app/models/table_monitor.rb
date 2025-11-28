@@ -96,6 +96,9 @@ class TableMonitor < ApplicationRecord
     if previous_changes.keys.present? && relevant_keys.present?
       Rails.logger.info "🔔 Enqueuing: table_scores job (relevant_keys present)"
       TableMonitorJob.perform_later(self, "table_scores")
+      # Also send teaser for tournament_scores page (which doesn't have #table_scores container)
+      Rails.logger.info "🔔 Enqueuing: teaser job (for tournament_scores page)"
+      TableMonitorJob.perform_later(self, "teaser")
     else
       Rails.logger.info "🔔 Enqueuing: teaser job (no relevant_keys)"
       TableMonitorJob.perform_later(self, "teaser")
