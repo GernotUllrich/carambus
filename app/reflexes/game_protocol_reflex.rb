@@ -90,7 +90,14 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.skip_update_callbacks = true
     result = @table_monitor.delete_inning(inning_index)
     @table_monitor.skip_update_callbacks = false
-    send_table_update(render_protocol_table_body) if result[:success]
+    
+    if result[:success]
+      # Reload to ensure we have fresh data
+      @table_monitor.reload
+      send_table_update(render_protocol_table_body)
+      # Refresh scoreboard to update innings counter in the middle
+      TableMonitorJob.perform_later(@table_monitor, "")
+    end
   end
   
   # Insert an empty inning before the specified index
@@ -104,6 +111,8 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.insert_inning(before_index)
     @table_monitor.skip_update_callbacks = false
     send_table_update(render_protocol_table_body)
+    # Refresh scoreboard to update innings counter in the middle
+    TableMonitorJob.perform_later(@table_monitor, "")
   end
   
   private

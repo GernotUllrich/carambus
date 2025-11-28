@@ -2695,11 +2695,17 @@ data[\"allow_overflow\"].present?")
     data['playera']['innings_list'] = innings_list_a
     data['playerb']['innings_list'] = innings_list_b
 
-    # Decrement innings counter for both players (min 1)
-    data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
-    data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    # Store old counter values for logging
+    old_innings_a = data['playera']['innings'].to_i
+    old_innings_b = data['playerb']['innings'].to_i
 
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ New innings counters: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
+    # Decrement innings counter for both players (min 1)
+    # We're deleting one completed inning, so counter decreases by 1
+    # The counter represents total innings (completed + current), so deleting a completed inning reduces it by 1
+    data['playera']['innings'] = [old_innings_a - 1, 1].max
+    data['playerb']['innings'] = [old_innings_b - 1, 1].max
+
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ Innings counters: A=#{old_innings_a} -> #{data['playera']['innings']} (list length: #{innings_list_a.length}), B=#{old_innings_b} -> #{data['playerb']['innings']} (list length: #{innings_list_b.length})"
 
     # Recalculate stats for both players
     recalculate_player_stats('playera', save_now: false)
