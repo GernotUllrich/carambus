@@ -733,7 +733,7 @@ class League < ApplicationRecord
                   end
                   if player.blank?
                     Rails.logger.info "==== scrape ==== Player #{fl_name} with dbu_nr #{player_dbu_nr}, league cc_id: #{cc_id}, #{name} not in dbu?! Looking up or creating..."
-                    
+
                     # Use PlayerFinder to prevent duplicates
                     firstname = fl_name.split(/\s+/)[0]
                     lastname = fl_name.split(/\s+/)[1..].join(" ")
@@ -746,7 +746,7 @@ class League < ApplicationRecord
                       season_id: season_id,
                       allow_create: true
                     )
-                    
+
                     if player.present?
                       Rails.logger.info "==== scrape ==== Player #{fl_name} (ID: #{player.id}) found/created with dbu_nr #{player_dbu_nr}"
                       player.source_url ||= team_url if player.source_url.blank?
@@ -1571,7 +1571,11 @@ class League < ApplicationRecord
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
         next unless result.present? && result.include?(":")
-        left, right = result.split(":").map(&:to_i)
+        if result == ":"
+          left, right = [0,0]
+        else
+          left, right = result.split(":").map(&:to_i)
+        end
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
@@ -1609,6 +1613,8 @@ class League < ApplicationRecord
     stats.sort_by.with_index { |row, idx| [-row[:punkte], -row[:diff], idx] }.each_with_index.map do |row, ix|
       row.merge(platz: ix + 1)
     end
+  rescue StandardError => e
+    Rails.logger.error("#{e.message}, #{e.backtrace}")
   end
 
   # Gibt den Spielplan gruppiert nach Hin- und Rückrunde zurück

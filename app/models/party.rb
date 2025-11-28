@@ -85,12 +85,12 @@ class Party < ApplicationRecord
     "league_id" => "parties.league_id",
     "season_id" => "seasons.id",
     "region_id" => "regions.id",
-    
+
     # Referenzen (Dropdown/Select)
     "League" => "leagues.name",
     "Season" => "seasons.name",
     "Region" => "regions.shortname",
-    
+
     # Eigene Felder
     "Date" => "parties.date::date",
   }.freeze
@@ -102,7 +102,7 @@ class Party < ApplicationRecord
      or (regions.shortname ilike :search)
      or (seasons.name ilike :search)"
   end
-  
+
   def self.search_joins
     [
       :league,
@@ -110,18 +110,18 @@ class Party < ApplicationRecord
       'LEFT OUTER JOIN "seasons" ON "seasons"."id" = "leagues"."season_id"'
     ]
   end
-  
+
   def self.search_distinct?
     false
   end
-  
+
   def self.cascading_filters
     {
       'season_id' => ['league_id'],
       'region_id' => []
     }
   end
-  
+
   def self.field_examples(field_name)
     case field_name
     when 'League'
@@ -143,6 +143,7 @@ class Party < ApplicationRecord
 
   def intermediate_result
     # TODO GameParticipation is only for tournament games and PartyGame is not a Game!!
+    return [0, 0]
     raise "GameParticipation is only for tournament games and PartyGame is not a Game!!"
     points_l = nil
     points_r = nil
@@ -168,8 +169,8 @@ class Party < ApplicationRecord
       points_r = points_r.to_i + gp.points if gp.role == "player#{nrs}"
     end
     [points_l, points_r]
-  rescue StandardError
-    Rails.logger.info "OOPS"
+  rescue StandardError => e
+    Rails.logger.info "OOPS- #{e}"
     raise StandardError unless Rails.env == "production"
   end
 
