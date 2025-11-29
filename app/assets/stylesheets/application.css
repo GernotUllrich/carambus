@@ -32,6 +32,13 @@
   line-height: 1 !important;   /* align font icons */
 }
 
+.responsive-svg.icon-lg svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
 /* Ensure Font Awesome font icons render with correct font family/weight */
 .fa,
 .fa-solid,
