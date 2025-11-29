@@ -304,6 +304,17 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save
   end
 
+  def redo
+    Rails.logger.info "+++++++++++++++++>>> redo <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.skip_update_callbacks = true
+    @table_monitor.panel_state = "inputs"
+    @table_monitor.redo
+    @table_monitor.skip_update_callbacks = false
+    @table_monitor.save
+  end
+
   def minus_n
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
