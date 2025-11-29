@@ -56,6 +56,11 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#undo')
   }
 
+  redo () {
+    console.log('TableMonitor redo called')
+    this.stimulate('TableMonitor#redo')
+  }
+
   next_step () {
     console.log('TableMonitor next_step called')
     this.stimulate('TableMonitor#next_step')
