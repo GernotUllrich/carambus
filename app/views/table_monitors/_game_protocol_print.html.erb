@@ -19,21 +19,16 @@
     <div class="game-date"><%= Time.current.strftime("%d.%m.%Y %H:%M") %></div>
   </div>
   
-  <!-- Players -->
-  <div class="protocol-players">
-    <div class="player-a">
-      <div class="player-name"><%= history[:player_a][:shortname] || history[:player_a][:name] %></div>
-    </div>
-    <div class="player-b">
-      <div class="player-name"><%= history[:player_b][:shortname] || history[:player_b][:name] %></div>
-    </div>
-  </div>
-  
   <!-- Protocol Table -->
   <table class="protocol-print-table">
     <thead>
       <tr>
         <th class="col-inning">#</th>
+        <th colspan="2" class="player-a-header"><%= history[:player_a][:shortname] || history[:player_a][:name] %></th>
+        <th colspan="2" class="player-b-header"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
+      </tr>
+      <tr>
+        <th class="col-inning">Aufn.</th>
         <th class="col-points">Pkt</th>
         <th class="col-total">Total</th>
         <th class="col-points">Pkt</th>

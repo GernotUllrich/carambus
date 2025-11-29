@@ -76,25 +76,6 @@
     flex: 1;
   }
   
-  /* Players */
-  .protocol-players {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.2cm;
-    margin-bottom: 0.2cm;
-    font-size: 8pt;
-  }
-  
-  .player-a,
-  .player-b {
-    text-align: center;
-    font-weight: bold;
-  }
-  
-  .player-a {
-    border-right: 1px solid #ccc;
-  }
-  
   /* Protocol Table */
   .protocol-print-table {
     width: 100%;
@@ -117,6 +98,19 @@
   .protocol-print-table thead th {
     font-weight: bold;
     font-size: 7pt;
+  }
+  
+  .protocol-print-table thead tr:first-child th {
+    background: #f0f0f0;
+    font-size: 8pt;
+  }
+  
+  .protocol-print-table .player-a-header {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table .player-b-header {
+    background: #e8f5e9;
   }
   
   .col-inning {
@@ -247,6 +241,19 @@
   
   .protocol-print-table thead th {
     font-weight: bold;
+  }
+  
+  .protocol-print-table thead tr:first-child th {
+    background: #f0f0f0;
+    font-size: 9pt;
+  }
+  
+  .protocol-print-table .player-a-header {
+    background: #e3f2fd;
+  }
+  
+  .protocol-print-table .player-b-header {
+    background: #e8f5e9;
   }
   
   .protocol-print-table tbody tr:nth-child(even) {
