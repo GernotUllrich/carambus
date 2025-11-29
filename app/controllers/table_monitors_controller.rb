@@ -2,7 +2,7 @@
 
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
-                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode print_protocol]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -255,6 +255,14 @@ class TableMonitorsController < ApplicationController
                         params[:display_only] == "true"
                     end
     session[:display_only] = JSON.parse(@display_only.to_s)
+  end
+
+  # Print protocol - shows 3 protocols per landscape A4 page
+  def print_protocol
+    @table_monitor = TableMonitor.find(params[:id])
+    @navbar = false
+    @footer = false
+    render layout: 'print'
   end
 
   # Only allow a trusted parameter "white list" through.

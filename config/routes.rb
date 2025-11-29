@@ -133,6 +133,9 @@ Rails.application.routes.draw do
   end
   resources :table_monitors do
     member do
+      get :print_protocol
+    end
+    member do
       post :set_balls
       post :add_one
       post :add_ten

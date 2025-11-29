@@ -23,6 +23,7 @@
 @import "components/iframe.css";
 @import "components/modal.css";
 @import "components/game_protocol_modal.css";
+@import "components/game_protocol_print.css";
 @import "components/nav.css";
 @import "components/notifications.css";
 @import "components/pagination.css";

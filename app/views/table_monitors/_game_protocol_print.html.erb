@@ -1,0 +1,92 @@
+<%# Game Protocol Print View - 3 protocols per landscape A4 page %>
+<%- table_monitor = local_assigns[:table_monitor] %>
+<%- history = table_monitor.innings_history %>
+<%- location = table_monitor.table.location %>
+
+<div class="protocol-print-sheet">
+  <!-- Location Header -->
+  <div class="protocol-header">
+    <div class="location-info">
+      <div class="location-name"><%= location.name %></div>
+      <div class="location-address"><%= location.address %></div>
+    </div>
+  </div>
+  
+  <!-- Game Info -->
+  <div class="protocol-game-info">
+    <div class="game-discipline"><%= table_monitor.discipline || 'Freie Partie' %></div>
+    <div class="game-goal">Ziel: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? "#{table_monitor.data.dig('playera', 'balls_goal')}" : "∞" %></div>
+    <div class="game-date"><%= Time.current.strftime("%d.%m.%Y %H:%M") %></div>
+  </div>
+  
+  <!-- Players -->
+  <div class="protocol-players">
+    <div class="player-a">
+      <div class="player-name"><%= history[:player_a][:shortname] || history[:player_a][:name] %></div>
+    </div>
+    <div class="player-b">
+      <div class="player-name"><%= history[:player_b][:shortname] || history[:player_b][:name] %></div>
+    </div>
+  </div>
+  
+  <!-- Protocol Table -->
+  <table class="protocol-print-table">
+    <thead>
+      <tr>
+        <th class="col-inning">#</th>
+        <th class="col-points">Pkt</th>
+        <th class="col-total">Total</th>
+        <th class="col-points">Pkt</th>
+        <th class="col-total">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% 
+        player_a = history[:player_a]
+        player_b = history[:player_b]
+        max_innings = [player_a[:innings].length, player_b[:innings].length].max
+      %>
+      <% if max_innings == 0 %>
+        <tr>
+          <td colspan="5" class="text-center">Noch keine Aufnahmen</td>
+        </tr>
+      <% else %>
+        <% max_innings.times do |i| %>
+          <% 
+            inning_a = player_a[:innings][i]
+            total_a = player_a[:totals][i]
+            inning_b = player_b[:innings][i]
+            total_b = player_b[:totals][i]
+            
+            has_inning_a = !inning_a.nil?
+            has_inning_b = !inning_b.nil?
+          %>
+          <tr>
+            <td class="col-inning"><%= i + 1 %></td>
+            <td class="col-points player-a"><%= has_inning_a ? inning_a : '' %></td>
+            <td class="col-total player-a"><%= has_inning_a ? total_a : '' %></td>
+            <td class="col-points player-b"><%= has_inning_b ? inning_b : '' %></td>
+            <td class="col-total player-b"><%= has_inning_b ? total_b : '' %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr class="totals-row">
+        <td class="col-inning">Summe</td>
+        <td class="col-points player-a"><%= player_a[:result] %></td>
+        <td class="col-total player-a"><%= player_a[:result] %></td>
+        <td class="col-points player-b"><%= player_b[:result] %></td>
+        <td class="col-total player-b"><%= player_b[:result] %></td>
+      </tr>
+      <tr class="stats-row">
+        <td class="col-inning">HS</td>
+        <td class="col-points player-a"><%= player_a[:hs] %></td>
+        <td class="col-total player-a">GD: <%= player_a[:gd] %></td>
+        <td class="col-points player-b"><%= player_b[:hs] %></td>
+        <td class="col-total player-b">GD: <%= player_b[:gd] %></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+

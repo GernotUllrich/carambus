@@ -85,8 +85,8 @@
             Fertig
           </button>
           <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition print:hidden"
-                  onclick="window.print()">
-            📄 Drucken
+                  onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor) %>', '_blank')">
+            📄 Protokoll drucken
           </button>
         </div>
       <%- end %>
