@@ -2,7 +2,7 @@
 
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
-                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode print_protocol]
+                only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -213,6 +213,20 @@ class TableMonitorsController < ApplicationController
   # All game protocol functionality now handled by GameProtocolReflex
   # Old JSON/HTML endpoints removed - modal is server-side rendered via panel_state
 
+  # Print protocol - generates PDF with 3 protocols per landscape A4 page
+  def print_protocol
+    @table_monitor = TableMonitor.find(params[:id])
+    @history = @table_monitor.innings_history
+    @location = @table_monitor.table.location
+    
+    pdf = ProtocolPdf.new(@table_monitor, @history, @location)
+    
+    send_data pdf.render,
+              filename: "spielprotokoll_#{@table_monitor.id}_#{Time.current.strftime('%Y%m%d_%H%M%S')}.pdf",
+              type: "application/pdf",
+              disposition: :inline
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -255,14 +269,6 @@ class TableMonitorsController < ApplicationController
                         params[:display_only] == "true"
                     end
     session[:display_only] = JSON.parse(@display_only.to_s)
-  end
-
-  # Print protocol - shows 3 protocols per landscape A4 page
-  def print_protocol
-    @table_monitor = TableMonitor.find(params[:id])
-    @navbar = false
-    @footer = false
-    render layout: 'print'
   end
 
   # Only allow a trusted parameter "white list" through.

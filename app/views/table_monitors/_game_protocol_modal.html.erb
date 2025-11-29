@@ -84,9 +84,9 @@
                   data-id="<%= table_monitor.id %>">
             Fertig
           </button>
-          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition print:hidden"
-                  onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor) %>', '_blank')">
-            📄 Protokoll drucken
+          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                  onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
+            📄 Protokoll PDF
           </button>
         </div>
       <%- end %>
