@@ -155,6 +155,9 @@ gem 'ruby-openai', '~> 7.3'
 
 # PDF text extraction for tournament invitation parsing
 gem 'pdf-reader', '~> 2.12'
+# PDF generation for game protocols
+gem 'prawn', '~> 2.4'
+gem 'prawn-table', '~> 0.2'
 
 # OCR for screenshot/image text extraction (requires tesseract-ocr system package)
 gem 'rtesseract', '~> 3.1'
