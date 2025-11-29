@@ -1699,13 +1699,87 @@ data[\"allow_overflow\"].present?")
     return unless playing?
 
     current_role = data["current_inning"]["active_player"]
-    return unless data[current_role]["discipline"] == "14.1 endlos"
-    return unless copy_from.present?
-
-    self.copy_from += 1
-    deep_merge_data!(versions[self.copy_from -= 1].reify.data)
-    data_will_change!
-    save!
+    
+    # For "14.1 endlos" discipline, use PaperTrail-based redo
+    if data[current_role]["discipline"] == "14.1 endlos"
+      return unless copy_from.present?
+      next_copy_from = copy_from + 1
+      if next_copy_from <= versions.last.index
+        next_version = versions[next_copy_from]
+        if next_version
+          self.copy_from = next_copy_from
+          deep_merge_data!(next_version.reify.data)
+          data_will_change!
+          save!
+        end
+      end
+      return
+    end
+    
+    # For other disciplines, redo works like next_step: terminate current inning
+    # until we reach the current state (no more undone state)
+    # Check if there's a current inning with points to terminate
+    innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
+    
+    # If we're in an undone state, restore forward through versions first
+    if copy_from.present? && copy_from < versions.last.index
+      next_copy_from = copy_from + 1
+      next_version = versions.find_by(index: next_copy_from)
+      if next_version
+        self.copy_from = next_copy_from
+        deep_merge_data!(next_version.reify.data)
+        data_will_change!
+        save!
+        return
+      end
+    end
+    
+    # If we're at current state and there's a current inning with points, terminate it
+    if innings_redo > 0
+      terminate_current_inning
+    end
+  end
+  
+  def can_redo?
+    return false unless playing?
+    current_role = data["current_inning"]["active_player"]
+    
+    # For "14.1 endlos", check if copy_from allows redo
+    if data[current_role]["discipline"] == "14.1 endlos"
+      return copy_from.present? && copy_from < versions.last.index
+    end
+    
+    # For other disciplines, check if there's a current inning with points or undone state
+    innings_redo = Array(data[current_role]["innings_redo_list"]).last.to_i
+    return true if innings_redo > 0
+    return true if copy_from.present? && copy_from < versions.last.index
+    false
+  end
+  
+  def can_undo?
+    return false unless playing? || set_over?
+    current_role = data["current_inning"]["active_player"]
+    
+    # For "14.1 endlos", check if we can go back
+    if data[current_role]["discipline"] == "14.1 endlos"
+      # Can undo if we have versions and either copy_from is set or we have game data
+      return true if copy_from.present? && copy_from > 0
+      return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
+        data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
+        data["sets"].to_a.length +
+        data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+      return false
+    end
+    
+    # For other disciplines, check if we have innings to undo
+    the_other_player = (current_role == "playera" ? "playerb" : "playera")
+    return true if (data[the_other_player]["innings"]).to_i.positive?
+    return true if copy_from.present? && copy_from > 0
+    return true if versions.any? && (data["playera"]["innings"].to_i + data["playerb"]["innings"].to_i +
+      data["playera"]["result"].to_i + data["playerb"]["result"].to_i +
+      data["sets"].to_a.length +
+      data["playera"]["innings_redo_list"].andand[-1].to_i + data["playerb"]["innings_redo_list"].andand[-1].to_i) > 0
+    false
   end
 
   def undo
