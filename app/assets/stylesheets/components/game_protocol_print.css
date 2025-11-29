@@ -203,24 +203,6 @@
     border-bottom: 1px solid #ccc;
   }
   
-  .protocol-players {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.3cm;
-    margin-bottom: 0.3cm;
-    font-size: 9pt;
-  }
-  
-  .player-a,
-  .player-b {
-    text-align: center;
-    font-weight: bold;
-  }
-  
-  .player-a {
-    border-right: 1px solid #ccc;
-  }
-  
   .protocol-print-table {
     width: 100%;
     border-collapse: collapse;
