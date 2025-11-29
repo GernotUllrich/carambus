@@ -2,7 +2,7 @@
 <div style="z-index:999; gap: 1.2vw; margin-top: 10px;" class="flex items-center justify-center mr-4 dark:bg-black text-gray-300 hover:text-black text-2vw text-center font-bold">
   <%- if table_monitor.playing? %>
     <%= content_tag "div", class: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-0 lg:m-0 inline-block #{table_monitor.can_undo? ? 'text-white dark:text-white hover:text-gray-300 cursor-pointer' : 'text-gray-500 dark:text-gray-500 cursor-not-allowed opacity-50'}", title: t('table_monitor.undo_tooltip', default: "Rückgängig"), data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, id: "undo-button" do %>
-      <%= render_svg "undo-red-400", styles: "fill-current" %>
+      <%= render_svg "undo-red-400", styles: "fill-current responsive-svg icon-lg" %>
     <%- end %>
   <%- end %>
   <%= custom_link_to toggle_dark_mode_table_monitor_path(table_monitor), :"data-turbo" => false do %>
@@ -19,7 +19,7 @@
   <% end %>
   <%- if table_monitor.playing? %>
     <%= content_tag "div", class: "responsive-svg focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg sm:icon-sm m-0 lg:m-0 inline-block #{table_monitor.can_redo? ? 'text-white dark:text-white hover:text-gray-300 cursor-pointer' : 'text-gray-500 dark:text-gray-500 cursor-not-allowed opacity-50'}", title: t('table_monitor.redo_tooltip', default: "Wiederholen"), data: { controller: "table-monitor", action: "click->table-monitor#redo", id: table_monitor.id }, id: "redo-button" do %>
-      <%= render_svg "redo-red-400", styles: "fill-current" %>
+      <%= render_svg "redo-red-400", styles: "fill-current responsive-svg icon-lg" %>
     <%- end %>
   <%- end %>
 </div>
