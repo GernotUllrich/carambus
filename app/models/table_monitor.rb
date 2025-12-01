@@ -2739,10 +2739,14 @@ data[\"allow_overflow\"].present?")
     innings_list_a = Array(data.dig('playera', 'innings_list'))
     innings_list_b = Array(data.dig('playerb', 'innings_list'))
 
-    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{innings_list_a.length}, innings_list_b.length=#{innings_list_b.length}"
+    # Store original lengths BEFORE delete to know which player had an entry
+    original_length_a = innings_list_a.length
+    original_length_b = innings_list_b.length
+
+    Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ innings_list_a.length=#{original_length_a}, innings_list_b.length=#{original_length_b}"
 
     # Check if trying to delete the CURRENT inning (last row = innings_redo_list)
-    max_list_length = [innings_list_a.length, innings_list_b.length].max
+    max_list_length = [original_length_a, original_length_b].max
     if inning_index >= max_list_length
       Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ REJECTED: Cannot delete current inning (index=#{inning_index} >= list_length=#{max_list_length})"
       return { success: false, error: 'Die laufende Aufnahme kann nicht gelöscht werden' }
@@ -2759,9 +2763,9 @@ data[\"allow_overflow\"].present?")
       return { success: false, error: 'Nur Zeilen mit 0:0 können gelöscht werden' }
     end
 
-    # Remove the inning from both innings_lists
-    innings_list_a.delete_at(inning_index)
-    innings_list_b.delete_at(inning_index)
+    # Remove the inning from innings_lists ONLY if player had an entry at that index
+    innings_list_a.delete_at(inning_index) if inning_index < original_length_a
+    innings_list_b.delete_at(inning_index) if inning_index < original_length_b
 
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ After delete: innings_list_a=#{innings_list_a.inspect}, innings_list_b=#{innings_list_b.inspect}"
 
@@ -2769,9 +2773,13 @@ data[\"allow_overflow\"].present?")
     data['playera']['innings_list'] = innings_list_a
     data['playerb']['innings_list'] = innings_list_b
 
-    # Decrement innings counter for both players (min 1)
-    data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
-    data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    # Decrement innings counter ONLY if player actually had an entry at that index (min 1)
+    if inning_index < original_length_a
+      data['playera']['innings'] = [data['playera']['innings'].to_i - 1, 1].max
+    end
+    if inning_index < original_length_b
+      data['playerb']['innings'] = [data['playerb']['innings'].to_i - 1, 1].max
+    end
 
     Rails.logger.warn "🗑️ DELETE_DEBUG 🗑️ New innings counters: A=#{data['playera']['innings']}, B=#{data['playerb']['innings']}"
 
