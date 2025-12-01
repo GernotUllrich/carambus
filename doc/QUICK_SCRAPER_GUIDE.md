@@ -196,26 +196,48 @@ sudo systemctl reload nginx
 
 **WHITELIST Format** (`/root/WHITELIST`):
 ```
-# Trusted IPs - one per line
-123.45.67.89    # Office IP
-98.76.54.0/24   # Company network
+# Trusted IPs and networks - one per line
+# Supports single IPs and CIDR notation
+192.168.2.0/24  # Local network (192.168.2.0 - 192.168.2.255)
+10.0.0.0/8      # Private network (10.0.0.0 - 10.255.255.255)
+172.16.0.0/12   # Private network range
+123.45.67.89    # Office static IP
 11.22.33.44     # Monitoring service
 ```
 
 **BLACKLIST Format** (`/root/BLACKLIST`):
 ```
 # Blocked IPs and subnets - one per line
-47.79.0.0/16    # Scraper subnet
+# Supports single IPs and CIDR notation
+47.79.0.0/16    # Scraper subnet (47.79.0.0 - 47.79.255.255)
 12.34.56.78     # Known bad actor
+185.220.0.0/14  # Known scraper network
 ```
+
+**CIDR Notation Beispiele:**
+- `192.168.1.0/24` = alle IPs von 192.168.1.0 bis 192.168.1.255 (256 IPs)
+- `192.168.0.0/16` = alle IPs von 192.168.0.0 bis 192.168.255.255 (65.536 IPs)
+- `10.0.0.0/8` = alle IPs von 10.0.0.0 bis 10.255.255.255 (16.777.216 IPs)
+- `47.79.0.0/16` = alle IPs von 47.79.0.0 bis 47.79.255.255
 
 **Add to WHITELIST:**
 ```bash
-echo "123.45.67.89  # Your description" | sudo tee -a /root/WHITELIST
+# Einzelne IP
+echo "123.45.67.89  # Office IP" | sudo tee -a /root/WHITELIST
+
+# Lokales Netzwerk (alle 192.168.2.x IPs)
+echo "192.168.2.0/24  # Local network" | sudo tee -a /root/WHITELIST
+
+# Alle privaten 10.x.x.x IPs
+echo "10.0.0.0/8  # Private network" | sudo tee -a /root/WHITELIST
 ```
 
 **Add to BLACKLIST:**
 ```bash
+# Einzelne IP
+echo "12.34.56.78  # Bad actor" | sudo tee -a /root/BLACKLIST
+
+# IP-Subnet blocken (alle 47.79.x.x IPs)
 echo "47.79.0.0/16  # Scraper subnet" | sudo tee -a /root/BLACKLIST
 ```
 

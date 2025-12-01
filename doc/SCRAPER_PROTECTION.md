@@ -255,34 +255,73 @@ The script will:
 
 ### WHITELIST File Format
 
-Create `/root/WHITELIST` with trusted IPs:
+Create `/root/WHITELIST` with trusted IPs and networks:
 
 ```
-# Trusted IPs - one per line, comments with #
-123.45.67.89    # Office IP
-98.76.54.0/24   # Company network
+# Trusted IPs and networks - one per line, comments with #
+# Supports both single IPs and CIDR notation
+
+# Local networks (typical private networks)
+192.168.2.0/24  # Local network (192.168.2.0 - 192.168.2.255)
+10.0.0.0/8      # All private 10.x.x.x IPs
+172.16.0.0/12   # Private network range
+
+# Single IPs
+123.45.67.89    # Office static IP
 11.22.33.44     # Monitoring service
 ```
 
 ### BLACKLIST File Format
 
-Create `/root/BLACKLIST` with blocked IPs:
+Create `/root/BLACKLIST` with blocked IPs and networks:
 
 ```
 # Blocked IPs and subnets - one per line
-47.79.0.0/16    # Scraper subnet
+# Supports both single IPs and CIDR notation
+
+# Scraper networks
+47.79.0.0/16    # Scraper subnet (47.79.0.0 - 47.79.255.255)
+185.220.0.0/14  # Known scraper network
+
+# Single bad actors
 12.34.56.78     # Known bad actor
+98.76.54.32     # Suspicious IP
 ```
+
+### CIDR Notation Reference
+
+- `/32` = single IP (1 address)
+- `/24` = Class C network (256 addresses, e.g., 192.168.1.0 - 192.168.1.255)
+- `/16` = Class B network (65,536 addresses, e.g., 172.16.0.0 - 172.16.255.255)
+- `/8` = Class A network (16,777,216 addresses, e.g., 10.0.0.0 - 10.255.255.255)
+
+Common private networks:
+- `10.0.0.0/8` - Private class A (10.0.0.0 - 10.255.255.255)
+- `172.16.0.0/12` - Private class B (172.16.0.0 - 172.31.255.255)
+- `192.168.0.0/16` - Private class C (192.168.0.0 - 192.168.255.255)
 
 ### Managing Lists
 
-**Add to WHITELIST:**
+**Add single IP to WHITELIST:**
 ```bash
-echo "123.45.67.89  # Your description" | sudo tee -a /root/WHITELIST
+echo "123.45.67.89  # Office IP" | sudo tee -a /root/WHITELIST
+```
+
+**Add network range to WHITELIST:**
+```bash
+# Local network (all 192.168.2.x)
+echo "192.168.2.0/24  # Local network" | sudo tee -a /root/WHITELIST
+
+# All private 10.x.x.x IPs
+echo "10.0.0.0/8  # Private network" | sudo tee -a /root/WHITELIST
 ```
 
 **Add to BLACKLIST:**
 ```bash
+# Single IP
+echo "12.34.56.78  # Bad actor" | sudo tee -a /root/BLACKLIST
+
+# Network range
 echo "47.79.0.0/16  # Scraper subnet" | sudo tee -a /root/BLACKLIST
 ```
 
