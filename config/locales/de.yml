@@ -299,6 +299,8 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
+    tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwenden Sie das Turnier-Verwaltungssystem."
+    tournament_reset_requires_admin: "Das Zurücksetzen eines Turniers ist nur für Club- und System-Administratoren erlaubt."
   game_participation:
     balls_goal: Ballziel
     created_at: created at

@@ -102,6 +102,16 @@ class LocationsController < ApplicationController
         render "scoreboard_training"
       when "free_game"
         # Quick Game Setup - Ultra-simple for Pi 3 Performance (DEFAULT)
+        # Blockiere wenn Turnierspiel läuft
+        if @table.present?
+          table_monitor = @table.table_monitor
+          if table_monitor&.tournament_monitor_id.present?
+            flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                                  default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+            redirect_to location_path(@location, sb_state: "welcome") and return
+          end
+        end
+        
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
@@ -164,6 +174,16 @@ class LocationsController < ApplicationController
         end
       when "free_game_detail"
         # Original detailed configuration with Alpine.js
+        # Blockiere wenn Turnierspiel läuft
+        if @table.present?
+          table_monitor = @table.table_monitor
+          if table_monitor&.tournament_monitor_id.present?
+            flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                                  default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+            redirect_to location_path(@location, sb_state: "welcome") and return
+          end
+        end
+        
         player_a = Player.find(params[:player_a_id]) if params[:player_a_id].to_i.positive?
         player_b = Player.find(params[:player_b_id]) if params[:player_b_id].to_i.positive?
         Table.transaction do
@@ -443,6 +463,15 @@ class LocationsController < ApplicationController
 
   def scoreboard_free_game_karambol_new
     authorize! :manage, TableMonitor
+    
+    # Blockiere Zugriff wenn Turnierspiel läuft
+    table = Table.find(params[:table_id]) if params[:table_id].present?
+    if table&.table_monitor&.tournament_monitor_id.present?
+      flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                            default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+      redirect_to location_path(table.location) and return
+    end
+    
     # controller logic
   end
 

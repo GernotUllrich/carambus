@@ -291,6 +291,8 @@ en:
       invalid_theme: invalid theme
       invalid_locale: invalid locale
       invalid_timezone: invalid timezone
+    tournament_game_manipulation_blocked: "Game manipulations are not allowed during a tournament. Please use the tournament management system."
+    tournament_reset_requires_admin: "Resetting a tournament is only allowed for club and system administrators."
   game_participation:
     balls_goal: balls goal
     created_at: created at

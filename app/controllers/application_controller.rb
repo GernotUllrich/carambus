@@ -228,4 +228,16 @@ class ApplicationController < ActionController::Base
     # Reset menu state if collapse_menu parameter is present
     session.delete(:sidebar_expanded) if params[:collapse_menu].present?
   end
+
+  # Blockiert Manipulationen an TableMonitor, wenn dieser einem Turnier zugeordnet ist
+  # Schützt vor unbeabsichtigten Änderungen während laufender Turniere
+  def block_if_tournament_game!(table_monitor)
+    return unless table_monitor&.tournament_monitor_id.present?
+    
+    flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                          default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+    redirect_back(fallback_location: root_path) and return true
+  end
+
+  helper_method :block_if_tournament_game!
 end

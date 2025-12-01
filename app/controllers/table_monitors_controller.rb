@@ -3,6 +3,8 @@
 class TableMonitorsController < ApplicationController
   before_action :set_table_monitor,
                 only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+  before_action :block_tournament_manipulation,
+                only: %i[start_game update destroy]
 
   def set_balls
     unless @table_monitor.set_n_balls(params[:add_balls].to_i)
@@ -279,5 +281,14 @@ class TableMonitorsController < ApplicationController
                   :timeout, :timeouts, :kickoff_switches_with,
                   :fixed_display_left, :color_remains_with_set, :balls_on_table,
                   :allow_overflow, :allow_follow_up, :toggle_dark_mode)
+  end
+
+  # Verhindert Manipulationen an TableMonitor während eines Turniers
+  def block_tournament_manipulation
+    if @table_monitor&.tournament_monitor_id.present?
+      flash[:error] = I18n.t('errors.tournament_game_manipulation_blocked',
+                            default: 'Spielmanipulationen sind während eines Turniers nicht erlaubt.')
+      redirect_back(fallback_location: locations_path) and return
+    end
   end
 end

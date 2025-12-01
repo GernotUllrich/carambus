@@ -286,10 +286,10 @@ class Tournament < ApplicationRecord
                   to: :tournament_started
     end
     event :reset_tmt_monitor do
-      transitions to: :new_tournament, guard: :tournament_not_yet_started
+      transitions to: :new_tournament, guard: %i[tournament_not_yet_started admin_can_reset_tournament?]
     end
     event :forced_reset_tournament_monitor do
-      transitions to: :new_tournament
+      transitions to: :new_tournament, guard: :admin_can_reset_tournament?
     end
     event :finish_tournament do
       transitions to: :tournament_finished
@@ -855,6 +855,15 @@ class Tournament < ApplicationRecord
 
   def tournament_started
     games.where("games.id >= #{Game::MIN_ID}").present?
+  end
+
+  # Guard für reset_tournament - nur club_admin oder system_admin dürfen zurücksetzen
+  def admin_can_reset_tournament?
+    current_user = User.current || PaperTrail.request.whodunnit
+    return true if current_user.blank? # Beim Initialisieren gibt es keinen User
+    
+    user = current_user.is_a?(User) ? current_user : User.find_by(id: current_user)
+    user&.club_admin? || user&.system_admin?
   end
 
   def date_str
