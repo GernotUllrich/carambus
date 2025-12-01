@@ -179,6 +179,11 @@
 <% end %>
 
 <div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+  <!-- Flash Messages -->
+  <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-4xl">
+    <%= render "application/flash" %>
+  </div>
+
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>
   <p style="text-shadow: 2px 2px #000000" class="mb-6 text-gray-200 leading-normal text-3vw"><%= t('carambus_manages') %></p>
   <span>

@@ -91,6 +91,11 @@
 </div>
 
 <div class="p-14 w-full m-auto flex items-center flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
+  <!-- Flash Messages -->
+  <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-4xl">
+    <%= render "application/flash" %>
+  </div>
+
   <%- if table.present? %>
     <h2 style="text-shadow: 2px 2px #000000" class="flex text-gray-200 pt-5 text-3vw"><%= "#{table.name}" %></h2>
   <%- end %>

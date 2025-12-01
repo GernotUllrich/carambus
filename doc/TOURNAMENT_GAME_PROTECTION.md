@@ -235,6 +235,24 @@ Bei Änderungen an:
 - Tournament State Machine: Guards berücksichtigen
 - Scoreboard States: Inline-Checks hinzufügen
 
+## User Experience
+
+### Flash-Messages auf Scoreboard
+
+Wenn eine blockierte Aktion versucht wird, sieht der Benutzer:
+
+1. **Redirect zur Welcome-Seite** (oder andere sichere Seite)
+2. **Rote Error-Box** oben zentriert mit der Fehlermeldung
+3. **Klare Anweisung** was nicht erlaubt ist
+
+Die Flash-Messages sind:
+- Prominent platziert (oben zentriert)
+- Farblich kodiert (rot für Fehler)
+- Automatisch verschwindend bei nächster Navigation
+- In der gewählten Sprache (DE/EN)
+
+Details siehe: [FLASH_MESSAGES_SCOREBOARD.md](FLASH_MESSAGES_SCOREBOARD.md)
+
 ## Changelog
 
 ### 2025-12-01
@@ -242,4 +260,6 @@ Bei Änderungen an:
 - Schutz für TableMonitorsController, LocationsController
 - Admin-only Tournament Resets
 - Internationalisierung (DE/EN)
+- Flash-Messages Integration für Scoreboard-Views
+- Support für `flash[:error]` in Flash-Partial hinzugefügt
 
