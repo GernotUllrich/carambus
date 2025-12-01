@@ -228,6 +228,96 @@ We've created several scripts to help:
 - `bin/analyze_scrapers.sh` - Comprehensive log analysis
 - `bin/extract_scraper_ips.sh` - Extract high-frequency IPs
 - `bin/block_scraper_ips.sh` - Generate block configuration
+- `bin/find_unclassified_ips.sh` - Find IPs not in WHITELIST or BLACKLIST
+
+## IP Classification with WHITELIST/BLACKLIST
+
+The system supports `/root/WHITELIST` and `/root/BLACKLIST` files for IP management.
+
+### Finding Unclassified IPs
+
+Use the script to identify IPs that need classification:
+
+```bash
+cd /var/www/carambus_api/current
+./bin/find_unclassified_ips.sh
+
+# With minimum request threshold (default: 10)
+./bin/find_unclassified_ips.sh 50  # only IPs with ≥50 requests
+```
+
+The script will:
+1. Extract all IPs from nginx logs
+2. Compare against WHITELIST and BLACKLIST
+3. Show unclassified IPs with request counts
+4. Display user-agents for investigation
+5. Provide suggestions for classification
+
+### WHITELIST File Format
+
+Create `/root/WHITELIST` with trusted IPs:
+
+```
+# Trusted IPs - one per line, comments with #
+123.45.67.89    # Office IP
+98.76.54.0/24   # Company network
+11.22.33.44     # Monitoring service
+```
+
+### BLACKLIST File Format
+
+Create `/root/BLACKLIST` with blocked IPs:
+
+```
+# Blocked IPs and subnets - one per line
+47.79.0.0/16    # Scraper subnet
+12.34.56.78     # Known bad actor
+```
+
+### Managing Lists
+
+**Add to WHITELIST:**
+```bash
+echo "123.45.67.89  # Your description" | sudo tee -a /root/WHITELIST
+```
+
+**Add to BLACKLIST:**
+```bash
+echo "47.79.0.0/16  # Scraper subnet" | sudo tee -a /root/BLACKLIST
+```
+
+**View lists:**
+```bash
+sudo cat /root/WHITELIST
+sudo cat /root/BLACKLIST
+```
+
+### Workflow with Lists
+
+1. Run unclassified IPs finder:
+   ```bash
+   ./bin/find_unclassified_ips.sh 20
+   ```
+
+2. Review the output and classify IPs:
+   - Good IPs → add to WHITELIST
+   - Bad IPs → add to BLACKLIST
+
+3. Apply blacklisted IPs to nginx:
+   ```bash
+   # Generate nginx deny rules from BLACKLIST
+   grep -v '^#' /root/BLACKLIST | grep -v '^[[:space:]]*$' | \
+     awk '{print "deny "$1";"}' | \
+     sudo tee /etc/nginx/conf.d/carambus_api_blocklist.conf
+   
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+4. Re-run finder to verify:
+   ```bash
+   ./bin/find_unclassified_ips.sh
+   ```
 
 ## Example Workflow
 

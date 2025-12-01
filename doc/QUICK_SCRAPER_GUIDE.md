@@ -8,6 +8,20 @@ Z.B.:
 - `/var/www/carambus_api/current/log/nginx.access.log`
 - `/var/www/carambus_bcw/current/log/nginx.access.log`
 
+## IP Management mit WHITELIST/BLACKLIST
+
+Das System unterstützt `/root/WHITELIST` und `/root/BLACKLIST` Dateien zur IP-Klassifizierung.
+
+**Verwendung des Unclassified IPs Finders:**
+```bash
+# Findet IPs, die weder in WHITELIST noch BLACKLIST sind
+cd /var/www/carambus_api/current
+./bin/find_unclassified_ips.sh
+
+# Mit Mindestanzahl von Requests (Standard: 10)
+./bin/find_unclassified_ips.sh 50  # nur IPs mit ≥50 Requests
+```
+
 ## Step 1: Find Scraper IPs
 
 SSH to your server as `www-data` user and run these commands:
@@ -178,11 +192,46 @@ Reload nginx:
 sudo systemctl reload nginx
 ```
 
+## Managing WHITELIST and BLACKLIST
+
+**WHITELIST Format** (`/root/WHITELIST`):
+```
+# Trusted IPs - one per line
+123.45.67.89    # Office IP
+98.76.54.0/24   # Company network
+11.22.33.44     # Monitoring service
+```
+
+**BLACKLIST Format** (`/root/BLACKLIST`):
+```
+# Blocked IPs and subnets - one per line
+47.79.0.0/16    # Scraper subnet
+12.34.56.78     # Known bad actor
+```
+
+**Add to WHITELIST:**
+```bash
+echo "123.45.67.89  # Your description" | sudo tee -a /root/WHITELIST
+```
+
+**Add to BLACKLIST:**
+```bash
+echo "47.79.0.0/16  # Scraper subnet" | sudo tee -a /root/BLACKLIST
+```
+
+## Helper Scripts
+
+- `bin/find_unclassified_ips.sh` - Find IPs not in WHITELIST or BLACKLIST
+- `bin/analyze_scrapers.sh` - Comprehensive log analysis
+- `bin/extract_scraper_ips.sh` - Extract high-frequency IPs
+- `bin/block_scraper_ips.sh` - Generate nginx block configs
+
 ## Notes
 
 - Replace `carambus_api` with your actual scenario name (`carambus_bcw`, etc.)
 - You can adjust the threshold (100 requests) based on your traffic patterns
 - Some high-frequency IPs might be legitimate (monitoring services, CDNs) - review before blocking
+- Use WHITELIST to protect legitimate IPs from accidental blocking
 - Keep backups of your nginx configuration before making changes
 - Monitor logs after blocking to ensure legitimate users aren't affected
 
