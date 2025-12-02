@@ -1501,6 +1501,27 @@ data[\"allow_overflow\"].present?")
     raise StandardError
   end
 
+  # Check if this is a multi-set match (Gewinnsätze or max. Sätze)
+  def is_multi_set_match?
+    data["sets_to_win"].to_i > 1 || data["sets_to_play"].to_i > 1
+  end
+
+  # Check if the match is decided (one player has won enough sets, or all sets played)
+  def is_match_decided?
+    return true unless is_multi_set_match?
+    
+    if data["sets_to_win"].to_i > 1
+      # Gewinnsätze mode - check if someone has won enough sets
+      max_number_of_wins = get_max_number_of_wins
+      max_number_of_wins >= data["sets_to_win"].to_i
+    elsif data["sets_to_play"].to_i > 1
+      # Fixed number of sets mode - check if all sets are played
+      sets_played >= data["sets_to_play"].to_i
+    else
+      true
+    end
+  end
+
   def set_n_balls(n_balls, change_to_pointer_mode = false)
     if DEBUG
       Rails.logger.info "-------------m6[#{id}]--------\
@@ -2029,22 +2050,18 @@ data[\"allow_overflow\"].present?")
   def evaluate_result
     debug = true # true
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
-      # Check if we're about to transition from playing to set_over
+      # Remember if we were playing before any state transition
       was_playing = playing?
       end_of_set! if playing? && simple_set_game? && may_end_of_set?
-      if was_playing && set_over?
-        # Just transitioned to set_over - show protocol_final modal for result review
-        self.panel_state = "protocol_final"
-        self.current_element = "confirm_result"
-        save_result
-        save!
-        return
-      elsif was_playing && playing?
-        # Still playing (end_of_set! wasn't called yet)
-        end_of_set! if may_end_of_set?
-        # Set panel_state to show protocol_final modal for result review
-        self.panel_state = "protocol_final"
-        self.current_element = "confirm_result"
+      if was_playing && (playing? || set_over?)
+        end_of_set! if playing? && may_end_of_set?
+        # Check if this is final game end (not just set end in multi-set match)
+        is_final_game_end = !is_multi_set_match? || is_match_decided?
+        if is_final_game_end
+          # Show protocol_final modal for result review at real game end
+          self.panel_state = "protocol_final"
+          self.current_element = "confirm_result"
+        end
         save_result
         save!
         return
