@@ -21,7 +21,7 @@
   
   <!-- Backdrop -->
   <div class="modal-backdrop absolute inset-0 bg-black bg-opacity-70"
-       <%= unless is_final_mode %>data-reflex="click->GameProtocolReflex#close_protocol"<% end %>
+       <%- unless is_final_mode %>data-reflex="click->GameProtocolReflex#close_protocol"<%- end %>
        data-id="<%= table_monitor.id %>"></div>
   
   <!-- Modal Content -->
