@@ -237,7 +237,8 @@ class TableMonitor < ApplicationRecord
     "final_match_score" => "game_state",
     "ready_for_new_match" => "game_state",
     "show_results" => "game_state",
-    "warning" => "ok"
+    "warning" => "ok",
+    "protocol_final" => "confirm_result"
   }.freeze
   NNN = "db" # store nnn in database table_monitor
 
@@ -670,7 +671,14 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
   end
 
   def protocol_modal_should_be_open?
-    panel_state == "protocol" || panel_state == "protocol_edit"
+    panel_state == "protocol" || panel_state == "protocol_edit" || panel_state == "protocol_final"
+  rescue StandardError => e
+    Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
+    false
+  end
+
+  def final_protocol_modal_should_be_open?
+    panel_state == "protocol_final"
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     false
@@ -1461,7 +1469,7 @@ data[\"allow_overflow\"].present?")
     elsif numbers_modal_should_be_open?
       new_panel_state = "numbers"
     elsif set_over? || final_set_score?
-      new_panel_state = "show_results"
+      new_panel_state = "protocol_final"
     end
     if new_panel_state.present?
       new_current_element = TableMonitor::DEFAULT_ENTRY[new_panel_state]
