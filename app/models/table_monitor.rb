@@ -2032,6 +2032,9 @@ data[\"allow_overflow\"].present?")
       end_of_set! if playing? && simple_set_game? && may_end_of_set?
       if playing?
         end_of_set! if may_end_of_set?
+        # Set panel_state to show protocol_final modal for result review
+        self.panel_state = "protocol_final"
+        self.current_element = "confirm_result"
         save_result
         save!
         return
