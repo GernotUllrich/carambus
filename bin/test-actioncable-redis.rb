@@ -157,3 +157,4 @@ puts "To enable detailed logging in browser console:"
 puts "  localStorage.setItem('debug_cable_performance', 'true')"
 puts
 
+

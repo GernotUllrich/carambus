@@ -94,3 +94,4 @@ ssh -N -L 9222:localhost:9222 pi@192.168.178.81
 
 With these approaches—especially Option 3—you can review the Raspberry Pi client’s console output directly from your desktop without physically touching the scoreboard hardware.
 
+

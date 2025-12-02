@@ -328,3 +328,4 @@ The documentation is ready for use, with the main gap being the actual screensho
 **Next Step:** Capture screenshots from running application
 
 
+

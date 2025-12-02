@@ -206,3 +206,4 @@ Mögliche Erweiterungen:
 - [Stimulus Lifecycle Callbacks](https://stimulus.hotwired.dev/reference/lifecycle-callbacks)
 - [Turbo Events](https://turbo.hotwired.dev/reference/events)
 
+

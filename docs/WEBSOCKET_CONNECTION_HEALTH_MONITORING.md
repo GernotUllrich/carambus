@@ -535,3 +535,4 @@ bundle exec rake cable:force_reconnect REASON="manual_test"
 **Status**: ✅ Implementiert, bereit für Testing  
 **Nächster Schritt**: Testing auf Raspi 3
 
+

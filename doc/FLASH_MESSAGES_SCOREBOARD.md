@@ -146,3 +146,4 @@ Falls weitere Scoreboard-Views Flash-Messages benötigen, einfach das Partial hi
 - Flash-Messages in `scoreboard_start.html.erb` integriert
 - Dokumentation erstellt
 
+
