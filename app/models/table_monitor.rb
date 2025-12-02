@@ -2055,13 +2055,10 @@ data[\"allow_overflow\"].present?")
       end_of_set! if playing? && simple_set_game? && may_end_of_set?
       if was_playing && (playing? || set_over?)
         end_of_set! if playing? && may_end_of_set?
-        # Check if this is final game end (not just set end in multi-set match)
-        is_final_game_end = !is_multi_set_match? || is_match_decided?
-        if is_final_game_end
-          # Show protocol_final modal for result review at real game end
-          self.panel_state = "protocol_final"
-          self.current_element = "confirm_result"
-        end
+        # Show protocol_final modal for result review at EVERY set end
+        # (both for single-set games and multi-set games)
+        self.panel_state = "protocol_final"
+        self.current_element = "confirm_result"
         save_result
         save!
         return
