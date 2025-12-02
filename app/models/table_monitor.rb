@@ -2029,8 +2029,18 @@ data[\"allow_overflow\"].present?")
   def evaluate_result
     debug = true # true
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
+      # Check if we're about to transition from playing to set_over
+      was_playing = playing?
       end_of_set! if playing? && simple_set_game? && may_end_of_set?
-      if playing?
+      if was_playing && set_over?
+        # Just transitioned to set_over - show protocol_final modal for result review
+        self.panel_state = "protocol_final"
+        self.current_element = "confirm_result"
+        save_result
+        save!
+        return
+      elsif was_playing && playing?
+        # Still playing (end_of_set! wasn't called yet)
         end_of_set! if may_end_of_set?
         # Set panel_state to show protocol_final modal for result review
         self.panel_state = "protocol_final"
