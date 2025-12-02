@@ -426,13 +426,16 @@ class TableMonitor < ApplicationRecord
 
   def set_game_over
     if DEBUG
-      Rails.logger.info "--------------m6[#{id}]------->>> set_game_over <<<------------------------------------------"
+      Rails.logger.info "--------------m6[#{id}]------->>> set_game_over (state=#{state}) <<<------------------------------------------"
     end
     
-    # Always set panel_state to protocol_final for game end review
-    assign_attributes(panel_state: "protocol_final", current_element: "confirm_result")
-    data_will_change!
-    save
+    # Only show protocol_final modal when entering set_over state ("Partie beendet - OK?")
+    # Not when entering final_set_score ("Ergebnis erfasst") or final_match_score
+    if state == "set_over"
+      assign_attributes(panel_state: "protocol_final", current_element: "confirm_result")
+      data_will_change!
+      save
+    end
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
     raise StandardError
