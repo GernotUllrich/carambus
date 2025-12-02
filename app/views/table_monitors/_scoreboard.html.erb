@@ -1,4 +1,4 @@
-<style>
+ <style>
     .display-only .hide-on-display-only {
         display: none
     }
@@ -24,12 +24,12 @@
 <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
 <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
 <%- time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars = options[:timer_data] if fullscreen %>
-<div class="fullscreen flex flex-col h-full  rounded shadow" 
-     data-table-monitor-root="scoreboard" 
+<div class="fullscreen flex flex-col h-full  rounded shadow"
+     data-table-monitor-root="scoreboard"
      data-table-monitor-id="<%= table_monitor.id %>">
   <!-- Connection Status Indicator -->
-  <div id="connection-status-indicator" 
-       class="connection-status connection-status-healthy" 
+  <div id="connection-status-indicator"
+       class="connection-status connection-status-healthy"
        title="Connection: healthy"></div>
   <%- showing_timer_a = (left_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
   <%- showing_timer_b = (right_player_active && table_monitor.playing? && table_monitor.timer_finish_at.present? && ((table_monitor.tournament_monitor.present? && table_monitor.tournament_monitor.timeout > 0) || table_monitor.tournament_monitor.blank? && table_monitor.data["timeout"] > 0)) ? "" : "hidden" %>
@@ -97,7 +97,7 @@
             <%- end %>
           <%- end %>
         </div>
-        <%- if table_monitor.state_display(I18n.locale).present? %>
+        <%- if table_monitor.state_display(I18n.locale).present? && !table_monitor.final_match_score? %>
           <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
           text-center dark:bg-black" do %>
             <%= "zurück" %>

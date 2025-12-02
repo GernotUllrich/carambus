@@ -168,3 +168,4 @@ TableMonitorJob.perform_later(self, "")  # Triggert else-Branch = Full Screen Up
 - Development Logging wird in `log/development.log` geschrieben (für grep)
 - Browser Console zeigt 📥 CableReady Operations
 
+
