@@ -425,12 +425,12 @@ class TableMonitor < ApplicationRecord
   end
 
   def set_game_over
-    return unless remote_control_detected
-
     if DEBUG
       Rails.logger.info "--------------m6[#{id}]------->>> set_game_over <<<------------------------------------------"
     end
-    assign_attributes(current_element: "game_state")
+    
+    # Always set panel_state to protocol_final for game end review
+    assign_attributes(panel_state: "protocol_final", current_element: "confirm_result")
     data_will_change!
     save
   rescue StandardError => e
