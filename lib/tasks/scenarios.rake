@@ -1735,12 +1735,6 @@ ENV
       return true
     end
 
-    # Check if carambus_api_development exists locally
-    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
-      puts "   ℹ️  carambus_api_development not found locally - skipping sync"
-      return true
-    end
-
     # Load carambus_api configuration to get API server SSH details
     api_config_file = File.join(scenarios_path, 'carambus_api', 'config.yml')
     unless File.exist?(api_config_file)
@@ -1750,7 +1744,7 @@ ENV
     end
     api_config = YAML.load_file(api_config_file)
 
-    # Check if carambus_api_production exists on remote API server
+    # Get API server SSH details
     api_ssh_host = api_config.dig('environments', 'production', 'ssh_host')
     api_ssh_port = api_config.dig('environments', 'production', 'ssh_port') || '22'
     if api_ssh_host.nil? || api_ssh_host.empty?
@@ -1758,6 +1752,22 @@ ENV
       return false
     end
     puts "   🔍 Checking API server at #{api_ssh_host}:#{api_ssh_port}"
+
+    # Check if carambus_api_development exists locally
+    local_db_exists = system("psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development")
+    
+    unless local_db_exists
+      # BOOTSTRAP: carambus_api_development doesn't exist locally - need to create it
+      puts "   ⚠️  carambus_api_development not found locally - BOOTSTRAP required!"
+      puts ""
+      puts "   🔄 Bootstrap: Creating carambus_api_development from API server..."
+      puts "   This is required because scenario databases are created from carambus_api_development."
+      puts ""
+      
+      return bootstrap_api_development_database(api_ssh_host, api_ssh_port)
+    end
+
+    # Check if carambus_api_production exists on remote API server
     unless system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
       puts "   ℹ️  carambus_api_production not found on remote server - skipping sync"
       return true
@@ -1828,6 +1838,97 @@ ENV
       puts "   ℹ️  Local carambus_api_development has newer official versions (#{local_version} > #{remote_version}) - no sync needed"
     end
 
+    true
+  end
+
+  # Bootstrap carambus_api_development from API server when it doesn't exist locally
+  # This compares carambus_api_development and carambus_api_production on the API server
+  # and uses whichever has the higher Version.last.id (more recent data)
+  def bootstrap_api_development_database(api_ssh_host, api_ssh_port)
+    puts "   🔍 Determining best source database on API server..."
+    
+    # Check which databases exist on remote server
+    remote_dev_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_development'")
+    remote_prod_exists = system("ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw carambus_api_production'")
+    
+    unless remote_dev_exists || remote_prod_exists
+      puts "   ❌ Neither carambus_api_development nor carambus_api_production found on API server!"
+      puts "   ❌ Cannot bootstrap - no source database available."
+      puts ""
+      puts "   🔧 Manual solution:"
+      puts "   1. Ensure at least one database exists on the API server (#{api_ssh_host})"
+      puts "   2. Or restore from a database dump file manually:"
+      puts "      createdb carambus_api_development"
+      puts "      gunzip -c /path/to/dump.sql.gz | psql carambus_api_development"
+      return false
+    end
+    
+    # Get Version.last.id from each available remote database
+    remote_dev_version = 0
+    remote_prod_version = 0
+    
+    if remote_dev_exists
+      dev_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
+      remote_dev_version = `#{dev_version_cmd}`.strip.to_i
+      puts "   📊 Remote carambus_api_development Version.last.id: #{remote_dev_version}"
+    else
+      puts "   ℹ️  Remote carambus_api_development does not exist"
+    end
+    
+    if remote_prod_exists
+      prod_version_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres psql -d carambus_api_production -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\"'"
+      remote_prod_version = `#{prod_version_cmd}`.strip.to_i
+      puts "   📊 Remote carambus_api_production Version.last.id: #{remote_prod_version}"
+    else
+      puts "   ℹ️  Remote carambus_api_production does not exist"
+    end
+    
+    # Determine which database to use (higher Version.last.id = more recent)
+    source_db = nil
+    source_version = 0
+    
+    if remote_prod_version > remote_dev_version
+      source_db = 'carambus_api_production'
+      source_version = remote_prod_version
+      puts "   🎯 Using carambus_api_production (Version.last.id: #{remote_prod_version} > #{remote_dev_version})"
+    elsif remote_dev_exists
+      source_db = 'carambus_api_development'
+      source_version = remote_dev_version
+      if remote_prod_exists
+        puts "   🎯 Using carambus_api_development (Version.last.id: #{remote_dev_version} >= #{remote_prod_version})"
+      else
+        puts "   🎯 Using carambus_api_development (only available source)"
+      end
+    else
+      source_db = 'carambus_api_production'
+      source_version = remote_prod_version
+      puts "   🎯 Using carambus_api_production (only available source)"
+    end
+    
+    puts ""
+    puts "   📥 Creating local carambus_api_development from remote #{source_db}..."
+    puts "   ⏳ This may take several minutes depending on database size and network speed..."
+    
+    # Create local database
+    unless system("createdb carambus_api_development")
+      puts "   ❌ Failed to create local carambus_api_development database"
+      return false
+    end
+    
+    # Copy data from remote source to local development
+    dump_cmd = "ssh -p #{api_ssh_port} www-data@#{api_ssh_host} 'sudo -u postgres pg_dump #{source_db}' | psql carambus_api_development"
+    unless system(dump_cmd)
+      puts "   ❌ Failed to download database from API server"
+      system("dropdb carambus_api_development")
+      return false
+    end
+    
+    puts "   ✅ Successfully created local carambus_api_development from #{source_db}"
+    puts "   📊 Version.last.id: #{source_version}"
+    puts ""
+    puts "   ℹ️  Note: This is a one-time bootstrap operation."
+    puts "   ℹ️  Future runs will sync carambus_api_development with carambus_api_production if newer."
+    
     true
   end
 

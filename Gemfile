@@ -101,6 +101,8 @@ gem "strong_migrations", "~> 0.7.6"
 group :development do
   gem "letter_opener_web", "~> 3.0"
   gem "aasm-diagram", require: false
+  # Required for ActiveSupport::EventedFileUpdateChecker (file watching in development)
+  gem "listen", "~> 3.9"
   gem "capistrano", "~> 3.19.2"
   gem "capistrano-bundler"
   gem "capistrano-rails"

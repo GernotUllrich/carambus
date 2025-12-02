@@ -104,10 +104,66 @@ config.yml → prepare_development → prepare_deploy → deploy
 
 ## Database Flow Explanation
 
+### Bootstrap: When carambus_api_development Doesn't Exist
+
+When neither `carambus_api_development` nor `carambus_api_production` exist locally, the system automatically performs a **bootstrap**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ BOOTSTRAP (automatic during prepare_development)            │
+│                                                             │
+│ 1. Check: Does carambus_api_development exist locally?      │
+│    → NO: Bootstrap required                                 │
+│                                                             │
+│ 2. Check API server (via SSH):                              │
+│    a) carambus_api_development Version.last.id              │
+│    b) carambus_api_production Version.last.id               │
+│                                                             │
+│ 3. Choose source with higher Version.last.id (= newer)      │
+│    → Higher ID = more recent data                           │
+│                                                             │
+│ 4. Create local carambus_api_development:                   │
+│    ssh ... 'pg_dump [source_db]' | psql carambus_api_dev    │
+│                                                             │
+│ 5. ✅ Bootstrap complete - continue with normal flow        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Example output:**
+```
+🔄 Step 6: Checking for newer carambus_api_production data...
+   ⚠️  carambus_api_development not found locally - BOOTSTRAP required!
+   
+   🔄 Bootstrap: Creating carambus_api_development from API server...
+   🔍 Determining best source database on API server...
+   📊 Remote carambus_api_development Version.last.id: 12345678
+   📊 Remote carambus_api_production Version.last.id: 12350000
+   🎯 Using carambus_api_production (Version.last.id: 12350000 > 12345678)
+   
+   📥 Creating local carambus_api_development from remote carambus_api_production...
+   ⏳ This may take several minutes depending on database size and network speed...
+   ✅ Successfully created local carambus_api_development from carambus_api_production
+   📊 Version.last.id: 12350000
+```
+
+**Important:** The bootstrap is a one-time operation. Afterwards, the system automatically syncs with `carambus_api_production` when newer data is available there.
+
 ### Source → Development → Production
 
 ```
 carambus_api_development (mother database)
+         ↑
+    ┌────┴────────────────────────────────┐
+    │ Bootstrap (if not present)          │
+    │ → Choose newer: api_dev vs api_prod │
+    │ → Download via SSH + pg_dump        │
+    └─────────────────────────────────────┘
+         ↑
+    ┌────┴────────────────────────────────┐
+    │ Sync (if api_prod is newer)         │
+    │ → Compare Version.last.id           │
+    │ → Update if production is newer     │
+    └─────────────────────────────────────┘
                     ↓
     ┌─────────────────────────────────────┐
     │ prepare_development                 │
@@ -115,7 +171,8 @@ carambus_api_development (mother database)
     │ 2. Region-Filtering (NBV only)      │
     │ 3. Set last_version_id              │
     │ 4. Reset version sequence (50000000+)│
-    │ 5. Create dump                      │
+    │ 5. Remove old versions (keep last)  │
+    │ 6. Create dump                      │
     └─────────────────────────────────────┘
                     ↓
 carambus_scenarioname_development (processed)
