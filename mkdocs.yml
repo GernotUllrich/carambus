@@ -51,7 +51,6 @@ plugins:
             Scoreboard Setup: Scoreboard Setup
             Scoreboard Benutzerhandbuch: Scoreboard User Guide
             Pool Scoreboard: Pool Scoreboard
-            Spieltagabwicklung (PartyMonitor): Match Day Management (PartyMonitor)
             KI-gestützte Suche: AI-Powered Search
             Entwicklerhandbuch: Developer Guide
             Getting Started: Getting Started
@@ -96,7 +95,6 @@ nav:
       - Scoreboard Setup: scoreboard_autostart_setup.md
       - Scoreboard Benutzerhandbuch: scoreboard_benutzerhandbuch.md
       - Pool Scoreboard: pool_scoreboard_benutzerhandbuch.de.md
-      - Spieltagabwicklung (PartyMonitor): party_monitor_benutzerhandbuch.de.md
       - KI-gestützte Suche: ai_search.md
   - Entwicklerhandbuch:
       - Getting Started: GETTING_STARTED_DEVELOPER.md
