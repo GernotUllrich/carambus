@@ -53,6 +53,15 @@ Der Willkommensbildschirm ist der Startpunkt für alle Scoreboard-Aktivitäten. 
 - **Tisch auswählen** - Für Trainingsspiele
 - **Spielstände anzeigen** - Übersicht laufender Spiele
 
+### Tischübersicht
+
+Nach Auswahl von "Training" erscheint die Tischübersicht mit allen verfügbaren Pool- und Snooker-Tischen:
+
+![Tischübersicht](screenshots/pool_tables_overview.png)
+
+- **Blaue Buttons**: Freie Tische
+- **Spielernamen**: Tische mit laufenden Spielen
+
 ---
 
 ## Pool-Disziplinen im Überblick
@@ -142,6 +151,20 @@ Das anspruchsvollste Pool-Spiel:
 **Klickbare Bereiche:**
 - **Score des aktiven Spielers** (67): Klick = +1 Punkt
 - **Score des inaktiven Spielers** (52): Klick = Spielerwechsel
+
+### 14.1 endlos Scoreboard in Aktion
+
+![14.1 endlos Scoreboard - Spielstart](screenshots/pool_14_1_scoreboard_start.png)
+
+*Spielstart: Beide Spieler bei 0, 15 Bälle auf dem Tisch*
+
+![14.1 endlos Scoreboard - Während des Spiels](screenshots/pool_14_1_scoreboard_playing.png)
+
+*Während des Spiels: Spieler A (grüner Rahmen) ist aktiv, hat 6 Punkte, 9 Bälle verbleiben*
+
+![14.1 endlos Scoreboard - Nach Spielerwechsel](screenshots/pool_14_1_after_switch.png)
+
+*Nach Spielerwechsel: Spieler B (grüner Rahmen) ist jetzt aktiv, GD und HS wurden aktualisiert*
 
 ### Anzeigeelemente für 14.1 endlos
 
@@ -378,6 +401,10 @@ Je nach Disziplin:
 ## Quickstart-Spiele
 
 ### Pool-Presets
+
+![Pool Quickstart Buttons](screenshots/pool_quickstart_buttons.png)
+
+*Schnellauswahl für Pool-Spiele: 8-Ball, 9-Ball, 10-Ball und 14.1 endlos*
 
 Für schnelles Starten ohne viele Einstellungen:
 
