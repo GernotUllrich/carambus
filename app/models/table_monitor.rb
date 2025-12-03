@@ -2048,7 +2048,7 @@ data[\"allow_overflow\"].present?")
     }
 
     deep_merge_data!(options)
-    assign_attributes(state: "playing")
+    assign_attributes(state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
     save!
   rescue StandardError => e
     Rails.logger.info "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}" if DEBUG
@@ -2060,11 +2060,31 @@ data[\"allow_overflow\"].present?")
     if (playing? || set_over? || final_set_score? || final_match_score?) && end_of_set?
       # Remember if we were playing before any state transition
       was_playing = playing?
-      end_of_set! if playing? && simple_set_game? && may_end_of_set?
-      if was_playing && (playing? || set_over?)
+      is_simple_set = simple_set_game?
+      
+      # For simple set games (8-Ball, 9-Ball, 10-Ball), handle set end differently:
+      # - Don't show protocol modal after each set
+      # - Automatically switch to next set
+      # - Only show modal when match is won
+      if is_simple_set && was_playing && may_end_of_set?
+        end_of_set!
+        save_current_set
+        max_number_of_wins = get_max_number_of_wins
+        if max_number_of_wins >= data["sets_to_win"].to_i
+          # Match is over - show final result modal
+          self.panel_state = "protocol_final"
+          self.current_element = "confirm_result"
+          save!
+          return
+        else
+          # More sets to play - switch to next set automatically (no modal)
+          switch_to_next_set
+          return
+        end
+      elsif was_playing && !is_simple_set
         end_of_set! if playing? && may_end_of_set?
         # Show protocol_final modal for result review at EVERY set end
-        # (both for single-set games and multi-set games)
+        # (for innings-based games like Karambol, 14.1 endlos)
         self.panel_state = "protocol_final"
         self.current_element = "confirm_result"
         save_result
