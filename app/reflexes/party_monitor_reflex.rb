@@ -269,6 +269,14 @@ class PartyMonitorReflex < ApplicationReflex
         #   :first_break_choice
         # ]
         row_type = row[:type] == "14/1e" ? "14.1 endlos" : row[:type]
+        # Extract numeric score from strings like "Hauptrunde 80" or just use the value if it's already a number
+        score_value = row[:score]
+        if score_value.is_a?(String)
+          # Extract the last number from the string (e.g., "Hauptrunde 80" -> 80)
+          score_value = score_value.scan(/\d+/).last.to_i
+        end
+        score_value = score_value.to_i if score_value.present?
+        
         essential_game_options = {
           # tournament: @party,
           gname: "#{row[:seqno]}-#{row[:type]}",
@@ -284,11 +292,11 @@ class PartyMonitorReflex < ApplicationReflex
           player_b_id: row[:player_b],
           discipline_a: row_type,
           discipline_b: row_type,
-          sets_to_win: row[:sets],
-          points_choice: row[:score],
-          balls_goal_a: row[:score],
-          balls_goal_b: row[:score],
-          innings_goal: row[:innings],
+          sets_to_win: row[:sets].to_i,
+          points_choice: score_value,
+          balls_goal_a: score_value,
+          balls_goal_b: score_value,
+          innings_goal: row[:innings].to_i,
           first_break_choice: row[:first_break]
         }
         game = @party.games.where(gname: "#{row[:seqno]}-#{row[:type]}").first

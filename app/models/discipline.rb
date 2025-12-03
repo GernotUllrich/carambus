@@ -205,8 +205,8 @@ class Discipline < ApplicationRecord
 
   GAME_PARAMETERS = {
     "14/1e" => {
-      "Punkteziel" => ["score", [30, 40, 50, 65, 75, 100, 125, 150, 200], 125, "score"],
-      "Aufnahmelimit" => ["innings", [0, 20, 25, 30], 0],
+      "Punkteziel" => ["score", [30, 40, 50, 60, 65, 70, 75, 80, 100, 125, 150, 200], 125, "score"],
+      "Aufnahmelimit" => ["innings", [0, 15, 20, 25, 30, 35, 40], 0],
       "Erster Anstoß" => ["first_break", %w[Ausstoßen Heimspieler Gastspieler], "Ausstoßen"]
     },
     "8-Ball" => {

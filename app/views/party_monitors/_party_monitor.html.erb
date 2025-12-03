@@ -144,6 +144,7 @@
                 <td>
                   <h3>Disziplin Parameter</h3>
                   <%- r_no = 0 %>
+                  <%- can_edit_parameters = %w[seeding_mode table_definition_mode next_round_seeding_mode].include?(@party_monitor.state) %>
                   <%- Array(@party_monitor.data["rows"]).each_with_index do |row, row_nr| %>
                     <%- if row[:type] == "Neue Runde" %>
                       <%- r_no += 1 %>
@@ -153,12 +154,19 @@
                       <ul>
                         <%- parameter_values.each do |k, v| %>
                           <%- val = v[3].present? ? row[v[3].to_sym] : nil %>
+                          <%- val ||= row[v[0].to_s] || row[v[0].to_sym] %>
                           <%- val ||= v[2] %>
-                          <li>
-                            <%= k %>: <%= val %> &nbsp;&nbsp;
-                            <%= hidden_field_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", val %>
-                            <%= content_tag(:button, disabled: "disabled", name: "edit", title: "Ändern", data: { turbo: false, reflex: "click->PartyMonitorReflex#edit_parameter", reflex_serialize_form: "true", id: @party_monitor.id, val: val, param_id: "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", 'reflex-dataset': "ancestors" }) do %>
-                              <%= render_svg "icons/edit-pencil", styles: "fill-current icon-sm text-gray-200 inline-block" %>
+                          <%# Extract numeric value from strings like "Hauptrunde 80" for score fields %>
+                          <%- if v[0] == "score" && val.is_a?(String) && val =~ /\d+/ %>
+                            <%- val = val.scan(/\d+/).last.to_i %>
+                          <%- end %>
+                          <li class="flex items-center gap-2 my-1">
+                            <span class="font-medium"><%= k %>:</span>
+                            <%- if can_edit_parameters %>
+                              <%= select_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", options_for_select(v[1], val), class: "form-select form-select-sm inline-block w-auto bg-gray-700 text-white border-gray-600", data: { turbo: false, reflex: "change->PartyMonitorReflex#edit_parameter", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" } %>
+                            <%- else %>
+                              <%= hidden_field_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", val %>
+                              <span class="text-gray-400"><%= val %></span>
                             <%- end %>
                           </li>
                         <%- end %>
