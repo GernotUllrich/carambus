@@ -321,16 +321,22 @@ class PartyMonitorReflex < ApplicationReflex
 
   def reset_party_monitor
     # morph :nothing
+    # 1. Lösche Games der TableMonitors (nur wenn vorhanden)
     @party_monitor.table_monitors.each do |table_monitor|
-      table_monitor.game.destroy
+      table_monitor.game&.destroy
     end
+    # 2. Lösche alle TableMonitors
     @party_monitor.table_monitors.destroy_all
+    # 3. Lösche alle Party-Games
+    @party_monitor.party.games.destroy_all
+    # 4. Lösche Test-Seedings (nur die mit hohen IDs)
     @party_monitor.party.seedings.where("id > 5000000").destroy_all
+    # 5. Setze den PartyMonitor zurück
     @party_monitor.reset_party_monitor
     flash[:notice] = "Party Monitor komplett zurückgesetzt"
   rescue StandardError => e
-    Rails.logger.info "#{e} #{e.backtrace}"
-    raise StandardError
+    Rails.logger.info "reset_party_monitor error: #{e} #{e.backtrace}"
+    flash[:alert] = "Fehler beim Zurücksetzen: #{e.message}"
   end
 
   def close_party
