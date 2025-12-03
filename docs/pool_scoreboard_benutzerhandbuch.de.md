@@ -121,7 +121,7 @@ Das anspruchsvollste Pool-Spiel:
 ┌─────────────────────────────────────────────────────┐
 │  [Dark Mode] [Undo] [Redo] [Home] [Beenden]         │
 │                                                       │
-│  Spieler A                          Spieler B        │
+│  Spieler A (aktiv)                  Spieler B        │
 │  ┌─────────────────┐              ┌─────────────────┐│
 │  │  Aufnahme: 12   │              │  Aufnahme: --   ││
 │  │                 │              │                 ││
@@ -129,8 +129,8 @@ Das anspruchsvollste Pool-Spiel:
 │  │  GD: 8.50       │              │  GD: 6.20       ││
 │  │  HS: 23         │              │  HS: 18         ││
 │  │                 │              │                 ││
-│  │      67         │              │      52         ││
-│  │                 │              │                 ││
+│  │      67  ←──────│──────────────│───── 52         ││
+│  │   (klick=+1)    │              │  (klick=wechsel)││
 │  └─────────────────┘              └─────────────────┘│
 │                                                       │
 │  Aufnahmen-Stack: 15 | 29 | 43 | 57 | 67             │
@@ -138,6 +138,10 @@ Das anspruchsvollste Pool-Spiel:
 │  [0][1][2][3][4][5][6][7][8][9][10][11][12][13][14][15] [F1] [F2] │
 └─────────────────────────────────────────────────────┘
 ```
+
+**Klickbare Bereiche:**
+- **Score des aktiven Spielers** (67): Klick = +1 Punkt
+- **Score des inaktiven Spielers** (52): Klick = Spielerwechsel
 
 ### Anzeigeelemente für 14.1 endlos
 
@@ -185,16 +189,43 @@ Die untere Leiste zeigt Bälle von 0 bis 15:
 
 #### Punkte eintragen
 
-**Methode 1: Ball-Klick (empfohlen)**
+**Methode 1: Ball-Klick (empfohlen für mehrere Bälle)**
 
 Klicken Sie auf den Ball, der der Anzahl der **verbleibenden** Bälle auf dem Tisch entspricht:
 
 - Beispiel: 12 Bälle auf dem Tisch → Klick auf Ball "12"
 - Das System berechnet automatisch die versenkten Bälle
 
-**Methode 2: Direkte Eingabe**
+**Methode 2: Klick auf den eigenen Score (+1 Punkt)**
+
+Für einzelne Punkte können Sie direkt auf den **Punktestand des aktiven Spielers** klicken:
+
+- Klicken Sie auf die große Punktzahl des aktiven Spielers
+- Jeder Klick fügt **+1 Punkt** hinzu
+- Ideal für schnelle Einzelpunkt-Eingaben
+
+**Methode 3: Direkte Eingabe**
 
 Für größere Serien können Sie auch die Zahlen-Eingabe verwenden.
+
+#### Spielerwechsel
+
+**Methode 1: Klick auf den Score des anderen Spielers**
+
+Der einfachste Weg zum Spielerwechsel:
+
+- Klicken Sie auf die **Punktzahl des nicht-aktiven Spielers**
+- Der Spieler wechselt sofort
+- Die aktuelle Aufnahme wird abgeschlossen
+- Der grüne Rahmen wechselt zum neuen aktiven Spieler
+
+**Methode 2: Automatischer Wechsel**
+
+Nach einer Aufnahme ohne Erfolg:
+- Der aktive Spieler wechselt automatisch
+- Der grüne Rahmen zeigt den neuen aktiven Spieler
+
+> **Tipp:** Der Klick auf den gegnerischen Score ist die schnellste Methode für den Spielerwechsel und wird von erfahrenen Schiedsrichtern bevorzugt.
 
 #### Neuaufbau (Rerack)
 
@@ -219,22 +250,30 @@ Wenn Sie auf **Ball 1** oder **Ball 0** klicken:
 - Typisch für misslungene Eröffnungsstöße
 - Klicken Sie auf den **F2**-Button
 
-#### Spielerwechsel
-
-Nach einer Aufnahme ohne Erfolg:
-- Der aktive Spieler wechselt automatisch
-- Der grüne Rahmen zeigt den neuen aktiven Spieler
-
 ### Beispiel-Spielablauf 14.1 endlos
 
 1. **Start**: Beide Spieler haben 0 Punkte, 15 Bälle auf dem Tisch
-2. **Spieler A** versenkt 5 Bälle → Klick auf "10" (10 Bälle übrig)
-3. **Spieler A** versenkt weitere 4 Bälle → Klick auf "6" (6 Bälle übrig)
-4. **Spieler A** versenkt weitere 5 Bälle → Klick auf "1" (Neuaufbau!)
+2. **Spieler A** versenkt 5 Bälle → Klick auf Ball "10" (10 Bälle übrig)
+3. **Spieler A** versenkt weitere 4 Bälle → Klick auf Ball "6" (6 Bälle übrig)
+4. **Spieler A** versenkt weitere 5 Bälle → Klick auf Ball "1" (Neuaufbau!)
    - Stack zeigt: `14`
    - Ball-Zähler: 15
-5. **Spieler A** verschießt → Spielerwechsel
-6. **Spieler B** beginnt seine Aufnahme...
+5. **Spieler A** verschießt → Klick auf **Score von Spieler B** → Spielerwechsel
+6. **Spieler B** versenkt 1 Ball → Klick auf **eigenen Score** (+1 Punkt)
+7. **Spieler B** versenkt noch 1 Ball → Klick auf **eigenen Score** (+1 Punkt)
+8. **Spieler B** verschießt → Klick auf **Score von Spieler A** → Spielerwechsel
+9. Usw.
+
+### Eingabe-Zusammenfassung
+
+| Aktion | Eingabe |
+|--------|---------|
+| **+1 Punkt** | Klick auf eigenen Score |
+| **+X Punkte** | Klick auf Ball mit verbleibender Anzahl |
+| **Spielerwechsel** | Klick auf gegnerischen Score |
+| **Foul (-1)** | Klick auf F1 |
+| **Break-Foul (-2)** | Klick auf F2 (nur bei 15 Bällen) |
+| **Neuaufbau** | Klick auf Ball 0 oder 1 |
 
 ---
 
