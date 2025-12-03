@@ -1,0 +1,121 @@
+<%# Set Protocol Table - For simple set games (8-Ball, 9-Ball, 10-Ball) %>
+<%# Shows set-by-set results instead of innings %>
+
+<%- 
+  sets = Array(table_monitor.data["sets"])
+  sets_to_win = table_monitor.data["sets_to_win"].to_i
+  player_a_name = history[:player_a][:shortname] || history[:player_a][:name]
+  player_b_name = history[:player_b][:shortname] || history[:player_b][:name]
+  
+  # Calculate running totals
+  total_a = 0
+  total_b = 0
+  
+  # Current set in progress (if any)
+  current_set_a = table_monitor.data.dig('playera', 'result').to_i
+  current_set_b = table_monitor.data.dig('playerb', 'result').to_i
+  has_current_set = (current_set_a > 0 || current_set_b > 0) && !table_monitor.set_over?
+%>
+
+<div class="set-protocol p-4">
+  <%- if sets.empty? && !has_current_set %>
+    <!-- No sets played yet -->
+    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div class="text-4xl mb-4">🎱</div>
+      <p class="text-lg">Noch keine Sätze gespielt</p>
+      <p class="text-sm mt-2">Gewinnspiele: <%= sets_to_win %></p>
+    </div>
+  <%- else %>
+    <!-- Set Results Table -->
+    <table class="w-full border-collapse">
+      <thead class="bg-gray-100 dark:bg-gray-800">
+        <tr>
+          <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-b-2 border-gray-300 dark:border-gray-600">
+            Satz
+          </th>
+          <th class="py-3 px-6 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-30 border-b-2 border-gray-300 dark:border-gray-600">
+            <%= player_a_name %>
+          </th>
+          <th class="py-3 px-6 text-center text-sm font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900 dark:bg-opacity-30 border-b-2 border-gray-300 dark:border-gray-600">
+            <%= player_b_name %>
+          </th>
+          <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-b-2 border-gray-300 dark:border-gray-600">
+            Stand
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-900 dark:text-gray-100">
+        <%- sets.each_with_index do |set, idx| %>
+          <%- 
+            # Extract set winner from set data
+            set_winner_a = set["Ergebnis1"].to_i > set["Ergebnis2"].to_i
+            set_winner_b = set["Ergebnis2"].to_i > set["Ergebnis1"].to_i
+            total_a += 1 if set_winner_a
+            total_b += 1 if set_winner_b
+          %>
+          <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <td class="py-3 px-4 text-center font-medium">
+              <%= idx + 1 %>
+            </td>
+            <td class="py-3 px-6 text-center text-xl <%= set_winner_a ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-400' %> bg-blue-50 dark:bg-blue-900 dark:bg-opacity-10">
+              <%= set_winner_a ? '✓' : '–' %>
+            </td>
+            <td class="py-3 px-6 text-center text-xl <%= set_winner_b ? 'text-green-600 dark:text-green-400 font-bold' : 'text-gray-400' %> bg-green-50 dark:bg-green-900 dark:bg-opacity-10">
+              <%= set_winner_b ? '✓' : '–' %>
+            </td>
+            <td class="py-3 px-4 text-center font-semibold">
+              <%= total_a %>:<%= total_b %>
+            </td>
+          </tr>
+        <%- end %>
+        
+        <%- if has_current_set %>
+          <!-- Current set in progress -->
+          <tr class="border-b border-gray-200 dark:border-gray-700 bg-yellow-50 dark:bg-yellow-900 dark:bg-opacity-20">
+            <td class="py-3 px-4 text-center font-medium text-yellow-700 dark:text-yellow-400">
+              <%= sets.length + 1 %> <span class="text-xs">(läuft)</span>
+            </td>
+            <td class="py-3 px-6 text-center text-xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-10">
+              <%= current_set_a %>
+            </td>
+            <td class="py-3 px-6 text-center text-xl font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-10">
+              <%= current_set_b %>
+            </td>
+            <td class="py-3 px-4 text-center font-semibold text-yellow-700 dark:text-yellow-400">
+              –
+            </td>
+          </tr>
+        <%- end %>
+      </tbody>
+      <tfoot class="bg-gray-200 dark:bg-gray-700">
+        <tr>
+          <td class="py-4 px-4 text-center font-bold text-lg">
+            Gesamt
+          </td>
+          <td class="py-4 px-6 text-center text-2xl font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 dark:bg-opacity-30">
+            <%= total_a %>
+          </td>
+          <td class="py-4 px-6 text-center text-2xl font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 dark:bg-opacity-30">
+            <%= total_b %>
+          </td>
+          <td class="py-4 px-4 text-center font-bold text-lg">
+            <%- if total_a >= sets_to_win %>
+              <span class="text-blue-600 dark:text-blue-400">🏆 Sieg</span>
+            <%- elsif total_b >= sets_to_win %>
+              <span class="text-green-600 dark:text-green-400">🏆 Sieg</span>
+            <%- else %>
+              von <%= sets_to_win %>
+            <%- end %>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+    
+    <!-- Legend -->
+    <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <span class="mr-4">✓ = Satz gewonnen</span>
+      <span>– = Satz verloren</span>
+    </div>
+  <%- end %>
+</div>
+
