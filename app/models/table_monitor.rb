@@ -193,6 +193,9 @@ class TableMonitor < ApplicationRecord
     return false if @collected_data_changes.blank?
     return false if @collected_changes.present?
 
+    # 14.1 endlos requires full updates due to complex ball display and counter stack
+    return false if discipline == "14.1 endlos"
+
     # Flatten all keys from collected changes
     all_keys = @collected_data_changes.flat_map(&:keys).uniq
 
@@ -213,6 +216,9 @@ class TableMonitor < ApplicationRecord
   def simple_score_update?
     return false if @collected_data_changes.blank?
     return false if @collected_changes.present?
+
+    # 14.1 endlos requires full updates due to complex ball display and counter stack
+    return false if discipline == "14.1 endlos"
 
     # Flatten all keys from collected changes
     all_keys = @collected_data_changes.flat_map(&:keys).uniq
@@ -1097,8 +1103,10 @@ finish_at: #{[active_timer, start_at, finish_at].inspect}"
     innings_sum = data[current_role]["innings_list"]&.sum.to_i
     other_player = current_role == "playera" ? "playerb" : "playera"
     other_innings_sum = data[other_player]["innings_list"]&.sum.to_i
-    total_sum = innings_sum + other_innings_sum +
-      data[current_role]["innings_redo_list"][-1].to_i - data["extra_balls"].to_i
+    # Include current inning balls from both players for correct balls_on_table calculation
+    current_redo = data[current_role]["innings_redo_list"]&.last.to_i
+    other_redo = data[other_player]["innings_redo_list"]&.last.to_i
+    total_sum = innings_sum + other_innings_sum + current_redo + other_redo - data["extra_balls"].to_i
     data["balls_on_table"] = 15 - ((total_sum % 14).zero? ? 0 : total_sum % 14)
     data[current_role]["result"] =
       innings_sum + data[current_role]["innings_foul_list"].to_a.sum +
