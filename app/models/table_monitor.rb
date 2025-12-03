@@ -2145,28 +2145,48 @@ data[\"allow_overflow\"].present?")
     # (start_game does 3 saves which would trigger 6 background jobs otherwise)
     self.skip_update_callbacks = true
 
-    # Unlink any existing game from this table monitor (preserve game history)
-    if game.present?
-      existing_game_id = game.id
-      game.update(table_monitor: nil)
-      Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
-    end
+    # Check if we have an existing Party/Tournament game that should be preserved
+    existing_party_game = game if game.present? && game.tournament_type.present?
+    
+    if existing_party_game.present?
+      # Use the existing Party/Tournament game - don't create a new one
+      @game = existing_party_game
+      Rails.logger.info "Using existing #{game.tournament_type} game #{@game.id} for table monitor #{id}" if DEBUG
+      
+      # Update or create game participations
+      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      gp_a = @game.game_participations.find_or_initialize_by(role: "playera")
+      gp_a.update!(player: team)
+      
+      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      gp_b = @game.game_participations.find_or_initialize_by(role: "playerb")
+      gp_b.update!(player: team)
+    else
+      # Unlink any existing game from this table monitor (preserve game history)
+      if game.present?
+        existing_game_id = game.id
+        game.update(table_monitor: nil)
+        Rails.logger.info "Unlinked existing game #{existing_game_id} from table monitor #{id}" if DEBUG
+      end
 
-    # Create a new game for this table monitor
-    @game = Game.new(table_monitor: self)
-    reload
-    @game.update(data: {})
-    players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
-    team = Player.team_from_players(players)
-    GameParticipation.create!(
-      game_id: @game.id, player: team, role: "playera"
-    )
-    @game.save
-    players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
-    team = Player.team_from_players(players)
-    GameParticipation.create!(
-      game_id: @game.id, player: team, role: "playerb"
-    )
+      # Create a new game for this table monitor
+      @game = Game.new(table_monitor: self)
+      reload
+      @game.update(data: {})
+      players = Player.where(id: options["player_a_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      GameParticipation.create!(
+        game_id: @game.id, player: team, role: "playera"
+      )
+      @game.save
+      players = Player.where(id: options["player_b_id"]).order(:dbu_nr).to_a
+      team = Player.team_from_players(players)
+      GameParticipation.create!(
+        game_id: @game.id, player: team, role: "playerb"
+      )
+    end
     @game.save
     kickoff_switches_with = options["kickoff_switches_with"].presence || "set"
     color_remains_with_set = options["color_remains_with_set"]
@@ -2372,9 +2392,11 @@ data[\"allow_overflow\"].present?")
       }
       deep_merge_data!("ba_results" => game_ba_result)
       save!
-      if tournament_monitor&.id.blank? && final_set_score? && game.present?
-        game.deep_merge_data!(data)
+      # Save results to the game for both free games and tournament/party games
+      if final_set_score? && game.present?
+        game.deep_merge_data!("ba_results" => data["ba_results"])
         game.save!
+        Rails.logger.info "[prepare_final_game_result] Saved ba_results to game #{game.id}" if DEBUG
       end
     else
       Rails.logger.info "[prepare_final_game_result] m6[#{id}]ignored - no game"
